@@ -7,9 +7,9 @@ function build()
     var defaultWinArch = "ia32";
 
     var options = {
-        runtime: process.env.npm_config_wcjs_runtime || undefined,
-        runtimeVersion: process.env.npm_config_wcjs_runtime_version || undefined,
-        arch: process.env.npm_config_wcjs_arch || undefined
+        runtime: process.env.npm_config_runtime || undefined,
+        runtimeVersion: process.env.npm_config_runtime_version || undefined,
+        arch: process.env.npm_config_arch || undefined
     }
 
     var buildSystem = new cmakeJS.BuildSystem(options);
@@ -25,8 +25,6 @@ function build()
     if (buildSystem.options.arch == undefined && process.platform == "win32") {
         buildSystem.options.arch = defaultWinArch;
     }
-
-    console.log(buildSystem.options)
 
     buildSystem.rebuild();
 }
