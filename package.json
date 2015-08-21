@@ -1,0 +1,17 @@
+{
+  "name": "pc-ble-driver-js",
+  "version": "0.1.0",
+  "description": "Javascript bindings for pc-ble-driver",
+  "main": "index.js",
+  "scripts": {
+    "install": "node build.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bindings": "^1.2.1",
+    "nan": "^1.8.4",
+    "cmake-js": "^1.0.1"
+  }
+}
