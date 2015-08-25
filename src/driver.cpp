@@ -3,10 +3,6 @@
 #include <mutex>
 #include <chrono>
 
-// Needed for sleeping while waiting for watchdog timer and restart of device
-#include <chrono>
-#include <thread>
-
 #include <ble.h>
 #include "driver.h"
 #include "driver_gap.h"
@@ -106,7 +102,8 @@ void sd_rpc_on_log_event(sd_rpc_log_severity_t severity, const char *log_message
     log_entry->message = (char*)message;
     log_entry->severity = severity;
 
-    ((LogQueue*)async_log.data)->push(log_entry);
+    LogQueue *log_queue = ((LogQueue*)async_log.data);
+    log_queue->push(log_entry);
 
     uv_async_send(&async_log);
 }
@@ -322,7 +319,8 @@ void Open(uv_work_t *req) {
     // Setup log related functionality
     driver_log_callback = baton->log_callback; // TODO: do not use a global variable for storing the callback
     uv_async_init(uv_default_loop(), &async_log, on_log_event);
-    async_log.data = new LogQueue();
+    LogQueue *log_queue = new LogQueue();
+    async_log.data = log_queue;
 
     sd_rpc_log_handler_severity_filter_set(baton->log_level);
     sd_rpc_log_handler_set(sd_rpc_on_log_event);
@@ -336,8 +334,8 @@ void Open(uv_work_t *req) {
 
     // Setup event related functionality
     evt_interval = baton->evt_interval;
-    uv_async_init(uv_default_loop(), &async_event, on_rpc_event);
     driver_event_callback = baton->event_callback;
+    uv_async_init(uv_default_loop(), &async_event, on_rpc_event);
     EventQueue *event_queue = new EventQueue();
     async_event.data = event_queue;
 
@@ -453,15 +451,15 @@ NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const v8::Handle<v8::String>&
 
     sd_rpc_log_severity_t log_severity = SD_RPC_LOG_DEBUG;
 
-    if (v8str->Equals(NanNew("debug"))) 
+    if (v8str->Equals(NanNew("debug")))
     {
         log_severity = SD_RPC_LOG_DEBUG;
     }
-    else if (v8str->Equals(NanNew("error"))) 
+    else if (v8str->Equals(NanNew("error")))
     {
         log_severity = SD_RPC_LOG_ERROR;
     }
-    else if (v8str->Equals(NanNew("fatal"))) 
+    else if (v8str->Equals(NanNew("fatal")))
     {
         log_severity = SD_RPC_LOG_FATAL;
     }

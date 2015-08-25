@@ -1,11 +1,10 @@
-// To force GC, use: node --expose-gc
 
-var driver = require('./build/Debug/ble_driver_js');
+var driver = require('./build/Release/ble_driver_js');
 
 var evt_count = 0;
 
-console.log(driver.open(
-    'COM34',
+driver.open(
+    'COM1',
     {
         'baudRate': 115200,
         'parity': 'none',
@@ -36,8 +35,6 @@ console.log(driver.open(
                     console.log("Timeout source: %s", event.src);
                 }
             }
-
-            global.gc();
         }
     },
     function(err) {
@@ -53,9 +50,4 @@ console.log(driver.open(
             }
         });
     }
-));
-
-console.log(process.stdin.read());
-
-//process.stdin.resume();
-//driver.close();
+);
