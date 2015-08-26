@@ -4,17 +4,16 @@ cmake_minimum_required(VERSION 2.8)
 project (ble_driver_js)
 
 # TODO: add support for
-if("$ENV{PC_BLE_DRIVER_BUILD_DIR}" STREQUAL "")
-    message(WARNING "Environment variable PC_BLE_DRIVER_BUILD_DIR not set. The environment variable can point at a custom pc-ble-driver.")
-    set(BLE_DRIVER_LIBRARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/driver)
-    set(BLE_DRIVER_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/driver_include)
+if("$ENV{PC_BLE_DRIVER_DIR}" STREQUAL "")
+    message(WARNING "Environment variable PC_BLE_DRIVER_DIR not set. The environment variable can point at a custom pc-ble-driver.")
+    set(_PC_BLE_DRIVER_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 else()
-    message("AddOn build uses build directory $ENV{PC_BLE_DRIVER_BUILD_DIR}.")
-    file(TO_CMAKE_PATH $ENV{PC_BLE_DRIVER_BUILD_DIR} _PC_BLE_DRIVER_BUILD_DIR)
-
-    set(BLE_DRIVER_INCLUDE_DIR ${_PC_BLE_DRIVER_BUILD_DIR}/release/driver/include)
-    set(BLE_DRIVER_LIBRARY_DIR ${_PC_BLE_DRIVER_BUILD_DIR}/release/driver/lib)
+    message("AddOn build uses build directory $ENV{PC_BLE_DRIVER_DIR}.")
+    file(TO_CMAKE_PATH $ENV{PC_BLE_DRIVER_DIR} _PC_BLE_DRIVER_DIR)
 endif()
+
+set(BLE_DRIVER_INCLUDE_DIR ${_PC_BLE_DRIVER_DIR}/driver/include)
+set(BLE_DRIVER_LIBRARY_DIR ${_PC_BLE_DRIVER_DIR}/driver/lib)
 
 message("Searching for pc-ble-driver library in ${BLE_DRIVER_LIBRARY_DIR}")
 
