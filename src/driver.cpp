@@ -604,7 +604,7 @@ v8::Local<v8::Object> BleUUID128::ToJs()
     char *uuid128string = (char*)malloc(uuid_len);
     uint8_t *ptr = native->uuid128;
 
-    sprintf(uuid128string, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x", ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], ptr[6], ptr[7], ptr[8], ptr[9], ptr[10], ptr[11], ptr[12], ptr[13], ptr[14], ptr[15], ptr[16]);
+    sprintf(uuid128string, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x", ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], ptr[6], ptr[7], ptr[8], ptr[9], ptr[10], ptr[11], ptr[12], ptr[13], ptr[14], ptr[15]);
     obj->Set(NanNew("uuid128"), ConversionUtility::toJsString(uuid128string));
     free(uuid128string);
     return obj;
