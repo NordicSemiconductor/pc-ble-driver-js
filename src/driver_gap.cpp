@@ -288,7 +288,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 for (int i = 0; i < ad_len - 1; i += 2)
                 {
                     char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
-                    sprintf(uuid_as_text, UUID_128_BIT_SPRINTF, 0, uint16_decode((uint8_t*)data + sub_pos + (i * 2)));
+                    sprintf(uuid_as_text, UUID_128_BIT_SPRINTF, 0, uint16_decode((uint8_t*)data + sub_pos + i));
                     uuid_array->Set(NanNew<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
                     free(uuid_as_text);
                     array_pos++;
@@ -307,8 +307,8 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 {
                     char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
                     sprintf(uuid_as_text, UUID_128_BIT_SPRINTF,
-                            uint16_decode((uint8_t*)data + sub_pos + 2 + (i * 4)),
-                            uint16_decode((uint8_t*)data + sub_pos + 0 + (i * 4)));
+                            uint16_decode((uint8_t*)data + sub_pos + 2 + i),
+                            uint16_decode((uint8_t*)data + sub_pos + 0 + i));
                     uuid_array->Set(NanNew<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
                     free(uuid_as_text);
                     array_pos++;
