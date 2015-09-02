@@ -88,6 +88,7 @@ public:
     {
         BleDriverEvent<EventType>::ToJs(obj);
         obj->Set(NanNew("gatt_status"), NanNew(gatt_status));
+        obj->Set(NanNew("gatt_status_name"), NanNew(gatt_status_map[gatt_status]));
         obj->Set(NanNew("error_handle"), NanNew(error_handle));
     }
 
