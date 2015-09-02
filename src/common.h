@@ -6,6 +6,7 @@
 #include <mutex>
 #include <string>
 #include "ble.h"
+#include "ble_hci.h"
 
 #define NAME_MAP_ENTRY(EXP) { EXP, ""#EXP"" }
 #define ERROR_STRING_SIZE 1024
@@ -187,7 +188,7 @@ public:
     static uint8_t  msecsToUnitsUint8(v8::Local<v8::Object>js, char *name, enum ConversionUnits unit);
     static uint8_t  msecsToUnitsUint8(uint8_t msecs, enum ConversionUnits unit);
     static v8::Handle<v8::Value> unitsToMsecs(uint16_t units, enum ConversionUnits unit);
-    
+
     static v8::Handle<v8::Value> toJsNumber(int32_t nativeValue);
     static v8::Handle<v8::Value> toJsNumber(uint32_t nativeValue);
     static v8::Handle<v8::Value> toJsNumber(uint16_t nativeValue);
@@ -205,6 +206,12 @@ class ErrorMessage
 {
 public:
     static v8::Local<v8::Value> getErrorMessage(int errorCode, char *customMessage);
+};
+
+class HciStatus
+{
+public:
+    static v8::Local<v8::Value> getHciStatus(int statusCode);
 };
 
 #endif

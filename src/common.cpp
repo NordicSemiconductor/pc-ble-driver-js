@@ -25,6 +25,36 @@ static name_map_t error_message_name_map = {
     NAME_MAP_ENTRY(NRF_ERROR_BUSY),
 };
 
+static name_map_t hci_status_map =
+{
+    NAME_MAP_ENTRY(BLE_HCI_STATUS_CODE_SUCCESS),
+    NAME_MAP_ENTRY(BLE_HCI_STATUS_CODE_UNKNOWN_BTLE_COMMAND),
+    NAME_MAP_ENTRY(BLE_HCI_STATUS_CODE_UNKNOWN_CONNECTION_IDENTIFIER),
+    NAME_MAP_ENTRY(BLE_HCI_AUTHENTICATION_FAILURE),
+    NAME_MAP_ENTRY(BLE_HCI_STATUS_CODE_PIN_OR_KEY_MISSING),
+    NAME_MAP_ENTRY(BLE_HCI_MEMORY_CAPACITY_EXCEEDED),
+    NAME_MAP_ENTRY(BLE_HCI_CONNECTION_TIMEOUT),
+    NAME_MAP_ENTRY(BLE_HCI_STATUS_CODE_COMMAND_DISALLOWED),
+    NAME_MAP_ENTRY(BLE_HCI_STATUS_CODE_INVALID_BTLE_COMMAND_PARAMETERS),
+    NAME_MAP_ENTRY(BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION),
+    NAME_MAP_ENTRY(BLE_HCI_REMOTE_DEV_TERMINATION_DUE_TO_LOW_RESOURCES),
+    NAME_MAP_ENTRY(BLE_HCI_REMOTE_DEV_TERMINATION_DUE_TO_POWER_OFF),
+    NAME_MAP_ENTRY(BLE_HCI_LOCAL_HOST_TERMINATED_CONNECTION),
+    NAME_MAP_ENTRY(BLE_HCI_UNSUPPORTED_REMOTE_FEATURE),
+    NAME_MAP_ENTRY(BLE_HCI_STATUS_CODE_INVALID_LMP_PARAMETERS),
+    NAME_MAP_ENTRY(BLE_HCI_STATUS_CODE_UNSPECIFIED_ERROR),
+    NAME_MAP_ENTRY(BLE_HCI_STATUS_CODE_LMP_RESPONSE_TIMEOUT),
+    NAME_MAP_ENTRY(BLE_HCI_STATUS_CODE_LMP_PDU_NOT_ALLOWED),
+    NAME_MAP_ENTRY(BLE_HCI_INSTANT_PASSED),
+    NAME_MAP_ENTRY(BLE_HCI_PAIRING_WITH_UNIT_KEY_UNSUPPORTED ),
+    NAME_MAP_ENTRY(BLE_HCI_DIFFERENT_TRANSACTION_COLLISION),
+    NAME_MAP_ENTRY(BLE_HCI_CONTROLLER_BUSY),
+    NAME_MAP_ENTRY(BLE_HCI_CONN_INTERVAL_UNACCEPTABLE),
+    NAME_MAP_ENTRY(BLE_HCI_DIRECTED_ADVERTISER_TIMEOUT),
+    NAME_MAP_ENTRY(BLE_HCI_CONN_TERMINATED_DUE_TO_MIC_FAILURE),
+    NAME_MAP_ENTRY(BLE_HCI_CONN_FAILED_TO_BE_ESTABLISHED)
+};
+
 const std::string getCurrentTimeInMilliseconds()
 {
     std::chrono::system_clock::time_point current_time = std::chrono::system_clock::now();
@@ -181,30 +211,30 @@ v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Object>js, ch
     return js->Get(NanNew(name))->ToObject();
 }
 
-uint16_t ConversionUtility::msecsToUnitsUint16(v8::Local<v8::Object>js, char *name, enum ConversionUtility::ConversionUnits unit) 
+uint16_t ConversionUtility::msecsToUnitsUint16(v8::Local<v8::Object>js, char *name, enum ConversionUtility::ConversionUnits unit)
 {
     uint16_t msecs = getNativeUint16(js, name);
-    return msecsToUnitsUint16(msecs, unit); 
+    return msecsToUnitsUint16(msecs, unit);
 }
 
 uint16_t ConversionUtility::msecsToUnitsUint16(uint16_t msecs, enum ConversionUtility::ConversionUnits unit)
 {
-    return msecs * 1000 / unit; 
+    return msecs * 1000 / unit;
 }
 
-uint8_t ConversionUtility::msecsToUnitsUint8(v8::Local<v8::Object>js, char *name, enum ConversionUtility::ConversionUnits unit) 
-{ 
-    uint8_t msecs = getNativeUint8(js, name); 
-    return msecsToUnitsUint8(msecs, unit); 
-}
-
-uint8_t ConversionUtility::msecsToUnitsUint8(uint8_t msecs, enum ConversionUtility::ConversionUnits unit) 
+uint8_t ConversionUtility::msecsToUnitsUint8(v8::Local<v8::Object>js, char *name, enum ConversionUtility::ConversionUnits unit)
 {
-    return msecs * 1000 / unit; 
+    uint8_t msecs = getNativeUint8(js, name);
+    return msecsToUnitsUint8(msecs, unit);
+}
+
+uint8_t ConversionUtility::msecsToUnitsUint8(uint8_t msecs, enum ConversionUtility::ConversionUnits unit)
+{
+    return msecs * 1000 / unit;
 }
 
 v8::Handle<v8::Value> ConversionUtility::unitsToMsecs(uint16_t units, enum ConversionUtility::ConversionUnits unit)
-{ 
+{
     double _unit = units * unit / 1000;
     return toJsNumber(_unit);
 }
@@ -261,7 +291,7 @@ v8::Handle<v8::Value> ConversionUtility::toJsString(char *cString, uint16_t leng
     v8::Local<v8::String> _name = NanNew(name);
 
     free(name);
-    
+
     return _name;
 }
 
@@ -318,8 +348,13 @@ v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char *customMe
             std::ostringstream errorStringStream;
             errorStringStream << "Error occured when " << customMessage << ". "
                 << "Errorcode: " << ConversionUtility::valueToString(errorCode, error_message_name_map) << " (" << errorCode << ")" << std::endl;
-            
+
             return v8::Exception::Error(NanNew<v8::String>(errorStringStream.str()));
         }
     }
+}
+
+v8::Local<v8::Value> HciStatus::getHciStatus(int statusCode)
+{
+    return NanNew<v8::String>(ConversionUtility::valueToString(statusCode, hci_status_map));
 }

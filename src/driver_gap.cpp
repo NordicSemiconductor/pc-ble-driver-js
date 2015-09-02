@@ -427,6 +427,7 @@ v8::Local<v8::Object> GapDisconnected::ToJs()
     v8::Local<v8::Object> obj = NanNew<v8::Object>();
     BleDriverEvent::ToJs(obj);
     obj->Set(NanNew("reason"), ConversionUtility::toJsNumber(evt->reason));
+    obj->Set(NanNew("reason_name"), HciStatus::getHciStatus(evt->reason));
 
     return obj;
 }
@@ -443,7 +444,7 @@ v8::Local<v8::Object> GapTimeout::ToJs()
     v8::Local<v8::Object> obj = NanNew<v8::Object>();
     BleDriverEvent::ToJs(obj);
     obj->Set(NanNew("src"), ConversionUtility::toJsNumber(evt->src));
-    obj->Set(NanNew("srcname"), ConversionUtility::valueToJsString(evt->src, gap_timeout_sources_map));
+    obj->Set(NanNew("src_name"), ConversionUtility::valueToJsString(evt->src, gap_timeout_sources_map));
 
     return obj;
 }
