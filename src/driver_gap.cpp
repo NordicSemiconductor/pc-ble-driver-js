@@ -108,7 +108,7 @@ v8::Local<v8::Object> GapAddr::ToJs()
     char *addr = (char*)malloc(addr_len);
     uint8_t *ptr = native->addr;
 
-    sprintf(addr, "%02x:%02x:%02x:%02x:%02x:%02x", ptr[5], ptr[4], ptr[3], ptr[2], ptr[1], ptr[0]);
+    sprintf(addr, "%02X:%02X:%02X:%02X:%02X:%02X", ptr[5], ptr[4], ptr[3], ptr[2], ptr[1], ptr[0]);
 
     // TODO: According to Instruments (OS X), GapAddr::ToJs leaks 32 bytes. This must be resolved.
     v8::Local<v8::String> _addr = NanNew(addr);
