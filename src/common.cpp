@@ -213,22 +213,22 @@ v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Object>js, ch
 
 uint16_t ConversionUtility::msecsToUnitsUint16(v8::Local<v8::Object>js, char *name, enum ConversionUtility::ConversionUnits unit)
 {
-    uint16_t msecs = getNativeUint16(js, name);
+    float msecs = getNativeDouble(js, name);
     return msecsToUnitsUint16(msecs, unit);
 }
 
-uint16_t ConversionUtility::msecsToUnitsUint16(uint16_t msecs, enum ConversionUtility::ConversionUnits unit)
+uint16_t ConversionUtility::msecsToUnitsUint16(float msecs, enum ConversionUtility::ConversionUnits unit)
 {
     return msecs * 1000 / unit;
 }
 
 uint8_t ConversionUtility::msecsToUnitsUint8(v8::Local<v8::Object>js, char *name, enum ConversionUtility::ConversionUnits unit)
 {
-    uint8_t msecs = getNativeUint8(js, name);
+    float msecs = getNativeDouble(js, name);
     return msecsToUnitsUint8(msecs, unit);
 }
 
-uint8_t ConversionUtility::msecsToUnitsUint8(uint8_t msecs, enum ConversionUtility::ConversionUnits unit)
+uint8_t ConversionUtility::msecsToUnitsUint8(float msecs, enum ConversionUtility::ConversionUnits unit)
 {
     return msecs * 1000 / unit;
 }
