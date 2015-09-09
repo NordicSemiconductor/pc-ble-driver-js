@@ -203,7 +203,6 @@ uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Object>js, cha
     }
 
     return string;
-
 }
 
 v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Object>js, char *name)
@@ -235,10 +234,9 @@ uint8_t ConversionUtility::msecsToUnitsUint8(float msecs, enum ConversionUtility
 
 v8::Handle<v8::Value> ConversionUtility::unitsToMsecs(uint16_t units, enum ConversionUtility::ConversionUnits unit)
 {
-    double _unit = units * unit / 1000;
+    double _unit = units * unit / 1000.0;
     return toJsNumber(_unit);
 }
-
 
 v8::Handle<v8::Value> ConversionUtility::toJsNumber(int32_t nativeValue)
 {
