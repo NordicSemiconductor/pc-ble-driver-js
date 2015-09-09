@@ -451,9 +451,17 @@ NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const v8::Handle<v8::String>&
 
     sd_rpc_log_severity_t log_severity = SD_RPC_LOG_DEBUG;
 
-    if (v8str->Equals(NanNew("debug")))
+    if(v8str->Equals(NanNew("trace")))
+    {
+        log_severity = SD_RPC_LOG_TRACE;
+    }
+    else if (v8str->Equals(NanNew("debug")))
     {
         log_severity = SD_RPC_LOG_DEBUG;
+    }
+    else if (v8str->Equals(NanNew("info")))
+    {
+        log_severity = SD_RPC_LOG_INFO;
     }
     else if (v8str->Equals(NanNew("error")))
     {
