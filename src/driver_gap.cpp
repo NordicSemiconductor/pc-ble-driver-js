@@ -1273,7 +1273,7 @@ void AfterGapConnect(uv_work_t *req) {
 
     if (baton->result != NRF_SUCCESS)
     {
-        argv[0] = ErrorMessage::getErrorMessage(baton->result, "canceling connection.");
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "connecting.");
     }
     else
     {
