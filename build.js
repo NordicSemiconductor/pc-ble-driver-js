@@ -8,7 +8,7 @@ function build()
 
     var options = {
         runtime: process.env.npm_config_runtime || undefined,
-        runtimeVersion: process.env.npm_config_runtime_version || undefined,
+        runtimeVersion: process.env.npm_config_target || undefined,
         arch: process.env.npm_config_arch || undefined
     }
 
