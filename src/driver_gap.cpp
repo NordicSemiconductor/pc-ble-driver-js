@@ -1389,7 +1389,7 @@ void AfterGapGetRSSI(uv_work_t *req) {
     if (baton->result != NRF_SUCCESS)
     {
         argv[0] = NanUndefined();
-        argv[1] = ErrorMessage::getErrorMessage(baton->result, "connection parameters");
+        argv[1] = ErrorMessage::getErrorMessage(baton->result, "getting rssi");
     }
     else
     {
