@@ -37,10 +37,13 @@ set_target_properties(${PROJECT_NAME}
     PREFIX ""
     SUFFIX ".node")
 
-
 if(WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
 endif(WIN32)
+
+if(APPLE)
+    set_target_properties(${PROJECT_NAME} PROPERTIES XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS "@loader_path/../../driver/lib;@loader_path")
+endif()
 
 # Find BLE driver library
 find_library(BLE_DRIVER_LIBRARY s130_nrf51_ble_driver HINTS ${BLE_DRIVER_LIBRARY_DIR})
