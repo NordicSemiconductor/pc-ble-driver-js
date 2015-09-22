@@ -3,6 +3,12 @@ cmake_minimum_required(VERSION 2.8)
 # Name of the project (will be the name of the plugin)
 project (ble_driver_js)
 
+if(APPLE)
+    set(CMAKE_SKIP_BUILD_RPATH TRUE)
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+    set(CMAKE_INSTALL_RPATH "@loader_path/../../driver/lib")
+endif()
+
 # TODO: add support for
 if("$ENV{PC_BLE_DRIVER_DIR}" STREQUAL "")
     message(WARNING "Environment variable PC_BLE_DRIVER_DIR not set. The environment variable can point at a custom pc-ble-driver.")
@@ -37,10 +43,13 @@ set_target_properties(${PROJECT_NAME}
     PREFIX ""
     SUFFIX ".node")
 
-
 if(WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
 endif(WIN32)
+
+if(APPLE)
+    set_property(TARGET ${PROJECT_NAME} PROPERTY MACOSX_RPATH ON)
+endif()
 
 # Find BLE driver library
 find_library(BLE_DRIVER_LIBRARY s130_nrf51_ble_driver HINTS ${BLE_DRIVER_LIBRARY_DIR})
