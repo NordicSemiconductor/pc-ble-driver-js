@@ -17,9 +17,6 @@ You need to have the cmake-js npm installed and the correct C++ compiler that ma
 
 Copy the s130_nrf51_ble_driver.dll library to the repository root
 
-## OSX
-
-Set the DYLD_LIBRARY_PATH environment variable to a directory containing the libs130_nrf51_ble_driver.dylib library
 
 # Run example
 
