@@ -1,10 +1,15 @@
+# Introduction
+pc-ble-driver-js is a NodeJS AddOn for the pc-ble-driver library.
+
+The AddOn does not support all of the functions in the pc-ble-driver library.
+
+This is a very early implementation, we are working on making the AddOn production quality. 
+
+When production quality is reached we will probably publish it on npmjs. Stay with us!
+
 # Installation procedure
 
-Install NodeJS and run the following commands:
-
-```
-npm install
-```
+You need to have the cmake-js npm installed and the correct C++ compiler that matches your version of NodeJS.
 
 # Platform specific notes
 
