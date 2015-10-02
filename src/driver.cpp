@@ -4,6 +4,8 @@
 #include <chrono>
 
 #include <ble.h>
+
+#include "adapter.h"
 #include "driver.h"
 #include "driver_gap.h"
 #include "driver_gatt.h"
@@ -13,27 +15,6 @@
 using namespace std;
 //using namespace memory_relaxed_aquire_release;
 using namespace memory_sequential_unsafe;
-
-/*
-
-package.json:
-
-To compile for node:
-"cmake-js": {
-"runtime": "node",
-"runtimeVersion": "0.12.4",
-"arch": "ia32"
-},
-
-
-To compile for electron:
-"cmake-js": {
-"runtime": "electron",
-"runtimeVersion": "0.29.1",
-"arch": "ia32"
-},
-
-*/
 
 typedef CircularFifo<EventEntry *, 64> EventQueue;
 typedef CircularFifo<LogEntry *, 64> LogQueue;
@@ -629,6 +610,7 @@ ble_uuid128_t *BleUUID128::ToNative()
 //
 
 extern "C" {
+    void init_adapter_list(v8::Handle<v8::Object> target);
     void init_driver(v8::Handle<v8::Object> target);
     void init_types(v8::Handle<v8::Object> target);
     void init_ranges(v8::Handle<v8::Object> target);
@@ -639,6 +621,7 @@ extern "C" {
     {
         NanScope();
 
+        init_adapter_list(target);
         init_driver(target);
         init_types(target);
         init_ranges(target);
@@ -647,6 +630,11 @@ extern "C" {
         init_gap(target);
         init_gatt(target);
         init_gattc(target);
+    }
+
+    void init_adapter_list(v8::Handle<v8::Object> target)
+    {
+        NODE_SET_METHOD(target, "get_adapters", GetAdapterList);
     }
 
     void init_driver(v8::Handle<v8::Object> target)

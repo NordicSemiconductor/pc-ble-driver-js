@@ -9,7 +9,6 @@ if(APPLE)
     set(CMAKE_INSTALL_RPATH "@loader_path/../../driver/lib")
 endif()
 
-# TODO: add support for
 if("$ENV{PC_BLE_DRIVER_DIR}" STREQUAL "")
     message(WARNING "Environment variable PC_BLE_DRIVER_DIR not set. The environment variable can point at a custom pc-ble-driver.")
     set(_PC_BLE_DRIVER_DIR ${CMAKE_CURRENT_SOURCE_DIR})
@@ -27,13 +26,27 @@ message("Searching for pc-ble-driver library in ${BLE_DRIVER_LIBRARY_DIR}")
 # you should add this line in every CMake.js based project.
 include_directories(${CMAKE_JS_INC} ${BLE_DRIVER_INCLUDE_DIR})
 
-# Declare the source files location
-file(GLOB SOURCE_FILES "src/*.cpp" "src/*.h")
+# Specify source files
+set(SOURCE_FILES
+    "src/adapter.cpp"
+    "src/common.cpp"
+    "src/driver.cpp"
+    "src/driver_gap.cpp"
+    "src/driver_gatt.cpp"
+    "src/driver_gattc.cpp"
+)
+
+if(WIN32)
+    file(GLOB PLATFORM_SOURCE_FILES "src/win/*.c" "src/win/*.cpp" "src/adapter_win.cpp")
+elseif()
+    set(PLATFORM_SOURCE_FILES "src/adapter_unix.cpp")
+endif()
+
+message(STATUS "Platform source files: ${PLATFORM_SOURCE_FILES}")
 
 # This line will tell CMake that we're building a shared library
-# from the above source files
 # named after the project's name
-add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
+add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES} ${PLATFORM_SOURCE_FILES})
 
 # This line will give our library file a .node extension without any "lib" prefix
 # set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
@@ -44,6 +57,7 @@ set_target_properties(${PROJECT_NAME}
     SUFFIX ".node")
 
 if(WIN32)
+    include_directories("${CMAKE_JS_INC}/win")
     set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
 endif(WIN32)
 
