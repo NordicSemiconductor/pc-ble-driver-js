@@ -38,11 +38,9 @@ set(SOURCE_FILES
 
 if(WIN32)
     file(GLOB PLATFORM_SOURCE_FILES "src/win/*.c" "src/win/*.cpp" "src/adapter_win.cpp")
-elseif()
-    set(PLATFORM_SOURCE_FILES "src/adapter_unix.cpp")
+else()
+    file(GLOB PLATFORM_SOURCE_FILES "src/adapter_unix.cpp")
 endif()
-
-message(STATUS "Platform source files: ${PLATFORM_SOURCE_FILES}")
 
 # This line will tell CMake that we're building a shared library
 # named after the project's name
@@ -62,6 +60,8 @@ if(WIN32)
 endif(WIN32)
 
 if(APPLE)
+    target_link_libraries(${PROJECT_NAME} "-framework CoreFoundation")
+    target_link_libraries(${PROJECT_NAME} "-framework IOKit")
     set_property(TARGET ${PROJECT_NAME} PROPERTY MACOSX_RPATH ON)
 endif()
 

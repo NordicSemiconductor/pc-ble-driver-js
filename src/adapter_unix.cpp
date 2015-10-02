@@ -44,6 +44,7 @@
 
 uv_mutex_t list_mutex;
 Boolean lockInitialised = FALSE;
+const char* TTY_PATH_PREFIX = "/dev/tty.";
 #endif
 
 #if defined(MAC_OS_X_VERSION_10_4) && (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_4)
@@ -220,7 +221,11 @@ static stDeviceListItem* GetSerialDevices()
             {
                 stDeviceListItem *deviceListItem = (stDeviceListItem*) malloc(sizeof(stDeviceListItem));
                 stSerialDevice *serialDevice = &(deviceListItem->value);
-                strcpy(serialDevice->port, bsdPath);
+
+                // Apparently the cu.X prefix is wrong, it should be tty.X. This is a hack to do that.
+                strcpy(serialDevice->port, TTY_PATH_PREFIX);
+                strcpy(serialDevice->port + strlen(TTY_PATH_PREFIX), bsdPath + strlen("/dev/cu."));
+
                 memset(serialDevice->locationId, 0, sizeof(serialDevice->locationId));
                 memset(serialDevice->vendorId, 0, sizeof(serialDevice->vendorId));
                 memset(serialDevice->productId, 0, sizeof(serialDevice->productId));
@@ -354,7 +359,7 @@ void GetAdapterList(uv_work_t* req) {
         lockInitialised = TRUE;
     }
 
-    ListBaton* data = static_cast<ListBaton*>(req->data);
+    AdapterListBaton* data = static_cast<AdapterListBaton*>(req->data);
 
     stDeviceListItem* devices = GetSerialDevices();
 
@@ -362,28 +367,33 @@ void GetAdapterList(uv_work_t* req) {
     {
         stDeviceListItem* next = devices;
 
-        for (int i = 0, len = *(devices->length); i < len; i++) {
+        for (int i = 0, len = *(devices->length); i < len; i++) 
+        {
             stSerialDevice device = (* next).value;
 
-            AdapterListResultItem* resultItem = new AdapterListResultItem();
-            resultItem->comName = device.port;
+            if(strcmp(device.manufacturer,"SEGGER") == 0)
+            {
+                AdapterListResultItem* resultItem = new AdapterListResultItem();
 
-            if (device.locationId != NULL) {
-                resultItem->locationId = device.locationId;
+                resultItem->comName = device.port;
+
+                if (device.locationId != NULL) {
+                    resultItem->locationId = device.locationId;
+                }
+                if (device.vendorId != NULL) {
+                    resultItem->vendorId = device.vendorId;
+                }
+                if (device.productId != NULL) {
+                    resultItem->productId = device.productId;
+                }
+                if (device.manufacturer != NULL) {
+                    resultItem->manufacturer = device.manufacturer;
+                }
+                if (device.serialNumber != NULL) {
+                    resultItem->serialNumber = device.serialNumber;
+                }
+                data->results.push_back(resultItem);
             }
-            if (device.vendorId != NULL) {
-                resultItem->vendorId = device.vendorId;
-            }
-            if (device.productId != NULL) {
-                resultItem->productId = device.productId;
-            }
-            if (device.manufacturer != NULL) {
-                resultItem->manufacturer = device.manufacturer;
-            }
-            if (device.serialNumber != NULL) {
-                resultItem->serialNumber = device.serialNumber;
-            }
-            data->results.push_back(resultItem);
 
             stDeviceListItem* current = next;
 
