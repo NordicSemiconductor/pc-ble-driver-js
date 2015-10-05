@@ -44,7 +44,6 @@
 uv_mutex_t list_mutex;
 Boolean lockInitialised = FALSE;
 const char* TTY_PATH_PREFIX = "/dev/tty.";
-#endif
 
 #if defined(MAC_OS_X_VERSION_10_4) && (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_4)
 #include <sys/ioctl.h>
