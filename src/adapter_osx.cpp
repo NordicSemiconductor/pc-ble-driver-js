@@ -34,7 +34,6 @@
 #include <errno.h>
 #include <termios.h>
 
-#ifdef __APPLE__
 #include <AvailabilityMacros.h>
 #include <sys/param.h>
 #include <IOKit/IOKitLib.h>
@@ -53,16 +52,6 @@ const char* TTY_PATH_PREFIX = "/dev/tty.";
 #include <errno.h>
 #endif
 
-#if defined(__OpenBSD__)
-#include <sys/ioctl.h>
-#endif
-
-#if defined(__linux__)
-#include <sys/ioctl.h>
-#include <linux/serial.h>
-#endif
-
-#ifdef __APPLE__
 typedef struct SerialDevice {
     char port[MAXPATHLEN];
     char locationId[MAXPATHLEN];
@@ -77,9 +66,6 @@ typedef struct DeviceListItem {
     struct DeviceListItem *next;
     int* length;
 } stDeviceListItem;
-#endif
-
-#ifdef __APPLE__
 
 // Function prototypes
 static kern_return_t FindModems(io_iterator_t *matchingServices);
@@ -126,7 +112,7 @@ static io_registry_entry_t GetUsbDevice(char* pathName)
                     Boolean result;
                     char    bsdPath[MAXPATHLEN];
 
-                    // Convert the path from a CFString to a C (NUL-terminated)
+                    // Convert the path from a CFString to a C (NULL-terminated)
                     result = CFStringGetCString(bsdPathAsCFString,
                                                 bsdPath,
                                                 sizeof(bsdPath),
@@ -137,7 +123,6 @@ static io_registry_entry_t GetUsbDevice(char* pathName)
                     if (result && (strcmp(bsdPath, pathName) == 0))
                     {
                         deviceFound = true;
-                        //memset(bsdPath, 0, sizeof(bsdPath));
                         device = service;
                     }
                     else
@@ -229,6 +214,7 @@ static stDeviceListItem* GetSerialDevices()
                 memset(serialDevice->locationId, 0, sizeof(serialDevice->locationId));
                 memset(serialDevice->vendorId, 0, sizeof(serialDevice->vendorId));
                 memset(serialDevice->productId, 0, sizeof(serialDevice->productId));
+                
                 serialDevice->manufacturer[0] = '\0';
                 serialDevice->serialNumber[0] = '\0';
                 deviceListItem->next = NULL;
@@ -347,12 +333,7 @@ static stDeviceListItem* GetSerialDevices()
     return devices;
 }
 
-#endif
-
 void GetAdapterList(uv_work_t* req) {
-  // This code exists in javascript for unix platforms
-
-#ifdef __APPLE__
     if(!lockInitialised)
     {
         uv_mutex_init(&list_mutex);
@@ -392,6 +373,7 @@ void GetAdapterList(uv_work_t* req) {
                 if (device.serialNumber != NULL) {
                     resultItem->serialNumber = device.serialNumber;
                 }
+
                 data->results.push_back(resultItem);
             }
 
@@ -405,6 +387,4 @@ void GetAdapterList(uv_work_t* req) {
             free(current);
         }
     }
-
-#endif
 }
