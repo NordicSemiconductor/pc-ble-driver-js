@@ -36,8 +36,8 @@ static name_map_t gattc_evts_type_map = {
 v8::Local<v8::Object> GattcHandleRange::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    obj->Set(Nan::New("start_handle"), ConversionUtility::toJsNumber(native->start_handle));
-    obj->Set(Nan::New("end_handle"), ConversionUtility::toJsNumber(native->end_handle));
+    Nan::Set(obj, Nan::New("start_handle").ToLocalChecked(), ConversionUtility::toJsNumber(native->start_handle));
+    Nan::Set(obj, Nan::New("end_handle").ToLocalChecked(), ConversionUtility::toJsNumber(native->end_handle));
 
     return obj;
 }
@@ -63,8 +63,8 @@ ble_gattc_handle_range_t *GattcHandleRange::ToNative()
 v8::Local<v8::Object> GattcService::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    obj->Set(Nan::New("uuid"), BleUUID(&native->uuid));
-    obj->Set(Nan::New("handle_range"), GattcHandleRange(&native->handle_range));
+    Nan::Set(obj, Nan::New("uuid").ToLocalChecked(), BleUUID(&native->uuid));
+    Nan::Set(obj, Nan::New("handle_range").ToLocalChecked(), GattcHandleRange(&native->handle_range));
 
     return obj;
 }
@@ -80,8 +80,8 @@ v8::Local<v8::Object> GattcService::ToJs()
 v8::Local<v8::Object> GattcIncludedService::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    obj->Set(Nan::New("handle"), ConversionUtility::toJsNumber(native->handle));
-    obj->Set(Nan::New("included_srvc"), GattcService(&native->included_srvc));
+    Nan::Set(obj, Nan::New("handle").ToLocalChecked(), ConversionUtility::toJsNumber(native->handle));
+    Nan::Set(obj, Nan::New("included_srvc").ToLocalChecked(), GattcService(&native->included_srvc));
 
     return obj;
 }
@@ -97,11 +97,11 @@ v8::Local<v8::Object> GattcIncludedService::ToJs()
 v8::Local<v8::Object> GattcCharacteristic::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    obj->Set(Nan::New("uuid"), BleUUID(&native->uuid));
-    obj->Set(Nan::New("char_props"), GattCharProps(&native->char_props));
-    obj->Set(Nan::New("char_ext_props"), ConversionUtility::toJsBool(native->char_ext_props));
-    obj->Set(Nan::New("handle_decl"), ConversionUtility::toJsNumber(native->handle_decl));
-    obj->Set(Nan::New("handle_value"), ConversionUtility::toJsNumber(native->handle_value));
+    Nan::Set(obj, Nan::New("uuid").ToLocalChecked(), BleUUID(&native->uuid));
+    Nan::Set(obj, Nan::New("char_props").ToLocalChecked(), GattCharProps(&native->char_props));
+    Nan::Set(obj, Nan::New("char_ext_props").ToLocalChecked(), ConversionUtility::toJsBool(native->char_ext_props));
+    Nan::Set(obj, Nan::New("handle_decl").ToLocalChecked(), ConversionUtility::toJsNumber(native->handle_decl));
+    Nan::Set(obj, Nan::New("handle_value").ToLocalChecked(), ConversionUtility::toJsNumber(native->handle_value));
 
     return obj;
 }
@@ -117,8 +117,8 @@ v8::Local<v8::Object> GattcCharacteristic::ToJs()
 v8::Local<v8::Object> GattcDescriptor::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    obj->Set(Nan::New("handle"), ConversionUtility::toJsNumber(native->handle));
-    obj->Set(Nan::New("uuid"), BleUUID(&native->uuid));
+    Nan::Set(obj, Nan::New("handle").ToLocalChecked(), ConversionUtility::toJsNumber(native->handle));
+    Nan::Set(obj, Nan::New("uuid").ToLocalChecked(), BleUUID(&native->uuid));
 
     return obj;
 }
@@ -148,12 +148,12 @@ ble_gattc_write_params_t *GattcWriteParameters::ToNative()
 v8::Local<v8::Object> GattcWriteParameters::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    obj->Set(Nan::New("write_op"), ConversionUtility::toJsNumber(native->write_op));
-    obj->Set(Nan::New("flags"), ConversionUtility::toJsNumber(native->flags));
-    obj->Set(Nan::New("handle"), ConversionUtility::toJsNumber(native->handle));
-    obj->Set(Nan::New("offset"), ConversionUtility::toJsNumber(native->offset));
-    obj->Set(Nan::New("len"), ConversionUtility::toJsNumber(native->len));
-    obj->Set(Nan::New("p_value"), ConversionUtility::toJsValueArray(native->p_value, native->len));
+    Nan::Set(obj, Nan::New("write_op").ToLocalChecked(), ConversionUtility::toJsNumber(native->write_op));
+    Nan::Set(obj, Nan::New("flags").ToLocalChecked(), ConversionUtility::toJsNumber(native->flags));
+    Nan::Set(obj, Nan::New("handle").ToLocalChecked(), ConversionUtility::toJsNumber(native->handle));
+    Nan::Set(obj, Nan::New("offset").ToLocalChecked(), ConversionUtility::toJsNumber(native->offset));
+    Nan::Set(obj, Nan::New("len").ToLocalChecked(), ConversionUtility::toJsNumber(native->len));
+    Nan::Set(obj, Nan::New("p_value").ToLocalChecked(), ConversionUtility::toJsValueArray(native->p_value, native->len));
 
     return obj;
 }
@@ -167,7 +167,7 @@ v8::Local<v8::Object> GattcPrimaryServiceDiscoveryEvent::ToJs()
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
-    obj->Set(Nan::New("count"), ConversionUtility::toJsNumber(evt->count));
+    Nan::Set(obj, Nan::New("count").ToLocalChecked(), ConversionUtility::toJsNumber(evt->count));
 
     v8::Local<v8::Array> service_array = Nan::New<v8::Array>();
 
@@ -176,7 +176,7 @@ v8::Local<v8::Object> GattcPrimaryServiceDiscoveryEvent::ToJs()
         service_array->Set(Nan::New<v8::Integer>(i), GattcService(&evt->services[i]));
     }
 
-    obj->Set(Nan::New("services"), service_array);
+    Nan::Set(obj, Nan::New("services").ToLocalChecked(), service_array);
 
     return obj;
 }
@@ -186,7 +186,7 @@ v8::Local<v8::Object> GattcRelationshipDiscoveryEvent::ToJs()
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
-    obj->Set(Nan::New("count"), ConversionUtility::toJsNumber(evt->count));
+    Nan::Set(obj, Nan::New("count").ToLocalChecked(), ConversionUtility::toJsNumber(evt->count));
 
     v8::Local<v8::Array> includes_array = Nan::New<v8::Array>();
 
@@ -195,7 +195,7 @@ v8::Local<v8::Object> GattcRelationshipDiscoveryEvent::ToJs()
         includes_array->Set(Nan::New<v8::Integer>(i), GattcIncludedService(&evt->includes[i]));
     }
 
-    obj->Set(Nan::New("includes"), includes_array);
+    Nan::Set(obj, Nan::New("includes").ToLocalChecked(), includes_array);
 
     return obj;
 }
@@ -205,7 +205,7 @@ v8::Local<v8::Object> GattcCharacteristicDiscoveryEvent::ToJs()
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
-    obj->Set(Nan::New("count"), ConversionUtility::toJsNumber(evt->count));
+    Nan::Set(obj, Nan::New("count").ToLocalChecked(), ConversionUtility::toJsNumber(evt->count));
 
     v8::Local<v8::Array> chars_array = Nan::New<v8::Array>();
 
@@ -214,7 +214,7 @@ v8::Local<v8::Object> GattcCharacteristicDiscoveryEvent::ToJs()
         chars_array->Set(Nan::New<v8::Integer>(i), GattcCharacteristic(&evt->chars[i]));
     }
 
-    obj->Set(Nan::New("chars"), chars_array);
+    Nan::Set(obj, Nan::New("chars").ToLocalChecked(), chars_array);
 
     return obj;
 }
@@ -224,7 +224,7 @@ v8::Local<v8::Object> GattcDescriptorDiscoveryEvent::ToJs()
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
-    obj->Set(Nan::New("count"), ConversionUtility::toJsNumber(evt->count));
+    Nan::Set(obj, Nan::New("count").ToLocalChecked(), ConversionUtility::toJsNumber(evt->count));
 
     v8::Local<v8::Array> descs_array = Nan::New<v8::Array>();
 
@@ -233,7 +233,7 @@ v8::Local<v8::Object> GattcDescriptorDiscoveryEvent::ToJs()
         descs_array->Set(Nan::New<v8::Integer>(i), GattcDescriptor(&evt->descs[i]));
     }
 
-    obj->Set(Nan::New("descs"), descs_array);
+    Nan::Set(obj, Nan::New("descs").ToLocalChecked(), descs_array);
 
     return obj;
 }
@@ -241,8 +241,8 @@ v8::Local<v8::Object> GattcDescriptorDiscoveryEvent::ToJs()
 v8::Local<v8::Object> GattcHandleValue::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    obj->Set(Nan::New("handle"), ConversionUtility::toJsNumber(native->handle));
-    obj->Set(Nan::New("p_value"), ConversionUtility::toJsValueArray(native->p_value, valueLength));
+    Nan::Set(obj, Nan::New("handle").ToLocalChecked(), ConversionUtility::toJsNumber(native->handle));
+    Nan::Set(obj, Nan::New("p_value").ToLocalChecked(), ConversionUtility::toJsValueArray(native->p_value, valueLength));
 
     return obj;
 }
@@ -252,8 +252,8 @@ v8::Local<v8::Object> GattcCharacteristicValueReadByUUIDEvent::ToJs()
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
-    obj->Set(Nan::New("count"), ConversionUtility::toJsNumber(evt->count));
-    obj->Set(Nan::New("value_len"), ConversionUtility::toJsNumber(evt->value_len));
+    Nan::Set(obj, Nan::New("count").ToLocalChecked(), ConversionUtility::toJsNumber(evt->count));
+    Nan::Set(obj, Nan::New("value_len").ToLocalChecked(), ConversionUtility::toJsNumber(evt->value_len));
 
     v8::Local<v8::Array> handle_value_array = Nan::New<v8::Array>();
 
@@ -262,7 +262,7 @@ v8::Local<v8::Object> GattcCharacteristicValueReadByUUIDEvent::ToJs()
         handle_value_array->Set(Nan::New<v8::Integer>(i), GattcHandleValue(&evt->handle_value[i], evt->value_len));
     }
 
-    obj->Set(Nan::New("handle_values"), handle_value_array);
+    Nan::Set(obj, Nan::New("handle_values").ToLocalChecked(), handle_value_array);
 
     return obj;
 }
@@ -272,10 +272,10 @@ v8::Local<v8::Object> GattcReadEvent::ToJs()
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
-    obj->Set(Nan::New("handle"), ConversionUtility::toJsNumber(evt->handle));
-    obj->Set(Nan::New("offset"), ConversionUtility::toJsNumber(evt->offset));
-    obj->Set(Nan::New("len"), ConversionUtility::toJsNumber(evt->len));
-    obj->Set(Nan::New("data"), ConversionUtility::toJsValueArray(evt->data, evt->len));
+    Nan::Set(obj, Nan::New("handle").ToLocalChecked(), ConversionUtility::toJsNumber(evt->handle));
+    Nan::Set(obj, Nan::New("offset").ToLocalChecked(), ConversionUtility::toJsNumber(evt->offset));
+    Nan::Set(obj, Nan::New("len").ToLocalChecked(), ConversionUtility::toJsNumber(evt->len));
+    Nan::Set(obj, Nan::New("data").ToLocalChecked(), ConversionUtility::toJsValueArray(evt->data, evt->len));
 
     return obj;
 }
@@ -285,8 +285,8 @@ v8::Local<v8::Object> GattcCharacteristicValueReadEvent::ToJs()
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
-    obj->Set(Nan::New("len"), ConversionUtility::toJsNumber(evt->len));
-    obj->Set(Nan::New("values"), ConversionUtility::toJsValueArray(evt->values, evt->len));
+    Nan::Set(obj, Nan::New("len").ToLocalChecked(), ConversionUtility::toJsNumber(evt->len));
+    Nan::Set(obj, Nan::New("values").ToLocalChecked(), ConversionUtility::toJsValueArray(evt->values, evt->len));
 
     return obj;
 }
@@ -296,11 +296,11 @@ v8::Local<v8::Object> GattcWriteEvent::ToJs()
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
-    obj->Set(Nan::New("handle"), ConversionUtility::toJsNumber(evt->handle));
-    obj->Set(Nan::New("write_op"), ConversionUtility::toJsNumber(evt->write_op));
-    obj->Set(Nan::New("offset"), ConversionUtility::toJsNumber(evt->offset));
-    obj->Set(Nan::New("len"), ConversionUtility::toJsNumber(evt->len));
-    obj->Set(Nan::New("data"), ConversionUtility::toJsValueArray(evt->data, evt->len));
+    Nan::Set(obj, Nan::New("handle").ToLocalChecked(), ConversionUtility::toJsNumber(evt->handle));
+    Nan::Set(obj, Nan::New("write_op").ToLocalChecked(), ConversionUtility::toJsNumber(evt->write_op));
+    Nan::Set(obj, Nan::New("offset").ToLocalChecked(), ConversionUtility::toJsNumber(evt->offset));
+    Nan::Set(obj, Nan::New("len").ToLocalChecked(), ConversionUtility::toJsNumber(evt->len));
+    Nan::Set(obj, Nan::New("data").ToLocalChecked(), ConversionUtility::toJsValueArray(evt->data, evt->len));
 
     return obj;
 }
@@ -310,10 +310,10 @@ v8::Local<v8::Object> GattcHandleValueNotificationEvent::ToJs()
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
-    obj->Set(Nan::New("handle"), ConversionUtility::toJsNumber(evt->handle));
-    obj->Set(Nan::New("type"), ConversionUtility::toJsNumber(evt->type));
-    obj->Set(Nan::New("len"), ConversionUtility::toJsNumber(evt->len));
-    obj->Set(Nan::New("data"), ConversionUtility::toJsValueArray(evt->data, evt->len));
+    Nan::Set(obj, Nan::New("handle").ToLocalChecked(), ConversionUtility::toJsNumber(evt->handle));
+    Nan::Set(obj, Nan::New("type").ToLocalChecked(), ConversionUtility::toJsNumber(evt->type));
+    Nan::Set(obj, Nan::New("len").ToLocalChecked(), ConversionUtility::toJsNumber(evt->len));
+    Nan::Set(obj, Nan::New("data").ToLocalChecked(), ConversionUtility::toJsValueArray(evt->data, evt->len));
 
     return obj;
 }
@@ -323,7 +323,7 @@ v8::Local<v8::Object> GattcTimeoutEvent::ToJs()
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
-    obj->Set(Nan::New("src"), ConversionUtility::toJsNumber(evt->src));
+    Nan::Set(obj, Nan::New("src").ToLocalChecked(), ConversionUtility::toJsNumber(evt->src));
 
     return obj;
 }

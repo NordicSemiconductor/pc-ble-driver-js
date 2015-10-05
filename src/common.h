@@ -71,10 +71,10 @@ public:
 
     virtual void ToJs(v8::Local<v8::Object> obj)
     {
-        obj->Set(Nan::New("id"), Nan::New(this->evt_id));
-        obj->Set(Nan::New("name"), Nan::New(getEventName()));
-        obj->Set(Nan::New("time"), Nan::New(timestamp));
-        obj->Set(Nan::New("conn_handle"), Nan::New(this->conn_handle));
+        Nan::Set(obj, Nan::New("id").ToLocalChecked(), Nan::New(this->evt_id));
+        Nan::Set(obj, Nan::New("name").ToLocalChecked(), Nan::New(getEventName()));
+        Nan::Set(obj, Nan::New("time").ToLocalChecked(), Nan::New(timestamp));
+        Nan::Set(obj, Nan::New("conn_handle").ToLocalChecked(), Nan::New(this->conn_handle));
     }
 
     virtual v8::Local<v8::Object> ToJs() = 0;
@@ -86,7 +86,7 @@ struct Baton {
 public:
     Baton(v8::Local<v8::Function> cb) {
         req = new uv_work_t();
-        callback = new NanCallback(cb);
+        callback = new Nan::Callback(cb);
         req->data = (void*)this;
     }
 
@@ -96,7 +96,7 @@ public:
     }
 
     uv_work_t *req;
-    NanCallback *callback;
+    Nan::Callback *callback;
 
     int result;
     char errorString[ERROR_STRING_SIZE];
@@ -199,7 +199,7 @@ public:
     static v8::Handle<v8::Value> toJsString(char *cString);
     static v8::Handle<v8::Value> toJsString(char *cString, uint16_t length);
     static char *                valueToString(uint16_t value, name_map_t name_map, char *defaultValue = "Unknown value");
-    static v8::Handle<v8::Value> valueToJsString(uint16_t, name_map_t name_map, v8::Handle<v8::Value> defaultValue = Nan::New<v8::String>("Unknown value"));
+    static v8::Handle<v8::Value> valueToJsString(uint16_t, name_map_t name_map, v8::Handle<v8::Value> defaultValue = Nan::New<v8::String>("Unknown value").ToLocalChecked());
 };
 
 class ErrorMessage

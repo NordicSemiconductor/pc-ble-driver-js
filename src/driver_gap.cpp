@@ -99,7 +99,7 @@ v8::Local<v8::Object> GapAddr::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
-    obj->Set(Nan::New("type"), Nan::New(gap_addr_type_map[native->addr_type]));
+    Nan::Set(obj, Nan::New("type").ToLocalChecked(), Nan::New(gap_addr_type_map[native->addr_type]));
 
     // Create a text string of the address. The when the NanUtf8String string is out of
     // its scope, the underlaying string is freed.
@@ -112,8 +112,8 @@ v8::Local<v8::Object> GapAddr::ToJs()
 
     // TODO: According to Instruments (OS X), GapAddr::ToJs leaks 32 bytes. This must be resolved.
     v8::Local<v8::String> _addr = Nan::New(addr);
-    obj->Set(Nan::New("address"), _addr);
-    obj->Set(Nan::New("type"), Nan::New(gap_addr_type_map[native->addr_type]));
+    Nan::Set(obj, Nan::New("address").ToLocalChecked(), _addr);
+    Nan::Set(obj, Nan::New("type").ToLocalChecked(), Nan::New(gap_addr_type_map[native->addr_type]));
 
     free(addr);
     return obj;
@@ -162,10 +162,10 @@ v8::Local<v8::Object> GapConnParams::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
-    obj->Set(Nan::New("min_conn_interval"), ConversionUtility::unitsToMsecs(native->min_conn_interval, ConversionUtility::ConversionUnit1250ms));
-    obj->Set(Nan::New("max_conn_interval"), ConversionUtility::unitsToMsecs(native->max_conn_interval, ConversionUtility::ConversionUnit1250ms));
-    obj->Set(Nan::New("slave_latency"), ConversionUtility::toJsNumber(native->slave_latency));
-    obj->Set(Nan::New("conn_sup_timeout"), ConversionUtility::unitsToMsecs(native->conn_sup_timeout, ConversionUtility::ConversionUnit10s));
+    Nan::Set(obj, Nan::New("min_conn_interval").ToLocalChecked(), ConversionUtility::unitsToMsecs(native->min_conn_interval, ConversionUtility::ConversionUnit1250ms));
+    Nan::Set(obj, Nan::New("max_conn_interval").ToLocalChecked(), ConversionUtility::unitsToMsecs(native->max_conn_interval, ConversionUtility::ConversionUnit1250ms));
+    Nan::Set(obj, Nan::New("slave_latency").ToLocalChecked(), ConversionUtility::toJsNumber(native->slave_latency));
+    Nan::Set(obj, Nan::New("conn_sup_timeout").ToLocalChecked(), ConversionUtility::unitsToMsecs(native->conn_sup_timeout, ConversionUtility::ConversionUnit10s));
 
     return obj;
 }
@@ -194,8 +194,8 @@ ble_gap_conn_params_t *GapConnParams::ToNative()
 v8::Local<v8::Object> GapConnSecMode::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    obj->Set(Nan::New("sm"), Nan::New(native->sm));
-    obj->Set(Nan::New("lv"), Nan::New(native->lv));
+    Nan::Set(obj, Nan::New("sm").ToLocalChecked(), Nan::New(native->sm));
+    Nan::Set(obj, Nan::New("lv").ToLocalChecked(), Nan::New(native->lv));
     return obj;
 }
 
@@ -220,12 +220,12 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(Nan::New("rssi"), Nan::New<v8::Integer>(this->evt->rssi));
-    obj->Set(Nan::New("peer_addr"), GapAddr(&(this->evt->peer_addr)));
-    obj->Set(Nan::New("scan_rsp"), Nan::New<v8::Boolean>(this->evt->scan_rsp ? true : false));
+    Nan::Set(obj, Nan::New("rssi").ToLocalChecked(), Nan::New<v8::Integer>(this->evt->rssi));
+    Nan::Set(obj, Nan::New("peer_addr").ToLocalChecked(), GapAddr(&(this->evt->peer_addr)));
+    Nan::Set(obj, Nan::New("scan_rsp").ToLocalChecked(), Nan::New<v8::Boolean>(this->evt->scan_rsp ? true : false));
 
     if (this->evt->scan_rsp == 1) {
-        obj->Set(Nan::New("adv_type"), Nan::New(gap_adv_type_map[this->evt->type])); // TODO: add support for non defined adv types
+        Nan::Set(obj, Nan::New("adv_type").ToLocalChecked(), Nan::New(gap_adv_type_map[this->evt->type])); // TODO: add support for non defined adv types
     }
 
     uint8_t dlen = this->evt->dlen;
@@ -234,12 +234,12 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
     {
         // Attach a scan_rsp object to the adv_report
         v8::Local<v8::Object> data_obj = Nan::New<v8::Object>();
-        obj->Set(Nan::New("data"), data_obj);
+        Nan::Set(obj, Nan::New("data").ToLocalChecked(), data_obj);
 
         uint8_t *data = this->evt->data;
 
         // TODO: Evaluate if buffer is the correct datatype for advertisement data
-        data_obj->Set(Nan::New("raw"), NanNewBufferHandle((char *)data, dlen));
+        Nan::Set(data_obj, Nan::New("raw").ToLocalChecked(), NanNewBufferHandle((char *)data, dlen));
 
         uint8_t pos = 0;  // Position in packet
         uint8_t ad_len;   // AD Type length
@@ -383,8 +383,8 @@ v8::Local<v8::Object> GapScanReqReport::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(Nan::New("rssi"), ConversionUtility::toJsNumber(evt->rssi));
-    obj->Set(Nan::New("peer_addr"), GapAddr(&(this->evt->peer_addr)));
+    Nan::Set(obj, Nan::New("rssi").ToLocalChecked(), ConversionUtility::toJsNumber(evt->rssi));
+    Nan::Set(obj, Nan::New("peer_addr").ToLocalChecked(), GapAddr(&(this->evt->peer_addr)));
 
     return obj;
 }
@@ -401,15 +401,15 @@ v8::Local<v8::Object> GapConnected::ToJs()
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
 
-    obj->Set(Nan::New("own_addr"), GapAddr(&(evt->own_addr)));
-    obj->Set(Nan::New("peer_addr"), GapAddr(&(evt->peer_addr)));
-    obj->Set(Nan::New("role"), ConversionUtility::valueToJsString(evt->role, gap_role_map));
-    obj->Set(Nan::New("conn_params"), GapConnParams(&(evt->conn_params)));
-    obj->Set(Nan::New("irk_match"), ConversionUtility::toJsBool(evt->irk_match));
+    Nan::Set(obj, Nan::New("own_addr").ToLocalChecked(), GapAddr(&(evt->own_addr)));
+    Nan::Set(obj, Nan::New("peer_addr").ToLocalChecked(), GapAddr(&(evt->peer_addr)));
+    Nan::Set(obj, Nan::New("role").ToLocalChecked(), ConversionUtility::valueToJsString(evt->role, gap_role_map));
+    Nan::Set(obj, Nan::New("conn_params").ToLocalChecked(), GapConnParams(&(evt->conn_params)));
+    Nan::Set(obj, Nan::New("irk_match").ToLocalChecked(), ConversionUtility::toJsBool(evt->irk_match));
 
     if (evt->irk_match == 1)
     {
-        obj->Set(Nan::New("irk_idx"), ConversionUtility::toJsNumber(evt->irk_match_idx));
+        Nan::Set(obj, Nan::New("irk_idx").ToLocalChecked(), ConversionUtility::toJsNumber(evt->irk_match_idx));
     }
 
     return obj;
@@ -426,8 +426,8 @@ v8::Local<v8::Object> GapDisconnected::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(Nan::New("reason"), ConversionUtility::toJsNumber(evt->reason));
-    obj->Set(Nan::New("reason_name"), HciStatus::getHciStatus(evt->reason));
+    Nan::Set(obj, Nan::New("reason").ToLocalChecked(), ConversionUtility::toJsNumber(evt->reason));
+    Nan::Set(obj, Nan::New("reason_name").ToLocalChecked(), HciStatus::getHciStatus(evt->reason));
 
     return obj;
 }
@@ -443,8 +443,8 @@ v8::Local<v8::Object> GapTimeout::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(Nan::New("src"), ConversionUtility::toJsNumber(evt->src));
-    obj->Set(Nan::New("src_name"), ConversionUtility::valueToJsString(evt->src, gap_timeout_sources_map));
+    Nan::Set(obj, Nan::New("src").ToLocalChecked(), ConversionUtility::toJsNumber(evt->src));
+    Nan::Set(obj, Nan::New("src_name").ToLocalChecked(), ConversionUtility::valueToJsString(evt->src, gap_timeout_sources_map));
 
     return obj;
 }
@@ -460,7 +460,7 @@ v8::Local<v8::Object> GapRssiChanged::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(Nan::New("rssi"), ConversionUtility::toJsNumber(evt->rssi));
+    Nan::Set(obj, Nan::New("rssi").ToLocalChecked(), ConversionUtility::toJsNumber(evt->rssi));
 
     return obj;
 }
@@ -476,7 +476,7 @@ v8::Local<v8::Object> GapConnParamUpdate::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(Nan::New("conn_params"), GapConnParams(&(this->evt->conn_params)));
+    Nan::Set(obj, Nan::New("conn_params").ToLocalChecked(), GapConnParams(&(this->evt->conn_params)));
 
     return obj;
 }
@@ -492,7 +492,7 @@ v8::Local<v8::Object> GapConnParamUpdateRequest::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(Nan::New("conn_params"), GapConnParams(&(this->evt->conn_params)));
+    Nan::Set(obj, Nan::New("conn_params").ToLocalChecked(), GapConnParams(&(this->evt->conn_params)));
     return obj;
 }
 

@@ -532,9 +532,9 @@ NAN_METHOD(GetStats)
     NanScope();
 
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    obj->Set(Nan::New("event_callback_total_time"), ConversionUtility::toJsNumber((int32_t)evt_cb_duration.count()));
-    obj->Set(Nan::New("event_callback_total_count"), ConversionUtility::toJsNumber(evt_cb_count));
-    obj->Set(Nan::New("event_callback_batch_max_count"), ConversionUtility::toJsNumber(evt_cb_max_count));
+    Nan::Set(obj, Nan::New("event_callback_total_time").ToLocalChecked(), ConversionUtility::toJsNumber((int32_t)evt_cb_duration.count()));
+    Nan::Set(obj, Nan::New("event_callback_total_count").ToLocalChecked(), ConversionUtility::toJsNumber(evt_cb_count));
+    Nan::Set(obj, Nan::New("event_callback_batch_max_count").ToLocalChecked(), ConversionUtility::toJsNumber(evt_cb_max_count));
 
     double avg_cb_batch_count = 0.0;
 
@@ -543,7 +543,7 @@ NAN_METHOD(GetStats)
         avg_cb_batch_count = evt_cb_batch_evt_total_count / evt_cb_batch_number;
     }
 
-    obj->Set(Nan::New("event_callback_batch_avg_count"), ConversionUtility::toJsNumber(avg_cb_batch_count));
+    Nan::Set(obj, Nan::New("event_callback_batch_avg_count").ToLocalChecked(), ConversionUtility::toJsNumber(avg_cb_batch_count));
 
     NanReturnValue(obj);
 }
@@ -555,9 +555,9 @@ NAN_METHOD(GetStats)
 v8::Local<v8::Object> Version::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    obj->Set(Nan::New("version_number"), ConversionUtility::toJsNumber(native->version_number));
-    obj->Set(Nan::New("company_id"), ConversionUtility::toJsNumber(native->company_id));
-    obj->Set(Nan::New("subversion_number"), ConversionUtility::toJsNumber(native->subversion_number));
+    Nan::Set(obj, Nan::New("version_number").ToLocalChecked(), ConversionUtility::toJsNumber(native->version_number));
+    Nan::Set(obj, Nan::New("company_id").ToLocalChecked(), ConversionUtility::toJsNumber(native->company_id));
+    Nan::Set(obj, Nan::New("subversion_number").ToLocalChecked(), ConversionUtility::toJsNumber(native->subversion_number));
     return obj;
 }
 
@@ -581,9 +581,9 @@ ble_version_t *Version::ToNative()
 v8::Local<v8::Object> BleUUID::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    obj->Set(Nan::New("uuid"), ConversionUtility::toJsNumber(native->uuid));
-    obj->Set(Nan::New("type"), ConversionUtility::toJsNumber(native->type));
-    obj->Set(Nan::New("typeString"), ConversionUtility::valueToJsString(native->type, uuid_type_name_map));
+    Nan::Set(obj, Nan::New("uuid").ToLocalChecked(), ConversionUtility::toJsNumber(native->uuid));
+    Nan::Set(obj, Nan::New("type").ToLocalChecked(), ConversionUtility::toJsNumber(native->type));
+    Nan::Set(obj, Nan::New("typeString").ToLocalChecked(), ConversionUtility::valueToJsString(native->type, uuid_type_name_map));
     return obj;
 }
 
@@ -613,7 +613,7 @@ v8::Local<v8::Object> BleUUID128::ToJs()
     uint8_t *ptr = native->uuid128;
 
     sprintf(uuid128string, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x", ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], ptr[6], ptr[7], ptr[8], ptr[9], ptr[10], ptr[11], ptr[12], ptr[13], ptr[14], ptr[15]);
-    obj->Set(Nan::New("uuid128"), ConversionUtility::toJsString(uuid128string));
+    Nan::Set(obj, Nan::New("uuid128").ToLocalChecked(), ConversionUtility::toJsString(uuid128string));
     free(uuid128string);
     return obj;
 }
