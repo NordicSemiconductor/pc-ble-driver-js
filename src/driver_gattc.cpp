@@ -408,7 +408,7 @@ void AfterPrimaryServicesDiscover(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -474,7 +474,7 @@ void AfterRelationshipDiscover(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -540,7 +540,7 @@ void AfterCharacteristicsDiscover(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -606,7 +606,7 @@ void AfterDescriptorsDiscover(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -681,7 +681,7 @@ void AfterCharacteristicValueByUUIDRead(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -756,7 +756,7 @@ void AfterRead(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -838,7 +838,7 @@ void AfterCharacteristicValuesRead(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -904,7 +904,7 @@ void AfterWrite(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -970,7 +970,7 @@ void AfterHandleValueConfirm(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);

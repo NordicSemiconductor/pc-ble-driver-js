@@ -322,7 +322,7 @@ v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char *customMe
     switch (errorCode)
     {
         case NRF_SUCCESS:
-            return NanUndefined();
+            return Nan::Undefined();
 
         case NRF_ERROR_SVC_HANDLER_MISSING:
         case NRF_ERROR_SOFTDEVICE_NOT_ENABLED:

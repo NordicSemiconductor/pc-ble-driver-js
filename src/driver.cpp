@@ -396,7 +396,7 @@ void AfterOpen(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -513,13 +513,13 @@ void AfterGetVersion(uv_work_t *req) {
 
     if (baton->result != NRF_SUCCESS)
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
         argv[1] = ErrorMessage::getErrorMessage(baton->result, "getting version.");
     }
     else
     {
         argv[0] = Version(baton->version).ToJs();
-        argv[1] = NanUndefined();
+        argv[1] = Nan::Undefined();
     }
 
     baton->callback->Call(2, argv);

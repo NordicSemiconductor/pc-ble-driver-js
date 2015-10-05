@@ -587,7 +587,7 @@ void AfterGapSetAddress(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -630,13 +630,13 @@ void AfterGapGetAddress(uv_work_t *req) {
 
     if (baton->result != NRF_SUCCESS)
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
         argv[1] = ErrorMessage::getErrorMessage(baton->result, "getting address.");
     }
     else
     {
         argv[0] = GapAddr(baton->address);
-        argv[1] = NanUndefined();
+        argv[1] = Nan::Undefined();
     }
 
     baton->callback->Call(2, argv);
@@ -703,7 +703,7 @@ void AfterGapUpdateConnectionParameters(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -770,7 +770,7 @@ void AfterGapDisconnect(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -829,7 +829,7 @@ void AfterGapSetTXPower(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -903,7 +903,7 @@ void AfterGapSetDeviceName(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -953,7 +953,7 @@ void AfterGapGetDeviceName(uv_work_t *req) {
 
     if (baton->result != NRF_SUCCESS)
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
         argv[1] = ErrorMessage::getErrorMessage(baton->result, "getting device name.");
     }
     else
@@ -964,7 +964,7 @@ void AfterGapGetDeviceName(uv_work_t *req) {
         v8::Local<v8::String> dev_name = Nan::New<v8::String>(baton->dev_name);
 
         argv[0] = dev_name;
-        argv[1] = NanUndefined();
+        argv[1] = Nan::Undefined();
     }
 
     baton->callback->Call(2, argv);
@@ -1042,7 +1042,7 @@ void AfterGapStartRSSI(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -1100,7 +1100,7 @@ void AfterGapStopRSSI(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -1157,7 +1157,7 @@ void AfterStartScan(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -1206,7 +1206,7 @@ void AfterStopScan(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -1277,7 +1277,7 @@ void AfterGapConnect(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -1326,7 +1326,7 @@ void AfterGapCancelConnect(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -1388,13 +1388,13 @@ void AfterGapGetRSSI(uv_work_t *req) {
 
     if (baton->result != NRF_SUCCESS)
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
         argv[1] = ErrorMessage::getErrorMessage(baton->result, "getting rssi");
     }
     else
     {
         argv[0] = ConversionUtility::toJsNumber(baton->rssi);
-        argv[1] = NanUndefined();
+        argv[1] = Nan::Undefined();
     }
 
     baton->callback->Call(2, argv);
