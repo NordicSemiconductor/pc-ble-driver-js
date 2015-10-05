@@ -184,9 +184,9 @@ public:
     static v8::Local<v8::Object> getJsObject(v8::Local<v8::Object>js, char *name);
 
     static uint16_t msecsToUnitsUint16(v8::Local<v8::Object>js, char *name, enum ConversionUnits unit);
-    static uint16_t msecsToUnitsUint16(float msecs, enum ConversionUnits unit);
+    static uint16_t msecsToUnitsUint16(double msecs, enum ConversionUnits unit);
     static uint8_t  msecsToUnitsUint8(v8::Local<v8::Object>js, char *name, enum ConversionUnits unit);
-    static uint8_t  msecsToUnitsUint8(float msecs, enum ConversionUnits unit);
+    static uint8_t  msecsToUnitsUint8(double msecs, enum ConversionUnits unit);
     static v8::Handle<v8::Value> unitsToMsecs(uint16_t units, enum ConversionUnits unit);
 
     static v8::Handle<v8::Value> toJsNumber(int32_t nativeValue);

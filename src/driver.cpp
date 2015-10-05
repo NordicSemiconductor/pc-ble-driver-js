@@ -8,6 +8,8 @@
 #include "driver_gap.h"
 #include "driver_gatt.h"
 #include "driver_gattc.h"
+#include "driver_gatts.h"
+
 #include "circular_fifo_unsafe.h"
 
 using namespace std;
@@ -647,6 +649,7 @@ extern "C" {
         init_gap(target);
         init_gatt(target);
         init_gattc(target);
+        init_gatts(target);
     }
 
     void init_driver(v8::Handle<v8::Object> target)

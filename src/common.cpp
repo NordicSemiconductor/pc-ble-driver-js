@@ -212,24 +212,24 @@ v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Object>js, ch
 
 uint16_t ConversionUtility::msecsToUnitsUint16(v8::Local<v8::Object>js, char *name, enum ConversionUtility::ConversionUnits unit)
 {
-    float msecs = getNativeDouble(js, name);
+    double msecs = getNativeDouble(js, name);
     return msecsToUnitsUint16(msecs, unit);
 }
 
-uint16_t ConversionUtility::msecsToUnitsUint16(float msecs, enum ConversionUtility::ConversionUnits unit)
+uint16_t ConversionUtility::msecsToUnitsUint16(double msecs, enum ConversionUtility::ConversionUnits unit)
 {
-    return msecs * 1000 / unit;
+    return (uint16_t)(msecs * 1000 / unit);
 }
 
 uint8_t ConversionUtility::msecsToUnitsUint8(v8::Local<v8::Object>js, char *name, enum ConversionUtility::ConversionUnits unit)
 {
-    float msecs = getNativeDouble(js, name);
+    double msecs = getNativeDouble(js, name);
     return msecsToUnitsUint8(msecs, unit);
 }
 
-uint8_t ConversionUtility::msecsToUnitsUint8(float msecs, enum ConversionUtility::ConversionUnits unit)
+uint8_t ConversionUtility::msecsToUnitsUint8(double msecs, enum ConversionUtility::ConversionUnits unit)
 {
-    return msecs * 1000 / unit;
+    return (uint8_t)(msecs * 1000 / unit);
 }
 
 v8::Handle<v8::Value> ConversionUtility::unitsToMsecs(uint16_t units, enum ConversionUtility::ConversionUnits unit)
