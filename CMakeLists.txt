@@ -38,8 +38,11 @@ set(SOURCE_FILES
 
 if(WIN32)
     file(GLOB PLATFORM_SOURCE_FILES "src/win/*.c" "src/win/*.cpp" "src/adapter_win.cpp")
+elseif(APPLE)
+    file(GLOB PLATFORM_SOURCE_FILES "src/adapter_osx.cpp")
 else()
-    file(GLOB PLATFORM_SOURCE_FILES "src/adapter_unix.cpp")
+    # Assume Linux
+    file(GLOB PLATFORM_SOURCE_FILES "src/adapter_linux.cpp")
 endif()
 
 # This line will tell CMake that we're building a shared library
@@ -57,12 +60,13 @@ set_target_properties(${PROJECT_NAME}
 if(WIN32)
     include_directories("${CMAKE_JS_INC}/win")
     set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
-endif(WIN32)
-
-if(APPLE)
+elseif(APPLE)
     target_link_libraries(${PROJECT_NAME} "-framework CoreFoundation")
     target_link_libraries(${PROJECT_NAME} "-framework IOKit")
     set_property(TARGET ${PROJECT_NAME} PROPERTY MACOSX_RPATH ON)
+else()
+    # Assume Linux
+    target_link_libraries(${PROJECT_NAME} "udev")
 endif()
 
 # Find BLE driver library

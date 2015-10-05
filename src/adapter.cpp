@@ -37,6 +37,7 @@ NAN_METHOD(GetAdapterList) {
     NanThrowTypeError("First argument must be a function");
     NanReturnUndefined();
   }
+  
   v8::Local<v8::Function> callback = args[0].As<v8::Function>();
 
   AdapterListBaton* baton = new AdapterListBaton();
@@ -56,18 +57,15 @@ void AfterGetAdapterList(uv_work_t* req) {
   AdapterListBaton* data = static_cast<AdapterListBaton*>(req->data);
 
   v8::Handle<v8::Value> argv[2];
-  if(data->errorString[0])
-  {
+  
+  if(data->errorString[0]) {
     argv[0] = v8::Exception::Error(NanNew<v8::String>(data->errorString));
     argv[1] = NanUndefined();
-  }
-  else
-  {
+  } else {
     v8::Local<v8::Array> results = NanNew<v8::Array>();
     int i = 0;
 
-    for(std::list<AdapterListResultItem*>::iterator it = data->results.begin(); it != data->results.end(); ++it, i++)
-    {
+    for(std::list<AdapterListResultItem*>::iterator it = data->results.begin(); it != data->results.end(); ++it, i++) {
       v8::Local<v8::Object> item = NanNew<v8::Object>();
       item->Set(NanNew<v8::String>("comName"), NanNew<v8::String>((*it)->comName.c_str()));
       item->Set(NanNew<v8::String>("manufacturer"), NanNew<v8::String>((*it)->manufacturer.c_str()));
