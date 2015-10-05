@@ -40,15 +40,15 @@ extern name_map_t gatt_status_map = {
 
 v8::Local<v8::Object> GattCharProps::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
-    obj->Set(NanNew("broadcast"), ConversionUtility::toJsBool(native->broadcast));
-    obj->Set(NanNew("read"), ConversionUtility::toJsBool(native->read));
-    obj->Set(NanNew("write_wo_resp"), ConversionUtility::toJsBool(native->write_wo_resp));
-    obj->Set(NanNew("write"), ConversionUtility::toJsBool(native->write));
-    obj->Set(NanNew("notify"), ConversionUtility::toJsBool(native->notify));
-    obj->Set(NanNew("indicate"), ConversionUtility::toJsBool(native->indicate));
-    obj->Set(NanNew("auth_signed_wr"), ConversionUtility::toJsBool(native->auth_signed_wr));
+    obj->Set(Nan::New("broadcast"), ConversionUtility::toJsBool(native->broadcast));
+    obj->Set(Nan::New("read"), ConversionUtility::toJsBool(native->read));
+    obj->Set(Nan::New("write_wo_resp"), ConversionUtility::toJsBool(native->write_wo_resp));
+    obj->Set(Nan::New("write"), ConversionUtility::toJsBool(native->write));
+    obj->Set(Nan::New("notify"), ConversionUtility::toJsBool(native->notify));
+    obj->Set(Nan::New("indicate"), ConversionUtility::toJsBool(native->indicate));
+    obj->Set(Nan::New("auth_signed_wr"), ConversionUtility::toJsBool(native->auth_signed_wr));
 
     return obj;
 }
@@ -78,10 +78,10 @@ ble_gatt_char_props_t *GattCharProps::ToNative()
 
 v8::Local<v8::Object> GattCharExtProps::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
-    obj->Set(NanNew("reliable_wr"), ConversionUtility::toJsBool(native->reliable_wr));
-    obj->Set(NanNew("wr_aux"), ConversionUtility::toJsBool(native->wr_aux));
+    obj->Set(Nan::New("reliable_wr"), ConversionUtility::toJsBool(native->reliable_wr));
+    obj->Set(Nan::New("wr_aux"), ConversionUtility::toJsBool(native->wr_aux));
 
     return obj;
 }

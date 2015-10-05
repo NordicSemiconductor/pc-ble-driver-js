@@ -193,13 +193,13 @@ uint8_t ConversionUtility::getNativeBool(v8::Local<v8::Value>js)
 
 uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Object>js, char *name)
 {
-    v8::Local<v8::Array> jsarray = v8::Local<v8::Array>::Cast(js->Get(NanNew(name)));
+    v8::Local<v8::Array> jsarray = v8::Local<v8::Array>::Cast(Nan::Get(js, Nan::New(name)));
 
     uint8_t *string = (uint8_t *)malloc(sizeof(uint8_t) * jsarray->Length());
 
     for (uint32_t i = 0; i < jsarray->Length(); ++i)
     {
-        string[i] = (uint8_t)jsarray->Get(NanNew(i))->Uint32Value();
+        string[i] = (uint8_t)jsarray->Get(Nan::New(i))->Uint32Value();
     }
 
     return string;
@@ -207,29 +207,29 @@ uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Object>js, cha
 
 v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Object>js, char *name)
 {
-    return js->Get(NanNew(name))->ToObject();
+    return js->Get(Nan::New(name))->ToObject();
 }
 
 uint16_t ConversionUtility::msecsToUnitsUint16(v8::Local<v8::Object>js, char *name, enum ConversionUtility::ConversionUnits unit)
 {
-    float msecs = getNativeDouble(js, name);
+    double msecs = getNativeDouble(js, name);
     return msecsToUnitsUint16(msecs, unit);
 }
 
-uint16_t ConversionUtility::msecsToUnitsUint16(float msecs, enum ConversionUtility::ConversionUnits unit)
+uint16_t ConversionUtility::msecsToUnitsUint16(double msecs, enum ConversionUtility::ConversionUnits unit)
 {
-    return msecs * 1000 / unit;
+    return (uint16_t)(msecs * 1000 / unit);
 }
 
 uint8_t ConversionUtility::msecsToUnitsUint8(v8::Local<v8::Object>js, char *name, enum ConversionUtility::ConversionUnits unit)
 {
-    float msecs = getNativeDouble(js, name);
+    double msecs = getNativeDouble(js, name);
     return msecsToUnitsUint8(msecs, unit);
 }
 
-uint8_t ConversionUtility::msecsToUnitsUint8(float msecs, enum ConversionUtility::ConversionUnits unit)
+uint8_t ConversionUtility::msecsToUnitsUint8(double msecs, enum ConversionUtility::ConversionUnits unit)
 {
-    return msecs * 1000 / unit;
+    return (uint8_t)(msecs * 1000 / unit);
 }
 
 v8::Handle<v8::Value> ConversionUtility::unitsToMsecs(uint16_t units, enum ConversionUtility::ConversionUnits unit)
@@ -240,32 +240,32 @@ v8::Handle<v8::Value> ConversionUtility::unitsToMsecs(uint16_t units, enum Conve
 
 v8::Handle<v8::Value> ConversionUtility::toJsNumber(int32_t nativeValue)
 {
-    return NanNew<v8::Integer>(nativeValue);
+    return Nan::New<v8::Integer>(nativeValue);
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsNumber(uint32_t nativeValue)
 {
-    return NanNew<v8::Integer>(nativeValue);
+    return Nan::New<v8::Integer>(nativeValue);
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsNumber(uint16_t nativeValue)
 {
-    return NanNew<v8::Integer>(nativeValue);
+    return Nan::New<v8::Integer>(nativeValue);
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsNumber(uint8_t nativeValue)
 {
-    return NanNew<v8::Integer>(nativeValue);
+    return Nan::New<v8::Integer>(nativeValue);
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsNumber(double nativeValue)
 {
-    return NanNew<v8::Number>(nativeValue);
+    return Nan::New<v8::Number>(nativeValue);
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsBool(uint8_t nativeValue)
 {
-    return NanNew<v8::Boolean>(nativeValue ? true : false);
+    return Nan::New<v8::Boolean>(nativeValue ? true : false);
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsValueArray(uint8_t *nativeData, uint16_t length)
@@ -277,7 +277,7 @@ v8::Handle<v8::Value> ConversionUtility::toJsValueArray(uint8_t *nativeData, uin
 
 v8::Handle<v8::Value> ConversionUtility::toJsString(char *cString)
 {
-    return NanNew<v8::String>(cString);
+    return Nan::New<v8::String>(cString);
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsString(char *cString, uint16_t length)
@@ -286,7 +286,7 @@ v8::Handle<v8::Value> ConversionUtility::toJsString(char *cString, uint16_t leng
     memset(name, 0, length + 1); // Zero terminate the name
     memcpy(name, cString, length);
 
-    v8::Local<v8::String> _name = NanNew(name);
+    v8::Local<v8::String> _name = Nan::New(name);
 
     free(name);
 
@@ -314,7 +314,7 @@ v8::Handle<v8::Value> ConversionUtility::valueToJsString(uint16_t value, name_ma
         return defaultValue;
     }
 
-    return NanNew<v8::String>(it->second);
+    return Nan::New<v8::String>(it->second);
 }
 
 v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char *customMessage)
@@ -347,12 +347,12 @@ v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char *customMe
             errorStringStream << "Error occured when " << customMessage << ". "
                 << "Errorcode: " << ConversionUtility::valueToString(errorCode, error_message_name_map) << " (" << errorCode << ")" << std::endl;
 
-            return v8::Exception::Error(NanNew<v8::String>(errorStringStream.str()));
+            return v8::Exception::Error(Nan::New<v8::String>(errorStringStream.str()));
         }
     }
 }
 
 v8::Local<v8::Value> HciStatus::getHciStatus(int statusCode)
 {
-    return NanNew<v8::String>(ConversionUtility::valueToString(statusCode, hci_status_map));
+    return Nan::New<v8::String>(ConversionUtility::valueToString(statusCode, hci_status_map));
 }

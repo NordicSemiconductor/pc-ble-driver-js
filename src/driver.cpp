@@ -46,7 +46,7 @@ typedef CircularFifo<LogEntry *, 64> LogQueue;
         std::string timestamp = event_entry->timestamp;                                                                 \
         v8::Local<v8::Value> js_event =                                                                                 \
             Gap##evt_to_js(timestamp, gap_event.conn_handle, &(gap_event.params.params_name)).ToJs();                   \
-        event_array->Set(NanNew<v8::Integer>(event_array_idx), js_event);                                               \
+        event_array->Set(Nan::New<v8::Integer>(event_array_idx), js_event);                                               \
         break;                                                                                                          \
     }
 
@@ -58,7 +58,7 @@ typedef CircularFifo<LogEntry *, 64> LogQueue;
         std::string timestamp = event_entry->timestamp;                                                                 \
         v8::Local<v8::Value> js_event =                                                                                 \
             Gattc##evt_to_js(timestamp, gattc_event->conn_handle, gattc_event->gatt_status, gattc_event->error_handle, &(gattc_event->params.params_name)).ToJs();                   \
-        event_array->Set(NanNew<v8::Integer>(event_array_idx), js_event);                                               \
+        event_array->Set(Nan::New<v8::Integer>(event_array_idx), js_event);                                               \
         break;                                                                                                          \
     }
 
@@ -211,7 +211,7 @@ void on_rpc_event(uv_async_t *handle)
     evt_cb_batch_evt_counter = 0;
     evt_cb_batch_number += 1;
 
-    v8::Local<v8::Array> array = NanNew<v8::Array>();
+    v8::Local<v8::Array> array = Nan::New<v8::Array>();
     int array_idx = 0;
 
     while (!event_entries->wasEmpty())
@@ -297,13 +297,13 @@ NAN_METHOD(Open) {
     strncpy(baton->path, *path, PATH_STRING_SIZE);
 
     baton->baud_rate = ConversionUtility::getNativeUint32(options, "baudRate");
-    baton->parity = ToParityEnum(options->Get(NanNew<v8::String>("parity"))->ToString());
-    baton->flow_control = ToFlowControlEnum(options->Get(NanNew<v8::String>("flowControl"))->ToString());
+    baton->parity = ToParityEnum(options->Get(Nan::New<v8::String>("parity"))->ToString());
+    baton->flow_control = ToFlowControlEnum(options->Get(Nan::New<v8::String>("flowControl"))->ToString());
     baton->evt_interval = ConversionUtility::getNativeUint32(options, "eventInterval");
-    baton->log_level = ToLogSeverityEnum(options->Get(NanNew<v8::String>("logLevel"))->ToString());
+    baton->log_level = ToLogSeverityEnum(options->Get(Nan::New<v8::String>("logLevel"))->ToString());
 
-    baton->log_callback = new NanCallback(options->Get(NanNew<v8::String>("logCallback")).As<v8::Function>());
-    baton->event_callback = new NanCallback(options->Get(NanNew<v8::String>("eventCallback")).As<v8::Function>());
+    baton->log_callback = new NanCallback(options->Get(Nan::New<v8::String>("logCallback")).As<v8::Function>());
+    baton->event_callback = new NanCallback(options->Get(Nan::New<v8::String>("eventCallback")).As<v8::Function>());
 
     uv_queue_work(uv_default_loop(), baton->req, Open, (uv_after_work_cb)AfterOpen);
 
@@ -417,11 +417,11 @@ NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& v8str) {
 
     sd_rpc_parity_t parity = SD_RPC_PARITY_NONE;
 
-    if (v8str->Equals(NanNew("none")))
+    if (v8str->Equals(Nan::New("none")))
     {
         parity = SD_RPC_PARITY_NONE;
     }
-    else if (v8str->Equals(NanNew("even")))
+    else if (v8str->Equals(Nan::New("even")))
     {
         parity = SD_RPC_PARITY_EVEN;
     }
@@ -434,11 +434,11 @@ NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const v8::Handle<v8::String>&
 
     sd_rpc_flow_control_t flow_control = SD_RPC_FLOW_CONTROL_NONE;
 
-    if (v8str->Equals(NanNew("none")))
+    if (v8str->Equals(Nan::New("none")))
     {
         flow_control = SD_RPC_FLOW_CONTROL_NONE;
     }
-    else if (v8str->Equals(NanNew("hw")))
+    else if (v8str->Equals(Nan::New("hw")))
     {
         flow_control = SD_RPC_FLOW_CONTROL_HARDWARE;
     }
@@ -451,23 +451,23 @@ NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const v8::Handle<v8::String>&
 
     sd_rpc_log_severity_t log_severity = SD_RPC_LOG_DEBUG;
 
-    if(v8str->Equals(NanNew("trace")))
+    if(v8str->Equals(Nan::New("trace")))
     {
         log_severity = SD_RPC_LOG_TRACE;
     }
-    else if (v8str->Equals(NanNew("debug")))
+    else if (v8str->Equals(Nan::New("debug")))
     {
         log_severity = SD_RPC_LOG_DEBUG;
     }
-    else if (v8str->Equals(NanNew("info")))
+    else if (v8str->Equals(Nan::New("info")))
     {
         log_severity = SD_RPC_LOG_INFO;
     }
-    else if (v8str->Equals(NanNew("error")))
+    else if (v8str->Equals(Nan::New("error")))
     {
         log_severity = SD_RPC_LOG_ERROR;
     }
-    else if (v8str->Equals(NanNew("fatal")))
+    else if (v8str->Equals(Nan::New("fatal")))
     {
         log_severity = SD_RPC_LOG_FATAL;
     }
@@ -531,10 +531,10 @@ NAN_METHOD(GetStats)
 {
     NanScope();
 
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
-    obj->Set(NanNew("event_callback_total_time"), ConversionUtility::toJsNumber((int32_t)evt_cb_duration.count()));
-    obj->Set(NanNew("event_callback_total_count"), ConversionUtility::toJsNumber(evt_cb_count));
-    obj->Set(NanNew("event_callback_batch_max_count"), ConversionUtility::toJsNumber(evt_cb_max_count));
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    obj->Set(Nan::New("event_callback_total_time"), ConversionUtility::toJsNumber((int32_t)evt_cb_duration.count()));
+    obj->Set(Nan::New("event_callback_total_count"), ConversionUtility::toJsNumber(evt_cb_count));
+    obj->Set(Nan::New("event_callback_batch_max_count"), ConversionUtility::toJsNumber(evt_cb_max_count));
 
     double avg_cb_batch_count = 0.0;
 
@@ -543,7 +543,7 @@ NAN_METHOD(GetStats)
         avg_cb_batch_count = evt_cb_batch_evt_total_count / evt_cb_batch_number;
     }
 
-    obj->Set(NanNew("event_callback_batch_avg_count"), ConversionUtility::toJsNumber(avg_cb_batch_count));
+    obj->Set(Nan::New("event_callback_batch_avg_count"), ConversionUtility::toJsNumber(avg_cb_batch_count));
 
     NanReturnValue(obj);
 }
@@ -554,10 +554,10 @@ NAN_METHOD(GetStats)
 
 v8::Local<v8::Object> Version::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
-    obj->Set(NanNew("version_number"), ConversionUtility::toJsNumber(native->version_number));
-    obj->Set(NanNew("company_id"), ConversionUtility::toJsNumber(native->company_id));
-    obj->Set(NanNew("subversion_number"), ConversionUtility::toJsNumber(native->subversion_number));
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    obj->Set(Nan::New("version_number"), ConversionUtility::toJsNumber(native->version_number));
+    obj->Set(Nan::New("company_id"), ConversionUtility::toJsNumber(native->company_id));
+    obj->Set(Nan::New("subversion_number"), ConversionUtility::toJsNumber(native->subversion_number));
     return obj;
 }
 
@@ -580,10 +580,10 @@ ble_version_t *Version::ToNative()
 
 v8::Local<v8::Object> BleUUID::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
-    obj->Set(NanNew("uuid"), ConversionUtility::toJsNumber(native->uuid));
-    obj->Set(NanNew("type"), ConversionUtility::toJsNumber(native->type));
-    obj->Set(NanNew("typeString"), ConversionUtility::valueToJsString(native->type, uuid_type_name_map));
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    obj->Set(Nan::New("uuid"), ConversionUtility::toJsNumber(native->uuid));
+    obj->Set(Nan::New("type"), ConversionUtility::toJsNumber(native->type));
+    obj->Set(Nan::New("typeString"), ConversionUtility::valueToJsString(native->type, uuid_type_name_map));
     return obj;
 }
 
@@ -607,13 +607,13 @@ ble_uuid_t *BleUUID::ToNative()
 
 v8::Local<v8::Object> BleUUID128::ToJs()
 {
-    v8::Handle<v8::Object> obj = NanNew<v8::Object>();
+    v8::Handle<v8::Object> obj = Nan::New<v8::Object>();
     size_t uuid_len = 16 * 2 + 4 + 1; // Each byte -> 2 chars, 4 - separator _between_ some bytes and 1 byte null termination character
     char *uuid128string = (char*)malloc(uuid_len);
     uint8_t *ptr = native->uuid128;
 
     sprintf(uuid128string, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x", ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], ptr[6], ptr[7], ptr[8], ptr[9], ptr[10], ptr[11], ptr[12], ptr[13], ptr[14], ptr[15]);
-    obj->Set(NanNew("uuid128"), ConversionUtility::toJsString(uuid128string));
+    obj->Set(Nan::New("uuid128"), ConversionUtility::toJsString(uuid128string));
     free(uuid128string);
     return obj;
 }

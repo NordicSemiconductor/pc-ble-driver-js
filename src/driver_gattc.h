@@ -89,9 +89,9 @@ public:
     virtual void ToJs(v8::Local<v8::Object> obj)
     {
         BleDriverEvent<EventType>::ToJs(obj);
-        obj->Set(NanNew("gatt_status"), NanNew(gatt_status));
-        obj->Set(NanNew("gatt_status_name"), NanNew(gatt_status_map[gatt_status]));
-        obj->Set(NanNew("error_handle"), NanNew(error_handle));
+        obj->Set(Nan::New("gatt_status"), Nan::New(gatt_status));
+        obj->Set(Nan::New("gatt_status_name"), Nan::New(gatt_status_map[gatt_status]));
+        obj->Set(Nan::New("error_handle"), Nan::New(error_handle));
     }
 
     virtual v8::Local<v8::Object> ToJs() = 0;

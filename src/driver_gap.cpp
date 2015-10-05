@@ -97,9 +97,9 @@ static name_map_t gap_ad_type_map =
 
 v8::Local<v8::Object> GapAddr::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
-    obj->Set(NanNew("type"), NanNew(gap_addr_type_map[native->addr_type]));
+    obj->Set(Nan::New("type"), Nan::New(gap_addr_type_map[native->addr_type]));
 
     // Create a text string of the address. The when the NanUtf8String string is out of
     // its scope, the underlaying string is freed.
@@ -111,9 +111,9 @@ v8::Local<v8::Object> GapAddr::ToJs()
     sprintf(addr, "%02X:%02X:%02X:%02X:%02X:%02X", ptr[5], ptr[4], ptr[3], ptr[2], ptr[1], ptr[0]);
 
     // TODO: According to Instruments (OS X), GapAddr::ToJs leaks 32 bytes. This must be resolved.
-    v8::Local<v8::String> _addr = NanNew(addr);
-    obj->Set(NanNew("address"), _addr);
-    obj->Set(NanNew("type"), NanNew(gap_addr_type_map[native->addr_type]));
+    v8::Local<v8::String> _addr = Nan::New(addr);
+    obj->Set(Nan::New("address"), _addr);
+    obj->Set(Nan::New("type"), Nan::New(gap_addr_type_map[native->addr_type]));
 
     free(addr);
     return obj;
@@ -125,7 +125,7 @@ ble_gap_addr_t *GapAddr::ToNative()
 
     uint32_t ptr[BLE_GAP_ADDR_LEN];
 
-    v8::Local<v8::Value> getAddress = jsobj->Get(NanNew("address"));
+    v8::Local<v8::Value> getAddress = jsobj->Get(Nan::New("address"));
     v8::Local<v8::String> addressString = getAddress->ToString();
     size_t addr_len = addressString->Length() + 1;
     char *addr = (char*)malloc(addr_len);
@@ -139,7 +139,7 @@ ble_gap_addr_t *GapAddr::ToNative()
         address->addr[i] = (uint8_t)ptr[i];
     }
 
-    v8::Local<v8::Value> getAddressType = jsobj->Get(NanNew("type"));
+    v8::Local<v8::Value> getAddressType = jsobj->Get(Nan::New("type"));
     v8::Local<v8::String> addressTypeString = getAddressType->ToString();
     size_t type_len = addressTypeString->Length() + 1;
     char *typeString = (char *)malloc(type_len);
@@ -160,12 +160,12 @@ ble_gap_addr_t *GapAddr::ToNative()
 
 v8::Local<v8::Object> GapConnParams::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
-    obj->Set(NanNew("min_conn_interval"), ConversionUtility::unitsToMsecs(native->min_conn_interval, ConversionUtility::ConversionUnit1250ms));
-    obj->Set(NanNew("max_conn_interval"), ConversionUtility::unitsToMsecs(native->max_conn_interval, ConversionUtility::ConversionUnit1250ms));
-    obj->Set(NanNew("slave_latency"), ConversionUtility::toJsNumber(native->slave_latency));
-    obj->Set(NanNew("conn_sup_timeout"), ConversionUtility::unitsToMsecs(native->conn_sup_timeout, ConversionUtility::ConversionUnit10s));
+    obj->Set(Nan::New("min_conn_interval"), ConversionUtility::unitsToMsecs(native->min_conn_interval, ConversionUtility::ConversionUnit1250ms));
+    obj->Set(Nan::New("max_conn_interval"), ConversionUtility::unitsToMsecs(native->max_conn_interval, ConversionUtility::ConversionUnit1250ms));
+    obj->Set(Nan::New("slave_latency"), ConversionUtility::toJsNumber(native->slave_latency));
+    obj->Set(Nan::New("conn_sup_timeout"), ConversionUtility::unitsToMsecs(native->conn_sup_timeout, ConversionUtility::ConversionUnit10s));
 
     return obj;
 }
@@ -193,9 +193,9 @@ ble_gap_conn_params_t *GapConnParams::ToNative()
 
 v8::Local<v8::Object> GapConnSecMode::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
-    obj->Set(NanNew("sm"), NanNew(native->sm));
-    obj->Set(NanNew("lv"), NanNew(native->lv));
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    obj->Set(Nan::New("sm"), Nan::New(native->sm));
+    obj->Set(Nan::New("lv"), Nan::New(native->lv));
     return obj;
 }
 
@@ -203,8 +203,8 @@ ble_gap_conn_sec_mode_t *GapConnSecMode::ToNative()
 {
     ble_gap_conn_sec_mode_t *conn_sec_mode = new ble_gap_conn_sec_mode_t();
 
-    conn_sec_mode->sm = (uint8_t)jsobj->Get(NanNew("sm"))->ToUint32()->NumberValue();
-    conn_sec_mode->lv = (uint8_t)jsobj->Get(NanNew("lv"))->ToUint32()->NumberValue();
+    conn_sec_mode->sm = (uint8_t)jsobj->Get(Nan::New("sm"))->ToUint32()->NumberValue();
+    conn_sec_mode->lv = (uint8_t)jsobj->Get(Nan::New("lv"))->ToUint32()->NumberValue();
 
     return conn_sec_mode;
 }
@@ -218,14 +218,14 @@ ble_gap_conn_sec_mode_t *GapConnSecMode::ToNative()
 //
 v8::Local<v8::Object> GapAdvReport::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(NanNew("rssi"), NanNew<v8::Integer>(this->evt->rssi));
-    obj->Set(NanNew("peer_addr"), GapAddr(&(this->evt->peer_addr)));
-    obj->Set(NanNew("scan_rsp"), NanNew<v8::Boolean>(this->evt->scan_rsp ? true : false));
+    obj->Set(Nan::New("rssi"), Nan::New<v8::Integer>(this->evt->rssi));
+    obj->Set(Nan::New("peer_addr"), GapAddr(&(this->evt->peer_addr)));
+    obj->Set(Nan::New("scan_rsp"), Nan::New<v8::Boolean>(this->evt->scan_rsp ? true : false));
 
     if (this->evt->scan_rsp == 1) {
-        obj->Set(NanNew("adv_type"), NanNew(gap_adv_type_map[this->evt->type])); // TODO: add support for non defined adv types
+        obj->Set(Nan::New("adv_type"), Nan::New(gap_adv_type_map[this->evt->type])); // TODO: add support for non defined adv types
     }
 
     uint8_t dlen = this->evt->dlen;
@@ -233,13 +233,13 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
     if (dlen != 0)
     {
         // Attach a scan_rsp object to the adv_report
-        v8::Local<v8::Object> data_obj = NanNew<v8::Object>();
-        obj->Set(NanNew("data"), data_obj);
+        v8::Local<v8::Object> data_obj = Nan::New<v8::Object>();
+        obj->Set(Nan::New("data"), data_obj);
 
         uint8_t *data = this->evt->data;
 
         // TODO: Evaluate if buffer is the correct datatype for advertisement data
-        data_obj->Set(NanNew("raw"), NanNewBufferHandle((char *)data, dlen));
+        data_obj->Set(Nan::New("raw"), NanNewBufferHandle((char *)data, dlen));
 
         uint8_t pos = 0;  // Position in packet
         uint8_t ad_len;   // AD Type length
@@ -258,29 +258,29 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
 
             if (ad_type == BLE_GAP_AD_TYPE_FLAGS)
             {
-                v8::Local<v8::Array> flags_array = NanNew<v8::Array>();
+                v8::Local<v8::Array> flags_array = Nan::New<v8::Array>();
                 int flags_array_idx = 0;
                 uint8_t flags = data[pos + 1];
 
                 for (name_map_it_t iterator = gap_adv_flags_map.begin(); iterator != gap_adv_flags_map.end(); iterator++)
                 {
                     if ((flags & iterator->first) != 0) {
-                        flags_array->Set(NanNew<v8::Integer>(flags_array_idx), NanNew(iterator->second));
+                        flags_array->Set(Nan::New<v8::Integer>(flags_array_idx), Nan::New(iterator->second));
                         flags_array_idx++;
                     }
                 }
 
-                data_obj->Set(NanNew(gap_ad_type_map[ad_type]), flags_array);
+                data_obj->Set(Nan::New(gap_ad_type_map[ad_type]), flags_array);
             }
             else if (ad_type == BLE_GAP_AD_TYPE_COMPLETE_LOCAL_NAME || ad_type == BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME)
             {
                 uint8_t name_len = ad_len - 1;
                 uint8_t offset = pos + 1;
-                data_obj->Set(NanNew(gap_ad_type_map[ad_type]), ConversionUtility::toJsString((char *)&data[offset], name_len));
+                data_obj->Set(Nan::New(gap_ad_type_map[ad_type]), ConversionUtility::toJsString((char *)&data[offset], name_len));
             }
             else if (ad_type == BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_MORE_AVAILABLE || ad_type == BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE)
             {
-                v8::Local<v8::Array> uuid_array = NanNew<v8::Array>();
+                v8::Local<v8::Array> uuid_array = Nan::New<v8::Array>();
                 uint8_t array_pos = 0;
                 uint8_t sub_pos = pos + 1;
 
@@ -289,16 +289,16 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 {
                     char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
                     sprintf(uuid_as_text, UUID_128_BIT_SPRINTF, 0, uint16_decode((uint8_t*)data + sub_pos + i));
-                    uuid_array->Set(NanNew<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
+                    uuid_array->Set(Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
                     free(uuid_as_text);
                     array_pos++;
                 }
 
-                data_obj->Set(NanNew(gap_ad_type_map[ad_type]), uuid_array);
+                data_obj->Set(Nan::New(gap_ad_type_map[ad_type]), uuid_array);
             }
             else if (ad_type == BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_MORE_AVAILABLE || ad_type == BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_COMPLETE)
             {
-                v8::Local<v8::Array> uuid_array = NanNew<v8::Array>();
+                v8::Local<v8::Array> uuid_array = Nan::New<v8::Array>();
                 uint8_t array_pos = 0;
                 uint8_t sub_pos = pos + 1;
 
@@ -309,16 +309,16 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                     sprintf(uuid_as_text, UUID_128_BIT_SPRINTF,
                             uint16_decode((uint8_t*)data + sub_pos + 2 + i),
                             uint16_decode((uint8_t*)data + sub_pos + 0 + i));
-                    uuid_array->Set(NanNew<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
+                    uuid_array->Set(Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
                     free(uuid_as_text);
                     array_pos++;
                 }
 
-                data_obj->Set(NanNew(gap_ad_type_map[ad_type]), uuid_array);
+                data_obj->Set(Nan::New(gap_ad_type_map[ad_type]), uuid_array);
             }
             else if (ad_type == BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_COMPLETE || ad_type == BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_MORE_AVAILABLE)
             {
-                v8::Local<v8::Array> uuid_array = NanNew<v8::Array>();
+                v8::Local<v8::Array> uuid_array = Nan::New<v8::Array>();
                 uint8_t array_pos = 0;
                 uint8_t sub_pos = pos + 1;
 
@@ -339,23 +339,23 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                         uint16_decode((uint8_t*)data + (sub_pos + i + 2)),
                         uint16_decode((uint8_t*)data + (sub_pos + i + 0))
                         );
-                    uuid_array->Set(NanNew<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
+                    uuid_array->Set(Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
                     free(uuid_as_text);
                     array_pos++;
                 }
 
-                data_obj->Set(NanNew(gap_ad_type_map[ad_type]), uuid_array);
+                data_obj->Set(Nan::New(gap_ad_type_map[ad_type]), uuid_array);
             }
             else if (ad_type == BLE_GAP_AD_TYPE_SERVICE_DATA)
             {
                 //std::cout << "Not processed: " << gap_ad_type_map[ad_type] << std::endl;
-                // data_obj->Set(NanNew(gap_ad_type_map[ad_type]), NanNew((data[pos + 1] << 8) + data[pos + 2]));
+                // data_obj->Set(Nan::New(gap_ad_type_map[ad_type]), Nan::New((data[pos + 1] << 8) + data[pos + 2]));
             }
             else if (ad_type == BLE_GAP_AD_TYPE_TX_POWER_LEVEL)
             {
                 if(ad_len - 1 == 1)
                 {
-                    data_obj->Set(NanNew(gap_ad_type_map[ad_type]), NanNew<v8::Integer>(data[pos+1]));
+                    data_obj->Set(Nan::New(gap_ad_type_map[ad_type]), Nan::New<v8::Integer>(data[pos+1]));
                 } else {
                     std::cerr << "Wrong length of AD_TYPE :" << gap_ad_type_map[ad_type] << std::endl;
                 }
@@ -381,10 +381,10 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
 //
 v8::Local<v8::Object> GapScanReqReport::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(NanNew("rssi"), ConversionUtility::toJsNumber(evt->rssi));
-    obj->Set(NanNew("peer_addr"), GapAddr(&(this->evt->peer_addr)));
+    obj->Set(Nan::New("rssi"), ConversionUtility::toJsNumber(evt->rssi));
+    obj->Set(Nan::New("peer_addr"), GapAddr(&(this->evt->peer_addr)));
 
     return obj;
 }
@@ -398,18 +398,18 @@ v8::Local<v8::Object> GapScanReqReport::ToJs()
 //
 v8::Local<v8::Object> GapConnected::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
 
-    obj->Set(NanNew("own_addr"), GapAddr(&(evt->own_addr)));
-    obj->Set(NanNew("peer_addr"), GapAddr(&(evt->peer_addr)));
-    obj->Set(NanNew("role"), ConversionUtility::valueToJsString(evt->role, gap_role_map));
-    obj->Set(NanNew("conn_params"), GapConnParams(&(evt->conn_params)));
-    obj->Set(NanNew("irk_match"), ConversionUtility::toJsBool(evt->irk_match));
+    obj->Set(Nan::New("own_addr"), GapAddr(&(evt->own_addr)));
+    obj->Set(Nan::New("peer_addr"), GapAddr(&(evt->peer_addr)));
+    obj->Set(Nan::New("role"), ConversionUtility::valueToJsString(evt->role, gap_role_map));
+    obj->Set(Nan::New("conn_params"), GapConnParams(&(evt->conn_params)));
+    obj->Set(Nan::New("irk_match"), ConversionUtility::toJsBool(evt->irk_match));
 
     if (evt->irk_match == 1)
     {
-        obj->Set(NanNew("irk_idx"), ConversionUtility::toJsNumber(evt->irk_match_idx));
+        obj->Set(Nan::New("irk_idx"), ConversionUtility::toJsNumber(evt->irk_match_idx));
     }
 
     return obj;
@@ -424,10 +424,10 @@ v8::Local<v8::Object> GapConnected::ToJs()
 //
 v8::Local<v8::Object> GapDisconnected::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(NanNew("reason"), ConversionUtility::toJsNumber(evt->reason));
-    obj->Set(NanNew("reason_name"), HciStatus::getHciStatus(evt->reason));
+    obj->Set(Nan::New("reason"), ConversionUtility::toJsNumber(evt->reason));
+    obj->Set(Nan::New("reason_name"), HciStatus::getHciStatus(evt->reason));
 
     return obj;
 }
@@ -441,10 +441,10 @@ v8::Local<v8::Object> GapDisconnected::ToJs()
 //
 v8::Local<v8::Object> GapTimeout::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(NanNew("src"), ConversionUtility::toJsNumber(evt->src));
-    obj->Set(NanNew("src_name"), ConversionUtility::valueToJsString(evt->src, gap_timeout_sources_map));
+    obj->Set(Nan::New("src"), ConversionUtility::toJsNumber(evt->src));
+    obj->Set(Nan::New("src_name"), ConversionUtility::valueToJsString(evt->src, gap_timeout_sources_map));
 
     return obj;
 }
@@ -458,9 +458,9 @@ v8::Local<v8::Object> GapTimeout::ToJs()
 //
 v8::Local<v8::Object> GapRssiChanged::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(NanNew("rssi"), ConversionUtility::toJsNumber(evt->rssi));
+    obj->Set(Nan::New("rssi"), ConversionUtility::toJsNumber(evt->rssi));
 
     return obj;
 }
@@ -474,9 +474,9 @@ v8::Local<v8::Object> GapRssiChanged::ToJs()
 //
 v8::Local<v8::Object> GapConnParamUpdate::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(NanNew("conn_params"), GapConnParams(&(this->evt->conn_params)));
+    obj->Set(Nan::New("conn_params"), GapConnParams(&(this->evt->conn_params)));
 
     return obj;
 }
@@ -490,9 +490,9 @@ v8::Local<v8::Object> GapConnParamUpdate::ToJs()
 //
 v8::Local<v8::Object> GapConnParamUpdateRequest::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(NanNew("conn_params"), GapConnParams(&(this->evt->conn_params)));
+    obj->Set(Nan::New("conn_params"), GapConnParams(&(this->evt->conn_params)));
     return obj;
 }
 
@@ -507,7 +507,7 @@ v8::Local<v8::Object> GapConnParamUpdateRequest::ToJs()
 v8::Local<v8::Object> GapScanParams::ToJs()
 {
     // Scan parameters are never retrieved from driver.
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     return obj;
 }
 
@@ -961,7 +961,7 @@ void AfterGapGetDeviceName(uv_work_t *req) {
         size_t length = baton->length;
         baton->dev_name[length] = 0;
 
-        v8::Local<v8::String> dev_name = NanNew<v8::String>(baton->dev_name);
+        v8::Local<v8::String> dev_name = Nan::New<v8::String>(baton->dev_name);
 
         argv[0] = dev_name;
         argv[1] = NanUndefined();

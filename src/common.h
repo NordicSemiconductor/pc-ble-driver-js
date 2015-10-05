@@ -39,7 +39,7 @@ public:
     BleToJs(v8::Local<v8::Object> js) : jsobj(js) {}
     BleToJs(NativeType *native) : native(native) {}
 
-    virtual v8::Local<v8::Object> ToJs() { /*TODO: ASSERT*/ return NanNew<v8::Object>(); }
+    virtual v8::Local<v8::Object> ToJs() { /*TODO: ASSERT*/ return Nan::New<v8::Object>(); }
     virtual NativeType *ToNative() { /*TODO: ASSERT*/ return new NativeType(); }
 
     operator NativeType*() { return ToNative(); }
@@ -71,10 +71,10 @@ public:
 
     virtual void ToJs(v8::Local<v8::Object> obj)
     {
-        obj->Set(NanNew("id"), NanNew(this->evt_id));
-        obj->Set(NanNew("name"), NanNew(getEventName()));
-        obj->Set(NanNew("time"), NanNew(timestamp));
-        obj->Set(NanNew("conn_handle"), NanNew(this->conn_handle));
+        obj->Set(Nan::New("id"), Nan::New(this->evt_id));
+        obj->Set(Nan::New("name"), Nan::New(getEventName()));
+        obj->Set(Nan::New("time"), Nan::New(timestamp));
+        obj->Set(Nan::New("conn_handle"), Nan::New(this->conn_handle));
     }
 
     virtual v8::Local<v8::Object> ToJs() = 0;
@@ -135,22 +135,22 @@ public:
 
     static NativeType getNativeUnsigned(v8::Local<v8::Object> js, char *name)
     {
-        return getNativeUnsigned(js->Get(NanNew(name)));
+        return getNativeUnsigned(js->Get(Nan::New(name)));
     }
 
     static NativeType getNativeSigned(v8::Local<v8::Object> js, char *name)
     {
-        return getNativeSigned(js->Get(NanNew(name)));
+        return getNativeSigned(js->Get(Nan::New(name)));
     }
 
     static NativeType getNativeFloat(v8::Local<v8::Object> js, char *name)
     {
-        return getNativeFloat(js->Get(NanNew(name)));
+        return getNativeFloat(js->Get(Nan::New(name)));
     }
 
     static NativeType getNativeBool(v8::Local<v8::Object> js, char *name)
     {
-        return getNativeBool(js->Get(NanNew(name)));
+        return getNativeBool(js->Get(Nan::New(name)));
     }
 };
 
@@ -184,9 +184,9 @@ public:
     static v8::Local<v8::Object> getJsObject(v8::Local<v8::Object>js, char *name);
 
     static uint16_t msecsToUnitsUint16(v8::Local<v8::Object>js, char *name, enum ConversionUnits unit);
-    static uint16_t msecsToUnitsUint16(float msecs, enum ConversionUnits unit);
+    static uint16_t msecsToUnitsUint16(double msecs, enum ConversionUnits unit);
     static uint8_t  msecsToUnitsUint8(v8::Local<v8::Object>js, char *name, enum ConversionUnits unit);
-    static uint8_t  msecsToUnitsUint8(float msecs, enum ConversionUnits unit);
+    static uint8_t  msecsToUnitsUint8(double msecs, enum ConversionUnits unit);
     static v8::Handle<v8::Value> unitsToMsecs(uint16_t units, enum ConversionUnits unit);
 
     static v8::Handle<v8::Value> toJsNumber(int32_t nativeValue);
@@ -199,7 +199,7 @@ public:
     static v8::Handle<v8::Value> toJsString(char *cString);
     static v8::Handle<v8::Value> toJsString(char *cString, uint16_t length);
     static char *                valueToString(uint16_t value, name_map_t name_map, char *defaultValue = "Unknown value");
-    static v8::Handle<v8::Value> valueToJsString(uint16_t, name_map_t name_map, v8::Handle<v8::Value> defaultValue = NanNew<v8::String>("Unknown value"));
+    static v8::Handle<v8::Value> valueToJsString(uint16_t, name_map_t name_map, v8::Handle<v8::Value> defaultValue = Nan::New<v8::String>("Unknown value"));
 };
 
 class ErrorMessage
