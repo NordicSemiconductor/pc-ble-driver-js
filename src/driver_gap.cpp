@@ -574,7 +574,7 @@ void GapSetAddress(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapSetAddress(uv_work_t *req) {
-    
+	Nan::HandleScope scope;
 
     GapAddressSetBaton *baton = static_cast<GapAddressSetBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
@@ -624,7 +624,8 @@ void GapGetAddress(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapGetAddress(uv_work_t *req) {
-    
+	Nan::HandleScope scope;
+
     GapAddressGetBaton *baton = static_cast<GapAddressGetBaton *>(req->data);
     v8::Local<v8::Value> argv[2];
 
@@ -691,7 +692,7 @@ void GapUpdateConnectionParameters(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapUpdateConnectionParameters(uv_work_t *req) {
-    
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     GapUpdateConnectionParametersBaton *baton = static_cast<GapUpdateConnectionParametersBaton *>(req->data);
@@ -758,7 +759,7 @@ void GapDisconnect(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapDisconnect(uv_work_t *req) {
-    
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     GapDisconnectBaton *baton = static_cast<GapDisconnectBaton *>(req->data);
@@ -817,7 +818,7 @@ void GapSetTXPower(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapSetTXPower(uv_work_t *req) {
-    
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     TXPowerBaton *baton = static_cast<TXPowerBaton *>(req->data);
@@ -891,7 +892,7 @@ void GapSetDeviceName(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapSetDeviceName(uv_work_t *req) {
-    
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     GapSetDeviceNameBaton *baton = static_cast<GapSetDeviceNameBaton *>(req->data);
@@ -1088,7 +1089,7 @@ void GapStopRSSI(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapStopRSSI(uv_work_t *req) {
-    
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     GapStopRSSIBaton *baton = static_cast<GapStopRSSIBaton *>(req->data);
@@ -1145,7 +1146,7 @@ void StartScan(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterStartScan(uv_work_t *req) {
-    
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     StartScanBaton *baton = static_cast<StartScanBaton *>(req->data);
@@ -1194,7 +1195,7 @@ void StopScan(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterStopScan(uv_work_t *req) {
-    
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     StopScanBaton *baton = static_cast<StopScanBaton *>(req->data);
@@ -1265,7 +1266,7 @@ void GapConnect(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapConnect(uv_work_t *req) {
-    
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     GapConnectBaton *baton = static_cast<GapConnectBaton *>(req->data);
@@ -1314,7 +1315,7 @@ void GapCancelConnect(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapCancelConnect(uv_work_t *req) {
-    
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     GapConnectCancelBaton *baton = static_cast<GapConnectCancelBaton *>(req->data);
@@ -1380,7 +1381,7 @@ void GapGetRSSI(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapGetRSSI(uv_work_t *req) {
-    
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     GapGetRSSIBaton *baton = static_cast<GapGetRSSIBaton *>(req->data);

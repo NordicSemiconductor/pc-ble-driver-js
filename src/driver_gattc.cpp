@@ -394,6 +394,8 @@ void PrimaryServicesDiscover(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterPrimaryServicesDiscover(uv_work_t *req) {
+	Nan::HandleScope scope;
+
     GattcPrimaryServicesDiscoverBaton *baton = static_cast<GattcPrimaryServicesDiscoverBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
@@ -455,6 +457,8 @@ void RelationshipDiscover(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterRelationshipDiscover(uv_work_t *req) {
+	Nan::HandleScope scope;
+
     GattcRelationshipDiscoverBaton *baton = static_cast<GattcRelationshipDiscoverBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
@@ -516,6 +520,8 @@ void CharacteristicsDiscover(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterCharacteristicsDiscover(uv_work_t *req) {
+	Nan::HandleScope scope;
+
     GattcCharacteristicsDiscoverBaton *baton = static_cast<GattcCharacteristicsDiscoverBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
@@ -577,6 +583,8 @@ void DescriptorsDiscover(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterDescriptorsDiscover(uv_work_t *req) {
+	Nan::HandleScope scope;
+
     GattcDescriptorsDiscoverBaton *baton = static_cast<GattcDescriptorsDiscoverBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
@@ -647,6 +655,8 @@ void CharacteristicValueByUUIDRead(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterCharacteristicValueByUUIDRead(uv_work_t *req) {
+	Nan::HandleScope scope;
+
     GattcCharacteristicByUUIDReadBaton *baton = static_cast<GattcCharacteristicByUUIDReadBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
@@ -717,6 +727,8 @@ void Read(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterRead(uv_work_t *req) {
+	Nan::HandleScope scope;
+
     GattcReadBaton *baton = static_cast<GattcReadBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
@@ -794,6 +806,8 @@ void CharacteristicValuesRead(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterCharacteristicValuesRead(uv_work_t *req) {
+	Nan::HandleScope scope;
+
     GattcCharacteristicValuesReadBaton *baton = static_cast<GattcCharacteristicValuesReadBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
@@ -855,6 +869,8 @@ void Write(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterWrite(uv_work_t *req) {
+	Nan::HandleScope scope;
+
     GattcWriteBaton *baton = static_cast<GattcWriteBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
@@ -916,6 +932,8 @@ void HandleValueConfirm(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterHandleValueConfirm(uv_work_t *req) {
+	Nan::HandleScope scope;
+
     GattcHandleValueConfirmBaton *baton = static_cast<GattcHandleValueConfirmBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 

@@ -346,6 +346,7 @@ void Open(uv_work_t *req) {
 // This runs in  Main Thread
 void AfterOpen(uv_work_t *req) {
     // TODO: handle if .Close is called before this function is called.
+	Nan::HandleScope scope;
     OpenBaton *baton = static_cast<OpenBaton *>(req->data);
     delete req;
 
@@ -470,6 +471,7 @@ void GetVersion(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGetVersion(uv_work_t *req) {
+	Nan::HandleScope scope;
     GetVersionBaton *baton = static_cast<GetVersionBaton *>(req->data);
     v8::Local<v8::Value> argv[2];
 
@@ -599,6 +601,7 @@ extern "C" {
 
     NAN_MODULE_INIT(init)
     {
+//        Nan::HandleScope scope;
         init_adapter_list(target);
         init_driver(target);
         init_types(target);
