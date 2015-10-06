@@ -866,4 +866,4 @@ extern "C" {
     }
 }
 
-//NODE_MODULE(ble_driver, init)
+NODE_MODULE(ble_driver, init)
