@@ -103,33 +103,4 @@ void GetAdapterList(uv_work_t* req) {
 
         dhUninitialize(TRUE);
     }
-
-#if 0
-  std::vector<UINT> ports;
-  if (CEnumerateSerial::UsingQueryDosDevice(ports))
-  {
-    for (size_t i = 0; i < ports.size(); i++)
-    {
-      char comname[64] = { 0 };
-      _snprintf(comname, sizeof(comname), "COM%u", ports[i]);
-      bool bFound = false;
-      for (std::list<AdapterListResultItem*>::iterator ri = data->results.begin(); ri != data->results.end(); ++ri)
-      {
-        if (stricmp((*ri)->comName.c_str(), comname) == 0)
-        {
-          bFound = true;
-          break;
-        }
-      }
-      if (!bFound)
-      {
-        AdapterListResultItem* resultItem = new AdapterListResultItem();
-        resultItem->comName = comname;
-        resultItem->manufacturer = "";
-        resultItem->pnpId = "";
-        data->results.push_back(resultItem);
-      }
-    }
-  }
-#endif
 }

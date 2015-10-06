@@ -30,7 +30,6 @@
 #include "adapter.h"
 
 NAN_METHOD(GetAdapterList) {
-// callback
     if(!info[0]->IsFunction())
     {
         Nan::ThrowTypeError("First argument must be a function");
@@ -48,13 +47,14 @@ NAN_METHOD(GetAdapterList) {
 }
 
 void AfterGetAdapterList(uv_work_t* req) {
-    AdapterListBaton* data = static_cast<AdapterListBaton*>(req->data);
+	Nan::HandleScope scope;
+    AdapterListBaton* baton = static_cast<AdapterListBaton*>(req->data);
 
     v8::Local<v8::Value> argv[2];
   
-    if(data->errorString[0])
+    if(baton->errorString[0])
     {
-        argv[0] = v8::Exception::Error(Nan::New(data->errorString).ToLocalChecked());
+        argv[0] = v8::Exception::Error(Nan::New(baton->errorString).ToLocalChecked());
         argv[1] = Nan::Undefined();
     } 
     else 
@@ -62,7 +62,7 @@ void AfterGetAdapterList(uv_work_t* req) {
         v8::Local<v8::Array> results = Nan::New<v8::Array>();
         int i = 0;
 
-        for(std::list<AdapterListResultItem*>::iterator it = data->results.begin(); it != data->results.end(); ++it, i++) 
+        for(auto it = baton->results.begin(); it != baton->results.end(); ++it, i++) 
         {
             v8::Local<v8::Object> item = Nan::New<v8::Object>();
             Utility::Set(item, "comName", (*it)->comName);
@@ -79,14 +79,13 @@ void AfterGetAdapterList(uv_work_t* req) {
         argv[1] = results;
     }
 
-    data->callback->Call(2, argv);
+    baton->callback->Call(2, argv);
 
-    delete data->callback;
-
-    for(std::list<AdapterListResultItem*>::iterator it = data->results.begin(); it != data->results.end(); ++it) 
+    for(auto it = baton->results.begin(); it != baton->results.end(); ++it) 
     {
         delete *it;
     }
 
+    delete baton;
     delete req;
 }
