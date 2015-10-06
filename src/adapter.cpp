@@ -30,65 +30,64 @@
 #include "adapter.h"
 
 NAN_METHOD(GetAdapterList) {
-  NanScope();
-
-  // callback
-  if(!args[0]->IsFunction()) {
-    NanThrowTypeError("First argument must be a function");
-    NanReturnUndefined();
-  }
+// callback
+    if(!info[0]->IsFunction())
+    {
+        Nan::ThrowTypeError("First argument must be a function");
+        return;
+    }
   
-  v8::Local<v8::Function> callback = args[0].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[0].As<v8::Function>();
 
-  AdapterListBaton* baton = new AdapterListBaton();
-  strcpy(baton->errorString, "");
-  baton->callback = new NanCallback(callback);
+    AdapterListBaton* baton = new AdapterListBaton(callback);
+    strcpy(baton->errorString, "");
 
-  uv_work_t* req = new uv_work_t();
-  req->data = baton;
-  uv_queue_work(uv_default_loop(), req, GetAdapterList, (uv_after_work_cb)AfterGetAdapterList);
-
-  NanReturnUndefined();
+    uv_work_t* req = new uv_work_t();
+    req->data = baton;
+    uv_queue_work(uv_default_loop(), req, GetAdapterList, (uv_after_work_cb)AfterGetAdapterList);
 }
 
 void AfterGetAdapterList(uv_work_t* req) {
-  NanScope();
+    AdapterListBaton* data = static_cast<AdapterListBaton*>(req->data);
 
-  AdapterListBaton* data = static_cast<AdapterListBaton*>(req->data);
-
-  v8::Handle<v8::Value> argv[2];
+    v8::Local<v8::Value> argv[2];
   
-  if(data->errorString[0]) {
-    argv[0] = v8::Exception::Error(NanNew<v8::String>(data->errorString));
-    argv[1] = NanUndefined();
-  } else {
-    v8::Local<v8::Array> results = NanNew<v8::Array>();
-    int i = 0;
+    if(data->errorString[0])
+    {
+        argv[0] = v8::Exception::Error(Nan::New(data->errorString).ToLocalChecked());
+        argv[1] = Nan::Undefined();
+    } 
+    else 
+    {
+        v8::Local<v8::Array> results = Nan::New<v8::Array>();
+        int i = 0;
 
-    for(std::list<AdapterListResultItem*>::iterator it = data->results.begin(); it != data->results.end(); ++it, i++) {
-      v8::Local<v8::Object> item = NanNew<v8::Object>();
-      item->Set(NanNew<v8::String>("comName"), NanNew<v8::String>((*it)->comName.c_str()));
-      item->Set(NanNew<v8::String>("manufacturer"), NanNew<v8::String>((*it)->manufacturer.c_str()));
-      item->Set(NanNew<v8::String>("serialNumber"), NanNew<v8::String>((*it)->serialNumber.c_str()));
-      item->Set(NanNew<v8::String>("pnpId"), NanNew<v8::String>((*it)->pnpId.c_str()));
-      item->Set(NanNew<v8::String>("locationId"), NanNew<v8::String>((*it)->locationId.c_str()));
-      item->Set(NanNew<v8::String>("vendorId"), NanNew<v8::String>((*it)->vendorId.c_str()));
-      item->Set(NanNew<v8::String>("productId"), NanNew<v8::String>((*it)->productId.c_str()));
-      results->Set(i, item);
+        for(std::list<AdapterListResultItem*>::iterator it = data->results.begin(); it != data->results.end(); ++it, i++) 
+        {
+            v8::Local<v8::Object> item = Nan::New<v8::Object>();
+            Utility::Set(item, "comName", (*it)->comName);
+            Utility::Set(item, "manufacturer", (*it)->manufacturer);
+            Utility::Set(item, "serialNumber", (*it)->serialNumber);
+            Utility::Set(item, "pnpId", (*it)->pnpId);
+            Utility::Set(item, "locationId", (*it)->locationId);
+            Utility::Set(item, "vendorId", (*it)->vendorId);
+            Utility::Set(item, "productId", (*it)->productId);
+            results->Set(i, item);
+        }
+
+        argv[0] = Nan::Undefined();
+        argv[1] = results;
     }
 
-    argv[0] = NanUndefined();
-    argv[1] = results;
-  }
+    data->callback->Call(2, argv);
 
-  data->callback->Call(2, argv);
+    delete data->callback;
 
-  delete data->callback;
+    for(std::list<AdapterListResultItem*>::iterator it = data->results.begin(); it != data->results.end(); ++it) 
+    {
+        delete *it;
+    }
 
-  for(std::list<AdapterListResultItem*>::iterator it = data->results.begin(); it != data->results.end(); ++it) {
-    delete *it;
-  }
-
-  delete data;
-  delete req;
+    delete data;
+    delete req;
 }
