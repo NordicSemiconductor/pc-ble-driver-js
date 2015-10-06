@@ -71,10 +71,10 @@ public:
 
     virtual void ToJs(v8::Local<v8::Object> obj)
     {
-        Nan::Set(obj, Nan::New("id").ToLocalChecked(), Nan::New(this->evt_id));
-        Nan::Set(obj, Nan::New("name").ToLocalChecked(), Nan::New(getEventName()));
-        Nan::Set(obj, Nan::New("time").ToLocalChecked(), Nan::New(timestamp));
-        Nan::Set(obj, Nan::New("conn_handle").ToLocalChecked(), Nan::New(this->conn_handle));
+        Utility::Set(obj, "id", evt_id);
+        Utility::Set(obj, "name", getEventName());
+        Utility::Set(obj, "time", timestamp);
+        Utility::Set(obj, "conn_handle", conn_handle);
     }
 
     virtual v8::Local<v8::Object> ToJs() = 0;
@@ -135,22 +135,22 @@ public:
 
     static NativeType getNativeUnsigned(v8::Local<v8::Object> js, char *name)
     {
-        return getNativeUnsigned(js->Get(Nan::New(name)));
+        return getNativeUnsigned(js->Get(Nan::New(name).ToLocalChecked()));
     }
 
     static NativeType getNativeSigned(v8::Local<v8::Object> js, char *name)
     {
-        return getNativeSigned(js->Get(Nan::New(name)));
+        return getNativeSigned(js->Get(Nan::New(name).ToLocalChecked()));
     }
 
     static NativeType getNativeFloat(v8::Local<v8::Object> js, char *name)
     {
-        return getNativeFloat(js->Get(Nan::New(name)));
+        return getNativeFloat(js->Get(Nan::New(name).ToLocalChecked()));
     }
 
     static NativeType getNativeBool(v8::Local<v8::Object> js, char *name)
     {
-        return getNativeBool(js->Get(Nan::New(name)));
+        return getNativeBool(js->Get(Nan::New(name).ToLocalChecked()));
     }
 };
 
@@ -198,8 +198,30 @@ public:
     static v8::Handle<v8::Value> toJsValueArray(uint8_t *nativeValue, uint16_t length);
     static v8::Handle<v8::Value> toJsString(char *cString);
     static v8::Handle<v8::Value> toJsString(char *cString, uint16_t length);
+    static v8::Handle<v8::Value> toJsString(std::string string);
     static char *                valueToString(uint16_t value, name_map_t name_map, char *defaultValue = "Unknown value");
     static v8::Handle<v8::Value> valueToJsString(uint16_t, name_map_t name_map, v8::Handle<v8::Value> defaultValue = Nan::New<v8::String>("Unknown value").ToLocalChecked());
+};
+
+class Utility
+{
+public:
+    static v8::Local<v8::Value> Get(v8::Local<v8::Object> jsobj, char *name);
+    static void SetMethod(v8::Handle<v8::Object> target, char *exportName, Nan::FunctionCallback function);
+
+    static bool Set(v8::Handle<v8::Object> target, char *name, int32_t value);
+    static bool Set(v8::Handle<v8::Object> target, char *name, uint32_t value);
+    static bool Set(v8::Handle<v8::Object> target, char *name, int16_t value);
+    static bool Set(v8::Handle<v8::Object> target, char *name, uint16_t value);
+    static bool Set(v8::Handle<v8::Object> target, char *name, int8_t value);
+    static bool Set(v8::Handle<v8::Object> target, char *name, uint8_t value);
+    static bool Set(v8::Handle<v8::Object> target, char *name, bool value);
+    static bool Set(v8::Handle<v8::Object> target, char *name, double value);
+    static bool Set(v8::Handle<v8::Object> target, char *name, char *value);
+    static bool Set(v8::Handle<v8::Object> target, char *name, std::string value);
+    static bool Set(v8::Handle<v8::Object> target, char *name, v8::Local<v8::Value> value);
+
+    static void SetReturnValue(Nan::NAN_METHOD_ARGS_TYPE info, v8::Local<v8::Object> value);
 };
 
 class ErrorMessage

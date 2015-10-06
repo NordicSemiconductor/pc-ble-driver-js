@@ -61,8 +61,8 @@ struct OpenBaton : public Baton {
 public:
     BATON_CONSTRUCTOR(OpenBaton)
     char path[PATH_STRING_SIZE];
-    NanCallback *event_callback; // Callback that is called for every event that is received from the SoftDevice
-    NanCallback *log_callback;   // Callback that is called for every log entry that is received from the SoftDevice
+    Nan::Callback *event_callback; // Callback that is called for every event that is received from the SoftDevice
+    Nan::Callback *log_callback;   // Callback that is called for every log entry that is received from the SoftDevice
 
     sd_rpc_log_severity_t log_level;
     sd_rpc_log_handler_t log_handler;

@@ -193,7 +193,7 @@ uint8_t ConversionUtility::getNativeBool(v8::Local<v8::Value>js)
 
 uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Object>js, char *name)
 {
-    v8::Local<v8::Array> jsarray = v8::Local<v8::Array>::Cast(Nan::Get(js, Nan::New(name)));
+    v8::Local<v8::Array> jsarray = v8::Local<v8::Array>::Cast(Utility::Get(js, name));
 
     uint8_t *string = (uint8_t *)malloc(sizeof(uint8_t) * jsarray->Length());
 
@@ -207,7 +207,7 @@ uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Object>js, cha
 
 v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Object>js, char *name)
 {
-    return js->Get(Nan::New(name))->ToObject();
+    return Utility::Get(js, name)->ToObject();
 }
 
 uint16_t ConversionUtility::msecsToUnitsUint16(v8::Local<v8::Object>js, char *name, enum ConversionUtility::ConversionUnits unit)
@@ -270,14 +270,14 @@ v8::Handle<v8::Value> ConversionUtility::toJsBool(uint8_t nativeValue)
 
 v8::Handle<v8::Value> ConversionUtility::toJsValueArray(uint8_t *nativeData, uint16_t length)
 {
-    v8::Handle<v8::Value> valueArray = NanNewBufferHandle((char *)nativeData, length);
+    v8::Handle<v8::Value> valueArray = Nan::NewBuffer((char *)nativeData, length).ToLocalChecked();
 
     return valueArray;
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsString(char *cString)
 {
-    return Nan::New<v8::String>(cString);
+    return Nan::New<v8::String>(cString).ToLocalChecked();
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsString(char *cString, uint16_t length)
@@ -286,11 +286,16 @@ v8::Handle<v8::Value> ConversionUtility::toJsString(char *cString, uint16_t leng
     memset(name, 0, length + 1); // Zero terminate the name
     memcpy(name, cString, length);
 
-    v8::Local<v8::String> _name = Nan::New(name);
+    v8::Local<v8::String> _name = Nan::New(name).ToLocalChecked();
 
     free(name);
 
     return _name;
+}
+
+v8::Handle<v8::Value> ConversionUtility::toJsString(std::string string)
+{
+    return Nan::New<v8::String>(string).ToLocalChecked();
 }
 
 char * ConversionUtility::valueToString(uint16_t value, name_map_t name_map, char *defaultValue)
@@ -314,7 +319,79 @@ v8::Handle<v8::Value> ConversionUtility::valueToJsString(uint16_t value, name_ma
         return defaultValue;
     }
 
-    return Nan::New<v8::String>(it->second);
+    return Nan::New<v8::String>(it->second).ToLocalChecked();
+}
+
+v8::Local<v8::Value> Utility::Get(v8::Local<v8::Object> jsobj, char *name)
+{
+    return Nan::Get(jsobj, Nan::New(name).ToLocalChecked()).ToLocalChecked();
+}
+
+void Utility::SetMethod(v8::Handle<v8::Object> target, char *exportName, Nan::FunctionCallback function)
+{
+    Utility::Set(target,
+        exportName,
+        Nan::GetFunction(Nan::New<v8::FunctionTemplate>(function)).ToLocalChecked());
+}
+
+bool Utility::Set(v8::Handle<v8::Object> target, char *name, int32_t value)
+{
+    return Utility::Set(target, name, ConversionUtility::toJsNumber(value));
+}
+
+bool Utility::Set(v8::Handle<v8::Object> target, char *name, uint32_t value)
+{
+    return Utility::Set(target, name, ConversionUtility::toJsNumber(value));
+}
+
+bool Utility::Set(v8::Handle<v8::Object> target, char *name, int16_t value)
+{
+    return Utility::Set(target, name, ConversionUtility::toJsNumber(value));
+}
+
+bool Utility::Set(v8::Handle<v8::Object> target, char *name, uint16_t value)
+{
+    return Utility::Set(target, name, ConversionUtility::toJsNumber(value));
+}
+
+bool Utility::Set(v8::Handle<v8::Object> target, char *name, int8_t value)
+{
+    return Utility::Set(target, name, ConversionUtility::toJsNumber(value));
+}
+
+bool Utility::Set(v8::Handle<v8::Object> target, char *name, uint8_t value)
+{
+    return Utility::Set(target, name, ConversionUtility::toJsNumber(value));
+}
+
+bool Utility::Set(v8::Handle<v8::Object> target, char *name, bool value)
+{
+    return Utility::Set(target, name, ConversionUtility::toJsBool(value));
+}
+
+bool Utility::Set(v8::Handle<v8::Object> target, char *name, double value)
+{
+    return Utility::Set(target, name, ConversionUtility::toJsNumber(value));
+}
+
+bool Utility::Set(v8::Handle<v8::Object> target, char *name, char *value)
+{
+    return Utility::Set(target, name, ConversionUtility::toJsString(value));
+}
+
+bool Utility::Set(v8::Handle<v8::Object> target, char *name, std::string value)
+{
+    return Utility::Set(target, name, ConversionUtility::toJsString(value));
+}
+
+bool Utility::Set(v8::Handle<v8::Object> target, char *name, v8::Local<v8::Value> value)
+{
+    return Nan::Set(target, Nan::New(name).ToLocalChecked(), value).FromMaybe(false);
+}
+
+void Utility::SetReturnValue(Nan::NAN_METHOD_ARGS_TYPE info, v8::Local<v8::Object> value)
+{
+    info.GetReturnValue().Set(value);
 }
 
 v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char *customMessage)
@@ -347,12 +424,12 @@ v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char *customMe
             errorStringStream << "Error occured when " << customMessage << ". "
                 << "Errorcode: " << ConversionUtility::valueToString(errorCode, error_message_name_map) << " (" << errorCode << ")" << std::endl;
 
-            return v8::Exception::Error(Nan::New<v8::String>(errorStringStream.str()));
+            return v8::Exception::Error(Nan::New<v8::String>(errorStringStream.str()).ToLocalChecked());
         }
     }
 }
 
 v8::Local<v8::Value> HciStatus::getHciStatus(int statusCode)
 {
-    return Nan::New<v8::String>(ConversionUtility::valueToString(statusCode, hci_status_map));
+    return Nan::New<v8::String>(ConversionUtility::valueToString(statusCode, hci_status_map)).ToLocalChecked();
 }

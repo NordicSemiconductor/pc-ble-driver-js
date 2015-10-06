@@ -42,13 +42,13 @@ v8::Local<v8::Object> GattCharProps::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
-    Nan::Set(obj, Nan::New("broadcast").ToLocalChecked(), ConversionUtility::toJsBool(native->broadcast));
-    Nan::Set(obj, Nan::New("read").ToLocalChecked(), ConversionUtility::toJsBool(native->read));
-    Nan::Set(obj, Nan::New("write_wo_resp").ToLocalChecked(), ConversionUtility::toJsBool(native->write_wo_resp));
-    Nan::Set(obj, Nan::New("write").ToLocalChecked(), ConversionUtility::toJsBool(native->write));
-    Nan::Set(obj, Nan::New("notify").ToLocalChecked(), ConversionUtility::toJsBool(native->notify));
-    Nan::Set(obj, Nan::New("indicate").ToLocalChecked(), ConversionUtility::toJsBool(native->indicate));
-    Nan::Set(obj, Nan::New("auth_signed_wr").ToLocalChecked(), ConversionUtility::toJsBool(native->auth_signed_wr));
+    Utility::Set(obj, "broadcast", ConversionUtility::toJsBool(native->broadcast));
+    Utility::Set(obj, "read", ConversionUtility::toJsBool(native->read));
+    Utility::Set(obj, "write_wo_resp", ConversionUtility::toJsBool(native->write_wo_resp));
+    Utility::Set(obj, "write", ConversionUtility::toJsBool(native->write));
+    Utility::Set(obj, "notify", ConversionUtility::toJsBool(native->notify));
+    Utility::Set(obj, "indicate", ConversionUtility::toJsBool(native->indicate));
+    Utility::Set(obj, "auth_signed_wr", ConversionUtility::toJsBool(native->auth_signed_wr));
 
     return obj;
 }
@@ -80,8 +80,8 @@ v8::Local<v8::Object> GattCharExtProps::ToJs()
 {
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
-    Nan::Set(obj, Nan::New("reliable_wr").ToLocalChecked(), ConversionUtility::toJsBool(native->reliable_wr));
-    Nan::Set(obj, Nan::New("wr_aux").ToLocalChecked(), ConversionUtility::toJsBool(native->wr_aux));
+    Utility::Set(obj, "reliable_wr", ConversionUtility::toJsBool(native->reliable_wr));
+    Utility::Set(obj, "wr_aux", ConversionUtility::toJsBool(native->wr_aux));
 
     return obj;
 }
