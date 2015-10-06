@@ -88,6 +88,5 @@ void AfterGetAdapterList(uv_work_t* req) {
         delete *it;
     }
 
-    delete data;
     delete req;
 }
