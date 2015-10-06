@@ -47,6 +47,27 @@ public:
     operator v8::Handle<v8::Value>() { return ToJs(); }
 };
 
+class Utility
+{
+public:
+	static v8::Local<v8::Value> Get(v8::Local<v8::Object> jsobj, char *name);
+	static void SetMethod(v8::Handle<v8::Object> target, char *exportName, Nan::FunctionCallback function);
+
+	static bool Set(v8::Handle<v8::Object> target, char *name, int32_t value);
+	static bool Set(v8::Handle<v8::Object> target, char *name, uint32_t value);
+	static bool Set(v8::Handle<v8::Object> target, char *name, int16_t value);
+	static bool Set(v8::Handle<v8::Object> target, char *name, uint16_t value);
+	static bool Set(v8::Handle<v8::Object> target, char *name, int8_t value);
+	static bool Set(v8::Handle<v8::Object> target, char *name, uint8_t value);
+	static bool Set(v8::Handle<v8::Object> target, char *name, bool value);
+	static bool Set(v8::Handle<v8::Object> target, char *name, double value);
+	static bool Set(v8::Handle<v8::Object> target, char *name, char *value);
+	static bool Set(v8::Handle<v8::Object> target, char *name, std::string value);
+	static bool Set(v8::Handle<v8::Object> target, char *name, v8::Local<v8::Value> value);
+
+	static void SetReturnValue(Nan::NAN_METHOD_ARGS_TYPE info, v8::Local<v8::Object> value);
+};
+
 template<typename EventType>
 class BleDriverEvent : public BleToJs<EventType>
 {
@@ -201,27 +222,6 @@ public:
     static v8::Handle<v8::Value> toJsString(std::string string);
     static char *                valueToString(uint16_t value, name_map_t name_map, char *defaultValue = "Unknown value");
     static v8::Handle<v8::Value> valueToJsString(uint16_t, name_map_t name_map, v8::Handle<v8::Value> defaultValue = Nan::New<v8::String>("Unknown value").ToLocalChecked());
-};
-
-class Utility
-{
-public:
-    static v8::Local<v8::Value> Get(v8::Local<v8::Object> jsobj, char *name);
-    static void SetMethod(v8::Handle<v8::Object> target, char *exportName, Nan::FunctionCallback function);
-
-    static bool Set(v8::Handle<v8::Object> target, char *name, int32_t value);
-    static bool Set(v8::Handle<v8::Object> target, char *name, uint32_t value);
-    static bool Set(v8::Handle<v8::Object> target, char *name, int16_t value);
-    static bool Set(v8::Handle<v8::Object> target, char *name, uint16_t value);
-    static bool Set(v8::Handle<v8::Object> target, char *name, int8_t value);
-    static bool Set(v8::Handle<v8::Object> target, char *name, uint8_t value);
-    static bool Set(v8::Handle<v8::Object> target, char *name, bool value);
-    static bool Set(v8::Handle<v8::Object> target, char *name, double value);
-    static bool Set(v8::Handle<v8::Object> target, char *name, char *value);
-    static bool Set(v8::Handle<v8::Object> target, char *name, std::string value);
-    static bool Set(v8::Handle<v8::Object> target, char *name, v8::Local<v8::Value> value);
-
-    static void SetReturnValue(Nan::NAN_METHOD_ARGS_TYPE info, v8::Local<v8::Object> value);
 };
 
 class ErrorMessage
