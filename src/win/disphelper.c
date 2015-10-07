@@ -71,7 +71,7 @@ HRESULT dhCreateObjectEx(LPCOLESTR szProgId, REFIID riid, DWORD dwClsContext,
 	if (SUCCEEDED(hr)) hr = CoGetClassObject(&clsid, dwClsContext, pServerInfo, &IID_IClassFactory, (void **) &pCf);
 	if (SUCCEEDED(hr)) hr = pCf->lpVtbl->CreateInstance(pCf, NULL, riid, ppv);
 
-	if (pCf) pCf->lpVtbl->Release(pCf);
+	if (pCf != NULL) pCf->lpVtbl->Release(pCf);
 
 	return DH_EXIT(hr, szProgId);
 }

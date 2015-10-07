@@ -106,6 +106,7 @@ v8::Local<v8::Object> GapAddr::ToJs()
 
     size_t addr_len = BLE_GAP_ADDR_LEN * 3; // Each byte -> 2 chars, : separator _between_ each byte and a null termination byte
     char *addr = (char*)malloc(addr_len);
+	assert(addr != NULL);
     uint8_t *ptr = native->addr;
 
     sprintf(addr, "%02X:%02X:%02X:%02X:%02X:%02X", ptr[5], ptr[4], ptr[3], ptr[2], ptr[1], ptr[0]);
@@ -127,9 +128,12 @@ ble_gap_addr_t *GapAddr::ToNative()
     v8::Local<v8::String> addressString = getAddress->ToString();
     size_t addr_len = addressString->Length() + 1;
     char *addr = (char*)malloc(addr_len);
+	assert(addr != NULL);
     addressString->WriteUtf8(addr, addr_len);
 
-    sscanf(addr, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &(ptr[5]), &(ptr[4]), &(ptr[3]), &(ptr[2]), &(ptr[1]), &(ptr[0]));
+    int scan_count = sscanf(addr, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &(ptr[5]), &(ptr[4]), &(ptr[3]), &(ptr[2]), &(ptr[1]), &(ptr[0]));
+	assert(scan_count == 6);
+
     free(addr);
 
     for (int i = 0; i < BLE_GAP_ADDR_LEN; i++)
@@ -286,6 +290,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 for (int i = 0; i < ad_len - 1; i += 2)
                 {
                     char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
+					assert(uuid_as_text != NULL);
                     sprintf(uuid_as_text, UUID_128_BIT_SPRINTF, 0, uint16_decode((uint8_t*)data + sub_pos + i));
                     uuid_array->Set(Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
                     free(uuid_as_text);
@@ -304,6 +309,8 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 for (int i = 0; i < ad_len - 1; i += 4)
                 {
                     char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
+					assert(uuid_as_text != NULL);
+
                     sprintf(uuid_as_text, UUID_128_BIT_SPRINTF,
                             uint16_decode((uint8_t*)data + sub_pos + 2 + i),
                             uint16_decode((uint8_t*)data + sub_pos + 0 + i));
@@ -324,6 +331,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 for (int i = 0; i < ad_len - 1; i += 16)
                 {
                     char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
+					assert(uuid_as_text != NULL);
 
                     sprintf(
                         uuid_as_text,
@@ -914,8 +922,6 @@ void AfterGapSetDeviceName(uv_work_t *req) {
 
 NAN_METHOD(GapGetDeviceName)
 {
-    
-
     if (!info[0]->IsFunction())
     {
         Nan::ThrowTypeError("First argument must be a function");
@@ -946,7 +952,7 @@ void GapGetDeviceName(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapGetDeviceName(uv_work_t *req) {
-    
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     GapGetDeviceNameBaton *baton = static_cast<GapGetDeviceNameBaton *>(req->data);

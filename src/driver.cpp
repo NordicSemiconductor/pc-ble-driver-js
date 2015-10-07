@@ -197,8 +197,10 @@ void on_rpc_event(uv_async_t *handle)
 
     while (!event_entries->wasEmpty())
     {
-        EventEntry *event_entry;
+        EventEntry *event_entry = NULL;
         event_entries->pop(event_entry);
+        assert(event_entry != NULL);
+
         ble_evt_t *event = event_entry->event;
 
         if (driver_event_callback != NULL)
@@ -241,7 +243,7 @@ void on_rpc_event(uv_async_t *handle)
     callback_value[0] = array;
 
     auto start = chrono::high_resolution_clock::now();
-    driver_event_callback->Call(1, callback_value);
+    if(driver_event_callback != NULL) driver_event_callback->Call(1, callback_value);
     auto end = chrono::high_resolution_clock::now();
 
     chrono::milliseconds duration = chrono::duration_cast<chrono::milliseconds>(end - start);
@@ -576,6 +578,7 @@ v8::Local<v8::Object> BleUUID128::ToJs()
     v8::Handle<v8::Object> obj = Nan::New<v8::Object>();
     size_t uuid_len = 16 * 2 + 4 + 1; // Each byte -> 2 chars, 4 - separator _between_ some bytes and 1 byte null termination character
     char *uuid128string = (char*)malloc(uuid_len);
+    assert(uuid128string != NULL);
     uint8_t *ptr = native->uuid128;
 
     sprintf(uuid128string, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x", ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], ptr[6], ptr[7], ptr[8], ptr[9], ptr[10], ptr[11], ptr[12], ptr[13], ptr[14], ptr[15]);
