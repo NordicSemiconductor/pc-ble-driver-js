@@ -297,7 +297,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                     char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
 					assert(uuid_as_text != NULL);
                     sprintf(uuid_as_text, UUID_128_BIT_SPRINTF, 0, uint16_decode((uint8_t*)data + sub_pos + i));
-                    uuid_array->Set(Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
+                    Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
                     free(uuid_as_text);
                     array_pos++;
                 }
@@ -319,7 +319,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                     sprintf(uuid_as_text, UUID_128_BIT_SPRINTF,
                             uint16_decode((uint8_t*)data + sub_pos + 2 + i),
                             uint16_decode((uint8_t*)data + sub_pos + 0 + i));
-                    uuid_array->Set(Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
+                    Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
                     free(uuid_as_text);
                     array_pos++;
                 }
@@ -350,7 +350,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                         uint16_decode((uint8_t*)data + (sub_pos + i + 2)),
                         uint16_decode((uint8_t*)data + (sub_pos + i + 0))
                         );
-                    uuid_array->Set(Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
+                    Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
                     free(uuid_as_text);
                     array_pos++;
                 }
@@ -551,8 +551,6 @@ ble_gap_scan_params_t *GapScanParams::ToNative()
 
 NAN_METHOD(GapSetAddress)
 {
-    
-
     // CycleMode
     if (!info[0]->IsNumber())
     {
@@ -616,8 +614,6 @@ void AfterGapSetAddress(uv_work_t *req) {
 
 NAN_METHOD(GapGetAddress)
 {
-    
-
     // Callback
     if (!info[0]->IsFunction()) {
         Nan::ThrowTypeError("First argument must be a function");
@@ -667,8 +663,6 @@ void AfterGapGetAddress(uv_work_t *req) {
 
 NAN_METHOD(GapUpdateConnectionParameters)
 {
-    
-
     // CycleMode
     if (!info[0]->IsNumber())
     {
@@ -734,8 +728,6 @@ void AfterGapUpdateConnectionParameters(uv_work_t *req) {
 
 NAN_METHOD(GapDisconnect)
 {
-    
-
     // CycleMode
     if (!info[0]->IsNumber())
     {
@@ -801,8 +793,6 @@ void AfterGapDisconnect(uv_work_t *req) {
 
 NAN_METHOD(GapSetTXPower)
 {
-    
-
     // TxPower
     if (!info[0]->IsNumber())
     {
@@ -860,8 +850,6 @@ void AfterGapSetTXPower(uv_work_t *req) {
 
 NAN_METHOD(GapSetDeviceName)
 {
-    
-
     if (!info[0]->IsObject())
     {
         Nan::ThrowTypeError("First argument must be a object");
@@ -981,7 +969,7 @@ void AfterGapGetDeviceName(uv_work_t *req) {
         size_t length = baton->length;
         baton->dev_name[length] = 0;
 
-        v8::Local<v8::Value> dev_name = Nan::New((char *)baton->dev_name).ToLocalChecked();
+        v8::Local<v8::Value> dev_name = ConversionUtility::toJsString((char *)baton->dev_name);
 
         argv[0] = dev_name;
         argv[1] = Nan::Undefined();
@@ -995,8 +983,6 @@ void AfterGapGetDeviceName(uv_work_t *req) {
 
 NAN_METHOD(GapStartRSSI)
 {
-    
-
     // Connection handle
     if (!info[0]->IsNumber())
     {
@@ -1071,8 +1057,6 @@ void AfterGapStartRSSI(uv_work_t *req) {
 
 NAN_METHOD(GapStopRSSI)
 {
-    
-
     // CycleMode
     if (!info[0]->IsNumber())
     {
@@ -1129,8 +1113,6 @@ void AfterGapStopRSSI(uv_work_t *req) {
 
 NAN_METHOD(StartScan)
 {
-    
-
     if (!info[0]->IsObject()) {
         Nan::ThrowTypeError("First argument must be an object");
         return;
@@ -1186,8 +1168,6 @@ void AfterStartScan(uv_work_t *req) {
 
 NAN_METHOD(StopScan)
 {
-    
-
     if (!info[0]->IsFunction())
     {
         Nan::ThrowTypeError("First argument must be a function");
@@ -1235,8 +1215,6 @@ void AfterStopScan(uv_work_t *req) {
 
 NAN_METHOD(GapConnect)
 {
-    
-
     if (!info[0]->IsObject()) {
         Nan::ThrowTypeError("First argument must be an object");
         return;
@@ -1306,8 +1284,6 @@ void AfterGapConnect(uv_work_t *req) {
 
 NAN_METHOD(GapCancelConnect)
 {
-    
-
     if (!info[0]->IsFunction())
     {
         Nan::ThrowTypeError("First argument must be a function");
@@ -1355,8 +1331,6 @@ void AfterGapCancelConnect(uv_work_t *req) {
 
 NAN_METHOD(GapGetRSSI)
 {
-    
-
     // Connection handle
     if (!info[0]->IsNumber())
     {

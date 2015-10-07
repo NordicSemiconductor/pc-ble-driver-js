@@ -286,8 +286,7 @@ v8::Handle<v8::Value> ConversionUtility::toJsValueArray(uint8_t *nativeData, uin
 
 v8::Handle<v8::Value> ConversionUtility::toJsString(char *cString)
 {
-    Nan::EscapableHandleScope scope;
-    return scope.Escape(Nan::New<v8::String>(cString).ToLocalChecked());
+    return ConversionUtility::toJsString(cString, strlen(cString));
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsString(char *cString, uint16_t length)
