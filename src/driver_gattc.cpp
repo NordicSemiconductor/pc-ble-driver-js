@@ -951,7 +951,7 @@ void AfterHandleValueConfirm(uv_work_t *req) {
 }
 
 extern "C" {
-    void init_gattc(v8::Handle<v8::Object> target)
+    void init_gattc(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
         Utility::SetMethod(target, "gattc_primary_services_discover", PrimaryServicesDiscover);
         Utility::SetMethod(target, "gattc_releationships_discover", RelationshipDiscover);

@@ -1403,7 +1403,7 @@ void AfterGapGetRSSI(uv_work_t *req) {
 }
 
 extern "C" {
-    void init_gap(v8::Handle<v8::Object> target)
+    void init_gap(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
         Utility::SetMethod(target, "gap_set_address", GapSetAddress);
         Utility::SetMethod(target, "gap_get_address", GapGetAddress);

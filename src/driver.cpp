@@ -592,12 +592,12 @@ ble_uuid128_t *BleUUID128::ToNative()
 //
 
 extern "C" {
-    void init_adapter_list(v8::Handle<v8::Object> target);
-    void init_driver(v8::Handle<v8::Object> target);
-    void init_types(v8::Handle<v8::Object> target);
-    void init_ranges(v8::Handle<v8::Object> target);
-    void init_hci(v8::Handle<v8::Object> target);
-    void init_error(v8::Handle<v8::Object> target);
+    void init_adapter_list(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+    void init_driver(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+    void init_types(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+    void init_ranges(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+    void init_hci(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+    void init_error(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 
     NAN_MODULE_INIT(init)
     {
@@ -613,12 +613,12 @@ extern "C" {
         init_gattc(target);
     }
 
-    void init_adapter_list(v8::Handle<v8::Object> target)
+    void init_adapter_list(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
         Utility::SetMethod(target, "get_adapters", GetAdapterList);
     }
 
-    void init_driver(v8::Handle<v8::Object> target)
+    void init_driver(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
         Utility::SetMethod(target, "open", Open);
         Utility::SetMethod(target, "close", Close);
@@ -635,7 +635,7 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, SD_RPC_LOG_FATAL);
     }
 
-    void init_types(v8::Handle<v8::Object> target)
+    void init_types(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
         // Constants from ble_types.h
 
@@ -726,7 +726,7 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_APPEARANCE_OUTDOOR_SPORTS_ACT_LOC_AND_NAV_POD); /* Location and Navigation Pod (Outdoor Sports Activity subtype). */
     }
 
-    void init_ranges(v8::Handle<v8::Object> target)
+    void init_ranges(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
         NODE_DEFINE_CONSTANT(target, BLE_SVC_BASE);           /**< Common BLE SVC base. */
         NODE_DEFINE_CONSTANT(target, BLE_SVC_LAST);           /**< Total: 12. */
@@ -764,7 +764,7 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_L2CAP_OPT_LAST);     /**< Total: 32.  */
     }
 
-    void init_hci(v8::Handle<v8::Object> target)
+    void init_hci(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
         // Constants from ble_hci.h
 
@@ -841,7 +841,7 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_HCI_CONN_FAILED_TO_BE_ESTABLISHED); //Connection Failed to be Established.
     }
 
-    void init_error(v8::Handle<v8::Object> target)
+    void init_error(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
         NODE_DEFINE_CONSTANT(target, NRF_ERROR_BASE_NUM);      ///< Global error base
         NODE_DEFINE_CONSTANT(target, NRF_ERROR_SDM_BASE_NUM);  ///< SDM error base

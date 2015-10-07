@@ -101,7 +101,7 @@ ble_gatt_char_ext_props_t *GattCharExtProps::ToNative()
 //
 
 extern "C" {
-    void init_gatt(v8::Handle<v8::Object> target)
+    void init_gatt(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
         /* Default MTU size. */
         NODE_DEFINE_CONSTANT(target, GATT_MTU_SIZE_DEFAULT);

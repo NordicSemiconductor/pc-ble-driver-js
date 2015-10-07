@@ -268,7 +268,7 @@ METHOD_DEFINITIONS(GapCancelConnect);
 METHOD_DEFINITIONS(GapGetRSSI);
 
 extern "C" {
-    void init_gap(v8::Handle<v8::Object> target);
+    void init_gap(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 }
 
 #endif // DRIVER_GAP_H

@@ -282,7 +282,7 @@ METHOD_DEFINITIONS(Write);
 METHOD_DEFINITIONS(HandleValueConfirm);
 
 extern "C" {
-    void init_gattc(v8::Handle<v8::Object> target);
+    void init_gattc(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 }
 
 #endif
