@@ -1037,7 +1037,7 @@ void GapStartRSSI(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapStartRSSI(uv_work_t *req) {
-    
+    Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     GapStartRSSIBaton *baton = static_cast<GapStartRSSIBaton *>(req->data);
