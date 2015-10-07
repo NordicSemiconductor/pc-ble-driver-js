@@ -22,7 +22,7 @@ driver.get_adapters(function(err, adapters) {
             'baudRate': 115200,
             'parity': 'none',
             'flowControl': 'none',
-            'eventInterval': 200,
+            'eventInterval': 100,
             'logCallback': function(severity, message) {
                 if (severity > 0)
                 {
@@ -38,7 +38,7 @@ driver.get_adapters(function(err, adapters) {
                     evt_count = evt_count + 1;
                     console.log("evt #" +  evt_count  + ", id: " + event.id + ", name: " + event.name);
                     console.log("time:" + event.time);
-                    //console.log("JSON: %s", JSON.stringify(event));
+                    console.log("JSON: %s", JSON.stringify(event));
 
                     if(event.name === 'BLE_GAP_EVT_ADV_REPORT') {
                         console.log("ADDRESS: %s", event.peer_addr.address);
@@ -47,6 +47,10 @@ driver.get_adapters(function(err, adapters) {
                     else if (event.name === 'BLE_GAP_EVT_TIMEOUT') {
                         console.log("Timeout source: %s", event.src);
                     }
+                }
+
+                if(global.gc) {
+                    global.gc();
                 }
             }
         },
