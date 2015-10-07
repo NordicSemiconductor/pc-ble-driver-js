@@ -92,6 +92,8 @@ void sd_rpc_on_log_event(sd_rpc_log_severity_t severity, const char *log_message
 // Now we are in the NodeJS thread. Call callbacks.
 void on_log_event(uv_async_t *handle)
 {
+    Nan::HandleScope scope;
+
     LogQueue *log_entries_buffer = (LogQueue*)handle->data;
 
     while (!log_entries_buffer->wasEmpty())
@@ -178,6 +180,7 @@ void sd_rpc_on_event(ble_evt_t *event)
 // Now we are in the NodeJS thread. Call callbacks.
 void on_rpc_event(uv_async_t *handle)
 {
+    Nan::HandleScope scope;
     // TODO: Check if we must add NanScope() to this function
 
     EventQueue *event_entries = (EventQueue*)handle->data;
