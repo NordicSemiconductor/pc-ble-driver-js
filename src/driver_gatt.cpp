@@ -40,6 +40,7 @@ extern name_map_t gatt_status_map = {
 
 v8::Local<v8::Object> GattCharProps::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
     Utility::Set(obj, "broadcast", ConversionUtility::toJsBool(native->broadcast));
@@ -50,7 +51,7 @@ v8::Local<v8::Object> GattCharProps::ToJs()
     Utility::Set(obj, "indicate", ConversionUtility::toJsBool(native->indicate));
     Utility::Set(obj, "auth_signed_wr", ConversionUtility::toJsBool(native->auth_signed_wr));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 ble_gatt_char_props_t *GattCharProps::ToNative()
@@ -78,12 +79,13 @@ ble_gatt_char_props_t *GattCharProps::ToNative()
 
 v8::Local<v8::Object> GattCharExtProps::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
     Utility::Set(obj, "reliable_wr", ConversionUtility::toJsBool(native->reliable_wr));
     Utility::Set(obj, "wr_aux", ConversionUtility::toJsBool(native->wr_aux));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 ble_gatt_char_ext_props_t *GattCharExtProps::ToNative()

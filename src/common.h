@@ -39,12 +39,21 @@ public:
     BleToJs(v8::Local<v8::Object> js) : jsobj(js) {}
     BleToJs(NativeType *native) : native(native) {}
 
-    virtual v8::Local<v8::Object> ToJs() { /*TODO: ASSERT*/ return Nan::New<v8::Object>(); }
+    virtual v8::Local<v8::Object> ToJs()
+    { 
+        /*TODO: ASSERT*/ 
+        Nan::EscapableHandleScope scope; 
+        return scope.Escape(Nan::New<v8::Object>()); 
+    }
     virtual NativeType *ToNative() { /*TODO: ASSERT*/ return new NativeType(); }
 
     operator NativeType*() { return ToNative(); }
     operator NativeType() { return *(ToNative()); }
-    operator v8::Handle<v8::Value>() { return ToJs(); }
+    operator v8::Handle<v8::Value>() 
+    { 
+        Nan::EscapableHandleScope scope;
+        return scope.Escape(ToJs()); 
+    }
 };
 
 class Utility

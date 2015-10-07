@@ -338,8 +338,6 @@ void Open(uv_work_t *req) {
         return;
     }
 
-
-
     ble_enable_params_t *ble_enable_params = new ble_enable_params_t();
     memset(ble_enable_params, 0, sizeof(ble_enable_params_t));
     ble_enable_params->gatts_enable_params.attr_tab_size = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
@@ -391,6 +389,7 @@ NAN_METHOD(Close) {
 }
 
 NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& v8str) {
+    Nan::HandleScope scope;
     sd_rpc_parity_t parity = SD_RPC_PARITY_NONE;
 
     if (v8str->Equals(Nan::New("none").ToLocalChecked()))
@@ -406,6 +405,7 @@ NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& v8str) {
 }
 
 NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const v8::Handle<v8::String>& v8str) {
+    Nan::HandleScope scope;
     sd_rpc_flow_control_t flow_control = SD_RPC_FLOW_CONTROL_NONE;
 
     if (v8str->Equals(Nan::New("none").ToLocalChecked()))
@@ -421,6 +421,7 @@ NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const v8::Handle<v8::String>&
 }
 
 NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const v8::Handle<v8::String>& v8str) {
+    Nan::HandleScope scope;
     sd_rpc_log_severity_t log_severity = SD_RPC_LOG_DEBUG;
 
     if (v8str->Equals(Nan::New("trace").ToLocalChecked()))
@@ -522,11 +523,12 @@ NAN_METHOD(GetStats)
 
 v8::Local<v8::Object> Version::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     Utility::Set(obj, "version_number", native->version_number);
     Utility::Set(obj, "company_id", native->company_id);
     Utility::Set(obj, "subversion_number", native->subversion_number);
-    return obj;
+    return scope.Escape(obj);
 }
 
 ble_version_t *Version::ToNative()
@@ -548,11 +550,12 @@ ble_version_t *Version::ToNative()
 
 v8::Local<v8::Object> BleUUID::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     Utility::Set(obj, "uuid", native->uuid);
     Utility::Set(obj, "type", native->type);
     Utility::Set(obj, "typeString", ConversionUtility::valueToJsString(native->type, uuid_type_name_map));
-    return obj;
+    return scope.Escape(obj);
 }
 
 ble_uuid_t *BleUUID::ToNative()
@@ -575,7 +578,8 @@ ble_uuid_t *BleUUID::ToNative()
 
 v8::Local<v8::Object> BleUUID128::ToJs()
 {
-    v8::Handle<v8::Object> obj = Nan::New<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     size_t uuid_len = 16 * 2 + 4 + 1; // Each byte -> 2 chars, 4 - separator _between_ some bytes and 1 byte null termination character
     char *uuid128string = (char*)malloc(uuid_len);
     assert(uuid128string != NULL);
@@ -584,7 +588,7 @@ v8::Local<v8::Object> BleUUID128::ToJs()
     sprintf(uuid128string, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x", ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], ptr[6], ptr[7], ptr[8], ptr[9], ptr[10], ptr[11], ptr[12], ptr[13], ptr[14], ptr[15]);
     Utility::Set(obj, "uuid128", uuid128string);
     free(uuid128string);
-    return obj;
+    return scope.Escape(obj);
 }
 
 ble_uuid128_t *BleUUID128::ToNative()

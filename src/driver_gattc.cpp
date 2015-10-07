@@ -35,11 +35,12 @@ static name_map_t gattc_evts_type_map = {
 
 v8::Local<v8::Object> GattcHandleRange::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     Utility::Set(obj, "start_handle", native->start_handle);
     Utility::Set(obj, "end_handle", native->end_handle);
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 ble_gattc_handle_range_t *GattcHandleRange::ToNative()
@@ -62,11 +63,12 @@ ble_gattc_handle_range_t *GattcHandleRange::ToNative()
 
 v8::Local<v8::Object> GattcService::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     Utility::Set(obj, "uuid", BleUUID(&native->uuid).ToJs());
     Utility::Set(obj, "handle_range", GattcHandleRange(&native->handle_range).ToJs());
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -79,11 +81,12 @@ v8::Local<v8::Object> GattcService::ToJs()
 
 v8::Local<v8::Object> GattcIncludedService::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     Utility::Set(obj, "handle", native->handle);
     Utility::Set(obj, "included_srvc", GattcService(&native->included_srvc).ToJs());
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -96,6 +99,7 @@ v8::Local<v8::Object> GattcIncludedService::ToJs()
 
 v8::Local<v8::Object> GattcCharacteristic::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     Utility::Set(obj, "uuid", BleUUID(&native->uuid).ToJs());
     Utility::Set(obj, "char_props", GattCharProps(&native->char_props).ToJs());
@@ -103,7 +107,7 @@ v8::Local<v8::Object> GattcCharacteristic::ToJs()
     Utility::Set(obj, "handle_decl", native->handle_decl);
     Utility::Set(obj, "handle_value", native->handle_value);
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -116,11 +120,12 @@ v8::Local<v8::Object> GattcCharacteristic::ToJs()
 
 v8::Local<v8::Object> GattcDescriptor::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     Utility::Set(obj, "handle", native->handle);
     Utility::Set(obj, "uuid", BleUUID(&native->uuid).ToJs());
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -147,6 +152,7 @@ ble_gattc_write_params_t *GattcWriteParameters::ToNative()
 
 v8::Local<v8::Object> GattcWriteParameters::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     Utility::Set(obj, "write_op", native->write_op);
     Utility::Set(obj, "flags", native->flags);
@@ -155,7 +161,7 @@ v8::Local<v8::Object> GattcWriteParameters::ToJs()
     Utility::Set(obj, "len", native->len);
     Utility::Set(obj, "p_value", ConversionUtility::toJsValueArray(native->p_value, native->len));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -164,6 +170,7 @@ v8::Local<v8::Object> GattcWriteParameters::ToJs()
 
 v8::Local<v8::Object> GattcPrimaryServiceDiscoveryEvent::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
@@ -178,11 +185,12 @@ v8::Local<v8::Object> GattcPrimaryServiceDiscoveryEvent::ToJs()
 
     Utility::Set(obj, "services", service_array);
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcRelationshipDiscoveryEvent::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
@@ -197,11 +205,12 @@ v8::Local<v8::Object> GattcRelationshipDiscoveryEvent::ToJs()
 
     Utility::Set(obj, "includes", includes_array);
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcCharacteristicDiscoveryEvent::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
@@ -216,11 +225,12 @@ v8::Local<v8::Object> GattcCharacteristicDiscoveryEvent::ToJs()
 
     Utility::Set(obj, "chars", chars_array);
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcDescriptorDiscoveryEvent::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
@@ -235,20 +245,22 @@ v8::Local<v8::Object> GattcDescriptorDiscoveryEvent::ToJs()
 
     Utility::Set(obj, "descs", descs_array);
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcHandleValue::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     Utility::Set(obj, "handle", native->handle);
     Utility::Set(obj, "p_value", ConversionUtility::toJsValueArray(native->p_value, valueLength));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcCharacteristicValueReadByUUIDEvent::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
@@ -264,11 +276,12 @@ v8::Local<v8::Object> GattcCharacteristicValueReadByUUIDEvent::ToJs()
 
     Utility::Set(obj, "handle_values", handle_value_array);
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcReadEvent::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
@@ -277,22 +290,24 @@ v8::Local<v8::Object> GattcReadEvent::ToJs()
     Utility::Set(obj, "len", evt->len);
     Utility::Set(obj, "data", ConversionUtility::toJsValueArray(evt->data, evt->len));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcCharacteristicValueReadEvent::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
     Utility::Set(obj, "len", evt->len);
     Utility::Set(obj, "values", ConversionUtility::toJsValueArray(evt->values, evt->len));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcWriteEvent::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
@@ -302,11 +317,12 @@ v8::Local<v8::Object> GattcWriteEvent::ToJs()
     Utility::Set(obj, "len", evt->len);
     Utility::Set(obj, "data", ConversionUtility::toJsValueArray(evt->data, evt->len));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcHandleValueNotificationEvent::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
@@ -315,17 +331,18 @@ v8::Local<v8::Object> GattcHandleValueNotificationEvent::ToJs()
     Utility::Set(obj, "len", evt->len);
     Utility::Set(obj, "data", ConversionUtility::toJsValueArray(evt->data, evt->len));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcTimeoutEvent::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
     Utility::Set(obj, "src", evt->src);
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 NAN_METHOD(PrimaryServicesDiscover)

@@ -242,48 +242,57 @@ v8::Handle<v8::Value> ConversionUtility::unitsToMsecs(uint16_t units, enum Conve
 
 v8::Handle<v8::Value> ConversionUtility::toJsNumber(int32_t nativeValue)
 {
-    return Nan::New<v8::Integer>(nativeValue);
+    Nan::EscapableHandleScope scope;
+    return scope.Escape(Nan::New<v8::Integer>(nativeValue));
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsNumber(uint32_t nativeValue)
 {
-    return Nan::New<v8::Integer>(nativeValue);
+    Nan::EscapableHandleScope scope;
+    return scope.Escape(Nan::New<v8::Integer>(nativeValue));
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsNumber(uint16_t nativeValue)
 {
-    return Nan::New<v8::Integer>(nativeValue);
+    Nan::EscapableHandleScope scope;
+    return scope.Escape(Nan::New<v8::Integer>(nativeValue));
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsNumber(uint8_t nativeValue)
 {
-    return Nan::New<v8::Integer>(nativeValue);
+    Nan::EscapableHandleScope scope;
+    return scope.Escape(Nan::New<v8::Integer>(nativeValue));
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsNumber(double nativeValue)
 {
-    return Nan::New<v8::Number>(nativeValue);
+    Nan::EscapableHandleScope scope;
+    return scope.Escape(Nan::New<v8::Number>(nativeValue));
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsBool(uint8_t nativeValue)
 {
-    return Nan::New<v8::Boolean>(nativeValue ? true : false);
+    Nan::EscapableHandleScope scope;
+    return scope.Escape(Nan::New<v8::Boolean>(nativeValue ? true : false));
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsValueArray(uint8_t *nativeData, uint16_t length)
 {
-    v8::Handle<v8::Value> valueArray = Nan::NewBuffer((char *)nativeData, length).ToLocalChecked();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Value> valueArray = Nan::NewBuffer((char *)nativeData, length).ToLocalChecked();
 
-    return valueArray;
+    return scope.Escape(valueArray);
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsString(char *cString)
 {
-    return Nan::New<v8::String>(cString).ToLocalChecked();
+    Nan::EscapableHandleScope scope;
+    return scope.Escape(Nan::New<v8::String>(cString).ToLocalChecked());
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsString(char *cString, uint16_t length)
 {
+    Nan::EscapableHandleScope scope;
     char *name = (char*)malloc(length + 1);
 	assert(name != NULL);
 
@@ -294,12 +303,13 @@ v8::Handle<v8::Value> ConversionUtility::toJsString(char *cString, uint16_t leng
 
     free(name);
 
-    return _name;
+    return scope.Escape(_name);
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsString(std::string string)
 {
-    return Nan::New<v8::String>(string).ToLocalChecked();
+    Nan::EscapableHandleScope scope;
+    return scope.Escape(Nan::New<v8::String>(string).ToLocalChecked());
 }
 
 char * ConversionUtility::valueToString(uint16_t value, name_map_t name_map, char *defaultValue)
@@ -316,6 +326,7 @@ char * ConversionUtility::valueToString(uint16_t value, name_map_t name_map, cha
 
 v8::Handle<v8::Value> ConversionUtility::valueToJsString(uint16_t value, name_map_t name_map, v8::Handle<v8::Value> defaultValue)
 {
+    Nan::EscapableHandleScope scope;
     name_map_it_t it = name_map.find(value);
 
     if (it == name_map.end())
@@ -323,12 +334,13 @@ v8::Handle<v8::Value> ConversionUtility::valueToJsString(uint16_t value, name_ma
         return defaultValue;
     }
 
-    return Nan::New<v8::String>(it->second).ToLocalChecked();
+    return scope.Escape(Nan::New<v8::String>(it->second).ToLocalChecked());
 }
 
 v8::Local<v8::Value> Utility::Get(v8::Local<v8::Object> jsobj, char *name)
 {
-    return Nan::Get(jsobj, Nan::New(name).ToLocalChecked()).ToLocalChecked();
+    Nan::EscapableHandleScope scope;
+    return scope.Escape(Nan::Get(jsobj, Nan::New(name).ToLocalChecked()).ToLocalChecked());
 }
 
 void Utility::SetMethod(v8::Handle<v8::Object> target, char *exportName, Nan::FunctionCallback function)
@@ -400,10 +412,11 @@ void Utility::SetReturnValue(Nan::NAN_METHOD_ARGS_TYPE info, v8::Local<v8::Objec
 
 v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char *customMessage)
 {
+    Nan::EscapableHandleScope scope;
     switch (errorCode)
     {
         case NRF_SUCCESS:
-            return Nan::Undefined();
+            return scope.Escape(Nan::Undefined());
 
         case NRF_ERROR_SVC_HANDLER_MISSING:
         case NRF_ERROR_SOFTDEVICE_NOT_ENABLED:
@@ -428,12 +441,13 @@ v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char *customMe
             errorStringStream << "Error occured when " << customMessage << ". "
                 << "Errorcode: " << ConversionUtility::valueToString(errorCode, error_message_name_map) << " (" << errorCode << ")" << std::endl;
 
-            return v8::Exception::Error(Nan::New<v8::String>(errorStringStream.str()).ToLocalChecked());
+            return scope.Escape(v8::Exception::Error(Nan::New<v8::String>(errorStringStream.str()).ToLocalChecked()));
         }
     }
 }
 
 v8::Local<v8::Value> HciStatus::getHciStatus(int statusCode)
 {
-    return Nan::New<v8::String>(ConversionUtility::valueToString(statusCode, hci_status_map)).ToLocalChecked();
+    Nan::EscapableHandleScope scope;
+    return scope.Escape(Nan::New<v8::String>(ConversionUtility::valueToString(statusCode, hci_status_map)).ToLocalChecked());
 }

@@ -97,6 +97,7 @@ static name_map_t gap_ad_type_map =
 
 v8::Local<v8::Object> GapAddr::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
     Utility::Set(obj, "type", gap_addr_type_map[native->addr_type]);
@@ -115,7 +116,7 @@ v8::Local<v8::Object> GapAddr::ToJs()
     Utility::Set(obj, "type", gap_addr_type_map[native->addr_type]);
 
     free(addr);
-    return obj;
+    return scope.Escape(obj);
 }
 
 ble_gap_addr_t *GapAddr::ToNative()
@@ -162,6 +163,7 @@ ble_gap_addr_t *GapAddr::ToNative()
 
 v8::Local<v8::Object> GapConnParams::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
     Utility::Set(obj, "min_conn_interval", ConversionUtility::unitsToMsecs(native->min_conn_interval, ConversionUtility::ConversionUnit1250ms));
@@ -169,7 +171,7 @@ v8::Local<v8::Object> GapConnParams::ToJs()
     Utility::Set(obj, "slave_latency", native->slave_latency);
     Utility::Set(obj, "conn_sup_timeout", ConversionUtility::unitsToMsecs(native->conn_sup_timeout, ConversionUtility::ConversionUnit10s));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 ble_gap_conn_params_t *GapConnParams::ToNative()
@@ -195,11 +197,13 @@ ble_gap_conn_params_t *GapConnParams::ToNative()
 
 v8::Local<v8::Object> GapConnSecMode::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     Utility::Set(obj, "sm", native->sm);
     Utility::Set(obj, "lv", native->lv);
-    return obj;
+    return scope.Escape(obj);
 }
+
 
 ble_gap_conn_sec_mode_t *GapConnSecMode::ToNative()
 {
@@ -220,11 +224,12 @@ ble_gap_conn_sec_mode_t *GapConnSecMode::ToNative()
 //
 v8::Local<v8::Object> GapAdvReport::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
     Utility::Set(obj, "rssi", evt->rssi);
     Utility::Set(obj, "peer_addr", GapAddr(&(this->evt->peer_addr)).ToJs());
-    Utility::Set(obj, "scan_rsp", evt->scan_rsp ? true : false);
+    Utility::Set(obj, "scan_rsp", ConversionUtility::toJsBool(evt->scan_rsp));
 
     if (this->evt->scan_rsp == 1) {
         Utility::Set(obj, "adv_type", gap_adv_type_map[this->evt->type]); // TODO: add support for non defined adv types
@@ -375,7 +380,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
         }
     }
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -387,12 +392,13 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
 //
 v8::Local<v8::Object> GapScanReqReport::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
     Utility::Set(obj, "rssi", evt->rssi);
     Utility::Set(obj, "peer_addr", GapAddr(&(this->evt->peer_addr)).ToJs());
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -404,6 +410,7 @@ v8::Local<v8::Object> GapScanReqReport::ToJs()
 //
 v8::Local<v8::Object> GapConnected::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
 
@@ -418,7 +425,7 @@ v8::Local<v8::Object> GapConnected::ToJs()
         Utility::Set(obj, "irk_idx", evt->irk_match_idx);
     }
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -430,12 +437,13 @@ v8::Local<v8::Object> GapConnected::ToJs()
 //
 v8::Local<v8::Object> GapDisconnected::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
     Utility::Set(obj, "reason", evt->reason);
     Utility::Set(obj, "reason_name", HciStatus::getHciStatus(evt->reason));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -447,12 +455,13 @@ v8::Local<v8::Object> GapDisconnected::ToJs()
 //
 v8::Local<v8::Object> GapTimeout::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
     Utility::Set(obj, "src", evt->src);
     Utility::Set(obj, "src_name", ConversionUtility::valueToJsString(evt->src, gap_timeout_sources_map));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -464,11 +473,12 @@ v8::Local<v8::Object> GapTimeout::ToJs()
 //
 v8::Local<v8::Object> GapRssiChanged::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
     Utility::Set(obj, "rssi", evt->rssi);
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -480,11 +490,12 @@ v8::Local<v8::Object> GapRssiChanged::ToJs()
 //
 v8::Local<v8::Object> GapConnParamUpdate::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
     Utility::Set(obj, "conn_params", GapConnParams(&(this->evt->conn_params)).ToJs());
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -496,10 +507,11 @@ v8::Local<v8::Object> GapConnParamUpdate::ToJs()
 //
 v8::Local<v8::Object> GapConnParamUpdateRequest::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
     Utility::Set(obj, "conn_params", GapConnParams(&(this->evt->conn_params)).ToJs());
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -512,9 +524,10 @@ v8::Local<v8::Object> GapConnParamUpdateRequest::ToJs()
 
 v8::Local<v8::Object> GapScanParams::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     // Scan parameters are never retrieved from driver.
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    return obj;
+    return scope.Escape(obj);
 }
 
 ble_gap_scan_params_t *GapScanParams::ToNative()
