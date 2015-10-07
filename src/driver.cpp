@@ -27,7 +27,7 @@ typedef CircularFifo<LogEntry *, 64> LogQueue;
         std::string timestamp = event_entry->timestamp;                                                                 \
         v8::Local<v8::Value> js_event =                                                                                 \
             Gap##evt_to_js(timestamp, gap_event.conn_handle, &(gap_event.params.params_name)).ToJs();                   \
-        event_array->Set(Nan::New<v8::Integer>(event_array_idx), js_event);                                               \
+        Nan::Set(event_array, Nan::New<v8::Integer>(event_array_idx), js_event);                                               \
         break;                                                                                                          \
     }
 
@@ -39,7 +39,7 @@ typedef CircularFifo<LogEntry *, 64> LogQueue;
         std::string timestamp = event_entry->timestamp;                                                                 \
         v8::Local<v8::Value> js_event =                                                                                 \
             Gattc##evt_to_js(timestamp, gattc_event->conn_handle, gattc_event->gatt_status, gattc_event->error_handle, &(gattc_event->params.params_name)).ToJs();                   \
-        event_array->Set(Nan::New<v8::Integer>(event_array_idx), js_event);                                               \
+        Nan::Set(event_array, Nan::New<v8::Integer>(event_array_idx), js_event);                                               \
         break;                                                                                                          \
     }
 
@@ -207,25 +207,25 @@ void on_rpc_event(uv_async_t *handle)
         {
             switch (event->header.evt_id)
             {
-                GAP_EVT_CASE(CONNECTED, Connected, connected, array, array_idx, event_entry);
-                GAP_EVT_CASE(DISCONNECTED, Disconnected, disconnected, array, array_idx, event_entry);
-                GAP_EVT_CASE(ADV_REPORT, AdvReport, adv_report, array, array_idx, event_entry);
-                GAP_EVT_CASE(SCAN_REQ_REPORT, ScanReqReport, scan_req_report, array, array_idx, event_entry);
-                GAP_EVT_CASE(TIMEOUT, Timeout, timeout, array, array_idx, event_entry);
-                GAP_EVT_CASE(RSSI_CHANGED, RssiChanged, rssi_changed, array, array_idx, event_entry);
-                GAP_EVT_CASE(CONN_PARAM_UPDATE, ConnParamUpdate, conn_param_update, array, array_idx, event_entry);
-                GAP_EVT_CASE(CONN_PARAM_UPDATE_REQUEST, ConnParamUpdateRequest, conn_param_update_request, array, array_idx, event_entry);
+                GAP_EVT_CASE(CONNECTED,                 Connected,              connected,                  array, array_idx, event_entry);
+                GAP_EVT_CASE(DISCONNECTED,              Disconnected,           disconnected,               array, array_idx, event_entry);
+                GAP_EVT_CASE(ADV_REPORT,                AdvReport,              adv_report,                 array, array_idx, event_entry);
+                GAP_EVT_CASE(SCAN_REQ_REPORT,           ScanReqReport,          scan_req_report,            array, array_idx, event_entry);
+                GAP_EVT_CASE(TIMEOUT,                   Timeout,                timeout,                    array, array_idx, event_entry);
+                GAP_EVT_CASE(RSSI_CHANGED,              RssiChanged,            rssi_changed,               array, array_idx, event_entry);
+                GAP_EVT_CASE(CONN_PARAM_UPDATE,         ConnParamUpdate,        conn_param_update,          array, array_idx, event_entry);
+                GAP_EVT_CASE(CONN_PARAM_UPDATE_REQUEST, ConnParamUpdateRequest, conn_param_update_request,  array, array_idx, event_entry);
 
-                GATTC_EVT_CASE(PRIM_SRVC_DISC_RSP, PrimaryServiceDiscoveryEvent, prim_srvc_disc_rsp, array, array_idx, event_entry);
-                GATTC_EVT_CASE(REL_DISC_RSP, RelationshipDiscoveryEvent, rel_disc_rsp, array, array_idx, event_entry);
-                GATTC_EVT_CASE(CHAR_DISC_RSP, CharacteristicDiscoveryEvent, char_disc_rsp, array, array_idx, event_entry);
-                GATTC_EVT_CASE(DESC_DISC_RSP, DescriptorDiscoveryEvent, desc_disc_rsp, array, array_idx, event_entry);
-                GATTC_EVT_CASE(CHAR_VAL_BY_UUID_READ_RSP, CharacteristicValueReadByUUIDEvent, char_val_by_uuid_read_rsp, array, array_idx, event_entry);
-                GATTC_EVT_CASE(READ_RSP, ReadEvent, read_rsp, array, array_idx, event_entry);
-                GATTC_EVT_CASE(CHAR_VALS_READ_RSP, CharacteristicValueReadEvent, char_vals_read_rsp, array, array_idx, event_entry);
-                GATTC_EVT_CASE(WRITE_RSP, WriteEvent, write_rsp, array, array_idx, event_entry);
-                GATTC_EVT_CASE(HVX, HandleValueNotificationEvent, hvx, array, array_idx, event_entry);
-                GATTC_EVT_CASE(TIMEOUT, TimeoutEvent, timeout, array, array_idx, event_entry);
+                GATTC_EVT_CASE(PRIM_SRVC_DISC_RSP,          PrimaryServiceDiscoveryEvent,       prim_srvc_disc_rsp,         array, array_idx, event_entry);
+                GATTC_EVT_CASE(REL_DISC_RSP,                RelationshipDiscoveryEvent,         rel_disc_rsp,               array, array_idx, event_entry);
+                GATTC_EVT_CASE(CHAR_DISC_RSP,               CharacteristicDiscoveryEvent,       char_disc_rsp,              array, array_idx, event_entry);
+                GATTC_EVT_CASE(DESC_DISC_RSP,               DescriptorDiscoveryEvent,           desc_disc_rsp,              array, array_idx, event_entry);
+                GATTC_EVT_CASE(CHAR_VAL_BY_UUID_READ_RSP,   CharacteristicValueReadByUUIDEvent, char_val_by_uuid_read_rsp,  array, array_idx, event_entry);
+                GATTC_EVT_CASE(READ_RSP,                    ReadEvent,                          read_rsp,                   array, array_idx, event_entry);
+                GATTC_EVT_CASE(CHAR_VALS_READ_RSP,          CharacteristicValueReadEvent,       char_vals_read_rsp,         array, array_idx, event_entry);
+                GATTC_EVT_CASE(WRITE_RSP,                   WriteEvent,                         write_rsp,                  array, array_idx, event_entry);
+                GATTC_EVT_CASE(HVX,                         HandleValueNotificationEvent,       hvx,                        array, array_idx, event_entry);
+                GATTC_EVT_CASE(TIMEOUT,                     TimeoutEvent,                       timeout,                    array, array_idx, event_entry);
             default:
                 std::cout << "Event " << event->header.evt_id << " unknown to me." << std::endl;
                 break;
