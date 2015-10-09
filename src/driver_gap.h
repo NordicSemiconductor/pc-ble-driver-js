@@ -224,7 +224,9 @@ public:
 struct GapUpdateConnectionParametersBaton : public Baton {
 public:
     BATON_CONSTRUCTOR(GapUpdateConnectionParametersBaton);
-    BATON_DESTRUCTOR(GapUpdateConnectionParametersBaton) { delete connectionParameters; }
+    BATON_DESTRUCTOR(GapUpdateConnectionParametersBaton) { LOGLINE_START("delete connectionParameters");
+ delete connectionParameters;
+ LOGLINE_END("delete connectionParameters"); }
     uint16_t conn_handle;
     ble_gap_conn_params_t *connectionParameters;
 };

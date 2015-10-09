@@ -622,7 +622,11 @@ void AfterGapSetAddress(uv_work_t *req) {
 
     baton->callback->Call(1, argv);
         //(1, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 NAN_METHOD(GapGetAddress)
@@ -671,7 +675,11 @@ void AfterGapGetAddress(uv_work_t *req) {
     }
 
     baton->callback->Call(2, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 NAN_METHOD(GapUpdateConnectionParameters)
@@ -736,7 +744,11 @@ void AfterGapUpdateConnectionParameters(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 NAN_METHOD(GapDisconnect)
@@ -801,7 +813,11 @@ void AfterGapDisconnect(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 NAN_METHOD(GapSetTXPower)
@@ -858,7 +874,11 @@ void AfterGapSetTXPower(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 NAN_METHOD(GapSetDeviceName)
@@ -934,7 +954,13 @@ void AfterGapSetDeviceName(uv_work_t *req) {
     free(baton->dev_name);
     LOGLINE_END("baton->dev_name");
 
+    LOGLINE_START("delete baton");
+
+
     delete baton;
+
+
+    LOGLINE_END("delete baton");
 }
 
 NAN_METHOD(GapGetDeviceName)
@@ -995,7 +1021,11 @@ void AfterGapGetDeviceName(uv_work_t *req) {
     LOGLINE_START("baton->dev_name");
     free(baton->dev_name);
     LOGLINE_END("baton->dev_name");
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 
@@ -1070,7 +1100,11 @@ void AfterGapStartRSSI(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 NAN_METHOD(GapStopRSSI)
@@ -1126,7 +1160,11 @@ void AfterGapStopRSSI(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 NAN_METHOD(StartScan)
@@ -1181,7 +1219,11 @@ void AfterStartScan(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 NAN_METHOD(StopScan)
@@ -1228,7 +1270,11 @@ void AfterStopScan(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 NAN_METHOD(GapConnect)
@@ -1297,7 +1343,11 @@ void AfterGapConnect(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 NAN_METHOD(GapCancelConnect)
@@ -1344,7 +1394,11 @@ void AfterGapCancelConnect(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 NAN_METHOD(GapGetRSSI)
@@ -1410,7 +1464,11 @@ void AfterGapGetRSSI(uv_work_t *req) {
     }
 
     baton->callback->Call(2, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 extern "C" {

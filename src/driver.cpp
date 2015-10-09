@@ -113,7 +113,11 @@ void on_log_event(uv_async_t *handle)
         LOGLINE_START("log_entry->message");
         free(log_entry->message);
         LOGLINE_END("log_entry->message");
+        LOGLINE_START("delete log_entry");
+
         delete log_entry;
+
+        LOGLINE_END("delete log_entry");
     }
 }
 
@@ -240,7 +244,11 @@ void on_rpc_event(uv_async_t *handle)
         LOGLINE_START("event_entry->event");
         free(event_entry->event);
         LOGLINE_END("event_entry->event");
+        LOGLINE_START("delete event_entry");
+
         delete event_entry;
+
+        LOGLINE_END("delete event_entry");
     }
 
     v8::Local<v8::Value> callback_value[1];
@@ -360,7 +368,11 @@ void AfterOpen(uv_work_t *req) {
     // TODO: handle if .Close is called before this function is called.
 	Nan::HandleScope scope;
     OpenBaton *baton = static_cast<OpenBaton *>(req->data);
+    LOGLINE_START("delete req");
+
     delete req;
+
+    LOGLINE_END("delete req");
 
     v8::Local<v8::Value> argv[1];
 
@@ -373,12 +385,20 @@ void AfterOpen(uv_work_t *req) {
         sd_rpc_log_handler_set(NULL); // Stop reciving events
 
         uv_close((uv_handle_t*)&async_log, NULL); // Close the async handlers for log events
-        delete baton->log_callback; // Free the memory for the callback
+        LOGLINE_START("delete baton->log_callback");
+
+        delete baton->log_callback;
+
+        LOGLINE_END("delete baton->log_callback"); // Free the memory for the callback
 
         if (baton->event_callback != NULL)
         {
             sd_rpc_evt_handler_set(NULL);
+            LOGLINE_START("delete baton->event_callback");
+
             delete baton->event_callback;
+
+            LOGLINE_END("delete baton->event_callback");
         }
     }
     else
@@ -387,7 +407,11 @@ void AfterOpen(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 NAN_METHOD(Close) {
@@ -502,8 +526,16 @@ void AfterGetVersion(uv_work_t *req) {
     }
 
     baton->callback->Call(2, argv);
+    LOGLINE_START("delete baton->version");
+
     delete baton->version;
+
+    LOGLINE_END("delete baton->version");
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 NAN_METHOD(GetStats)

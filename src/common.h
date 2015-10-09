@@ -125,7 +125,11 @@ public:
 
     ~Baton()
     {
+        LOGLINE_START("delete callback");
+
         delete callback;
+
+        LOGLINE_END("delete callback");
     }
 
     uv_work_t *req;

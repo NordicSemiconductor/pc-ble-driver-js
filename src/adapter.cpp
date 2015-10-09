@@ -83,9 +83,23 @@ void AfterGetAdapterList(uv_work_t* req) {
 
     for(auto it = baton->results.begin(); it != baton->results.end(); ++it) 
     {
+        LOGLINE_START("delete *it");
+
         delete *it;
+
+        LOGLINE_END("delete *it");
     }
 
+    LOGLINE_START("delete baton");
+
+
     delete baton;
+
+
+    LOGLINE_END("delete baton");
+    LOGLINE_START("delete req");
+
     delete req;
+
+    LOGLINE_END("delete req");
 }

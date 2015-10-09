@@ -426,7 +426,11 @@ void AfterPrimaryServicesDiscover(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 
@@ -489,7 +493,11 @@ void AfterRelationshipDiscover(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 
@@ -552,7 +560,11 @@ void AfterCharacteristicsDiscover(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 
@@ -615,7 +627,11 @@ void AfterDescriptorsDiscover(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 
@@ -687,7 +703,11 @@ void AfterCharacteristicValueByUUIDRead(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 
@@ -759,7 +779,11 @@ void AfterRead(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 NAN_METHOD(CharacteristicValuesRead)
@@ -840,7 +864,11 @@ void AfterCharacteristicValuesRead(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 
@@ -903,7 +931,11 @@ void AfterWrite(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 
@@ -966,7 +998,11 @@ void AfterHandleValueConfirm(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
+    LOGLINE_START("delete baton");
+
     delete baton;
+
+    LOGLINE_END("delete baton");
 }
 
 extern "C" {
