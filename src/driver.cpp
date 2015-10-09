@@ -110,9 +110,9 @@ void on_log_event(uv_async_t *handle)
         }
 
         // Free memory for current entry, we remove the element from the deque when the iteration is done
-        LOGLINE;
+        LOGLINE_START("log_entry->message");
         free(log_entry->message);
-        LOGLINE;
+        LOGLINE_END("log_entry->message");
         delete log_entry;
     }
 }
@@ -237,9 +237,9 @@ void on_rpc_event(uv_async_t *handle)
         array_idx++;
 
         // Free memory for current entry
-        LOGLINE;
+        LOGLINE_START("event_entry->event");
         free(event_entry->event);
-        LOGLINE;
+        LOGLINE_END("event_entry->event");
         delete event_entry;
     }
 
@@ -596,9 +596,9 @@ v8::Local<v8::Object> BleUUID128::ToJs()
 
     sprintf(uuid128string, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x", ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], ptr[6], ptr[7], ptr[8], ptr[9], ptr[10], ptr[11], ptr[12], ptr[13], ptr[14], ptr[15]);
     Utility::Set(obj, "uuid128", uuid128string);
-    LOGLINE;
+    LOGLINE_START("uuid128string");
     free(uuid128string);
-    LOGLINE;
+    LOGLINE_END("uuid128string");
     return scope.Escape(obj);
 }
 

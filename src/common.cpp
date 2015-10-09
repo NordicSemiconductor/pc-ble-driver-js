@@ -300,9 +300,9 @@ v8::Handle<v8::Value> ConversionUtility::toJsString(char *cString, uint16_t leng
 
     v8::Local<v8::String> _name = Nan::New(name).ToLocalChecked();
 
-    LOGLINE;
+    LOGLINE_START("name");
     free(name);
-    LOGLINE;
+    LOGLINE_END("name");
 
     return scope.Escape(_name);
 }

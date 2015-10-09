@@ -115,9 +115,9 @@ v8::Local<v8::Object> GapAddr::ToJs()
     Utility::Set(obj, "address", addr);
     Utility::Set(obj, "type", gap_addr_type_map[native->addr_type]);
 
-    LOGLINE;
+    LOGLINE_START("addr");
     free(addr);
-    LOGLINE;
+    LOGLINE_END("addr");
     return scope.Escape(obj);
 }
 
@@ -137,9 +137,9 @@ ble_gap_addr_t *GapAddr::ToNative()
     int scan_count = sscanf(addr, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &(ptr[5]), &(ptr[4]), &(ptr[3]), &(ptr[2]), &(ptr[1]), &(ptr[0]));
 	assert(scan_count == 6);
 
-    LOGLINE;
+    LOGLINE_START("addr");
     free(addr);
-    LOGLINE;
+    LOGLINE_END("addr");
 
     for (int i = 0; i < BLE_GAP_ADDR_LEN; i++)
     {
@@ -153,9 +153,9 @@ ble_gap_addr_t *GapAddr::ToNative()
     addressTypeString->WriteUtf8(typeString, type_len);
     address->addr_type = (uint8_t)fromNameToValue(gap_addr_type_map, typeString);
 
-    LOGLINE;
+    LOGLINE_START("typeString");
     free(typeString);
-    LOGLINE;
+    LOGLINE_END("typeString");
 
     return address;
 }
@@ -305,9 +305,9 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
 					assert(uuid_as_text != NULL);
                     sprintf(uuid_as_text, UUID_128_BIT_SPRINTF, 0, uint16_decode((uint8_t*)data + sub_pos + i));
                     Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
-                    LOGLINE;
+                    LOGLINE_START("uuid_as_text");
                     free(uuid_as_text);
-                    LOGLINE;
+                    LOGLINE_END("uuid_as_text");
                     array_pos++;
                 }
 
@@ -329,9 +329,9 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                             uint16_decode((uint8_t*)data + sub_pos + 2 + i),
                             uint16_decode((uint8_t*)data + sub_pos + 0 + i));
                     Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
-                    LOGLINE;
+                    LOGLINE_START("uuid_as_text");
                     free(uuid_as_text);
-                    LOGLINE;
+                    LOGLINE_END("uuid_as_text");
                     array_pos++;
                 }
 
@@ -362,9 +362,9 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                         uint16_decode((uint8_t*)data + (sub_pos + i + 0))
                         );
                     Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
-                    LOGLINE;
+                    LOGLINE_START("uuid_as_text");
                     free(uuid_as_text);
-                    LOGLINE;
+                    LOGLINE_END("uuid_as_text");
                     array_pos++;
                 }
 
@@ -930,9 +930,9 @@ void AfterGapSetDeviceName(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE;
+    LOGLINE_START("baton->dev_name");
     free(baton->dev_name);
-    LOGLINE;
+    LOGLINE_END("baton->dev_name");
 
     delete baton;
 }
@@ -992,9 +992,9 @@ void AfterGapGetDeviceName(uv_work_t *req) {
     }
 
     baton->callback->Call(2, argv);
-    LOGLINE;
+    LOGLINE_START("baton->dev_name");
     free(baton->dev_name);
-    LOGLINE;
+    LOGLINE_END("baton->dev_name");
     delete baton;
 }
 
