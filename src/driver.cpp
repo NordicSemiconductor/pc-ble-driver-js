@@ -13,7 +13,7 @@
 #include "circular_fifo_unsafe.h"
 
 FILE *f;
-#define LOGLINE fprintf(f, "%s %d\r\n", __FILE__, __LINE__)
+#define LOGLINE do { f = fopen("log.txt", "a"); fprintf(f, "%s %d\r\n", __FILE__, __LINE__); fclose(f); } while(0);
 
 using namespace std;
 //using namespace memory_relaxed_aquire_release;
@@ -625,8 +625,6 @@ extern "C" {
 
     NAN_MODULE_INIT(init)
     {
-        f = fopen("log.txt", "w");
-        fprintf(f, "Started log\n");
 //        Nan::HandleScope scope;
         init_adapter_list(target);
         init_driver(target);
