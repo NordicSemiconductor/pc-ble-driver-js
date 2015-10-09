@@ -12,6 +12,9 @@
 #include "driver_gattc.h"
 #include "circular_fifo_unsafe.h"
 
+FILE *f;
+#define LOGLINE fprintf(f, "%s %d\r\n", __FILE__, __LINE__)
+
 using namespace std;
 //using namespace memory_relaxed_aquire_release;
 using namespace memory_sequential_unsafe;
@@ -110,7 +113,9 @@ void on_log_event(uv_async_t *handle)
         }
 
         // Free memory for current entry, we remove the element from the deque when the iteration is done
+        LOGLINE;
         free(log_entry->message);
+        LOGLINE;
         delete log_entry;
     }
 }
@@ -235,7 +240,9 @@ void on_rpc_event(uv_async_t *handle)
         array_idx++;
 
         // Free memory for current entry
+        LOGLINE;
         free(event_entry->event);
+        LOGLINE;
         delete event_entry;
     }
 
@@ -587,7 +594,9 @@ v8::Local<v8::Object> BleUUID128::ToJs()
 
     sprintf(uuid128string, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x", ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], ptr[6], ptr[7], ptr[8], ptr[9], ptr[10], ptr[11], ptr[12], ptr[13], ptr[14], ptr[15]);
     Utility::Set(obj, "uuid128", uuid128string);
+    LOGLINE;
     free(uuid128string);
+    LOGLINE;
     return scope.Escape(obj);
 }
 
@@ -609,8 +618,15 @@ extern "C" {
     void init_hci(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
     void init_error(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 
+    static void endisnigh(void*)
+    {
+        fclose(f);
+    }
+
     NAN_MODULE_INIT(init)
     {
+        f = fopen("log.txt", "w");
+        fprintf(f, "Started log\n");
 //        Nan::HandleScope scope;
         init_adapter_list(target);
         init_driver(target);
@@ -621,6 +637,7 @@ extern "C" {
         init_gap(target);
         init_gatt(target);
         init_gattc(target);
+        node::AtExit(endisnigh);
     }
 
     void init_adapter_list(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
