@@ -56,6 +56,8 @@ uint32_t evt_interval;
 uv_timer_t evt_interval_timer;
 uv_async_t async_event;
 
+uv_timer_t evt_generator_timer;
+
 // Accumulated deltas for event callbacks done to the driver
 chrono::milliseconds evt_cb_duration;
 uint32_t evt_cb_count;
@@ -152,23 +154,22 @@ void sd_rpc_on_event(ble_evt_t *event)
         LOG_FUNCTION_END("sd_rpc_on_event - no event");
         return;
     }
-
-    /*if (event->header.evt_id == BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP)
+    /*
+    if (event->header.evt_id == BLE_GAP_EVT_ADV_REPORT)
     {
         std::cout << "====================================" << std::endl;
         std::cout << "Length: " << event->header.evt_len << std::endl;
-        std::cout << "Count: " << event->evt.gattc_evt.params.prim_srvc_disc_rsp.count << std::endl;
-        for (int i = 0; i < event->evt.gattc_evt.params.prim_srvc_disc_rsp.count; ++i)
-        {
-            std::cout << "Service " << i << ": " << std::endl;
-            std::cout << "\tuuid: " << hex << event->evt.gattc_evt.params.prim_srvc_disc_rsp.services[i].uuid.uuid << " "
-                                    << event->evt.gattc_evt.params.prim_srvc_disc_rsp.services[i].uuid.type << std::endl;
-            std::cout << "\thandle range: " << hex << event->evt.gattc_evt.params.prim_srvc_disc_rsp.services[i].handle_range.start_handle << " "
-                                    << event->evt.gattc_evt.params.prim_srvc_disc_rsp.services[i].handle_range.end_handle << std::endl;
-        }
+        std::cout << "conn handle: " << hex << event->evt.gap_evt.conn_handle << std::endl;
+        std::cout << "data" << hex << event->evt.gap_evt.params.adv_report.data << std::endl;
+        std::cout << "dlen" << hex << event->evt.gap_evt.params.adv_report.dlen << std::endl;
+        std::cout << "addr" << hex << event->evt.gap_evt.params.adv_report.peer_addr.addr << std::endl;
+        std::cout << "addr_type" << hex << event->evt.gap_evt.params.adv_report.peer_addr.addr_type << std::endl;
+        std::cout << "rssi" << hex << event->evt.gap_evt.params.adv_report.rssi << std::endl;
+        std::cout << "scan_rsp" << hex << event->evt.gap_evt.params.adv_report.scan_rsp << std::endl;
+        std::cout << "type" << hex << event->evt.gap_evt.params.adv_report.type << std::endl;
         std::cout << "====================================" << std::endl;
-    }*/
-
+    }
+    */
     evt_cb_count += 1;
     evt_cb_batch_evt_counter += 1;
 
@@ -199,6 +200,26 @@ void sd_rpc_on_event(ble_evt_t *event)
     LOG_FUNCTION_END("sd_rpc_on_event");
 }
 
+void event_generator(uv_timer_t *handle)
+{
+    ble_evt_t *event = new ble_evt_t();
+    event->header.evt_id = BLE_GAP_EVT_ADV_REPORT;
+    event->header.evt_len = 42;
+    event->evt.gap_evt.conn_handle = 0xFFFF;
+    memcpy(event->evt.gap_evt.params.adv_report.data, "TESTTESTTEST", 12);
+    event->evt.gap_evt.params.adv_report.dlen = 12;
+    event->evt.gap_evt.params.adv_report.peer_addr.addr[0] = 0x00;
+    event->evt.gap_evt.params.adv_report.peer_addr.addr[1] = 0x00;
+    event->evt.gap_evt.params.adv_report.peer_addr.addr[2] = 0x00;
+    event->evt.gap_evt.params.adv_report.peer_addr.addr[3] = 0x00;
+    event->evt.gap_evt.params.adv_report.peer_addr.addr[4] = 0x00;
+    event->evt.gap_evt.params.adv_report.peer_addr.addr[5] = 0x00;
+    event->evt.gap_evt.params.adv_report.peer_addr.addr_type = 1;
+    event->evt.gap_evt.params.adv_report.rssi = -5;
+    event->evt.gap_evt.params.adv_report.scan_rsp = 0;
+    event->evt.gap_evt.params.adv_report.type = 0;
+    sd_rpc_on_event(event);
+}
 // Now we are in the NodeJS thread. Call callbacks.
 void on_rpc_event(uv_async_t *handle)
 {
@@ -208,7 +229,11 @@ void on_rpc_event(uv_async_t *handle)
 
     EventQueue *event_entries = (EventQueue*)handle->data;
 
-    if (event_entries->wasEmpty()) return;
+    if (event_entries->wasEmpty())
+    {
+        LOG_FUNCTION_END("on_rpc_event - no event")
+        return;
+    }
 
     // Update statistics (evaluate if we shall lock the statistics counters to get more preceise data)
     evt_cb_batch_evt_total_count += evt_cb_batch_evt_counter;
@@ -364,6 +389,9 @@ void Open(uv_work_t *req) {
         uv_timer_init(uv_default_loop(), &evt_interval_timer);
         uv_timer_start(&evt_interval_timer, event_interval_callback, evt_interval, evt_interval);
     }
+
+    uv_timer_init(uv_default_loop(), &evt_generator_timer);
+    uv_timer_start(&evt_generator_timer, event_generator, 100, 100);
 
     // Open RPC connection to device
     int err = sd_rpc_open();
@@ -676,6 +704,9 @@ extern "C" {
 
     NAN_MODULE_INIT(init)
     {
+        FILE *f = fopen("log.txt", "w");
+        fprintf(f, "Started logging\r\n");
+        fclose(f);
 //        Nan::HandleScope scope;
         init_adapter_list(target);
         init_driver(target);
