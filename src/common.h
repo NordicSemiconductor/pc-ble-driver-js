@@ -8,6 +8,8 @@
 #include "ble.h"
 #include "ble_hci.h"
 
+#define LOGLINE do { FILE *f = fopen("log.txt", "a"); fprintf(f, "%s %d\r\n", __FILE__, __LINE__); fclose(f); } while(0);
+
 #define NAME_MAP_ENTRY(EXP) { EXP, ""#EXP"" }
 #define ERROR_STRING_SIZE 1024
 #define BATON_CONSTRUCTOR(BatonType) BatonType(v8::Local<v8::Function> callback) : Baton(callback) {}

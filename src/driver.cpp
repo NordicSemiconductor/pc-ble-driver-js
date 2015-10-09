@@ -12,9 +12,6 @@
 #include "driver_gattc.h"
 #include "circular_fifo_unsafe.h"
 
-FILE *f;
-#define LOGLINE do { f = fopen("log.txt", "a"); fprintf(f, "%s %d\r\n", __FILE__, __LINE__); fclose(f); } while(0);
-
 using namespace std;
 //using namespace memory_relaxed_aquire_release;
 using namespace memory_sequential_unsafe;
@@ -250,7 +247,12 @@ void on_rpc_event(uv_async_t *handle)
     callback_value[0] = array;
 
     auto start = chrono::high_resolution_clock::now();
-    if(driver_event_callback != NULL) driver_event_callback->Call(1, callback_value);
+    
+    if (driver_event_callback != NULL)
+    {
+        driver_event_callback->Call(1, callback_value);
+    }
+
     auto end = chrono::high_resolution_clock::now();
 
     chrono::milliseconds duration = chrono::duration_cast<chrono::milliseconds>(end - start);
@@ -618,11 +620,6 @@ extern "C" {
     void init_hci(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
     void init_error(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 
-    static void endisnigh(void*)
-    {
-        fclose(f);
-    }
-
     NAN_MODULE_INIT(init)
     {
 //        Nan::HandleScope scope;
@@ -635,7 +632,6 @@ extern "C" {
         init_gap(target);
         init_gatt(target);
         init_gattc(target);
-        node::AtExit(endisnigh);
     }
 
     void init_adapter_list(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)

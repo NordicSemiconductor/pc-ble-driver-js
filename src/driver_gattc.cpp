@@ -818,7 +818,9 @@ void CharacteristicValuesRead(uv_work_t *req) {
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gattc_char_values_read(baton->conn_handle, baton->p_handles, baton->handle_count);
 
+    LOGLINE;
     free(baton->p_handles);
+    LOGLINE;
 }
 
 // This runs in Main Thread
