@@ -143,10 +143,15 @@ size_t findSize(ble_evt_t *event)
 
 void sd_rpc_on_event(ble_evt_t *event)
 {
+    LOG_FUNCTION_START("sd_rpc_on_event");
     // TODO: Clarification:
     // The lifecycle for the event is controlled by the driver. We must not free any memory related to the incoming event.
 
-    if (event == NULL) return;
+    if (event == NULL)
+    {
+        LOG_FUNCTION_END("sd_rpc_on_event - no event");
+        return;
+    }
 
     /*if (event->header.evt_id == BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP)
     {
@@ -186,13 +191,18 @@ void sd_rpc_on_event(ble_evt_t *event)
     event_queue->push(event_entry);
 
     // If the event interval is not set, send the events to NodeJS as soon as possible.
-    if (evt_interval == 0) send_events_upstream();
-    LOGLINE("sd_rpc_on_event");
+    if (evt_interval == 0)
+    {
+        send_events_upstream();
+    }
+
+    LOG_FUNCTION_END("sd_rpc_on_event");
 }
 
 // Now we are in the NodeJS thread. Call callbacks.
 void on_rpc_event(uv_async_t *handle)
 {
+    LOG_FUNCTION_START("on_rpc_event");
     Nan::HandleScope scope;
     // TODO: Check if we must add NanScope() to this function
 
@@ -272,6 +282,8 @@ void on_rpc_event(uv_async_t *handle)
 
     chrono::milliseconds duration = chrono::duration_cast<chrono::milliseconds>(end - start);
     evt_cb_duration += duration;
+
+    LOG_FUNCTION_END("on_rpc_event");
 }
 
 // This function runs in the Main Thread
