@@ -99,9 +99,7 @@ v8::Local<v8::Object> GapAddr::ToJs()
 {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-
-    Utility::Set(obj, "type", gap_addr_type_map[native->addr_type]);
-
+    
     // Create a text string of the address. The when the NanUtf8String string is out of
     // its scope, the underlaying string is freed.
 

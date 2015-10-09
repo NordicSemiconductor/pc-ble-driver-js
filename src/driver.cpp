@@ -187,6 +187,7 @@ void sd_rpc_on_event(ble_evt_t *event)
 
     // If the event interval is not set, send the events to NodeJS as soon as possible.
     if (evt_interval == 0) send_events_upstream();
+    LOGLINE("sd_rpc_on_event");
 }
 
 // Now we are in the NodeJS thread. Call callbacks.
