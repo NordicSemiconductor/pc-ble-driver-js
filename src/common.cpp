@@ -196,7 +196,10 @@ uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Object>js, cha
 {
     v8::Local<v8::Array> jsarray = v8::Local<v8::Array>::Cast(Utility::Get(js, name));
 
+    LOG_MALLOC_START("");
     uint8_t *string = (uint8_t *)malloc(sizeof(uint8_t) * jsarray->Length());
+    LOG_MALLOC_END(string, "");
+
 	assert(string != NULL);
 
     for (uint32_t i = 0; i < jsarray->Length(); ++i)
@@ -292,7 +295,9 @@ v8::Handle<v8::Value> ConversionUtility::toJsString(char *cString)
 v8::Handle<v8::Value> ConversionUtility::toJsString(char *cString, uint16_t length)
 {
     Nan::EscapableHandleScope scope;
+    LOG_MALLOC_START("name");
     char *name = (char*)malloc(length + 1);
+    LOG_MALLOC_END(name, "name")
 	assert(name != NULL);
 
     memset(name, 0, length + 1); // Zero terminate the name

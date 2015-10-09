@@ -106,7 +106,9 @@ v8::Local<v8::Object> GapAddr::ToJs()
     // its scope, the underlaying string is freed.
 
     size_t addr_len = BLE_GAP_ADDR_LEN * 3; // Each byte -> 2 chars, : separator _between_ each byte and a null termination byte
+    LOG_MALLOC_START("addr");
     char *addr = (char*)malloc(addr_len);
+    LOG_MALLOC_END(addr, "addr");
 	assert(addr != NULL);
     uint8_t *ptr = native->addr;
 
@@ -130,7 +132,9 @@ ble_gap_addr_t *GapAddr::ToNative()
     v8::Local<v8::Value> getAddress = Utility::Get(jsobj, "address");
     v8::Local<v8::String> addressString = getAddress->ToString();
     size_t addr_len = addressString->Length() + 1;
+    LOG_MALLOC_START("addr");
     char *addr = (char*)malloc(addr_len);
+    LOG_MALLOC_END(addr, "addr");
 	assert(addr != NULL);
     addressString->WriteUtf8(addr, addr_len);
 
@@ -149,7 +153,9 @@ ble_gap_addr_t *GapAddr::ToNative()
     v8::Local<v8::Value> getAddressType = Utility::Get(jsobj, "type");
     v8::Local<v8::String> addressTypeString = getAddressType->ToString();
     size_t type_len = addressTypeString->Length() + 1;
+    LOG_MALLOC_START("typeString")
     char *typeString = (char *)malloc(type_len);
+    LOG_MALLOC_END(typeString, "typeString");
     addressTypeString->WriteUtf8(typeString, type_len);
     address->addr_type = (uint8_t)fromNameToValue(gap_addr_type_map, typeString);
 
@@ -301,7 +307,9 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 // Fetch 16 bit UUIDS and put them into the array
                 for (int i = 0; i < ad_len - 1; i += 2)
                 {
+                    LOG_MALLOC_START("uuid_as_text");
                     char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
+                    LOG_MALLOC_END(uuid_as_text, "uuid_as_text");
 					assert(uuid_as_text != NULL);
                     sprintf(uuid_as_text, UUID_128_BIT_SPRINTF, 0, uint16_decode((uint8_t*)data + sub_pos + i));
                     Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
@@ -322,7 +330,9 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 // Fetch 32 bit UUIDS and put them into the array
                 for (int i = 0; i < ad_len - 1; i += 4)
                 {
+                    LOG_MALLOC_START("uuid_as_text");
                     char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
+                    LOG_MALLOC_END(uuid_as_text, "uuid_as_text");
 					assert(uuid_as_text != NULL);
 
                     sprintf(uuid_as_text, UUID_128_BIT_SPRINTF,
@@ -346,7 +356,9 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 // Fetch 128 bit UUIDS and put them into the array
                 for (int i = 0; i < ad_len - 1; i += 16)
                 {
+                    LOG_MALLOC_START("uuid_as_text");
                     char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
+                    LOG_MALLOC_END(uuid_as_text, "uuid_as_text");
 					assert(uuid_as_text != NULL);
 
                     sprintf(
@@ -907,7 +919,9 @@ NAN_METHOD(GapSetDeviceName)
     size_t length = dev_name_string->Length();
 
     // Allocate enough space for null termination of string
+    LOG_MALLOC_START("dev_name");
     char *dev_name = (char*)malloc(length + 1);
+    LOG_MALLOC_END(dev_name, "dev_name")
 
     dev_name_string->WriteUtf8(dev_name, length);
 
@@ -976,7 +990,9 @@ NAN_METHOD(GapGetDeviceName)
     GapGetDeviceNameBaton *baton = new GapGetDeviceNameBaton(callback);
 
     baton->length = 248; // Max length of Device name characteristic
+    LOG_MALLOC_START("baton->dev_name");
     baton->dev_name = (uint8_t*)malloc(baton->length);
+    LOG_MALLOC_END(baton->dev_name, "baton->dev_name");
 
     uv_queue_work(uv_default_loop(), baton->req, GapGetDeviceName, (uv_after_work_cb)AfterGapGetDeviceName);
 

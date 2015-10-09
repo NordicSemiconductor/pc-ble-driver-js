@@ -11,6 +11,9 @@
 #define LOGLINE_START(x) do { FILE *f = fopen("log.txt", "a"); fprintf(f, "%s %d %s -- START\r\n", __FILE__, __LINE__, (x)); fclose(f); } while(0);
 #define LOGLINE_END(x) do { FILE *f = fopen("log.txt", "a"); fprintf(f, "%s %d %s -- END\r\n", __FILE__, __LINE__, (x)); fclose(f); } while(0);
 
+#define LOG_MALLOC_START(x) do { FILE *f = fopen("log.txt", "a"); fprintf(f, "%s %d %s -- MALLOC START\r\n", __FILE__, __LINE__, (x)); fclose(f); } while(0);
+#define LOG_MALLOC_END(x,y) do { FILE *f = fopen("log.txt", "a"); fprintf(f, "%s %d %s -- MALLOC END ", __FILE__, __LINE__, (y)); if (x == NULL) {fprintf(f, "FAILED");}else{fprintf(f, "SUCCESS");} fprintf(f, "\r\n"); fclose(f); } while(0);
+
 #define NAME_MAP_ENTRY(EXP) { EXP, ""#EXP"" }
 #define ERROR_STRING_SIZE 1024
 #define BATON_CONSTRUCTOR(BatonType) BatonType(v8::Local<v8::Function> callback) : Baton(callback) {}

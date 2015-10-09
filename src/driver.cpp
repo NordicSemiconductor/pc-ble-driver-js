@@ -75,7 +75,10 @@ void sd_rpc_on_log_event(sd_rpc_log_severity_t severity, const char *log_message
 {
     int length = strlen(log_message);
 
+    LOG_MALLOC_START("message");
     void *message = malloc((size_t) (length + 1));
+    LOG_MALLOC_END(message, "message");
+
     memset(message, 0, (size_t) (length + 1));
     memcpy(message, log_message, (size_t) length);
 
@@ -168,7 +171,10 @@ void sd_rpc_on_event(ble_evt_t *event)
 
     size_t size = findSize(event);
 
+    LOG_MALLOC_START("evt");
     void *evt = malloc(size);
+    LOG_MALLOC_END(evt, "evt");
+
     memset(evt, 0, size);
     memcpy(evt, event, size);
 
@@ -622,7 +628,10 @@ v8::Local<v8::Object> BleUUID128::ToJs()
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     size_t uuid_len = 16 * 2 + 4 + 1; // Each byte -> 2 chars, 4 - separator _between_ some bytes and 1 byte null termination character
+    LOG_MALLOC_START("uuid128string");
     char *uuid128string = (char*)malloc(uuid_len);
+    LOG_MALLOC_END(uuid128string, "uuid128string");
+
     assert(uuid128string != NULL);
     uint8_t *ptr = native->uuid128;
 
