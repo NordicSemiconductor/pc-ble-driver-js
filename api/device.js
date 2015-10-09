@@ -1,10 +1,7 @@
-
-let i = 1;
-
 // TODO: does it need an adapterInstanceId?
 class Device {
     constructor(address, name, role, uuids) {
-        this._instanceId = address + '.' + (i++).toString();
+        // TODO: should it know what adapter it is related to? would it not need to know about the adapter to send driver calls?
         this._address = address;
         this._name = name;
         this._role = role;
@@ -47,6 +44,15 @@ class Device {
 
     set connected(isConnected) {
         this._connected = isConnected;
+    }
+
+    get connectionHandle() {
+        return this._connectionHandle;
+    }
+
+    set connectionHandle(connectionHandle) {
+        this._connectionHandle = connectionHandle;
+        this._instanceId = this._address + '.' + connectionHandle;
     }
 
     get inqueryRssi() {

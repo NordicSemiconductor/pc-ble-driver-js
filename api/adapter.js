@@ -11,6 +11,7 @@ class Adapter extends events.EventEmitter {
     constructor(instanceId, port) {
         this._instanceId = instanceId;
         this._adapterState = new AdapterState(instanceId, port);
+        this._devices = {};
     }
 
     // Get the instance id
@@ -66,13 +67,26 @@ class Adapter extends events.EventEmitter {
     }
 
     // TODO: event callback function declared here or in open call?;
-    _eventCallback(event_array) {
-        console.log("event_array length: " + event_array.length);
+    _eventCallback(eventArray) {
+        console.log("eventArray length: " + eventArray.length);
+
+        eventArray.forEach(event => {
+            switch(event.id){
+                case bleDriver.BLE_GAP_EVT_CONNECTED:
+                    console.log(`Connected to ${event.peer_addr.addr}.`);
+                    if (this._connectCallback) {
+                        this._connectCallback();
+                    }
+                    break;
+                default:
+                    console.log(`Unsupported event received from SoftDevice: ${event.id} - ${event.name}`);
+            }
+        });
     }
 
     // Callback signature function(err, state) {}
     getAdapterState(callback) {
-        // TODO: call getters that ask device for information?
+        // TODO: call getters that ask device for updated information?
         return this._adapterState;
     }
 
@@ -83,14 +97,37 @@ class Adapter extends events.EventEmitter {
         bleDriver.gap_set_device_name({sm: 0, lv: 0}, name, err => {
             if (err) {
                 console.log('Failed to set name to adapter');
-            }
-
-            if (this._name !== name) {
+            } else if (this._adapterState.name !== name) {
                 this._adapterState.name = name;
 
                 // TODO: call this.getAdapterState?
                 this.emit('adapterStateChanged', this._adapterState);
             }
+        });
+    }
+
+    _getAddressStruct(address, type) {
+        return {address: address, type: type};
+    }
+
+    setAddress(address, type, callback) {
+        const cycleMode = bleDriver.BLE_GAP_ADDR_CYCLE_MODE_NONE;
+        // TODO: if privacy is active use bleDriver.BLE_GAP_ADDR_CYCLE_MODE_AUTO?
+
+        addressStruct = this._getAddressStruct(address, type);
+
+        bleDriver.gap_set_address(cycleMode, addressStruct, err => {
+            if (err) {
+                console.log('Failed to set address');
+            } else if (this._adapterState.address !== address) {
+                // TODO: adapterState address include type?
+                this._adapterState.address = address;
+
+                // TODO: call this.getAdapterState?
+                this.emit('adapterStateChanged', this._adapterState);
+            }
+
+            callback(err);
         });
     }
 
@@ -137,6 +174,8 @@ class Adapter extends events.EventEmitter {
 
     // Callback signature function(err)
     stopScan(callback) {
+        // TODO: check if adapterState is in scanning mode?
+
         bleDriver.stop_scan(err => {
             if (err) {
                 // TODO: probably is state already set to false, but should we make sure? if yes, emit adapterStateChanged?
@@ -150,18 +189,126 @@ class Adapter extends events.EventEmitter {
 
     // options: scanParams, connParams, Callback signature function(err) {}. Do not start service discovery. Err if connection timed out, +++
     connect(deviceAddress, options, callback) {
+        bleDriver.gap_connect(deviceAddress, options.scanParams, options.connParams, err => {
+            if (err) {
+                console.log(`Could not connect to ${deviceAddress}`);
+                callback(err);
+            } else {
+                // TODO: do we want a connecting state? Use it to see if we can overwrite this._connectCallback?
+                this._connectCallback = callback;
+            }
+        });
 
+        // TODO: howto connect callback to connected and timeout event?
+
+        if (this._adapterState.scanning) {
+            this._adapterState.scanning = false;
+            this.emit('adapterStateChanged', this._adapterState);
+        }
     }
 
     // Callback signature function() {}
     cancelConnect(callback) {
+        // TODO: Check if we are connecting if we have a connecting state.
 
+        bleDriver.gap_cancel_connect(err => {
+            if (err) {
+                callback(err);
+            }
+
+            // TODO: set connecting state to false if we have it.
+        });
+    }
+
+    // Role peripheral
+    /**
+     * @brief [brief description]
+     * @details [long description]
+     *
+     * @param sendName If name shall be sent (from setName)
+     * @param adveritisingData
+     * // { short_name: true/false/other name,
+     * long_name: true/false/other name
+     * tx_power_level: x,
+     * local_services: [serviceA, serviceB] // could be UUID text strings (array),
+     * service_solicitation:
+     * and more....
+     * }
+     * @param scanResponseData
+     * { name: true/false/other name},
+     * and more...
+     * @param options
+     * { interval: x, timeout: x, channel_map: [35]  optional, if nothing, use all }
+     *
+     */
+
+    // Enable the client role and starts advertising
+
+    _getAdvertismentParams(type, addressStruct, filterPolicy, interval, timeout) {
+        // TODO: as parameters?
+        const whitelistStruct = undefined;
+        const channelMaskStruct = undefined;
+
+        return {type: type, peer_addr: addressStruct, fp: filterPolicy, whitelist: whitelistStruct,
+                interval: interval, timeout:timeout, channelMask: channelMaskStruct};
+    }
+
+    // name given from setName. Callback function signature: function(err) {}
+    // TODO: Need sendName, neither advertising nor scanData have to contain a name.
+    startAdvertising(sendName, advertisingData, scanResponseData, options, callback) {
+        const type = bleDriver.BLE_GAP_ADV_TYPE_ADV_IND;
+        const addressStruct = this._getAddressStruct(address, addressType);
+        const filterPolicy = bleDriver.BLE_GAP_ADV_FP_ANY;
+        const interval = options.interval;
+
+        //TODO: need to parse advertising and scanData and convert to byte array?
+        bleDriver.gap_set_adv_data(advertisingData, scanResponseData);
+
+        const advertismentParamsStruct = this._getAdvertismentParams(type, addressStruct, filterPolicy, interval, timeout);
+
+        bleDriver.gap_start_advertising(advertismentParamsStruct, err => {
+            if (err) {
+                console.log('Failed to start advertising');
+            } else {
+                this._adapterState.scanning = true;
+                this.emit('adapterStateChanged', this._adapterState);
+            }
+
+            callback(err);
+        });
+    }
+
+    // Callback function signature: function(err) {}
+    stopAdvertising(callback) {
+        // TODO: check if adapterState is in advertising mode?
+
+        bleDriver.gap_stop_advertising(err => {
+            if (err) {
+                // TODO: probably is state already set to false, but should we make sure? if ys, emit adapterStateChanged?
+                console.log('Error occured when stopping advertising');
+            } else {
+                this._adapterState.advertising = false;
+                this.emit('adapterStateChanged', this._adapterState);
+            }
+        });
     }
 
     // Central/peripheral
 
     disconnect(deviceInstanceId, callback) {
+        const device = this.getDevice(deviceInstanceId);
+        const hciStatusCode = bleDriver.BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION;
+        bleDriver.disconnect(device.connectionHandle, hciStatusCode, err => {
+            if (err) {
+                console.log('Failed to disconnect');
+            }
 
+            // TODO: remove from device list? We no longer know this device, has it started to advertise again or is it silence?
+            device.connected = false;
+            this.emit('deviceDisconnected', device);
+
+            callback(err);
+        });
     }
 
     // options: connParams, callback signature function(err) {} returns true/false
@@ -274,40 +421,6 @@ class Adapter extends events.EventEmitter {
 
     // Callback signature function(err) {}
     stopCharacteristicsNotifications(characteristicId, callback) {
-
-    }
-
-    // Role peripheral
-    /**
-     * @brief [brief description]
-     * @details [long description]
-     *
-     * @param sendName If name shall be sent (from setName)
-     * @param adveritisingData
-     * // { short_name: true/false/other name,
-     * long_name: true/false/other name
-     * tx_power_level: x,
-     * local_services: [serviceA, serviceB] // could be UUID text strings (array),
-     * service_solicitation:
-     * and more....
-     * }
-     * @param scanResponseData
-     * { name: true/false/other name},
-     * and more...
-     * @param options
-     * { interval: x, timeout: x, channel_map: [35]  optional, if nothing, use all }
-     *
-     */
-
-    // Enable the client role and starts advertising
-
-    // name given from setName. Callback function signature: function(err) {}
-    startAdvertising(sendName, advertisingData, scanResponseData, options, callback) {
-
-    }
-
-    // Callback function signature: function(err) {}
-    stopAdvertising(callback) {
 
     }
 }

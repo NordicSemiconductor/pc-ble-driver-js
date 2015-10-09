@@ -15,9 +15,7 @@ class ServiceFactory {
             // TODO: use database to retrieve name? what should the name be used for? no getter for service name...
         }
 
-        // TODO: Should service not be connected to a device?
-        let deviceInstanceId = undefined;
-
+        let deviceInstanceId = 'local';
         return new Service(deviceInstanceId, uuid);
     }
 
@@ -28,9 +26,7 @@ class ServiceFactory {
         }
 
         let characteristic = new Characteristic(service.instanceId, uuid, properties, value);
-
         service.characteristics[characteristic.instanceId] = characteristic;
-
         return characteristic;
     }
 
@@ -40,9 +36,7 @@ class ServiceFactory {
         }
 
         let descriptor = new Descriptor(characteristic.instanceId, uuid, value);
-
         characteristic.descriptors[descriptor.instanceId] = descriptor;
-
         return descriptor;
     }
 }
