@@ -45,13 +45,10 @@ class AdapterFactory extends events.EventEmitter {
         let instanceId = this._findInstanceId(adapter);
         let parsedAdapter = new Adapter(instanceId, adapter.comName);
 
-        // TODO: fill in more data?
-
         return parsedAdapter;
     }
 
     getAdapters(callback) {
-        // TODO: Retrieve connected adapters
         bleDriver.get_adapters((err, adapters) => {
             if (err) {
                 this.emit('error', err);
@@ -59,14 +56,11 @@ class AdapterFactory extends events.EventEmitter {
 
             let removedAdapters = Object.assign({}, this._adapters);
 
-            adapters.map(adapter => {
+            adapters.forEach(adapter => {
                 let adapterInstanceId = this._findInstanceId(adapter);
 
                 if (this._adapters[adapterInstanceId]) {
                     delete removedAdapters[adapterInstanceId];
-
-                    // TODO: need return? or update adapter entries.
-                    //return;
                 }
 
                 let newAdapter = this._parseAndCreateAdapter(adapter);
@@ -74,7 +68,7 @@ class AdapterFactory extends events.EventEmitter {
                 this.emit('added', newAdapter);
             });
 
-            removedAdapters.map(adapter => {
+            removedAdapters.forEach(adapter => {
                 this.emit('removed', adapter);
             });
 
