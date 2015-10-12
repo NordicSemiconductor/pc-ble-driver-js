@@ -133,7 +133,7 @@ public:
     {
         LOGLINE_START("delete callback");
 
-        delete callback;
+       //delete callback;
 
         LOGLINE_END("delete callback");
     }

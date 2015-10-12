@@ -116,7 +116,7 @@ v8::Local<v8::Object> GapAddr::ToJs()
     Utility::Set(obj, "type", gap_addr_type_map[native->addr_type]);
 
     LOGLINE_START("addr");
-    free(addr);
+    //free(addr);
     LOGLINE_END("addr");
     return scope.Escape(obj);
 }
@@ -140,7 +140,7 @@ ble_gap_addr_t *GapAddr::ToNative()
 	assert(scan_count == 6);
 
     LOGLINE_START("addr");
-    free(addr);
+    //free(addr);
     LOGLINE_END("addr");
 
     for (int i = 0; i < BLE_GAP_ADDR_LEN; i++)
@@ -158,7 +158,7 @@ ble_gap_addr_t *GapAddr::ToNative()
     address->addr_type = (uint8_t)fromNameToValue(gap_addr_type_map, typeString);
 
     LOGLINE_START("typeString");
-    free(typeString);
+    //free(typeString);
     LOGLINE_END("typeString");
 
     return address;
@@ -312,7 +312,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                     sprintf(uuid_as_text, UUID_128_BIT_SPRINTF, 0, uint16_decode((uint8_t*)data + sub_pos + i));
                     Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
                     LOGLINE_START("uuid_as_text");
-                    free(uuid_as_text);
+                    //free(uuid_as_text);
                     LOGLINE_END("uuid_as_text");
                     array_pos++;
                 }
@@ -338,7 +338,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                             uint16_decode((uint8_t*)data + sub_pos + 0 + i));
                     Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
                     LOGLINE_START("uuid_as_text");
-                    free(uuid_as_text);
+                    //free(uuid_as_text);
                     LOGLINE_END("uuid_as_text");
                     array_pos++;
                 }
@@ -373,7 +373,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                         );
                     Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
                     LOGLINE_START("uuid_as_text");
-                    free(uuid_as_text);
+                    //free(uuid_as_text);
                     LOGLINE_END("uuid_as_text");
                     array_pos++;
                 }
@@ -634,7 +634,7 @@ void AfterGapSetAddress(uv_work_t *req) {
         //(1, argv);
     LOGLINE_START("delete baton");
 
-    delete baton;
+   //delete baton;
 
     LOGLINE_END("delete baton");
 }
@@ -687,7 +687,7 @@ void AfterGapGetAddress(uv_work_t *req) {
     baton->callback->Call(2, argv);
     LOGLINE_START("delete baton");
 
-    delete baton;
+   //delete baton;
 
     LOGLINE_END("delete baton");
 }
@@ -756,7 +756,7 @@ void AfterGapUpdateConnectionParameters(uv_work_t *req) {
     baton->callback->Call(1, argv);
     LOGLINE_START("delete baton");
 
-    delete baton;
+   //delete baton;
 
     LOGLINE_END("delete baton");
 }
@@ -825,7 +825,7 @@ void AfterGapDisconnect(uv_work_t *req) {
     baton->callback->Call(1, argv);
     LOGLINE_START("delete baton");
 
-    delete baton;
+   //delete baton;
 
     LOGLINE_END("delete baton");
 }
@@ -886,7 +886,7 @@ void AfterGapSetTXPower(uv_work_t *req) {
     baton->callback->Call(1, argv);
     LOGLINE_START("delete baton");
 
-    delete baton;
+   //delete baton;
 
     LOGLINE_END("delete baton");
 }
@@ -963,13 +963,13 @@ void AfterGapSetDeviceName(uv_work_t *req) {
 
     baton->callback->Call(1, argv);
     LOGLINE_START("baton->dev_name");
-    free(baton->dev_name);
+    //free(baton->dev_name);
     LOGLINE_END("baton->dev_name");
 
     LOGLINE_START("delete baton");
 
 
-    delete baton;
+   //delete baton;
 
 
     LOGLINE_END("delete baton");
@@ -1033,11 +1033,11 @@ void AfterGapGetDeviceName(uv_work_t *req) {
 
     baton->callback->Call(2, argv);
     LOGLINE_START("baton->dev_name");
-    free(baton->dev_name);
+    //free(baton->dev_name);
     LOGLINE_END("baton->dev_name");
     LOGLINE_START("delete baton");
 
-    delete baton;
+   //delete baton;
 
     LOGLINE_END("delete baton");
 }
@@ -1116,7 +1116,7 @@ void AfterGapStartRSSI(uv_work_t *req) {
     baton->callback->Call(1, argv);
     LOGLINE_START("delete baton");
 
-    delete baton;
+   //delete baton;
 
     LOGLINE_END("delete baton");
 }
@@ -1176,7 +1176,7 @@ void AfterGapStopRSSI(uv_work_t *req) {
     baton->callback->Call(1, argv);
     LOGLINE_START("delete baton");
 
-    delete baton;
+   //delete baton;
 
     LOGLINE_END("delete baton");
 }
@@ -1235,7 +1235,7 @@ void AfterStartScan(uv_work_t *req) {
     baton->callback->Call(1, argv);
     LOGLINE_START("delete baton");
 
-    delete baton;
+   //delete baton;
 
     LOGLINE_END("delete baton");
 }
@@ -1286,7 +1286,7 @@ void AfterStopScan(uv_work_t *req) {
     baton->callback->Call(1, argv);
     LOGLINE_START("delete baton");
 
-    delete baton;
+   //delete baton;
 
     LOGLINE_END("delete baton");
 }
@@ -1359,7 +1359,7 @@ void AfterGapConnect(uv_work_t *req) {
     baton->callback->Call(1, argv);
     LOGLINE_START("delete baton");
 
-    delete baton;
+   //delete baton;
 
     LOGLINE_END("delete baton");
 }
@@ -1410,7 +1410,7 @@ void AfterGapCancelConnect(uv_work_t *req) {
     baton->callback->Call(1, argv);
     LOGLINE_START("delete baton");
 
-    delete baton;
+   //delete baton;
 
     LOGLINE_END("delete baton");
 }
@@ -1480,7 +1480,7 @@ void AfterGapGetRSSI(uv_work_t *req) {
     baton->callback->Call(2, argv);
     LOGLINE_START("delete baton");
 
-    delete baton;
+   //delete baton;
 
     LOGLINE_END("delete baton");
 }
