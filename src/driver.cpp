@@ -77,10 +77,8 @@ void sd_rpc_on_log_event(sd_rpc_log_severity_t severity, const char *log_message
 {
     int length = strlen(log_message);
 
-    LOG_MALLOC_START("message");
     void *message = malloc((size_t) (length + 1));
-    LOG_MALLOC_END(message, "message");
-
+    
     memset(message, 0, (size_t) (length + 1));
     memcpy(message, log_message, (size_t) length);
 
@@ -115,14 +113,8 @@ void on_log_event(uv_async_t *handle)
         }
 
         // Free memory for current entry, we remove the element from the deque when the iteration is done
-        LOGLINE_START("log_entry->message");
-        //free(log_entry->message);
-        LOGLINE_END("log_entry->message");
-        LOGLINE_START("delete log_entry");
-
-       //delete log_entry;
-
-        LOGLINE_END("delete log_entry");
+        free(log_entry->message);
+        delete log_entry;
     }
 }
 
@@ -145,13 +137,11 @@ size_t findSize(ble_evt_t *event)
 
 void sd_rpc_on_event(ble_evt_t *event)
 {
-    LOG_FUNCTION_START("sd_rpc_on_event");
     // TODO: Clarification:
     // The lifecycle for the event is controlled by the driver. We must not free any memory related to the incoming event.
 
     if (event == NULL)
     {
-        LOG_FUNCTION_END("sd_rpc_on_event - no event");
         return;
     }
     /*
@@ -177,9 +167,7 @@ void sd_rpc_on_event(ble_evt_t *event)
 
     size_t size = findSize(event);
 
-    LOG_MALLOC_START("evt");
     void *evt = malloc(size);
-    LOG_MALLOC_END(evt, "evt");
 
     memset(evt, 0, size);
     memcpy(evt, event, size);
@@ -196,8 +184,6 @@ void sd_rpc_on_event(ble_evt_t *event)
     {
         send_events_upstream();
     }
-
-    LOG_FUNCTION_END("sd_rpc_on_event");
 }
 
 void event_generator(uv_timer_t *handle)
@@ -223,7 +209,6 @@ void event_generator(uv_timer_t *handle)
 // Now we are in the NodeJS thread. Call callbacks.
 void on_rpc_event(uv_async_t *handle)
 {
-    LOG_FUNCTION_START("on_rpc_event");
     Nan::HandleScope scope;
     // TODO: Check if we must add NanScope() to this function
 
@@ -231,7 +216,6 @@ void on_rpc_event(uv_async_t *handle)
 
     if (event_entries->wasEmpty())
     {
-        LOG_FUNCTION_END("on_rpc_event - no event")
         return;
     }
 
@@ -283,14 +267,8 @@ void on_rpc_event(uv_async_t *handle)
         array_idx++;
 
         // Free memory for current entry
-        LOGLINE_START("event_entry->event");
-        //free(event_entry->event);
-        LOGLINE_END("event_entry->event");
-        LOGLINE_START("delete event_entry");
-
-       //delete event_entry;
-
-        LOGLINE_END("delete event_entry");
+        free(event_entry->event);
+        delete event_entry;
     }
 
     v8::Local<v8::Value> callback_value[1];
@@ -307,8 +285,6 @@ void on_rpc_event(uv_async_t *handle)
 
     chrono::milliseconds duration = chrono::duration_cast<chrono::milliseconds>(end - start);
     evt_cb_duration += duration;
-
-    LOG_FUNCTION_END("on_rpc_event");
 }
 
 // This function runs in the Main Thread
@@ -415,11 +391,7 @@ void AfterOpen(uv_work_t *req) {
     // TODO: handle if .Close is called before this function is called.
 	Nan::HandleScope scope;
     OpenBaton *baton = static_cast<OpenBaton *>(req->data);
-    LOGLINE_START("delete req");
-
-   //delete req;
-
-    LOGLINE_END("delete req");
+    delete req;
 
     v8::Local<v8::Value> argv[1];
 
@@ -432,20 +404,14 @@ void AfterOpen(uv_work_t *req) {
         sd_rpc_log_handler_set(NULL); // Stop reciving events
 
         uv_close((uv_handle_t*)&async_log, NULL); // Close the async handlers for log events
-        LOGLINE_START("delete baton->log_callback");
 
-       //delete baton->log_callback;
-
-        LOGLINE_END("delete baton->log_callback"); // Free the memory for the callback
+        delete baton->log_callback;
 
         if (baton->event_callback != NULL)
         {
             sd_rpc_evt_handler_set(NULL);
-            LOGLINE_START("delete baton->event_callback");
 
-           //delete baton->event_callback;
-
-            LOGLINE_END("delete baton->event_callback");
+            delete baton->event_callback;
         }
     }
     else
@@ -454,11 +420,7 @@ void AfterOpen(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 NAN_METHOD(Close) {
@@ -573,16 +535,8 @@ void AfterGetVersion(uv_work_t *req) {
     }
 
     baton->callback->Call(2, argv);
-    LOGLINE_START("delete baton->version");
-
-   //delete baton->version;
-
-    LOGLINE_END("delete baton->version");
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton->version;
+    delete baton;
 }
 
 NAN_METHOD(GetStats)
@@ -669,18 +623,15 @@ v8::Local<v8::Object> BleUUID128::ToJs()
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     size_t uuid_len = 16 * 2 + 4 + 1; // Each byte -> 2 chars, 4 - separator _between_ some bytes and 1 byte null termination character
-    LOG_MALLOC_START("uuid128string");
     char *uuid128string = (char*)malloc(uuid_len);
-    LOG_MALLOC_END(uuid128string, "uuid128string");
 
     assert(uuid128string != NULL);
     uint8_t *ptr = native->uuid128;
 
     sprintf(uuid128string, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x", ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], ptr[6], ptr[7], ptr[8], ptr[9], ptr[10], ptr[11], ptr[12], ptr[13], ptr[14], ptr[15]);
     Utility::Set(obj, "uuid128", uuid128string);
-    LOGLINE_START("uuid128string");
-    //free(uuid128string);
-    LOGLINE_END("uuid128string");
+    free(uuid128string);
+
     return scope.Escape(obj);
 }
 

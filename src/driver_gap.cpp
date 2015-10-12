@@ -104,9 +104,7 @@ v8::Local<v8::Object> GapAddr::ToJs()
     // its scope, the underlaying string is freed.
 
     size_t addr_len = BLE_GAP_ADDR_LEN * 3; // Each byte -> 2 chars, : separator _between_ each byte and a null termination byte
-    LOG_MALLOC_START("addr");
     char *addr = (char*)malloc(addr_len);
-    LOG_MALLOC_END(addr, "addr");
 	assert(addr != NULL);
     uint8_t *ptr = native->addr;
 
@@ -115,9 +113,8 @@ v8::Local<v8::Object> GapAddr::ToJs()
     Utility::Set(obj, "address", addr);
     Utility::Set(obj, "type", gap_addr_type_map[native->addr_type]);
 
-    LOGLINE_START("addr");
-    //free(addr);
-    LOGLINE_END("addr");
+    free(addr);
+
     return scope.Escape(obj);
 }
 
@@ -130,18 +127,14 @@ ble_gap_addr_t *GapAddr::ToNative()
     v8::Local<v8::Value> getAddress = Utility::Get(jsobj, "address");
     v8::Local<v8::String> addressString = getAddress->ToString();
     size_t addr_len = addressString->Length() + 1;
-    LOG_MALLOC_START("addr");
     char *addr = (char*)malloc(addr_len);
-    LOG_MALLOC_END(addr, "addr");
 	assert(addr != NULL);
     addressString->WriteUtf8(addr, addr_len);
 
     int scan_count = sscanf(addr, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &(ptr[5]), &(ptr[4]), &(ptr[3]), &(ptr[2]), &(ptr[1]), &(ptr[0]));
 	assert(scan_count == 6);
 
-    LOGLINE_START("addr");
-    //free(addr);
-    LOGLINE_END("addr");
+    free(addr);
 
     for (int i = 0; i < BLE_GAP_ADDR_LEN; i++)
     {
@@ -151,15 +144,11 @@ ble_gap_addr_t *GapAddr::ToNative()
     v8::Local<v8::Value> getAddressType = Utility::Get(jsobj, "type");
     v8::Local<v8::String> addressTypeString = getAddressType->ToString();
     size_t type_len = addressTypeString->Length() + 1;
-    LOG_MALLOC_START("typeString")
     char *typeString = (char *)malloc(type_len);
-    LOG_MALLOC_END(typeString, "typeString");
     addressTypeString->WriteUtf8(typeString, type_len);
     address->addr_type = (uint8_t)fromNameToValue(gap_addr_type_map, typeString);
 
-    LOGLINE_START("typeString");
-    //free(typeString);
-    LOGLINE_END("typeString");
+    free(typeString);
 
     return address;
 }
@@ -305,15 +294,11 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 // Fetch 16 bit UUIDS and put them into the array
                 for (int i = 0; i < ad_len - 1; i += 2)
                 {
-                    LOG_MALLOC_START("uuid_as_text");
                     char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
-                    LOG_MALLOC_END(uuid_as_text, "uuid_as_text");
 					assert(uuid_as_text != NULL);
                     sprintf(uuid_as_text, UUID_128_BIT_SPRINTF, 0, uint16_decode((uint8_t*)data + sub_pos + i));
                     Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
-                    LOGLINE_START("uuid_as_text");
-                    //free(uuid_as_text);
-                    LOGLINE_END("uuid_as_text");
+                    free(uuid_as_text);
                     array_pos++;
                 }
 
@@ -328,18 +313,14 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 // Fetch 32 bit UUIDS and put them into the array
                 for (int i = 0; i < ad_len - 1; i += 4)
                 {
-                    LOG_MALLOC_START("uuid_as_text");
                     char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
-                    LOG_MALLOC_END(uuid_as_text, "uuid_as_text");
 					assert(uuid_as_text != NULL);
 
                     sprintf(uuid_as_text, UUID_128_BIT_SPRINTF,
                             uint16_decode((uint8_t*)data + sub_pos + 2 + i),
                             uint16_decode((uint8_t*)data + sub_pos + 0 + i));
                     Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
-                    LOGLINE_START("uuid_as_text");
-                    //free(uuid_as_text);
-                    LOGLINE_END("uuid_as_text");
+                    free(uuid_as_text);
                     array_pos++;
                 }
 
@@ -354,9 +335,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 // Fetch 128 bit UUIDS and put them into the array
                 for (int i = 0; i < ad_len - 1; i += 16)
                 {
-                    LOG_MALLOC_START("uuid_as_text");
                     char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
-                    LOG_MALLOC_END(uuid_as_text, "uuid_as_text");
 					assert(uuid_as_text != NULL);
 
                     sprintf(
@@ -372,9 +351,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                         uint16_decode((uint8_t*)data + (sub_pos + i + 0))
                         );
                     Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
-                    LOGLINE_START("uuid_as_text");
-                    //free(uuid_as_text);
-                    LOGLINE_END("uuid_as_text");
+                    free(uuid_as_text);
                     array_pos++;
                 }
 
@@ -632,11 +609,7 @@ void AfterGapSetAddress(uv_work_t *req) {
 
     baton->callback->Call(1, argv);
         //(1, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 NAN_METHOD(GapGetAddress)
@@ -685,11 +658,7 @@ void AfterGapGetAddress(uv_work_t *req) {
     }
 
     baton->callback->Call(2, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 NAN_METHOD(GapUpdateConnectionParameters)
@@ -754,11 +723,7 @@ void AfterGapUpdateConnectionParameters(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 NAN_METHOD(GapDisconnect)
@@ -823,11 +788,7 @@ void AfterGapDisconnect(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 NAN_METHOD(GapSetTXPower)
@@ -884,11 +845,7 @@ void AfterGapSetTXPower(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 NAN_METHOD(GapSetDeviceName)
@@ -917,9 +874,7 @@ NAN_METHOD(GapSetDeviceName)
     size_t length = dev_name_string->Length();
 
     // Allocate enough space for null termination of string
-    LOG_MALLOC_START("dev_name");
     char *dev_name = (char*)malloc(length + 1);
-    LOG_MALLOC_END(dev_name, "dev_name")
 
     dev_name_string->WriteUtf8(dev_name, length);
 
@@ -962,17 +917,8 @@ void AfterGapSetDeviceName(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE_START("baton->dev_name");
-    //free(baton->dev_name);
-    LOGLINE_END("baton->dev_name");
-
-    LOGLINE_START("delete baton");
-
-
-   //delete baton;
-
-
-    LOGLINE_END("delete baton");
+    free(baton->dev_name);
+    delete baton;
 }
 
 NAN_METHOD(GapGetDeviceName)
@@ -988,9 +934,7 @@ NAN_METHOD(GapGetDeviceName)
     GapGetDeviceNameBaton *baton = new GapGetDeviceNameBaton(callback);
 
     baton->length = 248; // Max length of Device name characteristic
-    LOG_MALLOC_START("baton->dev_name");
     baton->dev_name = (uint8_t*)malloc(baton->length);
-    LOG_MALLOC_END(baton->dev_name, "baton->dev_name");
 
     uv_queue_work(uv_default_loop(), baton->req, GapGetDeviceName, (uv_after_work_cb)AfterGapGetDeviceName);
 
@@ -1032,14 +976,8 @@ void AfterGapGetDeviceName(uv_work_t *req) {
     }
 
     baton->callback->Call(2, argv);
-    LOGLINE_START("baton->dev_name");
-    //free(baton->dev_name);
-    LOGLINE_END("baton->dev_name");
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    free(baton->dev_name);
+    delete baton;
 }
 
 
@@ -1114,11 +1052,7 @@ void AfterGapStartRSSI(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 NAN_METHOD(GapStopRSSI)
@@ -1174,11 +1108,7 @@ void AfterGapStopRSSI(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 NAN_METHOD(StartScan)
@@ -1233,11 +1163,7 @@ void AfterStartScan(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 NAN_METHOD(StopScan)
@@ -1284,11 +1210,7 @@ void AfterStopScan(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 NAN_METHOD(GapConnect)
@@ -1357,11 +1279,7 @@ void AfterGapConnect(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 NAN_METHOD(GapCancelConnect)
@@ -1408,11 +1326,7 @@ void AfterGapCancelConnect(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 NAN_METHOD(GapGetRSSI)
@@ -1478,11 +1392,7 @@ void AfterGapGetRSSI(uv_work_t *req) {
     }
 
     baton->callback->Call(2, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 extern "C" {

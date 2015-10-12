@@ -426,11 +426,7 @@ void AfterPrimaryServicesDiscover(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 
@@ -493,11 +489,7 @@ void AfterRelationshipDiscover(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 
@@ -560,11 +552,7 @@ void AfterCharacteristicsDiscover(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 
@@ -627,11 +615,7 @@ void AfterDescriptorsDiscover(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 
@@ -703,11 +687,7 @@ void AfterCharacteristicValueByUUIDRead(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 
@@ -779,11 +759,7 @@ void AfterRead(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 NAN_METHOD(CharacteristicValuesRead)
@@ -842,9 +818,7 @@ void CharacteristicValuesRead(uv_work_t *req) {
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gattc_char_values_read(baton->conn_handle, baton->p_handles, baton->handle_count);
 
-    LOGLINE_START("baton->p_handles");
-    //free(baton->p_handles);
-    LOGLINE_END("baton->p_handles");
+    free(baton->p_handles);
 }
 
 // This runs in Main Thread
@@ -864,11 +838,7 @@ void AfterCharacteristicValuesRead(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 
@@ -931,11 +901,7 @@ void AfterWrite(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 
@@ -998,11 +964,7 @@ void AfterHandleValueConfirm(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-    LOGLINE_START("delete baton");
-
-   //delete baton;
-
-    LOGLINE_END("delete baton");
+    delete baton;
 }
 
 extern "C" {
