@@ -366,8 +366,10 @@ void Open(uv_work_t *req) {
         uv_timer_start(&evt_interval_timer, event_interval_callback, evt_interval, evt_interval);
     }
 
+#if 0
     uv_timer_init(uv_default_loop(), &evt_generator_timer);
     uv_timer_start(&evt_generator_timer, event_generator, 100, 100);
+#endif
 
     // Open RPC connection to device
     int err = sd_rpc_open();
