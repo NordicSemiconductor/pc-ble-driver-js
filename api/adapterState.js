@@ -1,7 +1,4 @@
 
-// TODO: fix pc-ble-driver-js import
-import bleDriver from 'pc-ble-driver-js';
-
 // TODO: Add DI to AdapterFactory. whatever that means.
 class AdapterState {
     constructor(instanceId, port) {
@@ -12,6 +9,7 @@ class AdapterState {
 
         this._scanning = false;
         this._advertising = false;
+        this._connecting = false;
     }
 
     get instanceId() {
@@ -52,31 +50,24 @@ class AdapterState {
         this._advertising = advertising;
     }
 
+    get connecting() {
+        return this._connecting;
+    }
+
+    set connecting(connecting) {
+        this._connecting = connecting;
+    }
+
     get address() {
-        // TODO: Retrieve address from device? Can be set, ask each time?
+        return this._address;
+    }
 
-        bleDriver.gap_get_address((address, err) => {
-            if (err) {
-                // TODO: logging?
-                return;
-            }
-
-            // TODO: how to get address out of the driver callback?
-        });
+    set address(address) {
+        this._address = address;
     }
 
     get name() {
-        // TODO: Retrieve name from device? Can be set, ask each time?
-
-        bleDriver.gap_get_device_name((name, err) => {
-            if (err) {
-                // TODO: logging?
-                return;
-            }
-
-            this._name = name;
-            // TODO: how to get name out of the driver callback?
-        });
+        return this._name;
     }
 
     set name(name) {
@@ -84,17 +75,11 @@ class AdapterState {
     }
 
     get firmwareVersion() {
-        if (this._firmwareVersion) {
-            return this._firmwareVersion;
-        }
+        return this._firmwareVersion;
+    }
 
-        bleDriver.get_version((version, err) => {
-            if (err) {
-                // TODO: logging?
-            }
-
-            // TODO: how to get version out of the driver callback?
-        });
+    set firmwareVersion(firmwareVersion) {
+        this._firmwareVersion = firmwareVersion;
     }
 
     get baudRate() {

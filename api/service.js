@@ -22,4 +22,13 @@ class Service {
     get uuid() {
         return this._uuid;
     }
+
+    get name() {
+        if (this._name) {
+            return this._name;
+        }
+
+        // TODO: return a name looked up in uuid_definitions
+        return this.uuid;
+    }
 }

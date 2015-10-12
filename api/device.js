@@ -1,13 +1,14 @@
 // TODO: does it need an adapterInstanceId?
 class Device {
     constructor(address, name, role, uuids) {
-        // TODO: should it know what adapter it is related to? would it not need to know about the adapter to send driver calls?
         this._address = address;
         this._name = name;
         this._role = role;
         this._uuids = uuids;
 
         this._connected = false;
+
+        this._services = {};
     }
 
     // null if not connected
@@ -22,8 +23,11 @@ class Device {
 
     // Get GAP name
     get name() {
-        // TODO: ask device or get from advertisment packet?
         return this._name;
+    }
+
+    set name(name) {
+        this._name = name;
     }
 
     // 'peripheral', 'central'
@@ -33,8 +37,11 @@ class Device {
 
     // List of uuids,
     get uuids() {
-        // TODO: how is this known? advertisment packet? updated when doing service discovery?
         return this._uuids;
+    }
+
+    set uuids(uuids) {
+        this._uuids = uuids;
     }
 
     // Is connected
@@ -51,15 +58,26 @@ class Device {
     }
 
     set connectionHandle(connectionHandle) {
+        // TODO: possible to set connectionHandle to undefined? will instanceID be correct?
         this._connectionHandle = connectionHandle;
+
+        //TODO: Should instanceId involve role or is that handled by connectionHandle?
         this._instanceId = this._address + '.' + connectionHandle;
     }
 
-    get inqueryRssi() {
-        // TODO: Ask device
+    get rssi() {
+        return this._rssi;
     }
 
-    get inqueryTxPower() {
-        // TODO: Ask device
+    set rssi(rssi) {
+        this._rssi = rssi;
+    }
+
+    get txPower() {
+        return this._txPower;
+    }
+
+    set txPower(txPower) {
+        this._txPower = txPower;
     }
 }
