@@ -116,11 +116,11 @@ void on_log_event(uv_async_t *handle)
 
         // Free memory for current entry, we remove the element from the deque when the iteration is done
         LOGLINE_START("log_entry->message");
-        free(log_entry->message);
+        //free(log_entry->message);
         LOGLINE_END("log_entry->message");
         LOGLINE_START("delete log_entry");
 
-        delete log_entry;
+       //delete log_entry;
 
         LOGLINE_END("delete log_entry");
     }
@@ -284,11 +284,11 @@ void on_rpc_event(uv_async_t *handle)
 
         // Free memory for current entry
         LOGLINE_START("event_entry->event");
-        free(event_entry->event);
+        //free(event_entry->event);
         LOGLINE_END("event_entry->event");
         LOGLINE_START("delete event_entry");
 
-        delete event_entry;
+       //delete event_entry;
 
         LOGLINE_END("delete event_entry");
     }
@@ -417,7 +417,7 @@ void AfterOpen(uv_work_t *req) {
     OpenBaton *baton = static_cast<OpenBaton *>(req->data);
     LOGLINE_START("delete req");
 
-    delete req;
+   //delete req;
 
     LOGLINE_END("delete req");
 
@@ -434,7 +434,7 @@ void AfterOpen(uv_work_t *req) {
         uv_close((uv_handle_t*)&async_log, NULL); // Close the async handlers for log events
         LOGLINE_START("delete baton->log_callback");
 
-        delete baton->log_callback;
+       //delete baton->log_callback;
 
         LOGLINE_END("delete baton->log_callback"); // Free the memory for the callback
 
@@ -443,7 +443,7 @@ void AfterOpen(uv_work_t *req) {
             sd_rpc_evt_handler_set(NULL);
             LOGLINE_START("delete baton->event_callback");
 
-            delete baton->event_callback;
+           //delete baton->event_callback;
 
             LOGLINE_END("delete baton->event_callback");
         }
@@ -456,7 +456,7 @@ void AfterOpen(uv_work_t *req) {
     baton->callback->Call(1, argv);
     LOGLINE_START("delete baton");
 
-    delete baton;
+   //delete baton;
 
     LOGLINE_END("delete baton");
 }
@@ -575,12 +575,12 @@ void AfterGetVersion(uv_work_t *req) {
     baton->callback->Call(2, argv);
     LOGLINE_START("delete baton->version");
 
-    delete baton->version;
+   //delete baton->version;
 
     LOGLINE_END("delete baton->version");
     LOGLINE_START("delete baton");
 
-    delete baton;
+   //delete baton;
 
     LOGLINE_END("delete baton");
 }
@@ -679,7 +679,7 @@ v8::Local<v8::Object> BleUUID128::ToJs()
     sprintf(uuid128string, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x", ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], ptr[6], ptr[7], ptr[8], ptr[9], ptr[10], ptr[11], ptr[12], ptr[13], ptr[14], ptr[15]);
     Utility::Set(obj, "uuid128", uuid128string);
     LOGLINE_START("uuid128string");
-    free(uuid128string);
+    //free(uuid128string);
     LOGLINE_END("uuid128string");
     return scope.Escape(obj);
 }

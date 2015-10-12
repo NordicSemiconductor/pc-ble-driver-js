@@ -85,7 +85,7 @@ void AfterGetAdapterList(uv_work_t* req) {
     {
         LOGLINE_START("delete *it");
 
-        delete *it;
+       //delete *it;
 
         LOGLINE_END("delete *it");
     }
@@ -93,13 +93,13 @@ void AfterGetAdapterList(uv_work_t* req) {
     LOGLINE_START("delete baton");
 
 
-    delete baton;
+   //delete baton;
 
 
     LOGLINE_END("delete baton");
     LOGLINE_START("delete req");
 
-    delete req;
+   //delete req;
 
     LOGLINE_END("delete req");
 }
