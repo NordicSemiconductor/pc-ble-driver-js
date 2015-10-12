@@ -22,7 +22,7 @@ class ServiceFactory {
     // returns Characteristic
     createCharacteristic(service, uuid, properties, value, security) {
         if (this.database) {
-            // TODO: use database to retrieve name? what should the name be used for? no getter for service name...
+            // TODO: use database to retrieve name? what should the name be used for? no getter for characteristic name...
         }
 
         let characteristic = new Characteristic(service.instanceId, uuid, properties, value);
@@ -32,7 +32,7 @@ class ServiceFactory {
 
     createDescriptor(characteristic, uuid, value) {
         if (this.database) {
-            // TODO: use database to retrieve name? what should the name be used for? no getter for service name...
+            // TODO: use database to retrieve name? what should the name be used for? no getter for decriptor name...
         }
 
         let descriptor = new Descriptor(characteristic.instanceId, uuid, value);

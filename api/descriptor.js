@@ -21,6 +21,15 @@ class Descriptor {
         return this._uuid;
     }
 
+    get name() {
+        if (this._name) {
+            return this._name;
+        }
+
+        // TODO: return a name looked up in uuid_definitions
+        return this.uuid;
+    }
+
     // ArrayBuffer (cached descriptor value)
     get value() {
         return this._value;

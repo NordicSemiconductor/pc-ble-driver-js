@@ -1,6 +1,8 @@
 
 import AdapterState from './adapterState';
 
+import _ from 'underscore';
+
 // TODO: fix pc-ble-driver-js import
 import bleDriver from './pc-ble-driver-js';
 
@@ -12,6 +14,7 @@ class Adapter extends events.EventEmitter {
         this._instanceId = instanceId;
         this._adapterState = new AdapterState(instanceId, port);
         this._devices = {};
+
     }
 
     // Get the instance id
@@ -19,30 +22,41 @@ class Adapter extends events.EventEmitter {
         return this._instanceId;
     }
 
+    _changeState(changingStates) {
+        let changed = false;
+
+        _.each(changingStates, (value, state) => {
+            const previousState = this._adapterState[state];
+
+            if (previousState !== value) {
+                this._adapterState[state] = value;
+                changed = true;
+            }
+        });
+
+        if (changed) {
+            this.emit('adapterStateChanged', this._adapterState);
+        }
+    }
+
     // options = { baudRate: x, parity: x, flowControl: x }
     // Callback signature function(err) {}
     open(options, callback) {
-        this._adapterState.baudRate = options.baudRate;
-        this._adapterState.parity = options.parity;
-        this._adapterState.flowControl = options.flowControl;
 
-        // TODO: call this.getAdapterState?
-        this.emit('adapterStateChanged', this._adapterState);
+        this._changeState({baudRate: options.baudRate, parity: options.parity, flowControl: options.flowControl});
 
-        options.eventInterval = 100;
+        // options.eventInterval = options.eventInterval;
         options.logCallback = this._logCallback;
         options.eventCallback = this._eventCallback;
 
         bleDriver.open(this._adapterState.port, options, err => {
             if(err) {
-                this._adapterState.available = false;
-                console.log('Error occurred opening serial port: %d', err);
+                // TODO: will adapter still be available if the call fails?
+                this.emit('error', `Error occurred opening serial port: ${err}`);
             } else {
-                this._adapterState.available = true;
+                this._changeState({available: true});
             }
 
-            // TODO: call this.getAdapterState?
-            this.emit('adapterStateChanged', this._adapterState);
             callback(err);
             return;
         });
@@ -50,13 +64,11 @@ class Adapter extends events.EventEmitter {
 
     // Callback signature function(err) {}
     close(callback) {
+        // TODO: Fix when function has callback
+        // TODO: how to call the callback? timer?
         bleDriver.close();
 
-        this._adapterState.available = false;
-        // TODO: call this.getAdapterState?
-        this.emit('adapterStateChanged', this._adapterState);
-
-        // TODO: how to call the callback? timer?
+        this._changeState({available: false});
     }
 
     // TODO: log callback function declared here or in open call?;
@@ -74,35 +86,106 @@ class Adapter extends events.EventEmitter {
             switch(event.id){
                 case bleDriver.BLE_GAP_EVT_CONNECTED:
                     console.log(`Connected to ${event.peer_addr.addr}.`);
-                    if (this._connectCallback) {
-                        this._connectCallback();
-                    }
+                    // TODO: Update device with connection handle
+                    // TODO: Should 'deviceConnected' event emit the updated device?
+                    this.emit('deviceConnected');
+                    break;
+                case bleDriver.BLE_GAP_EVT_DISCONNECTED:
+                    this.emit('deviceDisconnected');
+                case bleDriver.BLE_GAP_EVT_CONN_PARAM_UPDATE:
+                case bleDriver.BLE_GAP_EVT_SEC_PARAMS_REQUEST:
+                case bleDriver.BLE_GAP_EVT_SEC_INFO_REQUEST:
+                case bleDriver.BLE_GAP_EVT_PASSKEY_DISPLAY:
+                case bleDriver.BLE_GAP_EVT_AUTH_KEY_REQUEST:
+                case bleDriver.BLE_GAP_EVT_AUTH_STATUS:
+                case bleDriver.BLE_GAP_EVT_CONN_SEC_UPDATE:
+                case bleDriver.BLE_GAP_EVT_TIMEOUT:
+                case bleDriver.BLE_GAP_EVT_RSSI_CHANGED:
+                case bleDriver.BLE_GAP_EVT_ADV_REPORT:
+                case bleDriver.BLE_GAP_EVT_SEC_REQUEST:
+                case bleDriver.BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST:
+                case bleDriver.BLE_GAP_EVT_SCAN_REQ_REPORT:
+                    console.log(`Unsupported GAP event received from SoftDevice: ${event.id} - ${event.name}`);
+                    break;
+                case bleDriver.BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP:
+                case bleDriver.BLE_GATTC_EVT_REL_DISC_RSP:
+                case bleDriver.BLE_GATTC_EVT_CHAR_DISC_RSP:
+                case bleDriver.BLE_GATTC_EVT_DESC_DISC_RSP:
+                case bleDriver.BLE_GATTC_EVT_CHAR_VAL_BY_UUID_READ_RSP:
+                case bleDriver.BLE_GATTC_EVT_READ_RSP:
+                case bleDriver.BLE_GATTC_EVT_CHAR_VALS_READ_RSP:
+                case bleDriver.BLE_GATTC_EVT_WRITE_RSP:
+                case bleDriver.BLE_GATTC_EVT_HVX:
+                case bleDriver.BLE_GATTC_EVT_TIMEOUT:
+                    console.log(`Unsupported GATTC event received from SoftDevice: ${event.id} - ${event.name}`);
+                    break;
+                case bleDriver.BLE_GATTS_EVT_WRITE:
+                case bleDriver.BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST:
+                case bleDriver.BLE_GATTS_EVT_SYS_ATTR_MISSING:
+                case bleDriver.BLE_GATTS_EVT_HVC:
+                case bleDriver.BLE_GATTS_EVT_SC_CONFIRM:
+                case bleDriver.BLE_GATTS_EVT_TIMEOUT:
+                    console.log(`Unsupported GATTS event received from SoftDevice: ${event.id} - ${event.name}`);
                     break;
                 default:
                     console.log(`Unsupported event received from SoftDevice: ${event.id} - ${event.name}`);
+                    break;
             }
         });
     }
 
     // Callback signature function(err, state) {}
     getAdapterState(callback) {
-        // TODO: call getters that ask device for updated information?
+        // TODO: update information
+
+        if (this._firmwareVersion) {
+            return this._firmwareVersion;
+        }
+
+        bleDriver.get_version((version, err) => {
+            if (err) {
+                // TODO: logging?
+            }
+
+            // TODO: how to get version out of the driver callback?
+        });
+
+
+        bleDriver.gap_get_device_name((name, err) => {
+            if (err) {
+                // TODO: logging?
+                return;
+            }
+
+            this._name = name;
+            // TODO: how to get name out of the driver callback?
+        });
+
+
+        bleDriver.gap_get_address((address, err) => {
+            if (err) {
+                // TODO: logging?
+                return;
+            }
+
+            // TODO: how to get address out of the driver callback?
+        });
+
         return this._adapterState;
     }
 
     // Set GAP related information
     setName(name, callback) {
-        // TODO: should we change to setter function in adapterState?
-        // Then how could we know if it was success and emit event?
         bleDriver.gap_set_device_name({sm: 0, lv: 0}, name, err => {
             if (err) {
-                console.log('Failed to set name to adapter');
+                this.emit('error', 'Failed to set name to adapter');
             } else if (this._adapterState.name !== name) {
                 this._adapterState.name = name;
 
-                // TODO: call this.getAdapterState?
-                this.emit('adapterStateChanged', this._adapterState);
+                this._changeState({name: name});
             }
+
+            callback(err);
         });
     }
 
@@ -118,13 +201,10 @@ class Adapter extends events.EventEmitter {
 
         bleDriver.gap_set_address(cycleMode, addressStruct, err => {
             if (err) {
-                console.log('Failed to set address');
+                this.emit('error', 'Failed to set address');
             } else if (this._adapterState.address !== address) {
                 // TODO: adapterState address include type?
-                this._adapterState.address = address;
-
-                // TODO: call this.getAdapterState?
-                this.emit('adapterStateChanged', this._adapterState);
+                this._changeState({address: address});
             }
 
             callback(err);
@@ -162,10 +242,9 @@ class Adapter extends events.EventEmitter {
     startScan(options, callback) {
         bleDriver.start_scan(options, err => {
             if (err) {
-                console.log('Error occured when starting scan');
+                this.emit('error', 'Error occured when starting scan');
             } else {
-                this._adapterState.scanning = true;
-                this.emit('adapterStateChanged', this._adapterState);
+                this._changeState({scanning: true});
             }
 
             callback(err);
@@ -179,11 +258,12 @@ class Adapter extends events.EventEmitter {
         bleDriver.stop_scan(err => {
             if (err) {
                 // TODO: probably is state already set to false, but should we make sure? if yes, emit adapterStateChanged?
-                console.log('Error occured when stopping scanning');
+                this.emit('error', 'Error occured when stopping scanning');
             } else {
-                this._adapterState.scanning = false;
-                this.emit('adapterStateChanged', this._adapterState);
+                this._changeState({scanning, false});
             }
+
+            callback(err);
         });
     }
 
@@ -191,32 +271,26 @@ class Adapter extends events.EventEmitter {
     connect(deviceAddress, options, callback) {
         bleDriver.gap_connect(deviceAddress, options.scanParams, options.connParams, err => {
             if (err) {
-                console.log(`Could not connect to ${deviceAddress}`);
-                callback(err);
+                this.emit('error', `Could not connect to ${deviceAddress}`);
             } else {
-                // TODO: do we want a connecting state? Use it to see if we can overwrite this._connectCallback?
-                this._connectCallback = callback;
+                this._changeState({scanning: false, connecting: true});
             }
+
+            callback(err);
         });
-
-        // TODO: howto connect callback to connected and timeout event?
-
-        if (this._adapterState.scanning) {
-            this._adapterState.scanning = false;
-            this.emit('adapterStateChanged', this._adapterState);
-        }
     }
 
     // Callback signature function() {}
     cancelConnect(callback) {
-        // TODO: Check if we are connecting if we have a connecting state.
-
         bleDriver.gap_cancel_connect(err => {
             if (err) {
-                callback(err);
+                // TODO: log more
+                this.emit('error', 'Error occured when canceling connection');
+            } else {
+                this._changeState({connecting: false});
             }
 
-            // TODO: set connecting state to false if we have it.
+            callback(err);
         });
     }
 
@@ -254,8 +328,7 @@ class Adapter extends events.EventEmitter {
     }
 
     // name given from setName. Callback function signature: function(err) {}
-    // TODO: Need sendName, neither advertising nor scanData have to contain a name.
-    startAdvertising(sendName, advertisingData, scanResponseData, options, callback) {
+    startAdvertising(advertisingData, scanResponseData, options, callback) {
         const type = bleDriver.BLE_GAP_ADV_TYPE_ADV_IND;
         const addressStruct = this._getAddressStruct(address, addressType);
         const filterPolicy = bleDriver.BLE_GAP_ADV_FP_ANY;
@@ -280,16 +353,15 @@ class Adapter extends events.EventEmitter {
 
     // Callback function signature: function(err) {}
     stopAdvertising(callback) {
-        // TODO: check if adapterState is in advertising mode?
-
         bleDriver.gap_stop_advertising(err => {
             if (err) {
                 // TODO: probably is state already set to false, but should we make sure? if ys, emit adapterStateChanged?
                 console.log('Error occured when stopping advertising');
             } else {
-                this._adapterState.advertising = false;
-                this.emit('adapterStateChanged', this._adapterState);
+                this._changeState({advertising: false});
             }
+
+            callback(err);
         });
     }
 
@@ -300,31 +372,55 @@ class Adapter extends events.EventEmitter {
         const hciStatusCode = bleDriver.BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION;
         bleDriver.disconnect(device.connectionHandle, hciStatusCode, err => {
             if (err) {
-                console.log('Failed to disconnect');
+                this.emit('error', 'Failed to disconnect');
+            } else {
+                // TODO: remove from device list when disconnect event received
+                this._changeState({connected: false});
             }
-
-            // TODO: remove from device list? We no longer know this device, has it started to advertise again or is it silence?
-            device.connected = false;
-            this.emit('deviceDisconnected', device);
 
             callback(err);
         });
     }
 
+    _getConnectionUpdateParams(options) {
+        return {min_conn_interval: options.minConnectionInterval, max_conn_interval: options.maxConnInterval,
+                slave_latency: slaveLatency, conn_sup_timeout: connectionSupervisionTimeout};
+    }
+
     // options: connParams, callback signature function(err) {} returns true/false
     updateConnParams(deviceInstanceId, options, callback) {
+        const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
+        const connectionParamsStruct = this._getConnectionUpdateParams(options);
+        bleDriver.gap_update_connection_parameters(connectionHandle, connectionParamsStruct, err => {
+            if (err) {
+                this.emit('error', 'Failed to update connection parameters');
+            }
 
+            callback(err);
+        });
     }
 
     // Central role
 
     // callback signature function(err) {}
-    rejectConnParams(deviceInstanceId, callback) {}
+    rejectConnParams(deviceInstanceId, callback) {
+        const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
+
+        // TODO: Does the AddOn support undefined second parameter?
+        bleDriver.gap_update_connection_parameters(connectionHandle, undefined, err => {
+            if (err) {
+                this.emit('error', 'Failed to reject connection parameters');
+            }
+
+            callback(err);
+        });
+    }
 
     // Bonding (when in central role)
 
     setCapabilities(keyboard, screen) {
-
+        this._keyboard = keyboard;
+        this._screen = screen;
     }
 
     setLongTermKey(deviceAddress, ltk) {
@@ -337,7 +433,7 @@ class Adapter extends events.EventEmitter {
     }
 
     // Callback signature function(err) {}
-    pair(deviceAddress, mitm: true/false, passkey: 'asdf', callback) {
+    pair(deviceAddress, mitm, passkey, callback) {
 
     }
 
@@ -360,7 +456,8 @@ class Adapter extends events.EventEmitter {
 
     // Callback signature function(err, service) {}
     getService(serviceInstanceId, callback) {
-
+        // TODO: iterate over all devices to find service with correct serviceInstanceId?
+        // TODO: split up serviceInstaceId to find deviceInstanceId?
     }
 
     // Callback signature function(err, services) {}. If deviceInstanceId is local, local database (GATTS)
