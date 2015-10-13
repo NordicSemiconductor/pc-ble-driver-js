@@ -1,6 +1,7 @@
 'use strict';
+
 var  Adapter = require('./adapter');
-var events = require('events');
+const EventEmitter = require('events');
 
 var _ = require('underscore');
 /**
@@ -10,7 +11,7 @@ var _ = require('underscore');
  * @param callback callback
  * @class AdapterFactory
  */
-class AdapterFactory extends events.EventEmitter {
+class AdapterFactory extends EventEmitter {
     /**
      * AdapterFactory constructor
      * @constructor
@@ -45,7 +46,7 @@ class AdapterFactory extends events.EventEmitter {
         return parsedAdapter;
     }
 
-    _updateAdapterList(callback) {
+    _updateAdapterList() {
         this._bleDriver.get_adapters((err, adapters) => {
             if (err) {
                 this.emit('error', err);
@@ -68,9 +69,6 @@ class AdapterFactory extends events.EventEmitter {
             _.each(removedAdapters, adapter => {
                 this.emit('removed', adapter);
             });
-            if (typeof callback === 'function') {
-                callback(this._adapters);
-            }
         });
     }
 
@@ -81,9 +79,9 @@ class AdapterFactory extends events.EventEmitter {
      * @param k [description]
      */
     // Callback signature function(adapters[])
-
     getAdapters(callback) {
         return this._adapters;
     }
 }
+
 module.exports = AdapterFactory;

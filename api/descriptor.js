@@ -1,12 +1,11 @@
-
-let i = 1;
+var i = 1;
 
 class Descriptor {
     constructor(characteristicInstanceId, uuid, value) {
         this._instanceId = characteristicInstanceId + '.' + (i++).toString();
         this._characteristicInstanceId = characteristicInstanceId;
-        this._uuid = uuid;
-        this._value = value;
+        this.uuid = uuid;
+        this.value = value;
     }
 
     get instanceId() {
@@ -15,10 +14,6 @@ class Descriptor {
 
     get characteristicInstanceId() {
         return this._characteristicInstanceId;
-    }
-
-    get uuid() {
-        return this._uuid;
     }
 
     get name() {
@@ -30,8 +25,7 @@ class Descriptor {
         return this.uuid;
     }
 
-    // ArrayBuffer (cached descriptor value)
-    get value() {
-        return this._value;
+    set name(name) {
+        this._name = name;
     }
 }

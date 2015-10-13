@@ -1,21 +1,22 @@
 'use strict';
-var AdapterState = require('./adapterState');
 
-var _  = require('underscore');
-var events = require('events');
+const util = require('util');
+const EventEmitter = require('events');
+const _ = require('underscore');
 
+const AdapterState = require('./adapterState');
 
 // No caching of devices
 // Do cache service database
 
-class Adapter extends events.EventEmitter {
+class Adapter extends EventEmitter {
     constructor(bleDriver, instanceId, port) {
         super();
         this._bleDriver = bleDriver;
         this._instanceId = instanceId;
         this._adapterState = new AdapterState(instanceId, port);
-        this._devices = {};
 
+        this._devices = {};
     }
 
     // Get the instance id
@@ -43,7 +44,6 @@ class Adapter extends events.EventEmitter {
     // options = { baudRate: x, parity: x, flowControl: x }
     // Callback signature function(err) {}
     open(options, callback) {
-
         this._changeState({baudRate: options.baudRate, parity: options.parity, flowControl: options.flowControl});
 
         // options.eventInterval = options.eventInterval;
@@ -86,24 +86,29 @@ class Adapter extends events.EventEmitter {
         eventArray.forEach(event => {
             switch(event.id){
                 case this._bleDriver.BLE_GAP_EVT_CONNECTED:
-                    console.log(`Connected to ${event.peer_addr.addr}.`);
                     // TODO: Update device with connection handle
                     // TODO: Should 'deviceConnected' event emit the updated device?
                     this.emit('deviceConnected');
                     break;
                 case this._bleDriver.BLE_GAP_EVT_DISCONNECTED:
+                    // TODO: Handle disconnect event
                     this.emit('deviceDisconnected');
+                    break;
                 case this._bleDriver.BLE_GAP_EVT_CONN_PARAM_UPDATE:
+                /*
                 case this._bleDriver.BLE_GAP_EVT_SEC_PARAMS_REQUEST:
                 case this._bleDriver.BLE_GAP_EVT_SEC_INFO_REQUEST:
                 case this._bleDriver.BLE_GAP_EVT_PASSKEY_DISPLAY:
                 case this._bleDriver.BLE_GAP_EVT_AUTH_KEY_REQUEST:
                 case this._bleDriver.BLE_GAP_EVT_AUTH_STATUS:
                 case this._bleDriver.BLE_GAP_EVT_CONN_SEC_UPDATE:
+                */
                 case this._bleDriver.BLE_GAP_EVT_TIMEOUT:
                 case this._bleDriver.BLE_GAP_EVT_RSSI_CHANGED:
                 case this._bleDriver.BLE_GAP_EVT_ADV_REPORT:
+                /*
                 case this._bleDriver.BLE_GAP_EVT_SEC_REQUEST:
+                */
                 case this._bleDriver.BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST:
                 case this._bleDriver.BLE_GAP_EVT_SCAN_REQ_REPORT:
                     console.log(`Unsupported GAP event received from SoftDevice: ${event.id} - ${event.name}`);
@@ -138,6 +143,7 @@ class Adapter extends events.EventEmitter {
     // Callback signature function(err, state) {}
     getAdapterState(callback) {
         // TODO: update information
+        // TODO: Figure out if calls should be nested or have some magic variable checks
 
         if (this._firmwareVersion) {
             return this._firmwareVersion;
@@ -145,10 +151,10 @@ class Adapter extends events.EventEmitter {
 
         this._bleDriver.get_version((version, err) => {
             if (err) {
-                // TODO: logging?
+                this.emit('error', 'Failed to retrieve softdevice firmwareVersion');
+            } else {
+                this._adapterState.firmwareVersion = version;
             }
-
-            // TODO: how to get version out of the driver callback?
         });
 
 
@@ -159,7 +165,6 @@ class Adapter extends events.EventEmitter {
             }
 
             this._name = name;
-            // TODO: how to get name out of the driver callback?
         });
 
 
@@ -168,8 +173,6 @@ class Adapter extends events.EventEmitter {
                 // TODO: logging?
                 return;
             }
-
-            // TODO: how to get address out of the driver callback?
         });
 
         return this._adapterState;
@@ -196,9 +199,9 @@ class Adapter extends events.EventEmitter {
 
     setAddress(address, type, callback) {
         const cycleMode = this._bleDriver.BLE_GAP_ADDR_CYCLE_MODE_NONE;
-        // TODO: if privacy is active use bleDriver.BLE_GAP_ADDR_CYCLE_MODE_AUTO?
+        // TODO: if privacy is active use this._bleDriver.BLE_GAP_ADDR_CYCLE_MODE_AUTO?
 
-        addressStruct = this._getAddressStruct(address, type);
+        let addressStruct = this._getAddressStruct(address, type);
 
         this._bleDriver.gap_set_address(cycleMode, addressStruct, err => {
             if (err) {
@@ -221,9 +224,11 @@ class Adapter extends events.EventEmitter {
     // 'insufficentPrivileges',
     // 'deviceDiscovered' // Callback signature function(device) {}
     // 'securityRequest', 'securityParameters'
+    /*
     on(eventName, callback) {
 
     }
+    */
 
     // Get connected device/devices
 
@@ -321,8 +326,8 @@ class Adapter extends events.EventEmitter {
 
     _getAdvertismentParams(type, addressStruct, filterPolicy, interval, timeout) {
         // TODO: as parameters?
-        const whitelistStruct = undefined;
-        const channelMaskStruct = undefined;
+        const whitelistStruct = null;
+        const channelMaskStruct = null;
 
         return {type: type, peer_addr: addressStruct, fp: filterPolicy, whitelist: whitelistStruct,
                 interval: interval, timeout:timeout, channelMask: channelMaskStruct};
@@ -331,9 +336,10 @@ class Adapter extends events.EventEmitter {
     // name given from setName. Callback function signature: function(err) {}
     startAdvertising(advertisingData, scanResponseData, options, callback) {
         const type = this._bleDriver.BLE_GAP_ADV_TYPE_ADV_IND;
-        const addressStruct = this._getAddressStruct(address, addressType);
+        const addressStruct = this._getAddressStruct(options.address, options.addressType);
         const filterPolicy = this._bleDriver.BLE_GAP_ADV_FP_ANY;
         const interval = options.interval;
+        const timeout = options.timeout;
 
         //TODO: need to parse advertising and scanData and convert to byte array?
         this._bleDriver.gap_set_adv_data(advertisingData, scanResponseData);
@@ -385,7 +391,7 @@ class Adapter extends events.EventEmitter {
 
     _getConnectionUpdateParams(options) {
         return {min_conn_interval: options.minConnectionInterval, max_conn_interval: options.maxConnInterval,
-                slave_latency: slaveLatency, conn_sup_timeout: connectionSupervisionTimeout};
+                slave_latency: options.slaveLatency, conn_sup_timeout: options.connectionSupervisionTimeout};
     }
 
     // options: connParams, callback signature function(err) {} returns true/false
@@ -467,7 +473,7 @@ class Adapter extends events.EventEmitter {
     }
 
 
-// Callback signature function(err, characteristic) {}
+    // Callback signature function(err, characteristic) {}
     getCharacteristic(characteristicId, callback) {
 
     }
@@ -478,7 +484,7 @@ class Adapter extends events.EventEmitter {
     }
 
 
-// Callback signature function(err, descriptor) {}
+    // Callback signature function(err, descriptor) {}
     getDescriptor(descriptorId, callback) {
 
     }
@@ -489,7 +495,7 @@ class Adapter extends events.EventEmitter {
     }
 
 
-// Callback signature function(err) {}
+    // Callback signature function(err) {}
     readCharacteristicsValue(characteristicId, offset, callback) {
 
     }
@@ -500,7 +506,7 @@ class Adapter extends events.EventEmitter {
     }
 
 
-// Callback signature function(err) {}
+    // Callback signature function(err) {}
     readDescriptorValue(descriptorId, offset, callback) {
 
     }
