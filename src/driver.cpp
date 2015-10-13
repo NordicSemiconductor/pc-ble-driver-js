@@ -103,11 +103,9 @@ void on_log_event(uv_async_t *handle)
 
         if (driver_log_callback != NULL)
         {
-            v8::Local<v8::Value> argv[] = {
-                Nan::New((int)log_entry->severity),
-                Nan::New(log_entry->message).ToLocalChecked()
-            };
-
+            v8::Local<v8::Value> argv[2];
+            argv[0] = ConversionUtility::toJsNumber((int)log_entry->severity);
+            argv[1] = ConversionUtility::toJsString(log_entry->message);
             driver_log_callback->Call(2, argv);
         }
 
@@ -138,7 +136,10 @@ void sd_rpc_on_event(ble_evt_t *event)
     // TODO: Clarification:
     // The lifecycle for the event is controlled by the driver. We must not free any memory related to the incoming event.
 
-    if (event == NULL) return;
+    if (event == NULL)
+    {
+        return;
+    }
 
     /*if (event->header.evt_id == BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP)
     {
@@ -175,7 +176,10 @@ void sd_rpc_on_event(ble_evt_t *event)
     event_queue->push(event_entry);
 
     // If the event interval is not set, send the events to NodeJS as soon as possible.
-    if (evt_interval == 0) send_events_upstream();
+    if (evt_interval == 0)
+    {
+        send_events_upstream();
+    }
 }
 
 // Now we are in the NodeJS thread. Call callbacks.
@@ -186,7 +190,10 @@ void on_rpc_event(uv_async_t *handle)
 
     EventQueue *event_entries = (EventQueue*)handle->data;
 
-    if (event_entries->wasEmpty()) return;
+    if (event_entries->wasEmpty())
+    {
+        return;
+    }
 
     // Update statistics (evaluate if we shall lock the statistics counters to get more preceise data)
     evt_cb_batch_evt_total_count += evt_cb_batch_evt_counter;
@@ -245,7 +252,12 @@ void on_rpc_event(uv_async_t *handle)
     callback_value[0] = array;
 
     auto start = chrono::high_resolution_clock::now();
-    if(driver_event_callback != NULL) driver_event_callback->Call(1, callback_value);
+    
+    if (driver_event_callback != NULL)
+    {
+        driver_event_callback->Call(1, callback_value);
+    }
+
     auto end = chrono::high_resolution_clock::now();
 
     chrono::milliseconds duration = chrono::duration_cast<chrono::milliseconds>(end - start);
@@ -339,8 +351,6 @@ void Open(uv_work_t *req) {
         baton->result = err;
         return;
     }
-
-
 
     ble_enable_params_t *ble_enable_params = new ble_enable_params_t();
     memset(ble_enable_params, 0, sizeof(ble_enable_params_t));
