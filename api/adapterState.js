@@ -1,5 +1,7 @@
 
 // TODO: Add DI to AdapterFactory. whatever that means.
+'use strict';
+
 class AdapterState {
     constructor(instanceId, port) {
         this._instanceId = instanceId + '.' + port;
@@ -46,7 +48,7 @@ class AdapterState {
         return this._advertising;
     }
 
-    set advertising() {
+    set advertising(advertising) {
         this._advertising = advertising;
     }
 
@@ -106,3 +108,5 @@ class AdapterState {
         this._flowControl = flowControl;
     }
 }
+
+module.exports = AdapterState;

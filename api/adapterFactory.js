@@ -1,6 +1,8 @@
+'use strict';
+var  Adapter = require('./adapter');
+var events = require('events');
 
-import Adapter from './adapter';
-
+var _ = require('underscore');
 /**
  * @brief A factory that instantiates new Adapters
  *
@@ -16,8 +18,10 @@ class AdapterFactory extends events.EventEmitter {
     constructor(bleDriver) {
         // TODO: Should adapters be updated on this.getAdapters call or by time interval? time interval
         // TODO: Add DI to AdapterFactory? driver path / or module import stuff
+        super();
+        this._bleDriver = bleDriver;
         this._adapters = {};
-
+        this._updateAdapterList();
         this.updateAdapterListInterval = setInterval(this._updateAdapterList, 5000);
     }
 
@@ -36,20 +40,20 @@ class AdapterFactory extends events.EventEmitter {
 
     _parseAndCreateAdapter(adapter) {
         let instanceId = this._getInstanceId(adapter);
-        let parsedAdapter = new Adapter(instanceId, adapter.comName);
+        let parsedAdapter = new Adapter(this._bleDriver, instanceId, adapter.comName);
 
         return parsedAdapter;
     }
 
-    _updateAdapterList() {
-        bleDriver.get_adapters((err, adapters) => {
+    _updateAdapterList(callback) {
+        this._bleDriver.get_adapters((err, adapters) => {
             if (err) {
                 this.emit('error', err);
             }
 
             let removedAdapters = Object.assign({}, this._adapters);
 
-            adapters.forEach(adapter => {
+            _.each(adapters, adapter => {
                 let adapterInstanceId = this._getInstanceId(adapter);
 
                 if (this._adapters[adapterInstanceId]) {
@@ -61,11 +65,12 @@ class AdapterFactory extends events.EventEmitter {
                 this.emit('added', newAdapter);
             });
 
-            removedAdapters.forEach(adapter => {
+            _.each(removedAdapters, adapter => {
                 this.emit('removed', adapter);
             });
-
-            callback(this._adapters);
+            if (typeof callback === 'function') {
+                callback(this._adapters);
+            }
         });
     }
 
@@ -81,3 +86,4 @@ class AdapterFactory extends events.EventEmitter {
         return this._adapters;
     }
 }
+module.exports = AdapterFactory;
