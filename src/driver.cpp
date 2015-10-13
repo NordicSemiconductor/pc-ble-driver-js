@@ -27,7 +27,7 @@ typedef CircularFifo<LogEntry *, 64> LogQueue;
         std::string timestamp = event_entry->timestamp;                                                                 \
         v8::Local<v8::Value> js_event =                                                                                 \
             Gap##evt_to_js(timestamp, gap_event.conn_handle, &(gap_event.params.params_name)).ToJs();                   \
-        Nan::Set(event_array, Nan::New<v8::Integer>(event_array_idx), js_event);                                               \
+        Nan::Set(event_array, event_array_idx, js_event);                                               \
         break;                                                                                                          \
     }
 
@@ -39,7 +39,7 @@ typedef CircularFifo<LogEntry *, 64> LogQueue;
         std::string timestamp = event_entry->timestamp;                                                                 \
         v8::Local<v8::Value> js_event =                                                                                 \
             Gattc##evt_to_js(timestamp, gattc_event->conn_handle, gattc_event->gatt_status, gattc_event->error_handle, &(gattc_event->params.params_name)).ToJs();                   \
-        Nan::Set(event_array, Nan::New<v8::Integer>(event_array_idx), js_event);                                               \
+        Nan::Set(event_array, event_array_idx, js_event);                                               \
         break;                                                                                                          \
     }
 
@@ -55,8 +55,6 @@ uv_async_t async_log;
 uint32_t evt_interval;
 uv_timer_t evt_interval_timer;
 uv_async_t async_event;
-
-uv_timer_t evt_generator_timer;
 
 // Accumulated deltas for event callbacks done to the driver
 chrono::milliseconds evt_cb_duration;
@@ -78,12 +76,11 @@ void sd_rpc_on_log_event(sd_rpc_log_severity_t severity, const char *log_message
     int length = strlen(log_message);
 
     void *message = malloc((size_t) (length + 1));
-    
     memset(message, 0, (size_t) (length + 1));
     memcpy(message, log_message, (size_t) length);
 
     LogEntry *log_entry = new LogEntry();
-    log_entry->message = (char*)message;
+    log_entry->message = (char *)message;
     log_entry->severity = severity;
 
     LogQueue *log_queue = ((LogQueue*)async_log.data);
@@ -106,14 +103,15 @@ void on_log_event(uv_async_t *handle)
 
         if (driver_log_callback != NULL)
         {
-            v8::Local<v8::Value> argv[2];
-            argv[0] = ConversionUtility::toJsNumber((int)log_entry->severity);
-            argv[1] = ConversionUtility::toJsString(log_entry->message);
+            v8::Local<v8::Value> argv[] = {
+                Nan::New((int)log_entry->severity),
+                Nan::New(log_entry->message).ToLocalChecked()
+            };
+
             driver_log_callback->Call(2, argv);
         }
 
         // Free memory for current entry, we remove the element from the deque when the iteration is done
-        free(log_entry->message);
         delete log_entry;
     }
 }
@@ -140,26 +138,24 @@ void sd_rpc_on_event(ble_evt_t *event)
     // TODO: Clarification:
     // The lifecycle for the event is controlled by the driver. We must not free any memory related to the incoming event.
 
-    if (event == NULL)
-    {
-        return;
-    }
-    /*
-    if (event->header.evt_id == BLE_GAP_EVT_ADV_REPORT)
+    if (event == NULL) return;
+
+    /*if (event->header.evt_id == BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP)
     {
         std::cout << "====================================" << std::endl;
         std::cout << "Length: " << event->header.evt_len << std::endl;
-        std::cout << "conn handle: " << hex << event->evt.gap_evt.conn_handle << std::endl;
-        std::cout << "data" << hex << event->evt.gap_evt.params.adv_report.data << std::endl;
-        std::cout << "dlen" << hex << event->evt.gap_evt.params.adv_report.dlen << std::endl;
-        std::cout << "addr" << hex << event->evt.gap_evt.params.adv_report.peer_addr.addr << std::endl;
-        std::cout << "addr_type" << hex << event->evt.gap_evt.params.adv_report.peer_addr.addr_type << std::endl;
-        std::cout << "rssi" << hex << event->evt.gap_evt.params.adv_report.rssi << std::endl;
-        std::cout << "scan_rsp" << hex << event->evt.gap_evt.params.adv_report.scan_rsp << std::endl;
-        std::cout << "type" << hex << event->evt.gap_evt.params.adv_report.type << std::endl;
+        std::cout << "Count: " << event->evt.gattc_evt.params.prim_srvc_disc_rsp.count << std::endl;
+        for (int i = 0; i < event->evt.gattc_evt.params.prim_srvc_disc_rsp.count; ++i)
+        {
+            std::cout << "Service " << i << ": " << std::endl;
+            std::cout << "\tuuid: " << hex << event->evt.gattc_evt.params.prim_srvc_disc_rsp.services[i].uuid.uuid << " "
+                                    << event->evt.gattc_evt.params.prim_srvc_disc_rsp.services[i].uuid.type << std::endl;
+            std::cout << "\thandle range: " << hex << event->evt.gattc_evt.params.prim_srvc_disc_rsp.services[i].handle_range.start_handle << " "
+                                    << event->evt.gattc_evt.params.prim_srvc_disc_rsp.services[i].handle_range.end_handle << std::endl;
+        }
         std::cout << "====================================" << std::endl;
-    }
-    */
+    }*/
+
     evt_cb_count += 1;
     evt_cb_batch_evt_counter += 1;
 
@@ -168,7 +164,6 @@ void sd_rpc_on_event(ble_evt_t *event)
     size_t size = findSize(event);
 
     void *evt = malloc(size);
-
     memset(evt, 0, size);
     memcpy(evt, event, size);
 
@@ -180,32 +175,9 @@ void sd_rpc_on_event(ble_evt_t *event)
     event_queue->push(event_entry);
 
     // If the event interval is not set, send the events to NodeJS as soon as possible.
-    if (evt_interval == 0)
-    {
-        send_events_upstream();
-    }
+    if (evt_interval == 0) send_events_upstream();
 }
 
-void event_generator(uv_timer_t *handle)
-{
-    ble_evt_t *event = new ble_evt_t();
-    event->header.evt_id = BLE_GAP_EVT_ADV_REPORT;
-    event->header.evt_len = 42;
-    event->evt.gap_evt.conn_handle = 0xFFFF;
-    memcpy(event->evt.gap_evt.params.adv_report.data, "TESTTESTTEST", 12);
-    event->evt.gap_evt.params.adv_report.dlen = 12;
-    event->evt.gap_evt.params.adv_report.peer_addr.addr[0] = 0x00;
-    event->evt.gap_evt.params.adv_report.peer_addr.addr[1] = 0x00;
-    event->evt.gap_evt.params.adv_report.peer_addr.addr[2] = 0x00;
-    event->evt.gap_evt.params.adv_report.peer_addr.addr[3] = 0x00;
-    event->evt.gap_evt.params.adv_report.peer_addr.addr[4] = 0x00;
-    event->evt.gap_evt.params.adv_report.peer_addr.addr[5] = 0x00;
-    event->evt.gap_evt.params.adv_report.peer_addr.addr_type = 1;
-    event->evt.gap_evt.params.adv_report.rssi = -5;
-    event->evt.gap_evt.params.adv_report.scan_rsp = 0;
-    event->evt.gap_evt.params.adv_report.type = 0;
-    sd_rpc_on_event(event);
-}
 // Now we are in the NodeJS thread. Call callbacks.
 void on_rpc_event(uv_async_t *handle)
 {
@@ -214,10 +186,7 @@ void on_rpc_event(uv_async_t *handle)
 
     EventQueue *event_entries = (EventQueue*)handle->data;
 
-    if (event_entries->wasEmpty())
-    {
-        return;
-    }
+    if (event_entries->wasEmpty()) return;
 
     // Update statistics (evaluate if we shall lock the statistics counters to get more preceise data)
     evt_cb_batch_evt_total_count += evt_cb_batch_evt_counter;
@@ -234,30 +203,31 @@ void on_rpc_event(uv_async_t *handle)
         assert(event_entry != NULL);
 
         ble_evt_t *event = event_entry->event;
+        assert(event != NULL);
 
         if (driver_event_callback != NULL)
         {
             switch (event->header.evt_id)
             {
-                GAP_EVT_CASE(CONNECTED,                 Connected,              connected,                  array, array_idx, event_entry);
-                GAP_EVT_CASE(DISCONNECTED,              Disconnected,           disconnected,               array, array_idx, event_entry);
-                GAP_EVT_CASE(ADV_REPORT,                AdvReport,              adv_report,                 array, array_idx, event_entry);
-                GAP_EVT_CASE(SCAN_REQ_REPORT,           ScanReqReport,          scan_req_report,            array, array_idx, event_entry);
-                GAP_EVT_CASE(TIMEOUT,                   Timeout,                timeout,                    array, array_idx, event_entry);
-                GAP_EVT_CASE(RSSI_CHANGED,              RssiChanged,            rssi_changed,               array, array_idx, event_entry);
-                GAP_EVT_CASE(CONN_PARAM_UPDATE,         ConnParamUpdate,        conn_param_update,          array, array_idx, event_entry);
-                GAP_EVT_CASE(CONN_PARAM_UPDATE_REQUEST, ConnParamUpdateRequest, conn_param_update_request,  array, array_idx, event_entry);
+                GAP_EVT_CASE(CONNECTED, Connected, connected, array, array_idx, event_entry);
+                GAP_EVT_CASE(DISCONNECTED, Disconnected, disconnected, array, array_idx, event_entry);
+                GAP_EVT_CASE(ADV_REPORT, AdvReport, adv_report, array, array_idx, event_entry);
+                GAP_EVT_CASE(SCAN_REQ_REPORT, ScanReqReport, scan_req_report, array, array_idx, event_entry);
+                GAP_EVT_CASE(TIMEOUT, Timeout, timeout, array, array_idx, event_entry);
+                GAP_EVT_CASE(RSSI_CHANGED, RssiChanged, rssi_changed, array, array_idx, event_entry);
+                GAP_EVT_CASE(CONN_PARAM_UPDATE, ConnParamUpdate, conn_param_update, array, array_idx, event_entry);
+                GAP_EVT_CASE(CONN_PARAM_UPDATE_REQUEST, ConnParamUpdateRequest, conn_param_update_request, array, array_idx, event_entry);
 
-                GATTC_EVT_CASE(PRIM_SRVC_DISC_RSP,          PrimaryServiceDiscoveryEvent,       prim_srvc_disc_rsp,         array, array_idx, event_entry);
-                GATTC_EVT_CASE(REL_DISC_RSP,                RelationshipDiscoveryEvent,         rel_disc_rsp,               array, array_idx, event_entry);
-                GATTC_EVT_CASE(CHAR_DISC_RSP,               CharacteristicDiscoveryEvent,       char_disc_rsp,              array, array_idx, event_entry);
-                GATTC_EVT_CASE(DESC_DISC_RSP,               DescriptorDiscoveryEvent,           desc_disc_rsp,              array, array_idx, event_entry);
-                GATTC_EVT_CASE(CHAR_VAL_BY_UUID_READ_RSP,   CharacteristicValueReadByUUIDEvent, char_val_by_uuid_read_rsp,  array, array_idx, event_entry);
-                GATTC_EVT_CASE(READ_RSP,                    ReadEvent,                          read_rsp,                   array, array_idx, event_entry);
-                GATTC_EVT_CASE(CHAR_VALS_READ_RSP,          CharacteristicValueReadEvent,       char_vals_read_rsp,         array, array_idx, event_entry);
-                GATTC_EVT_CASE(WRITE_RSP,                   WriteEvent,                         write_rsp,                  array, array_idx, event_entry);
-                GATTC_EVT_CASE(HVX,                         HandleValueNotificationEvent,       hvx,                        array, array_idx, event_entry);
-                GATTC_EVT_CASE(TIMEOUT,                     TimeoutEvent,                       timeout,                    array, array_idx, event_entry);
+                GATTC_EVT_CASE(PRIM_SRVC_DISC_RSP, PrimaryServiceDiscoveryEvent, prim_srvc_disc_rsp, array, array_idx, event_entry);
+                GATTC_EVT_CASE(REL_DISC_RSP, RelationshipDiscoveryEvent, rel_disc_rsp, array, array_idx, event_entry);
+                GATTC_EVT_CASE(CHAR_DISC_RSP, CharacteristicDiscoveryEvent, char_disc_rsp, array, array_idx, event_entry);
+                GATTC_EVT_CASE(DESC_DISC_RSP, DescriptorDiscoveryEvent, desc_disc_rsp, array, array_idx, event_entry);
+                GATTC_EVT_CASE(CHAR_VAL_BY_UUID_READ_RSP, CharacteristicValueReadByUUIDEvent, char_val_by_uuid_read_rsp, array, array_idx, event_entry);
+                GATTC_EVT_CASE(READ_RSP, ReadEvent, read_rsp, array, array_idx, event_entry);
+                GATTC_EVT_CASE(CHAR_VALS_READ_RSP, CharacteristicValueReadEvent, char_vals_read_rsp, array, array_idx, event_entry);
+                GATTC_EVT_CASE(WRITE_RSP, WriteEvent, write_rsp, array, array_idx, event_entry);
+                GATTC_EVT_CASE(HVX, HandleValueNotificationEvent, hvx, array, array_idx, event_entry);
+                GATTC_EVT_CASE(TIMEOUT, TimeoutEvent, timeout, array, array_idx, event_entry);
             default:
                 std::cout << "Event " << event->header.evt_id << " unknown to me." << std::endl;
                 break;
@@ -275,12 +245,7 @@ void on_rpc_event(uv_async_t *handle)
     callback_value[0] = array;
 
     auto start = chrono::high_resolution_clock::now();
-    
-    if (driver_event_callback != NULL)
-    {
-        driver_event_callback->Call(1, callback_value);
-    }
-
+    if(driver_event_callback != NULL) driver_event_callback->Call(1, callback_value);
     auto end = chrono::high_resolution_clock::now();
 
     chrono::milliseconds duration = chrono::duration_cast<chrono::milliseconds>(end - start);
@@ -366,11 +331,6 @@ void Open(uv_work_t *req) {
         uv_timer_start(&evt_interval_timer, event_interval_callback, evt_interval, evt_interval);
     }
 
-#if 0
-    uv_timer_init(uv_default_loop(), &evt_generator_timer);
-    uv_timer_start(&evt_generator_timer, event_generator, 100, 100);
-#endif
-
     // Open RPC connection to device
     int err = sd_rpc_open();
 
@@ -379,6 +339,8 @@ void Open(uv_work_t *req) {
         baton->result = err;
         return;
     }
+
+
 
     ble_enable_params_t *ble_enable_params = new ble_enable_params_t();
     memset(ble_enable_params, 0, sizeof(ble_enable_params_t));
@@ -406,13 +368,11 @@ void AfterOpen(uv_work_t *req) {
         sd_rpc_log_handler_set(NULL); // Stop reciving events
 
         uv_close((uv_handle_t*)&async_log, NULL); // Close the async handlers for log events
-
-        delete baton->log_callback;
+        delete baton->log_callback; // Free the memory for the callback
 
         if (baton->event_callback != NULL)
         {
             sd_rpc_evt_handler_set(NULL);
-
             delete baton->event_callback;
         }
     }
@@ -433,7 +393,6 @@ NAN_METHOD(Close) {
 }
 
 NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& v8str) {
-    Nan::HandleScope scope;
     sd_rpc_parity_t parity = SD_RPC_PARITY_NONE;
 
     if (v8str->Equals(Nan::New("none").ToLocalChecked()))
@@ -449,7 +408,6 @@ NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& v8str) {
 }
 
 NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const v8::Handle<v8::String>& v8str) {
-    Nan::HandleScope scope;
     sd_rpc_flow_control_t flow_control = SD_RPC_FLOW_CONTROL_NONE;
 
     if (v8str->Equals(Nan::New("none").ToLocalChecked()))
@@ -465,7 +423,6 @@ NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const v8::Handle<v8::String>&
 }
 
 NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const v8::Handle<v8::String>& v8str) {
-    Nan::HandleScope scope;
     sd_rpc_log_severity_t log_severity = SD_RPC_LOG_DEBUG;
 
     if (v8str->Equals(Nan::New("trace").ToLocalChecked()))
@@ -569,9 +526,11 @@ v8::Local<v8::Object> Version::ToJs()
 {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+
     Utility::Set(obj, "version_number", native->version_number);
     Utility::Set(obj, "company_id", native->company_id);
     Utility::Set(obj, "subversion_number", native->subversion_number);
+
     return scope.Escape(obj);
 }
 
@@ -596,9 +555,11 @@ v8::Local<v8::Object> BleUUID::ToJs()
 {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+
     Utility::Set(obj, "uuid", native->uuid);
     Utility::Set(obj, "type", native->type);
     Utility::Set(obj, "typeString", ConversionUtility::valueToJsString(native->type, uuid_type_name_map));
+
     return scope.Escape(obj);
 }
 
@@ -623,10 +584,10 @@ ble_uuid_t *BleUUID::ToNative()
 v8::Local<v8::Object> BleUUID128::ToJs()
 {
     Nan::EscapableHandleScope scope;
+
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     size_t uuid_len = 16 * 2 + 4 + 1; // Each byte -> 2 chars, 4 - separator _between_ some bytes and 1 byte null termination character
     char *uuid128string = (char*)malloc(uuid_len);
-
     assert(uuid128string != NULL);
     uint8_t *ptr = native->uuid128;
 
@@ -657,9 +618,6 @@ extern "C" {
 
     NAN_MODULE_INIT(init)
     {
-        FILE *f = fopen("log.txt", "w");
-        fprintf(f, "Started logging\r\n");
-        fclose(f);
 //        Nan::HandleScope scope;
         init_adapter_list(target);
         init_driver(target);
