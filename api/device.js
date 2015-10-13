@@ -1,3 +1,5 @@
+'use strict';
+
 // TODO: does it need an adapterInstanceId?
 
 class Device {

@@ -1,3 +1,5 @@
+'use strict';
+
 var i = 1;
 
 class Descriptor {

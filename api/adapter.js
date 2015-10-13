@@ -5,6 +5,7 @@ const EventEmitter = require('events');
 const _ = require('underscore');
 
 const AdapterState = require('./adapterState');
+const Device = require('./device');
 
 // No caching of devices
 // Do cache service database
@@ -24,7 +25,7 @@ class Adapter extends EventEmitter {
         return this._instanceId;
     }
 
-    _changeState(changingStates) {
+    _changeAdapterState(changingStates, emitOnChange=true) {
         let changed = false;
 
         _.each(changingStates, (value, state) => {
@@ -36,15 +37,37 @@ class Adapter extends EventEmitter {
             }
         });
 
-        if (changed) {
+        if (emitOnChange && changed) {
             this.emit('adapterStateChanged', this._adapterState);
+        }
+    }
+
+    _changeDeviceState(device, changingStates, emitOnChange=true) {
+        let changed = false;
+
+        _.each(changingStates, (value, state) => {
+            const previousState = device[state];
+
+            if (state === 'uuids') {
+
+            }
+
+            if (previousState !== value) {
+                device[state] = value;
+                changed = true;
+            }
+        });
+
+        // TODO: Do we want emit deviceChanged events? Should the device be sent with the event?
+        if (emitOnChange && changed) {
+            this.emit('deviceChanged', device);
         }
     }
 
     // options = { baudRate: x, parity: x, flowControl: x }
     // Callback signature function(err) {}
     open(options, callback) {
-        this._changeState({baudRate: options.baudRate, parity: options.parity, flowControl: options.flowControl});
+        this._changeAdapterState({baudRate: options.baudRate, parity: options.parity, flowControl: options.flowControl});
 
         // options.eventInterval = options.eventInterval;
         options.logCallback = this._logCallback;
@@ -55,7 +78,7 @@ class Adapter extends EventEmitter {
                 // TODO: will adapter still be available if the call fails?
                 this.emit('error', `Error occurred opening serial port: ${err}`);
             } else {
-                this._changeState({available: true});
+                this._changeAdapterState({available: true});
             }
 
             callback(err);
@@ -69,7 +92,7 @@ class Adapter extends EventEmitter {
         // TODO: how to call the callback? timer?
         this._bleDriver.close();
 
-        this._changeState({available: false});
+        this._changeAdapterState({available: false});
     }
 
     // TODO: log callback function declared here or in open call?;
@@ -106,6 +129,8 @@ class Adapter extends EventEmitter {
                 case this._bleDriver.BLE_GAP_EVT_TIMEOUT:
                 case this._bleDriver.BLE_GAP_EVT_RSSI_CHANGED:
                 case this._bleDriver.BLE_GAP_EVT_ADV_REPORT:
+                    this._parseAdvertismentReport(event);
+                    break;
                 /*
                 case this._bleDriver.BLE_GAP_EVT_SEC_REQUEST:
                 */
@@ -138,6 +163,63 @@ class Adapter extends EventEmitter {
                     break;
             }
         });
+    }
+
+    _parseAdvertismentReport(event) {
+        // TODO: Check address type?
+        // TODO: Store raw adv_data?
+        const address = event.peer_addr.address;
+        const changingStates = {};
+        let uuids = [];
+
+        if (event.data.BLE_GAP_AD_TYPE_LONG_LOCAL_NAME) {
+            changingStates.name = event.data.BLE_GAP_AD_TYPE_LONG_LOCAL_NAME;
+        } else if (event.data.BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME) {
+            changingStates.name = event.data.BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME;
+        }
+
+        // TODO: Translate from uuid to service names?
+        // TODO: Find out how to figure out changes for uuids? Keep uuids separate in adv report and scan response lists?
+        if (event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_MORE_AVAILABLE) {
+            uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_MORE_AVAILABLE);
+        }
+
+        if (event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE) {
+            uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE);
+        }
+
+        if (event.data.BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_MORE_AVAILABLE) {
+            uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_MORE_AVAILABLE);
+        }
+
+        if (event.data.BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_COMPLETE) {
+            uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_COMPLETE);
+        }
+
+        if (event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_MORE_AVAILABLE) {
+            uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_MORE_AVAILABLE);
+        }
+
+        if (event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_COMPLETE) {
+            uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_COMPLETE);
+        }
+
+        if (event.data.BLE_GAP_AD_TYPE_TX_POWER_LEVEL) {
+            changingStates.txPower = event.data.BLE_GAP_AD_TYPE_TX_POWER_LEVEL;
+        }
+
+        changingStates.rssi = event.rssi;
+
+        let device = this.getDevice(address);
+
+        if (device) {
+            this._changeDeviceState(device, changingStates);
+        } else {
+            const emitOnChange = false;
+            device = new Device(address, changingStates.name, 'peripheral', uuids);
+            this._changeDeviceState(device, changingStates, emitOnChange);
+            this._devices[address] = device;
+        }
     }
 
     // Callback signature function(err, state) {}
@@ -186,7 +268,7 @@ class Adapter extends EventEmitter {
             } else if (this._adapterState.name !== name) {
                 this._adapterState.name = name;
 
-                this._changeState({name: name});
+                this._changeAdapterState({name: name});
             }
 
             callback(err);
@@ -208,7 +290,7 @@ class Adapter extends EventEmitter {
                 this.emit('error', 'Failed to set address');
             } else if (this._adapterState.address !== address) {
                 // TODO: adapterState address include type?
-                this._changeState({address: address});
+                this._changeAdapterState({address: address});
             }
 
             callback(err);
@@ -250,7 +332,7 @@ class Adapter extends EventEmitter {
             if (err) {
                 this.emit('error', 'Error occured when starting scan');
             } else {
-                this._changeState({scanning: true});
+                this._changeAdapterState({scanning: true});
             }
 
             callback(err);
@@ -266,7 +348,7 @@ class Adapter extends EventEmitter {
                 // TODO: probably is state already set to false, but should we make sure? if yes, emit adapterStateChanged?
                 this.emit('error', 'Error occured when stopping scanning');
             } else {
-                this._changeState({scanning: false});
+                this._changeAdapterState({scanning: false});
             }
 
             callback(err);
@@ -279,7 +361,7 @@ class Adapter extends EventEmitter {
             if (err) {
                 this.emit('error', `Could not connect to ${deviceAddress}`);
             } else {
-                this._changeState({scanning: false, connecting: true});
+                this._changeAdapterState({scanning: false, connecting: true});
             }
 
             callback(err);
@@ -293,7 +375,7 @@ class Adapter extends EventEmitter {
                 // TODO: log more
                 this.emit('error', 'Error occured when canceling connection');
             } else {
-                this._changeState({connecting: false});
+                this._changeAdapterState({connecting: false});
             }
 
             callback(err);
@@ -365,7 +447,7 @@ class Adapter extends EventEmitter {
                 // TODO: probably is state already set to false, but should we make sure? if ys, emit adapterStateChanged?
                 console.log('Error occured when stopping advertising');
             } else {
-                this._changeState({advertising: false});
+                this._changeAdapterState({advertising: false});
             }
 
             callback(err);
@@ -382,7 +464,7 @@ class Adapter extends EventEmitter {
                 this.emit('error', 'Failed to disconnect');
             } else {
                 // TODO: remove from device list when disconnect event received
-                this._changeState({connected: false});
+                this._changeAdapterState({connected: false});
             }
 
             callback(err);
@@ -414,7 +496,7 @@ class Adapter extends EventEmitter {
         const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
 
         // TODO: Does the AddOn support undefined second parameter?
-        this._bleDriver.gap_update_connection_parameters(connectionHandle, undefined, err => {
+        this._bleDriver.gap_update_connection_parameters(connectionHandle, null, err => {
             if (err) {
                 this.emit('error', 'Failed to reject connection parameters');
             }

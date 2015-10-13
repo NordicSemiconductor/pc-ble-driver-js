@@ -1,3 +1,5 @@
+'use strict';
+
 const Service = require('./service');
 const Characteristic = require('./characteristic');
 const Descriptor = require('./descriptor');

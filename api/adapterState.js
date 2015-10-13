@@ -1,5 +1,3 @@
-// TODO: Add DI to AdapterFactory. whatever that means.
-
 'use strict';
 
 class AdapterState {
