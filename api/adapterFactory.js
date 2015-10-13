@@ -1,6 +1,9 @@
+'use strict';
 
-import Adapter from './adapter';
+var  Adapter = require('./adapter');
+const EventEmitter = require('events');
 
+var _ = require('underscore');
 /**
  * @brief A factory that instantiates new Adapters
  *
@@ -8,7 +11,7 @@ import Adapter from './adapter';
  * @param callback callback
  * @class AdapterFactory
  */
-class AdapterFactory extends events.EventEmitter {
+class AdapterFactory extends EventEmitter {
     /**
      * AdapterFactory constructor
      * @constructor
@@ -16,8 +19,10 @@ class AdapterFactory extends events.EventEmitter {
     constructor(bleDriver) {
         // TODO: Should adapters be updated on this.getAdapters call or by time interval? time interval
         // TODO: Add DI to AdapterFactory? driver path / or module import stuff
+        super();
+        this._bleDriver = bleDriver;
         this._adapters = {};
-
+        this._updateAdapterList();
         this.updateAdapterListInterval = setInterval(this._updateAdapterList, 5000);
     }
 
@@ -36,20 +41,20 @@ class AdapterFactory extends events.EventEmitter {
 
     _parseAndCreateAdapter(adapter) {
         let instanceId = this._getInstanceId(adapter);
-        let parsedAdapter = new Adapter(instanceId, adapter.comName);
+        let parsedAdapter = new Adapter(this._bleDriver, instanceId, adapter.comName);
 
         return parsedAdapter;
     }
 
     _updateAdapterList() {
-        bleDriver.get_adapters((err, adapters) => {
+        this._bleDriver.get_adapters((err, adapters) => {
             if (err) {
                 this.emit('error', err);
             }
 
             let removedAdapters = Object.assign({}, this._adapters);
 
-            adapters.forEach(adapter => {
+            _.each(adapters, adapter => {
                 let adapterInstanceId = this._getInstanceId(adapter);
 
                 if (this._adapters[adapterInstanceId]) {
@@ -61,11 +66,9 @@ class AdapterFactory extends events.EventEmitter {
                 this.emit('added', newAdapter);
             });
 
-            removedAdapters.forEach(adapter => {
+            _.each(removedAdapters, adapter => {
                 this.emit('removed', adapter);
             });
-
-            callback(this._adapters);
         });
     }
 
@@ -76,8 +79,9 @@ class AdapterFactory extends events.EventEmitter {
      * @param k [description]
      */
     // Callback signature function(adapters[])
-
     getAdapters(callback) {
         return this._adapters;
     }
 }
+
+module.exports = AdapterFactory;

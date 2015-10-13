@@ -280,7 +280,7 @@ v8::Handle<v8::Value> ConversionUtility::toJsBool(uint8_t nativeValue)
 v8::Handle<v8::Value> ConversionUtility::toJsValueArray(uint8_t *nativeData, uint16_t length)
 {
     Nan::EscapableHandleScope scope;
-    v8::Local<v8::Value> valueArray = Nan::NewBuffer((char *)nativeData, length).ToLocalChecked();
+    v8::Local<v8::Value> valueArray = Nan::CopyBuffer((char *)nativeData, length).ToLocalChecked();
 
     return scope.Escape(valueArray);
 }

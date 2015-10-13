@@ -1,14 +1,19 @@
 // TODO: does it need an adapterInstanceId?
+
 class Device {
     constructor(address, name, role, uuids) {
+        this._instanceId = null;
         this._address = address;
-        this._name = name;
+        this.name = name;
         this._role = role;
         this._uuids = uuids;
 
-        this._connected = false;
+        this.services = {};
 
-        this._services = {};
+        this.connected = false;
+        this.rssi = null;
+        this.txPower = null;
+        this._connectionHandle = null;
     }
 
     // null if not connected
@@ -21,36 +26,9 @@ class Device {
         return this._address;
     }
 
-    // Get GAP name
-    get name() {
-        return this._name;
-    }
-
-    set name(name) {
-        this._name = name;
-    }
-
     // 'peripheral', 'central'
     get role() {
         return this._role;
-    }
-
-    // List of uuids,
-    get uuids() {
-        return this._uuids;
-    }
-
-    set uuids(uuids) {
-        this._uuids = uuids;
-    }
-
-    // Is connected
-    get connected() {
-        return this._connected;
-    }
-
-    set connected(isConnected) {
-        this._connected = isConnected;
     }
 
     get connectionHandle() {
@@ -63,21 +41,5 @@ class Device {
 
         //TODO: Should instanceId involve role or is that handled by connectionHandle?
         this._instanceId = this._address + '.' + connectionHandle;
-    }
-
-    get rssi() {
-        return this._rssi;
-    }
-
-    set rssi(rssi) {
-        this._rssi = rssi;
-    }
-
-    get txPower() {
-        return this._txPower;
-    }
-
-    set txPower(txPower) {
-        this._txPower = txPower;
     }
 }

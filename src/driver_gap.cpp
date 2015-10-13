@@ -99,7 +99,7 @@ v8::Local<v8::Object> GapAddr::ToJs()
 {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    
+
     // Create a text string of the address. The when the NanUtf8String string is out of
     // its scope, the underlaying string is freed.
 
@@ -246,7 +246,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
         uint8_t *data = evt->data;
 
         // TODO: Evaluate if buffer is the correct datatype for advertisement data
-        Utility::Set(data_obj, "raw", Nan::NewBuffer((char *)data, dlen).ToLocalChecked());
+        Utility::Set(data_obj, "raw", ConversionUtility::toJsValueArray(data, dlen));
 
         uint8_t pos = 0;  // Position in packet
         uint8_t ad_len;   // AD Type length

@@ -1,13 +1,14 @@
+var i = 1;
 
-let i = 1;
-
-class  Characteristic {
+class Characteristic {
     constructor(serviceInstanceId, uuid, properties, value) {
         this._instanceId = serviceInstanceId + '.' + (i++).toString();
         this._serviceInstanceId = serviceInstanceId;
-        this._uuid = uuid;
-        this._properties = properties;
-        this._value = value;
+        this.uuid = uuid;
+        this.properties = properties;
+        this.value = value;
+
+        this.descriptor = {};
     }
 
     get instanceId() {
@@ -19,10 +20,6 @@ class  Characteristic {
         return this._serviceInstanceId;
     }
 
-    get uuid() {
-        return this._uuid;
-    }
-
     get name() {
         if (this._name) {
             return this._name;
@@ -32,13 +29,7 @@ class  Characteristic {
         return this.uuid;
     }
 
-    // ArrayBuffer (cached characteristic value)
-    get value() {
-        return this._value;
-    }
-
-    // The properties of this characteristic "broadcast", "read", "writeWithoutResponse", "write", "notify", "indicate", "authenticatedSignedWrites", "extendedProperties", "reliableWrite", or "writableAuxiliaries"
-    get properties() {
-        return this._properties;
+    set name(name) {
+        this._name = name;
     }
 }

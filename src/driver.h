@@ -79,7 +79,7 @@ public:
 struct LogEntry {
 public:
     sd_rpc_log_severity_t severity;
-    char *message;
+    std::string message;
 };
 
 struct EventEntry {

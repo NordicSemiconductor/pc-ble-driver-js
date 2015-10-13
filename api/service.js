@@ -1,12 +1,12 @@
-
-let i = 1;
+var i = 1;
 
 class Service {
     constructor(deviceInstanceId, uuid) {
         this._instanceId = deviceInstanceId + '.' + (i++).toString();
         this._deviceInstanceId = deviceInstanceId;
-        this._uuid = uuid;
-        this._characteristics = {};
+        this.uuid = uuid;
+
+        this.characteristics = {};
     }
 
     // unique ID for the service (since uuid is not enough to separate between services)
@@ -19,10 +19,6 @@ class Service {
         return this._deviceInstanceId;
     }
 
-    get uuid() {
-        return this._uuid;
-    }
-
     get name() {
         if (this._name) {
             return this._name;
@@ -30,5 +26,9 @@ class Service {
 
         // TODO: return a name looked up in uuid_definitions
         return this.uuid;
+    }
+
+    set name(name) {
+        this._name = name;
     }
 }

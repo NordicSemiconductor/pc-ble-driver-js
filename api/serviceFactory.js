@@ -1,7 +1,6 @@
-
-import Service from './service';
-import Characteristic from './characteristic';
-import Descriptor from './descriptor';
+const Service = require('./service');
+const Characteristic = require('./characteristic');
+const Descriptor = require('./descriptor');
 
 class ServiceFactory {
     constructor(database) {
