@@ -25,7 +25,7 @@ class Adapter extends EventEmitter {
         return this._instanceId;
     }
 
-    _changeAdapterState(changingStates, emitOnChange=true) {
+    _changeAdapterState(changingStates, emitOnChange) {
         let changed = false;
 
         _.each(changingStates, (value, state) => {
@@ -42,7 +42,7 @@ class Adapter extends EventEmitter {
         }
     }
 
-    _changeDeviceState(device, changingStates, emitOnChange=true) {
+    _changeDeviceState(device, changingStates, emitOnChange) {
         let changed = false;
 
         _.each(changingStates, (value, state) => {
