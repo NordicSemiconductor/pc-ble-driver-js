@@ -31,7 +31,8 @@ class Adapter extends EventEmitter {
         _.each(changingStates, (value, state) => {
             const previousState = this._adapterState[state];
 
-            if (previousState !== value) {
+            // Use isEqual to compare objects
+            if (_.isEqual(previousState, value)) {
                 this._adapterState[state] = value;
                 changed = true;
             }
@@ -48,11 +49,8 @@ class Adapter extends EventEmitter {
         _.each(changingStates, (value, state) => {
             const previousState = device[state];
 
-            if (state === 'uuids') {
-
-            }
-
-            if (previousState !== value) {
+            // Use isEqual to compare objects
+            if (_.isEqual(previousState, value)) {
                 device[state] = value;
                 changed = true;
             }
@@ -172,14 +170,13 @@ class Adapter extends EventEmitter {
         const changingStates = {};
         let uuids = [];
 
+        // TODO: Will this cause problems with different names in adv data and scan rsp?
         if (event.data.BLE_GAP_AD_TYPE_LONG_LOCAL_NAME) {
             changingStates.name = event.data.BLE_GAP_AD_TYPE_LONG_LOCAL_NAME;
         } else if (event.data.BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME) {
             changingStates.name = event.data.BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME;
         }
 
-        // TODO: Translate from uuid to service names?
-        // TODO: Find out how to figure out changes for uuids? Keep uuids separate in adv report and scan response lists?
         if (event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_MORE_AVAILABLE) {
             uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_MORE_AVAILABLE);
         }
@@ -204,6 +201,12 @@ class Adapter extends EventEmitter {
             uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_COMPLETE);
         }
 
+        if (event.scan_rsp) {
+            changingStates.scanRspUuids = uuids;
+        } else {
+            changingStates.advDataUuids = uuids;
+        }
+
         if (event.data.BLE_GAP_AD_TYPE_TX_POWER_LEVEL) {
             changingStates.txPower = event.data.BLE_GAP_AD_TYPE_TX_POWER_LEVEL;
         }
@@ -219,6 +222,7 @@ class Adapter extends EventEmitter {
             device = new Device(address, changingStates.name, 'peripheral', uuids);
             this._changeDeviceState(device, changingStates, emitOnChange);
             this._devices[address] = device;
+            this.emit('deviceDiscovered', device);
         }
     }
 
