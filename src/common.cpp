@@ -119,7 +119,7 @@ uint32_t ConversionUtility::getNativeUint32(v8::Local<v8::Object>js, char *name)
 
 uint32_t ConversionUtility::getNativeUint32(v8::Local<v8::Value> js)
 {
-    return ConvUtil<uint32_t>::getNativeUnsigned(js->ToObject());
+    return ConvUtil<uint32_t>::getNativeUnsigned(js);
 }
 
 uint16_t ConversionUtility::getNativeUint16(v8::Local<v8::Object>js, char *name)
@@ -129,7 +129,7 @@ uint16_t ConversionUtility::getNativeUint16(v8::Local<v8::Object>js, char *name)
 
 uint16_t ConversionUtility::getNativeUint16(v8::Local<v8::Value> js)
 {
-    return ConvUtil<uint16_t>::getNativeUnsigned(js->ToObject());
+    return ConvUtil<uint16_t>::getNativeUnsigned(js);
 }
 
 uint8_t ConversionUtility::getNativeUint8(v8::Local<v8::Object>js, char *name)
@@ -139,7 +139,7 @@ uint8_t ConversionUtility::getNativeUint8(v8::Local<v8::Object>js, char *name)
 
 uint8_t ConversionUtility::getNativeUint8(v8::Local<v8::Value> js)
 {
-    return ConvUtil<uint8_t>::getNativeUnsigned(js->ToObject());
+    return ConvUtil<uint8_t>::getNativeUnsigned(js);
 }
 
 int32_t ConversionUtility::getNativeInt32(v8::Local<v8::Object>js, char *name)
@@ -149,7 +149,7 @@ int32_t ConversionUtility::getNativeInt32(v8::Local<v8::Object>js, char *name)
 
 int32_t ConversionUtility::getNativeInt32(v8::Local<v8::Value>js)
 {
-    return ConvUtil<int32_t>::getNativeSigned(js->ToObject());
+    return ConvUtil<int32_t>::getNativeSigned(js);
 }
 
 int16_t ConversionUtility::getNativeInt16(v8::Local<v8::Object>js, char *name)
@@ -159,7 +159,7 @@ int16_t ConversionUtility::getNativeInt16(v8::Local<v8::Object>js, char *name)
 
 int16_t ConversionUtility::getNativeInt16(v8::Local<v8::Value>js)
 {
-    return ConvUtil<int16_t>::getNativeSigned(js->ToObject());
+    return ConvUtil<int16_t>::getNativeSigned(js);
 }
 
 int8_t ConversionUtility::getNativeInt8(v8::Local<v8::Object>js, char *name)
@@ -169,7 +169,7 @@ int8_t ConversionUtility::getNativeInt8(v8::Local<v8::Object>js, char *name)
 
 int8_t ConversionUtility::getNativeInt8(v8::Local<v8::Value>js)
 {
-    return ConvUtil<int8_t>::getNativeSigned(js->ToObject());
+    return ConvUtil<int8_t>::getNativeSigned(js);
 }
 
 double ConversionUtility::getNativeDouble(v8::Local<v8::Object>js, char *name)
@@ -179,17 +179,17 @@ double ConversionUtility::getNativeDouble(v8::Local<v8::Object>js, char *name)
 
 double ConversionUtility::getNativeDouble(v8::Local<v8::Value>js)
 {
-    return ConvUtil<double>::getNativeFloat(js->ToObject());
+    return ConvUtil<double>::getNativeFloat(js);
 }
 
 uint8_t ConversionUtility::getNativeBool(v8::Local<v8::Object>js, char *name)
 {
-    return ConvUtil<uint8_t>::getNativeFloat(js, name);
+    return ConvUtil<bool>::getNativeBool(js, name);
 }
 
 uint8_t ConversionUtility::getNativeBool(v8::Local<v8::Value>js)
 {
-    return ConvUtil<uint8_t>::getNativeFloat(js->ToObject());
+    return ConvUtil<bool>::getNativeBool(js);
 }
 
 uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Object>js, char *name)
@@ -208,9 +208,21 @@ uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Object>js, cha
     return string;
 }
 
+v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Value>js)
+{
+    if (!js->IsObject())
+    {
+        throw "object";
+    }
+
+    return js->ToObject();
+}
+
 v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Object>js, char *name)
 {
-    return Utility::Get(js, name)->ToObject();
+    v8::Local<v8::Value> obj = Utility::Get(js, name);
+    
+    return ConversionUtility::getJsObject(obj);
 }
 
 uint16_t ConversionUtility::msecsToUnitsUint16(v8::Local<v8::Object>js, char *name, enum ConversionUtility::ConversionUnits unit)
@@ -337,6 +349,15 @@ v8::Handle<v8::Value> ConversionUtility::valueToJsString(uint16_t value, name_ma
     return scope.Escape(Nan::New<v8::String>(it->second).ToLocalChecked());
 }
 
+v8::Local<v8::Function> ConversionUtility::getCallbackFunction(v8::Local<v8::Value> js)
+{
+    if (!js->IsFunction())
+    {
+        throw "function";
+    }
+    return js.As<v8::Function>();
+}
+
 v8::Local<v8::Value> Utility::Get(v8::Local<v8::Object> jsobj, char *name)
 {
     Nan::EscapableHandleScope scope;
@@ -410,6 +431,11 @@ void Utility::SetReturnValue(Nan::NAN_METHOD_ARGS_TYPE info, v8::Local<v8::Objec
     info.GetReturnValue().Set(value);
 }
 
+bool Utility::IsObject(v8::Local<v8::Object> jsobj, char *name)
+{
+    return Utility::Get(jsobj, name)->IsObject();
+}
+
 v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char *customMessage)
 {
     Nan::EscapableHandleScope scope;
@@ -444,6 +470,43 @@ v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char *customMe
             return scope.Escape(v8::Exception::Error(Nan::New<v8::String>(errorStringStream.str()).ToLocalChecked()));
         }
     }
+}
+
+v8::Local<v8::String> ErrorMessage::getTypeErrorMessage(int argumentNumber, char *message)
+{
+    std::ostringstream stream;
+
+    switch (argumentNumber)
+    {
+        case 0:
+            stream << "First";
+            break;
+        case 1:
+            stream << "Second";
+            break;
+        case 2:
+            stream << "Third";
+            break;
+        case 3:
+            stream << "Forth";
+            break;
+        case 4:
+            stream << "Fifth";
+            break;
+        case 5:
+            stream << "Sixth";
+            break;
+        case 6:
+            stream << "Seventh";
+            break;
+        default:
+            stream << "Unknown";
+            break;
+    }
+
+    stream << " argument must be a " << message;
+    
+    return ConversionUtility::toJsString(stream.str())->ToString();
 }
 
 v8::Local<v8::Value> HciStatus::getHciStatus(int statusCode)

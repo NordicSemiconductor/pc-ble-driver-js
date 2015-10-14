@@ -75,6 +75,8 @@ public:
 	static bool Set(v8::Handle<v8::Object> target, char *name, v8::Local<v8::Value> value);
 
 	static void SetReturnValue(Nan::NAN_METHOD_ARGS_TYPE info, v8::Local<v8::Object> value);
+
+    static bool IsObject(v8::Local<v8::Object> jsobj, char *name);
 };
 
 template<typename EventType>
@@ -145,21 +147,40 @@ class ConvUtil
 public:
     static NativeType getNativeUnsigned(v8::Local<v8::Value> js)
     {
+        if (!js->IsNumber())
+        {
+            throw "number";
+        }
+
         return (NativeType)js->ToUint32()->Uint32Value();
     }
 
     static NativeType getNativeSigned(v8::Local<v8::Value> js)
     {
+        if (!js->IsNumber())
+        {
+            throw "number";
+        }
+
         return (NativeType)js->ToInt32()->Int32Value();
     }
 
     static NativeType getNativeFloat(v8::Local<v8::Value> js)
     {
+        if (!js->IsNumber())
+        {
+            throw "number";
+        }
+
         return (NativeType)js->ToNumber()->NumberValue();
     }
 
     static NativeType getNativeBool(v8::Local<v8::Value> js)
     {
+        if (!js->IsBoolean())
+        {
+            throw "bool";
+        }
         return (NativeType)js->ToBoolean()->BooleanValue() ? 1 : 0;
     }
 
@@ -211,6 +232,7 @@ public:
     static uint8_t      getNativeBool(v8::Local<v8::Object>js, char *name);
     static uint8_t      getNativeBool(v8::Local<v8::Value>js);
     static uint8_t *    getNativePointerToUint8(v8::Local<v8::Object>js, char *name);
+    static v8::Local<v8::Object> getJsObject(v8::Local<v8::Value>js);
     static v8::Local<v8::Object> getJsObject(v8::Local<v8::Object>js, char *name);
 
     static uint16_t msecsToUnitsUint16(v8::Local<v8::Object>js, char *name, enum ConversionUnits unit);
@@ -231,12 +253,14 @@ public:
     static v8::Handle<v8::Value> toJsString(std::string string);
     static char *                valueToString(uint16_t value, name_map_t name_map, char *defaultValue = "Unknown value");
     static v8::Handle<v8::Value> valueToJsString(uint16_t, name_map_t name_map, v8::Handle<v8::Value> defaultValue = Nan::New<v8::String>("Unknown value").ToLocalChecked());
+    static v8::Local<v8::Function> getCallbackFunction(v8::Local<v8::Value> js);
 };
 
 class ErrorMessage
 {
 public:
     static v8::Local<v8::Value> getErrorMessage(int errorCode, char *customMessage);
+    static v8::Local<v8::String> getTypeErrorMessage(int argumentNumber, char *message);
 };
 
 class HciStatus

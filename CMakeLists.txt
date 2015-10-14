@@ -27,13 +27,15 @@ message("Searching for pc-ble-driver library in ${BLE_DRIVER_LIBRARY_DIR}")
 include_directories(${CMAKE_JS_INC} ${BLE_DRIVER_INCLUDE_DIR})
 
 # Specify source files
-set(SOURCE_FILES
+file (GLOB SOURCE_FILES
     "src/adapter.cpp"
     "src/common.cpp"
     "src/driver.cpp"
     "src/driver_gap.cpp"
     "src/driver_gatt.cpp"
     "src/driver_gattc.cpp"
+    "src/driver_gatts.cpp"
+    "src/*.h"
 )
 
 if(WIN32)

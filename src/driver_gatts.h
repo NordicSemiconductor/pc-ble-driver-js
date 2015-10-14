@@ -66,7 +66,7 @@ METHOD_DEFINITIONS(AddService)
 METHOD_DEFINITIONS(AddCharacteristic)
 
 extern "C" {
-    void init_gatts(v8::Handle<v8::Object> target);
+    void init_gatts(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 }
 
 #endif

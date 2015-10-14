@@ -549,6 +549,67 @@ ble_gap_scan_params_t *GapScanParams::ToNative()
 // GapScanParams -- END --
 //
 
+//
+// GapAdvParams -- START --
+//
+
+v8::Local<v8::Object> GapAdvParams::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    // Advertisement parameters are never retrieved from driver.
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    return scope.Escape(obj);
+}
+
+ble_gap_adv_params_t *GapAdvParams::ToNative()
+{
+    ble_gap_adv_params_t *params = new ble_gap_adv_params_t();
+    memset(params, 0, sizeof(ble_gap_adv_params_t));
+
+    params->type = ConversionUtility::getNativeUint8(jsobj, "type");
+    // TODO: Add p_peer_addr
+    // params->p_peer_addr = ;
+    params->fp = ConversionUtility::getNativeUint8(jsobj, "fp");
+    // TODO: Add whitelist
+    params->interval = ConversionUtility::msecsToUnitsUint16(jsobj, "interval", ConversionUtility::ConversionUnit625ms);
+    params->timeout = ConversionUtility::getNativeUint16(jsobj, "timeout");
+    params->channel_mask = GapAdvChannelMask(ConversionUtility::getJsObject(jsobj, "channel_mask"));
+
+    return params;
+}
+
+//
+// GapAdvParams -- END --
+//
+
+//
+// GapAdvChannelMask -- START --
+//
+
+v8::Local<v8::Object> GapAdvChannelMask::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    // Channel Mask are never retrieved from driver.
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    return scope.Escape(obj);
+}
+
+ble_gap_adv_ch_mask_t *GapAdvChannelMask::ToNative()
+{
+    ble_gap_adv_ch_mask_t *mask = new ble_gap_adv_ch_mask_t();
+    memset(mask, 0, sizeof(ble_gap_adv_ch_mask_t));
+
+    mask->ch_37_off = ConversionUtility::getNativeUint8(jsobj, "ch_37_off");
+    mask->ch_38_off = ConversionUtility::getNativeUint8(jsobj, "ch_38_off");
+    mask->ch_39_off = ConversionUtility::getNativeUint8(jsobj, "ch_39_off");
+
+    return mask;
+}
+
+//
+// GapAdvChannelMask -- END --
+//
+
 NAN_METHOD(GapSetAddress)
 {
     // CycleMode
@@ -608,7 +669,7 @@ void AfterGapSetAddress(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
-        //(1, argv);
+
     delete baton;
 }
 
@@ -1113,18 +1174,24 @@ void AfterGapStopRSSI(uv_work_t *req) {
 
 NAN_METHOD(StartScan)
 {
-    if (!info[0]->IsObject()) {
-        Nan::ThrowTypeError("First argument must be an object");
-        return;
-    }
-    v8::Local<v8::Object> options = info[0]->ToObject();
+    v8::Local<v8::Object> options;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
 
-    // Callback
-    if (!info[1]->IsFunction()) {
-        Nan::ThrowTypeError("Second argument must be a function");
+    try
+    {
+        options = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
         return;
     }
-    v8::Local<v8::Function> callback = info[1].As<v8::Function>();
 
     ble_gap_scan_params_t *params = GapScanParams(options);
 
@@ -1395,6 +1462,64 @@ void AfterGapGetRSSI(uv_work_t *req) {
     delete baton;
 }
 
+NAN_METHOD(GapStartAdvertisement)
+{
+    v8::Local<v8::Object> adv_params;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
+    
+    try
+    {
+        adv_params = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    GapStartAdversisementBaton *baton = new GapStartAdversisementBaton(callback);
+    baton->p_adv_params = GapAdvParams(adv_params);
+
+    uv_queue_work(uv_default_loop(), baton->req, GapStartAdvertisement, (uv_after_work_cb)AfterGapStartAdvertisement);
+}
+
+// This runs in a worker thread (not Main Thread)
+void GapStartAdvertisement(uv_work_t *req) {
+    GapStartAdversisementBaton *baton = static_cast<GapStartAdversisementBaton *>(req->data);
+
+    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
+
+    baton->result = sd_ble_gap_adv_start(baton->p_adv_params);
+
+}
+
+// This runs in Main Thread
+void AfterGapStartAdvertisement(uv_work_t *req) {
+    Nan::HandleScope scope;
+
+    // TODO: handle if .Close is called before this function is called.
+    GapStartAdversisementBaton *baton = static_cast<GapStartAdversisementBaton *>(req->data);
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "starting advertisement");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+    delete baton;
+}
+
 extern "C" {
     void init_gap(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
@@ -1407,11 +1532,12 @@ extern "C" {
         Utility::SetMethod(target, "gap_get_device_name", GapGetDeviceName);
         Utility::SetMethod(target, "gap_start_rssi", GapStartRSSI);
         Utility::SetMethod(target, "gap_stop_rssi", GapStopRSSI);
-        Utility::SetMethod(target, "start_scan", StartScan);
-        Utility::SetMethod(target, "stop_scan", StopScan);
+        Utility::SetMethod(target, "gap_start_scan", StartScan);
+        Utility::SetMethod(target, "gap_stop_scan", StopScan);
         Utility::SetMethod(target, "gap_connect", GapConnect);
         Utility::SetMethod(target, "gap_cancel_connect", GapCancelConnect);
         Utility::SetMethod(target, "gap_get_rssi", GapGetRSSI);
+        Utility::SetMethod(target, "gap_start_advertisement", GapStartAdvertisement);
 
         // Constants from ble_gap.h
 

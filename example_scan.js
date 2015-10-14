@@ -1,10 +1,10 @@
 
-var driver = require('./build/Release/ble_driver_js');
+var driver = require('./build/Debug/ble_driver_js');
 
 var evt_count = 0;
 
 driver.open(
-    'COM1',
+    'COM19',
     {
         'baudRate': 115200,
         'parity': 'none',
@@ -43,11 +43,13 @@ driver.open(
             return;
         }
 
-        driver.start_scan({'active': true, 'interval': 100, 'window': 31.25, 'timeout': 0}, function(err) {
+        driver.gap_start_scan({'active': true, 'interval': 100, 'window': 31.25, 'timeout': 0}, function(err) {
             if(err) {
                 console.log('Error occured when starting scan');
                 return;
             }
+
+            console.log('Started scan');
         });
     }
 );

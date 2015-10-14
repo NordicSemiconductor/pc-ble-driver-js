@@ -50,13 +50,29 @@ ble_gatts_char_md_t *GattsCharacteristicMetadata::ToNative()
     metadata->char_props = GattCharProps(ConversionUtility::getJsObject(jsobj, "char_props"));
     metadata->char_ext_props = GattCharExtProps(ConversionUtility::getJsObject(jsobj, "char_ext_props"));
 
+    //TODO: metadata->p_char_user_desc
     metadata->char_user_desc_max_size = ConversionUtility::getNativeUint16(jsobj, "char_user_desc_max_size");
     metadata->char_user_desc_size = ConversionUtility::getNativeUint16(jsobj, "char_user_desc_size");
 
-    metadata->p_char_pf = GattsCharacteristicPresentationFormat(ConversionUtility::getJsObject(jsobj, "p_char_pf"));
-    metadata->p_user_desc_md = GattsAttributeMetadata(ConversionUtility::getJsObject(jsobj, "p_user_desc_md"));
-    metadata->p_cccd_md = GattsAttributeMetadata(ConversionUtility::getJsObject(jsobj, "p_cccd_md"));
-    metadata->p_sccd_md = GattsAttributeMetadata(ConversionUtility::getJsObject(jsobj, "p_sccd_md"));
+    if (Utility::IsObject(jsobj, "p_char_pf"))
+        metadata->p_char_pf = GattsCharacteristicPresentationFormat(ConversionUtility::getJsObject(jsobj, "p_char_pf"));
+    else
+        metadata->p_char_pf = 0;
+
+    if (Utility::IsObject(jsobj, "p_user_desc_md"))
+        metadata->p_user_desc_md = GattsAttributeMetadata(ConversionUtility::getJsObject(jsobj, "p_user_desc_md"));
+    else
+        metadata->p_user_desc_md = 0;
+
+    if (Utility::IsObject(jsobj, "p_cccd_md"))
+        metadata->p_cccd_md = GattsAttributeMetadata(ConversionUtility::getJsObject(jsobj, "p_cccd_md"));
+    else
+        metadata->p_cccd_md = 0;
+
+    if (Utility::IsObject(jsobj, "p_sccd_md"))
+        metadata->p_sccd_md = GattsAttributeMetadata(ConversionUtility::getJsObject(jsobj, "p_sccd_md"));
+    else
+        metadata->p_sccd_md = 0;
 
     return metadata;
 }
@@ -78,48 +94,48 @@ ble_gatts_attr_t *GattsAttribute::ToNative()
 
 v8::Local<v8::Object> GattsCharacteristicDefinitionHandles::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
-    obj->Set(NanNew("value_handle"), ConversionUtility::toJsNumber(native->value_handle));
-    obj->Set(NanNew("user_desc_handle"), ConversionUtility::toJsNumber(native->user_desc_handle));
-    obj->Set(NanNew("cccd_handle"), ConversionUtility::toJsNumber(native->cccd_handle));
-    obj->Set(NanNew("sccd_handle"), ConversionUtility::toJsNumber(native->sccd_handle));
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+
+    Utility::Set(obj, "value_handle", ConversionUtility::toJsNumber(native->value_handle));
+    Utility::Set(obj, "user_desc_handle", ConversionUtility::toJsNumber(native->user_desc_handle));
+    Utility::Set(obj, "cccd_handle", ConversionUtility::toJsNumber(native->cccd_handle));
+    Utility::Set(obj, "sccd_handle", ConversionUtility::toJsNumber(native->sccd_handle));
     
-    return obj;
+    return scope.Escape(obj);
 }
 
 NAN_METHOD(AddService)
 {
-    NanScope();
+    uint8_t type;
+    v8::Local<v8::Object> uuid;
+    v8::Local<v8::Function> callback;
 
-    if (!args[0]->IsNumber())
-    {
-        NanThrowTypeError("First argument must be a number");
-        NanReturnUndefined();
-    }
-    uint8_t type = ConversionUtility::getNativeUint8(args[0]);
+    int argumentcount = 0;
 
-    if (!args[1]->IsObject())
+    try
     {
-        NanThrowTypeError("Second argument must be an object");
-        NanReturnUndefined();
-    }
-    v8::Local<v8::Object> uuid = args[1]->ToObject();
+        type = ConversionUtility::getNativeUint8(info[argumentcount]);
+        argumentcount++;
 
-    if (!args[2]->IsFunction())
-    {
-        NanThrowTypeError("Third argument must be a function");
-        NanReturnUndefined();
+        uuid = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
     }
-    v8::Local<v8::Function> callback = args[2].As<v8::Function>();
+    catch (char *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
 
     GattsAddServiceBaton *baton = new GattsAddServiceBaton(callback);
     baton->type = type;
     baton->p_uuid = BleUUID(uuid);
 
     uv_queue_work(uv_default_loop(), baton->req, AddService, (uv_after_work_cb)AfterAddService);
-
-    // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -132,20 +148,20 @@ void AddService(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterAddService(uv_work_t *req) {
-    NanScope();
+    Nan::HandleScope scope;
 
     GattsAddServiceBaton *baton = static_cast<GattsAddServiceBaton *>(req->data);
-    v8::Handle<v8::Value> argv[2];
+    v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
         argv[1] = ErrorMessage::getErrorMessage(baton->result, "adding service");
     }
     else
     {
         argv[0] = ConversionUtility::toJsNumber(baton->p_handle);
-        argv[1] = NanUndefined();
+        argv[1] = Nan::Undefined();
     }
 
     baton->callback->Call(2, argv);
@@ -154,35 +170,32 @@ void AfterAddService(uv_work_t *req) {
 
 NAN_METHOD(AddCharacteristic)
 {
-    NanScope();
+    uint16_t serviceHandle;
+    v8::Local<v8::Object> metadata;
+    v8::Local<v8::Object> attributeStructure;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
 
-    if (!args[0]->IsNumber())
+    try
     {
-        NanThrowTypeError("First argument must be a number");
-        NanReturnUndefined();
-    }
-    uint16_t serviceHandle = ConversionUtility::getNativeUint8(args[0]);
+        serviceHandle = ConversionUtility::getNativeUint8(info[argumentcount]);
+        argumentcount++;
 
-    if (!args[1]->IsObject())
-    {
-        NanThrowTypeError("Second argument must be an object");
-        NanReturnUndefined();
-    }
-    v8::Local<v8::Object> metadata = args[1]->ToObject();
+        metadata = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
 
-    if (!args[2]->IsObject())
-    {
-        NanThrowTypeError("Third argument must be an object");
-        NanReturnUndefined();
-    }
-    v8::Local<v8::Object> attributeStructure = args[2]->ToObject();
+        attributeStructure = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
 
-    if (!args[3]->IsFunction())
-    {
-        NanThrowTypeError("Forth argument must be a function");
-        NanReturnUndefined();
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
     }
-    v8::Local<v8::Function> callback = args[3].As<v8::Function>();
+    catch (char *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
 
     GattsAddCharacteristicBaton *baton = new GattsAddCharacteristicBaton(callback);
     baton->service_handle = serviceHandle;
@@ -191,9 +204,6 @@ NAN_METHOD(AddCharacteristic)
     baton->p_handles = new ble_gatts_char_handles_t();
 
     uv_queue_work(uv_default_loop(), baton->req, AddCharacteristic, (uv_after_work_cb)AfterAddCharacteristic);
-
-    // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -206,20 +216,20 @@ void AddCharacteristic(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterAddCharacteristic(uv_work_t *req) {
-    NanScope();
+    Nan::HandleScope scope;
 
     GattsAddCharacteristicBaton *baton = static_cast<GattsAddCharacteristicBaton *>(req->data);
-    v8::Handle<v8::Value> argv[2];
+    v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
         argv[1] = ErrorMessage::getErrorMessage(baton->result, "adding service");
     }
     else
     {
-        argv[0] = GattsCharacteristicDefinitionHandles(baton->p_handles);
-        argv[1] = NanUndefined();
+        argv[0] = GattsCharacteristicDefinitionHandles(baton->p_handles).ToJs();
+        argv[1] = Nan::Undefined();
     }
 
     baton->callback->Call(2, argv);
@@ -229,9 +239,10 @@ void AfterAddCharacteristic(uv_work_t *req) {
 }
 
 extern "C" {
-    void init_gatts(v8::Handle<v8::Object> target)
+    void init_gatts(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
-        NODE_SET_METHOD(target, "gatts_add_service", AddService);
+        Utility::SetMethod(target, "gatts_add_service", AddService);
+        Utility::SetMethod(target, "gatts_add_characteristic", AddCharacteristic);
 
         /* BLE_ERRORS_GATTS SVC return values specific to GATTS */
         NODE_DEFINE_CONSTANT(target, BLE_ERROR_GATTS_INVALID_ATTR_TYPE); /* Invalid attribute type. */

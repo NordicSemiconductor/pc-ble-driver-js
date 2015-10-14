@@ -151,6 +151,24 @@ public:
     v8::Local<v8::Object> ToJs();
 };
 
+class GapAdvChannelMask : public BleToJs<ble_gap_adv_ch_mask_t>
+{
+public:
+    GapAdvChannelMask(ble_gap_adv_ch_mask_t *channel_mask) : BleToJs<ble_gap_adv_ch_mask_t>(channel_mask) {}
+    GapAdvChannelMask(v8::Local<v8::Object> js) : BleToJs<ble_gap_adv_ch_mask_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_adv_ch_mask_t *ToNative();
+};
+
+class GapAdvParams : public BleToJs<ble_gap_adv_params_t>
+{
+public:
+    GapAdvParams(ble_gap_adv_params_t *conn_params) : BleToJs<ble_gap_adv_params_t>(conn_params) {}
+    GapAdvParams(v8::Local<v8::Object> js) : BleToJs<ble_gap_adv_params_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_adv_params_t *ToNative();
+};
+
 // Event related struct to JS conversions -- END --
 
 
@@ -250,6 +268,12 @@ public:
     int8_t rssi;
 };
 
+struct GapStartAdversisementBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GapStartAdversisementBaton);
+    ble_gap_adv_params_t *p_adv_params;
+};
+
 ///// End GAP Batons //////////////////////////////////////////////////////////////////////////////////
 
 METHOD_DEFINITIONS(GapSetAddress);
@@ -266,6 +290,7 @@ METHOD_DEFINITIONS(StopScan);
 METHOD_DEFINITIONS(GapConnect);
 METHOD_DEFINITIONS(GapCancelConnect);
 METHOD_DEFINITIONS(GapGetRSSI);
+METHOD_DEFINITIONS(GapStartAdvertisement);
 
 extern "C" {
     void init_gap(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
