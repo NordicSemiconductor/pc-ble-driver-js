@@ -24,7 +24,7 @@ public:
 };
 
 extern "C" {
-    void init_gatt(v8::Handle<v8::Object> target);
+    void init_gatt(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 }
 
 #endif

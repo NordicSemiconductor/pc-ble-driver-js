@@ -89,9 +89,9 @@ public:
     virtual void ToJs(v8::Local<v8::Object> obj)
     {
         BleDriverEvent<EventType>::ToJs(obj);
-        obj->Set(NanNew("gatt_status"), NanNew(gatt_status));
-        obj->Set(NanNew("gatt_status_name"), NanNew(gatt_status_map[gatt_status]));
-        obj->Set(NanNew("error_handle"), NanNew(error_handle));
+        Utility::Set(obj, "gatt_status", gatt_status);
+        Utility::Set(obj, "gatt_status_name", gatt_status_map[gatt_status]);
+        Utility::Set(obj, "error_handle", error_handle);
     }
 
     virtual v8::Local<v8::Object> ToJs() = 0;
@@ -282,7 +282,7 @@ METHOD_DEFINITIONS(Write);
 METHOD_DEFINITIONS(HandleValueConfirm);
 
 extern "C" {
-    void init_gattc(v8::Handle<v8::Object> target);
+    void init_gattc(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 }
 
 #endif

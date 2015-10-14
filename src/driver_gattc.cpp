@@ -35,11 +35,12 @@ static name_map_t gattc_evts_type_map = {
 
 v8::Local<v8::Object> GattcHandleRange::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
-    obj->Set(NanNew("start_handle"), ConversionUtility::toJsNumber(native->start_handle));
-    obj->Set(NanNew("end_handle"), ConversionUtility::toJsNumber(native->end_handle));
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    Utility::Set(obj, "start_handle", native->start_handle);
+    Utility::Set(obj, "end_handle", native->end_handle);
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 ble_gattc_handle_range_t *GattcHandleRange::ToNative()
@@ -62,11 +63,12 @@ ble_gattc_handle_range_t *GattcHandleRange::ToNative()
 
 v8::Local<v8::Object> GattcService::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
-    obj->Set(NanNew("uuid"), BleUUID(&native->uuid));
-    obj->Set(NanNew("handle_range"), GattcHandleRange(&native->handle_range));
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    Utility::Set(obj, "uuid", BleUUID(&native->uuid).ToJs());
+    Utility::Set(obj, "handle_range", GattcHandleRange(&native->handle_range).ToJs());
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -79,11 +81,12 @@ v8::Local<v8::Object> GattcService::ToJs()
 
 v8::Local<v8::Object> GattcIncludedService::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
-    obj->Set(NanNew("handle"), ConversionUtility::toJsNumber(native->handle));
-    obj->Set(NanNew("included_srvc"), GattcService(&native->included_srvc));
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    Utility::Set(obj, "handle", native->handle);
+    Utility::Set(obj, "included_srvc", GattcService(&native->included_srvc).ToJs());
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -96,14 +99,15 @@ v8::Local<v8::Object> GattcIncludedService::ToJs()
 
 v8::Local<v8::Object> GattcCharacteristic::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
-    obj->Set(NanNew("uuid"), BleUUID(&native->uuid));
-    obj->Set(NanNew("char_props"), GattCharProps(&native->char_props));
-    obj->Set(NanNew("char_ext_props"), ConversionUtility::toJsBool(native->char_ext_props));
-    obj->Set(NanNew("handle_decl"), ConversionUtility::toJsNumber(native->handle_decl));
-    obj->Set(NanNew("handle_value"), ConversionUtility::toJsNumber(native->handle_value));
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    Utility::Set(obj, "uuid", BleUUID(&native->uuid).ToJs());
+    Utility::Set(obj, "char_props", GattCharProps(&native->char_props).ToJs());
+    Utility::Set(obj, "char_ext_props", native->char_ext_props);
+    Utility::Set(obj, "handle_decl", native->handle_decl);
+    Utility::Set(obj, "handle_value", native->handle_value);
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -116,11 +120,12 @@ v8::Local<v8::Object> GattcCharacteristic::ToJs()
 
 v8::Local<v8::Object> GattcDescriptor::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
-    obj->Set(NanNew("handle"), ConversionUtility::toJsNumber(native->handle));
-    obj->Set(NanNew("uuid"), BleUUID(&native->uuid));
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    Utility::Set(obj, "handle", native->handle);
+    Utility::Set(obj, "uuid", BleUUID(&native->uuid).ToJs());
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -147,15 +152,16 @@ ble_gattc_write_params_t *GattcWriteParameters::ToNative()
 
 v8::Local<v8::Object> GattcWriteParameters::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
-    obj->Set(NanNew("write_op"), ConversionUtility::toJsNumber(native->write_op));
-    obj->Set(NanNew("flags"), ConversionUtility::toJsNumber(native->flags));
-    obj->Set(NanNew("handle"), ConversionUtility::toJsNumber(native->handle));
-    obj->Set(NanNew("offset"), ConversionUtility::toJsNumber(native->offset));
-    obj->Set(NanNew("len"), ConversionUtility::toJsNumber(native->len));
-    obj->Set(NanNew("p_value"), ConversionUtility::toJsValueArray(native->p_value, native->len));
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    Utility::Set(obj, "write_op", native->write_op);
+    Utility::Set(obj, "flags", native->flags);
+    Utility::Set(obj, "handle", native->handle);
+    Utility::Set(obj, "offset", native->offset);
+    Utility::Set(obj, "len", native->len);
+    Utility::Set(obj, "p_value", ConversionUtility::toJsValueArray(native->p_value, native->len));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -164,208 +170,217 @@ v8::Local<v8::Object> GattcWriteParameters::ToJs()
 
 v8::Local<v8::Object> GattcPrimaryServiceDiscoveryEvent::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
-    obj->Set(NanNew("count"), ConversionUtility::toJsNumber(evt->count));
+    Utility::Set(obj, "count", evt->count);
 
-    v8::Local<v8::Array> service_array = NanNew<v8::Array>();
+    v8::Local<v8::Array> service_array = Nan::New<v8::Array>();
 
     for (int i = 0; i < evt->count; ++i)
     {
-        service_array->Set(NanNew<v8::Integer>(i), GattcService(&evt->services[i]));
+        service_array->Set(Nan::New<v8::Integer>(i), GattcService(&evt->services[i]));
     }
 
-    obj->Set(NanNew("services"), service_array);
+    Utility::Set(obj, "services", service_array);
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcRelationshipDiscoveryEvent::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
-    obj->Set(NanNew("count"), ConversionUtility::toJsNumber(evt->count));
+    Utility::Set(obj, "count", evt->count);
 
-    v8::Local<v8::Array> includes_array = NanNew<v8::Array>();
+    v8::Local<v8::Array> includes_array = Nan::New<v8::Array>();
 
     for (int i = 0; i < evt->count; ++i)
     {
-        includes_array->Set(NanNew<v8::Integer>(i), GattcIncludedService(&evt->includes[i]));
+        includes_array->Set(Nan::New<v8::Integer>(i), GattcIncludedService(&evt->includes[i]));
     }
 
-    obj->Set(NanNew("includes"), includes_array);
+    Utility::Set(obj, "includes", includes_array);
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcCharacteristicDiscoveryEvent::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
-    obj->Set(NanNew("count"), ConversionUtility::toJsNumber(evt->count));
+    Utility::Set(obj, "count", evt->count);
 
-    v8::Local<v8::Array> chars_array = NanNew<v8::Array>();
+    v8::Local<v8::Array> chars_array = Nan::New<v8::Array>();
 
     for (int i = 0; i < evt->count; ++i)
     {
-        chars_array->Set(NanNew<v8::Integer>(i), GattcCharacteristic(&evt->chars[i]));
+        chars_array->Set(Nan::New<v8::Integer>(i), GattcCharacteristic(&evt->chars[i]));
     }
 
-    obj->Set(NanNew("chars"), chars_array);
+    Utility::Set(obj, "chars", chars_array);
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcDescriptorDiscoveryEvent::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
-    obj->Set(NanNew("count"), ConversionUtility::toJsNumber(evt->count));
+    Utility::Set(obj, "count", evt->count);
 
-    v8::Local<v8::Array> descs_array = NanNew<v8::Array>();
+    v8::Local<v8::Array> descs_array = Nan::New<v8::Array>();
 
     for (int i = 0; i < evt->count; ++i)
     {
-        descs_array->Set(NanNew<v8::Integer>(i), GattcDescriptor(&evt->descs[i]));
+        descs_array->Set(Nan::New<v8::Integer>(i), GattcDescriptor(&evt->descs[i]));
     }
 
-    obj->Set(NanNew("descs"), descs_array);
+    Utility::Set(obj, "descs", descs_array);
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcHandleValue::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
-    obj->Set(NanNew("handle"), ConversionUtility::toJsNumber(native->handle));
-    obj->Set(NanNew("p_value"), ConversionUtility::toJsValueArray(native->p_value, valueLength));
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    Utility::Set(obj, "handle", native->handle);
+    Utility::Set(obj, "p_value", ConversionUtility::toJsValueArray(native->p_value, valueLength));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcCharacteristicValueReadByUUIDEvent::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
-    obj->Set(NanNew("count"), ConversionUtility::toJsNumber(evt->count));
-    obj->Set(NanNew("value_len"), ConversionUtility::toJsNumber(evt->value_len));
+    Utility::Set(obj, "count", evt->count);
+    Utility::Set(obj, "value_len", evt->value_len);
 
-    v8::Local<v8::Array> handle_value_array = NanNew<v8::Array>();
+    v8::Local<v8::Array> handle_value_array = Nan::New<v8::Array>();
 
     for (int i = 0; i < evt->count; ++i)
     {
-        handle_value_array->Set(NanNew<v8::Integer>(i), GattcHandleValue(&evt->handle_value[i], evt->value_len));
+        handle_value_array->Set(Nan::New<v8::Integer>(i), GattcHandleValue(&evt->handle_value[i], evt->value_len));
     }
 
-    obj->Set(NanNew("handle_values"), handle_value_array);
+    Utility::Set(obj, "handle_values", handle_value_array);
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcReadEvent::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
-    obj->Set(NanNew("handle"), ConversionUtility::toJsNumber(evt->handle));
-    obj->Set(NanNew("offset"), ConversionUtility::toJsNumber(evt->offset));
-    obj->Set(NanNew("len"), ConversionUtility::toJsNumber(evt->len));
-    obj->Set(NanNew("data"), ConversionUtility::toJsValueArray(evt->data, evt->len));
+    Utility::Set(obj, "handle", evt->handle);
+    Utility::Set(obj, "offset", evt->offset);
+    Utility::Set(obj, "len", evt->len);
+    Utility::Set(obj, "data", ConversionUtility::toJsValueArray(evt->data, evt->len));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcCharacteristicValueReadEvent::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
-    obj->Set(NanNew("len"), ConversionUtility::toJsNumber(evt->len));
-    obj->Set(NanNew("values"), ConversionUtility::toJsValueArray(evt->values, evt->len));
+    Utility::Set(obj, "len", evt->len);
+    Utility::Set(obj, "values", ConversionUtility::toJsValueArray(evt->values, evt->len));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcWriteEvent::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
-    obj->Set(NanNew("handle"), ConversionUtility::toJsNumber(evt->handle));
-    obj->Set(NanNew("write_op"), ConversionUtility::toJsNumber(evt->write_op));
-    obj->Set(NanNew("offset"), ConversionUtility::toJsNumber(evt->offset));
-    obj->Set(NanNew("len"), ConversionUtility::toJsNumber(evt->len));
-    obj->Set(NanNew("data"), ConversionUtility::toJsValueArray(evt->data, evt->len));
+    Utility::Set(obj, "handle", evt->handle);
+    Utility::Set(obj, "write_op", evt->write_op);
+    Utility::Set(obj, "offset", evt->offset);
+    Utility::Set(obj, "len", evt->len);
+    Utility::Set(obj, "data", ConversionUtility::toJsValueArray(evt->data, evt->len));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcHandleValueNotificationEvent::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
-    obj->Set(NanNew("handle"), ConversionUtility::toJsNumber(evt->handle));
-    obj->Set(NanNew("type"), ConversionUtility::toJsNumber(evt->type));
-    obj->Set(NanNew("len"), ConversionUtility::toJsNumber(evt->len));
-    obj->Set(NanNew("data"), ConversionUtility::toJsValueArray(evt->data, evt->len));
+    Utility::Set(obj, "handle", evt->handle);
+    Utility::Set(obj, "type", evt->type);
+    Utility::Set(obj, "len", evt->len);
+    Utility::Set(obj, "data", ConversionUtility::toJsValueArray(evt->data, evt->len));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcTimeoutEvent::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverGattcEvent::ToJs(obj);
 
-    obj->Set(NanNew("src"), ConversionUtility::toJsNumber(evt->src));
+    Utility::Set(obj, "src", evt->src);
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 NAN_METHOD(PrimaryServicesDiscover)
 {
-    NanScope();
-
     bool has_service_uuid = false;
     v8::Local<v8::Object> service_uuid;
 
-    if (!args[0]->IsNumber())
+    if (!info[0]->IsNumber())
     {
-        NanThrowTypeError("First argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("First argument must be a number");
+        return;
     }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(args[0]);
+    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
 
-    if (!args[1]->IsNumber())
+    if (!info[1]->IsNumber())
     {
-        NanThrowTypeError("Second argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Second argument must be a number");
+        return;
     }
-    uint16_t start_handle = ConversionUtility::getNativeUint16(args[1]);
+    uint16_t start_handle = ConversionUtility::getNativeUint16(info[1]);
 
-    if (args[2]->IsObject())
+    if (info[2]->IsObject())
     {
         has_service_uuid = true;
-        service_uuid = args[2]->ToObject();
+        service_uuid = info[2]->ToObject();
     }
-    else if (!args[2]->IsNumber())
+    else if (!info[2]->IsNumber())
     {
-        NanThrowTypeError("Third argument must be a object or number 0");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Third argument must be a object or number 0");
+        return;
     }
 
-    if (!args[3]->IsFunction())
+    if (!info[3]->IsFunction())
     {
-        NanThrowTypeError("Forth argument must be a function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Forth argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[3].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[3].As<v8::Function>();
 
     GattcPrimaryServicesDiscoverBaton *baton = new GattcPrimaryServicesDiscoverBaton(callback);
     baton->conn_handle = conn_handle;
@@ -382,7 +397,7 @@ NAN_METHOD(PrimaryServicesDiscover)
     uv_queue_work(uv_default_loop(), baton->req, PrimaryServicesDiscover, (uv_after_work_cb)AfterPrimaryServicesDiscover);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -396,11 +411,10 @@ void PrimaryServicesDiscover(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterPrimaryServicesDiscover(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
-    // TODO: handle if .Close is called before this function is called.
     GattcPrimaryServicesDiscoverBaton *baton = static_cast<GattcPrimaryServicesDiscoverBaton *>(req->data);
-    v8::Handle<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -408,7 +422,7 @@ void AfterPrimaryServicesDiscover(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -418,28 +432,26 @@ void AfterPrimaryServicesDiscover(uv_work_t *req) {
 
 NAN_METHOD(RelationshipDiscover)
 {
-    NanScope();
-
-    if (!args[0]->IsNumber())
+    if (!info[0]->IsNumber())
     {
-        NanThrowTypeError("First argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("First argument must be a number");
+        return;
     }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(args[0]);
+    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
 
-    if (!args[1]->IsObject())
+    if (!info[1]->IsObject())
     {
-        NanThrowTypeError("Second argument must be a object");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Second argument must be a object");
+        return;
     }
-    v8::Local<v8::Object> handle_range = args[1]->ToObject();
+    v8::Local<v8::Object> handle_range = info[1]->ToObject();
 
-    if (!args[2]->IsFunction())
+    if (!info[2]->IsFunction())
     {
-        NanThrowTypeError("Third argument must be a function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Third argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[2].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[2].As<v8::Function>();
 
     GattcRelationshipDiscoverBaton *baton = new GattcRelationshipDiscoverBaton(callback);
     baton->conn_handle = conn_handle;
@@ -448,7 +460,7 @@ NAN_METHOD(RelationshipDiscover)
     uv_queue_work(uv_default_loop(), baton->req, RelationshipDiscover, (uv_after_work_cb)AfterRelationshipDiscover);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -462,11 +474,10 @@ void RelationshipDiscover(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterRelationshipDiscover(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
-    // TODO: handle if .Close is called before this function is called.
     GattcRelationshipDiscoverBaton *baton = static_cast<GattcRelationshipDiscoverBaton *>(req->data);
-    v8::Handle<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -474,7 +485,7 @@ void AfterRelationshipDiscover(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -484,28 +495,26 @@ void AfterRelationshipDiscover(uv_work_t *req) {
 
 NAN_METHOD(CharacteristicsDiscover)
 {
-    NanScope();
-
-    if (!args[0]->IsNumber())
+    if (!info[0]->IsNumber())
     {
-        NanThrowTypeError("First argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("First argument must be a number");
+        return;
     }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(args[0]);
+    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
 
-    if (!args[1]->IsObject())
+    if (!info[1]->IsObject())
     {
-        NanThrowTypeError("Second argument must be a object");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Second argument must be a object");
+        return;
     }
-    v8::Local<v8::Object> handle_range = args[1]->ToObject();
+    v8::Local<v8::Object> handle_range = info[1]->ToObject();
 
-    if (!args[2]->IsFunction())
+    if (!info[2]->IsFunction())
     {
-        NanThrowTypeError("Third argument must be a function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Third argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[2].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[2].As<v8::Function>();
 
     GattcCharacteristicsDiscoverBaton *baton = new GattcCharacteristicsDiscoverBaton(callback);
     baton->conn_handle = conn_handle;
@@ -514,7 +523,7 @@ NAN_METHOD(CharacteristicsDiscover)
     uv_queue_work(uv_default_loop(), baton->req, CharacteristicsDiscover, (uv_after_work_cb)AfterCharacteristicsDiscover);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -528,11 +537,10 @@ void CharacteristicsDiscover(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterCharacteristicsDiscover(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
-    // TODO: handle if .Close is called before this function is called.
     GattcCharacteristicsDiscoverBaton *baton = static_cast<GattcCharacteristicsDiscoverBaton *>(req->data);
-    v8::Handle<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -540,7 +548,7 @@ void AfterCharacteristicsDiscover(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -550,28 +558,26 @@ void AfterCharacteristicsDiscover(uv_work_t *req) {
 
 NAN_METHOD(DescriptorsDiscover)
 {
-    NanScope();
-
-    if (!args[0]->IsNumber())
+    if (!info[0]->IsNumber())
     {
-        NanThrowTypeError("First argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("First argument must be a number");
+        return;
     }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(args[0]);
+    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
 
-    if (!args[1]->IsObject())
+    if (!info[1]->IsObject())
     {
-        NanThrowTypeError("Second argument must be a object");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Second argument must be a object");
+        return;
     }
-    v8::Local<v8::Object> handle_range = args[1]->ToObject();
+    v8::Local<v8::Object> handle_range = info[1]->ToObject();
 
-    if (!args[2]->IsFunction())
+    if (!info[2]->IsFunction())
     {
-        NanThrowTypeError("Third argument must be a function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Third argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[2].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[2].As<v8::Function>();
 
     GattcDescriptorsDiscoverBaton *baton = new GattcDescriptorsDiscoverBaton(callback);
     baton->conn_handle = conn_handle;
@@ -580,7 +586,7 @@ NAN_METHOD(DescriptorsDiscover)
     uv_queue_work(uv_default_loop(), baton->req, DescriptorsDiscover, (uv_after_work_cb)AfterDescriptorsDiscover);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -594,11 +600,10 @@ void DescriptorsDiscover(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterDescriptorsDiscover(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
-    // TODO: handle if .Close is called before this function is called.
     GattcDescriptorsDiscoverBaton *baton = static_cast<GattcDescriptorsDiscoverBaton *>(req->data);
-    v8::Handle<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -606,7 +611,7 @@ void AfterDescriptorsDiscover(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -616,36 +621,34 @@ void AfterDescriptorsDiscover(uv_work_t *req) {
 
 NAN_METHOD(CharacteristicValueByUUIDRead)
 {
-    NanScope();
-
-    if (!args[0]->IsNumber())
+    if (!info[0]->IsNumber())
     {
-        NanThrowTypeError("First argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("First argument must be a number");
+        return;
     }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(args[0]);
+    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
 
-    if (!args[1]->IsObject())
+    if (!info[1]->IsObject())
     {
-        NanThrowTypeError("Second argument must be a object");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Second argument must be a object");
+        return;
     }
-    v8::Local<v8::Object> uuid = args[1]->ToObject();
+    v8::Local<v8::Object> uuid = info[1]->ToObject();
 
-    if (!args[2]->IsObject())
+    if (!info[2]->IsObject())
     {
-        NanThrowTypeError("Third argument must be a object");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Third argument must be a object");
+        return;
     }
-    v8::Local<v8::Object> handle_range = args[2]->ToObject();
+    v8::Local<v8::Object> handle_range = info[2]->ToObject();
 
 
-    if (!args[3]->IsFunction())
+    if (!info[3]->IsFunction())
     {
-        NanThrowTypeError("Forth argument must be a function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Forth argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[3].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[3].As<v8::Function>();
 
     GattcCharacteristicByUUIDReadBaton *baton = new GattcCharacteristicByUUIDReadBaton(callback);
     baton->conn_handle = conn_handle;
@@ -655,7 +658,7 @@ NAN_METHOD(CharacteristicValueByUUIDRead)
     uv_queue_work(uv_default_loop(), baton->req, CharacteristicValueByUUIDRead, (uv_after_work_cb)AfterCharacteristicValueByUUIDRead);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -669,11 +672,10 @@ void CharacteristicValueByUUIDRead(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterCharacteristicValueByUUIDRead(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
-    // TODO: handle if .Close is called before this function is called.
     GattcCharacteristicByUUIDReadBaton *baton = static_cast<GattcCharacteristicByUUIDReadBaton *>(req->data);
-    v8::Handle<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -681,7 +683,7 @@ void AfterCharacteristicValueByUUIDRead(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -691,36 +693,34 @@ void AfterCharacteristicValueByUUIDRead(uv_work_t *req) {
 
 NAN_METHOD(Read)
 {
-    NanScope();
-
-    if (!args[0]->IsNumber())
+    if (!info[0]->IsNumber())
     {
-        NanThrowTypeError("First argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("First argument must be a number");
+        return;
     }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(args[0]);
+    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
 
-    if (!args[1]->IsNumber())
+    if (!info[1]->IsNumber())
     {
-        NanThrowTypeError("Second argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Second argument must be a number");
+        return;
     }
-    uint16_t handle = ConversionUtility::getNativeUint16(args[1]);
+    uint16_t handle = ConversionUtility::getNativeUint16(info[1]);
 
-    if (!args[2]->IsNumber())
+    if (!info[2]->IsNumber())
     {
-        NanThrowTypeError("Third argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Third argument must be a number");
+        return;
     }
-    uint16_t offset = ConversionUtility::getNativeUint16(args[2]);
+    uint16_t offset = ConversionUtility::getNativeUint16(info[2]);
 
 
-    if (!args[3]->IsFunction())
+    if (!info[3]->IsFunction())
     {
-        NanThrowTypeError("Forth argument must be a function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Forth argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[3].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[3].As<v8::Function>();
 
     GattcReadBaton *baton = new GattcReadBaton(callback);
     baton->conn_handle = conn_handle;
@@ -730,7 +730,7 @@ NAN_METHOD(Read)
     uv_queue_work(uv_default_loop(), baton->req, Read, (uv_after_work_cb)AfterRead);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -744,11 +744,10 @@ void Read(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterRead(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
-    // TODO: handle if .Close is called before this function is called.
     GattcReadBaton *baton = static_cast<GattcReadBaton *>(req->data);
-    v8::Handle<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -756,7 +755,7 @@ void AfterRead(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -765,41 +764,39 @@ void AfterRead(uv_work_t *req) {
 
 NAN_METHOD(CharacteristicValuesRead)
 {
-    NanScope();
-
-    if (!args[0]->IsNumber())
+    if (!info[0]->IsNumber())
     {
-        NanThrowTypeError("First argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("First argument must be a number");
+        return;
     }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(args[0]);
+    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
 
-    if (!args[1]->IsObject())
+    if (!info[1]->IsObject())
     {
-        NanThrowTypeError("Second argument must be a object");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Second argument must be a object");
+        return;
     }
-    v8::Local<v8::Object> handles = args[1]->ToObject();
+    v8::Local<v8::Object> handles = info[1]->ToObject();
 
-    if (!args[2]->IsNumber())
+    if (!info[2]->IsNumber())
     {
-        NanThrowTypeError("Third argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Third argument must be a number");
+        return;
     }
-    uint16_t handle_count = ConversionUtility::getNativeUint16(args[2]);
+    uint16_t handle_count = ConversionUtility::getNativeUint16(info[2]);
 
-    if (!args[3]->IsFunction())
+    if (!info[3]->IsFunction())
     {
-        NanThrowTypeError("Forth argument must be a function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Forth argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[3].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[3].As<v8::Function>();
 
     uint16_t *p_handles = (uint16_t *)malloc(sizeof(uint16_t) * handle_count);
 
     for (int i = 0; i < handle_count; ++i)
     {
-        p_handles[i] = ConversionUtility::getNativeUint16(handles->Get(NanNew<v8::Number>(i)));
+        p_handles[i] = ConversionUtility::getNativeUint16(handles->Get(Nan::New<v8::Number>(i)));
     }
 
     GattcCharacteristicValuesReadBaton *baton = new GattcCharacteristicValuesReadBaton(callback);
@@ -810,7 +807,7 @@ NAN_METHOD(CharacteristicValuesRead)
     uv_queue_work(uv_default_loop(), baton->req, CharacteristicValuesRead, (uv_after_work_cb)AfterCharacteristicValuesRead);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -826,11 +823,10 @@ void CharacteristicValuesRead(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterCharacteristicValuesRead(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
-    // TODO: handle if .Close is called before this function is called.
     GattcCharacteristicValuesReadBaton *baton = static_cast<GattcCharacteristicValuesReadBaton *>(req->data);
-    v8::Handle<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -838,7 +834,7 @@ void AfterCharacteristicValuesRead(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -848,28 +844,26 @@ void AfterCharacteristicValuesRead(uv_work_t *req) {
 
 NAN_METHOD(Write)
 {
-    NanScope();
-
-    if (!args[0]->IsNumber())
+    if (!info[0]->IsNumber())
     {
-        NanThrowTypeError("First argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("First argument must be a number");
+        return;
     }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(args[0]);
+    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
 
-    if (!args[1]->IsObject())
+    if (!info[1]->IsObject())
     {
-        NanThrowTypeError("Second argument must be a object");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Second argument must be a object");
+        return;
     }
-    v8::Local<v8::Object> p_write_params = args[1]->ToObject();
+    v8::Local<v8::Object> p_write_params = info[1]->ToObject();
 
-    if (!args[2]->IsFunction())
+    if (!info[2]->IsFunction())
     {
-        NanThrowTypeError("Third argument must be a function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Third argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[2].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[2].As<v8::Function>();
 
     GattcWriteBaton *baton = new GattcWriteBaton(callback);
     baton->conn_handle = conn_handle;
@@ -878,7 +872,7 @@ NAN_METHOD(Write)
     uv_queue_work(uv_default_loop(), baton->req, Write, (uv_after_work_cb)AfterWrite);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -892,11 +886,10 @@ void Write(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterWrite(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
-    // TODO: handle if .Close is called before this function is called.
     GattcWriteBaton *baton = static_cast<GattcWriteBaton *>(req->data);
-    v8::Handle<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -904,7 +897,7 @@ void AfterWrite(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -914,28 +907,26 @@ void AfterWrite(uv_work_t *req) {
 
 NAN_METHOD(HandleValueConfirm)
 {
-    NanScope();
-
-    if (!args[0]->IsNumber())
+    if (!info[0]->IsNumber())
     {
-        NanThrowTypeError("First argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("First argument must be a number");
+        return;
     }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(args[0]);
+    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
 
-    if (!args[1]->IsNumber())
+    if (!info[1]->IsNumber())
     {
-        NanThrowTypeError("Second argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Second argument must be a number");
+        return;
     }
-    uint16_t handle = ConversionUtility::getNativeUint16(args[1]);
+    uint16_t handle = ConversionUtility::getNativeUint16(info[1]);
 
-    if (!args[2]->IsFunction())
+    if (!info[2]->IsFunction())
     {
-        NanThrowTypeError("Third argument must be a function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Third argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[2].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[2].As<v8::Function>();
 
     GattcHandleValueConfirmBaton *baton = new GattcHandleValueConfirmBaton(callback);
     baton->conn_handle = conn_handle;
@@ -944,7 +935,7 @@ NAN_METHOD(HandleValueConfirm)
     uv_queue_work(uv_default_loop(), baton->req, HandleValueConfirm, (uv_after_work_cb)AfterHandleValueConfirm);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -958,11 +949,10 @@ void HandleValueConfirm(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterHandleValueConfirm(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
-    // TODO: handle if .Close is called before this function is called.
     GattcHandleValueConfirmBaton *baton = static_cast<GattcHandleValueConfirmBaton *>(req->data);
-    v8::Handle<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -970,7 +960,7 @@ void AfterHandleValueConfirm(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -978,17 +968,17 @@ void AfterHandleValueConfirm(uv_work_t *req) {
 }
 
 extern "C" {
-    void init_gattc(v8::Handle<v8::Object> target)
+    void init_gattc(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
-        NODE_SET_METHOD(target, "gattc_primary_services_discover", PrimaryServicesDiscover);
-        NODE_SET_METHOD(target, "gattc_releationships_discover", RelationshipDiscover);
-        NODE_SET_METHOD(target, "gattc_characteristic_discover", CharacteristicsDiscover);
-        NODE_SET_METHOD(target, "gattc_descriptor_discover", DescriptorsDiscover);
-        NODE_SET_METHOD(target, "gattc_read_characteriscicvalue_by_uuid", CharacteristicValueByUUIDRead);
-        NODE_SET_METHOD(target, "gattc_read", Read);
-        NODE_SET_METHOD(target, "gattc_read_characteriscicvalue", CharacteristicValuesRead);
-        NODE_SET_METHOD(target, "gattc_write", Write);
-        NODE_SET_METHOD(target, "gattc_confirm_handle_value", HandleValueConfirm);
+        Utility::SetMethod(target, "gattc_primary_services_discover", PrimaryServicesDiscover);
+        Utility::SetMethod(target, "gattc_releationships_discover", RelationshipDiscover);
+        Utility::SetMethod(target, "gattc_characteristic_discover", CharacteristicsDiscover);
+        Utility::SetMethod(target, "gattc_descriptor_discover", DescriptorsDiscover);
+        Utility::SetMethod(target, "gattc_read_characteriscicvalue_by_uuid", CharacteristicValueByUUIDRead);
+        Utility::SetMethod(target, "gattc_read", Read);
+        Utility::SetMethod(target, "gattc_read_characteriscicvalue", CharacteristicValuesRead);
+        Utility::SetMethod(target, "gattc_write", Write);
+        Utility::SetMethod(target, "gattc_confirm_handle_value", HandleValueConfirm);
 
         /* BLE_ERRORS_GATTC SVC return values specific to GATTC */
         NODE_DEFINE_CONSTANT(target, BLE_ERROR_GATTC_PROC_NOT_PERMITTED);

@@ -4,6 +4,8 @@
 #include <chrono>
 
 #include <ble.h>
+
+#include "adapter.h"
 #include "driver.h"
 #include "driver_gap.h"
 #include "driver_gatt.h"
@@ -16,27 +18,6 @@ using namespace std;
 //using namespace memory_relaxed_aquire_release;
 using namespace memory_sequential_unsafe;
 
-/*
-
-package.json:
-
-To compile for node:
-"cmake-js": {
-"runtime": "node",
-"runtimeVersion": "0.12.4",
-"arch": "ia32"
-},
-
-
-To compile for electron:
-"cmake-js": {
-"runtime": "electron",
-"runtimeVersion": "0.29.1",
-"arch": "ia32"
-},
-
-*/
-
 typedef CircularFifo<EventEntry *, 64> EventQueue;
 typedef CircularFifo<LogEntry *, 64> LogQueue;
 
@@ -48,7 +29,7 @@ typedef CircularFifo<LogEntry *, 64> LogQueue;
         std::string timestamp = event_entry->timestamp;                                                                 \
         v8::Local<v8::Value> js_event =                                                                                 \
             Gap##evt_to_js(timestamp, gap_event.conn_handle, &(gap_event.params.params_name)).ToJs();                   \
-        event_array->Set(NanNew<v8::Integer>(event_array_idx), js_event);                                               \
+        Nan::Set(event_array, event_array_idx, js_event);                                               \
         break;                                                                                                          \
     }
 
@@ -60,7 +41,7 @@ typedef CircularFifo<LogEntry *, 64> LogQueue;
         std::string timestamp = event_entry->timestamp;                                                                 \
         v8::Local<v8::Value> js_event =                                                                                 \
             Gattc##evt_to_js(timestamp, gattc_event->conn_handle, gattc_event->gatt_status, gattc_event->error_handle, &(gattc_event->params.params_name)).ToJs();                   \
-        event_array->Set(NanNew<v8::Integer>(event_array_idx), js_event);                                               \
+        Nan::Set(event_array, event_array_idx, js_event);                                               \
         break;                                                                                                          \
     }
 
@@ -88,8 +69,8 @@ uint32_t evt_cb_batch_evt_total_count;
 uint32_t evt_cb_batch_number;
 
 // This is just a hack for now. Just want to test the event-loop all the way up to JavaScript.
-NanCallback *driver_log_callback;
-NanCallback *driver_event_callback;
+Nan::Callback *driver_log_callback;
+Nan::Callback *driver_event_callback;
 
 // This function is ran by the thread that the SoftDevice Driver has initiated
 void sd_rpc_on_log_event(sd_rpc_log_severity_t severity, const char *log_message)
@@ -101,7 +82,7 @@ void sd_rpc_on_log_event(sd_rpc_log_severity_t severity, const char *log_message
     memcpy(message, log_message, (size_t) length);
 
     LogEntry *log_entry = new LogEntry();
-    log_entry->message = (char*)message;
+    log_entry->message = (char *)message;
     log_entry->severity = severity;
 
     LogQueue *log_queue = ((LogQueue*)async_log.data);
@@ -113,7 +94,7 @@ void sd_rpc_on_log_event(sd_rpc_log_severity_t severity, const char *log_message
 // Now we are in the NodeJS thread. Call callbacks.
 void on_log_event(uv_async_t *handle)
 {
-    NanScope();
+    Nan::HandleScope scope;
 
     LogQueue *log_entries_buffer = (LogQueue*)handle->data;
 
@@ -131,7 +112,6 @@ void on_log_event(uv_async_t *handle)
         }
 
         // Free memory for current entry, we remove the element from the deque when the iteration is done
-        free(log_entry->message);
         delete log_entry;
     }
 }
@@ -158,7 +138,10 @@ void sd_rpc_on_event(ble_evt_t *event)
     // TODO: Clarification:
     // The lifecycle for the event is controlled by the driver. We must not free any memory related to the incoming event.
 
-    if (event == NULL) return;
+    if (event == NULL)
+    {
+        return;
+    }
 
     /*if (event->header.evt_id == BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP)
     {
@@ -195,32 +178,41 @@ void sd_rpc_on_event(ble_evt_t *event)
     event_queue->push(event_entry);
 
     // If the event interval is not set, send the events to NodeJS as soon as possible.
-    if (evt_interval == 0) send_events_upstream();
+    if (evt_interval == 0)
+    {
+        send_events_upstream();
+    }
 }
 
 // Now we are in the NodeJS thread. Call callbacks.
 void on_rpc_event(uv_async_t *handle)
 {
-    NanScope();
+    Nan::HandleScope scope;
     // TODO: Check if we must add NanScope() to this function
 
     EventQueue *event_entries = (EventQueue*)handle->data;
 
-    if (event_entries->wasEmpty()) return;
+    if (event_entries->wasEmpty())
+    {
+        return;
+    }
 
     // Update statistics (evaluate if we shall lock the statistics counters to get more preceise data)
     evt_cb_batch_evt_total_count += evt_cb_batch_evt_counter;
     evt_cb_batch_evt_counter = 0;
     evt_cb_batch_number += 1;
 
-    v8::Local<v8::Array> array = NanNew<v8::Array>();
+    v8::Local<v8::Array> array = Nan::New<v8::Array>();
     int array_idx = 0;
 
     while (!event_entries->wasEmpty())
     {
-        EventEntry *event_entry;
+        EventEntry *event_entry = NULL;
         event_entries->pop(event_entry);
+        assert(event_entry != NULL);
+
         ble_evt_t *event = event_entry->event;
+        assert(event != NULL);
 
         if (driver_event_callback != NULL)
         {
@@ -262,7 +254,12 @@ void on_rpc_event(uv_async_t *handle)
     callback_value[0] = array;
 
     auto start = chrono::high_resolution_clock::now();
-    driver_event_callback->Call(1, callback_value);
+    
+    if (driver_event_callback != NULL)
+    {
+        driver_event_callback->Call(1, callback_value);
+    }
+
     auto end = chrono::high_resolution_clock::now();
 
     chrono::milliseconds duration = chrono::duration_cast<chrono::milliseconds>(end - start);
@@ -271,45 +268,43 @@ void on_rpc_event(uv_async_t *handle)
 
 // This function runs in the Main Thread
 NAN_METHOD(Open) {
-    NanScope();
-
     // Path to device
-    if (!args[0]->IsString()) {
-        NanThrowTypeError("First argument must be a string");
-        NanReturnUndefined();
+    if (!info[0]->IsString()) {
+        Nan::ThrowTypeError("First argument must be a string");
+        return;
     }
-    v8::String::Utf8Value path(args[0]->ToString());
+    v8::String::Utf8Value path(info[0]->ToString());
 
     // Options
-    if (!args[1]->IsObject()) {
-        NanThrowTypeError("Second argument must be an object");
-        NanReturnUndefined();
+    if (!info[1]->IsObject()) {
+        Nan::ThrowTypeError("Second argument must be an object");
+        return;
     }
-    v8::Local<v8::Object> options = args[1]->ToObject();
+    v8::Local<v8::Object> options = info[1]->ToObject();
 
     // Callback
-    if (!args[2]->IsFunction()) {
-        NanThrowTypeError("Third argument must be a function");
-        NanReturnUndefined();
+    if (!info[2]->IsFunction()) {
+        Nan::ThrowTypeError("Third argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[2].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[2].As<v8::Function>();
 
     OpenBaton *baton = new OpenBaton(callback);
 
     strncpy(baton->path, *path, PATH_STRING_SIZE);
 
     baton->baud_rate = ConversionUtility::getNativeUint32(options, "baudRate");
-    baton->parity = ToParityEnum(options->Get(NanNew<v8::String>("parity"))->ToString());
-    baton->flow_control = ToFlowControlEnum(options->Get(NanNew<v8::String>("flowControl"))->ToString());
+    baton->parity = ToParityEnum(Utility::Get(options, "parity")->ToString());
+    baton->flow_control = ToFlowControlEnum(Utility::Get(options, "flowControl")->ToString());
     baton->evt_interval = ConversionUtility::getNativeUint32(options, "eventInterval");
-    baton->log_level = ToLogSeverityEnum(options->Get(NanNew<v8::String>("logLevel"))->ToString());
+    baton->log_level = ToLogSeverityEnum(Utility::Get(options, "logLevel")->ToString());
 
-    baton->log_callback = new NanCallback(options->Get(NanNew<v8::String>("logCallback")).As<v8::Function>());
-    baton->event_callback = new NanCallback(options->Get(NanNew<v8::String>("eventCallback")).As<v8::Function>());
+    baton->log_callback = new Nan::Callback(Utility::Get(options, "logCallback").As<v8::Function>());
+    baton->event_callback = new Nan::Callback(Utility::Get(options, "eventCallback").As<v8::Function>());
 
     uv_queue_work(uv_default_loop(), baton->req, Open, (uv_after_work_cb)AfterOpen);
 
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -359,8 +354,6 @@ void Open(uv_work_t *req) {
         return;
     }
 
-
-
     ble_enable_params_t *ble_enable_params = new ble_enable_params_t();
     memset(ble_enable_params, 0, sizeof(ble_enable_params_t));
     ble_enable_params->gatts_enable_params.attr_tab_size = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
@@ -371,9 +364,8 @@ void Open(uv_work_t *req) {
 
 // This runs in  Main Thread
 void AfterOpen(uv_work_t *req) {
-    NanScope();
-
     // TODO: handle if .Close is called before this function is called.
+	Nan::HandleScope scope;
     OpenBaton *baton = static_cast<OpenBaton *>(req->data);
     delete req;
 
@@ -398,7 +390,7 @@ void AfterOpen(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -406,24 +398,20 @@ void AfterOpen(uv_work_t *req) {
 }
 
 NAN_METHOD(Close) {
-    NanScope();
-
     lock_guard<mutex> lock(ble_driver_call_mutex);
     sd_rpc_close();
 
-    NanReturnUndefined();
+    return;
 }
 
 NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& v8str) {
-    NanScope();
-
     sd_rpc_parity_t parity = SD_RPC_PARITY_NONE;
 
-    if (v8str->Equals(NanNew("none")))
+    if (v8str->Equals(Nan::New("none").ToLocalChecked()))
     {
         parity = SD_RPC_PARITY_NONE;
     }
-    else if (v8str->Equals(NanNew("even")))
+    else if (v8str->Equals(Nan::New("even").ToLocalChecked()))
     {
         parity = SD_RPC_PARITY_EVEN;
     }
@@ -432,15 +420,13 @@ NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& v8str) {
 }
 
 NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const v8::Handle<v8::String>& v8str) {
-    NanScope();
-
     sd_rpc_flow_control_t flow_control = SD_RPC_FLOW_CONTROL_NONE;
 
-    if (v8str->Equals(NanNew("none")))
+    if (v8str->Equals(Nan::New("none").ToLocalChecked()))
     {
         flow_control = SD_RPC_FLOW_CONTROL_NONE;
     }
-    else if (v8str->Equals(NanNew("hw")))
+    else if (v8str->Equals(Nan::New("hw").ToLocalChecked()))
     {
         flow_control = SD_RPC_FLOW_CONTROL_HARDWARE;
     }
@@ -449,27 +435,25 @@ NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const v8::Handle<v8::String>&
 }
 
 NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const v8::Handle<v8::String>& v8str) {
-    NanScope();
-
     sd_rpc_log_severity_t log_severity = SD_RPC_LOG_DEBUG;
 
-    if(v8str->Equals(NanNew("trace")))
+    if (v8str->Equals(Nan::New("trace").ToLocalChecked()))
     {
         log_severity = SD_RPC_LOG_TRACE;
     }
-    else if (v8str->Equals(NanNew("debug")))
+    else if (v8str->Equals(Nan::New("debug").ToLocalChecked()))
     {
         log_severity = SD_RPC_LOG_DEBUG;
     }
-    else if (v8str->Equals(NanNew("info")))
+    else if (v8str->Equals(Nan::New("info").ToLocalChecked()))
     {
         log_severity = SD_RPC_LOG_INFO;
     }
-    else if (v8str->Equals(NanNew("error")))
+    else if (v8str->Equals(Nan::New("error").ToLocalChecked()))
     {
         log_severity = SD_RPC_LOG_ERROR;
     }
-    else if (v8str->Equals(NanNew("fatal")))
+    else if (v8str->Equals(Nan::New("fatal").ToLocalChecked()))
     {
         log_severity = SD_RPC_LOG_FATAL;
     }
@@ -479,14 +463,12 @@ NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const v8::Handle<v8::String>&
 
 NAN_METHOD(GetVersion)
 {
-    NanScope();
-
     // Callback
-    if (!args[0]->IsFunction()) {
-        NanThrowTypeError("First argument must be a function");
-        NanReturnUndefined();
+    if (!info[0]->IsFunction()) {
+        Nan::ThrowTypeError("First argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[0].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[0].As<v8::Function>();
 
     ble_version_t *version = new ble_version_t();
     memset(version, 0, sizeof(ble_version_t));
@@ -496,7 +478,7 @@ NAN_METHOD(GetVersion)
 
     uv_queue_work(uv_default_loop(), baton->req, GetVersion, (uv_after_work_cb)AfterGetVersion);
 
-    NanReturnUndefined();
+    return;
 }
 
 void GetVersion(uv_work_t *req) {
@@ -508,20 +490,19 @@ void GetVersion(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGetVersion(uv_work_t *req) {
-    NanScope();
-
+	Nan::HandleScope scope;
     GetVersionBaton *baton = static_cast<GetVersionBaton *>(req->data);
     v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
         argv[1] = ErrorMessage::getErrorMessage(baton->result, "getting version.");
     }
     else
     {
         argv[0] = Version(baton->version).ToJs();
-        argv[1] = NanUndefined();
+        argv[1] = Nan::Undefined();
     }
 
     baton->callback->Call(2, argv);
@@ -531,12 +512,11 @@ void AfterGetVersion(uv_work_t *req) {
 
 NAN_METHOD(GetStats)
 {
-    NanScope();
-
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
-    obj->Set(NanNew("event_callback_total_time"), ConversionUtility::toJsNumber((int32_t)evt_cb_duration.count()));
-    obj->Set(NanNew("event_callback_total_count"), ConversionUtility::toJsNumber(evt_cb_count));
-    obj->Set(NanNew("event_callback_batch_max_count"), ConversionUtility::toJsNumber(evt_cb_max_count));
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    Utility::Set(obj, "event_callback_total_time", (int32_t)evt_cb_duration.count());
+    Utility::Set(obj, "event_callback_total_time", (int32_t)evt_cb_duration.count());
+    Utility::Set(obj, "event_callback_total_count", evt_cb_count);
+    Utility::Set(obj, "event_callback_batch_max_count", evt_cb_max_count);
 
     double avg_cb_batch_count = 0.0;
 
@@ -545,9 +525,9 @@ NAN_METHOD(GetStats)
         avg_cb_batch_count = evt_cb_batch_evt_total_count / evt_cb_batch_number;
     }
 
-    obj->Set(NanNew("event_callback_batch_avg_count"), ConversionUtility::toJsNumber(avg_cb_batch_count));
+    Utility::Set(obj, "event_callback_batch_avg_count", avg_cb_batch_count);
 
-    NanReturnValue(obj);
+    Utility::SetReturnValue(info, obj);
 }
 
 //
@@ -556,11 +536,14 @@ NAN_METHOD(GetStats)
 
 v8::Local<v8::Object> Version::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
-    obj->Set(NanNew("version_number"), ConversionUtility::toJsNumber(native->version_number));
-    obj->Set(NanNew("company_id"), ConversionUtility::toJsNumber(native->company_id));
-    obj->Set(NanNew("subversion_number"), ConversionUtility::toJsNumber(native->subversion_number));
-    return obj;
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+
+    Utility::Set(obj, "version_number", native->version_number);
+    Utility::Set(obj, "company_id", native->company_id);
+    Utility::Set(obj, "subversion_number", native->subversion_number);
+
+    return scope.Escape(obj);
 }
 
 ble_version_t *Version::ToNative()
@@ -582,11 +565,14 @@ ble_version_t *Version::ToNative()
 
 v8::Local<v8::Object> BleUUID::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
-    obj->Set(NanNew("uuid"), ConversionUtility::toJsNumber(native->uuid));
-    obj->Set(NanNew("type"), ConversionUtility::toJsNumber(native->type));
-    obj->Set(NanNew("typeString"), ConversionUtility::valueToJsString(native->type, uuid_type_name_map));
-    return obj;
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+
+    Utility::Set(obj, "uuid", native->uuid);
+    Utility::Set(obj, "type", native->type);
+    Utility::Set(obj, "typeString", ConversionUtility::valueToJsString(native->type, uuid_type_name_map));
+
+    return scope.Escape(obj);
 }
 
 ble_uuid_t *BleUUID::ToNative()
@@ -609,15 +595,19 @@ ble_uuid_t *BleUUID::ToNative()
 
 v8::Local<v8::Object> BleUUID128::ToJs()
 {
-    v8::Handle<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     size_t uuid_len = 16 * 2 + 4 + 1; // Each byte -> 2 chars, 4 - separator _between_ some bytes and 1 byte null termination character
     char *uuid128string = (char*)malloc(uuid_len);
+    assert(uuid128string != NULL);
     uint8_t *ptr = native->uuid128;
 
     sprintf(uuid128string, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x", ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], ptr[6], ptr[7], ptr[8], ptr[9], ptr[10], ptr[11], ptr[12], ptr[13], ptr[14], ptr[15]);
-    obj->Set(NanNew("uuid128"), ConversionUtility::toJsString(uuid128string));
+    Utility::Set(obj, "uuid128", uuid128string);
     free(uuid128string);
-    return obj;
+
+    return scope.Escape(obj);
 }
 
 ble_uuid128_t *BleUUID128::ToNative()
@@ -631,16 +621,17 @@ ble_uuid128_t *BleUUID128::ToNative()
 //
 
 extern "C" {
-    void init_driver(v8::Handle<v8::Object> target);
-    void init_types(v8::Handle<v8::Object> target);
-    void init_ranges(v8::Handle<v8::Object> target);
-    void init_hci(v8::Handle<v8::Object> target);
-    void init_error(v8::Handle<v8::Object> target);
+    void init_adapter_list(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+    void init_driver(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+    void init_types(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+    void init_ranges(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+    void init_hci(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+    void init_error(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 
-    void init(v8::Handle<v8::Object> target)
+    NAN_MODULE_INIT(init)
     {
-        NanScope();
-
+//        Nan::HandleScope scope;
+        init_adapter_list(target);
         init_driver(target);
         init_types(target);
         init_ranges(target);
@@ -652,13 +643,18 @@ extern "C" {
         init_gatts(target);
     }
 
-    void init_driver(v8::Handle<v8::Object> target)
+    void init_adapter_list(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
-        NODE_SET_METHOD(target, "open", Open);
-        NODE_SET_METHOD(target, "close", Close);
-        NODE_SET_METHOD(target, "get_version", GetVersion);
+        Utility::SetMethod(target, "get_adapters", GetAdapterList);
+    }
 
-        NODE_SET_METHOD(target, "get_stats", GetStats);
+    void init_driver(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
+    {
+        Utility::SetMethod(target, "open", Open);
+        Utility::SetMethod(target, "close", Close);
+        Utility::SetMethod(target, "get_version", GetVersion);
+
+        Utility::SetMethod(target, "get_stats", GetStats);
 
         // Constants used for log events
         NODE_DEFINE_CONSTANT(target, SD_RPC_LOG_TRACE);
@@ -669,7 +665,7 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, SD_RPC_LOG_FATAL);
     }
 
-    void init_types(v8::Handle<v8::Object> target)
+    void init_types(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
         // Constants from ble_types.h
 
@@ -760,7 +756,7 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_APPEARANCE_OUTDOOR_SPORTS_ACT_LOC_AND_NAV_POD); /* Location and Navigation Pod (Outdoor Sports Activity subtype). */
     }
 
-    void init_ranges(v8::Handle<v8::Object> target)
+    void init_ranges(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
         NODE_DEFINE_CONSTANT(target, BLE_SVC_BASE);           /**< Common BLE SVC base. */
         NODE_DEFINE_CONSTANT(target, BLE_SVC_LAST);           /**< Total: 12. */
@@ -798,7 +794,7 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_L2CAP_OPT_LAST);     /**< Total: 32.  */
     }
 
-    void init_hci(v8::Handle<v8::Object> target)
+    void init_hci(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
         // Constants from ble_hci.h
 
@@ -875,7 +871,7 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_HCI_CONN_FAILED_TO_BE_ESTABLISHED); //Connection Failed to be Established.
     }
 
-    void init_error(v8::Handle<v8::Object> target)
+    void init_error(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
         NODE_DEFINE_CONSTANT(target, NRF_ERROR_BASE_NUM);      ///< Global error base
         NODE_DEFINE_CONSTANT(target, NRF_ERROR_SDM_BASE_NUM);  ///< SDM error base

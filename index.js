@@ -1,1 +1,1 @@
-module.exports = require('bindings')("ble_driver_js");
+module.exports = require('bindings')('ble_driver_js');

@@ -1,7 +1,3 @@
-//
-// Created by kere on 19.06.2015.
-//
-
 #ifndef BLE_DRIVER_JS_DRIVER_H
 #define BLE_DRIVER_JS_DRIVER_H
 
@@ -12,21 +8,17 @@
 #include <sd_rpc.h>
 #include "common.h"
 
-NAN_METHOD(Open);
-void Open(uv_work_t *req);
-void AfterOpen(uv_work_t *req);
+// Async methods
+METHOD_DEFINITIONS(Open);
+METHOD_DEFINITIONS(GetVersion);
 
+// Synchronous methods
 NAN_METHOD(Close);
+NAN_METHOD(GetStats);
 
 NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& str);
 NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const v8::Handle<v8::String>& str);
 NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const v8::Handle<v8::String>& str);
-
-NAN_METHOD(GetVersion);
-void GetVersion(uv_work_t *req);
-void AfterGetVersion(uv_work_t *req);
-
-NAN_METHOD(GetStats);
 
 class Version : public BleToJs<ble_version_t>
 {
@@ -61,8 +53,8 @@ struct OpenBaton : public Baton {
 public:
     BATON_CONSTRUCTOR(OpenBaton)
     char path[PATH_STRING_SIZE];
-    NanCallback *event_callback; // Callback that is called for every event that is received from the SoftDevice
-    NanCallback *log_callback;   // Callback that is called for every log entry that is received from the SoftDevice
+    Nan::Callback *event_callback; // Callback that is called for every event that is received from the SoftDevice
+    Nan::Callback *log_callback;   // Callback that is called for every log entry that is received from the SoftDevice
 
     sd_rpc_log_severity_t log_level;
     sd_rpc_log_handler_t log_handler;
@@ -87,7 +79,7 @@ public:
 struct LogEntry {
 public:
     sd_rpc_log_severity_t severity;
-    char *message;
+    std::string message;
 };
 
 struct EventEntry {

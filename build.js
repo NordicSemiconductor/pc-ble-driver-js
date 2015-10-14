@@ -1,15 +1,16 @@
-function build()
+function build(debug)
 {
-    var cmakeJS = require("cmake-js");
+    var cmakeJS = require('cmake-js');
 
-    var defaultRuntime = "node";
-    var defaultRuntimeVersion = "0.12.7";
-    var defaultWinArch = "ia32";
+    var defaultRuntime = 'node';
+    var defaultRuntimeVersion = '0.12.7';
+    var defaultWinArch = 'ia32';
 
     var options = {
         runtime: process.env.npm_config_runtime || undefined,
         runtimeVersion: process.env.npm_config_target || undefined,
-        arch: process.env.npm_config_arch || undefined
+        arch: process.env.npm_config_arch || undefined,
+        debug: debug
     }
 
     var buildSystem = new cmakeJS.BuildSystem(options);
@@ -22,7 +23,7 @@ function build()
         buildSystem.options.runtimeVersion = defaultRuntimeVersion;
     }
 
-    if (buildSystem.options.arch == undefined && process.platform == "win32") {
+    if (buildSystem.options.arch == undefined && process.platform == 'win32') {
         buildSystem.options.arch = defaultWinArch;
     }
 
@@ -31,12 +32,19 @@ function build()
 
 var times = 0;
 
-function begin() {
-    try {
-        build();
+function begin(args) {
+    var debug = false;
+
+    var length = args.length >>> 0;
+
+    for (var i = 0; i < length; i++) {
+        if(args[i] === '--debug') debug = true;
     }
-    catch(e) {
-        if (e.code == "MODULE_NOT_FOUND") {
+
+    try {
+        build(debug);
+    } catch(e) {
+        if (e.code == 'MODULE_NOT_FOUND') {
             if (times++ == 5) {
                 throw e;
             }
@@ -50,4 +58,4 @@ function begin() {
     }
 };
 
-begin();
+begin(process.argv);

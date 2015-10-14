@@ -40,17 +40,18 @@ extern name_map_t gatt_status_map = {
 
 v8::Local<v8::Object> GattCharProps::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
-    obj->Set(NanNew("broadcast"), ConversionUtility::toJsBool(native->broadcast));
-    obj->Set(NanNew("read"), ConversionUtility::toJsBool(native->read));
-    obj->Set(NanNew("write_wo_resp"), ConversionUtility::toJsBool(native->write_wo_resp));
-    obj->Set(NanNew("write"), ConversionUtility::toJsBool(native->write));
-    obj->Set(NanNew("notify"), ConversionUtility::toJsBool(native->notify));
-    obj->Set(NanNew("indicate"), ConversionUtility::toJsBool(native->indicate));
-    obj->Set(NanNew("auth_signed_wr"), ConversionUtility::toJsBool(native->auth_signed_wr));
+    Utility::Set(obj, "broadcast", ConversionUtility::toJsBool(native->broadcast));
+    Utility::Set(obj, "read", ConversionUtility::toJsBool(native->read));
+    Utility::Set(obj, "write_wo_resp", ConversionUtility::toJsBool(native->write_wo_resp));
+    Utility::Set(obj, "write", ConversionUtility::toJsBool(native->write));
+    Utility::Set(obj, "notify", ConversionUtility::toJsBool(native->notify));
+    Utility::Set(obj, "indicate", ConversionUtility::toJsBool(native->indicate));
+    Utility::Set(obj, "auth_signed_wr", ConversionUtility::toJsBool(native->auth_signed_wr));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 ble_gatt_char_props_t *GattCharProps::ToNative()
@@ -78,12 +79,13 @@ ble_gatt_char_props_t *GattCharProps::ToNative()
 
 v8::Local<v8::Object> GattCharExtProps::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
-    obj->Set(NanNew("reliable_wr"), ConversionUtility::toJsBool(native->reliable_wr));
-    obj->Set(NanNew("wr_aux"), ConversionUtility::toJsBool(native->wr_aux));
+    Utility::Set(obj, "reliable_wr", ConversionUtility::toJsBool(native->reliable_wr));
+    Utility::Set(obj, "wr_aux", ConversionUtility::toJsBool(native->wr_aux));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 ble_gatt_char_ext_props_t *GattCharExtProps::ToNative()
@@ -101,7 +103,7 @@ ble_gatt_char_ext_props_t *GattCharExtProps::ToNative()
 //
 
 extern "C" {
-    void init_gatt(v8::Handle<v8::Object> target)
+    void init_gatt(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
         /* Default MTU size. */
         NODE_DEFINE_CONSTANT(target, GATT_MTU_SIZE_DEFAULT);

@@ -97,26 +97,25 @@ static name_map_t gap_ad_type_map =
 
 v8::Local<v8::Object> GapAddr::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
-
-    obj->Set(NanNew("type"), NanNew(gap_addr_type_map[native->addr_type]));
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
     // Create a text string of the address. The when the NanUtf8String string is out of
     // its scope, the underlaying string is freed.
 
     size_t addr_len = BLE_GAP_ADDR_LEN * 3; // Each byte -> 2 chars, : separator _between_ each byte and a null termination byte
     char *addr = (char*)malloc(addr_len);
+	assert(addr != NULL);
     uint8_t *ptr = native->addr;
 
     sprintf(addr, "%02X:%02X:%02X:%02X:%02X:%02X", ptr[5], ptr[4], ptr[3], ptr[2], ptr[1], ptr[0]);
 
-    // TODO: According to Instruments (OS X), GapAddr::ToJs leaks 32 bytes. This must be resolved.
-    v8::Local<v8::String> _addr = NanNew(addr);
-    obj->Set(NanNew("address"), _addr);
-    obj->Set(NanNew("type"), NanNew(gap_addr_type_map[native->addr_type]));
+    Utility::Set(obj, "address", addr);
+    Utility::Set(obj, "type", gap_addr_type_map[native->addr_type]);
 
     free(addr);
-    return obj;
+
+    return scope.Escape(obj);
 }
 
 ble_gap_addr_t *GapAddr::ToNative()
@@ -125,13 +124,16 @@ ble_gap_addr_t *GapAddr::ToNative()
 
     uint32_t ptr[BLE_GAP_ADDR_LEN];
 
-    v8::Local<v8::Value> getAddress = jsobj->Get(NanNew("address"));
+    v8::Local<v8::Value> getAddress = Utility::Get(jsobj, "address");
     v8::Local<v8::String> addressString = getAddress->ToString();
     size_t addr_len = addressString->Length() + 1;
     char *addr = (char*)malloc(addr_len);
+	assert(addr != NULL);
     addressString->WriteUtf8(addr, addr_len);
 
-    sscanf(addr, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &(ptr[5]), &(ptr[4]), &(ptr[3]), &(ptr[2]), &(ptr[1]), &(ptr[0]));
+    int scan_count = sscanf(addr, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &(ptr[5]), &(ptr[4]), &(ptr[3]), &(ptr[2]), &(ptr[1]), &(ptr[0]));
+	assert(scan_count == 6);
+
     free(addr);
 
     for (int i = 0; i < BLE_GAP_ADDR_LEN; i++)
@@ -139,12 +141,13 @@ ble_gap_addr_t *GapAddr::ToNative()
         address->addr[i] = (uint8_t)ptr[i];
     }
 
-    v8::Local<v8::Value> getAddressType = jsobj->Get(NanNew("type"));
+    v8::Local<v8::Value> getAddressType = Utility::Get(jsobj, "type");
     v8::Local<v8::String> addressTypeString = getAddressType->ToString();
     size_t type_len = addressTypeString->Length() + 1;
     char *typeString = (char *)malloc(type_len);
     addressTypeString->WriteUtf8(typeString, type_len);
     address->addr_type = (uint8_t)fromNameToValue(gap_addr_type_map, typeString);
+
     free(typeString);
 
     return address;
@@ -160,14 +163,15 @@ ble_gap_addr_t *GapAddr::ToNative()
 
 v8::Local<v8::Object> GapConnParams::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
-    obj->Set(NanNew("min_conn_interval"), ConversionUtility::unitsToMsecs(native->min_conn_interval, ConversionUtility::ConversionUnit1250ms));
-    obj->Set(NanNew("max_conn_interval"), ConversionUtility::unitsToMsecs(native->max_conn_interval, ConversionUtility::ConversionUnit1250ms));
-    obj->Set(NanNew("slave_latency"), ConversionUtility::toJsNumber(native->slave_latency));
-    obj->Set(NanNew("conn_sup_timeout"), ConversionUtility::unitsToMsecs(native->conn_sup_timeout, ConversionUtility::ConversionUnit10s));
+    Utility::Set(obj, "min_conn_interval", ConversionUtility::unitsToMsecs(native->min_conn_interval, ConversionUtility::ConversionUnit1250ms));
+    Utility::Set(obj, "max_conn_interval", ConversionUtility::unitsToMsecs(native->max_conn_interval, ConversionUtility::ConversionUnit1250ms));
+    Utility::Set(obj, "slave_latency", native->slave_latency);
+    Utility::Set(obj, "conn_sup_timeout", ConversionUtility::unitsToMsecs(native->conn_sup_timeout, ConversionUtility::ConversionUnit10s));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 ble_gap_conn_params_t *GapConnParams::ToNative()
@@ -193,18 +197,20 @@ ble_gap_conn_params_t *GapConnParams::ToNative()
 
 v8::Local<v8::Object> GapConnSecMode::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
-    obj->Set(NanNew("sm"), NanNew(native->sm));
-    obj->Set(NanNew("lv"), NanNew(native->lv));
-    return obj;
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    Utility::Set(obj, "sm", native->sm);
+    Utility::Set(obj, "lv", native->lv);
+    return scope.Escape(obj);
 }
+
 
 ble_gap_conn_sec_mode_t *GapConnSecMode::ToNative()
 {
     ble_gap_conn_sec_mode_t *conn_sec_mode = new ble_gap_conn_sec_mode_t();
 
-    conn_sec_mode->sm = (uint8_t)jsobj->Get(NanNew("sm"))->ToUint32()->NumberValue();
-    conn_sec_mode->lv = (uint8_t)jsobj->Get(NanNew("lv"))->ToUint32()->NumberValue();
+    conn_sec_mode->sm = ConversionUtility::getNativeUint8(jsobj, "sm");
+    conn_sec_mode->lv = ConversionUtility::getNativeUint8(jsobj, "lv");
 
     return conn_sec_mode;
 }
@@ -218,14 +224,15 @@ ble_gap_conn_sec_mode_t *GapConnSecMode::ToNative()
 //
 v8::Local<v8::Object> GapAdvReport::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(NanNew("rssi"), NanNew<v8::Integer>(this->evt->rssi));
-    obj->Set(NanNew("peer_addr"), GapAddr(&(this->evt->peer_addr)));
-    obj->Set(NanNew("scan_rsp"), NanNew<v8::Boolean>(this->evt->scan_rsp ? true : false));
+    Utility::Set(obj, "rssi", evt->rssi);
+    Utility::Set(obj, "peer_addr", GapAddr(&(this->evt->peer_addr)).ToJs());
+    Utility::Set(obj, "scan_rsp", ConversionUtility::toJsBool(evt->scan_rsp));
 
     if (this->evt->scan_rsp == 1) {
-        obj->Set(NanNew("adv_type"), NanNew(gap_adv_type_map[this->evt->type])); // TODO: add support for non defined adv types
+        Utility::Set(obj, "adv_type", gap_adv_type_map[this->evt->type]); // TODO: add support for non defined adv types
     }
 
     uint8_t dlen = this->evt->dlen;
@@ -233,13 +240,13 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
     if (dlen != 0)
     {
         // Attach a scan_rsp object to the adv_report
-        v8::Local<v8::Object> data_obj = NanNew<v8::Object>();
-        obj->Set(NanNew("data"), data_obj);
+        v8::Local<v8::Object> data_obj = Nan::New<v8::Object>();
+        Utility::Set(obj, "data", data_obj);
 
-        uint8_t *data = this->evt->data;
+        uint8_t *data = evt->data;
 
         // TODO: Evaluate if buffer is the correct datatype for advertisement data
-        data_obj->Set(NanNew("raw"), NanNewBufferHandle((char *)data, dlen));
+        Utility::Set(data_obj, "raw", ConversionUtility::toJsValueArray(data, dlen));
 
         uint8_t pos = 0;  // Position in packet
         uint8_t ad_len;   // AD Type length
@@ -258,29 +265,29 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
 
             if (ad_type == BLE_GAP_AD_TYPE_FLAGS)
             {
-                v8::Local<v8::Array> flags_array = NanNew<v8::Array>();
+                v8::Local<v8::Array> flags_array = Nan::New<v8::Array>();
                 int flags_array_idx = 0;
                 uint8_t flags = data[pos + 1];
 
                 for (name_map_it_t iterator = gap_adv_flags_map.begin(); iterator != gap_adv_flags_map.end(); iterator++)
                 {
                     if ((flags & iterator->first) != 0) {
-                        flags_array->Set(NanNew<v8::Integer>(flags_array_idx), NanNew(iterator->second));
+                        Nan::Set(flags_array, Nan::New<v8::Integer>(flags_array_idx), Nan::New(iterator->second).ToLocalChecked());
                         flags_array_idx++;
                     }
                 }
 
-                data_obj->Set(NanNew(gap_ad_type_map[ad_type]), flags_array);
+                Utility::Set(data_obj, gap_ad_type_map[ad_type], flags_array);
             }
             else if (ad_type == BLE_GAP_AD_TYPE_COMPLETE_LOCAL_NAME || ad_type == BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME)
             {
                 uint8_t name_len = ad_len - 1;
                 uint8_t offset = pos + 1;
-                data_obj->Set(NanNew(gap_ad_type_map[ad_type]), ConversionUtility::toJsString((char *)&data[offset], name_len));
+                Utility::Set(data_obj, gap_ad_type_map[ad_type], ConversionUtility::toJsString((char *)&data[offset], name_len));
             }
             else if (ad_type == BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_MORE_AVAILABLE || ad_type == BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE)
             {
-                v8::Local<v8::Array> uuid_array = NanNew<v8::Array>();
+                v8::Local<v8::Array> uuid_array = Nan::New<v8::Array>();
                 uint8_t array_pos = 0;
                 uint8_t sub_pos = pos + 1;
 
@@ -288,17 +295,18 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 for (int i = 0; i < ad_len - 1; i += 2)
                 {
                     char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
+					assert(uuid_as_text != NULL);
                     sprintf(uuid_as_text, UUID_128_BIT_SPRINTF, 0, uint16_decode((uint8_t*)data + sub_pos + i));
-                    uuid_array->Set(NanNew<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
+                    Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
                     free(uuid_as_text);
                     array_pos++;
                 }
 
-                data_obj->Set(NanNew(gap_ad_type_map[ad_type]), uuid_array);
+                Utility::Set(data_obj, gap_ad_type_map[ad_type], uuid_array);
             }
             else if (ad_type == BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_MORE_AVAILABLE || ad_type == BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_COMPLETE)
             {
-                v8::Local<v8::Array> uuid_array = NanNew<v8::Array>();
+                v8::Local<v8::Array> uuid_array = Nan::New<v8::Array>();
                 uint8_t array_pos = 0;
                 uint8_t sub_pos = pos + 1;
 
@@ -306,19 +314,21 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 for (int i = 0; i < ad_len - 1; i += 4)
                 {
                     char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
+					assert(uuid_as_text != NULL);
+
                     sprintf(uuid_as_text, UUID_128_BIT_SPRINTF,
                             uint16_decode((uint8_t*)data + sub_pos + 2 + i),
                             uint16_decode((uint8_t*)data + sub_pos + 0 + i));
-                    uuid_array->Set(NanNew<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
+                    Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
                     free(uuid_as_text);
                     array_pos++;
                 }
 
-                data_obj->Set(NanNew(gap_ad_type_map[ad_type]), uuid_array);
+                Utility::Set(data_obj, gap_ad_type_map[ad_type], uuid_array);
             }
             else if (ad_type == BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_COMPLETE || ad_type == BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_MORE_AVAILABLE)
             {
-                v8::Local<v8::Array> uuid_array = NanNew<v8::Array>();
+                v8::Local<v8::Array> uuid_array = Nan::New<v8::Array>();
                 uint8_t array_pos = 0;
                 uint8_t sub_pos = pos + 1;
 
@@ -326,6 +336,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 for (int i = 0; i < ad_len - 1; i += 16)
                 {
                     char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
+					assert(uuid_as_text != NULL);
 
                     sprintf(
                         uuid_as_text,
@@ -339,23 +350,23 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                         uint16_decode((uint8_t*)data + (sub_pos + i + 2)),
                         uint16_decode((uint8_t*)data + (sub_pos + i + 0))
                         );
-                    uuid_array->Set(NanNew<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
+                    Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
                     free(uuid_as_text);
                     array_pos++;
                 }
 
-                data_obj->Set(NanNew(gap_ad_type_map[ad_type]), uuid_array);
+                Utility::Set(data_obj, gap_ad_type_map[ad_type], uuid_array);
             }
             else if (ad_type == BLE_GAP_AD_TYPE_SERVICE_DATA)
             {
                 //std::cout << "Not processed: " << gap_ad_type_map[ad_type] << std::endl;
-                // data_obj->Set(NanNew(gap_ad_type_map[ad_type]), NanNew((data[pos + 1] << 8) + data[pos + 2]));
+                // data_obj->Set(Nan::New(gap_ad_type_map[ad_type]), Nan::New((data[pos + 1] << 8) + data[pos + 2]));
             }
             else if (ad_type == BLE_GAP_AD_TYPE_TX_POWER_LEVEL)
             {
                 if(ad_len - 1 == 1)
                 {
-                    data_obj->Set(NanNew(gap_ad_type_map[ad_type]), NanNew<v8::Integer>(data[pos+1]));
+                    Utility::Set(data_obj, gap_ad_type_map[ad_type], Nan::New<v8::Integer>(data[pos + 1]));
                 } else {
                     std::cerr << "Wrong length of AD_TYPE :" << gap_ad_type_map[ad_type] << std::endl;
                 }
@@ -369,7 +380,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
         }
     }
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -381,12 +392,13 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
 //
 v8::Local<v8::Object> GapScanReqReport::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(NanNew("rssi"), ConversionUtility::toJsNumber(evt->rssi));
-    obj->Set(NanNew("peer_addr"), GapAddr(&(this->evt->peer_addr)));
+    Utility::Set(obj, "rssi", evt->rssi);
+    Utility::Set(obj, "peer_addr", GapAddr(&(this->evt->peer_addr)).ToJs());
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -398,21 +410,22 @@ v8::Local<v8::Object> GapScanReqReport::ToJs()
 //
 v8::Local<v8::Object> GapConnected::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
 
-    obj->Set(NanNew("own_addr"), GapAddr(&(evt->own_addr)));
-    obj->Set(NanNew("peer_addr"), GapAddr(&(evt->peer_addr)));
-    obj->Set(NanNew("role"), ConversionUtility::valueToJsString(evt->role, gap_role_map));
-    obj->Set(NanNew("conn_params"), GapConnParams(&(evt->conn_params)));
-    obj->Set(NanNew("irk_match"), ConversionUtility::toJsBool(evt->irk_match));
+    Utility::Set(obj, "own_addr", GapAddr(&(evt->own_addr)).ToJs());
+    Utility::Set(obj, "peer_addr", GapAddr(&(evt->peer_addr)).ToJs());
+    Utility::Set(obj, "role", ConversionUtility::valueToJsString(evt->role, gap_role_map));
+    Utility::Set(obj, "conn_params", GapConnParams(&(evt->conn_params)).ToJs());
+    Utility::Set(obj, "irk_match", ConversionUtility::toJsBool(evt->irk_match));
 
     if (evt->irk_match == 1)
     {
-        obj->Set(NanNew("irk_idx"), ConversionUtility::toJsNumber(evt->irk_match_idx));
+        Utility::Set(obj, "irk_idx", evt->irk_match_idx);
     }
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -424,12 +437,13 @@ v8::Local<v8::Object> GapConnected::ToJs()
 //
 v8::Local<v8::Object> GapDisconnected::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(NanNew("reason"), ConversionUtility::toJsNumber(evt->reason));
-    obj->Set(NanNew("reason_name"), HciStatus::getHciStatus(evt->reason));
+    Utility::Set(obj, "reason", evt->reason);
+    Utility::Set(obj, "reason_name", HciStatus::getHciStatus(evt->reason));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -441,12 +455,13 @@ v8::Local<v8::Object> GapDisconnected::ToJs()
 //
 v8::Local<v8::Object> GapTimeout::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(NanNew("src"), ConversionUtility::toJsNumber(evt->src));
-    obj->Set(NanNew("src_name"), ConversionUtility::valueToJsString(evt->src, gap_timeout_sources_map));
+    Utility::Set(obj, "src", evt->src);
+    Utility::Set(obj, "src_name", ConversionUtility::valueToJsString(evt->src, gap_timeout_sources_map));
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -458,11 +473,12 @@ v8::Local<v8::Object> GapTimeout::ToJs()
 //
 v8::Local<v8::Object> GapRssiChanged::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(NanNew("rssi"), ConversionUtility::toJsNumber(evt->rssi));
+    Utility::Set(obj, "rssi", evt->rssi);
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -474,11 +490,12 @@ v8::Local<v8::Object> GapRssiChanged::ToJs()
 //
 v8::Local<v8::Object> GapConnParamUpdate::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(NanNew("conn_params"), GapConnParams(&(this->evt->conn_params)));
+    Utility::Set(obj, "conn_params", GapConnParams(&(this->evt->conn_params)).ToJs());
 
-    return obj;
+    return scope.Escape(obj);
 }
 
 //
@@ -490,10 +507,11 @@ v8::Local<v8::Object> GapConnParamUpdate::ToJs()
 //
 v8::Local<v8::Object> GapConnParamUpdateRequest::ToJs()
 {
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    obj->Set(NanNew("conn_params"), GapConnParams(&(this->evt->conn_params)));
-    return obj;
+    Utility::Set(obj, "conn_params", GapConnParams(&(this->evt->conn_params)).ToJs());
+    return scope.Escape(obj);
 }
 
 //
@@ -506,9 +524,10 @@ v8::Local<v8::Object> GapConnParamUpdateRequest::ToJs()
 
 v8::Local<v8::Object> GapScanParams::ToJs()
 {
+    Nan::EscapableHandleScope scope;
     // Scan parameters are never retrieved from driver.
-    v8::Local<v8::Object> obj = NanNew<v8::Object>();
-    return obj;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    return scope.Escape(obj);
 }
 
 ble_gap_scan_params_t *GapScanParams::ToNative()
@@ -532,30 +551,28 @@ ble_gap_scan_params_t *GapScanParams::ToNative()
 
 NAN_METHOD(GapSetAddress)
 {
-    NanScope();
-
     // CycleMode
-    if (!args[0]->IsNumber())
+    if (!info[0]->IsNumber())
     {
-        NanThrowTypeError("First argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("First argument must be a number");
+        return;
     }
-    uint8_t address_cycle_mode = ConversionUtility::getNativeUint8(args[0]);
+    uint8_t address_cycle_mode = ConversionUtility::getNativeUint8(info[0]);
 
     // Address
-    if (!args[1]->IsObject())
+    if (!info[1]->IsObject())
     {
-        NanThrowTypeError("Second argument must be a object");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Second argument must be a object");
+        return;
     }
-    v8::Local<v8::Object> addressObject = args[1]->ToObject();
+    v8::Local<v8::Object> addressObject = info[1]->ToObject();
 
     // Callback
-    if (!args[2]->IsFunction()) {
-        NanThrowTypeError("Third argument must be a function");
-        NanReturnUndefined();
+    if (!info[2]->IsFunction()) {
+        Nan::ThrowTypeError("Third argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[2].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[2].As<v8::Function>();
 
     ble_gap_addr_t *address = GapAddr(addressObject);
 
@@ -565,7 +582,7 @@ NAN_METHOD(GapSetAddress)
 
     uv_queue_work(uv_default_loop(), baton->req, GapSetAddress, (uv_after_work_cb)AfterGapSetAddress);
 
-    NanReturnUndefined();
+    return;
 }
 
 void GapSetAddress(uv_work_t *req) {
@@ -576,10 +593,10 @@ void GapSetAddress(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapSetAddress(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
     GapAddressSetBaton *baton = static_cast<GapAddressSetBaton *>(req->data);
-    v8::Handle<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -587,23 +604,23 @@ void AfterGapSetAddress(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
+        //(1, argv);
     delete baton;
 }
 
 NAN_METHOD(GapGetAddress)
 {
-    NanScope();
-
     // Callback
-    if (!args[0]->IsFunction()) {
-        NanThrowTypeError("First argument must be a function");
-        NanReturnUndefined();
+    if (!info[0]->IsFunction()) {
+        Nan::ThrowTypeError("First argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[0].As<v8::Function>();
+
+    v8::Local<v8::Function> callback = info[0].As<v8::Function>();
 
     ble_gap_addr_t *address = new ble_gap_addr_t();
 
@@ -612,7 +629,7 @@ NAN_METHOD(GapGetAddress)
 
     uv_queue_work(uv_default_loop(), baton->req, GapGetAddress, (uv_after_work_cb)AfterGapGetAddress);
 
-    NanReturnUndefined();
+    return;
 }
 
 
@@ -624,19 +641,20 @@ void GapGetAddress(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapGetAddress(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
+
     GapAddressGetBaton *baton = static_cast<GapAddressGetBaton *>(req->data);
-    v8::Handle<v8::Value> argv[2];
+    v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
         argv[1] = ErrorMessage::getErrorMessage(baton->result, "getting address.");
     }
     else
     {
-        argv[0] = GapAddr(baton->address);
-        argv[1] = NanUndefined();
+        argv[0] = GapAddr(baton->address).ToJs();
+        argv[1] = Nan::Undefined();
     }
 
     baton->callback->Call(2, argv);
@@ -645,30 +663,28 @@ void AfterGapGetAddress(uv_work_t *req) {
 
 NAN_METHOD(GapUpdateConnectionParameters)
 {
-    NanScope();
-
     // CycleMode
-    if (!args[0]->IsNumber())
+    if (!info[0]->IsNumber())
     {
-        NanThrowTypeError("First argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("First argument must be a number");
+        return;
     }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(args[0]);
+    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
 
     // Parameters
-    if (!args[1]->IsObject())
+    if (!info[1]->IsObject())
     {
-        NanThrowTypeError("Second argument must be a object");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Second argument must be a object");
+        return;
     }
-    v8::Local<v8::Object> connParamsObject = args[1]->ToObject();
+    v8::Local<v8::Object> connParamsObject = info[1]->ToObject();
 
-    if (!args[2]->IsFunction())
+    if (!info[2]->IsFunction())
     {
-        NanThrowTypeError("Third argument must be a function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Third argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[2].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[2].As<v8::Function>();
 
     GapUpdateConnectionParametersBaton *baton = new GapUpdateConnectionParametersBaton(callback);
     baton->conn_handle = conn_handle;
@@ -677,7 +693,7 @@ NAN_METHOD(GapUpdateConnectionParameters)
     uv_queue_work(uv_default_loop(), baton->req, GapUpdateConnectionParameters, (uv_after_work_cb)AfterGapUpdateConnectionParameters);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -691,11 +707,11 @@ void GapUpdateConnectionParameters(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapUpdateConnectionParameters(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     GapUpdateConnectionParametersBaton *baton = static_cast<GapUpdateConnectionParametersBaton *>(req->data);
-    v8::Handle<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -703,7 +719,7 @@ void AfterGapUpdateConnectionParameters(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -712,30 +728,28 @@ void AfterGapUpdateConnectionParameters(uv_work_t *req) {
 
 NAN_METHOD(GapDisconnect)
 {
-    NanScope();
+    // CycleMode
+    if (!info[0]->IsNumber())
+    {
+        Nan::ThrowTypeError("First argument must be a number");
+        return;
+    }
+    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
 
     // CycleMode
-    if (!args[0]->IsNumber())
+    if (!info[1]->IsNumber())
     {
-        NanThrowTypeError("First argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Second argument must be a number");
+        return;
     }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(args[0]);
+    uint8_t hci_status_code = ConversionUtility::getNativeUint8(info[1]);
 
-    // CycleMode
-    if (!args[1]->IsNumber())
+    if (!info[2]->IsFunction())
     {
-        NanThrowTypeError("Second argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Third argument must be a function");
+        return;
     }
-    uint8_t hci_status_code = ConversionUtility::getNativeUint8(args[1]);
-
-    if (!args[2]->IsFunction())
-    {
-        NanThrowTypeError("Third argument must be a function");
-        NanReturnUndefined();
-    }
-    v8::Local<v8::Function> callback = args[2].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[2].As<v8::Function>();
 
     GapDisconnectBaton *baton = new GapDisconnectBaton(callback);
     baton->conn_handle = conn_handle;
@@ -744,7 +758,7 @@ NAN_METHOD(GapDisconnect)
     uv_queue_work(uv_default_loop(), baton->req, GapDisconnect, (uv_after_work_cb)AfterGapDisconnect);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -758,11 +772,11 @@ void GapDisconnect(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapDisconnect(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     GapDisconnectBaton *baton = static_cast<GapDisconnectBaton *>(req->data);
-    v8::Handle<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -770,7 +784,7 @@ void AfterGapDisconnect(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -779,22 +793,20 @@ void AfterGapDisconnect(uv_work_t *req) {
 
 NAN_METHOD(GapSetTXPower)
 {
-    NanScope();
-
     // TxPower
-    if (!args[0]->IsNumber())
+    if (!info[0]->IsNumber())
     {
-        NanThrowTypeError("First argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("First argument must be a number");
+        return;
     }
-    int8_t tx_power = (int8_t)args[0]->ToInt32()->NumberValue();
+    int8_t tx_power = (int8_t)info[0]->ToInt32()->NumberValue();
 
-    if (!args[1]->IsFunction())
+    if (!info[1]->IsFunction())
     {
-        NanThrowTypeError("Second argument must be a function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Second argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[1].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[1].As<v8::Function>();
 
     TXPowerBaton *baton = new TXPowerBaton(callback);
 
@@ -803,7 +815,7 @@ NAN_METHOD(GapSetTXPower)
     uv_queue_work(uv_default_loop(), baton->req, GapSetTXPower, (uv_after_work_cb)AfterGapSetTXPower);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -817,11 +829,11 @@ void GapSetTXPower(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapSetTXPower(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     TXPowerBaton *baton = static_cast<TXPowerBaton *>(req->data);
-    v8::Handle<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -829,7 +841,7 @@ void AfterGapSetTXPower(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -838,28 +850,26 @@ void AfterGapSetTXPower(uv_work_t *req) {
 
 NAN_METHOD(GapSetDeviceName)
 {
-    NanScope();
-
-    if (!args[0]->IsObject())
+    if (!info[0]->IsObject())
     {
-        NanThrowTypeError("First argument must be a object");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("First argument must be a object");
+        return;
     }
-    v8::Local<v8::Object> conn_sec_mode = args[0]->ToObject();
+    v8::Local<v8::Object> conn_sec_mode = info[0]->ToObject();
 
-    if (!args[1]->IsString())
+    if (!info[1]->IsString())
     {
-        NanThrowTypeError("Second argument must be a string");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Second argument must be a string");
+        return;
     }
-    v8::Local<v8::String> dev_name_string = args[1]->ToString();
+    v8::Local<v8::String> dev_name_string = info[1]->ToString();
 
-    if (!args[2]->IsFunction())
+    if (!info[2]->IsFunction())
     {
-        NanThrowTypeError("Third argument must be a function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Third argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[2].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[2].As<v8::Function>();
 
     size_t length = dev_name_string->Length();
 
@@ -877,7 +887,7 @@ NAN_METHOD(GapSetDeviceName)
     uv_queue_work(uv_default_loop(), baton->req, GapSetDeviceName, (uv_after_work_cb)AfterGapSetDeviceName);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -891,11 +901,11 @@ void GapSetDeviceName(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapSetDeviceName(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     GapSetDeviceNameBaton *baton = static_cast<GapSetDeviceNameBaton *>(req->data);
-    v8::Handle<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -903,7 +913,7 @@ void AfterGapSetDeviceName(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -913,15 +923,13 @@ void AfterGapSetDeviceName(uv_work_t *req) {
 
 NAN_METHOD(GapGetDeviceName)
 {
-    NanScope();
-
-    if (!args[0]->IsFunction())
+    if (!info[0]->IsFunction())
     {
-        NanThrowTypeError("First argument must be a function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("First argument must be a function");
+        return;
     }
 
-    v8::Local<v8::Function> callback = args[0].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[0].As<v8::Function>();
 
     GapGetDeviceNameBaton *baton = new GapGetDeviceNameBaton(callback);
 
@@ -931,7 +939,7 @@ NAN_METHOD(GapGetDeviceName)
     uv_queue_work(uv_default_loop(), baton->req, GapGetDeviceName, (uv_after_work_cb)AfterGapGetDeviceName);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -945,15 +953,15 @@ void GapGetDeviceName(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapGetDeviceName(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     GapGetDeviceNameBaton *baton = static_cast<GapGetDeviceNameBaton *>(req->data);
-    v8::Handle<v8::Value> argv[2];
+    v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
         argv[1] = ErrorMessage::getErrorMessage(baton->result, "getting device name.");
     }
     else
@@ -961,10 +969,10 @@ void AfterGapGetDeviceName(uv_work_t *req) {
         size_t length = baton->length;
         baton->dev_name[length] = 0;
 
-        v8::Local<v8::String> dev_name = NanNew<v8::String>(baton->dev_name);
+        v8::Local<v8::Value> dev_name = ConversionUtility::toJsString((char *)baton->dev_name);
 
         argv[0] = dev_name;
-        argv[1] = NanUndefined();
+        argv[1] = Nan::Undefined();
     }
 
     baton->callback->Call(2, argv);
@@ -975,38 +983,36 @@ void AfterGapGetDeviceName(uv_work_t *req) {
 
 NAN_METHOD(GapStartRSSI)
 {
-    NanScope();
-
     // Connection handle
-    if (!args[0]->IsNumber())
+    if (!info[0]->IsNumber())
     {
-        NanThrowTypeError("First argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("First argument must be a number");
+        return;
     }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(args[0]);
+    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
 
     // dbm treshold
-    if (!args[1]->IsNumber())
+    if (!info[1]->IsNumber())
     {
-        NanThrowTypeError("Second argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Second argument must be a number");
+        return;
     }
-    uint8_t treshold_dbm = ConversionUtility::getNativeUint8(args[1]);
+    uint8_t treshold_dbm = ConversionUtility::getNativeUint8(info[1]);
 
     // Skip count
-    if (!args[2]->IsNumber())
+    if (!info[2]->IsNumber())
     {
-        NanThrowTypeError("Third argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Third argument must be a number");
+        return;
     }
-    uint8_t skip_count = ConversionUtility::getNativeUint8(args[2]);
+    uint8_t skip_count = ConversionUtility::getNativeUint8(info[2]);
 
-    if (!args[3]->IsFunction())
+    if (!info[3]->IsFunction())
     {
-        NanThrowTypeError("Forth argument must be a function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Forth argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[3].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[3].As<v8::Function>();
 
     GapStartRSSIBaton *baton = new GapStartRSSIBaton(callback);
     baton->conn_handle = conn_handle;
@@ -1016,7 +1022,7 @@ NAN_METHOD(GapStartRSSI)
     uv_queue_work(uv_default_loop(), baton->req, GapStartRSSI, (uv_after_work_cb)AfterGapStartRSSI);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -1030,11 +1036,11 @@ void GapStartRSSI(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapStartRSSI(uv_work_t *req) {
-    NanScope();
+    Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     GapStartRSSIBaton *baton = static_cast<GapStartRSSIBaton *>(req->data);
-    v8::Handle<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -1042,7 +1048,7 @@ void AfterGapStartRSSI(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -1051,22 +1057,20 @@ void AfterGapStartRSSI(uv_work_t *req) {
 
 NAN_METHOD(GapStopRSSI)
 {
-    NanScope();
-
     // CycleMode
-    if (!args[0]->IsNumber())
+    if (!info[0]->IsNumber())
     {
-        NanThrowTypeError("First argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("First argument must be a number");
+        return;
     }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(args[0]);
+    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
 
-    if (!args[1]->IsFunction())
+    if (!info[1]->IsFunction())
     {
-        NanThrowTypeError("Second argument must be a function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Second argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[1].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[1].As<v8::Function>();
 
     GapStopRSSIBaton *baton = new GapStopRSSIBaton(callback);
     baton->conn_handle = conn_handle;
@@ -1074,7 +1078,7 @@ NAN_METHOD(GapStopRSSI)
     uv_queue_work(uv_default_loop(), baton->req, GapStopRSSI, (uv_after_work_cb)AfterGapStopRSSI);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -1088,11 +1092,11 @@ void GapStopRSSI(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapStopRSSI(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     GapStopRSSIBaton *baton = static_cast<GapStopRSSIBaton *>(req->data);
-    v8::Handle<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -1100,7 +1104,7 @@ void AfterGapStopRSSI(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -1109,20 +1113,18 @@ void AfterGapStopRSSI(uv_work_t *req) {
 
 NAN_METHOD(StartScan)
 {
-    NanScope();
-
-    if (!args[0]->IsObject()) {
-        NanThrowTypeError("First argument must be an object");
-        NanReturnUndefined();
+    if (!info[0]->IsObject()) {
+        Nan::ThrowTypeError("First argument must be an object");
+        return;
     }
-    v8::Local<v8::Object> options = args[0]->ToObject();
+    v8::Local<v8::Object> options = info[0]->ToObject();
 
     // Callback
-    if (!args[1]->IsFunction()) {
-        NanThrowTypeError("Second argument must be a function");
-        NanReturnUndefined();
+    if (!info[1]->IsFunction()) {
+        Nan::ThrowTypeError("Second argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[1].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[1].As<v8::Function>();
 
     ble_gap_scan_params_t *params = GapScanParams(options);
 
@@ -1132,7 +1134,7 @@ NAN_METHOD(StartScan)
     uv_queue_work(uv_default_loop(), baton->req, StartScan, (uv_after_work_cb)AfterStartScan);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -1145,11 +1147,11 @@ void StartScan(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterStartScan(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     StartScanBaton *baton = static_cast<StartScanBaton *>(req->data);
-    v8::Handle<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -1157,7 +1159,7 @@ void AfterStartScan(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -1166,21 +1168,19 @@ void AfterStartScan(uv_work_t *req) {
 
 NAN_METHOD(StopScan)
 {
-    NanScope();
-
-    if (!args[0]->IsFunction())
+    if (!info[0]->IsFunction())
     {
-        NanThrowTypeError("First argument must be a function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("First argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[0].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[0].As<v8::Function>();
 
     StopScanBaton *baton = new StopScanBaton(callback);
 
     uv_queue_work(uv_default_loop(), baton->req, StopScan, (uv_after_work_cb)AfterStopScan);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -1194,11 +1194,11 @@ void StopScan(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterStopScan(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     StopScanBaton *baton = static_cast<StopScanBaton *>(req->data);
-    v8::Handle<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -1206,7 +1206,7 @@ void AfterStopScan(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -1215,32 +1215,30 @@ void AfterStopScan(uv_work_t *req) {
 
 NAN_METHOD(GapConnect)
 {
-    NanScope();
-
-    if (!args[0]->IsObject()) {
-        NanThrowTypeError("First argument must be an object");
-        NanReturnUndefined();
+    if (!info[0]->IsObject()) {
+        Nan::ThrowTypeError("First argument must be an object");
+        return;
     }
-    v8::Local<v8::Object> address = args[0]->ToObject();
+    v8::Local<v8::Object> address = info[0]->ToObject();
 
-    if (!args[1]->IsObject()) {
-        NanThrowTypeError("Second argument must be an object");
-        NanReturnUndefined();
+    if (!info[1]->IsObject()) {
+        Nan::ThrowTypeError("Second argument must be an object");
+        return;
     }
-    v8::Local<v8::Object> scan_params = args[1]->ToObject();
+    v8::Local<v8::Object> scan_params = info[1]->ToObject();
 
-    if (!args[2]->IsObject()) {
-        NanThrowTypeError("Third argument must be an object");
-        NanReturnUndefined();
+    if (!info[2]->IsObject()) {
+        Nan::ThrowTypeError("Third argument must be an object");
+        return;
     }
-    v8::Local<v8::Object> conn_params = args[2]->ToObject();
+    v8::Local<v8::Object> conn_params = info[2]->ToObject();
 
-    if (!args[3]->IsFunction())
+    if (!info[3]->IsFunction())
     {
-        NanThrowTypeError("Fourth argument must be a function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Fourth argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[3].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[3].As<v8::Function>();
 
     GapConnectBaton *baton = new GapConnectBaton(callback);
     baton->req->data = (void *)baton;
@@ -1251,7 +1249,7 @@ NAN_METHOD(GapConnect)
     uv_queue_work(uv_default_loop(), baton->req, GapConnect, (uv_after_work_cb)AfterGapConnect);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -1265,11 +1263,11 @@ void GapConnect(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapConnect(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     GapConnectBaton *baton = static_cast<GapConnectBaton *>(req->data);
-    v8::Handle<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -1277,7 +1275,7 @@ void AfterGapConnect(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -1286,21 +1284,19 @@ void AfterGapConnect(uv_work_t *req) {
 
 NAN_METHOD(GapCancelConnect)
 {
-    NanScope();
-
-    if (!args[0]->IsFunction())
+    if (!info[0]->IsFunction())
     {
-        NanThrowTypeError("First argument must be a function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("First argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[0].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[0].As<v8::Function>();
 
     GapConnectCancelBaton *baton = new GapConnectCancelBaton(callback);
 
     uv_queue_work(uv_default_loop(), baton->req, GapCancelConnect, (uv_after_work_cb)AfterGapCancelConnect);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -1314,11 +1310,11 @@ void GapCancelConnect(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapCancelConnect(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     GapConnectCancelBaton *baton = static_cast<GapConnectCancelBaton *>(req->data);
-    v8::Handle<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -1326,7 +1322,7 @@ void AfterGapCancelConnect(uv_work_t *req) {
     }
     else
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
     }
 
     baton->callback->Call(1, argv);
@@ -1335,22 +1331,20 @@ void AfterGapCancelConnect(uv_work_t *req) {
 
 NAN_METHOD(GapGetRSSI)
 {
-    NanScope();
-
     // Connection handle
-    if (!args[0]->IsNumber())
+    if (!info[0]->IsNumber())
     {
-        NanThrowTypeError("First argument must be a number");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("First argument must be a number");
+        return;
     }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(args[0]);
+    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
 
-    if (!args[1]->IsFunction())
+    if (!info[1]->IsFunction())
     {
-        NanThrowTypeError("Second argument must be a function");
-        NanReturnUndefined();
+        Nan::ThrowTypeError("Second argument must be a function");
+        return;
     }
-    v8::Local<v8::Function> callback = args[1].As<v8::Function>();
+    v8::Local<v8::Function> callback = info[1].As<v8::Function>();
 
     GapGetRSSIBaton *baton = new GapGetRSSIBaton(callback);
     baton->conn_handle = conn_handle;
@@ -1359,7 +1353,7 @@ NAN_METHOD(GapGetRSSI)
     uv_queue_work(uv_default_loop(), baton->req, GapGetRSSI, (uv_after_work_cb)AfterGapGetRSSI);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    NanReturnUndefined();
+    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -1380,21 +1374,21 @@ void GapGetRSSI(uv_work_t *req) {
 
 // This runs in Main Thread
 void AfterGapGetRSSI(uv_work_t *req) {
-    NanScope();
+	Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     GapGetRSSIBaton *baton = static_cast<GapGetRSSIBaton *>(req->data);
-    v8::Handle<v8::Value> argv[2];
+    v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)
     {
-        argv[0] = NanUndefined();
+        argv[0] = Nan::Undefined();
         argv[1] = ErrorMessage::getErrorMessage(baton->result, "getting rssi");
     }
     else
     {
         argv[0] = ConversionUtility::toJsNumber(baton->rssi);
-        argv[1] = NanUndefined();
+        argv[1] = Nan::Undefined();
     }
 
     baton->callback->Call(2, argv);
@@ -1402,22 +1396,22 @@ void AfterGapGetRSSI(uv_work_t *req) {
 }
 
 extern "C" {
-    void init_gap(v8::Handle<v8::Object> target)
+    void init_gap(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
-        NODE_SET_METHOD(target, "gap_set_address", GapSetAddress);
-        NODE_SET_METHOD(target, "gap_get_address", GapGetAddress);
-        NODE_SET_METHOD(target, "gap_update_connection_parameters", GapUpdateConnectionParameters);
-        NODE_SET_METHOD(target, "gap_disconnect", GapDisconnect);
-        NODE_SET_METHOD(target, "gap_set_tx_power", GapSetTXPower);
-        NODE_SET_METHOD(target, "gap_set_device_name", GapSetDeviceName);
-        NODE_SET_METHOD(target, "gap_get_device_name", GapGetDeviceName);
-        NODE_SET_METHOD(target, "gap_start_rssi", GapStartRSSI);
-        NODE_SET_METHOD(target, "gap_stop_rssi", GapStopRSSI);
-        NODE_SET_METHOD(target, "start_scan", StartScan);
-        NODE_SET_METHOD(target, "stop_scan", StopScan);
-        NODE_SET_METHOD(target, "gap_connect", GapConnect);
-        NODE_SET_METHOD(target, "gap_cancel_connect", GapCancelConnect);
-        NODE_SET_METHOD(target, "gap_get_rssi", GapGetRSSI);
+        Utility::SetMethod(target, "gap_set_address", GapSetAddress);
+        Utility::SetMethod(target, "gap_get_address", GapGetAddress);
+        Utility::SetMethod(target, "gap_update_connection_parameters", GapUpdateConnectionParameters);
+        Utility::SetMethod(target, "gap_disconnect", GapDisconnect);
+        Utility::SetMethod(target, "gap_set_tx_power", GapSetTXPower);
+        Utility::SetMethod(target, "gap_set_device_name", GapSetDeviceName);
+        Utility::SetMethod(target, "gap_get_device_name", GapGetDeviceName);
+        Utility::SetMethod(target, "gap_start_rssi", GapStartRSSI);
+        Utility::SetMethod(target, "gap_stop_rssi", GapStopRSSI);
+        Utility::SetMethod(target, "start_scan", StartScan);
+        Utility::SetMethod(target, "stop_scan", StopScan);
+        Utility::SetMethod(target, "gap_connect", GapConnect);
+        Utility::SetMethod(target, "gap_cancel_connect", GapCancelConnect);
+        Utility::SetMethod(target, "gap_get_rssi", GapGetRSSI);
 
         // Constants from ble_gap.h
 
