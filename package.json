@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "install": "node build.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --es_staging --recursive test/api"
   },
   "author": "",
   "license": "ISC",

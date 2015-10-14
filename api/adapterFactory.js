@@ -23,7 +23,7 @@ class AdapterFactory extends EventEmitter {
         this._bleDriver = bleDriver;
         this._adapters = {};
         this._updateAdapterList();
-        this.updateAdapterListInterval = setInterval(this._updateAdapterList, 5000);
+        this.updateAdapterListInterval = setInterval(this._updateAdapterList.bind(this), 5000);
     }
 
     _getInstanceId(adapter) {
@@ -62,8 +62,11 @@ class AdapterFactory extends EventEmitter {
                 }
 
                 let newAdapter = this._parseAndCreateAdapter(adapter);
-                this._adapters[adapterInstanceId] = newAdapter;
-                this.emit('added', newAdapter);
+
+                if(this._adapters[adapterInstanceId] === undefined) {
+                    this._adapters[adapterInstanceId] = newAdapter;
+                    this.emit('added', newAdapter);
+                }
             });
 
             _.each(removedAdapters, adapter => {
