@@ -69,3 +69,5 @@ class Device {
         this._instanceId = this._address + '.' + connectionHandle;
     }
 }
+
+module.exports = Device;

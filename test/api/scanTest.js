@@ -10,42 +10,90 @@ var proxyquire = require('proxyquire');
 
 var Adapter = require('../../api/adapter');
 
-describe('Scanning', function() {
+describe('Scanning', () => {
     let adapter;
     let bleDriver;
     let bleDriverEventCallback;
 
-    beforeEach(function() {
+    beforeEach(() => {
         bleDriver =
         {
-            // TODO: scan_start, scan_stop, open, adv_report_evt
-
             start_scan: sinon.stub(),
-            stop_scan: sinon.stub()
+            stop_scan: sinon.stub(),
+            open: (options, err) => {},
+            BLE_GAP_EVT_ADV_REPORT: 27
         };
-        var open = sinon.stub(bleDriver, 'open', (port, options, callback) => {
+        let open = sinon.stub(bleDriver, 'open', (port, options, callback) => {
             bleDriverEventCallback = options.eventCallback;
-
-            setTimeout(callback(), 10);
+            callback();
         });
+
         adapter = new Adapter(bleDriver, 'COM1', 'COM1');
 
-        let logCallback = (serverity, message) => {
-
-        };
-        let eventCallback = eventArray => {
-
-        };
-
-        let options = {baudRate: 1000000, parity: false, flowControl: false, logCallback: logCallback, eventCallback: eventCallback};
+        let options = {};
         adapter.open(options, err => {
-            if (err) {
-                assert.ifError(err);
-            }
+            assert.ifError(err);
         });
     });
 
-    it('start should provide a callback with possible error', function () {
+    it('start and stop should provide callbacks with possible error and emit adapterStateChanged', () => {
+        bleDriver.start_scan.yields(undefined);
+        bleDriver.stop_scan.yields(undefined);
 
+        let spy = sinon.spy();
+        adapter.on('adapterStateChanged', spy);
+
+        sinon.assert.notCalled(spy);
+
+        let scanOptions = {};
+        adapter.startScan(scanOptions, err => {
+            assert.ifError(err);
+        });
+
+        sinon.assert.calledOnce(spy);
+        assert.equal(true, spy.lastCall.args[0].scanning);
+
+        adapter.stopScan(err => {
+            assert.ifError(err);
+        });
+
+        sinon.assert.calledTwice(spy);
+        assert.ifError(spy.lastCall.args[0].scanning);
+    });
+
+    it('After starting scanning we should receive deviceDiscovered and deviceChanged events', () => {
+        bleDriver.start_scan.yields(undefined);
+
+        let discoveredSpy = sinon.spy();
+        adapter.on('deviceDiscovered', discoveredSpy);
+
+        let changedSpy = sinon.spy();
+        adapter.on('deviceChanged', changedSpy);
+
+        let scanOptions = {};
+        adapter.startScan(scanOptions, err => {
+            assert.ifError(err);
+        });
+
+        sinon.assert.notCalled(discoveredSpy);
+        sinon.assert.notCalled(changedSpy);
+
+        let advReportEvent = {id: bleDriver.BLE_GAP_EVT_ADV_REPORT,
+                              peer_addr: {address: 'CD:96:E6:E2:3A:EA'},
+                              data: {BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE: ['0000180D-0000-1000-8000-00805F9B34FB']},
+                              scan_rsp: false};
+        bleDriverEventCallback([advReportEvent]);
+
+        sinon.assert.calledOnce(discoveredSpy);
+        sinon.assert.notCalled(changedSpy);
+
+        advReportEvent = {id: bleDriver.BLE_GAP_EVT_ADV_REPORT,
+                              peer_addr: {address: 'CD:96:E6:E2:3A:EA'},
+                              data: {BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE: ['0000180F-0000-1000-8000-00805F9B34FB']},
+                              scan_rsp: true};
+        bleDriverEventCallback([advReportEvent]);
+
+        sinon.assert.calledOnce(discoveredSpy);
+        sinon.assert.calledOnce(changedSpy);
     });
 });

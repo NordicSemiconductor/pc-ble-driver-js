@@ -35,3 +35,5 @@ class Characteristic {
         this._name = name;
     }
 }
+
+module.exports = Characteristic;

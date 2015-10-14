@@ -31,3 +31,5 @@ class Descriptor {
         this._name = name;
     }
 }
+
+module.exports = Descriptor;

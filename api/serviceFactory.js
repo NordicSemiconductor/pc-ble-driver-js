@@ -41,3 +41,5 @@ class ServiceFactory {
         return descriptor;
     }
 }
+
+module.exports = ServiceFactory;

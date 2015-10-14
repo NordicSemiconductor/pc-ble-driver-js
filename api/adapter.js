@@ -25,39 +25,43 @@ class Adapter extends EventEmitter {
         return this._instanceId;
     }
 
-    _changeAdapterState(changingStates, emitOnChange) {
+    _changeAdapterState(changingStates) {
         let changed = false;
 
         _.each(changingStates, (value, state) => {
             const previousState = this._adapterState[state];
 
             // Use isEqual to compare objects
-            if (_.isEqual(previousState, value)) {
+            if (!_.isEqual(previousState, value)) {
                 this._adapterState[state] = value;
                 changed = true;
             }
         });
 
-        if (emitOnChange && changed) {
+        if (changed) {
             this.emit('adapterStateChanged', this._adapterState);
         }
     }
 
-    _changeDeviceState(device, changingStates, emitOnChange) {
+    _changeDeviceState(device, changingStates, swallowEmit) {
         let changed = false;
 
         _.each(changingStates, (value, state) => {
             const previousState = device[state];
 
             // Use isEqual to compare objects
-            if (_.isEqual(previousState, value)) {
+            if (!_.isEqual(previousState, value)) {
                 device[state] = value;
                 changed = true;
             }
         });
 
+        if (swallowEmit) {
+            return;
+        }
+
         // TODO: Do we want emit deviceChanged events? Should the device be sent with the event?
-        if (emitOnChange && changed) {
+        if (changed) {
             this.emit('deviceChanged', device);
         }
     }
@@ -68,8 +72,8 @@ class Adapter extends EventEmitter {
         this._changeAdapterState({baudRate: options.baudRate, parity: options.parity, flowControl: options.flowControl});
 
         // options.eventInterval = options.eventInterval;
-        options.logCallback = this._logCallback;
-        options.eventCallback = this._eventCallback;
+        options.logCallback = this._logCallback.bind(this);
+        options.eventCallback = this._eventCallback.bind(this);
 
         this._bleDriver.open(this._adapterState.port, options, err => {
             if(err) {
@@ -102,8 +106,6 @@ class Adapter extends EventEmitter {
 
     // TODO: event callback function declared here or in open call?;
     _eventCallback(eventArray) {
-        console.log("eventArray length: " + eventArray.length);
-
         eventArray.forEach(event => {
             switch(event.id){
                 case this._bleDriver.BLE_GAP_EVT_CONNECTED:
@@ -218,9 +220,9 @@ class Adapter extends EventEmitter {
         if (device) {
             this._changeDeviceState(device, changingStates);
         } else {
-            const emitOnChange = false;
+            const swallowEmit = true;
             device = new Device(address, changingStates.name, 'peripheral', uuids);
-            this._changeDeviceState(device, changingStates, emitOnChange);
+            this._changeDeviceState(device, changingStates, swallowEmit);
             this._devices[address] = device;
             this.emit('deviceDiscovered', device);
         }
@@ -317,15 +319,15 @@ class Adapter extends EventEmitter {
     */
 
     // Get connected device/devices
-
+    // TODO: This should only be connected devices. should discovered devices be in this._devices?
     // Callback signature function(devices : Device[]) {}
-    getDevices(callback) {
-
+    getDevices() {
+        return this._devices;
     }
 
     // Callback signature function(device)
-    getDevice(deviceAddress, callback) {
-
+    getDevice(deviceAddress) {
+        return this._devices[deviceAddress];
     }
 
     // Only for central
@@ -345,8 +347,6 @@ class Adapter extends EventEmitter {
 
     // Callback signature function(err)
     stopScan(callback) {
-        // TODO: check if adapterState is in scanning mode?
-
         this._bleDriver.stop_scan(err => {
             if (err) {
                 // TODO: probably is state already set to false, but should we make sure? if yes, emit adapterStateChanged?
@@ -614,4 +614,5 @@ class Adapter extends EventEmitter {
 
     }
 }
+
 module.exports = Adapter;

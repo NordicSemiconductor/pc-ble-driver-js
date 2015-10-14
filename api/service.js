@@ -34,3 +34,5 @@ class Service {
         this._name = name;
     }
 }
+
+module.exports = Service;
