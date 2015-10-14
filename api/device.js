@@ -40,7 +40,7 @@ class Device {
     }
 
     get uuids() {
-        return this.uuids;
+        return this._uuids;
     }
 
     get advDataUuids() {

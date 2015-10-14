@@ -3,6 +3,7 @@
 var  sinon = require('sinon');
 var assert = require('assert');
 var lolex = require('lolex');
+var _ = require('underscore');
 
 var clock = lolex.install();
 
@@ -78,22 +79,26 @@ describe('Scanning', () => {
         sinon.assert.notCalled(discoveredSpy);
         sinon.assert.notCalled(changedSpy);
 
+        const advReportUuids = ['0000180D-0000-1000-8000-00805F9B34FB'];
         let advReportEvent = {id: bleDriver.BLE_GAP_EVT_ADV_REPORT,
                               peer_addr: {address: 'CD:96:E6:E2:3A:EA'},
-                              data: {BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE: ['0000180D-0000-1000-8000-00805F9B34FB']},
+                              data: {BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE: advReportUuids},
                               scan_rsp: false};
         bleDriverEventCallback([advReportEvent]);
 
         sinon.assert.calledOnce(discoveredSpy);
         sinon.assert.notCalled(changedSpy);
 
+        const scanResponseUuids = ['0000180F-0000-1000-8000-00805F9B34FB'];
         advReportEvent = {id: bleDriver.BLE_GAP_EVT_ADV_REPORT,
                               peer_addr: {address: 'CD:96:E6:E2:3A:EA'},
-                              data: {BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE: ['0000180F-0000-1000-8000-00805F9B34FB']},
+                              data: {BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE: scanResponseUuids},
                               scan_rsp: true};
         bleDriverEventCallback([advReportEvent]);
 
         sinon.assert.calledOnce(discoveredSpy);
         sinon.assert.calledOnce(changedSpy);
+
+        assert.ok(_.isEqual(changedSpy.lastCall.args[0].uuids, advReportUuids.concat(scanResponseUuids)));
     });
 });
