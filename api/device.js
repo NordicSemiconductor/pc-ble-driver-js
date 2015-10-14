@@ -9,6 +9,8 @@ class Device {
         this.name = name;
         this._role = role;
         this._uuids = uuids;
+        this._advDataUuids = uuids;
+        this._scanRspUuids = [];
 
         this.services = {};
 
@@ -35,6 +37,28 @@ class Device {
 
     get connectionHandle() {
         return this._connectionHandle;
+    }
+
+    get uuids() {
+        return this.uuids;
+    }
+
+    get advDataUuids() {
+        return this._advDataUuids;
+    }
+
+    set advDataUuids(uuids) {
+        this._advDataUuids = uuids;
+        this._uuids = this._advDataUuids.concat(this._scanRspUuids);
+    }
+
+    get scanRspUuids() {
+        return this._scanRspUuids;
+    }
+
+    set scanRspUuids(uuids) {
+        this._scanRspUuids = uuids;
+        this._uuids = this._advDataUuids.concat(this._scanRspUuids);
     }
 
     set connectionHandle(connectionHandle) {
