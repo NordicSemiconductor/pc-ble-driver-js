@@ -111,13 +111,17 @@ class Adapter extends EventEmitter {
                 case this._bleDriver.BLE_GAP_EVT_CONNECTED:
                     // TODO: Update device with connection handle
                     // TODO: Should 'deviceConnected' event emit the updated device?
+                    this._changeAdapterState({connecting: false});
                     this.emit('deviceConnected');
+
                     break;
                 case this._bleDriver.BLE_GAP_EVT_DISCONNECTED:
+                    // TODO: remove from device list when disconnect event received
                     // TODO: Handle disconnect event
                     this.emit('deviceDisconnected');
                     break;
                 case this._bleDriver.BLE_GAP_EVT_CONN_PARAM_UPDATE:
+                    break;
                 /*
                 case this._bleDriver.BLE_GAP_EVT_SEC_PARAMS_REQUEST:
                 case this._bleDriver.BLE_GAP_EVT_SEC_INFO_REQUEST:
@@ -127,7 +131,10 @@ class Adapter extends EventEmitter {
                 case this._bleDriver.BLE_GAP_EVT_CONN_SEC_UPDATE:
                 */
                 case this._bleDriver.BLE_GAP_EVT_TIMEOUT:
+                    this._parseTimeoutEvent(event);
+                    break;
                 case this._bleDriver.BLE_GAP_EVT_RSSI_CHANGED:
+                    break;
                 case this._bleDriver.BLE_GAP_EVT_ADV_REPORT:
                     this._parseAdvertismentReport(event);
                     break;
@@ -228,6 +235,19 @@ class Adapter extends EventEmitter {
         }
     }
 
+    _parseTimeoutEvent(event) {
+        switch(event.src) {
+            case this._bleDriver.BLE_GAP_TIMEOUT_SRC_SCAN:
+                this._changeAdapterState({scanning: false});
+                break;
+            case this._bleDriver.BLE_GAP_TIMEOUT_SRC_CONN:
+                this._changeAdapterState({connecting: false});
+                break;
+            default:
+                console.log(`GAP operation timed out: ${event.src_name} (${event.src}).`);
+        }
+    }
+
     // Callback signature function(err, state) {}
     getAdapterState(callback) {
         this._bleDriver.get_version((version, err) => {
@@ -236,12 +256,14 @@ class Adapter extends EventEmitter {
             } else {
                 this._adapterState.firmwareVersion = version;
             }
+
             this._bleDriver.gap_get_device_name( (name, err) => {
                 if (err) {
                     this.emit('error', 'Failed to retrieve driver version.');
                 } else {
                     this._adapterState.deviceName = name;
                 }
+
                 this._bleDriver.gap_get_address( (address, err) => {
                     if (err) {
                         this.emit('error', 'Failed to retrieve device address.');
@@ -249,8 +271,8 @@ class Adapter extends EventEmitter {
                         this._adapterState.address = address;
                     }
                     callback(undefined, this._adapterState);
-                })
-            })
+                });
+            });
         });
     }
 
@@ -454,9 +476,6 @@ class Adapter extends EventEmitter {
         this._bleDriver.disconnect(device.connectionHandle, hciStatusCode, err => {
             if (err) {
                 this.emit('error', 'Failed to disconnect');
-            } else {
-                // TODO: remove from device list when disconnect event received
-                this._changeAdapterState({connected: false});
             }
 
             callback(err);
