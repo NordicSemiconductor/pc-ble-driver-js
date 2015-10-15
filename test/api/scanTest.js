@@ -16,6 +16,7 @@ describe('Adapter - Scanning', () => {
         {
             start_scan: sinon.stub(),
             stop_scan: sinon.stub(),
+            get_version: sinon.stub(),
             open: (options, err) => {},
             BLE_GAP_EVT_ADV_REPORT: 27
         };
