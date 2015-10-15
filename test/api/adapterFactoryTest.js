@@ -2,9 +2,6 @@
 
 var  sinon = require('sinon');
 var assert = require('assert');
-var lolex = require('lolex');
-
-var clock = lolex.install();
 
 var proxyquire = require('proxyquire');
 
@@ -12,12 +9,18 @@ var adapterFactory = require('../../api/adapterFactory.js');
 
 describe('AdapterFactory', function() {
     var bleDriver;
+
     var addedSpy;
     var removedSpy;
     var errorSpy;
+
     var adapterFactoryInstance;
 
     beforeEach(function() {
+        console.log('beforeEach called');
+
+        this.clock = sinon.useFakeTimers();
+
         bleDriver =
         {
             get_adapters: sinon.stub()
@@ -36,7 +39,11 @@ describe('AdapterFactory', function() {
         adapterFactoryInstance.on('error', errorSpy);
     });
 
-    it('should provide a callback with list of adapters received from driver', function () {
+    afterEach(function() {
+        this.clock.restore();
+    });
+
+    it('should provide a list of adapters connected to the computer', function () {
         var adapters = adapterFactoryInstance.getAdapters();
         assert.equal(Object.keys(adapters).length, 0);
     });
@@ -45,7 +52,7 @@ describe('AdapterFactory', function() {
         bleDriver.get_adapters.yields(undefined,
                     [{ serialNumber: 'test2222', comNumber: '6' }]);
 
-        clock.tick(5001);
+        this.clock.tick(5001);
 
         sinon.assert.calledOnce(addedSpy);
         sinon.assert.notCalled(removedSpy);
@@ -59,7 +66,7 @@ describe('AdapterFactory', function() {
         var adapterA = { serialNumber: 'test1234', comNumber: '5' };
         bleDriver.get_adapters.yields(undefined, [adapterA]);
 
-        clock.tick(5001);
+        this.clock.tick(5001);
 
         bleDriver.get_adapters.yields(undefined, []);
 
@@ -67,7 +74,7 @@ describe('AdapterFactory', function() {
         removedSpy.reset();
         errorSpy.reset();
 
-        clock.tick(5001);
+        this.clock.tick(5001);
 
         sinon.assert.notCalled(addedSpy);
         sinon.assert.calledOnce(removedSpy);
@@ -77,3 +84,4 @@ describe('AdapterFactory', function() {
         assert.equal(Object.keys(adapters).length, 0);
     });
 });
+

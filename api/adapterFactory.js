@@ -81,12 +81,8 @@ class AdapterFactory extends EventEmitter {
 
     /**
      * @brief Get Nordic BLE adapters connected to the computer
-     *
-     * @param err
-     * @param k [description]
      */
-    // Callback signature function(adapters[])
-    getAdapters(callback) {
+    getAdapters() {
         return this._adapters;
     }
 }
