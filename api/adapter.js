@@ -33,15 +33,16 @@ class Adapter extends EventEmitter {
     _changeAdapterState(changingStates, swallowEmit) {
         let changed = false;
 
-        _.each(changingStates, (value, state) => {
-            const previousState = this._adapterState[state];
+        for (let state in changingStates) {
+            const newValue = changingStates[state];
+            const previousValue = this._adapterState[state];
 
             // Use isEqual to compare objects
-            if (!_.isEqual(previousState, value)) {
-                this._adapterState[state] = value;
+            if (!_.isEqual(previousValue, newValue)) {
+                this._adapterState[state] = newValue;
                 changed = true;
             }
-        });
+        }
 
         if (swallowEmit) {
             return;
@@ -107,11 +108,10 @@ class Adapter extends EventEmitter {
                     this._parseConnectedEvent(event);
                     break;
                 case this._bleDriver.BLE_GAP_EVT_DISCONNECTED:
-                    // TODO: remove from device list when disconnect event received
-                    // TODO: Handle disconnect event
-                    this.emit('deviceDisconnected');
+                    this._parseDisconnectedEvent(event);
                     break;
                 case this._bleDriver.BLE_GAP_EVT_CONN_PARAM_UPDATE:
+                    this._parseConnectionParameterUpdateEvent(event);
                     break;
                 /*
                 case this._bleDriver.BLE_GAP_EVT_SEC_PARAMS_REQUEST:
@@ -133,6 +133,8 @@ class Adapter extends EventEmitter {
                 case this._bleDriver.BLE_GAP_EVT_SEC_REQUEST:
                 */
                 case this._bleDriver.BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST:
+                    this._parseConnectionParameterUpdateRequestEvent(event);
+                    break;
                 case this._bleDriver.BLE_GAP_EVT_SCAN_REQ_REPORT:
                     console.log(`Unsupported GAP event received from SoftDevice: ${event.id} - ${event.name}`);
                     break;
@@ -193,10 +195,33 @@ class Adapter extends EventEmitter {
     }
 
     _parseDisconnectedEvent(event) {
-        const device = this.getDeviceByConnectionHandle(event.conn_handle);
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
         device.connected = false;
         delete this._devices[device.instanceId];
         this.emit('deviceDisconnected', device);
+    }
+
+    _parseConnectionParameterUpdateEvent(event) {
+        let device = this._getDeviceByConnectionHandle(event.conn_handle);
+
+        device.minConnectionInterval = event.conn_params.min_conn_interval;
+        device.maxConnectionInterval = event.conn_params.max_conn_interval;
+        device.slaveLatency = event.conn_params.slave_latency;
+        device.connectionSupervisionTimeout = event.conn_params.conn_sup_timeout;
+
+        this.emit('connParamUpdate', device);
+    }
+
+    _parseConnectionParameterUpdateRequestEvent(event) {
+        let device = this._getDeviceByConnectionHandle(event.conn_handle);
+
+        let connectionParameters = {deviceInstanceId: device.instanceId,
+                                    minConnectionInterval: event.conn_params.min_conn_interval,
+                                    maxConnectionInterval: event.conn_params.max_conn_interval,
+                                    slaveLatency: event.conn_params.slave_latency,
+                                    connectionSupervisionTimeout: event.conn_params.conn_sup_timeout};
+
+        this.emit('connParamUpdateRequest', connectionParameters);
     }
 
     _parseAdvertismentReportEvent(event) {
@@ -362,7 +387,7 @@ class Adapter extends EventEmitter {
         return this._devices[deviceInstanceId];
     }
 
-    getDeviceByConnectionHandle(connectionHandle) {
+    _getDeviceByConnectionHandle(connectionHandle) {
         return this._devices.find(device => device.connectionHandle == connectionHandle);
     }
 
