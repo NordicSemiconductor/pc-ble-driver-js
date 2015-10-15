@@ -570,7 +570,7 @@ class Adapter extends EventEmitter {
     disconnect(deviceInstanceId, callback) {
         const device = this.getDevice(deviceInstanceId);
         const hciStatusCode = this._bleDriver.BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION;
-        this._bleDriver.disconnect(device.connectionHandle, hciStatusCode, err => {
+        this._bleDriver.gap_disconnect(device.connectionHandle, hciStatusCode, err => {
             if (err) {
                 this.emit('error', 'Failed to disconnect');
             }

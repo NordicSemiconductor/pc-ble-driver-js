@@ -116,5 +116,39 @@ describe('Adapter Cancel connect', function(){
 });
 
 describe('Adapter disconnect', function(){
+     let bleDriver, adapter;
 
+    beforeEach(function() {
+        bleDriver =
+        {
+            gap_connect: sinon.stub(),
+            gap_disconnect: sinon.stub(),
+        };
+        bleDriver.gap_connect.yieldsAsync(undefined);
+        bleDriver.gap_disconnect.yieldsAsync(undefined);
+        adapter = new Adapter(bleDriver, 'theId', 42);
+        adapter._devices['myDeviceId'] = {connectionHandle: '1234'};
+    });
+
+    it('should call bleDriver disconnect with the connectionHandle of the device identified by deviceId', function(done) {
+        adapter.disconnect('myDeviceId', (error) => {
+            let args = bleDriver.gap_disconnect.lastCall.args;
+            assert.equal(args[0], '1234');
+
+            done();
+        });
+    });
+
+    it('should emit and pass error if disconnect fails', function(done) {
+        bleDriver.gap_disconnect.yieldsAsync('err');
+        let errorSubscriber = sinon.spy();
+        adapter.once('error', errorSubscriber);
+
+        adapter.disconnect('myDeviceId', (error) => {
+            assert.equal(error, 'err');
+
+            assert(errorSubscriber.calledOnce);
+            done();
+        });
+    });
 });
