@@ -30,7 +30,7 @@ class Adapter extends EventEmitter {
         return this._instanceId;
     }
 
-    _changeAdapterState(changingStates) {
+    _changeAdapterState(changingStates, swallowEmit) {
         let changed = false;
 
         _.each(changingStates, (value, state) => {
@@ -42,6 +42,10 @@ class Adapter extends EventEmitter {
                 changed = true;
             }
         });
+
+        if (swallowEmit) {
+            return;
+        }
 
         if (changed) {
             this.emit('adapterStateChanged', this._adapterState);
@@ -61,12 +65,20 @@ class Adapter extends EventEmitter {
             if(err) {
                 // TODO: will adapter still be available if the call fails?
                 this.emit('error', `Error occurred opening serial port: ${err}`);
+                callback(err);
+                return;
             } else {
-                this._changeAdapterState({available: true});
+                this.getAdapterState((err, adapterState) => {
+                    if(err) {
+                        this.emit('error', err);
+                        callback(err);
+                        return;
+                    }
+                });
+
             }
 
             callback(err);
-
             return;
         });
     }
@@ -250,26 +262,38 @@ class Adapter extends EventEmitter {
 
     // Callback signature function(err, state) {}
     getAdapterState(callback) {
+        let tempAdapterState = new AdapterState(this.instanceId, this.port);
+
         this._bleDriver.get_version((version, err) => {
             if (err) {
-                this.emit('error', 'Failed to retrieve softdevice firmwareVersion');
-            } else {
-                this._adapterState.firmwareVersion = version;
+                let error = 'Failed to retrieve softdevice firmwareVersion';
+                this.emit('error', error);
+                callback(error);
+                return;
             }
+
+            tempAdapterState.firmwareVersion = version;
 
             this._bleDriver.gap_get_device_name( (name, err) => {
                 if (err) {
-                    this.emit('error', 'Failed to retrieve driver version.');
-                } else {
-                    this._adapterState.deviceName = name;
+                    let error = 'Failed to retrieve driver version.';
+                    this.emit('error', error);
+                    callback(error);
+                    return;
                 }
+                tempAdapterState.name = name;
 
                 this._bleDriver.gap_get_address( (address, err) => {
                     if (err) {
-                        this.emit('error', 'Failed to retrieve device address.');
-                    } else {
-                        this._adapterState.address = address;
+                        let error = 'Failed to retrieve device address.';
+                        this.emit('error', error);
+                        callback(error);
+                        return;
                     }
+
+                    tempAdapterState.address = address;
+
+                    this._changeAdapterState(tempAdapterState);
                     callback(undefined, this._adapterState);
                 });
             });
