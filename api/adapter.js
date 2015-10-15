@@ -13,6 +13,11 @@ const Device = require('./device');
 class Adapter extends EventEmitter {
     constructor(bleDriver, instanceId, port) {
         super();
+
+        if(bleDriver === undefined) throw new Error('Missing argument bleDriver');
+        if(instanceId === undefined) throw new Error('Missing argument instanceId');
+        if(port === undefined) throw new Error('Missing argument port');
+
         this._bleDriver = bleDriver;
         this._instanceId = instanceId;
         this._adapterState = new AdapterState(instanceId, port);
@@ -84,6 +89,7 @@ class Adapter extends EventEmitter {
             }
 
             callback(err);
+
             return;
         });
     }
