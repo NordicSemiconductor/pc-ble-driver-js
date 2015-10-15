@@ -10,8 +10,6 @@ class Device {
         this._role = role;
         this.uuids = [];
 
-        this.services = {};
-
         this.connected = false;
         this.rssi = null;
         this.txPower = null;

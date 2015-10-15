@@ -43,8 +43,8 @@ class AdapterFactory extends EventEmitter {
     }
 
     _parseAndCreateAdapter(adapter) {
-        let instanceId = this._getInstanceId(adapter);
-        let parsedAdapter = new Adapter(this._bleDriver, instanceId, adapter.comName);
+        const instanceId = this._getInstanceId(adapter);
+        const parsedAdapter = new Adapter(this._bleDriver, instanceId, adapter.comName);
 
         return parsedAdapter;
     }
@@ -55,16 +55,16 @@ class AdapterFactory extends EventEmitter {
                 this.emit('error', err);
             }
 
-            let removedAdapters = Object.assign({}, this._adapters);
+            const removedAdapters = Object.assign({}, this._adapters);
 
             _.each(adapters, adapter => {
-                let adapterInstanceId = this._getInstanceId(adapter);
+                const adapterInstanceId = this._getInstanceId(adapter);
 
                 if (this._adapters[adapterInstanceId]) {
                     delete removedAdapters[adapterInstanceId];
                 }
 
-                let newAdapter = this._parseAndCreateAdapter(adapter);
+                const newAdapter = this._parseAndCreateAdapter(adapter);
 
                 if(this._adapters[adapterInstanceId] === undefined) {
                     this._adapters[adapterInstanceId] = newAdapter;

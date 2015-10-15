@@ -8,7 +8,7 @@ const Adapter = require('../../api/adapter.js');
 describe('Adapter Connect', function() {
     let bleDriver, adapter;
     beforeEach(function() {
-        bleDriver = 
+        bleDriver =
         {
             gap_connect: sinon.stub(),
             get_version: sinon.stub(),
@@ -35,7 +35,7 @@ describe('Adapter Connect', function() {
         adapter.connect('deviceAddress', {}, function() {
             adapter.getAdapterState( (error, adapterState) => {
                 assert.equal(adapterState.firmwareVersion, '0.0.9');
-                assert.equal(adapterState.deviceName, 'holy handgrenade');
+                assert.equal(adapterState.name, 'holy handgrenade');
                 assert.equal(adapterState.address, 'Bridge of death');
                 done();
             });
@@ -65,7 +65,7 @@ describe('Adapter Cancel connect', function(){
     let bleDriver, adapter;
 
     beforeEach(function() {
-        bleDriver = 
+        bleDriver =
         {
             gap_connect: sinon.stub(),
             gap_cancel_connect: sinon.stub(),
@@ -116,5 +116,5 @@ describe('Adapter Cancel connect', function(){
 });
 
 describe('Adapter disconnect', function(){
-    
+
 });

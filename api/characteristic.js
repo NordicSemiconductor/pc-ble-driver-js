@@ -7,10 +7,9 @@ class Characteristic {
         this._instanceId = serviceInstanceId + '.' + (i++).toString();
         this._serviceInstanceId = serviceInstanceId;
         this.uuid = uuid;
+        this.name = null;
         this.properties = properties;
         this.value = value;
-
-        this.descriptor = {};
     }
 
     get instanceId() {

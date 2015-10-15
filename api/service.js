@@ -7,8 +7,10 @@ class Service {
         this._instanceId = deviceInstanceId + '.' + (i++).toString();
         this._deviceInstanceId = deviceInstanceId;
         this.uuid = uuid;
+        this.name = null;
 
-        this.characteristics = {};
+        this.startHandle = null;
+        this.endHandle = null;
     }
 
     // unique ID for the service (since uuid is not enough to separate between services)
