@@ -230,40 +230,28 @@ class Adapter extends EventEmitter {
 
     // Callback signature function(err, state) {}
     getAdapterState(callback) {
-        // TODO: update information
-        // TODO: Figure out if calls should be nested or have some magic variable checks
-
-        if (this._firmwareVersion) {
-            return this._firmwareVersion;
-        }
-
         this._bleDriver.get_version((version, err) => {
             if (err) {
                 this.emit('error', 'Failed to retrieve softdevice firmwareVersion');
             } else {
                 this._adapterState.firmwareVersion = version;
             }
+            this._bleDriver.gap_get_device_name( (name, err) => {
+                if (err) {
+                    this.emit('error', 'Failed to retrieve driver version.');
+                } else {
+                    this._adapterState.deviceName = name;
+                }
+                this._bleDriver.gap_get_address( (address, err) => {
+                    if (err) {
+                        this.emit('error', 'Failed to retrieve device address.');
+                    } else {
+                        this._adapterState.address = address;
+                    }
+                    callback(undefined, this._adapterState);
+                })
+            })
         });
-
-
-        this._bleDriver.gap_get_device_name((name, err) => {
-            if (err) {
-                // TODO: logging?
-                return;
-            }
-
-            this._name = name;
-        });
-
-
-        this._bleDriver.gap_get_address((address, err) => {
-            if (err) {
-                // TODO: logging?
-                return;
-            }
-        });
-
-        return this._adapterState;
     }
 
     // Set GAP related information
