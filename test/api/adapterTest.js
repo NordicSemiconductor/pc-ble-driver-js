@@ -61,3 +61,60 @@ describe('Adapter Connect', function() {
     });
 });
 
+describe('Adapter Cancel connect', function(){
+    let bleDriver, adapter;
+
+    beforeEach(function() {
+        bleDriver = 
+        {
+            gap_connect: sinon.stub(),
+            gap_cancel_connect: sinon.stub(),
+        };
+        bleDriver.gap_connect.yields(undefined);
+        bleDriver.gap_cancel_connect.yields(undefined);
+        adapter = new Adapter(bleDriver, 'theId', 42);
+    });
+
+    it('should call bleDriver cancel connect', (done) =>{
+        adapter.cancelConnect(() =>{
+            assert(bleDriver.gap_cancel_connect.calledOnce);
+            done();
+        });
+    });
+
+    it('should update adapter state after cancelling connect', (done) =>{
+        adapter.connect('deviceAddress', {}, (error) =>{
+            assert(!error);
+            assert.equal(adapter._adapterState.connecting, true);
+            adapter.cancelConnect((error)=>{
+                assert(!error);
+                assert.equal(adapter._adapterState.connecting, false);
+                done();
+            });
+
+        });
+    });
+
+    it('should emit adapterStateChanged on cancelConnect', (done) => {
+        adapter.once('adapterStateChanged', (change) => {
+            assert.equal(change.scanning, false);
+            assert.equal(change.connecting, true);
+        });
+
+        adapter.connect('deviceAddress', {}, (error) =>{
+            assert(!error);
+            adapter.once('adapterStateChanged', (change) => {
+                assert.equal(change.connecting, false);
+            });
+            adapter.cancelConnect( (error) =>{
+                assert(!error);
+                done();
+            });
+
+        });
+    });
+});
+
+describe('Adapter disconnect', function(){
+    
+});
