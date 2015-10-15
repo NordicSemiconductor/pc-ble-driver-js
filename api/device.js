@@ -3,14 +3,12 @@
 // TODO: does it need an adapterInstanceId?
 
 class Device {
-    constructor(address, name, role, uuids) {
+    constructor(address, role) {
         this._instanceId = null;
         this._address = address;
-        this.name = name;
+        this.name = null;
         this._role = role;
-        this._uuids = uuids;
-        this._advDataUuids = uuids;
-        this._scanRspUuids = [];
+        this.uuids = [];
 
         this.services = {};
 
@@ -18,6 +16,11 @@ class Device {
         this.rssi = null;
         this.txPower = null;
         this._connectionHandle = null;
+
+        this.minConnectionInterval = null;
+        this.maxConnectionInterval = null;
+        this.slaveLatency = null;
+        this.connectionSupervisionTimeout = null;
     }
 
     // null if not connected
@@ -37,28 +40,6 @@ class Device {
 
     get connectionHandle() {
         return this._connectionHandle;
-    }
-
-    get uuids() {
-        return this._uuids;
-    }
-
-    get advDataUuids() {
-        return this._advDataUuids;
-    }
-
-    set advDataUuids(uuids) {
-        this._advDataUuids = uuids;
-        this._uuids = this._advDataUuids.concat(this._scanRspUuids);
-    }
-
-    get scanRspUuids() {
-        return this._scanRspUuids;
-    }
-
-    set scanRspUuids(uuids) {
-        this._scanRspUuids = uuids;
-        this._uuids = this._advDataUuids.concat(this._scanRspUuids);
     }
 
     set connectionHandle(connectionHandle) {

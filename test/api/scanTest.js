@@ -6,7 +6,7 @@ var _ = require('underscore');
 
 var Adapter = require('../../api/adapter');
 
-describe('Scanning', () => {
+describe('Adapter - Scanning', () => {
     let adapter;
     let bleDriver;
     let bleDriverEventCallback;
@@ -32,7 +32,7 @@ describe('Scanning', () => {
         });
     });
 
-    it('start and stop should provide callbacks with possible error and emit adapterStateChanged', () => {
+    it('start and stop should provide callbacks with possible error and emit adapterStateChanged', (done) => {
         bleDriver.start_scan.yieldsAsync(undefined);
         bleDriver.stop_scan.yieldsAsync(undefined);
 
@@ -54,25 +54,22 @@ describe('Scanning', () => {
 
                 sinon.assert.calledTwice(adapterStateChangedSpy);
                 assert.ifError(adapterStateChangedSpy.lastCall.args[0].scanning);
+                done();
             });
         });
     });
 
-    it('After starting scanning we should receive deviceDiscovered and deviceChanged events', () => {
+    it('After starting scanning we should receive deviceDiscovered and deviceChanged events', (done) => {
         bleDriver.start_scan.yieldsAsync(undefined);
 
         let deviceDiscoveredSpy = sinon.spy();
         adapter.on('deviceDiscovered', deviceDiscoveredSpy);
-
-        let deviceChangedSpy = sinon.spy();
-        adapter.on('deviceChanged', deviceChangedSpy);
 
         let scanOptions = {};
         adapter.startScan(scanOptions, err => {
             assert.ifError(err);
 
             sinon.assert.notCalled(deviceDiscoveredSpy);
-            sinon.assert.notCalled(deviceChangedSpy);
 
             const advReportUuids = ['0000180D-0000-1000-8000-00805F9B34FB'];
             let advReportEvent = {id: bleDriver.BLE_GAP_EVT_ADV_REPORT,
@@ -82,7 +79,7 @@ describe('Scanning', () => {
             bleDriverEventCallback([advReportEvent]);
 
             sinon.assert.calledOnce(deviceDiscoveredSpy);
-            sinon.assert.notCalled(deviceChangedSpy);
+            assert.ok(_.isEqual(deviceDiscoveredSpy.lastCall.args[0].uuids, advReportUuids));
 
             const scanResponseUuids = ['0000180F-0000-1000-8000-00805F9B34FB'];
             advReportEvent = {id: bleDriver.BLE_GAP_EVT_ADV_REPORT,
@@ -91,10 +88,9 @@ describe('Scanning', () => {
                                   scan_rsp: true};
             bleDriverEventCallback([advReportEvent]);
 
-            sinon.assert.calledOnce(deviceDiscoveredSpy);
-            sinon.assert.calledOnce(deviceChangedSpy);
-
-            assert.ok(_.isEqual(deviceChangedSpy.lastCall.args[0].uuids, advReportUuids.concat(scanResponseUuids)));
+            sinon.assert.calledTwice(deviceDiscoveredSpy);
+            assert.ok(_.isEqual(deviceDiscoveredSpy.lastCall.args[0].uuids, scanResponseUuids));
+            done();
         });
     });
 });

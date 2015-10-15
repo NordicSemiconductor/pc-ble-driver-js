@@ -48,29 +48,6 @@ class Adapter extends EventEmitter {
         }
     }
 
-    _changeDeviceState(device, changingStates, swallowEmit) {
-        let changed = false;
-
-        _.each(changingStates, (value, state) => {
-            const previousState = device[state];
-
-            // Use isEqual to compare objects
-            if (!_.isEqual(previousState, value)) {
-                device[state] = value;
-                changed = true;
-            }
-        });
-
-        if (swallowEmit) {
-            return;
-        }
-
-        // TODO: Do we want emit deviceChanged events? Should the device be sent with the event?
-        if (changed) {
-            this.emit('deviceChanged', device);
-        }
-    }
-
     // options = { baudRate: x, parity: x, flowControl: x }
     // Callback signature function(err) {}
     open(options, callback) {
@@ -115,11 +92,7 @@ class Adapter extends EventEmitter {
         eventArray.forEach(event => {
             switch(event.id){
                 case this._bleDriver.BLE_GAP_EVT_CONNECTED:
-                    // TODO: Update device with connection handle
-                    // TODO: Should 'deviceConnected' event emit the updated device?
-                    this._changeAdapterState({connecting: false});
-                    this.emit('deviceConnected');
-
+                    this._parseConnectedEvent(event);
                     break;
                 case this._bleDriver.BLE_GAP_EVT_DISCONNECTED:
                     // TODO: remove from device list when disconnect event received
@@ -142,7 +115,7 @@ class Adapter extends EventEmitter {
                 case this._bleDriver.BLE_GAP_EVT_RSSI_CHANGED:
                     break;
                 case this._bleDriver.BLE_GAP_EVT_ADV_REPORT:
-                    this._parseAdvertismentReport(event);
+                    this._parseAdvertismentReportEvent(event);
                     break;
                 /*
                 case this._bleDriver.BLE_GAP_EVT_SEC_REQUEST:
@@ -178,19 +151,54 @@ class Adapter extends EventEmitter {
         });
     }
 
-    _parseAdvertismentReport(event) {
-        // TODO: Check address type?
-        // TODO: Store raw adv_data?
-        const address = event.peer_addr.address;
-        const changingStates = {};
-        let uuids = [];
+    _parseConnectedEvent(event) {
+        // TODO: Update device with connection handle
+        // TODO: Should 'deviceConnected' event emit the updated device?
+        const deviceAddress = event.peer_addr.address;
+        const connectionParameters = event.conn_params;
+        let deviceRole;
 
-        // TODO: Will this cause problems with different names in adv data and scan rsp?
-        if (event.data.BLE_GAP_AD_TYPE_LONG_LOCAL_NAME) {
-            changingStates.name = event.data.BLE_GAP_AD_TYPE_LONG_LOCAL_NAME;
-        } else if (event.data.BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME) {
-            changingStates.name = event.data.BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME;
+        // If our role is central set the device role to be peripheral.
+        if (event.role = 'BLE_GAP_ROLE_CENTRAL') {
+            deviceRole = 'peripheral';
+        } else if (event.role = 'BLE_GAP_ROLE_PERIPH') {
+            deviceRole = 'central';
         }
+
+        const device = new Device(deviceAddress, deviceRole);
+
+        device.connectionHandle = event.conn_handle;
+        device.minConnectionInterval = connectionParameters.min_conn_interval;
+        device.maxConnectionInterval = connectionParameters.max_conn_interval;
+        device.slaveLatency = connectionParameters.slave_latency;
+        device.connectionSupervisionTimeout = connectionParameters.conn_sup_timeout;
+
+        device.connected = true;
+        this._devices[device.instanceId] = device;
+
+        this._changeAdapterState({connecting: false});
+        this.emit('deviceConnected', device);
+    }
+
+    _parseDisconnectedEvent(event) {
+        const device = this.getDeviceByConnectionHandle(event.conn_handle);
+        device.connected = false;
+        delete this._devices[device.instanceId];
+        this.emit('deviceDisconnected', device);
+    }
+
+    _parseAdvertismentReportEvent(event) {
+        // TODO: Check address type?
+        const address = event.peer_addr.address;
+        const discoveredDevice = new Device(address, 'peripheral');
+
+        if (event.data.BLE_GAP_AD_TYPE_LONG_LOCAL_NAME) {
+            discoveredDevice.name = event.data.BLE_GAP_AD_TYPE_LONG_LOCAL_NAME;
+        } else if (event.data.BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME) {
+            discoveredDevice.name = event.data.BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME;
+        }
+
+        let uuids = [];
 
         if (event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_MORE_AVAILABLE) {
             uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_MORE_AVAILABLE);
@@ -216,29 +224,15 @@ class Adapter extends EventEmitter {
             uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_COMPLETE);
         }
 
-        if (event.scan_rsp) {
-            changingStates.scanRspUuids = uuids;
-        } else {
-            changingStates.advDataUuids = uuids;
-        }
+        discoveredDevice.uuids = uuids;
 
         if (event.data.BLE_GAP_AD_TYPE_TX_POWER_LEVEL) {
-            changingStates.txPower = event.data.BLE_GAP_AD_TYPE_TX_POWER_LEVEL;
+            discoveredDevice.txPower = event.data.BLE_GAP_AD_TYPE_TX_POWER_LEVEL;
         }
 
-        changingStates.rssi = event.rssi;
+        discoveredDevice.rssi = event.rssi;
 
-        let device = this.getDevice(address);
-
-        if (device) {
-            this._changeDeviceState(device, changingStates);
-        } else {
-            const swallowEmit = true;
-            device = new Device(address, changingStates.name, 'peripheral', uuids);
-            this._changeDeviceState(device, changingStates, swallowEmit);
-            this._devices[address] = device;
-            this.emit('deviceDiscovered', device);
-        }
+        this.emit('deviceDiscovered', discoveredDevice);
     }
 
     _parseTimeoutEvent(event) {
@@ -335,15 +329,17 @@ class Adapter extends EventEmitter {
     */
 
     // Get connected device/devices
-    // TODO: This should only be connected devices. should discovered devices be in this._devices?
     // Callback signature function(devices : Device[]) {}
     getDevices() {
         return this._devices;
     }
 
-    // Callback signature function(device)
-    getDevice(deviceAddress) {
-        return this._devices[deviceAddress];
+    getDevice(deviceInstanceId) {
+        return this._devices[deviceInstanceId];
+    }
+
+    getDeviceByConnectionHandle(connectionHandle) {
+        return this._devices.find(device => device.connectionHandle == connectionHandle);
     }
 
     // Only for central
@@ -489,7 +485,7 @@ class Adapter extends EventEmitter {
     }
 
     _getConnectionUpdateParams(options) {
-        return {min_conn_interval: options.minConnectionInterval, max_conn_interval: options.maxConnInterval,
+        return {min_conn_interval: options.minConnectionInterval, max_conn_interval: options.maxConnectionInterval,
                 slave_latency: options.slaveLatency, conn_sup_timeout: options.connectionSupervisionTimeout};
     }
 
