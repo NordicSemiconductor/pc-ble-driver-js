@@ -44,6 +44,45 @@ public:
     v8::Local<v8::Object> ToJs();
 };
 
+class GattxHVXParams : public BleToJs<ble_gatts_hvx_params_t>
+{
+public:
+    GattxHVXParams(ble_gatts_hvx_params_t *hvx_params) : BleToJs<ble_gatts_hvx_params_t>(hvx_params) {}
+    GattxHVXParams(v8::Local<v8::Object> js) : BleToJs<ble_gatts_hvx_params_t>(js) {}
+    ble_gatts_hvx_params_t *ToNative();
+};
+
+template<typename EventType>
+class BleDriverGattcEvent : public BleDriverEvent<EventType>
+{
+private:
+    BleDriverGattcEvent() {}
+
+public:
+    BleDriverGattcEvent(uint16_t evt_id, std::string timestamp, uint16_t conn_handle, EventType *evt)
+        : BleDriverEvent<EventType>(evt_id, timestamp, conn_handle, evt)
+    {
+    }
+
+    virtual void ToJs(v8::Local<v8::Object> obj)
+    {
+        BleDriverEvent<EventType>::ToJs(obj);
+    }
+
+    virtual v8::Local<v8::Object> ToJs() = 0;
+    virtual EventType *ToNative() { return new EventType(); }
+
+    char *getEventName() { return gattc_event_name_map[this->evt_id]; }
+};
+
+class GattsWriteEvent : BleDriverGattcEvent<ble_gatts_evt_write_t>
+{
+public:
+    GattsWriteEvent(std::string timestamp, uint16_t conn_handle, ble_gatts_evt_write_t *evt)
+        : BleDriverGattcEvent<ble_gatts_evt_write_t>(BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs();
+};
 
 struct GattsAddServiceBaton : public Baton {
 public:
@@ -62,8 +101,16 @@ public:
     ble_gatts_char_handles_t *p_handles;
 };
 
+struct GattsHVXBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GattsHVXBaton);
+    uint16_t conn_handle;
+    ble_gatts_hvx_params_t *p_hvx_params;
+};
+
 METHOD_DEFINITIONS(AddService)
 METHOD_DEFINITIONS(AddCharacteristic)
+METHOD_DEFINITIONS(HVX)
 
 extern "C" {
     void init_gatts(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);

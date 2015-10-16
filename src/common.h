@@ -232,6 +232,7 @@ public:
     static uint8_t      getNativeBool(v8::Local<v8::Object>js, char *name);
     static uint8_t      getNativeBool(v8::Local<v8::Value>js);
     static uint8_t *    getNativePointerToUint8(v8::Local<v8::Object>js, char *name);
+    static uint16_t *    getNativePointerToUint16(v8::Local<v8::Object>js, char *name);
     static v8::Local<v8::Object> getJsObject(v8::Local<v8::Value>js);
     static v8::Local<v8::Object> getJsObject(v8::Local<v8::Object>js, char *name);
 

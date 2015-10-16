@@ -105,6 +105,35 @@ v8::Local<v8::Object> GattsCharacteristicDefinitionHandles::ToJs()
     return scope.Escape(obj);
 }
 
+ble_gatts_hvx_params_t *GattxHVXParams::ToNative()
+{
+    ble_gatts_hvx_params_t *hvxparams = new ble_gatts_hvx_params_t();
+
+    hvxparams->handle = ConversionUtility::getNativeUint16(jsobj, "handle");
+    hvxparams->type = ConversionUtility::getNativeUint8(jsobj, "type");
+    hvxparams->offset = ConversionUtility::getNativeUint16(jsobj, "offset");
+    hvxparams->p_len = ConversionUtility::getNativePointerToUint16(jsobj, "p_len");
+    hvxparams->p_data = ConversionUtility::getNativePointerToUint8(jsobj, "p_data");
+
+    return hvxparams;
+}
+
+v8::Local<v8::Object> GattsWriteEvent::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverGattcEvent::ToJs(obj);
+
+    Utility::Set(obj, "handle", ConversionUtility::toJsNumber(native->handle));
+    Utility::Set(obj, "op", ConversionUtility::toJsNumber(native->op));
+    Utility::Set(obj, "context", ConversionUtility::toJsNumber(native->context)); //  ble_gatts_attr_context_t    context;            /**< Attribute Context. */
+    Utility::Set(obj, "offset", ConversionUtility::toJsNumber(native->offset));
+    Utility::Set(obj, "len", ConversionUtility::toJsNumber(native->len));
+    Utility::Set(obj, "data", ConversionUtility::toJsValueArray(native->data));
+
+    return scope.Escape(obj);
+}
+
 NAN_METHOD(AddService)
 {
     uint8_t type;
@@ -155,13 +184,13 @@ void AfterAddService(uv_work_t *req) {
 
     if (baton->result != NRF_SUCCESS)
     {
-        argv[0] = Nan::Undefined();
-        argv[1] = ErrorMessage::getErrorMessage(baton->result, "adding service");
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "adding service");
+        argv[1] = Nan::Undefined();
     }
     else
     {
-        argv[0] = ConversionUtility::toJsNumber(baton->p_handle);
-        argv[1] = Nan::Undefined();
+        argv[0] = Nan::Undefined();
+        argv[1] = ConversionUtility::toJsNumber(baton->p_handle);
     }
 
     baton->callback->Call(2, argv);
@@ -223,13 +252,13 @@ void AfterAddCharacteristic(uv_work_t *req) {
 
     if (baton->result != NRF_SUCCESS)
     {
-        argv[0] = Nan::Undefined();
-        argv[1] = ErrorMessage::getErrorMessage(baton->result, "adding service");
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "adding service");
+        argv[1] = Nan::Undefined();
     }
     else
     {
-        argv[0] = GattsCharacteristicDefinitionHandles(baton->p_handles).ToJs();
-        argv[1] = Nan::Undefined();
+        argv[0] = Nan::Undefined();
+        argv[1] = GattsCharacteristicDefinitionHandles(baton->p_handles).ToJs();
     }
 
     baton->callback->Call(2, argv);
@@ -238,11 +267,74 @@ void AfterAddCharacteristic(uv_work_t *req) {
     delete baton;
 }
 
+NAN_METHOD(HVX)
+{
+    uint16_t conn_handle;
+    v8::Local<v8::Object> hvx_params;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
+
+    try
+    {
+        conn_handle = ConversionUtility::getNativeUint8(info[argumentcount]);
+        argumentcount++;
+
+        hvx_params = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    GattsHVXBaton *baton = new GattsHVXBaton(callback);
+    baton->conn_handle = conn_handle;
+    baton->p_hvx_params = GattxHVXParams(hvx_params);
+
+    uv_queue_work(uv_default_loop(), baton->req, HVX, (uv_after_work_cb)AfterHVX);
+}
+
+// This runs in a worker thread (not Main Thread)
+void HVX(uv_work_t *req) {
+    GattsHVXBaton *baton = static_cast<GattsHVXBaton *>(req->data);
+
+    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
+    baton->result = sd_ble_gatts_hvx(baton->conn_handle, baton->p_hvx_params);
+}
+
+// This runs in Main Thread
+void AfterHVX(uv_work_t *req) {
+    Nan::HandleScope scope;
+
+    GattsHVXBaton *baton = static_cast<GattsHVXBaton *>(req->data);
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "hvx");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+
+    delete baton->p_hvx_params;
+    delete baton;
+}
+
 extern "C" {
     void init_gatts(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
         Utility::SetMethod(target, "gatts_add_service", AddService);
         Utility::SetMethod(target, "gatts_add_characteristic", AddCharacteristic);
+        Utility::SetMethod(target, "gatts_hvx", HVX);
 
         /* BLE_ERRORS_GATTS SVC return values specific to GATTS */
         NODE_DEFINE_CONSTANT(target, BLE_ERROR_GATTS_INVALID_ATTR_TYPE); /* Invalid attribute type. */

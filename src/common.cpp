@@ -208,6 +208,23 @@ uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Object>js, cha
     return string;
 }
 
+uint16_t *ConversionUtility::getNativePointerToUint16(v8::Local<v8::Object>js, char *name)
+{
+    v8::Local<v8::Array> jsarray = v8::Local<v8::Array>::Cast(Utility::Get(js, name));
+
+    uint16_t *string = (uint16_t *)malloc(sizeof(uint16_t) * jsarray->Length());
+
+    assert(string != NULL);
+
+    for (uint32_t i = 0; i < jsarray->Length(); ++i)
+    {
+        string[i] = (uint16_t)jsarray->Get(Nan::New(i))->Uint32Value();
+    }
+
+    return string;
+}
+
+
 v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Value>js)
 {
     if (!js->IsObject())
