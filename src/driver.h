@@ -10,6 +10,7 @@
 
 // Async methods
 METHOD_DEFINITIONS(Open);
+METHOD_DEFINITIONS(Close);
 METHOD_DEFINITIONS(GetVersion);
 
 // Synchronous methods
@@ -65,6 +66,11 @@ public:
     sd_rpc_parity_t parity;
 
     uint32_t evt_interval; // The interval in ms that the event queue is sent to NodeJS
+};
+
+struct CloseBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(CloseBaton)
 };
 
 struct GetVersionBaton : public Baton {

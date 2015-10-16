@@ -656,9 +656,6 @@ NAN_METHOD(CharacteristicValueByUUIDRead)
     baton->p_handle_range = GattcHandleRange(handle_range);
 
     uv_queue_work(uv_default_loop(), baton->req, CharacteristicValueByUUIDRead, (uv_after_work_cb)AfterCharacteristicValueByUUIDRead);
-
-    // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    return;
 }
 
 // This runs in a worker thread (not Main Thread)
