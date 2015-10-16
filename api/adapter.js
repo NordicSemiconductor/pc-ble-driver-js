@@ -80,6 +80,8 @@ class Adapter extends EventEmitter {
                         callback(err);
                         return;
                     }
+
+                    //this._changeAdapterState({available: true});
                 });
 
             }
@@ -91,10 +93,7 @@ class Adapter extends EventEmitter {
 
     // Callback signature function(err) {}
     close(callback) {
-        // TODO: Fix when function has callback
-        // TODO: how to call the callback? timer?
-        this._bleDriver.close();
-
+        this._bleDriver.close(callback);
         this._changeAdapterState({available: false});
     }
 
@@ -363,6 +362,7 @@ class Adapter extends EventEmitter {
                     }
 
                     changedAdapterStates.address = address;
+                    changedAdapterStates.available = true;
 
                     this._changeAdapterState(changedAdapterStates);
                     callback(undefined, this._adapterState);
