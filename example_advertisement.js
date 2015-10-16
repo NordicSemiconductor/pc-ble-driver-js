@@ -2,6 +2,7 @@
 var driver = require('./build/Debug/ble_driver_js');
 
 var evt_count = 0;
+var connectionHandle = 0;
 
 driver.open(
     'COM19',
@@ -34,6 +35,19 @@ driver.open(
                 else if (event.name === 'BLE_GAP_EVT_TIMEOUT') {
                     console.log("Timeout source: %s", event.src);
                 }
+                else if (event.name === 'BLE_GAP_EVT_CONNECTED')
+                {
+                    connectionHandle = event.conn_handle;
+                    console.log("Connected. Handle: %d", connectionHandle);
+                }
+                else if (event.name === 'BLE_GATTS_EVT_WRITE')
+                {
+                    if (event.evt.gatts_evt.params.write.context.char_uuid.uuid == 0x2A37)
+                    {
+                        var write_data = event.params.write.data[0];
+                        m_send_notifications = write_data == driver.BLE_GATT_HVX_NOTIFICATION;
+                    }
+                }
             }
         }
     },
@@ -43,7 +57,7 @@ driver.open(
             return;
         }
 
-        driver.gatts_add_service(1, {'uuid': 0x180D, 'type': driver.BLE_UUID_TYPE_BLE}, function(handle, err) {
+        driver.gatts_add_service(1, {'uuid': 0x180D, 'type': driver.BLE_UUID_TYPE_BLE}, function(err, handle) {
             if (err) {
                 console.log('Error occured when adding service');
                 console.log(err);
@@ -54,13 +68,30 @@ driver.open(
 
             driver.gatts_add_characteristic(handle,
                                             {
-                                                'char_props': {'broadcast': false, 'read': true, 'write_wo_resp': false, 'write': false, 'notify': false, 'indicate': false, 'auth_signed_wr': false},
+                                                'char_props':
+                                                {
+                                                    'broadcast': false,
+                                                    'read': true,
+                                                    'write_wo_resp': false,
+                                                    'write': false,
+                                                    'notify': true,
+                                                    'indicate': false,
+                                                    'auth_signed_wr': false
+                                                },
                                                 'char_ext_props': {'reliable_wr': false, 'wr_aux': false},
                                                 'char_user_desc_max_size': 0,
                                                 'char_user_desc_size': 0,
                                                 'p_char_pf': 0,
                                                 'p_user_desc_md': 0,
-                                                'p_cccd_md': 0,
+                                                'p_cccd_md':
+                                                {
+                                                    'read_perm': {'sm': 1, 'lv': 1},
+                                                    'write_perm': {'sm': 1, 'lv': 1},
+                                                    'vlen': 0,
+                                                    'vloc': driver.BLE_GATTS_VLOC_STACK,
+                                                    'rd_auth': 0,
+                                                    'wr_auth': 0,
+                                                },
                                                 'p_sccd_md': 0,
                                             },
                                             {
@@ -78,7 +109,8 @@ driver.open(
                                                 'max_len': 1,
                                                 'p_value': [43],
                                             },
-                                            function(handles, err){
+                                            function(err, handles)
+            {
                 if (err) {
                     console.log('Error occured when adding characteristics');
                     console.log(err);
@@ -87,7 +119,19 @@ driver.open(
 
                 console.log('Added characteristics with handles %d', handles);
 
-                driver.gap_start_advertisement({'type': driver.BLE_GAP_ADV_TYPE_ADV_IND, 'fp': driver.BLE_GAP_ADV_FP_ANY, 'interval': 40, 'timeout': 180, 'channel_mask': {'ch_37_off': 0, 'ch_38_off': 0, 'ch_39_off': 0}}, function(err) {
+                driver.gap_start_advertisement({
+                                                    'type': driver.BLE_GAP_ADV_TYPE_ADV_IND,
+                                                    'fp': driver.BLE_GAP_ADV_FP_ANY,
+                                                    'interval': 40,
+                                                    'timeout': 180,
+                                                    'channel_mask': {
+                                                        'ch_37_off': 0,
+                                                        'ch_38_off': 0,
+                                                        'ch_39_off': 0,
+                                                    },
+                                                },
+                                                function(err)
+                {
                     if(err) {
                         console.log('Error occured when starting advertisement');
                         console.log(err);
