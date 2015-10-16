@@ -4,6 +4,9 @@ var  Adapter = require('./adapter');
 const EventEmitter = require('events');
 
 var _ = require('underscore');
+
+const adapterUpdateInterval = 5000;
+
 /**
  * @brief A factory that instantiates new Adapters
  *
@@ -23,7 +26,7 @@ class AdapterFactory extends EventEmitter {
         this._bleDriver = bleDriver;
         this._adapters = {};
         this._updateAdapterList();
-        this.updateAdapterListInterval = setInterval(this._updateAdapterList, 5000);
+        this.updateAdapterListInterval = setInterval(this._updateAdapterList.bind(this), adapterUpdateInterval);
     }
 
     _getInstanceId(adapter) {
@@ -40,8 +43,8 @@ class AdapterFactory extends EventEmitter {
     }
 
     _parseAndCreateAdapter(adapter) {
-        let instanceId = this._getInstanceId(adapter);
-        let parsedAdapter = new Adapter(this._bleDriver, instanceId, adapter.comName);
+        const instanceId = this._getInstanceId(adapter);
+        const parsedAdapter = new Adapter(this._bleDriver, instanceId, adapter.comName);
 
         return parsedAdapter;
     }
@@ -52,21 +55,25 @@ class AdapterFactory extends EventEmitter {
                 this.emit('error', err);
             }
 
-            let removedAdapters = Object.assign({}, this._adapters);
+            const removedAdapters = Object.assign({}, this._adapters);
 
             _.each(adapters, adapter => {
-                let adapterInstanceId = this._getInstanceId(adapter);
+                const adapterInstanceId = this._getInstanceId(adapter);
 
                 if (this._adapters[adapterInstanceId]) {
                     delete removedAdapters[adapterInstanceId];
                 }
 
-                let newAdapter = this._parseAndCreateAdapter(adapter);
-                this._adapters[adapterInstanceId] = newAdapter;
-                this.emit('added', newAdapter);
+                const newAdapter = this._parseAndCreateAdapter(adapter);
+
+                if(this._adapters[adapterInstanceId] === undefined) {
+                    this._adapters[adapterInstanceId] = newAdapter;
+                    this.emit('added', newAdapter);
+                }
             });
 
             _.each(removedAdapters, adapter => {
+                delete this._adapters[adapter.instanceId];
                 this.emit('removed', adapter);
             });
         });
@@ -74,12 +81,8 @@ class AdapterFactory extends EventEmitter {
 
     /**
      * @brief Get Nordic BLE adapters connected to the computer
-     *
-     * @param err
-     * @param k [description]
      */
-    // Callback signature function(adapters[])
-    getAdapters(callback) {
+    getAdapters() {
         return this._adapters;
     }
 }

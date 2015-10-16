@@ -7,6 +7,7 @@ class Descriptor {
         this._instanceId = characteristicInstanceId + '.' + (i++).toString();
         this._characteristicInstanceId = characteristicInstanceId;
         this.uuid = uuid;
+        this.name = null;
         this.value = value;
     }
 
@@ -31,3 +32,5 @@ class Descriptor {
         this._name = name;
     }
 }
+
+module.exports = Descriptor;

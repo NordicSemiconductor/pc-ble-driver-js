@@ -6,6 +6,7 @@ const _ = require('underscore');
 
 const AdapterState = require('./adapterState');
 const Device = require('./device');
+const Service = require('./service');
 
 // No caching of devices
 // Do cache service database
@@ -13,11 +14,20 @@ const Device = require('./device');
 class Adapter extends EventEmitter {
     constructor(bleDriver, instanceId, port) {
         super();
+
+        if(bleDriver === undefined) throw new Error('Missing argument bleDriver');
+        if(instanceId === undefined) throw new Error('Missing argument instanceId');
+        if(port === undefined) throw new Error('Missing argument port');
+
         this._bleDriver = bleDriver;
         this._instanceId = instanceId;
         this._adapterState = new AdapterState(instanceId, port);
 
         this._devices = {};
+
+        this._services = {};
+        this._characteristics = {};
+        this._descriptors = {};
     }
 
     // Get the instance id
@@ -25,42 +35,26 @@ class Adapter extends EventEmitter {
         return this._instanceId;
     }
 
-    _changeAdapterState(changingStates, emitOnChange) {
+    _changeAdapterState(changingStates, swallowEmit) {
         let changed = false;
 
-        _.each(changingStates, (value, state) => {
-            const previousState = this._adapterState[state];
+        for (let state in changingStates) {
+            const newValue = changingStates[state];
+            const previousValue = this._adapterState[state];
 
-            if (previousState !== value) {
-                this._adapterState[state] = value;
+            // Use isEqual to compare objects
+            if (!_.isEqual(previousValue, newValue)) {
+                this._adapterState[state] = newValue;
                 changed = true;
             }
-        });
-
-        if (emitOnChange && changed) {
-            this.emit('adapterStateChanged', this._adapterState);
         }
-    }
 
-    _changeDeviceState(device, changingStates, emitOnChange) {
-        let changed = false;
+        if (swallowEmit) {
+            return;
+        }
 
-        _.each(changingStates, (value, state) => {
-            const previousState = device[state];
-
-            if (state === 'uuids') {
-
-            }
-
-            if (previousState !== value) {
-                device[state] = value;
-                changed = true;
-            }
-        });
-
-        // TODO: Do we want emit deviceChanged events? Should the device be sent with the event?
-        if (emitOnChange && changed) {
-            this.emit('deviceChanged', device);
+        if (changed) {
+            this.emit('adapterStateChanged', this._adapterState);
         }
     }
 
@@ -70,15 +64,26 @@ class Adapter extends EventEmitter {
         this._changeAdapterState({baudRate: options.baudRate, parity: options.parity, flowControl: options.flowControl});
 
         // options.eventInterval = options.eventInterval;
-        options.logCallback = this._logCallback;
-        options.eventCallback = this._eventCallback;
+        options.logCallback = this._logCallback.bind(this);
+        options.eventCallback = this._eventCallback.bind(this);
 
         this._bleDriver.open(this._adapterState.port, options, err => {
             if(err) {
                 // TODO: will adapter still be available if the call fails?
                 this.emit('error', `Error occurred opening serial port: ${err}`);
+                callback(err);
+                return;
             } else {
-                this._changeAdapterState({available: true});
+                this.getAdapterState((err, adapterState) => {
+                    if(err) {
+                        this.emit('error', err);
+                        callback(err);
+                        return;
+                    }
+
+                    //this._changeAdapterState({available: true});
+                });
+
             }
 
             callback(err);
@@ -88,10 +93,7 @@ class Adapter extends EventEmitter {
 
     // Callback signature function(err) {}
     close(callback) {
-        // TODO: Fix when function has callback
-        // TODO: how to call the callback? timer?
-        this._bleDriver.close();
-
+        this._bleDriver.close(callback);
         this._changeAdapterState({available: false});
     }
 
@@ -104,20 +106,18 @@ class Adapter extends EventEmitter {
 
     // TODO: event callback function declared here or in open call?;
     _eventCallback(eventArray) {
-        console.log("eventArray length: " + eventArray.length);
-
         eventArray.forEach(event => {
             switch(event.id){
                 case this._bleDriver.BLE_GAP_EVT_CONNECTED:
-                    // TODO: Update device with connection handle
-                    // TODO: Should 'deviceConnected' event emit the updated device?
-                    this.emit('deviceConnected');
+                    this._parseConnectedEvent(event);
                     break;
                 case this._bleDriver.BLE_GAP_EVT_DISCONNECTED:
-                    // TODO: Handle disconnect event
-                    this.emit('deviceDisconnected');
+                    this._parseDisconnectedEvent(event);
                     break;
                 case this._bleDriver.BLE_GAP_EVT_CONN_PARAM_UPDATE:
+                    this._parseConnectionParameterUpdateEvent(event);
+                    break;
+                // TODO: Implement for security/bonding
                 /*
                 case this._bleDriver.BLE_GAP_EVT_SEC_PARAMS_REQUEST:
                 case this._bleDriver.BLE_GAP_EVT_SEC_INFO_REQUEST:
@@ -127,18 +127,25 @@ class Adapter extends EventEmitter {
                 case this._bleDriver.BLE_GAP_EVT_CONN_SEC_UPDATE:
                 */
                 case this._bleDriver.BLE_GAP_EVT_TIMEOUT:
+                    this._parseTimeoutEvent(event);
+                    break;
                 case this._bleDriver.BLE_GAP_EVT_RSSI_CHANGED:
+                    this._parseRssiChangedEvent(event);
+                    break;
                 case this._bleDriver.BLE_GAP_EVT_ADV_REPORT:
-                    this._parseAdvertismentReport(event);
+                    this._parseAdvertismentReportEvent(event);
                     break;
                 /*
                 case this._bleDriver.BLE_GAP_EVT_SEC_REQUEST:
                 */
                 case this._bleDriver.BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST:
+                    this._parseConnectionParameterUpdateRequestEvent(event);
+                    break;
                 case this._bleDriver.BLE_GAP_EVT_SCAN_REQ_REPORT:
-                    console.log(`Unsupported GAP event received from SoftDevice: ${event.id} - ${event.name}`);
+                    // TODO: implement to know when a scan request is received.
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP:
+                    this._parsePrimaryServiceDiscoveryResponseEvent(event);
                 case this._bleDriver.BLE_GATTC_EVT_REL_DISC_RSP:
                 case this._bleDriver.BLE_GATTC_EVT_CHAR_DISC_RSP:
                 case this._bleDriver.BLE_GATTC_EVT_DESC_DISC_RSP:
@@ -165,21 +172,82 @@ class Adapter extends EventEmitter {
         });
     }
 
-    _parseAdvertismentReport(event) {
-        // TODO: Check address type?
-        // TODO: Store raw adv_data?
-        const address = event.peer_addr.address;
-        const changingStates = {};
-        let uuids = [];
+    _parseConnectedEvent(event) {
+        // TODO: Update device with connection handle
+        // TODO: Should 'deviceConnected' event emit the updated device?
+        const deviceAddress = event.peer_addr.address;
+        const connectionParameters = event.conn_params;
+        let deviceRole;
 
-        if (event.data.BLE_GAP_AD_TYPE_LONG_LOCAL_NAME) {
-            changingStates.name = event.data.BLE_GAP_AD_TYPE_LONG_LOCAL_NAME;
-        } else if (event.data.BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME) {
-            changingStates.name = event.data.BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME;
+        // If our role is central set the device role to be peripheral.
+        if (event.role = 'BLE_GAP_ROLE_CENTRAL') {
+            deviceRole = 'peripheral';
+        } else if (event.role = 'BLE_GAP_ROLE_PERIPH') {
+            deviceRole = 'central';
         }
 
-        // TODO: Translate from uuid to service names?
-        // TODO: Find out how to figure out changes for uuids? Keep uuids separate in adv report and scan response lists?
+        const device = new Device(deviceAddress, deviceRole);
+
+        device.connectionHandle = event.conn_handle;
+        device.minConnectionInterval = connectionParameters.min_conn_interval;
+        device.maxConnectionInterval = connectionParameters.max_conn_interval;
+        device.slaveLatency = connectionParameters.slave_latency;
+        device.connectionSupervisionTimeout = connectionParameters.conn_sup_timeout;
+
+        device.connected = true;
+        this._devices[device.instanceId] = device;
+
+        this._changeAdapterState({connecting: false});
+        this.emit('deviceConnected', device);
+    }
+
+    _parseDisconnectedEvent(event) {
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
+        if (!device) {
+            throw new Error('Internal inconsistency: Could not find device with connection handle ' + event.conn_handle);
+        }
+
+        device.connected = false;
+        delete this._devices[device.instanceId];
+        this.emit('deviceDisconnected', device);
+    }
+
+    _parseConnectionParameterUpdateEvent(event) {
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
+
+        device.minConnectionInterval = event.conn_params.min_conn_interval;
+        device.maxConnectionInterval = event.conn_params.max_conn_interval;
+        device.slaveLatency = event.conn_params.slave_latency;
+        device.connectionSupervisionTimeout = event.conn_params.conn_sup_timeout;
+
+        this.emit('connParamUpdate', device);
+    }
+
+    _parseConnectionParameterUpdateRequestEvent(event) {
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
+
+        const connectionParameters = {deviceInstanceId: device.instanceId,
+                                    minConnectionInterval: event.conn_params.min_conn_interval,
+                                    maxConnectionInterval: event.conn_params.max_conn_interval,
+                                    slaveLatency: event.conn_params.slave_latency,
+                                    connectionSupervisionTimeout: event.conn_params.conn_sup_timeout};
+
+        this.emit('connParamUpdateRequest', connectionParameters);
+    }
+
+    _parseAdvertismentReportEvent(event) {
+        // TODO: Check address type?
+        const address = event.peer_addr.address;
+        const discoveredDevice = new Device(address, 'peripheral');
+
+        if (event.data.BLE_GAP_AD_TYPE_LONG_LOCAL_NAME) {
+            discoveredDevice.name = event.data.BLE_GAP_AD_TYPE_LONG_LOCAL_NAME;
+        } else if (event.data.BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME) {
+            discoveredDevice.name = event.data.BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME;
+        }
+
+        let uuids = [];
+
         if (event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_MORE_AVAILABLE) {
             uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_MORE_AVAILABLE);
         }
@@ -204,60 +272,107 @@ class Adapter extends EventEmitter {
             uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_COMPLETE);
         }
 
+        discoveredDevice.uuids = uuids;
+
         if (event.data.BLE_GAP_AD_TYPE_TX_POWER_LEVEL) {
-            changingStates.txPower = event.data.BLE_GAP_AD_TYPE_TX_POWER_LEVEL;
+            discoveredDevice.txPower = event.data.BLE_GAP_AD_TYPE_TX_POWER_LEVEL;
         }
 
-        changingStates.rssi = event.rssi;
+        discoveredDevice.rssi = event.rssi;
 
-        let device = this.getDevice(address);
+        this.emit('deviceDiscovered', discoveredDevice);
+    }
 
-        if (device) {
-            this._changeDeviceState(device, changingStates);
-        } else {
-            const emitOnChange = false;
-            device = new Device(address, changingStates.name, 'peripheral', uuids);
-            this._changeDeviceState(device, changingStates, emitOnChange);
-            this._devices[address] = device;
+    _parseTimeoutEvent(event) {
+        switch(event.src) {
+            case this._bleDriver.BLE_GAP_TIMEOUT_SRC_SCAN:
+                this._changeAdapterState({scanning: false});
+                break;
+            case this._bleDriver.BLE_GAP_TIMEOUT_SRC_CONN:
+                this._changeAdapterState({connecting: false});
+                break;
+            default:
+                console.log(`GAP operation timed out: ${event.src_name} (${event.src}).`);
         }
+    }
+
+    _parseRssiChangedEvent(event) {
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
+        device.rssi = event.rssi;
+        // TODO: How do we notify the application of a changed rssi?
+        //emit('rssiChanged', device);
+    }
+
+
+    _parsePrimaryServiceDiscoveryResponseEvent(event) {
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
+        const services = event.services;
+
+        if (event.count === 0) {
+            // TODO: implement how we know when to call the callback from getServices.
+            device.getServicesCallback();
+            device.getServicesCallback = null;
+            return;
+        }
+
+        services.forEach(service => {
+            let uuid = service.uuid.uuid;
+
+            if (service.uuid.type === this._bleDriver.BLE_UUID_TYPE_UNKNOWN) {
+                //TODO: Implement handing of unkown uuid type (read handle)
+                uuid = null;
+            }
+
+            const newService = new Service(device.instanceId, uuid);
+            newService.startHandle = service.start_handle;
+            newService.endHandle = service.end_handle;
+            this._services[newService.instanceId] = newService;
+        });
+
+        const nextStartHandle = services[services.length - 1].end_handle + 1;
+
+        this._bleDriver.gattc_primary_services_discover(device.connectionHandle, nextStartHandle, null);
     }
 
     // Callback signature function(err, state) {}
     getAdapterState(callback) {
-        // TODO: update information
-        // TODO: Figure out if calls should be nested or have some magic variable checks
-
-        if (this._firmwareVersion) {
-            return this._firmwareVersion;
-        }
+        const changedAdapterStates = {};
 
         this._bleDriver.get_version((version, err) => {
             if (err) {
-                this.emit('error', 'Failed to retrieve softdevice firmwareVersion');
-            } else {
-                this._adapterState.firmwareVersion = version;
-            }
-        });
-
-
-        this._bleDriver.gap_get_device_name((name, err) => {
-            if (err) {
-                // TODO: logging?
+                const error = 'Failed to retrieve softdevice firmwareVersion';
+                this.emit('error', error);
+                callback(error);
                 return;
             }
 
-            this._name = name;
+            changedAdapterStates.firmwareVersion = version;
+
+            this._bleDriver.gap_get_device_name( (name, err) => {
+                if (err) {
+                    const error = 'Failed to retrieve driver version.';
+                    this.emit('error', error);
+                    callback(error);
+                    return;
+                }
+                changedAdapterStates.name = name;
+
+                this._bleDriver.gap_get_address( (address, err) => {
+                    if (err) {
+                        const error = 'Failed to retrieve device address.';
+                        this.emit('error', error);
+                        callback(error);
+                        return;
+                    }
+
+                    changedAdapterStates.address = address;
+                    changedAdapterStates.available = true;
+
+                    this._changeAdapterState(changedAdapterStates);
+                    callback(undefined, this._adapterState);
+                });
+            });
         });
-
-
-        this._bleDriver.gap_get_address((address, err) => {
-            if (err) {
-                // TODO: logging?
-                return;
-            }
-        });
-
-        return this._adapterState;
     }
 
     // Set GAP related information
@@ -283,7 +398,7 @@ class Adapter extends EventEmitter {
         const cycleMode = this._bleDriver.BLE_GAP_ADDR_CYCLE_MODE_NONE;
         // TODO: if privacy is active use this._bleDriver.BLE_GAP_ADDR_CYCLE_MODE_AUTO?
 
-        let addressStruct = this._getAddressStruct(address, type);
+        const addressStruct = this._getAddressStruct(address, type);
 
         this._bleDriver.gap_set_address(cycleMode, addressStruct, err => {
             if (err) {
@@ -313,15 +428,20 @@ class Adapter extends EventEmitter {
     */
 
     // Get connected device/devices
-
     // Callback signature function(devices : Device[]) {}
-    getDevices(callback) {
-
+    getDevices() {
+        return this._devices;
     }
 
-    // Callback signature function(device)
-    getDevice(deviceAddress, callback) {
+    getDevice(deviceInstanceId) {
+        return this._devices[deviceInstanceId];
+    }
 
+    _getDeviceByConnectionHandle(connectionHandle) {
+        const foundDeviceId = Object.keys(this._devices).find( (deviceId) => {
+            return this._devices[deviceId].connectionHandle === connectionHandle;
+        });
+        return this._devices[foundDeviceId];
     }
 
     // Only for central
@@ -341,8 +461,6 @@ class Adapter extends EventEmitter {
 
     // Callback signature function(err)
     stopScan(callback) {
-        // TODO: check if adapterState is in scanning mode?
-
         this._bleDriver.stop_scan(err => {
             if (err) {
                 // TODO: probably is state already set to false, but should we make sure? if yes, emit adapterStateChanged?
@@ -459,12 +577,9 @@ class Adapter extends EventEmitter {
     disconnect(deviceInstanceId, callback) {
         const device = this.getDevice(deviceInstanceId);
         const hciStatusCode = this._bleDriver.BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION;
-        this._bleDriver.disconnect(device.connectionHandle, hciStatusCode, err => {
+        this._bleDriver.gap_disconnect(device.connectionHandle, hciStatusCode, err => {
             if (err) {
                 this.emit('error', 'Failed to disconnect');
-            } else {
-                // TODO: remove from device list when disconnect event received
-                this._changeAdapterState({connected: false});
             }
 
             callback(err);
@@ -472,7 +587,7 @@ class Adapter extends EventEmitter {
     }
 
     _getConnectionUpdateParams(options) {
-        return {min_conn_interval: options.minConnectionInterval, max_conn_interval: options.maxConnInterval,
+        return {min_conn_interval: options.minConnectionInterval, max_conn_interval: options.maxConnectionInterval,
                 slave_latency: options.slaveLatency, conn_sup_timeout: options.connectionSupervisionTimeout};
     }
 
@@ -545,35 +660,77 @@ class Adapter extends EventEmitter {
 
     // Callback signature function(err, service) {}
     getService(serviceInstanceId, callback) {
-        // TODO: iterate over all devices to find service with correct serviceInstanceId?
-        // TODO: split up serviceInstaceId to find deviceInstanceId?
+        // TODO: Do read on service?
+        callback(undefined, this._services[serviceInstanceId]);
     }
 
     // Callback signature function(err, services) {}. If deviceInstanceId is local, local database (GATTS)
     getServices(deviceInstanceId, callback) {
+        const device = this.getDevice(deviceInstanceId);
 
+        this._bleDriver.gattc_primary_services_discover(device.connectionHandle, 0, null, err => {
+            if (err) {
+                this.emit('error', 'Failed to get services');
+                callback(err);
+                return;
+            }
+
+            // TODO: Find better way to store this callback?
+            device.getServicesCallback = callback;
+        });
     }
 
 
     // Callback signature function(err, characteristic) {}
     getCharacteristic(characteristicId, callback) {
-
+        // TODO: Do read on characteristic?
+        callback(undefined, this._characteristics[characteristicId]);
     }
 
     // Callback signature function(err, characteristics) {}
     getCharacteristics(serviceId, callback) {
+        const service = this.getService(serviceId);
+        const device = this.getDevice(service.deviceInstanceId);
+        const handleRange = {startHandle: service.startHandle, endHandle: service.endHandle};
 
+        this._bleDriver.gattc_characteristic_discover(device.connectionHandle, handleRange, err => {
+            if (err) {
+                this.emit('error', 'Failed to get Characteristics');
+                callback(err);
+                return;
+            }
+
+            // TODO: Find better way to store this callback?
+            service.getCharacteristicsCallback = callback;
+        });
     }
 
 
     // Callback signature function(err, descriptor) {}
     getDescriptor(descriptorId, callback) {
-
+        // TODO: Do read on descriptor?
+        callback(undefined, this._descriptors[descriptorId]);
     }
 
     // Callback signature function(err, descriptors) {}
     getDescriptors(characteristicId, callback) {
+        const characteristic = this.getCharacteristic(characteristicId);
+        const service = this.getService(characteristic.serviceInstanceId);
+        const device = this.getDevice(service.deviceInstanceId);
 
+        // TODO: How do we know where characteristic end?
+        const handleRange = {startHandle: characteristic.valueHandle+1, endHandle: service.endHandle};
+
+        this._bleDriver.gattc_characteristic_discover(device.connectionHandle, handleRange, err => {
+            if (err) {
+                this.emit('error', 'Failed to get Descriptors');
+                callback(err);
+                return;
+            }
+
+            // TODO: Find better way to store this callback?
+            characteristic.getDescriptorsCallback = callback;
+        });
     }
 
 
@@ -610,4 +767,5 @@ class Adapter extends EventEmitter {
 
     }
 }
+
 module.exports = Adapter;

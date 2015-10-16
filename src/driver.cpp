@@ -323,8 +323,6 @@ NAN_METHOD(Open) {
     baton->event_callback = new Nan::Callback(Utility::Get(options, "eventCallback").As<v8::Function>());
 
     uv_queue_work(uv_default_loop(), baton->req, Open, (uv_after_work_cb)AfterOpen);
-
-    return;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -418,10 +416,53 @@ void AfterOpen(uv_work_t *req) {
 }
 
 NAN_METHOD(Close) {
-    lock_guard<mutex> lock(ble_driver_call_mutex);
-    sd_rpc_close();
+    v8::Local<v8::Function> callback;
 
-    return;
+    int argumentcount = 0;
+
+    try
+    {
+        callback = info[0].As<v8::Function>();
+        argumentcount++;
+    }
+    catch (char *)
+    {
+        Nan::ThrowTypeError("First argument must be a function");
+        return;
+    }
+
+    CloseBaton *baton = new CloseBaton(callback);
+
+    uv_queue_work(uv_default_loop(), baton->req, Close, (uv_after_work_cb)AfterClose);
+}
+
+void Close(uv_work_t *req) {
+    CloseBaton *baton = static_cast<CloseBaton *>(req->data);
+
+    lock_guard<mutex> lock(ble_driver_call_mutex);
+    baton->result = sd_rpc_close();
+
+    delete driver_event_callback;
+    delete driver_log_callback;
+}
+
+void AfterClose(uv_work_t *req) {
+    Nan::HandleScope scope;
+    CloseBaton *baton = static_cast<CloseBaton *>(req->data);
+
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "closing connection");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+    delete baton;
 }
 
 NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& v8str) {

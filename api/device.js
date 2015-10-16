@@ -3,19 +3,22 @@
 // TODO: does it need an adapterInstanceId?
 
 class Device {
-    constructor(address, name, role, uuids) {
+    constructor(address, role) {
         this._instanceId = null;
         this._address = address;
-        this.name = name;
+        this.name = null;
         this._role = role;
-        this._uuids = uuids;
-
-        this.services = {};
+        this.uuids = [];
 
         this.connected = false;
         this.rssi = null;
         this.txPower = null;
         this._connectionHandle = null;
+
+        this.minConnectionInterval = null;
+        this.maxConnectionInterval = null;
+        this.slaveLatency = null;
+        this.connectionSupervisionTimeout = null;
     }
 
     // null if not connected
@@ -45,3 +48,5 @@ class Device {
         this._instanceId = this._address + '.' + connectionHandle;
     }
 }
+
+module.exports = Device;
