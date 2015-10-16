@@ -22,6 +22,19 @@ typedef CircularFifo<EventEntry *, 64> EventQueue;
 typedef CircularFifo<LogEntry *, 64> LogQueue;
 
 // Macro for keeping sanity in event switch case below
+#define COMMON_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, event_entry) \
+    case BLE_EVT_##evt_enum:                                                                                        \
+    {                                                                                                                   \
+        ble_common_evt_t common_event = event_entry->event->evt.common_evt;                                                      \
+        std::string timestamp = event_entry->timestamp;                                                                 \
+        v8::Local<v8::Value> js_event =                                                                                 \
+            Common##evt_to_js##Event(timestamp, common_event.conn_handle, &(common_event.params.params_name)).ToJs();                   \
+        Nan::Set(event_array, event_array_idx, js_event);                                               \
+        break;                                                                                                          \
+    }
+
+
+// Macro for keeping sanity in event switch case below
 #define GAP_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, event_entry) \
     case BLE_GAP_EVT_##evt_enum:                                                                                        \
     {                                                                                                                   \
@@ -230,6 +243,8 @@ void on_rpc_event(uv_async_t *handle)
         {
             switch (event->header.evt_id)
             {
+                COMMON_EVT_CASE(TX_COMPLETE,    TXComplete,     tx_complete, array, array_idx, event_entry);
+
                 GAP_EVT_CASE(CONNECTED,                 Connected,              connected,                  array, array_idx, event_entry);
                 GAP_EVT_CASE(DISCONNECTED,              Disconnected,           disconnected,               array, array_idx, event_entry);
                 GAP_EVT_CASE(ADV_REPORT,                AdvReport,              adv_report,                 array, array_idx, event_entry);
@@ -250,12 +265,12 @@ void on_rpc_event(uv_async_t *handle)
                 GATTC_EVT_CASE(HVX,                         HandleValueNotification,       hvx,                        array, array_idx, event_entry);
                 GATTC_EVT_CASE(TIMEOUT,                     Timeout,                       timeout,                    array, array_idx, event_entry);
 
-                GATTS_EVT_CASE(WRITE,                   Write,              write,                  array, array_idx, event_entry);               
-                /*GATTS_EVT_CASE(RW_AUTHORIZE_REQUEST,    RWAuthorizeRequest, rw_authorize_request,   array, array_idx, event_entry);
-                GATTS_EVT_CASE(SYS_ATTR_MISSING,        SysAttributeMissing,sys_attr_missing,       array, array_idx, event_entry);
-                GATTS_EVT_CASE(HVC,                     HVC,                hvc,                    array, array_idx, event_entry);       
-                GATTS_EVT_CASE(SC_CONFIRM,              SCConfirm,          sc_confirm,             array, array_idx, event_entry);
-                GATTS_EVT_CASE(TIMEOUT,                 Timeout,            timeout,                array, array_idx, event_entry);
+                GATTS_EVT_CASE(WRITE,                   Write,                  write,                  array, array_idx, event_entry);               
+                /*GATTS_EVT_CASE(RW_AUTHORIZE_REQUEST,    RWAuthorizeRequest,   rw_authorize_request,   array, array_idx, event_entry);
+              */GATTS_EVT_CASE(SYS_ATTR_MISSING,        SystemAttributeMissing, sys_attr_missing,       array, array_idx, event_entry);
+                /*GATTS_EVT_CASE(HVC,                     HVC,                  hvc,                    array, array_idx, event_entry);       
+                GATTS_EVT_CASE(SC_CONFIRM,              SCConfirm,              sc_confirm,             array, array_idx, event_entry);
+                GATTS_EVT_CASE(TIMEOUT,                 Timeout,                timeout,                array, array_idx, event_entry);
                 */
             default:
                 std::cout << "Event " << event->header.evt_id << " unknown to me." << std::endl;
@@ -284,6 +299,17 @@ void on_rpc_event(uv_async_t *handle)
 
     chrono::milliseconds duration = chrono::duration_cast<chrono::milliseconds>(end - start);
     evt_cb_duration += duration;
+}
+
+v8::Local<v8::Object> CommonTXCompleteEvent::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverCommonEvent::ToJs(obj);
+
+    Utility::Set(obj, "count", ConversionUtility::toJsNumber(evt->count));
+    
+    return scope.Escape(obj);
 }
 
 // This function runs in the Main Thread

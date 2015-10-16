@@ -4,6 +4,15 @@
 #include "common.h"
 #include "ble_gatts.h"
 
+static name_map_t gatts_event_name_map = {
+    NAME_MAP_ENTRY(BLE_GATTS_EVT_WRITE),
+    NAME_MAP_ENTRY(BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST),
+    NAME_MAP_ENTRY(BLE_GATTS_EVT_SYS_ATTR_MISSING),
+    NAME_MAP_ENTRY(BLE_GATTS_EVT_HVC),
+    NAME_MAP_ENTRY(BLE_GATTS_EVT_SC_CONFIRM),
+    NAME_MAP_ENTRY(BLE_GATTS_EVT_TIMEOUT),
+};
+
 class GattsAttributeMetadata : public BleToJs<ble_gatts_attr_md_t>
 {
 public:
@@ -52,14 +61,22 @@ public:
     ble_gatts_hvx_params_t *ToNative();
 };
 
+class GattsAttributeContext : public BleToJs<ble_gatts_attr_context_t>
+{
+public:
+    GattsAttributeContext(ble_gatts_attr_context_t *attributeContext) : BleToJs<ble_gatts_attr_context_t>(attributeContext) {}
+    GattsAttributeContext(v8::Local<v8::Object> js) : BleToJs<ble_gatts_attr_context_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+};
+
 template<typename EventType>
-class BleDriverGattcEvent : public BleDriverEvent<EventType>
+class BleDriverGattsEvent : public BleDriverEvent<EventType>
 {
 private:
-    BleDriverGattcEvent() {}
+    BleDriverGattsEvent() {}
 
 public:
-    BleDriverGattcEvent(uint16_t evt_id, std::string timestamp, uint16_t conn_handle, EventType *evt)
+    BleDriverGattsEvent(uint16_t evt_id, std::string timestamp, uint16_t conn_handle, EventType *evt)
         : BleDriverEvent<EventType>(evt_id, timestamp, conn_handle, evt)
     {
     }
@@ -72,14 +89,23 @@ public:
     virtual v8::Local<v8::Object> ToJs() = 0;
     virtual EventType *ToNative() { return new EventType(); }
 
-    char *getEventName() { return gattc_event_name_map[this->evt_id]; }
+    char *getEventName() { return gatts_event_name_map[this->evt_id]; }
 };
 
-class GattsWriteEvent : BleDriverGattcEvent<ble_gatts_evt_write_t>
+class GattsWriteEvent : BleDriverGattsEvent<ble_gatts_evt_write_t>
 {
 public:
     GattsWriteEvent(std::string timestamp, uint16_t conn_handle, ble_gatts_evt_write_t *evt)
-        : BleDriverGattcEvent<ble_gatts_evt_write_t>(BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP, timestamp, conn_handle, evt) {}
+        : BleDriverGattsEvent<ble_gatts_evt_write_t>(BLE_GATTS_EVT_WRITE, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs();
+};
+
+class GattsSystemAttributeMissingEvent : BleDriverGattsEvent<ble_gatts_evt_sys_attr_missing_t>
+{
+public:
+    GattsSystemAttributeMissingEvent(std::string timestamp, uint16_t conn_handle, ble_gatts_evt_sys_attr_missing_t *evt)
+        : BleDriverGattsEvent<ble_gatts_evt_sys_attr_missing_t>(BLE_GATTS_EVT_SYS_ATTR_MISSING, timestamp, conn_handle, evt) {}
 
     v8::Local<v8::Object> ToJs();
 };
@@ -108,9 +134,19 @@ public:
     ble_gatts_hvx_params_t *p_hvx_params;
 };
 
+struct GattsSystemAttributeSetBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GattsSystemAttributeSetBaton);
+    uint16_t conn_handle;
+    uint8_t *p_sys_attr_data;
+    uint16_t len;
+    uint32_t flags;
+};
+
 METHOD_DEFINITIONS(AddService)
 METHOD_DEFINITIONS(AddCharacteristic)
 METHOD_DEFINITIONS(HVX)
+METHOD_DEFINITIONS(SystemAttributeSet)
 
 extern "C" {
     void init_gatts(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);

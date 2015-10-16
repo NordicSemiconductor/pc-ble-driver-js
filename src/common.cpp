@@ -196,11 +196,18 @@ uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Object>js, cha
 {
     v8::Local<v8::Array> jsarray = v8::Local<v8::Array>::Cast(Utility::Get(js, name));
 
-    uint8_t *string = (uint8_t *)malloc(sizeof(uint8_t) * jsarray->Length());
-    
-	assert(string != NULL);
+    return ConversionUtility::getNativePointerToUint8(jsarray);
+}
 
-    for (uint32_t i = 0; i < jsarray->Length(); ++i)
+uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Object>js)
+{
+    v8::Local<v8::Array> jsarray = v8::Local<v8::Array>::Cast(js);
+    uint32_t length = jsarray->Length();
+    uint8_t *string = (uint8_t *)malloc(sizeof(uint8_t) * length);
+
+    assert(string != NULL);
+
+    for (uint32_t i = 0; i < length; ++i)
     {
         string[i] = (uint8_t)jsarray->Get(Nan::New(i))->Uint32Value();
     }
@@ -212,18 +219,24 @@ uint16_t *ConversionUtility::getNativePointerToUint16(v8::Local<v8::Object>js, c
 {
     v8::Local<v8::Array> jsarray = v8::Local<v8::Array>::Cast(Utility::Get(js, name));
 
-    uint16_t *string = (uint16_t *)malloc(sizeof(uint16_t) * jsarray->Length());
+    return ConversionUtility::getNativePointerToUint16(jsarray);
+}
+
+uint16_t *ConversionUtility::getNativePointerToUint16(v8::Local<v8::Object>js)
+{
+    v8::Local<v8::Array> jsarray = v8::Local<v8::Array>::Cast(js);
+    uint32_t length = jsarray->Length();
+    uint16_t *string = (uint16_t *)malloc(sizeof(uint16_t) * length);
 
     assert(string != NULL);
 
-    for (uint32_t i = 0; i < jsarray->Length(); ++i)
+    for (uint32_t i = 0; i < length; ++i)
     {
         string[i] = (uint16_t)jsarray->Get(Nan::New(i))->Uint32Value();
     }
 
     return string;
 }
-
 
 v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Value>js)
 {

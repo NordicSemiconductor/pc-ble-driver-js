@@ -3,6 +3,8 @@ var driver = require('./build/Debug/ble_driver_js');
 
 var evt_count = 0;
 var connectionHandle = 0;
+var interval;
+var valueHandle = 0;
 
 driver.open(
     'COM19',
@@ -40,12 +42,46 @@ driver.open(
                     connectionHandle = event.conn_handle;
                     console.log("Connected. Handle: %d", connectionHandle);
                 }
+                else if (event.name === 'BLE_GATTS_EVT_SYS_ATTR_MISSING')
+                {
+                    driver.gatts_set_system_attribute(connectionHandle, 0, 0, 0, function(err) {
+                        if (err)
+                        {
+                            console.log('Failed setting system attributes');
+                            console.log(err);
+                        }
+                    });
+                }
                 else if (event.name === 'BLE_GATTS_EVT_WRITE')
                 {
-                    if (event.evt.gatts_evt.params.write.context.char_uuid.uuid == 0x2A37)
+                    if (event.context.char_uuid.uuid == 0x2A37)
                     {
-                        var write_data = event.params.write.data[0];
-                        m_send_notifications = write_data == driver.BLE_GATT_HVX_NOTIFICATION;
+                        var write_data = event.data[0];
+                        if (write_data === driver.BLE_GATT_HVX_NOTIFICATION)
+                        {
+                            heartRate = 10;
+                            interval = setInterval(function () {
+                                heartRate += 5;
+                                hvxParams = {
+                                    'handle': valueHandle,
+                                    'type': driver.BLE_GATT_HVX_NOTIFICATION,
+                                    'offset': 0,
+                                    'p_len': [1],
+                                    'p_data': [heartRate, 0],
+                                };
+                                driver.gatts_hvx(connectionHandle, hvxParams, function(err, hvx_length) {
+                                    if (err)
+                                    {
+                                        console.log("HVX error");
+                                        console.log(err);
+                                    }
+                                })
+                            }, 1000);
+                        }
+                        else
+                        {
+                            clearInterval(interval);
+                        }
                     }
                 }
             }
@@ -118,6 +154,7 @@ driver.open(
                 }
 
                 console.log('Added characteristics with handles %d', handles);
+                valueHandle = handles.value_handle;
 
                 driver.gap_start_advertisement({
                                                     'type': driver.BLE_GAP_ADV_TYPE_ADV_IND,

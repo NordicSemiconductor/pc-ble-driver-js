@@ -118,18 +118,44 @@ ble_gatts_hvx_params_t *GattxHVXParams::ToNative()
     return hvxparams;
 }
 
+v8::Local<v8::Object> GattsAttributeContext::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+
+    Utility::Set(obj, "srvc_uuid", BleUUID(&native->srvc_uuid));
+    Utility::Set(obj, "char_uuid", BleUUID(&native->char_uuid));
+    Utility::Set(obj, "desc_uuid", BleUUID(&native->desc_uuid));
+    Utility::Set(obj, "srvc_handle", ConversionUtility::toJsNumber(native->srvc_handle));
+    Utility::Set(obj, "value_handle", ConversionUtility::toJsNumber(native->value_handle));
+    Utility::Set(obj, "type", ConversionUtility::toJsNumber(native->type));
+
+    return scope.Escape(obj);
+}
+
 v8::Local<v8::Object> GattsWriteEvent::ToJs()
 {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    BleDriverGattcEvent::ToJs(obj);
+    BleDriverGattsEvent::ToJs(obj);
 
-    Utility::Set(obj, "handle", ConversionUtility::toJsNumber(native->handle));
-    Utility::Set(obj, "op", ConversionUtility::toJsNumber(native->op));
-    Utility::Set(obj, "context", ConversionUtility::toJsNumber(native->context)); //  ble_gatts_attr_context_t    context;            /**< Attribute Context. */
-    Utility::Set(obj, "offset", ConversionUtility::toJsNumber(native->offset));
-    Utility::Set(obj, "len", ConversionUtility::toJsNumber(native->len));
-    Utility::Set(obj, "data", ConversionUtility::toJsValueArray(native->data));
+    Utility::Set(obj, "handle", ConversionUtility::toJsNumber(evt->handle));
+    Utility::Set(obj, "op", ConversionUtility::toJsNumber(evt->op));
+    Utility::Set(obj, "context", GattsAttributeContext(&evt->context));
+    Utility::Set(obj, "offset", ConversionUtility::toJsNumber(evt->offset));
+    Utility::Set(obj, "len", ConversionUtility::toJsNumber(evt->len));
+    Utility::Set(obj, "data", ConversionUtility::toJsValueArray(evt->data, evt->len));
+
+    return scope.Escape(obj);
+}
+
+v8::Local<v8::Object> GattsSystemAttributeMissingEvent::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverGattsEvent::ToJs(obj);
+
+    Utility::Set(obj, "hint", ConversionUtility::toJsNumber(evt->hint));
 
     return scope.Escape(obj);
 }
@@ -312,11 +338,102 @@ void AfterHVX(uv_work_t *req) {
     Nan::HandleScope scope;
 
     GattsHVXBaton *baton = static_cast<GattsHVXBaton *>(req->data);
-    v8::Local<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)
     {
         argv[0] = ErrorMessage::getErrorMessage(baton->result, "hvx");
+        argv[1] = Nan::Undefined();
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+        argv[1] = ConversionUtility::toJsNumber(*baton->p_hvx_params->p_len);
+    }
+
+    baton->callback->Call(1, argv);
+
+    delete baton->p_hvx_params;
+    delete baton;
+}
+
+NAN_METHOD(SystemAttributeSet)
+{
+    uint16_t conn_handle;
+    v8::Local<v8::Object> sys_attr_data;
+    bool sys_attr_data_isNullPointer = false;
+    uint16_t len;
+    uint32_t flags;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
+
+    try
+    {
+        conn_handle = ConversionUtility::getNativeUint8(info[argumentcount]);
+        argumentcount++;
+
+        if (info[argumentcount]->IsNumber())
+        {
+            sys_attr_data_isNullPointer = true;
+        }
+        else
+        {
+            sys_attr_data = ConversionUtility::getJsObject(info[argumentcount]);
+        }
+        argumentcount++;
+
+        len = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        flags = ConversionUtility::getNativeUint32(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    GattsSystemAttributeSetBaton *baton = new GattsSystemAttributeSetBaton(callback);
+    baton->conn_handle = conn_handle;
+
+    if (!sys_attr_data_isNullPointer)
+    {
+        baton->p_sys_attr_data = ConversionUtility::getNativePointerToUint8(sys_attr_data);
+    }
+    else
+    {
+        baton->p_sys_attr_data = 0;
+    }
+
+    baton->len = len;
+    baton->flags = flags;
+
+    uv_queue_work(uv_default_loop(), baton->req, SystemAttributeSet, (uv_after_work_cb)AfterSystemAttributeSet);
+}
+
+// This runs in a worker thread (not Main Thread)
+void SystemAttributeSet(uv_work_t *req) {
+    GattsSystemAttributeSetBaton *baton = static_cast<GattsSystemAttributeSetBaton *>(req->data);
+
+    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
+    baton->result = sd_ble_gatts_sys_attr_set(baton->conn_handle, baton->p_sys_attr_data, baton->len, baton->flags);
+}
+
+// This runs in Main Thread
+void AfterSystemAttributeSet(uv_work_t *req) {
+    Nan::HandleScope scope;
+
+    GattsSystemAttributeSetBaton *baton = static_cast<GattsSystemAttributeSetBaton *>(req->data);
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "setting system attributes");
     }
     else
     {
@@ -325,7 +442,7 @@ void AfterHVX(uv_work_t *req) {
 
     baton->callback->Call(1, argv);
 
-    delete baton->p_hvx_params;
+    delete baton->p_sys_attr_data;
     delete baton;
 }
 
@@ -335,6 +452,7 @@ extern "C" {
         Utility::SetMethod(target, "gatts_add_service", AddService);
         Utility::SetMethod(target, "gatts_add_characteristic", AddCharacteristic);
         Utility::SetMethod(target, "gatts_hvx", HVX);
+        Utility::SetMethod(target, "gatts_set_system_attribute", SystemAttributeSet);
 
         /* BLE_ERRORS_GATTS SVC return values specific to GATTS */
         NODE_DEFINE_CONSTANT(target, BLE_ERROR_GATTS_INVALID_ATTR_TYPE); /* Invalid attribute type. */

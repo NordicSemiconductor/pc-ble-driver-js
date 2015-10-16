@@ -8,6 +8,10 @@
 #include <sd_rpc.h>
 #include "common.h"
 
+static name_map_t common_event_name_map = {
+    NAME_MAP_ENTRY(BLE_EVT_TX_COMPLETE)
+};
+
 // Async methods
 METHOD_DEFINITIONS(Open);
 METHOD_DEFINITIONS(Close);
@@ -46,6 +50,38 @@ public:
     BleUUID128(v8::Local<v8::Object> js) : BleToJs<ble_uuid128_t>(js) {}
     v8::Local<v8::Object> ToJs();
     ble_uuid128_t *ToNative();
+};
+
+template<typename EventType>
+class BleDriverCommonEvent : public BleDriverEvent<EventType>
+{
+private:
+    BleDriverCommonEvent() {}
+
+public:
+    BleDriverCommonEvent(uint16_t evt_id, std::string timestamp, uint16_t conn_handle, EventType *evt)
+        : BleDriverEvent<EventType>(evt_id, timestamp, conn_handle, evt)
+    {
+    }
+
+    virtual void ToJs(v8::Local<v8::Object> obj)
+    {
+        BleDriverEvent<EventType>::ToJs(obj);
+    }
+
+    virtual v8::Local<v8::Object> ToJs() = 0;
+    virtual EventType *ToNative() { return new EventType(); }
+
+    char *getEventName() { return common_event_name_map[this->evt_id]; }
+};
+
+class CommonTXCompleteEvent : BleDriverCommonEvent<ble_evt_tx_complete_t>
+{
+public:
+    CommonTXCompleteEvent(std::string timestamp, uint16_t conn_handle, ble_evt_tx_complete_t *evt)
+        : BleDriverCommonEvent<ble_evt_tx_complete_t>(BLE_EVT_TX_COMPLETE, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs();
 };
 
 ///// Start Batons ////////////////////////////////////////
