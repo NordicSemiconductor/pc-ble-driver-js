@@ -1,58 +1,26 @@
 'use strict';
 
-var  sinon = require('sinon');
-var assert = require('assert');
+const  sinon = require('sinon');
+const assert = require('assert');
 
 const Adapter = require('../../api/adapter.js');
+const commonStubs = require('./commonStubs.js');
 
-const BLE_GAP_EVT_CONNECTED = 10;
-const BLE_GAP_EVT_DISCONNECTED = 17;
 
-function createConnectEvent() {
-    return {
-        id: BLE_GAP_EVT_CONNECTED,
-        conn_handle: 123,
-        peer_addr: {address: 'FF:AA:DD'},
-        role: 'BLE_GAP_ROLE_PERIPHERAL',
-        conn_params: {
-            min_conn_interval: 10,
-            max_conn_interval: 100,
-            slave_latency: 100,
-            conn_sup_timeout: 455
-        }
-    };
-};
+describe('BLE_GAP_EVT_CONNECTED', function() {
+    let bleDriver, adapter, bleDriverEventCallback = {}, connectEvent;
 
-function createBleDriverAndAdapterAndEventCallback() {
-    let bleDriverEventCallback;
-    let bleDriver = 
-    {
-        get_version: sinon.stub(),
-        open: (options, err) => {},
-        BLE_GAP_EVT_CONNECTED,
-        BLE_GAP_EVT_DISCONNECTED,
-    };
-    sinon.stub(bleDriver, 'open', (port, options, callback) => {
-        bleDriverEventCallback = options.eventCallback;
-        callback();
-    });
-    let adapter = new Adapter(bleDriver, 'theId', 42);
+    beforeEach(function(done) {
+        bleDriver = commonStubs.createBleDriver((eventCallback)=>{
+            bleDriverEventCallback = eventCallback;
+            connectEvent = commonStubs.createConnectEvent();
+            done();
+        });
+    
+        adapter = new Adapter(bleDriver, 'theId', 42);
         adapter.open({}, err => {
             assert.ifError(err);
         });
-    return {driver: bleDriver, eventCallback: bleDriverEventCallback, adapter: adapter};
-}
-
-describe('BLE_GAP_EVT_CONNECTED', function() {
-    let bleDriver, adapter, bleDriverEventCallback, connectEvent;
-    beforeEach(function() {
-        let returnValues = createBleDriverAndAdapterAndEventCallback();
-        bleDriver = returnValues.driver;
-        bleDriverEventCallback = returnValues.eventCallback;
-        adapter = returnValues.adapter;
-       
-        connectEvent = createConnectEvent();
-        
     });
 
     it('should produce a deviceConnected event', () => {
@@ -95,18 +63,25 @@ describe('BLE_GAP_EVT_CONNECTED', function() {
 
 describe('BLE_GAP_EVT_DISCONNECTED', function() {
     let bleDriver, adapter, bleDriverEventCallback, disconnectEvent;
-    beforeEach(() => {
-        var returnValues = createBleDriverAndAdapterAndEventCallback();
-        adapter = returnValues.adapter;
-        bleDriver = returnValues.driver;
-        bleDriverEventCallback = returnValues.eventCallback;
-        disconnectEvent = {
-            id: bleDriver.BLE_GAP_EVT_DISCONNECTED,
-            conn_handle: 123,
-            reason_name: "BLE_HCI_LOCAL_HOST_TERMINATED_CONNECTION"
-        };
+    beforeEach((done) => {
+        bleDriver = commonStubs.createBleDriver((eventCallback)=>{
+            bleDriverEventCallback = eventCallback;
+            bleDriverEventCallback([commonStubs.createConnectEvent()]);
 
-        bleDriverEventCallback([createConnectEvent()]);
+            disconnectEvent = {
+                id: bleDriver.BLE_GAP_EVT_DISCONNECTED,
+                conn_handle: 123,
+                reason_name: "BLE_HCI_LOCAL_HOST_TERMINATED_CONNECTION"
+            };
+            done();
+        });
+        
+        adapter = new Adapter(bleDriver, 'theId', 42);
+        adapter.open({}, err => {
+            assert.ifError(err);
+        });
+
+        
     });
 
     it ('should produce a deviceDisconnected event with the disconnected device', () => {

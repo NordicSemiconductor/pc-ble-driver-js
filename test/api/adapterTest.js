@@ -1,33 +1,16 @@
 'use strict';
 
-var  sinon = require('sinon');
-var assert = require('assert');
+const  sinon = require('sinon');
+const assert = require('assert');
+const commonStubs = require('./commonStubs.js');
 
 const Adapter = require('../../api/adapter.js');
 
-function createAndSetupBleDriverStub() {
-    let bleDriver =
-    {
-        gap_connect: sinon.stub(),
-        gap_disconnect: sinon.stub(),
-        get_version: sinon.stub(),
-        gap_get_device_name: sinon.stub(),
-        gap_get_address: sinon.stub(),
-        gap_cancel_connect: sinon.stub(),
-    };
-    bleDriver.gap_connect.yields(undefined);
-    bleDriver.gap_disconnect.yieldsAsync(undefined);
-    bleDriver.get_version.yields('0.0.9', undefined);
-    bleDriver.gap_get_device_name.yieldsAsync('holy handgrenade', undefined);
-    bleDriver.gap_get_address.yieldsAsync('Bridge of death', undefined);
-
-    return bleDriver;
-}
 
 describe('Adapter Connect', function() {
     let bleDriver, adapter;
     beforeEach(function() {
-        bleDriver = createAndSetupBleDriverStub();
+        bleDriver = commonStubs.createBleDriver(); //createAndSetupBleDriverStub();
         adapter = new Adapter(bleDriver, 'theId', 42);
     });
 
@@ -74,13 +57,8 @@ describe('Adapter Cancel connect', function(){
     let bleDriver, adapter;
 
     beforeEach(function() {
-        bleDriver =
-        {
-            gap_connect: sinon.stub(),
-            gap_cancel_connect: sinon.stub(),
-        };
-        bleDriver.gap_connect.yields(undefined);
-        bleDriver.gap_cancel_connect.yields(undefined);
+        bleDriver = commonStubs.createBleDriver();
+        
         adapter = new Adapter(bleDriver, 'theId', 42);
     });
 
@@ -128,7 +106,7 @@ describe('Adapter disconnect', function(){
      let bleDriver, adapter;
 
     beforeEach(function() {
-         bleDriver = createAndSetupBleDriverStub();
+        bleDriver = commonStubs.createBleDriver();
         
         adapter = new Adapter(bleDriver, 'theId', 42);
         adapter._devices['myDeviceId'] = {connectionHandle: '1234'};
@@ -158,6 +136,15 @@ describe('Adapter disconnect', function(){
 });
 
 describe('Adapter updateConnParams', () => {
+    beforeEach(function() {
+        bleDriver = createAndSetupBleDriverStub();
+        adapter = new Adapter(bleDriver, 'theId', 42);
 
+        // Insert device
+        // call updateConnParams
+        // verify that driver was called with correct params.
+        // verify that error is called if failed.
+
+    });
 
 });
