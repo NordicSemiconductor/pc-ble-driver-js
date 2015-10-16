@@ -146,6 +146,33 @@ public:
     v8::Local<v8::Object> ToJs();
 };
 
+class GattsHVCEvent : BleDriverGattsEvent<ble_gatts_evt_hvc_t>
+{
+public:
+    GattsHVCEvent(std::string timestamp, uint16_t conn_handle, ble_gatts_evt_hvc_t *evt)
+        : BleDriverGattsEvent<ble_gatts_evt_hvc_t>(BLE_GATTS_EVT_HVC, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs();
+};
+
+class GattsSCConfirmEvent : BleDriverGattsEvent<ble_gatts_evt_timeout_t>
+{
+public:
+    GattsSCConfirmEvent(std::string timestamp, uint16_t conn_handle, ble_gatts_evt_timeout_t *evt)
+        : BleDriverGattsEvent<ble_gatts_evt_timeout_t>(BLE_GATTS_EVT_SC_CONFIRM, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs();
+};
+
+class GattsTimeoutEvent : BleDriverGattsEvent<ble_gatts_evt_timeout_t>
+{
+public:
+    GattsTimeoutEvent(std::string timestamp, uint16_t conn_handle, ble_gatts_evt_timeout_t *evt)
+        : BleDriverGattsEvent<ble_gatts_evt_timeout_t>(BLE_GATTS_EVT_TIMEOUT, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs();
+};
+
 struct GattsAddServiceBaton : public Baton {
 public:
     BATON_CONSTRUCTOR(GattsAddServiceBaton);

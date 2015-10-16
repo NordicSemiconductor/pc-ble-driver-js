@@ -256,6 +256,37 @@ v8::Local<v8::Object> GattsSystemAttributeMissingEvent::ToJs()
     return scope.Escape(obj);
 }
 
+v8::Local<v8::Object> GattsHVCEvent::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverGattsEvent::ToJs(obj);
+
+    Utility::Set(obj, "handle", ConversionUtility::toJsNumber(evt->handle));
+
+    return scope.Escape(obj);
+}
+
+v8::Local<v8::Object> GattsSCConfirmEvent::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverGattsEvent::ToJs(obj);
+
+    return scope.Escape(obj);
+}
+
+v8::Local<v8::Object> GattsTimeoutEvent::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverGattsEvent::ToJs(obj);
+
+    Utility::Set(obj, "src", ConversionUtility::toJsNumber(evt->src));
+
+    return scope.Escape(obj);
+}
+
 NAN_METHOD(AddService)
 {
     uint8_t type;
