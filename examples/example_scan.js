@@ -66,6 +66,18 @@ driver.get_adapters(function(err, adapters) {
                     return;
                 }
             });
+
+            // Close the driver after 10 seconds
+            setTimeout(function() {
+                driver.close(function(err) {
+                    if(err) {
+                        console.log('ERROR closing driver: ' + err);
+                        return;
+                    }
+
+                    console.log('Driver closed OK!');
+                });
+            }, 10 * 1000);
         }
     );
 });
