@@ -7,8 +7,9 @@ const BLE_GAP_EVT_CONNECTED = 10;
 const BLE_GAP_EVT_DISCONNECTED = 17;
 
 module.exports.createBleDriver = function(callbackForReceivingBleDriverEventCallback) {
-    let bleDriver = 
+    let bleDriver =
     {
+        get_adapters: sinon.stub(),
         gap_connect: sinon.stub(),
         gap_disconnect: sinon.stub(),
         gap_update_connection_parameters: sinon.stub(),
@@ -16,17 +17,24 @@ module.exports.createBleDriver = function(callbackForReceivingBleDriverEventCall
         gap_get_device_name: sinon.stub(),
         gap_get_address: sinon.stub(),
         gap_cancel_connect: sinon.stub(),
+        gap_set_adv_data: sinon.stub(),
+        gap_start_advertising: sinon.stub(),
         open: (options, err) => {},
         BLE_GAP_EVT_CONNECTED,
         BLE_GAP_EVT_DISCONNECTED,
     };
-    
+
     // Enable users to trigger events
     sinon.stub(bleDriver, 'open', (port, options, callback) => {
         let bleDriverEventCallback = options.eventCallback;
         callback();
-        callbackForReceivingBleDriverEventCallback(bleDriverEventCallback);
+        if(callbackForReceivingBleDriverEventCallback) {
+            callbackForReceivingBleDriverEventCallback(bleDriverEventCallback);
+        }
     });
+
+    bleDriver.get_adapters.yields(undefined, [{ serialNumber: 'test', comName: '6' }]);
+    bleDriver.gap_get_address.yields('DE:AD:BE:EF:FF:FF:DE:AD:BE:EF:FF:FF', undefined);
 
     bleDriver.gap_connect.yields(undefined);
     bleDriver.gap_disconnect.yieldsAsync(undefined);

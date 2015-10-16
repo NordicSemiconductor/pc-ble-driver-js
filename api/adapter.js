@@ -75,22 +75,20 @@ class Adapter extends EventEmitter {
             if(err) {
                 var error = make_error('Error occurred opening serial port.', err);
                 this.emit('error', error);
-                callback(error);
+                if(callback) callback(error);
                 return;
             } else {
                 this.getAdapterState((err, adapterState) => {
                     if(err) {
                         var error = make_error('Error retrieving adapter state.', err);
                         this.emit('error', error);
-                        callback(error);
+                        if(callback) callback(error);
                         return;
                     }
+
+                    if(callback) callback();
                 });
-
             }
-
-            callback(err);
-            return;
         });
     }
 
@@ -551,13 +549,14 @@ class Adapter extends EventEmitter {
 
         this._bleDriver.gap_start_advertising(advertismentParamsStruct, err => {
             if (err) {
-                console.log('Failed to start advertising');
+                const error = make_error('Failed to start advertising', err);
+                this.emit('error', error);
+                if(callback) callback(make_error(error));
             } else {
                 this._adapterState.scanning = true;
                 this.emit('adapterStateChanged', this._adapterState);
+                if(callback) callback();
             }
-
-            callback(err);
         });
     }
 
@@ -565,13 +564,13 @@ class Adapter extends EventEmitter {
     stopAdvertising(callback) {
         this._bleDriver.gap_stop_advertising(err => {
             if (err) {
-                // TODO: probably is state already set to false, but should we make sure? if ys, emit adapterStateChanged?
-                console.log('Error occured when stopping advertising');
+                const error = make_error('Failed to stop advertising', err);
+                this.emit('error', error);
+                if(callback) callback(make_error(error));
             } else {
                 this._changeAdapterState({advertising: false});
+                if(callback) callback();
             }
-
-            callback(err);
         });
     }
 
