@@ -265,12 +265,12 @@ void on_rpc_event(uv_async_t *handle)
                 GATTC_EVT_CASE(HVX,                         HandleValueNotification,       hvx,                        array, array_idx, event_entry);
                 GATTC_EVT_CASE(TIMEOUT,                     Timeout,                       timeout,                    array, array_idx, event_entry);
 
-                GATTS_EVT_CASE(WRITE,                   Write,                  write,                  array, array_idx, event_entry);               
-                /*GATTS_EVT_CASE(RW_AUTHORIZE_REQUEST,    RWAuthorizeRequest,   rw_authorize_request,   array, array_idx, event_entry);
-              */GATTS_EVT_CASE(SYS_ATTR_MISSING,        SystemAttributeMissing, sys_attr_missing,       array, array_idx, event_entry);
-                /*GATTS_EVT_CASE(HVC,                     HVC,                  hvc,                    array, array_idx, event_entry);       
-                GATTS_EVT_CASE(SC_CONFIRM,              SCConfirm,              sc_confirm,             array, array_idx, event_entry);
-                GATTS_EVT_CASE(TIMEOUT,                 Timeout,                timeout,                array, array_idx, event_entry);
+                GATTS_EVT_CASE(WRITE,                   Write,                  write,              array, array_idx, event_entry);               
+                GATTS_EVT_CASE(RW_AUTHORIZE_REQUEST,    RWAuthorizeRequest,     authorize_request,  array, array_idx, event_entry);
+                GATTS_EVT_CASE(SYS_ATTR_MISSING,        SystemAttributeMissing, sys_attr_missing,     array, array_idx, event_entry);
+                /*GATTS_EVT_CASE(HVC,                     HVC,                  hvc,                array, array_idx, event_entry);       
+                GATTS_EVT_CASE(SC_CONFIRM,              SCConfirm,              sc_confirm,         array, array_idx, event_entry);
+                GATTS_EVT_CASE(TIMEOUT,                 Timeout,                timeout,            array, array_idx, event_entry);
                 */
             default:
                 std::cout << "Event " << event->header.evt_id << " unknown to me." << std::endl;

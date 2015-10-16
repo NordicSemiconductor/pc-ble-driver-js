@@ -61,6 +61,15 @@ public:
     ble_gatts_hvx_params_t *ToNative();
 };
 
+class GattsValue : public BleToJs<ble_gatts_value_t>
+{
+public:
+    GattsValue(ble_gatts_value_t *value) : BleToJs<ble_gatts_value_t>(value) {}
+    GattsValue(v8::Local<v8::Object> js) : BleToJs<ble_gatts_value_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gatts_value_t *ToNative();
+};
+
 class GattsAttributeContext : public BleToJs<ble_gatts_attr_context_t>
 {
 public:
@@ -97,6 +106,33 @@ class GattsWriteEvent : BleDriverGattsEvent<ble_gatts_evt_write_t>
 public:
     GattsWriteEvent(std::string timestamp, uint16_t conn_handle, ble_gatts_evt_write_t *evt)
         : BleDriverGattsEvent<ble_gatts_evt_write_t>(BLE_GATTS_EVT_WRITE, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs();
+};
+
+class GattsReadAuthorizeParameters : public BleToJs<ble_gatts_read_authorize_params_t>
+{
+public:
+    GattsReadAuthorizeParameters(ble_gatts_read_authorize_params_t *readAuthorizeParams) : BleToJs<ble_gatts_read_authorize_params_t>(readAuthorizeParams) {}
+    GattsReadAuthorizeParameters(v8::Local<v8::Object> js) : BleToJs<ble_gatts_read_authorize_params_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gatts_read_authorize_params_t *ToNative();
+};
+
+class GattsWriteAuthorizeParameters : public BleToJs<ble_gatts_write_authorize_params_t>
+{
+public:
+    GattsWriteAuthorizeParameters(ble_gatts_write_authorize_params_t *writeAuthorizeParams) : BleToJs<ble_gatts_write_authorize_params_t>(writeAuthorizeParams) {}
+    GattsWriteAuthorizeParameters(v8::Local<v8::Object> js) : BleToJs<ble_gatts_write_authorize_params_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gatts_write_authorize_params_t *ToNative();
+};
+
+class GattsRWAuthorizeRequestEvent : BleDriverGattsEvent<ble_gatts_evt_rw_authorize_request_t>
+{
+public:
+    GattsRWAuthorizeRequestEvent(std::string timestamp, uint16_t conn_handle, ble_gatts_evt_rw_authorize_request_t *evt)
+        : BleDriverGattsEvent<ble_gatts_evt_rw_authorize_request_t>(BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST, timestamp, conn_handle, evt) {}
 
     v8::Local<v8::Object> ToJs();
 };
@@ -143,10 +179,28 @@ public:
     uint32_t flags;
 };
 
+struct GattsValueSetBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GattsValueSetBaton);
+    uint16_t conn_handle;
+    uint16_t handle;
+    ble_gatts_value_t *p_value;
+};
+
+struct GattsValueGetBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GattsValueGetBaton);
+    uint16_t conn_handle;
+    uint16_t handle;
+    ble_gatts_value_t *p_value;
+};
+
 METHOD_DEFINITIONS(AddService)
 METHOD_DEFINITIONS(AddCharacteristic)
 METHOD_DEFINITIONS(HVX)
 METHOD_DEFINITIONS(SystemAttributeSet)
+METHOD_DEFINITIONS(ValueSet)
+METHOD_DEFINITIONS(ValueGet)
 
 extern "C" {
     void init_gatts(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);

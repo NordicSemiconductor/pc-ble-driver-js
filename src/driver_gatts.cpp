@@ -118,6 +118,29 @@ ble_gatts_hvx_params_t *GattxHVXParams::ToNative()
     return hvxparams;
 }
 
+ble_gatts_value_t *GattsValue::ToNative()
+{
+    ble_gatts_value_t *value = new ble_gatts_value_t();
+
+    value->len = ConversionUtility::getNativeUint16(jsobj, "len");
+    value->offset = ConversionUtility::getNativeUint16(jsobj, "offset");
+    value->p_value = ConversionUtility::getNativePointerToUint8(jsobj, "p_value");
+
+    return value;
+}
+
+v8::Local<v8::Object> GattsValue::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+
+    Utility::Set(obj, "len", ConversionUtility::toJsNumber(native->len));
+    Utility::Set(obj, "offset", ConversionUtility::toJsNumber(native->offset));
+    Utility::Set(obj, "p_value", ConversionUtility::toJsValueArray(native->p_value, native->len));
+    
+    return scope.Escape(obj);
+}
+
 v8::Local<v8::Object> GattsAttributeContext::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -145,6 +168,79 @@ v8::Local<v8::Object> GattsWriteEvent::ToJs()
     Utility::Set(obj, "offset", ConversionUtility::toJsNumber(evt->offset));
     Utility::Set(obj, "len", ConversionUtility::toJsNumber(evt->len));
     Utility::Set(obj, "data", ConversionUtility::toJsValueArray(evt->data, evt->len));
+
+    return scope.Escape(obj);
+}
+
+v8::Local<v8::Object> GattsReadAuthorizeParameters::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+
+    Utility::Set(obj, "gatt_status", ConversionUtility::toJsNumber(native->gatt_status));
+    Utility::Set(obj, "update", ConversionUtility::toJsNumber(native->update));
+    Utility::Set(obj, "offset", ConversionUtility::toJsNumber(native->offset));
+    Utility::Set(obj, "len", ConversionUtility::toJsNumber(native->len));
+    Utility::Set(obj, "p_data", ConversionUtility::toJsValueArray(native->p_data, native->len));
+
+    return scope.Escape(obj);
+}
+
+ble_gatts_read_authorize_params_t *GattsReadAuthorizeParameters::ToNative()
+{
+    ble_gatts_read_authorize_params_t *params = new ble_gatts_read_authorize_params_t();
+
+    params->gatt_status = ConversionUtility::getNativeUint16(jsobj, "gatt_status");
+    params->update = ConversionUtility::getNativeUint8(jsobj, "update");
+    params->offset = ConversionUtility::getNativeUint16(jsobj, "offset");
+    params->len = ConversionUtility::getNativeUint16(jsobj, "len");
+    params->p_data = ConversionUtility::getNativePointerToUint8(jsobj, "update");
+
+    return params;
+}
+
+v8::Local<v8::Object> GattsWriteAuthorizeParameters::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+
+    Utility::Set(obj, "gatt_status", ConversionUtility::toJsNumber(native->gatt_status));
+
+    return scope.Escape(obj);
+}
+
+ble_gatts_write_authorize_params_t *GattsWriteAuthorizeParameters::ToNative()
+{
+    ble_gatts_write_authorize_params_t *params = new ble_gatts_write_authorize_params_t();
+
+    params->gatt_status = ConversionUtility::getNativeUint16(jsobj, "gatt_status");
+    
+    return params;
+}
+
+v8::Local<v8::Object> GattsRWAuthorizeRequestEvent::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverGattsEvent::ToJs(obj);
+
+    Utility::Set(obj, "type", ConversionUtility::toJsNumber(evt->type));
+
+    if (evt->type == BLE_GATTS_AUTHORIZE_TYPE_READ)
+    {
+        Utility::Set(obj, "read", GattsReadAuthorizeParameters((ble_gatts_read_authorize_params_t *)&evt->request.read));
+        Utility::Set(obj, "write", ConversionUtility::toJsNumber(0));
+    }
+    else if (evt->type == BLE_GATTS_AUTHORIZE_TYPE_WRITE)
+    {
+        Utility::Set(obj, "read", ConversionUtility::toJsNumber(0));
+        Utility::Set(obj, "write", GattsWriteAuthorizeParameters((ble_gatts_write_authorize_params_t *)&evt->request.write));
+    }
+    else
+    {
+        Utility::Set(obj, "read", ConversionUtility::toJsNumber(0));
+        Utility::Set(obj, "write", ConversionUtility::toJsNumber(0));
+    }
 
     return scope.Escape(obj);
 }
@@ -369,7 +465,7 @@ NAN_METHOD(SystemAttributeSet)
 
     try
     {
-        conn_handle = ConversionUtility::getNativeUint8(info[argumentcount]);
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
         argumentcount++;
 
         if (info[argumentcount]->IsNumber())
@@ -446,6 +542,144 @@ void AfterSystemAttributeSet(uv_work_t *req) {
     delete baton;
 }
 
+NAN_METHOD(ValueSet)
+{
+    uint16_t conn_handle;
+    uint16_t handle;
+    v8::Local<v8::Object> value;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
+
+    try
+    {
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        value = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    GattsValueSetBaton *baton = new GattsValueSetBaton(callback);
+    baton->conn_handle = conn_handle;
+    baton->handle = handle;
+    baton->p_value = GattsValue(value);
+
+    uv_queue_work(uv_default_loop(), baton->req, ValueSet, (uv_after_work_cb)AfterValueSet);
+}
+
+// This runs in a worker thread (not Main Thread)
+void ValueSet(uv_work_t *req) {
+    GattsValueSetBaton *baton = static_cast<GattsValueSetBaton *>(req->data);
+
+    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
+    baton->result = sd_ble_gatts_value_set(baton->conn_handle, baton->handle, baton->p_value);
+}
+
+// This runs in Main Thread
+void AfterValueSet(uv_work_t *req) {
+    Nan::HandleScope scope;
+
+    GattsValueSetBaton *baton = static_cast<GattsValueSetBaton *>(req->data);
+    v8::Local<v8::Value> argv[2];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "setting value");
+        argv[1] = Nan::Undefined();
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+        argv[1] = GattsValue(baton->p_value);
+    }
+
+    baton->callback->Call(2, argv);
+
+    delete baton->p_value;
+    delete baton;
+}
+
+NAN_METHOD(ValueGet)
+{
+    uint16_t conn_handle;
+    uint16_t handle;
+    v8::Local<v8::Object> value;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
+
+    try
+    {
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        value = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    GattsValueSetBaton *baton = new GattsValueSetBaton(callback);
+    baton->conn_handle = conn_handle;
+    baton->handle = handle;
+    baton->p_value = GattsValue(value);
+
+    uv_queue_work(uv_default_loop(), baton->req, ValueGet, (uv_after_work_cb)AfterValueGet);
+}
+
+// This runs in a worker thread (not Main Thread)
+void ValueGet(uv_work_t *req) {
+    GattsValueGetBaton *baton = static_cast<GattsValueGetBaton *>(req->data);
+
+    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
+    baton->result = sd_ble_gatts_value_get(baton->conn_handle, baton->handle, baton->p_value);
+}
+
+// This runs in Main Thread
+void AfterValueGet(uv_work_t *req) {
+    Nan::HandleScope scope;
+
+    GattsValueGetBaton *baton = static_cast<GattsValueGetBaton *>(req->data);
+    v8::Local<v8::Value> argv[2];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "getting value");
+        argv[1] = Nan::Undefined();
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+        argv[1] = GattsValue(baton->p_value);
+    }
+
+    baton->callback->Call(2, argv);
+
+    delete baton->p_value;
+    delete baton;
+}
+
 extern "C" {
     void init_gatts(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
@@ -453,6 +687,9 @@ extern "C" {
         Utility::SetMethod(target, "gatts_add_characteristic", AddCharacteristic);
         Utility::SetMethod(target, "gatts_hvx", HVX);
         Utility::SetMethod(target, "gatts_set_system_attribute", SystemAttributeSet);
+        Utility::SetMethod(target, "gatts_set_value", ValueSet);
+        Utility::SetMethod(target, "gatts_get_value", ValueGet);
+
 
         /* BLE_ERRORS_GATTS SVC return values specific to GATTS */
         NODE_DEFINE_CONSTANT(target, BLE_ERROR_GATTS_INVALID_ATTR_TYPE); /* Invalid attribute type. */

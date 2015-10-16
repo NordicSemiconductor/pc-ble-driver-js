@@ -153,7 +153,7 @@ driver.open(
                     return;
                 }
 
-                console.log('Added characteristics with handles %d', handles);
+                console.log('Added characteristics with handles %s', JSON.stringify(handles));
                 valueHandle = handles.value_handle;
 
                 driver.gap_start_advertisement({
