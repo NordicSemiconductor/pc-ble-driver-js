@@ -597,6 +597,9 @@ class Adapter extends EventEmitter {
     // options: connParams, callback signature function(err) {} returns true/false
     updateConnParams(deviceInstanceId, options, callback) {
         const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
+        if (!connectionHandle) {
+            throw new Error('No connection handle found for device with instance id: ' + deviceInstanceId);
+        }
         const connectionParamsStruct = this._getConnectionUpdateParams(options);
         this._bleDriver.gap_update_connection_parameters(connectionHandle, connectionParamsStruct, err => {
             if (err) {

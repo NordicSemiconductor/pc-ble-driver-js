@@ -159,7 +159,8 @@ describe('Adapter updateConnParams', () => {
         bleDriver.gap_update_connection_parameters.yieldsAsync(undefined);
         adapter.on('deviceConnected', (device) =>{
             const connectionUpdateParameters = createConnectionUpdateParameters();
-            adapter.updateConnParams(device.instanceId, connectionUpdateParameters, () => {
+            adapter.updateConnParams(device.instanceId, connectionUpdateParameters, (error) => {
+                assert(!error);
                 const args = bleDriver.gap_update_connection_parameters.args[0];
                 assert.equal(args[0], 123);
                 assert.equal(args[1].min_conn_interval, connectionUpdateParameters.minConnectionInterval);
@@ -178,11 +179,19 @@ describe('Adapter updateConnParams', () => {
         bleDriver.gap_update_connection_parameters.yieldsAsync('err');
         adapter.on('deviceConnected', (device) =>{
             const connectionUpdateParameters = createConnectionUpdateParameters();
-            adapter.updateConnParams(device.instanceId, connectionUpdateParameters, () => {
+            adapter.updateConnParams(device.instanceId, connectionUpdateParameters, (error) => {
+                assert(error);
                 assert(errorSpy.calledOnce);
                 done();
             });
         });
         bleDriverEventCallback([commonStubs.createConnectEvent()]);
+    });
+
+    it('should throw if no connection handle is found', () => {
+        function callUpdateConnParams() {
+            adapter.updateConnParams(device.instanceId, connectionUpdateParameters, () => {});
+        }
+        assert.throws(callUpdateConnParams, Error);
     });
 });
