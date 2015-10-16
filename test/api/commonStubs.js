@@ -11,6 +11,7 @@ module.exports.createBleDriver = function(callbackForReceivingBleDriverEventCall
     {
         gap_connect: sinon.stub(),
         gap_disconnect: sinon.stub(),
+        gap_update_connection_parameters: sinon.stub(),
         get_version: sinon.stub(),
         gap_get_device_name: sinon.stub(),
         gap_get_address: sinon.stub(),
