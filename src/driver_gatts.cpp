@@ -105,7 +105,7 @@ v8::Local<v8::Object> GattsCharacteristicDefinitionHandles::ToJs()
     return scope.Escape(obj);
 }
 
-ble_gatts_hvx_params_t *GattxHVXParams::ToNative()
+ble_gatts_hvx_params_t *GattsHVXParams::ToNative()
 {
     ble_gatts_hvx_params_t *hvxparams = new ble_gatts_hvx_params_t();
 
@@ -156,22 +156,6 @@ v8::Local<v8::Object> GattsAttributeContext::ToJs()
     return scope.Escape(obj);
 }
 
-v8::Local<v8::Object> GattsWriteEvent::ToJs()
-{
-    Nan::EscapableHandleScope scope;
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    BleDriverGattsEvent::ToJs(obj);
-
-    Utility::Set(obj, "handle", ConversionUtility::toJsNumber(evt->handle));
-    Utility::Set(obj, "op", ConversionUtility::toJsNumber(evt->op));
-    Utility::Set(obj, "context", GattsAttributeContext(&evt->context));
-    Utility::Set(obj, "offset", ConversionUtility::toJsNumber(evt->offset));
-    Utility::Set(obj, "len", ConversionUtility::toJsNumber(evt->len));
-    Utility::Set(obj, "data", ConversionUtility::toJsValueArray(evt->data, evt->len));
-
-    return scope.Escape(obj);
-}
-
 v8::Local<v8::Object> GattsReadAuthorizeParameters::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -214,8 +198,54 @@ ble_gatts_write_authorize_params_t *GattsWriteAuthorizeParameters::ToNative()
     ble_gatts_write_authorize_params_t *params = new ble_gatts_write_authorize_params_t();
 
     params->gatt_status = ConversionUtility::getNativeUint16(jsobj, "gatt_status");
-    
+
     return params;
+}
+
+ble_gatts_rw_authorize_reply_params_t *GattRWAuthorizeReplyParams::ToNative()
+{
+    ble_gatts_rw_authorize_reply_params_t *params = new ble_gatts_rw_authorize_reply_params_t();
+
+    params->type = ConversionUtility::getNativeUint8(jsobj, "type");
+    
+    if (params->type == BLE_GATTS_AUTHORIZE_TYPE_READ)
+    {
+        params->params.read = GattsReadAuthorizeParameters(ConversionUtility::getJsObject(jsobj, "read"));
+    }
+    else if (params->type == BLE_GATTS_AUTHORIZE_TYPE_WRITE)
+    {
+        params->params.write = GattsWriteAuthorizeParameters(ConversionUtility::getJsObject(jsobj, "write"));
+    }
+
+    return params;
+}
+
+v8::Local<v8::Object> GattsWriteEvent::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverGattsEvent::ToJs(obj);
+
+    Utility::Set(obj, "handle", ConversionUtility::toJsNumber(evt->handle));
+    Utility::Set(obj, "op", ConversionUtility::toJsNumber(evt->op));
+    Utility::Set(obj, "context", GattsAttributeContext(&evt->context));
+    Utility::Set(obj, "offset", ConversionUtility::toJsNumber(evt->offset));
+    Utility::Set(obj, "len", ConversionUtility::toJsNumber(evt->len));
+    Utility::Set(obj, "data", ConversionUtility::toJsValueArray(evt->data, evt->len));
+
+    return scope.Escape(obj);
+}
+
+v8::Local<v8::Object> GattsReadEvent::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+
+    Utility::Set(obj, "handle", ConversionUtility::toJsNumber(native->handle));
+    Utility::Set(obj, "context", GattsAttributeContext(&native->context));
+    Utility::Set(obj, "offset", ConversionUtility::toJsNumber(native->offset));
+    
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattsRWAuthorizeRequestEvent::ToJs()
@@ -228,13 +258,13 @@ v8::Local<v8::Object> GattsRWAuthorizeRequestEvent::ToJs()
 
     if (evt->type == BLE_GATTS_AUTHORIZE_TYPE_READ)
     {
-        Utility::Set(obj, "read", GattsReadAuthorizeParameters((ble_gatts_read_authorize_params_t *)&evt->request.read));
+        Utility::Set(obj, "read", GattsReadEvent(&evt->request.read));
         Utility::Set(obj, "write", ConversionUtility::toJsNumber(0));
     }
     else if (evt->type == BLE_GATTS_AUTHORIZE_TYPE_WRITE)
     {
         Utility::Set(obj, "read", ConversionUtility::toJsNumber(0));
-        Utility::Set(obj, "write", GattsWriteAuthorizeParameters((ble_gatts_write_authorize_params_t *)&evt->request.write));
+        Utility::Set(obj, "write", GattsWriteEvent(timestamp, conn_handle, &evt->request.write).ToJs());
     }
     else
     {
@@ -447,7 +477,7 @@ NAN_METHOD(HVX)
 
     GattsHVXBaton *baton = new GattsHVXBaton(callback);
     baton->conn_handle = conn_handle;
-    baton->p_hvx_params = GattxHVXParams(hvx_params);
+    baton->p_hvx_params = GattsHVXParams(hvx_params);
 
     uv_queue_work(uv_default_loop(), baton->req, HVX, (uv_after_work_cb)AfterHVX);
 }
@@ -708,6 +738,68 @@ void AfterValueGet(uv_work_t *req) {
     baton->callback->Call(2, argv);
 
     delete baton->p_value;
+    delete baton;
+}
+
+NAN_METHOD(RWAuthorizeReply)
+{
+    uint16_t conn_handle;
+    v8::Local<v8::Object> params;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
+
+    try
+    {
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        params = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    GattsRWAuthorizeReplyBaton *baton = new GattsRWAuthorizeReplyBaton(callback);
+    baton->conn_handle = conn_handle;
+    baton->p_rw_authorize_reply_params = GattRWAuthorizeReplyParams(params);
+
+    uv_queue_work(uv_default_loop(), baton->req, RWAuthorizeReply, (uv_after_work_cb)AfterRWAuthorizeReply);
+}
+
+// This runs in a worker thread (not Main Thread)
+void RWAuthorizeReply(uv_work_t *req) {
+    GattsRWAuthorizeReplyBaton *baton = static_cast<GattsRWAuthorizeReplyBaton *>(req->data);
+
+    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
+    baton->result = sd_ble_gatts_rw_authorize_reply(baton->conn_handle, baton->p_rw_authorize_reply_params);
+}
+
+// This runs in Main Thread
+void AfterRWAuthorizeReply(uv_work_t *req) {
+    Nan::HandleScope scope;
+
+    GattsRWAuthorizeReplyBaton *baton = static_cast<GattsRWAuthorizeReplyBaton *>(req->data);
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "replying to authorize request");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(2, argv);
+
+    delete baton->p_rw_authorize_reply_params;
     delete baton;
 }
 

@@ -53,11 +53,11 @@ public:
     v8::Local<v8::Object> ToJs();
 };
 
-class GattxHVXParams : public BleToJs<ble_gatts_hvx_params_t>
+class GattsHVXParams : public BleToJs<ble_gatts_hvx_params_t>
 {
 public:
-    GattxHVXParams(ble_gatts_hvx_params_t *hvx_params) : BleToJs<ble_gatts_hvx_params_t>(hvx_params) {}
-    GattxHVXParams(v8::Local<v8::Object> js) : BleToJs<ble_gatts_hvx_params_t>(js) {}
+    GattsHVXParams(ble_gatts_hvx_params_t *hvx_params) : BleToJs<ble_gatts_hvx_params_t>(hvx_params) {}
+    GattsHVXParams(v8::Local<v8::Object> js) : BleToJs<ble_gatts_hvx_params_t>(js) {}
     ble_gatts_hvx_params_t *ToNative();
 };
 
@@ -76,6 +76,32 @@ public:
     GattsAttributeContext(ble_gatts_attr_context_t *attributeContext) : BleToJs<ble_gatts_attr_context_t>(attributeContext) {}
     GattsAttributeContext(v8::Local<v8::Object> js) : BleToJs<ble_gatts_attr_context_t>(js) {}
     v8::Local<v8::Object> ToJs();
+};
+
+class GattRWAuthorizeReplyParams : public BleToJs<ble_gatts_rw_authorize_reply_params_t>
+{
+public:
+    GattRWAuthorizeReplyParams(ble_gatts_rw_authorize_reply_params_t *hvx_params) : BleToJs<ble_gatts_rw_authorize_reply_params_t>(hvx_params) {}
+    GattRWAuthorizeReplyParams(v8::Local<v8::Object> js) : BleToJs<ble_gatts_rw_authorize_reply_params_t>(js) {}
+    ble_gatts_rw_authorize_reply_params_t *ToNative();
+};
+
+class GattsReadAuthorizeParameters : public BleToJs<ble_gatts_read_authorize_params_t>
+{
+public:
+    GattsReadAuthorizeParameters(ble_gatts_read_authorize_params_t *readAuthorizeParams) : BleToJs<ble_gatts_read_authorize_params_t>(readAuthorizeParams) {}
+    GattsReadAuthorizeParameters(v8::Local<v8::Object> js) : BleToJs<ble_gatts_read_authorize_params_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gatts_read_authorize_params_t *ToNative();
+};
+
+class GattsWriteAuthorizeParameters : public BleToJs<ble_gatts_write_authorize_params_t>
+{
+public:
+    GattsWriteAuthorizeParameters(ble_gatts_write_authorize_params_t *writeAuthorizeParams) : BleToJs<ble_gatts_write_authorize_params_t>(writeAuthorizeParams) {}
+    GattsWriteAuthorizeParameters(v8::Local<v8::Object> js) : BleToJs<ble_gatts_write_authorize_params_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gatts_write_authorize_params_t *ToNative();
 };
 
 template<typename EventType>
@@ -110,22 +136,12 @@ public:
     v8::Local<v8::Object> ToJs();
 };
 
-class GattsReadAuthorizeParameters : public BleToJs<ble_gatts_read_authorize_params_t>
+class GattsReadEvent : public BleToJs<ble_gatts_evt_read_t>
 {
 public:
-    GattsReadAuthorizeParameters(ble_gatts_read_authorize_params_t *readAuthorizeParams) : BleToJs<ble_gatts_read_authorize_params_t>(readAuthorizeParams) {}
-    GattsReadAuthorizeParameters(v8::Local<v8::Object> js) : BleToJs<ble_gatts_read_authorize_params_t>(js) {}
+    GattsReadEvent(ble_gatts_evt_read_t *read) : BleToJs<ble_gatts_evt_read_t>(read) {}
+    GattsReadEvent(v8::Local<v8::Object> js) : BleToJs<ble_gatts_evt_read_t>(js) {}
     v8::Local<v8::Object> ToJs();
-    ble_gatts_read_authorize_params_t *ToNative();
-};
-
-class GattsWriteAuthorizeParameters : public BleToJs<ble_gatts_write_authorize_params_t>
-{
-public:
-    GattsWriteAuthorizeParameters(ble_gatts_write_authorize_params_t *writeAuthorizeParams) : BleToJs<ble_gatts_write_authorize_params_t>(writeAuthorizeParams) {}
-    GattsWriteAuthorizeParameters(v8::Local<v8::Object> js) : BleToJs<ble_gatts_write_authorize_params_t>(js) {}
-    v8::Local<v8::Object> ToJs();
-    ble_gatts_write_authorize_params_t *ToNative();
 };
 
 class GattsRWAuthorizeRequestEvent : BleDriverGattsEvent<ble_gatts_evt_rw_authorize_request_t>
@@ -222,12 +238,20 @@ public:
     ble_gatts_value_t *p_value;
 };
 
+struct GattsRWAuthorizeReplyBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GattsRWAuthorizeReplyBaton);
+    uint16_t conn_handle;
+    ble_gatts_rw_authorize_reply_params_t *p_rw_authorize_reply_params;
+};
+
 METHOD_DEFINITIONS(AddService)
 METHOD_DEFINITIONS(AddCharacteristic)
 METHOD_DEFINITIONS(HVX)
 METHOD_DEFINITIONS(SystemAttributeSet)
 METHOD_DEFINITIONS(ValueSet)
 METHOD_DEFINITIONS(ValueGet)
+METHOD_DEFINITIONS(RWAuthorizeReply)
 
 extern "C" {
     void init_gatts(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
