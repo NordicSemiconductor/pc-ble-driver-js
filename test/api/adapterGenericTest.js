@@ -162,3 +162,81 @@ describe('adapter.close', function() {
         assert.equal(stateCallbackArgs[0].available, false);
     });
 });
+
+describe('adapter.getAdapterState', function() {
+    beforeEach(function() {
+        this.clock = sinon.useFakeTimers();
+
+        this.bleDriver =
+        {
+            get_adapters: sinon.stub(),
+            open: sinon.stub(),
+            get_version: sinon.stub(),
+            gap_get_device_name: sinon.stub(),
+            gap_get_address: sinon.stub(),
+            close: sinon.stub()
+        };
+
+        this.bleDriver.get_adapters.yields(undefined, [{ serialNumber: 'test', comName: '6' }]);
+        this.bleDriver.open.yields(undefined);
+        this.bleDriver.get_version.yields('991.911', undefined);
+        this.bleDriver.gap_get_device_name.yields('Octopus', undefined);
+        this.bleDriver.gap_get_address.yields('FF:FF:FF:FF:FF:FF', undefined);
+        this.bleDriver.close.yields(undefined);
+
+        // Provide an array of adapters for the first call
+        var adapterFactory = new AdapterFactory(this.bleDriver);
+        this.adapter = adapterFactory.getAdapters().test;
+    });
+
+    afterEach(function() {
+        this.clock.restore();
+    });
+
+    it('should provide information from the driver and device', function() {
+        let checkIfCalledStub = sinon.spy();
+
+        this.adapter.open({'baudRate': 115211, 'parity': 'none', 'flowControl': 'yes please'}, (err) => {
+        });
+
+        this.adapter.getAdapterState(function(err, adapterState) {
+            checkIfCalledStub();
+
+            assert.equal(adapterState.baudRate, 115211);
+            assert.equal(adapterState.parity, 'none');
+            assert.equal(adapterState.flowControl, 'yes please');
+            assert.equal(adapterState.address, 'FF:FF:FF:FF:FF:FF');
+            assert.equal(adapterState.firmwareVersion, '991.911');
+            assert.equal(adapterState.name, 'Octopus');
+            assert.equal(adapterState.available, true);
+            assert.equal(adapterState.port, '6');
+            // TODO: add instanceId check here ?
+            assert.equal(adapterState.available, true);
+            assert.equal(adapterState.scanning, false);
+            assert.equal(adapterState.advertising, false);
+            assert.equal(adapterState.connecting, false);
+        });
+
+        sinon.assert.calledOnce(checkIfCalledStub);
+    });
+
+    it('should emit error if not able to provide information from the driver and device', function() {
+        let checkIfCalledStub = sinon.spy();
+        let errorCallback = sinon.spy();
+
+        this.adapter.open({'baudRate': 115211, 'parity': 'none', 'flowControl': 'yes please'}, (err) => {
+        });
+
+        this.bleDriver.get_version.yields(undefined, 'ONE ERROR!');
+
+        this.adapter.on('error', errorCallback);
+
+        this.adapter.getAdapterState(function(err, adapterState) {
+            checkIfCalledStub();
+            assert.equal(err.description, 'ONE ERROR!');
+        });
+
+        sinon.assert.calledOnce(checkIfCalledStub);
+        sinon.assert.calledOnce(errorCallback);
+    });
+});

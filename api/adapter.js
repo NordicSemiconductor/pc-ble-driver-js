@@ -11,6 +11,10 @@ const Service = require('./service');
 // No caching of devices
 // Do cache service database
 
+var make_error = function(userMessage, description) {
+    return { 'message': userMessage, 'description': description };
+}
+
 class Adapter extends EventEmitter {
     constructor(bleDriver, instanceId, port) {
         super();
@@ -69,19 +73,18 @@ class Adapter extends EventEmitter {
 
         this._bleDriver.open(this._adapterState.port, options, err => {
             if(err) {
-                // TODO: will adapter still be available if the call fails?
-                this.emit('error', `Error occurred opening serial port: ${err}`);
-                callback(err);
+                var error = make_error('Error occurred opening serial port.', err);
+                this.emit('error', error);
+                callback(error);
                 return;
             } else {
                 this.getAdapterState((err, adapterState) => {
                     if(err) {
-                        this.emit('error', err);
-                        callback(err);
+                        var error = make_error('Error retrieving adapter state.', err);
+                        this.emit('error', error);
+                        callback(error);
                         return;
                     }
-
-                    //this._changeAdapterState({available: true});
                 });
 
             }
@@ -340,7 +343,7 @@ class Adapter extends EventEmitter {
 
         this._bleDriver.get_version((version, err) => {
             if (err) {
-                const error = 'Failed to retrieve softdevice firmwareVersion';
+                var error = make_error('Failed to retrieve softdevice firmwareVersion', err);
                 this.emit('error', error);
                 callback(error);
                 return;
@@ -350,7 +353,7 @@ class Adapter extends EventEmitter {
 
             this._bleDriver.gap_get_device_name( (name, err) => {
                 if (err) {
-                    const error = 'Failed to retrieve driver version.';
+                    const error = make_error('Failed to retrieve driver version.', err);
                     this.emit('error', error);
                     callback(error);
                     return;
@@ -359,7 +362,7 @@ class Adapter extends EventEmitter {
 
                 this._bleDriver.gap_get_address( (address, err) => {
                     if (err) {
-                        const error = 'Failed to retrieve device address.';
+                        const error = make_error('Failed to retrieve device address.', err);
                         this.emit('error', error);
                         callback(error);
                         return;
@@ -379,7 +382,7 @@ class Adapter extends EventEmitter {
     setName(name, callback) {
         this._bleDriver.gap_set_device_name({sm: 0, lv: 0}, name, err => {
             if (err) {
-                this.emit('error', 'Failed to set name to adapter');
+                this.emit('error', make_error('Failed to set name to adapter', err));
             } else if (this._adapterState.name !== name) {
                 this._adapterState.name = name;
 
@@ -402,7 +405,7 @@ class Adapter extends EventEmitter {
 
         this._bleDriver.gap_set_address(cycleMode, addressStruct, err => {
             if (err) {
-                this.emit('error', 'Failed to set address');
+                this.emit('error', make_error('Failed to set address', err));
             } else if (this._adapterState.address !== address) {
                 // TODO: adapterState address include type?
                 this._changeAdapterState({address: address});
@@ -450,7 +453,7 @@ class Adapter extends EventEmitter {
     startScan(options, callback) {
         this._bleDriver.start_scan(options, err => {
             if (err) {
-                this.emit('error', 'Error occured when starting scan');
+                this.emit('error', make_error('Error occured when starting scan', err));
             } else {
                 this._changeAdapterState({scanning: true});
             }
@@ -464,7 +467,7 @@ class Adapter extends EventEmitter {
         this._bleDriver.stop_scan(err => {
             if (err) {
                 // TODO: probably is state already set to false, but should we make sure? if yes, emit adapterStateChanged?
-                this.emit('error', 'Error occured when stopping scanning');
+                this.emit('error', make_error('Error occured when stopping scanning', err));
             } else {
                 this._changeAdapterState({scanning: false});
             }
@@ -477,7 +480,7 @@ class Adapter extends EventEmitter {
     connect(deviceAddress, options, callback) {
         this._bleDriver.gap_connect(deviceAddress, options.scanParams, options.connParams, err => {
             if (err) {
-                this.emit('error', `Could not connect to ${deviceAddress}`);
+                this.emit('error', make_error(`Could not connect to ${deviceAddress}`, err));
             } else {
                 this._changeAdapterState({scanning: false, connecting: true});
             }
@@ -491,7 +494,7 @@ class Adapter extends EventEmitter {
         this._bleDriver.gap_cancel_connect(err => {
             if (err) {
                 // TODO: log more
-                this.emit('error', 'Error occured when canceling connection');
+                this.emit('error', make_error('Error occured when canceling connection', err));
             } else {
                 this._changeAdapterState({connecting: false});
             }
@@ -579,7 +582,7 @@ class Adapter extends EventEmitter {
         const hciStatusCode = this._bleDriver.BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION;
         this._bleDriver.gap_disconnect(device.connectionHandle, hciStatusCode, err => {
             if (err) {
-                this.emit('error', 'Failed to disconnect');
+                this.emit('error', make_error('Failed to disconnect', err));
             }
 
             callback(err);
@@ -597,7 +600,7 @@ class Adapter extends EventEmitter {
         const connectionParamsStruct = this._getConnectionUpdateParams(options);
         this._bleDriver.gap_update_connection_parameters(connectionHandle, connectionParamsStruct, err => {
             if (err) {
-                this.emit('error', 'Failed to update connection parameters');
+                this.emit('error', make_error('Failed to update connection parameters', err));
             }
 
             callback(err);
@@ -613,7 +616,7 @@ class Adapter extends EventEmitter {
         // TODO: Does the AddOn support undefined second parameter?
         this._bleDriver.gap_update_connection_parameters(connectionHandle, null, err => {
             if (err) {
-                this.emit('error', 'Failed to reject connection parameters');
+                this.emit('error', make_error('Failed to reject connection parameters', err));
             }
 
             callback(err);
@@ -670,7 +673,7 @@ class Adapter extends EventEmitter {
 
         this._bleDriver.gattc_primary_services_discover(device.connectionHandle, 0, null, err => {
             if (err) {
-                this.emit('error', 'Failed to get services');
+                this.emit('error', make_error('Failed to get services', err));
                 callback(err);
                 return;
             }
@@ -695,7 +698,7 @@ class Adapter extends EventEmitter {
 
         this._bleDriver.gattc_characteristic_discover(device.connectionHandle, handleRange, err => {
             if (err) {
-                this.emit('error', 'Failed to get Characteristics');
+                this.emit('error', make_error('Failed to get Characteristics', err));
                 callback(err);
                 return;
             }
@@ -723,7 +726,7 @@ class Adapter extends EventEmitter {
 
         this._bleDriver.gattc_characteristic_discover(device.connectionHandle, handleRange, err => {
             if (err) {
-                this.emit('error', 'Failed to get Descriptors');
+                this.emit('error', make_error('Failed to get Descriptors', err));
                 callback(err);
                 return;
             }
