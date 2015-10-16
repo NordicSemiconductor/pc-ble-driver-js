@@ -203,6 +203,10 @@ class Adapter extends EventEmitter {
 
     _parseDisconnectedEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
+        if (!device) {
+            throw new Error('Internal inconsistency: Could not find device with connection handle ' + event.conn_handle);
+        }
+
         device.connected = false;
         delete this._devices[device.instanceId];
         this.emit('deviceDisconnected', device);
@@ -434,7 +438,10 @@ class Adapter extends EventEmitter {
     }
 
     _getDeviceByConnectionHandle(connectionHandle) {
-        return this._devices.find(device => device.connectionHandle == connectionHandle);
+        const foundDeviceId = Object.keys(this._devices).find( (deviceId) => {
+            return this._devices[deviceId].connectionHandle === connectionHandle;
+        });
+        return this._devices[foundDeviceId];
     }
 
     // Only for central
