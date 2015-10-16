@@ -155,13 +155,12 @@ describe('Adapter updateConnParams', () => {
         });
     });
 
-    it ('should call bleDriver with the passed parameters', (done)=>{
+    it('should call bleDriver with the passed parameters', (done)=>{
         bleDriver.gap_update_connection_parameters.yieldsAsync(undefined);
         adapter.on('deviceConnected', (device) =>{
             const connectionUpdateParameters = createConnectionUpdateParameters();
             adapter.updateConnParams(device.instanceId, connectionUpdateParameters, () => {
                 const args = bleDriver.gap_update_connection_parameters.args[0];
-                console.log(JSON.stringify(args));
                 assert.equal(args[0], 123);
                 assert.equal(args[1].min_conn_interval, connectionUpdateParameters.minConnectionInterval);
                 assert.equal(args[1].max_conn_interval, connectionUpdateParameters.maxConnectionInterval);
@@ -171,11 +170,19 @@ describe('Adapter updateConnParams', () => {
             });
         });
         bleDriverEventCallback([commonStubs.createConnectEvent()]);
+    });
 
-        // call updateConnParams
-        // verify that driver was called with correct params.
-        // verify that error is called if failed.
-
-    })
-
+    it('should emit error and pass \'error\' if call to gap_update_connection_parameters fails', (done) =>{
+        let errorSpy = sinon.spy();
+        adapter.once('error', errorSpy);
+        bleDriver.gap_update_connection_parameters.yieldsAsync('err');
+        adapter.on('deviceConnected', (device) =>{
+            const connectionUpdateParameters = createConnectionUpdateParameters();
+            adapter.updateConnParams(device.instanceId, connectionUpdateParameters, () => {
+                assert(errorSpy.calledOnce);
+                done();
+            });
+        });
+        bleDriverEventCallback([commonStubs.createConnectEvent()]);
+    });
 });
