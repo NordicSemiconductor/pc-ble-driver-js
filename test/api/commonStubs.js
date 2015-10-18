@@ -60,3 +60,15 @@ module.exports.createConnectEvent = function() {
         }
     };
 };
+
+module.exports.createConnectionParametersUpdateEvent = function() {
+    return  {
+        conn_handle: 123,
+            conn_params: {
+                min_conn_interval: 10,
+                max_conn_interval: 100,
+                slave_latency: 100,
+                conn_sup_timeout: 455
+            }
+        };
+};

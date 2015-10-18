@@ -105,3 +105,45 @@ describe('BLE_GAP_EVT_DISCONNECTED', function() {
 
     });
 });
+
+describe('BLE_GAP_EVT_CONN_PARAM_UPDATE', () =>{
+    let bleDriver, adapter, bleDriverEventCallback;
+    beforeEach((done) =>{
+        bleDriver = commonStubs.createBleDriver( (eventCallback) => {
+            bleDriverEventCallback = eventCallback;
+            done();
+        });
+        adapter = new Adapter(bleDriver, 'theId', 42);
+        adapter.open({}, err => {
+            assert.ifError(err);
+        });
+    });
+
+    it('Should update device connection parameters', () => {
+        const connectEvent = commonStubs.createConnectEvent();
+        bleDriverEventCallback([connectEvent]);
+        const newConnectionParamerers = {
+            minConnectionInterval: 32,
+            maxConnectionInterval: 124,
+            slaveLatency: 15,
+            connectionSupervisionTimeout: 34,
+        };
+        const originalDevice = adapter.getDevices()['FF:AA:DD.123'];
+        assert.equal(originalDevice.minConnectionInterval, connectEvent.conn_params.min_conn_interval);
+        assert.equal(originalDevice.maxConnectionInterval, connectEvent.conn_params.max_conn_interval);
+        assert.equal(originalDevice.slaveLatency, connectEvent.conn_params.slave_latency);
+        assert.equal(originalDevice.connectionSupervisionTimeout, connectEvent.conn_params.conn_sup_timeout);
+
+        bleDriverEventCallback([commonStubs.createConnectionParametersUpdateEvent()]);
+        const updatedDevice = adapter.getDevices()['FF:AA:DD.123'];
+
+        assert.equal(updatedDevice.minConnectionInterval, connectEvent.conn_params.min_conn_interval);
+        assert.equal(updatedDevice.maxConnectionInterval, connectEvent.conn_params.max_conn_interval);
+        assert.equal(updatedDevice.slaveLatency, connectEvent.conn_params.slave_latency);
+        assert.equal(updatedDevice.connectionSupervisionTimeout, connectEvent.conn_params.conn_sup_timeout);        
+    });
+
+    it('should emit \'connParamUpdate\'');
+
+    it('should emit error if device is not ');
+});
