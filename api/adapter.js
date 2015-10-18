@@ -215,7 +215,9 @@ class Adapter extends EventEmitter {
 
     _parseConnectionParameterUpdateEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
-
+         if (!device) {
+            throw new Error('Internal inconsistency: Could not find device with connection handle ' + event.conn_handle);
+        }
         device.minConnectionInterval = event.conn_params.min_conn_interval;
         device.maxConnectionInterval = event.conn_params.max_conn_interval;
         device.slaveLatency = event.conn_params.slave_latency;
