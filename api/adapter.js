@@ -810,7 +810,7 @@ class Adapter extends EventEmitter {
     startCharacteristicsNotifications(characteristicId, requireAck, callback) {
 
         const enableNotificationBitfield = requireAck ? 2: 1;
-        const characteristic = this._characteristics[characteristicId];
+        const characteristic = this._characteristics[characteristicId, 0];
         const descriptor = this._descriptors.find((descriptor) => {
             return (descriptor.characteristicInstanceId === characteristicId) &&
                 (descriptor.uuid === 0x2902);
@@ -827,7 +827,7 @@ class Adapter extends EventEmitter {
     // Callback signature function(err) {}
     stopCharacteristicsNotifications(characteristicId, callback) {
         const enableNotificationBitfield = 0;
-        const characteristic = this._characteristics[characteristicId];
+        const characteristic = this._characteristics[characteristicId, 0];
         const descriptor = this._descriptors.find((descriptor) => {
             return (descriptor.characteristicInstanceId === characteristicId) &&
                 (descriptor.uuid === 0x2902);
