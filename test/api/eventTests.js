@@ -173,5 +173,15 @@ describe('BLE_GAP_EVT_CONN_PARAM_UPDATE', () =>{
 
     });
 
-    it('should emit error if device is not ');
+    it('should emit only error if device is not found', () =>{
+        let connectionUpdateEvent = commonStubs.createConnectionParametersUpdateEvent();
+        let updateSpy = sinon.spy();
+        let errorSpy = sinon.spy();
+
+        adapter.once('connParamUpdate', updateSpy);
+        adapter.once('error', errorSpy);
+        bleDriverEventCallback([connectionUpdateEvent]);
+        assert(errorSpy.calledOnce);
+        assert(!updateSpy.called);
+    });
 });
