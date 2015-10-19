@@ -749,7 +749,7 @@ class Adapter extends EventEmitter {
     }
 
     // Callback signature function(err) {}  ack: require acknowledge from device, irrelevant in GATTS role. options: {ack, long, offset}
-    writeCharacteristicsValue(characteristicId, value, options, callback) {
+    writeCharacteristicsValue(deviceInstanceId, characteristicId, value, options, callback) {
 
     }
 
@@ -760,20 +760,70 @@ class Adapter extends EventEmitter {
     }
 
     // Callback signature function(err) {}, callback will not be called unti ack is received. options: {ack, long, offset}
-    writeDescriptorValue(descriptorId, value, options, callback) {
+    requestWriteDescriptorValue(deviceInstanceId, descriptorId, value, callback) {
+        const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
+        if (!connectionHandle) {
+            throw new Error('No connection handle found for device with instance id: ' + deviceInstanceId);
+        }
 
+        const descriptor = this._descriptors[descriptorId];
+        if (!descriptor) {
+            throw new Error('No descriptor found with descriptor id: ', descriptorId);
+        }
+
+        const writeParameters = {
+            write_op: this._bleDriver.BLE_GATT_OP_WRITE_REQ,
+            flags: 0, // don't care for WRITE_REQ
+            handle: descriptor.handle,
+            offset: 0,
+            len: value.length,
+            value: value
+        };
+
+        this._bleDriver.write(connectionHandle, writeParameters, (err) => {
+            if (err) {
+                this.emit('error', 'Failed to write to descriptor with handle: ' + descriptor.handle);
+            }
+            callback(err);
+        });
     }
 
     // Only for GATTC role
 
     // Callback signature function(err) {}, ack: require all notifications to ack, callback will not be called until ack is received
-    startCharacteristicsNotifications(characteristicId, ack_notifications, callback) {
+    startCharacteristicsNotifications(deviceInstanceId, characteristicId, requireAck, callback) {
+        const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
+        const enableNotificationBitfield = requireAck ? 2: 1;
+        const characteristic = this._characteristics[characteristicId];
+        const descriptor = this._descriptors.find((descriptor) => {
+            return (descriptor.characteristicInstanceId === characteristicId) &&
+                (descriptor.uuid === 0x2902);
+        });
 
+        this.requestWriteDescriptorValue(connectionHandle, descriptor.handle, [enableNotificationBitfield], (err) =>{
+            if (err) {
+                this.emit('error', 'Failed to start characteristics notifications');
+            }
+            callback(err);
+        });
     }
 
     // Callback signature function(err) {}
     stopCharacteristicsNotifications(characteristicId, callback) {
+        const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
+        const enableNotificationBitfield = 0;
+        const characteristic = this._characteristics[characteristicId];
+        const descriptor = this._descriptors.find((descriptor) => {
+            return (descriptor.characteristicInstanceId === characteristicId) &&
+                (descriptor.uuid === 0x2902);
+        });
 
+        this.requestWriteDescriptorValue(connectionHandle, descriptor.handle, [enableNotificationBitfield], (err) =>{
+            if (err) {
+                this.emit('error', 'Failed to stop characteristics notifications');
+            }
+            callback(err);
+        });
     }
 }
 
