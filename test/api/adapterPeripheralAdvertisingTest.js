@@ -36,14 +36,13 @@ describe('adapter.startAdvertising', function() {
 
         // Order is of importance here, create byte array in the order attributes appear
         var advertisingData = {
-            shortenedLocalName: 'MyCoolName', // type: 0x08 "shortened local name" or 0x09 "complete local name"
-            flags: ['leGeneralDiscMode', 'leLimitedDiscMode', 'brEdrNotSupported'], //type: 0x01 "FLAGS": flags are validated in API, exception thrown if not valid
-            txPowerLevel: 0, // type: 0x0a "Tx Power Level"
-            raw: [] // byte array, if other values are set, exception is thrown
+            shortenedLocalName: 'MyCoolName', 
+            flags: ['leGeneralDiscMode', 'leLimitedDiscMode', 'brEdrNotSupported'],
+            txPowerLevel: 0 // type: 0x0a "Tx Power Level"
         };
 
         var scanResponseData = {
-            raw: []
+            completeLocalName: 'MyCoolName', 
         };
 
         var options ={

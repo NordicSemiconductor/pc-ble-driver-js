@@ -2,6 +2,10 @@
 
 const AD_PACKET_MAX_SIZE = 20;
 
+let cleanUpUuid = function(uuid) {
+        return uuid.replace(/-/g, '');
+};
+
 let flagsTypeMarshaller = function(buf, offset, flags) {
     let value = 0x00;
 
@@ -27,20 +31,20 @@ let flagsTypeMarshaller = function(buf, offset, flags) {
         }
     }
 
-    console.log('flags: ' + value);
     return buf.writeUInt8(value, offset);
 };
 
-let listOf16BitServiceUuidsMarshaller = function(buf, offset, uuids) {
-    return buf.writeUInt8(ret, offset);
-};
+let serviceUuidsMarshaller = function(buf, offset, uuids) {
+    // TODO: add uuids
+    var pos = offset;
 
-let listOf32BitServiceUuidsMarshaller = function(buf, offset, uuids) {
-    return buf.writeUInt8(ret, offset);
-};
+    for(let uuid in uuids) {
+        var temp = new Buffer(cleanUpUuid(uuids[uuid]), 'hex');
+        temp.copy(buf, pos, 0);
+        pos += temp.length;
+    }
 
-let listOf128BitServiceUuidsMarshaller = function(buf, offset, uuids) {
-    return buf.writeUInt8(ret, offset);
+    return pos;
 };
 
 let txPowerLevelMarshaller = function(buf, offset, powerLevel) {
@@ -55,49 +59,49 @@ let txPowerLevelMarshaller = function(buf, offset, powerLevel) {
 const adTypeConverter = {
     flags: { id: 0x01, marshall: flagsTypeMarshaller },
 
-    incompleteListOf16BitServiceUuids:  { id: 0x02, marshall: listOf16BitServiceUuidsMarshaller },
-    completeListOf16BitServiceUuids:    { id: 0x03, marshall: listOf16BitServiceUuidsMarshaller },
-    incompleteListOf32BitServiceUuids:  { id: 0x04, marshall: listOf32BitServiceUuidsMarshaller },
-    completeListOf32BitServiceUuids:    { id: 0x05, marshall: listOf32BitServiceUuidsMarshaller },
-    incompleteListOf128BitServiceUuids: { id: 0x06, marshall: listOf128BitServiceUuidsMarshaller },
-    completeListOf128BitServiceUuids:   { id: 0x07, marshall: listOf128BitServiceUuidsMarshaller },
+    incompleteListOf16BitServiceUuids:  { id: 0x02, marshall: serviceUuidsMarshaller },
+    completeListOf16BitServiceUuids:    { id: 0x03, marshall: serviceUuidsMarshaller },
+    incompleteListOf32BitServiceUuids:  { id: 0x04, marshall: serviceUuidsMarshaller },
+    completeListOf32BitServiceUuids:    { id: 0x05, marshall: serviceUuidsMarshaller },
+    incompleteListOf128BitServiceUuids: { id: 0x06, marshall: serviceUuidsMarshaller },
+    completeListOf128BitServiceUuids:   { id: 0x07, marshall: serviceUuidsMarshaller },
 
     shortenedLocalName: { id: 0x08, marshall: function(buf, offset, name) { return buf.write(name, offset, name.length, 'binary') + offset; } },
     completeLocalName:  { id: 0x09, marshall: function(buf, offset, name) { return buf.write(name, offset, name.length, 'binary') + offset; } },
 
     txPowerLevel:  { id: 0x0a, marshall: txPowerLevelMarshaller },
-    classOfDevice: { id: 0x0d, marshall: function(buf, offset, name) { throw new Error('not implemented'); } },
+    classOfDevice: { id: 0x0d, marshall: function(buf, offset, name) { throw new Error('Not implemented!'); } },
 
-    simplePairingHashC:       { id: 0x0e, marshall: function(buf, offset, name) { throw new Error('not implemented'); } },
-    simplePairingRandomizerR: { id: 0x0f, marshall: function(buf, offset, name) { throw new Error('not implemented'); } },
-    securityManagerTkValue:   { id: 0x10, marshall: function(buf, offset, name) { throw new Error('not implemented'); } },
-    securityManagerOobFlags:  { id: 0x11, marshall: function(buf, offset, name) { throw new Error('not implemented'); } },
-    slaveConnectionIntervalRange: { id: 0x12, marshall: function(buf, offset, name) { throw new Error('not implemented'); } },
+    simplePairingHashC:       { id: 0x0e, marshall: function(buf, offset, name) { throw new Error('Not implemented!'); } },
+    simplePairingRandomizerR: { id: 0x0f, marshall: function(buf, offset, name) { throw new Error('Not implemented!'); } },
+    securityManagerTkValue:   { id: 0x10, marshall: function(buf, offset, name) { throw new Error('Not implemented!'); } },
+    securityManagerOobFlags:  { id: 0x11, marshall: function(buf, offset, name) { throw new Error('Not implemented!'); } },
+    slaveConnectionIntervalRange: { id: 0x12, marshall: function(buf, offset, name) { throw new Error('Not implemented!'); } },
 
-    solicitedServiceUuids16bit:  { id: 0x14, marshall: function(buf, offset, name) { throw new Error('not implemented'); } },
-    solicitedServiceUuids128bit: { id: 0x15, marshall: function(buf, offset, name) { throw new Error('not implemented'); } },
+    solicitedServiceUuids16bit:  { id: 0x14, marshall: function(buf, offset, name) { throw new Error('Not implemented!'); } },
+    solicitedServiceUuids128bit: { id: 0x15, marshall: function(buf, offset, name) { throw new Error('Not implemented!'); } },
 
-    serviceData: { id: 0x16, marshall: function(buf, offset, name) { throw new Error('not implemented'); } },
+    serviceData: { id: 0x16, marshall: function(buf, offset, name) { throw new Error('Not implemented!'); } },
 
-    publicTargetAddress: { id: 0x17, marshall: function(buf, offset, name) { throw new Error('not implemented'); } },
-    randomTargetAddress: { id: 0x18, marshall: function(buf, offset, name) { throw new Error('not implemented'); } },
+    publicTargetAddress: { id: 0x17, marshall: function(buf, offset, name) { throw new Error('Not implemented!'); } },
+    randomTargetAddress: { id: 0x18, marshall: function(buf, offset, name) { throw new Error('Not implemented!'); } },
 
-    appearance: { id: 0x19, marshall: function(buf, offset, name) { throw new Error('not implemented'); } },
+    appearance: { id: 0x19, marshall: function(buf, offset, name) { throw new Error('Not implemented!'); } },
 
-    advertisingInterval: { id: 0x1a, marshall: function(buf, offset, name) { throw new Error('not implemented'); } },
+    advertisingInterval: { id: 0x1a, marshall: function(buf, offset, name) { throw new Error('Not implemented!'); } },
 
-    leBluetoothDeviceAddress: { id: 0x1b, marshall: function(buf, offset, name) { throw new Error('not implemented'); } },
-    leRole: { id: 0x1c, marshall: function(buf, offset, name) { throw new Error('not implemented'); } },
+    leBluetoothDeviceAddress: { id: 0x1b, marshall: function(buf, offset, name) { throw new Error('Not implemented!'); } },
+    leRole: { id: 0x1c, marshall: function(buf, offset, name) { throw new Error('Not implemented!'); } },
 
-    simplePairingHashC256:       { id: 0x1d, marshall: function(buf, offset, name) { throw new Error('not implemented'); } },
-    simplePairingRandomizerR256: { id: 0x1e, marshall: function(buf, offset, name) { throw new Error('not implemented');} },
+    simplePairingHashC256:       { id: 0x1d, marshall: function(buf, offset, name) { throw new Error('Not implemented!'); } },
+    simplePairingRandomizerR256: { id: 0x1e, marshall: function(buf, offset, name) { throw new Error('Not implemented!');} },
 
-    serviceData32bitUuid:  { id: 0x20, marshall: function(buf, offset, name) { throw new Error('not implemented'); } },
-    serviceData128bitUuid: { id: 0x21, marshall: function(buf, offset, name) { throw new Error('not implemented'); } },
+    serviceData32bitUuid:  { id: 0x20, marshall: function(buf, offset, name) { throw new Error('Not implemented!'); } },
+    serviceData128bitUuid: { id: 0x21, marshall: function(buf, offset, name) { throw new Error('Not implemented!'); } },
 
-    '3dInformationData': { id: 0x3d, marshall: function(buf, offset, name) { throw new Error('not implemented'); } },
+    '3dInformationData': { id: 0x3d, marshall: function(buf, offset, name) { throw new Error('Not implemented!'); } },
 
-    manufacturerSpecificData: { id: 0xff, marshall: function(buf, offset, name) { throw new Error('not implemented'); } }
+    manufacturerSpecificData: { id: 0xff, marshall: function(buf, offset, name) { throw new Error('Not implemented!'); } }
 };
 
 class AdType {
@@ -107,10 +111,9 @@ class AdType {
      */
     static convertToBuffer(obj) {
         let buffer = new Buffer(AD_PACKET_MAX_SIZE);
-        console.log('byte length:' + Buffer.byteLength('1', 'binary'));
-        buffer.fill(0);
         var bufferPosition = 0;
 
+        // We assume that all marshall methods returns an absolute position in the provided buffer
         for(let property in obj) {
             if(obj.hasOwnProperty(property)) {
                 let conv = adTypeConverter[property];
@@ -118,25 +121,23 @@ class AdType {
                 if(conv !== undefined) {
                     let len = 0;
                     let startPos = bufferPosition;
-                    console.log('');
-                    console.log('0 -- property: ' + property + ' value:\'' + obj[property]+ '\'' + ' startPos:' + startPos);
-
-                    console.log('1 -- pos is: ' + bufferPosition + ' len is: ' + len + ' conv.id: ' + conv.id);
                     bufferPosition = buffer.writeUInt8(conv.id, bufferPosition + 1); // AD Type
-                    console.log('2 -- pos is: ' + bufferPosition);
                     bufferPosition = conv.marshall(buffer, bufferPosition, obj[property]); // AD Data
-                    console.log('3 -- pos is: ' + bufferPosition);
 
                     let length = bufferPosition - startPos - 1;
-                    console.log('4 -- length: ' + length + ' at startPos:' + startPos);
-                    buffer.writeUInt8(length, startPos, true); // AD Length
 
-                    console.log(buffer.toJSON());
+                    if(bufferPosition > AD_PACKET_MAX_SIZE) {
+                        throw new Error(`Length of packet is ${bufferPosition} bytes, which is larger than the maximum of ${AD_PACKET_MAX_SIZE} bytes.`);
+                    }
+
+                    buffer.writeUInt8(length, startPos, true); // AD Length
+                } else {
+                    throw new Error(`I do not know how to marshall ${property}.`);
                 }
             }
         }
 
-        return buffer.slice(0, bufferPosition - 1);
+        return buffer.slice(0, bufferPosition);
     }
 
     /**
@@ -144,7 +145,7 @@ class AdType {
      *
      */
     static convertFromBuffer(buffer) {
-
+        throw new Error('Not implemented!');
     }
 }
 

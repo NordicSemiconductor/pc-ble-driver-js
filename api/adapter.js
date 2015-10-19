@@ -7,8 +7,9 @@ const _ = require('underscore');
 const AdapterState = require('./adapterState');
 const Device = require('./device');
 const Service = require('./service');
-const Characteristic = reqiure('./characteristic');
+const Characteristic = require('./characteristic');
 const Descriptor = require('./descriptor');
+const AdType = require('./util/adType');
 
 // No caching of devices
 // Do cache service database
@@ -828,8 +829,9 @@ class Adapter extends EventEmitter {
         const interval = options.interval;
         const timeout = options.timeout;
 
-        //TODO: need to parse advertising and scanData and convert to byte array?
-        this._bleDriver.gap_set_adv_data(advertisingData, scanResponseData);
+        this._bleDriver.gap_set_adv_data(
+            AdType.convertToBuffer(advertisingData), 
+            AdType.convertToBuffer(scanResponseData));
 
         const advertismentParamsStruct = this._getAdvertismentParams(type, addressStruct, filterPolicy, interval, timeout);
 
