@@ -99,6 +99,17 @@ describe('Adapter Cancel connect', function(){
 
         });
     });
+
+    it('should emit error if gap_cancel_connect fails', (done) =>{
+        let errorSpy = sinon.spy();
+        adapter.once('error', errorSpy);
+        
+        bleDriver.gap_cancel_connect.yieldsAsync('Error');
+        adapter.cancelConnect(() =>{
+            assert(errorSpy.calledOnce);
+            done();
+        });
+    });
 });
 
 describe('Adapter disconnect', function(){
