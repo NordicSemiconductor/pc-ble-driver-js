@@ -817,9 +817,12 @@ class Adapter extends EventEmitter {
             throw new Error('No connection handle found for device with instance id: ' + deviceInstanceId);
         }
 
+        if (this._adapterState.gattBusyMap[device.instanceId]) {
+            throw new Error('Device ' + device.instanceId + ' is busy. Cannot write descriptor value');
+        }
         const writeParameters = {
             write_op: ack ? this._bleDriver.BLE_GATT_OP_WRITE_REQ : this._bleDriver.BLE_GATT_OP_WRITE_CMD,
-            flags: 0, // don't care for WRITE_REQ
+            flags: 0, // don't care for WRITE_REQ / WRITE_CMD
             handle: descriptor.handle,
             offset: 0,
             len: value.length,
