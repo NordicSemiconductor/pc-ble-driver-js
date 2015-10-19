@@ -472,8 +472,7 @@ class Adapter extends EventEmitter {
         }
 
         // We should only receive descriptors under one characteristic.
-        const service = this._getServiceByHandle(device.instanceId, descriptors[0].handle);
-        const characteristic = this._getCharacteristicByHandle(service.instanceId, descriptors[0].handle);
+        const characteristic = this._getCharacteristicByHandle(device.instanceId, descriptors[0].handle);
 
         descriptors.forEach(descriptor => {
             const handle = descriptor.handle;
@@ -509,7 +508,8 @@ class Adapter extends EventEmitter {
             }
         });
 
-        const nextStartHandle = descriptors[descripts.length - 1].handle + 1;
+        const service = this._getServiceByHandle(device.instanceId, descriptors[0].handle);
+        const nextStartHandle = descriptors[descriptors.length - 1].handle + 1;
         const handleRange = {startHandle: nextStartHandle, endHandle: service.endHandle};
 
         this._bleDriver.gattc_descriptor_discover(device.connectionHandle, handleRange, err => {
@@ -561,8 +561,9 @@ class Adapter extends EventEmitter {
         return null;
     }
 
-    _getCharacteristicByHandle(serviceInstanceId, handle) {
-        const characteristics = this._characteristics.filter(characteristic => characteristic.serviceInstanceId === serviceInstanceId);
+    _getCharacteristicByHandle(deviceInstanceId, handle) {
+        const service = this._getServiceByHandle(deviceInstanceId, handle);
+        const characteristics = this._characteristics.filter(characteristic => characteristic.serviceInstanceId === service.instanceId);
 
         let foundCharacteristic = {handle: -1};
 
@@ -577,23 +578,45 @@ class Adapter extends EventEmitter {
         return foundCharacteristic;
     }
 
+    _getDescriptorByHandle(deviceInstanceId, handle) {
+        const characteristic = this._getCharacteristicByHandle(deviceInstanceId, handle);
+        const descriptors = this._descriptors.filter(descriptor => descriptor.characteristicInstanceId === characteristic.instanceId);
+
+        let descriptor;
+
+        for (let descriptorInstanceId in descriptors) {
+            const descriptor = descriptors[descriptorInstanceId];
+
+            if (descriptor.handle === handle) {
+                return descriptor;
+            }
+        }
+
+        return descriptor;
+    }
+
     _parseHvxEvent(event) {
+        // TODO: Above the api we have no idea what handles are. Use characteristic object.
         const characteristicChange = {
             connectionHandle: event.conn_handle,
             attributeHandle: event.handle,
             data: event.data,
-        }
+        };
         if (event.type === this._bleDriver.BLE_GATT_HVX_INDICATION) {
             this._descriptors.find((descriptor) => {
                 return (descriptor.handle === event.handle);
             });
-            this._bleDriver.gattc_confirm_handle_value(event.conn_handle, evt.handle);
+            this._bleDriver.gattc_confirm_handle_value(event.conn_handle, event.handle);
         }
-        emit('characteristicsValueChanged', characteristicChange);
+        // TODO: emit characteristic object?
+        this.emit('characteristicsValueChanged', characteristicChange);
     }
 
     _parseWriteEvent(event) {
+        // TODO: Do more checking of write response?
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const busyMap = Object.assign({}, this._adapterState.gattBusyMap);
+        // TODO: should busy map be false?
         busyMap[device.instanceId] = true;
         this._changeAdapterState({gattBusyMap: busyMap});
     }
@@ -1022,7 +1045,7 @@ class Adapter extends EventEmitter {
     }
 
     // Callback signature function(err) {}  ack: require acknowledge from device, irrelevant in GATTS role. options: {ack, long, offset}
-    writeCharacteristicsValue(deviceInstanceId, characteristicId, value, options, callback) {
+    writeCharacteristicsValue(characteristicId, value, options, callback) {
 
     }
 
@@ -1042,7 +1065,7 @@ class Adapter extends EventEmitter {
     _getDeviceFromCharacteristicId(characteristicId) {
         const characteristic = this._characteristics[characteristicId];
         if (!characteristic) {
-            throw new Error('No characteristic found with id: ' + descriptor.characteristicInstanceId);
+            throw new Error('No characteristic found with id: ' + characteristic.characteristicInstanceId);
         }
         const service = this._services[characteristic.serviceInstanceId];
         if (!service) {
@@ -1058,9 +1081,10 @@ class Adapter extends EventEmitter {
     // Callback signature function(err) {}, callback will not be called unti ack is received. options: {ack, long, offset}
     writeDescriptorValue(descriptorId, value, ack, callback) {
         const device = this._getDeviceFromDescriptorId(descriptorId);
+        const descriptor = this.getDescriptor(descriptorId);
         const connectionHandle = device.connectionHandle;
         if (!connectionHandle) {
-            throw new Error('No connection handle found for device with instance id: ' + deviceInstanceId);
+            throw new Error('No connection handle found for device with instance id: ' + device.instanceId);
         }
 
         if (this._adapterState.gattBusyMap[device.instanceId]) {
@@ -1093,13 +1117,13 @@ class Adapter extends EventEmitter {
     startCharacteristicsNotifications(characteristicId, requireAck, callback) {
         // TODO: If CCCD not discovered do a decriptor discovery
         const enableNotificationBitfield = requireAck ? 2: 1;
-        const characteristic = this._characteristics[characteristicId, 0];
+        const characteristic = this._characteristics[characteristicId];
         const descriptor = this._descriptors.find((descriptor) => {
             return (descriptor.characteristicInstanceId === characteristicId) &&
                 (descriptor.uuid === 0x2902);
         });
 
-        this.writeDescriptorValue(descriptor.instanceId, [enableNotificationBitfield], true, (err) =>{
+        this.writeDescriptorValue(descriptor.instanceId, [enableNotificationBitfield, 0], true, (err) =>{
             if (err) {
                 this.emit('error', 'Failed to start characteristics notifications');
             }
@@ -1111,13 +1135,13 @@ class Adapter extends EventEmitter {
     stopCharacteristicsNotifications(characteristicId, callback) {
         // TODO: If CCCD not discovered how did we start it?
         const enableNotificationBitfield = 0;
-        const characteristic = this._characteristics[characteristicId, 0];
+        const characteristic = this._characteristics[characteristicId];
         const descriptor = this._descriptors.find((descriptor) => {
             return (descriptor.characteristicInstanceId === characteristicId) &&
                 (descriptor.uuid === 0x2902);
         });
 
-        this.writeDescriptorValue(descriptor.instanceId, [enableNotificationBitfield], (err) =>{
+        this.writeDescriptorValue(descriptor.instanceId, [enableNotificationBitfield, 0], (err) =>{
             if (err) {
                 this.emit('error', 'Failed to stop characteristics notifications');
             }
