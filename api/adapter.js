@@ -147,14 +147,20 @@ class Adapter extends EventEmitter {
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP:
                     this._parsePrimaryServiceDiscoveryResponseEvent(event);
+                    break;
+                case this._bleDriver.BLE_GATTC_EVT_HVX:
+                    this._parseHvxEvent(event);
+                break;
+                case this._bleDriver.BLE_GATTC_EVT_WRITE_RSP:
+                    this._parseWriteEvent(event);
+                break;
+
                 case this._bleDriver.BLE_GATTC_EVT_REL_DISC_RSP:
                 case this._bleDriver.BLE_GATTC_EVT_CHAR_DISC_RSP:
                 case this._bleDriver.BLE_GATTC_EVT_DESC_DISC_RSP:
                 case this._bleDriver.BLE_GATTC_EVT_CHAR_VAL_BY_UUID_READ_RSP:
                 case this._bleDriver.BLE_GATTC_EVT_READ_RSP:
                 case this._bleDriver.BLE_GATTC_EVT_CHAR_VALS_READ_RSP:
-                case this._bleDriver.BLE_GATTC_EVT_WRITE_RSP:
-                case this._bleDriver.BLE_GATTC_EVT_HVX:
                 case this._bleDriver.BLE_GATTC_EVT_TIMEOUT:
                     console.log(`Unsupported GATTC event received from SoftDevice: ${event.id} - ${event.name}`);
                     break;
@@ -337,6 +343,26 @@ class Adapter extends EventEmitter {
         const nextStartHandle = services[services.length - 1].end_handle + 1;
 
         this._bleDriver.gattc_primary_services_discover(device.connectionHandle, nextStartHandle, null);
+    }
+    _parseHvxEvent(event) {
+        const characteristicChange = {
+            connectionHandle: event.conn_handle,
+            attributeHandle: event.handle,
+            data: event.data,
+        }
+        if (event.type === this._bleDriver.BLE_GATT_HVX_INDICATION) {
+            this._descriptors.find((descriptor) => {
+                return (descriptor.handle === event.handle);
+            });
+            this._bleDriver.gattc_confirm_handle_value(event.conn_handle, evt.handle);
+        }
+        emit('characteristicsValueChanged', characteristicChange);
+    }
+
+    _parseWriteEvent(event) {
+        const busyMap = Object.assign({}, this._adapterState.gattBusyMap);
+        busyMap[device.instanceId] = true;
+        this._changeAdapterState({gattBusyMap: busyMap});
     }
 
     // Callback signature function(err, state) {}
@@ -764,7 +790,11 @@ class Adapter extends EventEmitter {
         if (!descriptor) {
             throw new Error('No descriptor found with descriptor id: ', descriptorId);
         }
-        const characteristic = this._characteristics[descriptor.characteristicInstanceId];
+        return this._getDeviceFromCharacteristicId(descriptor.characteristicInstanceId);
+    }
+
+    _getDeviceFromCharacteristicId(characteristicId) {
+        const characteristic = this._characteristics[characteristicId];
         if (!characteristic) {
             throw new Error('No characteristic found with id: ' + descriptor.characteristicInstanceId);
         }
@@ -799,6 +829,10 @@ class Adapter extends EventEmitter {
         this._bleDriver.write(connectionHandle, writeParameters, (err) => {
             if (err) {
                 this.emit('error', 'Failed to write to descriptor with handle: ' + descriptor.handle);
+            } else {
+                const busyMap = Object.assign({}, this._adapterState.gattBusyMap);
+                busyMap[device.instanceId] = true;
+                this._changeAdapterState({gattBusyMap: busyMap});
             }
             callback(err);
         });
