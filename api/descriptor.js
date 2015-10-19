@@ -9,7 +9,7 @@ class Descriptor {
         this.uuid = uuid;
         this.name = null;
         this.value = value;
-        this._handle = null;
+        this.handle = null;
     }
 
     get instanceId() {
@@ -31,10 +31,6 @@ class Descriptor {
 
     set name(name) {
         this._name = name;
-    }
-
-    get handle() {
-        return this._handle
     }
 }
 

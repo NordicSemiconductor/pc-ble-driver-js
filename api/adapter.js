@@ -759,20 +759,36 @@ class Adapter extends EventEmitter {
 
     }
 
-    // Callback signature function(err) {}, callback will not be called unti ack is received. options: {ack, long, offset}
-    requestWriteDescriptorValue(deviceInstanceId, descriptorId, value, callback) {
-        const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
-        if (!connectionHandle) {
-            throw new Error('No connection handle found for device with instance id: ' + deviceInstanceId);
-        }
-
+    _getDeviceFromDescriptorId(descriptorId){
         const descriptor = this._descriptors[descriptorId];
         if (!descriptor) {
             throw new Error('No descriptor found with descriptor id: ', descriptorId);
         }
+        const characteristic = this._characteristics[descriptor.characteristicInstanceId];
+        if (!characteristic) {
+            throw new Error('No characteristic found with id: ' + descriptor.characteristicInstanceId);
+        }
+        const service = this._services[characteristic.serviceInstanceId];
+        if (!service) {
+            throw new Error('No service found with id: ' + characteristic.serviceInstanceId);
+        }
+        const device = this._devices[service.deviceInstanceId];
+        if (!device) {
+            throw new Error('No device found with id: ' + service.deviceInstanceId);
+        }
+        return device;
+    }
+
+    // Callback signature function(err) {}, callback will not be called unti ack is received. options: {ack, long, offset}
+    writeDescriptorValue(descriptorId, value, ack, callback) {
+        const device = this._getDeviceFromDescriptorId(descriptorId);
+        const connectionHandle = device.connectionHandle;
+        if (!connectionHandle) {
+            throw new Error('No connection handle found for device with instance id: ' + deviceInstanceId);
+        }
 
         const writeParameters = {
-            write_op: this._bleDriver.BLE_GATT_OP_WRITE_REQ,
+            write_op: ack ? this._bleDriver.BLE_GATT_OP_WRITE_REQ : this._bleDriver.BLE_GATT_OP_WRITE_CMD,
             flags: 0, // don't care for WRITE_REQ
             handle: descriptor.handle,
             offset: 0,
@@ -791,8 +807,8 @@ class Adapter extends EventEmitter {
     // Only for GATTC role
 
     // Callback signature function(err) {}, ack: require all notifications to ack, callback will not be called until ack is received
-    startCharacteristicsNotifications(deviceInstanceId, characteristicId, requireAck, callback) {
-        const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
+    startCharacteristicsNotifications(characteristicId, requireAck, callback) {
+
         const enableNotificationBitfield = requireAck ? 2: 1;
         const characteristic = this._characteristics[characteristicId];
         const descriptor = this._descriptors.find((descriptor) => {
@@ -800,7 +816,7 @@ class Adapter extends EventEmitter {
                 (descriptor.uuid === 0x2902);
         });
 
-        this.requestWriteDescriptorValue(connectionHandle, descriptor.handle, [enableNotificationBitfield], (err) =>{
+        this.writeDescriptorValue(descriptor.instanceId, [enableNotificationBitfield], true, (err) =>{
             if (err) {
                 this.emit('error', 'Failed to start characteristics notifications');
             }
@@ -810,7 +826,6 @@ class Adapter extends EventEmitter {
 
     // Callback signature function(err) {}
     stopCharacteristicsNotifications(characteristicId, callback) {
-        const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
         const enableNotificationBitfield = 0;
         const characteristic = this._characteristics[characteristicId];
         const descriptor = this._descriptors.find((descriptor) => {
@@ -818,7 +833,7 @@ class Adapter extends EventEmitter {
                 (descriptor.uuid === 0x2902);
         });
 
-        this.requestWriteDescriptorValue(connectionHandle, descriptor.handle, [enableNotificationBitfield], (err) =>{
+        this.writeDescriptorValue(descriptor.instanceId, [enableNotificationBitfield], (err) =>{
             if (err) {
                 this.emit('error', 'Failed to stop characteristics notifications');
             }
