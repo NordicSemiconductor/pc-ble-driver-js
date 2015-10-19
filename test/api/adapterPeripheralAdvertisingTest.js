@@ -29,15 +29,15 @@ describe('adapter.startAdvertising', function() {
     });
 
     it('with valid arguments should start advertising and emit adapterStateChange', function () {
-/*        let stateChangeCallback = sinon.spy();
+        let stateChangeCallback = sinon.spy();
         let checkIfCalledStub = sinon.spy();
 
         this.adapter.on('adapterStateChanged', stateChangeCallback);
 
         // Order is of importance here, create byte array in the order attributes appear
         var advertisingData = {
-            name: 'MyCoolName', // type: 0x08 "shortened local name" or 0x09 "complete local name"
-            flags: ['GeneralDiscMode', 'BrEdrNotSupported', 'LeOnlyLimitedDiscMode'], //type: 0x01 "FLAGS": flags are validated in API, exception thrown if not valid
+            shortenedLocalName: 'MyCoolName', // type: 0x08 "shortened local name" or 0x09 "complete local name"
+            flags: ['leGeneralDiscMode', 'leLimitedDiscMode', 'brEdrNotSupported'], //type: 0x01 "FLAGS": flags are validated in API, exception thrown if not valid
             txPowerLevel: 0, // type: 0x0a "Tx Power Level"
             raw: [] // byte array, if other values are set, exception is thrown
         };
@@ -58,10 +58,10 @@ describe('adapter.startAdvertising', function() {
         };
 
         this.adapter.startAdvertising(advertisingData, scanResponseData, options, function(err) {
-            sinon.assert.calledOnce(checkIfCalledStub);
-            assert.ifError(err);
+            //sinon.assert.calledOnce(checkIfCalledStub);
+            //assert.ifError(err);
         });
 
-        sinon.assert.calledOnce(checkIfCalledStub); */
+        //sinon.assert.calledOnce(checkIfCalledStub);
     });
 });
