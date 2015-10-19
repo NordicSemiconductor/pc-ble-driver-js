@@ -120,30 +120,58 @@ describe('BLE_GAP_EVT_CONN_PARAM_UPDATE', () =>{
     });
 
     it('Should update device connection parameters', () => {
-        const connectEvent = commonStubs.createConnectEvent();
+        let connectEvent = commonStubs.createConnectEvent();
         bleDriverEventCallback([connectEvent]);
-        const newConnectionParamerers = {
-            minConnectionInterval: 32,
-            maxConnectionInterval: 124,
-            slaveLatency: 15,
-            connectionSupervisionTimeout: 34,
-        };
+        
         const originalDevice = adapter.getDevices()['FF:AA:DD.123'];
         assert.equal(originalDevice.minConnectionInterval, connectEvent.conn_params.min_conn_interval);
         assert.equal(originalDevice.maxConnectionInterval, connectEvent.conn_params.max_conn_interval);
         assert.equal(originalDevice.slaveLatency, connectEvent.conn_params.slave_latency);
         assert.equal(originalDevice.connectionSupervisionTimeout, connectEvent.conn_params.conn_sup_timeout);
 
-        bleDriverEventCallback([commonStubs.createConnectionParametersUpdateEvent()]);
+        const newConnectionParameters = {
+            min_conn_interval: 32,
+            max_conn_interval: 124,
+            slave_latency: 15,
+            conn_sup_timeout: 34,
+        };
+        let connectionUpdateEvent = commonStubs.createConnectionParametersUpdateEvent();
+        connectionUpdateEvent.conn_params = newConnectionParameters;
+        bleDriverEventCallback([connectionUpdateEvent]);
         const updatedDevice = adapter.getDevices()['FF:AA:DD.123'];
 
-        assert.equal(updatedDevice.minConnectionInterval, connectEvent.conn_params.min_conn_interval);
-        assert.equal(updatedDevice.maxConnectionInterval, connectEvent.conn_params.max_conn_interval);
-        assert.equal(updatedDevice.slaveLatency, connectEvent.conn_params.slave_latency);
-        assert.equal(updatedDevice.connectionSupervisionTimeout, connectEvent.conn_params.conn_sup_timeout);        
+        assert.equal(updatedDevice.minConnectionInterval, newConnectionParameters.min_conn_interval);
+        assert.equal(updatedDevice.maxConnectionInterval, newConnectionParameters.max_conn_interval);
+        assert.equal(updatedDevice.slaveLatency, newConnectionParameters.slave_latency);
+        assert.equal(updatedDevice.connectionSupervisionTimeout, newConnectionParameters.conn_sup_timeout);        
     });
 
-    it('should emit \'connParamUpdate\'');
+    it('should emit \'connParamUpdate\' with the correct device and with the new conn params', () => {
+        const connectEvent = commonStubs.createConnectEvent();
+        bleDriverEventCallback([connectEvent]);
+
+        const newConnectionParameters = {
+            min_conn_interval: 32,
+            max_conn_interval: 124,
+            slave_latency: 15,
+            conn_sup_timeout: 34,
+        };
+        let connectionUpdateEvent = commonStubs.createConnectionParametersUpdateEvent();
+        connectionUpdateEvent.conn_params = newConnectionParameters;
+
+        let updateSpy = sinon.spy();
+        adapter.once('connParamUpdate', updateSpy);
+        bleDriverEventCallback([connectionUpdateEvent]);
+        
+        assert(updateSpy.calledOnce);
+        let updatedDevice = updateSpy.args[0][0];
+        assert.equal(updatedDevice.minConnectionInterval, newConnectionParameters.min_conn_interval);
+        assert.equal(updatedDevice.maxConnectionInterval, newConnectionParameters.max_conn_interval);
+        assert.equal(updatedDevice.slaveLatency, newConnectionParameters.slave_latency);
+        assert.equal(updatedDevice.connectionSupervisionTimeout, newConnectionParameters.conn_sup_timeout);        
+
+
+    });
 
     it('should emit error if device is not ');
 });

@@ -205,7 +205,8 @@ class Adapter extends EventEmitter {
     _parseDisconnectedEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         if (!device) {
-            throw new Error('Internal inconsistency: Could not find device with connection handle ' + event.conn_handle);
+            this.emit('error', 'Internal inconsistency: Could not find device with connection handle ' + event.conn_handle);
+            return;
         }
 
         device.connected = false;
@@ -216,7 +217,8 @@ class Adapter extends EventEmitter {
     _parseConnectionParameterUpdateEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
          if (!device) {
-            throw new Error('Internal inconsistency: Could not find device with connection handle ' + event.conn_handle);
+            this.emit('error', 'Internal inconsistency: Could not find device with connection handle ' + event.conn_handle);
+            return;
         }
         device.minConnectionInterval = event.conn_params.min_conn_interval;
         device.maxConnectionInterval = event.conn_params.max_conn_interval;
