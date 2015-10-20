@@ -8,7 +8,10 @@ const commonStubs = require('./commonStubs.js');
 
 
 describe('BLE_GAP_EVT_CONNECTED', function() {
-    let bleDriver, adapter, bleDriverEventCallback = {}, connectEvent;
+    let bleDriver;
+    let adapter;
+    let bleDriverEventCallback = {};
+    let connectEvent;
 
     beforeEach(function(done) {
         bleDriver = commonStubs.createBleDriver((eventCallback)=>{
@@ -16,7 +19,7 @@ describe('BLE_GAP_EVT_CONNECTED', function() {
             connectEvent = commonStubs.createConnectEvent();
             done();
         });
-    
+
         adapter = new Adapter(bleDriver, 'theId', 42);
         adapter.open({}, err => {
             assert.ifError(err);
@@ -26,7 +29,7 @@ describe('BLE_GAP_EVT_CONNECTED', function() {
     it('should produce a deviceConnected event', () => {
         let connectSpy = sinon.spy();
         adapter.once('deviceConnected', connectSpy);
-        
+
         bleDriverEventCallback([connectEvent]);
 
         assert(connectSpy.calledOnce);
@@ -43,7 +46,7 @@ describe('BLE_GAP_EVT_CONNECTED', function() {
     it('should produce a device connected event with data from connect event', () =>{
         let connectSpy = sinon.spy();
         adapter.once('deviceConnected', connectSpy);
-        
+
         bleDriverEventCallback([connectEvent]);
         let device = connectSpy.args[0][0];
 
@@ -75,13 +78,11 @@ describe('BLE_GAP_EVT_DISCONNECTED', function() {
             };
             done();
         });
-        
+
         adapter = new Adapter(bleDriver, 'theId', 42);
         adapter.open({}, err => {
             assert.ifError(err);
         });
-
-        
     });
 
     it ('should produce a deviceDisconnected event with the disconnected device', () => {
@@ -102,7 +103,6 @@ describe('BLE_GAP_EVT_DISCONNECTED', function() {
         bleDriverEventCallback([disconnectEvent]);
         devices = adapter.getDevices();
         assert.deepEqual(devices, {});
-
     });
 });
 
@@ -122,7 +122,7 @@ describe('BLE_GAP_EVT_CONN_PARAM_UPDATE', () =>{
     it('Should update device connection parameters', () => {
         let connectEvent = commonStubs.createConnectEvent();
         bleDriverEventCallback([connectEvent]);
-        
+
         const originalDevice = adapter.getDevices()['FF:AA:DD.123'];
         assert.equal(originalDevice.minConnectionInterval, connectEvent.conn_params.min_conn_interval);
         assert.equal(originalDevice.maxConnectionInterval, connectEvent.conn_params.max_conn_interval);
@@ -143,7 +143,7 @@ describe('BLE_GAP_EVT_CONN_PARAM_UPDATE', () =>{
         assert.equal(updatedDevice.minConnectionInterval, newConnectionParameters.min_conn_interval);
         assert.equal(updatedDevice.maxConnectionInterval, newConnectionParameters.max_conn_interval);
         assert.equal(updatedDevice.slaveLatency, newConnectionParameters.slave_latency);
-        assert.equal(updatedDevice.connectionSupervisionTimeout, newConnectionParameters.conn_sup_timeout);        
+        assert.equal(updatedDevice.connectionSupervisionTimeout, newConnectionParameters.conn_sup_timeout);
     });
 
     it('should emit \'connParamUpdate\' with the correct device and with the new conn params', () => {
@@ -162,15 +162,13 @@ describe('BLE_GAP_EVT_CONN_PARAM_UPDATE', () =>{
         let updateSpy = sinon.spy();
         adapter.once('connParamUpdate', updateSpy);
         bleDriverEventCallback([connectionUpdateEvent]);
-        
+
         assert(updateSpy.calledOnce);
         let updatedDevice = updateSpy.args[0][0];
         assert.equal(updatedDevice.minConnectionInterval, newConnectionParameters.min_conn_interval);
         assert.equal(updatedDevice.maxConnectionInterval, newConnectionParameters.max_conn_interval);
         assert.equal(updatedDevice.slaveLatency, newConnectionParameters.slave_latency);
-        assert.equal(updatedDevice.connectionSupervisionTimeout, newConnectionParameters.conn_sup_timeout);        
-
-
+        assert.equal(updatedDevice.connectionSupervisionTimeout, newConnectionParameters.conn_sup_timeout);
     });
 
     it('should emit only error if device is not found', () =>{

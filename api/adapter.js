@@ -363,7 +363,13 @@ class Adapter extends EventEmitter {
         if (event.count === 0) {
             if (_.isEmpty(getAttributesCallback.pendingHandleReads)) {
                 // No pending reads to wait for.
-                getAttributesCallback.callback();
+                const callbackServices = [];
+                for (let serviceInstanceId in this._services) {
+                    if (this._services[serviceInstanceId].deviceInstanceId === device.instanceId) {
+                        callbackServices.push(this._services[serviceInstanceId]);
+                    }
+                }
+                getAttributesCallback.callback(undefined, callbackServices);
                 delete this._getAttributesCallbacks[device.instanceId];
             }
             return;
@@ -378,8 +384,8 @@ class Adapter extends EventEmitter {
             }
 
             const newService = new Service(device.instanceId, uuid);
-            newService.startHandle = service.start_handle;
-            newService.endHandle = service.end_handle;
+            newService.startHandle = service.handle_range.start_handle;
+            newService.endHandle = service.handle_range.end_handle;
             this._services[newService.instanceId] = newService;
 
             if (uuid === null) {
@@ -1017,6 +1023,8 @@ class Adapter extends EventEmitter {
             return;
         }
 
+        this._getAttributesCallbacks[device.instanceId] = {callback: callback, foundAllAttributes: false, pendingHandleReads: {}};
+
         this._bleDriver.gattc_primary_services_discover(device.connectionHandle, 0, null, err => {
             if (err) {
                 this.emit('error', make_error('Failed to get services', err));
@@ -1024,7 +1032,6 @@ class Adapter extends EventEmitter {
                 return;
             }
 
-            this._getAttributesCallbacks[device.instanceId] = {callback: callback, foundAllAttributes: false, pendingHandleReads: {}};
         });
     }
 

@@ -5,6 +5,7 @@ const sinon = require('sinon');
 
 const BLE_GAP_EVT_CONNECTED = 10;
 const BLE_GAP_EVT_DISCONNECTED = 17;
+const BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP = 48;
 
 module.exports.createBleDriver = function(callbackForReceivingBleDriverEventCallback) {
     let bleDriver =
@@ -18,11 +19,19 @@ module.exports.createBleDriver = function(callbackForReceivingBleDriverEventCall
         gap_get_address: sinon.stub(),
         gap_cancel_connect: sinon.stub(),
         gap_set_adv_data: sinon.stub(),
+<<<<<<< 203d07ffa752198901abc0b6641e08fd7b85db51
         gap_start_advertisement: sinon.stub(),
         gap_stop_advertisement: sinon.stub(),
+=======
+        gap_start_advertising: sinon.stub(),
+        gattc_primary_services_discover: sinon.stub(),
+        gattc_characteristic_discover: sinon.stub(),
+        gattc_descriptor_discover: sinon.stub(),
+>>>>>>> Started testing of service discovery.
         open: (options, err) => {},
         BLE_GAP_EVT_CONNECTED,
         BLE_GAP_EVT_DISCONNECTED,
+        BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP,
     };
 
     // Enable users to trigger events
@@ -35,7 +44,7 @@ module.exports.createBleDriver = function(callbackForReceivingBleDriverEventCall
     });
 
     bleDriver.get_adapters.yields(undefined, [{ serialNumber: 'test', comName: '6' }]);
-    bleDriver.gap_get_address.yields('DE:AD:BE:EF:FF:FF:DE:AD:BE:EF:FF:FF', undefined);
+    bleDriver.gap_get_address.yields('DE:AD:BE:EF:FF:FF', undefined);
 
     bleDriver.gap_connect.yields(undefined);
     bleDriver.gap_disconnect.yieldsAsync(undefined);
@@ -52,7 +61,7 @@ module.exports.createConnectEvent = function() {
         id: BLE_GAP_EVT_CONNECTED,
         conn_handle: 123,
         peer_addr: {address: 'FF:AA:DD'},
-        role: 'BLE_GAP_ROLE_PERIPHERAL',
+        role: 'BLE_GAP_ROLE_CENTRAL',
         conn_params: {
             min_conn_interval: 10,
             max_conn_interval: 100,
