@@ -812,37 +812,85 @@ class Adapter extends EventEmitter {
 
     // Enable the client role and starts advertising
 
-    _getAdvertismentParams(type, addressStruct, filterPolicy, interval, timeout) {
-        // TODO: as parameters?
-        const whitelistStruct = null;
-        const channelMaskStruct = null;
+    _getAdvertisementParams(params) {
+        var retval = {};
 
-        return {type: type, peer_addr: addressStruct, fp: filterPolicy, whitelist: whitelistStruct,
-                interval: interval, timeout:timeout, channelMask: channelMaskStruct};
+        if(params.channelMask) {
+            retval.channel_mask = {};
+
+            for(let channel in params.channelMask) {
+                switch(params.channelMask[channel]) {
+                    case 'ch37off':
+                        retval.channel_mask.ch_37_off = true;
+                        break;
+                    case 'ch38off':
+                        retval.channel_mask.ch_38_off = true;
+                        break;
+                    case 'ch39off':
+                        retval.channel_mask.ch_39_off = true;
+                        break;
+                    default:
+                        throw new Error(`Channel ${channel} is not possible to switch off during advertising.`);
+                        break;
+                }
+            }
+        }
+
+        if(params.interval) {
+            retval.interval = params.interval;
+        } else {
+            throw new Error('You have to provide an interval.');
+        }
+
+        if(params.timeout) {
+            retval.timeout = params.timeout;
+        } else {
+            throw new Error('You have to provide an timeout.');
+        }
+
+        // Default value is that device is connectable undirected.
+        retval.type = this._bleDriver.BLE_GAP_ADV_TYPE_IND;
+
+        // TODO: we do not support directed connectable mode yet
+        if(params.connectable !== undefined) {
+            if(!params.connectable) {
+                retval.type |= this._bleDriver.BLE_GAP_ADV_TYPE_NONCONN_IND;
+            }
+        }
+
+        if(params.scannable !== undefined) {
+            if(params.scannable) {
+                retval.type |= this._bleDriver.BLE_GAP_ADV_TYPE_ADV_SCAN_IND;
+            }
+        }
+
+
+
+        return retval;
     }
 
     // name given from setName. Callback function signature: function(err) {}
     startAdvertising(advertisingData, scanResponseData, options, callback) {
-        const type = this._bleDriver.BLE_GAP_ADV_TYPE_ADV_IND;
-        const addressStruct = this._getAddressStruct(options.address, options.addressType);
-        const filterPolicy = this._bleDriver.BLE_GAP_ADV_FP_ANY;
-        const interval = options.interval;
-        const timeout = options.timeout;
+        const advertisementParams = this._getAdvertisementParams(options);
 
         this._bleDriver.gap_set_adv_data(
-            AdType.convertToBuffer(advertisingData), 
-            AdType.convertToBuffer(scanResponseData));
+            AdType.convertToBuffer(advertisingData),
+            AdType.convertToBuffer(scanResponseData), err => {
+                if(err) {
+                    const error = make_error('Failed to set advertising data', err);
+                    this.emit('error', error);
+                    if(callback) callback(error);
+                    return;
+                }
+            });
 
-        const advertismentParamsStruct = this._getAdvertismentParams(type, addressStruct, filterPolicy, interval, timeout);
-
-        this._bleDriver.gap_start_advertising(advertismentParamsStruct, err => {
+        this._bleDriver.gap_start_advertisement(advertisementParams, err => {
             if (err) {
                 const error = make_error('Failed to start advertising', err);
                 this.emit('error', error);
-                if(callback) callback(make_error(error));
+                if(callback) callback(error);
             } else {
-                this._adapterState.scanning = true;
-                this.emit('adapterStateChanged', this._adapterState);
+                this._changeAdapterState({advertising: true});
                 if(callback) callback();
             }
         });
@@ -850,11 +898,11 @@ class Adapter extends EventEmitter {
 
     // Callback function signature: function(err) {}
     stopAdvertising(callback) {
-        this._bleDriver.gap_stop_advertising(err => {
+        this._bleDriver.gap_stop_advertisement(err => {
             if (err) {
                 const error = make_error('Failed to stop advertising', err);
                 this.emit('error', error);
-                if(callback) callback(make_error(error));
+                if(callback) callback(error);
             } else {
                 this._changeAdapterState({advertising: false});
                 if(callback) callback();

@@ -336,7 +336,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 for (int i = 0; i < ad_len - 1; i += 16)
                 {
                     char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
-					assert(uuid_as_text != NULL);
+                    assert(uuid_as_text != NULL);
 
                     sprintf(
                         uuid_as_text,

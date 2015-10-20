@@ -16,7 +16,9 @@ describe('adapter.startAdvertising', function() {
 
         this.bleDriver = commonStubs.createBleDriver();
 
-        this.bleDriver.gap_get_address.yields('FF:FF:FF:FF:FF:FF', undefined);
+        this.bleDriver.gap_set_adv_data.yields(undefined);
+        this.bleDriver.gap_start_advertisement.yields(undefined);
+        this.bleDriver.gap_stop_advertisement.yields(undefined);
 
         // Provide an array of adapters for the first call
         var adapterFactory = new AdapterFactory(this.bleDriver);
@@ -30,37 +32,99 @@ describe('adapter.startAdvertising', function() {
 
     it('with valid arguments should start advertising and emit adapterStateChange', function () {
         let stateChangeCallback = sinon.spy();
-        let checkIfCalledStub = sinon.spy();
+        let startAdvertisingCallback = sinon.spy();
 
         this.adapter.on('adapterStateChanged', stateChangeCallback);
 
-        // Order is of importance here, create byte array in the order attributes appear
         var advertisingData = {
-            shortenedLocalName: 'MyCoolName', 
+            shortenedLocalName: 'MyCoolName',
             flags: ['leGeneralDiscMode', 'leLimitedDiscMode', 'brEdrNotSupported'],
             txPowerLevel: 0 // type: 0x0a "Tx Power Level"
         };
 
         var scanResponseData = {
-            completeLocalName: 'MyCoolName', 
+            completeLocalName: 'MyCoolName',
         };
 
-        var options ={
-            channelMask: [37, 39, 39], // if channel_mask is not present or null, all channels
-            whitelist: ['FF-FF-FF-FF-FF-FF'], // if whitelist not present, whitelist is not used. Can be empty array.
-            whilelistPolicy: ['connection', 'scanRequest'], // if whitelistPolicy is not present or null, whitelist is not used
+        var options = {
+            channelMask: ['ch37off', 'ch38off', 'ch39off'],
             interval: 1, // in seconds
             timeout: 10, // in seconds
-            peerAddr: 'FF-FF-FF-FF-FF-FF', // TODO: sets directed if connectable == true ? invalidates advertisingData if directed.
-            connectable: true, // if false: not connectable
-            scannable: false
+            connectable: true,
+            scannable: false,
         };
 
         this.adapter.startAdvertising(advertisingData, scanResponseData, options, function(err) {
-            //sinon.assert.calledOnce(checkIfCalledStub);
-            //assert.ifError(err);
+            assert.ifError(err);
+            startAdvertisingCallback();
         });
 
-        //sinon.assert.calledOnce(checkIfCalledStub);
+        sinon.assert.calledOnce(startAdvertisingCallback);
+        sinon.assert.calledOnce(stateChangeCallback);
+
+        assert.equal(this.bleDriver.gap_set_adv_data.callCount, 1);
+        assert.equal(this.bleDriver.gap_start_advertisement.callCount, 1);
     });
 });
+
+describe('adapter.stopAdvertising', function() {
+    beforeEach(function() {
+        this.clock = sinon.useFakeTimers();
+
+        this.bleDriver = commonStubs.createBleDriver();
+
+        this.bleDriver.gap_set_adv_data.yields(undefined);
+        this.bleDriver.gap_start_advertisement.yields(undefined);
+        this.bleDriver.gap_stop_advertisement.yields(undefined);
+
+        // Provide an array of adapters for the first call
+        var adapterFactory = new AdapterFactory(this.bleDriver);
+        this.adapter = adapterFactory.getAdapters().test;
+        this.adapter.open({'baudRate': 115211, 'parity': 'none', 'flowControl': 'uhh'}, function(err) {});
+    });
+
+    afterEach(function() {
+        this.clock.restore();
+    });
+
+    it('should stop advertising and emit adapterStateChange', function () {
+        let stateChangeCallback = sinon.spy();
+        let stopAdvertisingCallback = sinon.spy();
+
+        this.adapter.on('adapterStateChanged', stateChangeCallback);
+
+        var advertisingData = {
+            shortenedLocalName: 'MyCoolName',
+            flags: ['leGeneralDiscMode', 'leLimitedDiscMode', 'brEdrNotSupported'],
+            txPowerLevel: 0 // type: 0x0a "Tx Power Level"
+        };
+
+        var scanResponseData = {
+            completeLocalName: 'MyCoolName',
+        };
+
+        var options = {
+            channelMask: ['ch37off', 'ch38off', 'ch39off'],
+            interval: 1, // in seconds
+            timeout: 10, // in seconds
+            connectable: true,
+            scannable: false,
+        };
+
+        this.adapter.startAdvertising(advertisingData, scanResponseData, options, err => {
+            assert.ifError(err);
+            stateChangeCallback.reset();
+
+            this.adapter.stopAdvertising(err => {
+                assert.ifError(err);
+                stopAdvertisingCallback();
+            });
+        });
+
+        sinon.assert.calledOnce(stopAdvertisingCallback);
+        sinon.assert.calledOnce(stateChangeCallback);
+
+        assert.equal(this.bleDriver.gap_stop_advertisement.callCount, 1);
+    });
+});
+
