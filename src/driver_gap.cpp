@@ -1462,7 +1462,7 @@ void AfterGapGetRSSI(uv_work_t *req) {
     delete baton;
 }
 
-NAN_METHOD(GapStartAdvertisement)
+NAN_METHOD(GapStartAdvertising)
 {
     v8::Local<v8::Object> adv_params;
     v8::Local<v8::Function> callback;
@@ -1483,15 +1483,15 @@ NAN_METHOD(GapStartAdvertisement)
         return;
     }
 
-    GapStartAdversisementBaton *baton = new GapStartAdversisementBaton(callback);
+    GapStartAdvertisingBaton *baton = new GapStartAdvertisingBaton(callback);
     baton->p_adv_params = GapAdvParams(adv_params);
 
-    uv_queue_work(uv_default_loop(), baton->req, GapStartAdvertisement, (uv_after_work_cb)AfterGapStartAdvertisement);
+    uv_queue_work(uv_default_loop(), baton->req, GapStartAdvertising, (uv_after_work_cb)AfterGapStartAdvertising);
 }
 
 // This runs in a worker thread (not Main Thread)
-void GapStartAdvertisement(uv_work_t *req) {
-    GapStartAdversisementBaton *baton = static_cast<GapStartAdversisementBaton *>(req->data);
+void GapStartAdvertising(uv_work_t *req) {
+    GapStartAdvertisingBaton *baton = static_cast<GapStartAdvertisingBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
 
@@ -1500,11 +1500,11 @@ void GapStartAdvertisement(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterGapStartAdvertisement(uv_work_t *req) {
+void AfterGapStartAdvertising(uv_work_t *req) {
     Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
-    GapStartAdversisementBaton *baton = static_cast<GapStartAdversisementBaton *>(req->data);
+    GapStartAdvertisingBaton *baton = static_cast<GapStartAdvertisingBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -1520,7 +1520,7 @@ void AfterGapStartAdvertisement(uv_work_t *req) {
     delete baton;
 }
 
-NAN_METHOD(GapStopAdvertisement)
+NAN_METHOD(GapStopAdvertising)
 {
     if (!info[0]->IsFunction())
     {
@@ -1529,29 +1529,29 @@ NAN_METHOD(GapStopAdvertisement)
     }
     v8::Local<v8::Function> callback = info[0].As<v8::Function>();
 
-    GapStopAdvertisementBaton *baton = new GapStopAdvertisementBaton(callback);
+    GapStopAdvertisingBaton *baton = new GapStopAdvertisingBaton(callback);
 
-    uv_queue_work(uv_default_loop(), baton->req, GapStopAdvertisement, (uv_after_work_cb)AfterGapStopAdvertisement);
+    uv_queue_work(uv_default_loop(), baton->req, GapStopAdvertising, (uv_after_work_cb)AfterGapStopAdvertising);
 
     // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
     return;
 }
 
 // This runs in a worker thread (not Main Thread)
-void GapStopAdvertisement(uv_work_t *req) {
+void GapStopAdvertising(uv_work_t *req) {
     // TODO: handle if .Close is called before this function is called.
-    GapStopAdvertisementBaton *baton = static_cast<GapStopAdvertisementBaton *>(req->data);
+    GapStopAdvertisingBaton *baton = static_cast<GapStopAdvertisingBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gap_adv_stop();
 }
 
 // This runs in Main Thread
-void AfterGapStopAdvertisement(uv_work_t *req) {
+void AfterGapStopAdvertising(uv_work_t *req) {
     Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
-    GapStopAdvertisementBaton *baton = static_cast<GapStopAdvertisementBaton *>(req->data);
+    GapStopAdvertisingBaton *baton = static_cast<GapStopAdvertisingBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -1584,8 +1584,8 @@ extern "C" {
         Utility::SetMethod(target, "gap_connect", GapConnect);
         Utility::SetMethod(target, "gap_cancel_connect", GapCancelConnect);
         Utility::SetMethod(target, "gap_get_rssi", GapGetRSSI);
-        Utility::SetMethod(target, "gap_start_advertisement", GapStartAdvertisement);
-        Utility::SetMethod(target, "gap_stop_advertisement", GapStopAdvertisement);
+        Utility::SetMethod(target, "gap_start_advertising", GapStartAdvertising);
+        Utility::SetMethod(target, "gap_stop_advertising", GapStopAdvertising);
 
         // Constants from ble_gap.h
 

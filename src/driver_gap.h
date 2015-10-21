@@ -268,15 +268,15 @@ public:
     int8_t rssi;
 };
 
-struct GapStartAdversisementBaton : public Baton {
+struct GapStartAdvertisingBaton : public Baton {
 public:
-    BATON_CONSTRUCTOR(GapStartAdversisementBaton);
+    BATON_CONSTRUCTOR(GapStartAdvertisingBaton);
     ble_gap_adv_params_t *p_adv_params;
 };
 
-struct GapStopAdvertisementBaton : public Baton {
+struct GapStopAdvertisingBaton : public Baton {
 public:
-    BATON_CONSTRUCTOR(GapStopAdvertisementBaton);
+    BATON_CONSTRUCTOR(GapStopAdvertisingBaton);
 };
 
 ///// End GAP Batons //////////////////////////////////////////////////////////////////////////////////
@@ -295,8 +295,8 @@ METHOD_DEFINITIONS(StopScan);
 METHOD_DEFINITIONS(GapConnect);
 METHOD_DEFINITIONS(GapCancelConnect);
 METHOD_DEFINITIONS(GapGetRSSI);
-METHOD_DEFINITIONS(GapStartAdvertisement);
-METHOD_DEFINITIONS(GapStopAdvertisement);
+METHOD_DEFINITIONS(GapStartAdvertising);
+METHOD_DEFINITIONS(GapStopAdvertising);
 
 extern "C" {
     void init_gap(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);

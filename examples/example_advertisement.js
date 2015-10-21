@@ -189,7 +189,7 @@ function addCharacteristic(handle) {
 }
 
 function startAdvertising() {
-    driver.gap_start_advertisement({
+    driver.gap_start_advertising({
             'type': driver.BLE_GAP_ADV_TYPE_ADV_IND,
             'fp': driver.BLE_GAP_ADV_FP_ANY,
             'interval': 40,
@@ -207,7 +207,7 @@ function startAdvertising() {
                 return;
             }
 
-            console.log('Started advertisement');
+            console.log('Started advertising');
 
             setTimeout(onTimeout, 10000);
         }
@@ -219,7 +219,7 @@ function onTimeout() {
 }
 
 function stopAdvertising() {
-    driver.gap_stop_advertisement(function(err) {
+    driver.gap_stop_advertising(function(err) {
         if (err) {
             console.log('Error occured when stopping advertising');
         }
