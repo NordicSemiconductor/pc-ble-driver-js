@@ -16,8 +16,7 @@ class ServiceFactory {
             // TODO: use database to retrieve name? what should the name be used for? no getter for service name...
         }
 
-        const deviceInstanceId = 'local';
-        return new Service(deviceInstanceId, uuid);
+        return new Service('local', uuid);
     }
 
     // returns Characteristic
@@ -27,7 +26,7 @@ class ServiceFactory {
         }
 
         const characteristic = new Characteristic(service.instanceId, uuid, properties, value);
-        service.characteristics[characteristic.instanceId] = characteristic;
+        service._factory_characteristics[characteristic.instanceId] = characteristic;
         return characteristic;
     }
 
@@ -37,7 +36,7 @@ class ServiceFactory {
         }
 
         const descriptor = new Descriptor(characteristic.instanceId, uuid, value);
-        characteristic.descriptors[descriptor.instanceId] = descriptor;
+        characteristic._factory_descriptors[descriptor.instanceId] = descriptor;
         return descriptor;
     }
 }

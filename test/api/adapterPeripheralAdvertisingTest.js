@@ -5,10 +5,10 @@ var assert = require('assert');
 
 var proxyquire = require('proxyquire');
 
-var Adapter = require('../../api/adapter.js');
-var AdapterFactory = require('../../api/adapterFactory.js');
+var Adapter = require('../../api/adapter');
+var AdapterFactory = require('../../api/adapterFactory');
 
-const commonStubs = require('./commonStubs.js');
+const commonStubs = require('./commonStubs');
 
 describe('adapter.startAdvertising', function() {
     beforeEach(function() {
@@ -39,19 +39,19 @@ describe('adapter.startAdvertising', function() {
         var advertisingData = {
             shortenedLocalName: 'MyCoolName',
             flags: ['leGeneralDiscMode', 'leLimitedDiscMode', 'brEdrNotSupported'],
-            txPowerLevel: 0 // type: 0x0a "Tx Power Level"
+            txPowerLevel: -10
         };
 
         var scanResponseData = {
-            completeLocalName: 'MyCoolName',
+            completeLocalName: 'MyCoolName'
         };
 
         var options = {
-            channelMask: ['ch37off', 'ch38off', 'ch39off'],
-            interval: 1, // in seconds
-            timeout: 10, // in seconds
+            channelMask: ['ch37off', 'ch38off'],
+            interval: 1,
+            timeout: 1,
             connectable: true,
-            scannable: false,
+            scannable: false
         };
 
         this.adapter.startAdvertising(advertisingData, scanResponseData, options, function(err) {

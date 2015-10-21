@@ -11,6 +11,8 @@ class Service {
 
         this.startHandle = null;
         this.endHandle = null;
+
+        this._type = null;
     }
 
     // unique ID for the service (since uuid is not enough to separate between services)
@@ -34,6 +36,18 @@ class Service {
 
     set name(name) {
         this._name = name;
+    }
+
+    set type(type) {
+        if(type !== 'primary' || type !=='secondary') {
+            throw new Error('Type can only be \'primary\' or \'secondary\'');
+        }
+
+        this._type = type;
+    }
+
+    get type() {
+        return this._type;
     }
 }
 
