@@ -93,6 +93,17 @@ driver.open(
             return;
         }
 
+        driver.add_vs_uuid({'uuid128': '11220000-3344-5566-7788-99aabbccddee'}, function(err, type) {
+            if (err)
+            {
+                console.log('Error occured when adding 128-bit UUID');
+                console.log(err);
+                return;
+            }
+
+            console.log('Added 128-bit UUID with type %d', type);
+        });
+
         driver.gatts_add_service(1, {'uuid': 0x180D, 'type': driver.BLE_UUID_TYPE_BLE}, function(err, handle) {
             if (err) {
                 console.log('Error occured when adding service');
@@ -131,7 +142,7 @@ driver.open(
                                                 'p_sccd_md': 0,
                                             },
                                             {
-                                                'p_uuid': {'uuid': 0x2A37, 'type': driver.BLE_UUID_TYPE_BLE},
+                                                'p_uuid': {'uuid': 0x2A37, 'type': 2},//driver.BLE_UUID_TYPE_BLE},
                                                 'p_attr_md': {
                                                     'read_perm': {'sm': 1, 'lv': 1},
                                                     'write_perm': {'sm': 1, 'lv': 1},

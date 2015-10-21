@@ -16,9 +16,9 @@ static name_map_t common_event_name_map = {
 METHOD_DEFINITIONS(Open);
 METHOD_DEFINITIONS(Close);
 METHOD_DEFINITIONS(GetVersion);
+METHOD_DEFINITIONS(AddVendorSpecificUUID);
 
 // Synchronous methods
-NAN_METHOD(Close);
 NAN_METHOD(GetStats);
 
 NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& str);
@@ -114,6 +114,13 @@ public:
     BATON_CONSTRUCTOR(GetVersionBaton);
     ble_version_t *version;
 
+};
+
+class BleAddVendorSpcificUUIDBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(BleAddVendorSpcificUUIDBaton);
+    ble_uuid128_t *p_vs_uuid;
+    uint8_t p_uuid_type;
 };
 
 ///// Start Batons ////////////////////////////////////////

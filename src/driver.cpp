@@ -450,12 +450,13 @@ NAN_METHOD(Close) {
 
     try
     {
-        callback = info[0].As<v8::Function>();
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char *)
+    catch (char *error)
     {
-        Nan::ThrowTypeError("First argument must be a function");
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -490,6 +491,61 @@ void AfterClose(uv_work_t *req) {
     }
 
     baton->callback->Call(1, argv);
+    delete baton;
+}
+
+NAN_METHOD(AddVendorSpecificUUID) {
+    v8::Local<v8::Object> uuid;
+    v8::Local<v8::Function> callback;
+
+    int argumentcount = 0;
+
+    try
+    {
+        uuid = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    BleAddVendorSpcificUUIDBaton *baton = new BleAddVendorSpcificUUIDBaton(callback);
+    baton->p_vs_uuid = BleUUID128(uuid);
+
+    uv_queue_work(uv_default_loop(), baton->req, AddVendorSpecificUUID, (uv_after_work_cb)AfterAddVendorSpecificUUID);
+}
+
+void AddVendorSpecificUUID(uv_work_t *req) {
+    BleAddVendorSpcificUUIDBaton *baton = static_cast<BleAddVendorSpcificUUIDBaton *>(req->data);
+
+    lock_guard<mutex> lock(ble_driver_call_mutex);
+    baton->result = sd_ble_uuid_vs_add(baton->p_vs_uuid, &baton->p_uuid_type);
+}
+
+void AfterAddVendorSpecificUUID(uv_work_t *req) {
+    Nan::HandleScope scope;
+    BleAddVendorSpcificUUIDBaton *baton = static_cast<BleAddVendorSpcificUUIDBaton *>(req->data);
+
+    v8::Local<v8::Value> argv[2];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "closing connection");
+        argv[1] = Nan::Undefined();
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+        argv[1] = ConversionUtility::toJsNumber(baton->p_uuid_type);
+    }
+
+    baton->callback->Call(2, argv);
     delete baton;
 }
 
@@ -701,8 +757,37 @@ v8::Local<v8::Object> BleUUID128::ToJs()
 
 ble_uuid128_t *BleUUID128::ToNative()
 {
-    //TODO: Convert from js to native
-    return new ble_uuid128_t();
+    ble_uuid128_t *uuid = new ble_uuid128_t();
+
+    uint32_t ptr[16];
+
+    v8::Local<v8::Value> uuidObject = Utility::Get(jsobj, "uuid128");
+    v8::Local<v8::String> uuidString = uuidObject->ToString();
+    size_t uuid_len = uuidString->Length() + 1;
+    char *uuidPtr = (char*)malloc(uuid_len);
+    assert(uuidPtr != NULL);
+    uuidString->WriteUtf8(uuidPtr, uuid_len);
+
+    int scan_count = sscanf(uuidPtr,
+        "%2x%2x%2x%2x-%2x%2x-%2x%2x-%2x%2x-%2x%2x%2x%2x%2x%2x",
+        &(ptr[15]), &(ptr[14]),
+        &(ptr[13]), &(ptr[12]),
+        &(ptr[11]), &(ptr[10]),
+        &(ptr[9]), &(ptr[8]),
+        &(ptr[7]), &(ptr[6]),
+        &(ptr[5]), &(ptr[4]), 
+        &(ptr[3]), &(ptr[2]), 
+        &(ptr[1]), &(ptr[0]));
+    assert(scan_count == 16);
+
+    free(uuidPtr);
+
+    for (int i = 0; i < scan_count; ++i)
+    {
+        uuid->uuid128[i] = (uint8_t)ptr[i];
+    }
+
+    return uuid;
 }
 
 //
@@ -742,6 +827,7 @@ extern "C" {
         Utility::SetMethod(target, "open", Open);
         Utility::SetMethod(target, "close", Close);
         Utility::SetMethod(target, "get_version", GetVersion);
+        Utility::SetMethod(target, "add_vs_uuid", AddVendorSpecificUUID);
 
         Utility::SetMethod(target, "get_stats", GetStats);
 
