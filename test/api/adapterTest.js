@@ -5,6 +5,8 @@ const assert = require('assert');
 const commonStubs = require('./commonStubs.js');
 
 const Adapter = require('../../api/adapter.js');
+const Characteristic = require('../../api/characteristic.js');
+const Descriptor = require('../../api/descriptor.js');
 
 describe('Adapter Connect', function() {
     let bleDriver, adapter;
@@ -206,3 +208,76 @@ describe('Adapter updateConnParams', () => {
         assert.throws(callUpdateConnParams, Error);
     });
 });
+
+describe('Adapter start characteristics notification', () =>{
+    let bleDriver, adapter, bleDriverEventCallback, characteristic, cccdDescriptor;
+    const cccdUuid = 0x2902;
+    beforeEach(()=>{
+        bleDriver = commonStubs.createBleDriver(() =>{});
+        adapter = new Adapter(bleDriver, 'theId', 42);
+        characteristic = new Characteristic('dummyServiceId', 'ffaabb');
+        adapter._characteristics.dummy = characteristic;
+        cccdDescriptor = new Descriptor(characteristic.instanceId, cccdUuid, 42);
+        adapter._descriptors[cccdDescriptor.instanceId] = cccdDescriptor;
+    });
+
+    it('Should call adapter writeDescriptorValue with the right parameters', (done)=>{
+        adapter.writeDescriptorValue = sinon.stub();
+        adapter.writeDescriptorValue.yieldsAsync(undefined);
+        adapter.startCharacteristicsNotifications(characteristic.instanceId, false, ()=>{
+            const args = adapter.writeDescriptorValue.lastCall.args;
+            assert.equal(args[0], 'dummyServiceId.1.1');
+            assert.deepEqual(args[1], [1,0]);
+            assert.equal(args[2], true);
+            done();
+        });
+    });
+
+    it('Should call adapter writeDescriptorValue with the right parameters for ack', (done)=>{
+        adapter.writeDescriptorValue = sinon.stub();
+        adapter.writeDescriptorValue.yieldsAsync(undefined);
+        adapter.startCharacteristicsNotifications(characteristic.instanceId, true, ()=>{
+            const args = adapter.writeDescriptorValue.lastCall.args;
+            assert.deepEqual(args[1], [2,0]);
+            done();
+        });
+    });
+
+    it('should emit error and pass error to callback if writeDescriptorValue fails', (done) =>{
+        const errorSpy = sinon.spy();
+        adapter.once('error', errorSpy);
+        adapter.writeDescriptorValue = sinon.stub();
+        adapter.writeDescriptorValue.yieldsAsync('some error');
+        adapter.startCharacteristicsNotifications(characteristic.instanceId, true, (theError)=>{
+            assert(errorSpy.calledOnce);
+            assert.equal(theError, 'some error');
+            console.log(theError);
+            done();
+        });
+    });
+
+    it('should throw if there is no CCCD descriptor within the characteristic', () =>{
+        adapter.writeDescriptorValue = sinon.stub();
+        adapter.writeDescriptorValue.yieldsAsync(undefined);
+        cccdDescriptor.uuid = 'notTheCccdUuid';
+        function callStartCharacteristicsNotification() {
+            adapter.startCharacteristicsNotifications(characteristic.instanceId, true, ()=>{});
+        }
+        assert.throws(callStartCharacteristicsNotification);
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

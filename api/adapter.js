@@ -1182,12 +1182,14 @@ class Adapter extends EventEmitter {
         // TODO: If CCCD not discovered do a decriptor discovery
         const enableNotificationBitfield = requireAck ? 2: 1;
         const characteristic = this._characteristics[characteristicId];
-        const descriptor = this._descriptors.find((descriptor) => {
+        const cccdDescriptor = _.find(this._descriptors, (descriptor) => {
             return (descriptor.characteristicInstanceId === characteristicId) &&
                 (descriptor.uuid === 0x2902);
         });
-
-        this.writeDescriptorValue(descriptor.instanceId, [enableNotificationBitfield, 0], true, (err) =>{
+        if (!cccdDescriptor) {
+            throw new Error('Could not find CCCD descriptor with parent characteristic id: ' + characteristicId);
+        }
+        this.writeDescriptorValue(cccdDescriptor.instanceId, [enableNotificationBitfield, 0], true, (err) =>{
             if (err) {
                 this.emit('error', 'Failed to start characteristics notifications');
             }
