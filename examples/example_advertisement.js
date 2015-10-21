@@ -1,5 +1,5 @@
 
-var driver = require('./build/Debug/ble_driver_js');
+var driver = require('../build/Debug/ble_driver_js');
 
 var evt_count = 0;
 var connectionHandle = 0;
