@@ -16,7 +16,7 @@ const AdType = require('./util/adType');
 
 var make_error = function(userMessage, description) {
     return { 'message': userMessage, 'description': description };
-}
+};
 
 class Adapter extends EventEmitter {
     constructor(bleDriver, instanceId, port) {
@@ -43,6 +43,17 @@ class Adapter extends EventEmitter {
     get instanceId() {
         return this._instanceId;
     }
+
+    checkAndPropagateError(err, userMessage, callback) {
+        if(err) {
+            var error = make_error(userMessage, err);
+            this.emit('error', error);
+            if(callback) callback(error);
+            return true;
+        }
+
+        return false;
+    };
 
     _changeAdapterState(changingStates, swallowEmit) {
         let changed = false;
@@ -92,23 +103,12 @@ class Adapter extends EventEmitter {
         options.eventCallback = this._eventCallback.bind(this);
 
         this._bleDriver.open(this._adapterState.port, options, err => {
-            if(err) {
-                var error = make_error('Error occurred opening serial port.', err);
-                this.emit('error', error);
-                if(callback) callback(error);
-                return;
-            } else {
-                this.getAdapterState((err, adapterState) => {
-                    if(err) {
-                        var error = make_error('Error retrieving adapter state.', err);
-                        this.emit('error', error);
-                        if(callback) callback(error);
-                        return;
-                    }
+            if(this.checkAndPropagateError(err, 'Error occurred opening serial port.', callback)) return;
 
-                    if(callback) callback();
-                });
-            }
+            this.getAdapterState((err, adapterState) => {
+                if(this.checkAndPropagateError(err, 'Error retrieving adapter state.', callback)) return;
+                if(callback) callback();
+            });
         });
     }
 
@@ -633,37 +633,32 @@ class Adapter extends EventEmitter {
         const changedAdapterStates = {};
 
         this._bleDriver.get_version((version, err) => {
-            if (err) {
-                var error = make_error('Failed to retrieve softdevice firmwareVersion', err);
-                this.emit('error', error);
-                callback(error);
-                return;
-            }
+            if(this.checkAndPropagateError(
+                err,
+                'Failed to retrieve softdevice firmwareVersion.',
+                callback)) return;
 
             changedAdapterStates.firmwareVersion = version;
 
             this._bleDriver.gap_get_device_name( (name, err) => {
-                if (err) {
-                    const error = make_error('Failed to retrieve driver version.', err);
-                    this.emit('error', error);
-                    callback(error);
-                    return;
-                }
+                if(this.checkAndPropagateError(
+                    err,
+                    'Failed to retrieve driver version.',
+                    callback)) return;
+
                 changedAdapterStates.name = name;
 
                 this._bleDriver.gap_get_address( (address, err) => {
-                    if (err) {
-                        const error = make_error('Failed to retrieve device address.', err);
-                        this.emit('error', error);
-                        callback(error);
-                        return;
-                    }
+                    if(this.checkAndPropagateError(
+                        err,
+                        'Failed to retrieve device address.',
+                        callback)) return;
 
                     changedAdapterStates.address = address;
                     changedAdapterStates.available = true;
 
                     this._changeAdapterState(changedAdapterStates);
-                    callback(undefined, this._adapterState);
+                    if(callback) callback(undefined, this._adapterState);
                 });
             });
         });
@@ -837,7 +832,6 @@ class Adapter extends EventEmitter {
                         break;
                     default:
                         throw new Error(`Channel ${channel} is not possible to switch off during advertising.`);
-                        break;
                 }
             }
         }
@@ -876,43 +870,32 @@ class Adapter extends EventEmitter {
     }
 
     // name given from setName. Callback function signature: function(err) {}
-    startAdvertising(advertisingData, scanResponseData, options, callback) {
-        const advertisementParams = this._getAdvertisementParams(options);
+    startAdvertising(advData, scanRespData, options, callback) {
+        const advParams = this._getAdvertisementParams(options);
+
+        var advDataStruct = AdType.convertToBuffer(advData);
+        var scanRespDataStruct = AdType.convertToBuffer(scanRespData);
 
         this._bleDriver.gap_set_adv_data(
-            AdType.convertToBuffer(advertisingData),
-            AdType.convertToBuffer(scanResponseData), err => {
-                if(err) {
-                    const error = make_error('Failed to set advertising data', err);
-                    this.emit('error', error);
-                    if(callback) callback(error);
-                    return;
-                }
-            });
+            advDataStruct,
+            scanRespDataStruct,
+            err => {
+                if(this.checkAndPropagateError(err, 'Failed to set advertising data.', callback)) return;
 
-        this._bleDriver.gap_start_advertisement(advertisementParams, err => {
-            if (err) {
-                const error = make_error('Failed to start advertising', err);
-                this.emit('error', error);
-                if(callback) callback(error);
-            } else {
-                this._changeAdapterState({advertising: true});
-                if(callback) callback();
-            }
-        });
+                this._bleDriver.gap_start_advertisement(advParams, err => {
+                    if(this.checkAndPropagateError(err, 'Failed to start advertising.', callback)) return;
+                    this._changeAdapterState({advertising: true});
+                    if(callback) callback();
+                });
+            });
     }
 
     // Callback function signature: function(err) {}
     stopAdvertising(callback) {
         this._bleDriver.gap_stop_advertisement(err => {
-            if (err) {
-                const error = make_error('Failed to stop advertising', err);
-                this.emit('error', error);
-                if(callback) callback(error);
-            } else {
-                this._changeAdapterState({advertising: false});
-                if(callback) callback();
-            }
+            if(this.checkAndPropagateError(err, 'Failed to stop advertising.', callback)) return;
+            this._changeAdapterState({advertising: false});
+            if(callback) callback();
         });
     }
 
@@ -999,7 +982,31 @@ class Adapter extends EventEmitter {
     // GATTS
 
     // Array of services
-    setServices(services) {
+    setServices(services, callback) {
+        // Iterate over all services, add characteristics
+        for(let service of services) {
+            var type;
+
+            if(service.type) {
+                if(service.type === 'primary') {
+                    type = this._bleDriver.BLE_GATTS_SRVC_TYPE_PRIMARY;
+                } else if(service.type == 'secondary') {
+                    type = this._bleDriver.BLE_GATTS_SRVC_TYPE_SECONDARY;
+                } else {
+                    throw new Error(`Service type ${service.type} is unknown to me`);
+                }
+            }
+
+            this._bleDriver.add_service(type, service.uuid, (err, handle) => {
+                if(this.checkAndPropagateError(err, 'Error occurred adding service.', callback)) return;
+
+                for(let characteristic of service._factory_characteristics) {
+
+                }
+
+            });
+        }
+
 
     }
 

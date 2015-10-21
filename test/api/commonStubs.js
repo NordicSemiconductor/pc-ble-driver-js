@@ -19,15 +19,11 @@ module.exports.createBleDriver = function(callbackForReceivingBleDriverEventCall
         gap_get_address: sinon.stub(),
         gap_cancel_connect: sinon.stub(),
         gap_set_adv_data: sinon.stub(),
-<<<<<<< 203d07ffa752198901abc0b6641e08fd7b85db51
         gap_start_advertisement: sinon.stub(),
         gap_stop_advertisement: sinon.stub(),
-=======
-        gap_start_advertising: sinon.stub(),
         gattc_primary_services_discover: sinon.stub(),
         gattc_characteristic_discover: sinon.stub(),
         gattc_descriptor_discover: sinon.stub(),
->>>>>>> Started testing of service discovery.
         open: (options, err) => {},
         BLE_GAP_EVT_CONNECTED,
         BLE_GAP_EVT_DISCONNECTED,

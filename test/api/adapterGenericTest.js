@@ -224,7 +224,7 @@ describe('adapter.getAdapterState', function() {
         let checkIfCalledStub = sinon.spy();
         let errorCallback = sinon.spy();
 
-        this.adapter.open({'baudRate': 115211, 'parity': 'none', 'flowControl': 'yes please'}, (err) => {
+        this.adapter.open({'baudRate': 115211, 'parity': 'none', 'flowControl': 'yes please'}, err => {
         });
 
         this.bleDriver.get_version.yields(undefined, 'ONE ERROR!');
