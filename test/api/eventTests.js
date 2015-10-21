@@ -1,64 +1,35 @@
 'use strict';
 
-var  sinon = require('sinon');
-var assert = require('assert');
+const  sinon = require('sinon');
+const assert = require('assert');
 
 const Adapter = require('../../api/adapter.js');
+const commonStubs = require('./commonStubs.js');
 
-const BLE_GAP_EVT_CONNECTED = 10;
-const BLE_GAP_EVT_DISCONNECTED = 17;
 
-function createConnectEvent() {
-    return {
-        id: BLE_GAP_EVT_CONNECTED,
-        conn_handle: 123,
-        peer_addr: {address: 'FF:AA:DD'},
-        role: 'BLE_GAP_ROLE_PERIPHERAL',
-        conn_params: {
-            min_conn_interval: 10,
-            max_conn_interval: 100,
-            slave_latency: 100,
-            conn_sup_timeout: 455
-        }
-    };
-};
+describe('BLE_GAP_EVT_CONNECTED', function() {
+    let bleDriver;
+    let adapter;
+    let bleDriverEventCallback = {};
+    let connectEvent;
 
-function createBleDriverAndAdapterAndEventCallback() {
-    let bleDriverEventCallback;
-    let bleDriver = 
-    {
-        get_version: sinon.stub(),
-        open: (options, err) => {},
-        BLE_GAP_EVT_CONNECTED,
-        BLE_GAP_EVT_DISCONNECTED,
-    };
-    sinon.stub(bleDriver, 'open', (port, options, callback) => {
-        bleDriverEventCallback = options.eventCallback;
-        callback();
-    });
-    let adapter = new Adapter(bleDriver, 'theId', 42);
+    beforeEach(function(done) {
+        bleDriver = commonStubs.createBleDriver((eventCallback)=>{
+            bleDriverEventCallback = eventCallback;
+            connectEvent = commonStubs.createConnectEvent();
+            done();
+        });
+
+        adapter = new Adapter(bleDriver, 'theId', 42);
         adapter.open({}, err => {
             assert.ifError(err);
         });
-    return {driver: bleDriver, eventCallback: bleDriverEventCallback, adapter: adapter};
-}
-
-describe('BLE_GAP_EVT_CONNECTED', function() {
-    let bleDriver, adapter, bleDriverEventCallback, connectEvent;
-    beforeEach(function() {
-        let returnValues = createBleDriverAndAdapterAndEventCallback();
-        bleDriver = returnValues.driver;
-        bleDriverEventCallback = returnValues.eventCallback;
-        adapter = returnValues.adapter;
-       
-        connectEvent = createConnectEvent();
-        
     });
 
     it('should produce a deviceConnected event', () => {
         let connectSpy = sinon.spy();
         adapter.once('deviceConnected', connectSpy);
-        
+
         bleDriverEventCallback([connectEvent]);
 
         assert(connectSpy.calledOnce);
@@ -75,7 +46,7 @@ describe('BLE_GAP_EVT_CONNECTED', function() {
     it('should produce a device connected event with data from connect event', () =>{
         let connectSpy = sinon.spy();
         adapter.once('deviceConnected', connectSpy);
-        
+
         bleDriverEventCallback([connectEvent]);
         let device = connectSpy.args[0][0];
 
@@ -95,18 +66,23 @@ describe('BLE_GAP_EVT_CONNECTED', function() {
 
 describe('BLE_GAP_EVT_DISCONNECTED', function() {
     let bleDriver, adapter, bleDriverEventCallback, disconnectEvent;
-    beforeEach(() => {
-        var returnValues = createBleDriverAndAdapterAndEventCallback();
-        adapter = returnValues.adapter;
-        bleDriver = returnValues.driver;
-        bleDriverEventCallback = returnValues.eventCallback;
-        disconnectEvent = {
-            id: bleDriver.BLE_GAP_EVT_DISCONNECTED,
-            conn_handle: 123,
-            reason_name: "BLE_HCI_LOCAL_HOST_TERMINATED_CONNECTION"
-        };
+    beforeEach((done) => {
+        bleDriver = commonStubs.createBleDriver((eventCallback)=>{
+            bleDriverEventCallback = eventCallback;
+            bleDriverEventCallback([commonStubs.createConnectEvent()]);
 
-        bleDriverEventCallback([createConnectEvent()]);
+            disconnectEvent = {
+                id: bleDriver.BLE_GAP_EVT_DISCONNECTED,
+                conn_handle: 123,
+                reason_name: "BLE_HCI_LOCAL_HOST_TERMINATED_CONNECTION"
+            };
+            done();
+        });
+
+        adapter = new Adapter(bleDriver, 'theId', 42);
+        adapter.open({}, err => {
+            assert.ifError(err);
+        });
     });
 
     it ('should produce a deviceDisconnected event with the disconnected device', () => {
@@ -127,6 +103,83 @@ describe('BLE_GAP_EVT_DISCONNECTED', function() {
         bleDriverEventCallback([disconnectEvent]);
         devices = adapter.getDevices();
         assert.deepEqual(devices, {});
+    });
+});
 
+describe('BLE_GAP_EVT_CONN_PARAM_UPDATE', () =>{
+    let bleDriver, adapter, bleDriverEventCallback;
+    beforeEach((done) =>{
+        bleDriver = commonStubs.createBleDriver( (eventCallback) => {
+            bleDriverEventCallback = eventCallback;
+            done();
+        });
+        adapter = new Adapter(bleDriver, 'theId', 42);
+        adapter.open({}, err => {
+            assert.ifError(err);
+        });
+    });
+
+    it('Should update device connection parameters', () => {
+        let connectEvent = commonStubs.createConnectEvent();
+        bleDriverEventCallback([connectEvent]);
+
+        const originalDevice = adapter.getDevices()['FF:AA:DD.123'];
+        assert.equal(originalDevice.minConnectionInterval, connectEvent.conn_params.min_conn_interval);
+        assert.equal(originalDevice.maxConnectionInterval, connectEvent.conn_params.max_conn_interval);
+        assert.equal(originalDevice.slaveLatency, connectEvent.conn_params.slave_latency);
+        assert.equal(originalDevice.connectionSupervisionTimeout, connectEvent.conn_params.conn_sup_timeout);
+
+        const newConnectionParameters = {
+            min_conn_interval: 32,
+            max_conn_interval: 124,
+            slave_latency: 15,
+            conn_sup_timeout: 34,
+        };
+        let connectionUpdateEvent = commonStubs.createConnectionParametersUpdateEvent();
+        connectionUpdateEvent.conn_params = newConnectionParameters;
+        bleDriverEventCallback([connectionUpdateEvent]);
+        const updatedDevice = adapter.getDevices()['FF:AA:DD.123'];
+
+        assert.equal(updatedDevice.minConnectionInterval, newConnectionParameters.min_conn_interval);
+        assert.equal(updatedDevice.maxConnectionInterval, newConnectionParameters.max_conn_interval);
+        assert.equal(updatedDevice.slaveLatency, newConnectionParameters.slave_latency);
+        assert.equal(updatedDevice.connectionSupervisionTimeout, newConnectionParameters.conn_sup_timeout);
+    });
+
+    it('should emit \'connParamUpdate\' with the correct device and with the new conn params', () => {
+        const connectEvent = commonStubs.createConnectEvent();
+        bleDriverEventCallback([connectEvent]);
+
+        const newConnectionParameters = {
+            min_conn_interval: 32,
+            max_conn_interval: 124,
+            slave_latency: 15,
+            conn_sup_timeout: 34,
+        };
+        let connectionUpdateEvent = commonStubs.createConnectionParametersUpdateEvent();
+        connectionUpdateEvent.conn_params = newConnectionParameters;
+
+        let updateSpy = sinon.spy();
+        adapter.once('connParamUpdate', updateSpy);
+        bleDriverEventCallback([connectionUpdateEvent]);
+
+        assert(updateSpy.calledOnce);
+        let updatedDevice = updateSpy.args[0][0];
+        assert.equal(updatedDevice.minConnectionInterval, newConnectionParameters.min_conn_interval);
+        assert.equal(updatedDevice.maxConnectionInterval, newConnectionParameters.max_conn_interval);
+        assert.equal(updatedDevice.slaveLatency, newConnectionParameters.slave_latency);
+        assert.equal(updatedDevice.connectionSupervisionTimeout, newConnectionParameters.conn_sup_timeout);
+    });
+
+    it('should emit only error if device is not found', () =>{
+        let connectionUpdateEvent = commonStubs.createConnectionParametersUpdateEvent();
+        let updateSpy = sinon.spy();
+        let errorSpy = sinon.spy();
+
+        adapter.once('connParamUpdate', updateSpy);
+        adapter.once('error', errorSpy);
+        bleDriverEventCallback([connectionUpdateEvent]);
+        assert(errorSpy.calledOnce);
+        assert(!updateSpy.called);
     });
 });

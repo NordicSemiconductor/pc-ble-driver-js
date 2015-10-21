@@ -1,24 +1,15 @@
 'use strict';
 
-var  sinon = require('sinon');
-var assert = require('assert');
+const  sinon = require('sinon');
+const assert = require('assert');
+const commonStubs = require('./commonStubs.js');
 
 const Adapter = require('../../api/adapter.js');
 
 describe('Adapter Connect', function() {
     let bleDriver, adapter;
     beforeEach(function() {
-        bleDriver =
-        {
-            gap_connect: sinon.stub(),
-            get_version: sinon.stub(),
-            gap_get_device_name: sinon.stub(),
-            gap_get_address: sinon.stub()
-        };
-        bleDriver.gap_connect.yields(undefined);
-        bleDriver.get_version.yields('0.0.9', undefined);
-        bleDriver.gap_get_device_name.yieldsAsync('holy handgrenade', undefined);
-        bleDriver.gap_get_address.yieldsAsync('Bridge of death', undefined);
+        bleDriver = commonStubs.createBleDriver(); //createAndSetupBleDriverStub();
         adapter = new Adapter(bleDriver, 'theId', 42);
     });
 
@@ -65,13 +56,8 @@ describe('Adapter Cancel connect', function(){
     let bleDriver, adapter;
 
     beforeEach(function() {
-        bleDriver =
-        {
-            gap_connect: sinon.stub(),
-            gap_cancel_connect: sinon.stub(),
-        };
-        bleDriver.gap_connect.yields(undefined);
-        bleDriver.gap_cancel_connect.yields(undefined);
+        bleDriver = commonStubs.createBleDriver();
+        
         adapter = new Adapter(bleDriver, 'theId', 42);
     });
 
@@ -113,19 +99,25 @@ describe('Adapter Cancel connect', function(){
 
         });
     });
+
+    it('should emit error if gap_cancel_connect fails', (done) =>{
+        let errorSpy = sinon.spy();
+        adapter.once('error', errorSpy);
+        
+        bleDriver.gap_cancel_connect.yieldsAsync('Error');
+        adapter.cancelConnect(() =>{
+            assert(errorSpy.calledOnce);
+            done();
+        });
+    });
 });
 
 describe('Adapter disconnect', function(){
      let bleDriver, adapter;
 
     beforeEach(function() {
-        bleDriver =
-        {
-            gap_connect: sinon.stub(),
-            gap_disconnect: sinon.stub(),
-        };
-        bleDriver.gap_connect.yieldsAsync(undefined);
-        bleDriver.gap_disconnect.yieldsAsync(undefined);
+        bleDriver = commonStubs.createBleDriver();
+        
         adapter = new Adapter(bleDriver, 'theId', 42);
         adapter._devices['myDeviceId'] = {connectionHandle: '1234'};
     });
@@ -150,5 +142,67 @@ describe('Adapter disconnect', function(){
             assert(errorSubscriber.calledOnce);
             done();
         });
+    });
+});
+
+function createConnectionUpdateParameters() {
+    return {
+        minConnectionInterval: 100,
+        maxConnectionInterval: 200,
+        slaveLatency: 20,
+        connectionSupervisionTimeout: 1000,
+    };
+}
+describe('Adapter updateConnParams', () => {
+    let bleDriver, adapter, bleDriverEventCallback;
+    beforeEach(function(done) {
+        bleDriver = commonStubs.createBleDriver((eventCallback) =>{
+            bleDriverEventCallback = eventCallback;
+            done();
+        });
+        adapter = new Adapter(bleDriver, 'theId', 42);
+        adapter.open({}, (err) =>{
+            assert.ifError(err);
+        });
+    });
+
+    it('should call bleDriver with the passed parameters', (done)=>{
+        bleDriver.gap_update_connection_parameters.yieldsAsync(undefined);
+        adapter.on('deviceConnected', (device) =>{
+            const connectionUpdateParameters = createConnectionUpdateParameters();
+            adapter.updateConnParams(device.instanceId, connectionUpdateParameters, (error) => {
+                assert(!error);
+                const args = bleDriver.gap_update_connection_parameters.args[0];
+                assert.equal(args[0], 123);
+                assert.equal(args[1].min_conn_interval, connectionUpdateParameters.minConnectionInterval);
+                assert.equal(args[1].max_conn_interval, connectionUpdateParameters.maxConnectionInterval);
+                assert.equal(args[1].slave_latency, connectionUpdateParameters.slaveLatency);
+                assert.equal(args[1].conn_sup_timeout, connectionUpdateParameters.connectionSupervisionTimeout);
+                done();
+            });
+        });
+        bleDriverEventCallback([commonStubs.createConnectEvent()]);
+    });
+
+    it('should emit error and pass \'error\' if call to gap_update_connection_parameters fails', (done) =>{
+        let errorSpy = sinon.spy();
+        adapter.once('error', errorSpy);
+        bleDriver.gap_update_connection_parameters.yieldsAsync('err');
+        adapter.on('deviceConnected', (device) =>{
+            const connectionUpdateParameters = createConnectionUpdateParameters();
+            adapter.updateConnParams(device.instanceId, connectionUpdateParameters, (error) => {
+                assert(error);
+                assert(errorSpy.calledOnce);
+                done();
+            });
+        });
+        bleDriverEventCallback([commonStubs.createConnectEvent()]);
+    });
+
+    it('should throw if no connection handle is found', () => {
+        function callUpdateConnParams() {
+            adapter.updateConnParams(device.instanceId, connectionUpdateParameters, () => {});
+        }
+        assert.throws(callUpdateConnParams, Error);
     });
 });
