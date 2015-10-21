@@ -1520,6 +1520,53 @@ void AfterGapStartAdvertisement(uv_work_t *req) {
     delete baton;
 }
 
+NAN_METHOD(GapStopAdvertisement)
+{
+    if (!info[0]->IsFunction())
+    {
+        Nan::ThrowTypeError("First argument must be a function");
+        return;
+    }
+    v8::Local<v8::Function> callback = info[0].As<v8::Function>();
+
+    GapStopAdvertisementBaton *baton = new GapStopAdvertisementBaton(callback);
+
+    uv_queue_work(uv_default_loop(), baton->req, GapStopAdvertisement, (uv_after_work_cb)AfterGapStopAdvertisement);
+
+    // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
+    return;
+}
+
+// This runs in a worker thread (not Main Thread)
+void GapStopAdvertisement(uv_work_t *req) {
+    // TODO: handle if .Close is called before this function is called.
+    GapStopAdvertisementBaton *baton = static_cast<GapStopAdvertisementBaton *>(req->data);
+
+    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
+    baton->result = sd_ble_gap_adv_stop();
+}
+
+// This runs in Main Thread
+void AfterGapStopAdvertisement(uv_work_t *req) {
+    Nan::HandleScope scope;
+
+    // TODO: handle if .Close is called before this function is called.
+    GapStopAdvertisementBaton *baton = static_cast<GapStopAdvertisementBaton *>(req->data);
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "stopping advertising");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+    delete baton;
+}
+
 extern "C" {
     void init_gap(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
@@ -1538,6 +1585,7 @@ extern "C" {
         Utility::SetMethod(target, "gap_cancel_connect", GapCancelConnect);
         Utility::SetMethod(target, "gap_get_rssi", GapGetRSSI);
         Utility::SetMethod(target, "gap_start_advertisement", GapStartAdvertisement);
+        Utility::SetMethod(target, "gap_stop_advertisement", GapStopAdvertisement);
 
         // Constants from ble_gap.h
 
