@@ -1202,12 +1202,12 @@ class Adapter extends EventEmitter {
         // TODO: If CCCD not discovered how did we start it?
         const enableNotificationBitfield = 0;
         const characteristic = this._characteristics[characteristicId];
-        const descriptor = this._descriptors.find((descriptor) => {
+        const cccdDescriptor = _.find(this._descriptors, (descriptor) => {
             return (descriptor.characteristicInstanceId === characteristicId) &&
                 (descriptor.uuid === 0x2902);
         });
 
-        this.writeDescriptorValue(descriptor.instanceId, [enableNotificationBitfield, 0], (err) =>{
+        this.writeDescriptorValue(cccdDescriptor.instanceId, [enableNotificationBitfield, 0], (err) =>{
             if (err) {
                 this.emit('error', 'Failed to stop characteristics notifications');
             }
