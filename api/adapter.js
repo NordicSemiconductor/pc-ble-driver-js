@@ -602,21 +602,22 @@ class Adapter extends EventEmitter {
         return descriptor;
     }
 
+    _getCharacteristicByValueHandle(valueHandle) {
+        return _.find(this._characteristics, (characteristic) => (characteristic.valueHandle === valueHandle) );
+    }
+
     _parseHvxEvent(event) {
         // TODO: Above the api we have no idea what handles are. Use characteristic object.
-        const characteristicChange = {
-            connectionHandle: event.conn_handle,
-            attributeHandle: event.handle,
-            data: event.data,
-        };
         if (event.type === this._bleDriver.BLE_GATT_HVX_INDICATION) {
-            this._descriptors.find((descriptor) => {
-                return (descriptor.handle === event.handle);
-            });
             this._bleDriver.gattc_confirm_handle_value(event.conn_handle, event.handle);
         }
-        // TODO: emit characteristic object?
-        this.emit('characteristicsValueChanged', characteristicChange);
+        const characteristic = this._getCharacteristicByValueHandle(event.handle);
+        if (!characteristic) {
+            this.emit('error', 'Cannot handle HVX event. No characteristic has a value descriptor with handle: ' + event.handle);
+            return;
+        }
+        characteristic.value = event.data;
+        this.emit('characteristicValueChanged', characteristic);
     }
 
     _parseWriteEvent(event) {

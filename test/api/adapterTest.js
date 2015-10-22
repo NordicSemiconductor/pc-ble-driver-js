@@ -312,17 +312,3 @@ describe('Adapter start characteristics notification', () =>{
     });
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-

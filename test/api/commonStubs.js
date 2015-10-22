@@ -3,9 +3,16 @@
 
 const sinon = require('sinon');
 
-const BLE_GAP_EVT_CONNECTED = 10;
-const BLE_GAP_EVT_DISCONNECTED = 17;
+const BLE_GAP_EVT_CONNECTED = 0x10;
+const BLE_GAP_EVT_DISCONNECTED = 0x11;
+const BLE_GAP_EVT_CONN_PARAM_UPDATE = 0x12;
+const BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST = 0x1d; 
+
 const BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP = 48;
+const BLE_GATTC_EVT_HVX = 56;
+
+const BLE_GATT_HVX_NOTIFICATION = 1;
+const BLE_GATT_HVX_INDICATION = 2;
 
 module.exports.createBleDriver = function(callbackForReceivingBleDriverEventCallback) {
     let bleDriver =
@@ -24,10 +31,16 @@ module.exports.createBleDriver = function(callbackForReceivingBleDriverEventCall
         gattc_primary_services_discover: sinon.stub(),
         gattc_characteristic_discover: sinon.stub(),
         gattc_descriptor_discover: sinon.stub(),
+        gattc_confirm_handle_value: sinon.stub(),
         open: (options, err) => {},
         BLE_GAP_EVT_CONNECTED,
         BLE_GAP_EVT_DISCONNECTED,
+        BLE_GAP_EVT_CONN_PARAM_UPDATE,
+        BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST,
+        BLE_GATTC_EVT_HVX,
         BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP,
+        BLE_GATT_HVX_NOTIFICATION,
+        BLE_GATT_HVX_INDICATION,
     };
 
     // Enable users to trigger events
@@ -69,6 +82,7 @@ module.exports.createConnectEvent = function() {
 
 module.exports.createConnectionParametersUpdateEvent = function() {
     return  {
+        id: BLE_GAP_EVT_CONN_PARAM_UPDATE,
         conn_handle: 123,
             conn_params: {
                 min_conn_interval: 10,
@@ -77,4 +91,15 @@ module.exports.createConnectionParametersUpdateEvent = function() {
                 conn_sup_timeout: 455
             }
         };
+};
+
+module.exports.createHvxEvent = function(useIndication) {
+    return {
+        id: BLE_GATTC_EVT_HVX,
+        conn_handle: 123,
+        handle: 3,
+        type: useIndication ? BLE_GATT_HVX_INDICATION : BLE_GATT_HVX_NOTIFICATION,
+        len: 2,
+        data: [5,6],
+    };
 };

@@ -183,3 +183,68 @@ describe('BLE_GAP_EVT_CONN_PARAM_UPDATE', () =>{
         assert(!updateSpy.called);
     });
 });
+
+describe('BLE_GATTC_EVT_HVX', () => {
+    let bleDriver, adapter, bleDriverEventCallback;
+    beforeEach((done) => {
+        bleDriver = commonStubs.createBleDriver( (eventCallback) => {
+            bleDriverEventCallback = eventCallback;
+            done();
+        });
+        adapter = new Adapter(bleDriver, 'theId', 42);
+        adapter.open({}, err =>{
+            assert.ifError(err);
+        });
+    });
+
+    it('should emit \'characteristicValueChanged\' with the right parameters', () => {
+        let hvxEvent = commonStubs.createHvxEvent(false);
+        let hvxSpy = sinon.spy();
+        let errorSpy = sinon.spy();
+        adapter.once('characteristicValueChanged', hvxSpy);
+        adapter.once('error', errorSpy);
+        adapter._characteristics['dummyId'] = {
+            valueHandle: hvxEvent.handle,
+        };
+        
+        bleDriverEventCallback([hvxEvent]);
+
+        assert(!errorSpy.calledOnce);
+        assert(hvxSpy.calledOnce);
+        const characteristic = hvxSpy.lastCall.args[0];
+        assert.equal(characteristic.valueHandle, hvxEvent.handle);
+        assert.deepEqual(characteristic.value, hvxEvent.data);
+    });
+
+    it('should call gattc_confirm_handle_value if the event type is HVX_INDICATION', () => {
+        let hvxEvent = commonStubs.createHvxEvent(true);
+        let hvxSpy = sinon.spy();
+        let errorSpy = sinon.spy();
+        adapter.once('characteristicValueChanged', hvxSpy);
+        adapter.once('error', errorSpy);
+        adapter._characteristics['dummyId'] = {
+            valueHandle: hvxEvent.handle,
+        };
+        
+        bleDriverEventCallback([hvxEvent]);
+
+        assert(!errorSpy.calledOnce);
+        assert(hvxSpy.calledOnce);
+        assert(bleDriver.gattc_confirm_handle_value.calledOnce);
+
+    });
+
+    it('should emit error if there is no characteristic with valueHandle equal to descriptor handle', () => {
+        let hvxEvent = commonStubs.createHvxEvent(false);
+        let hvxSpy = sinon.spy();
+        let errorSpy = sinon.spy();
+        adapter.once('characteristicValueChanged', hvxSpy);
+        adapter.once('error', errorSpy);
+
+        bleDriverEventCallback([hvxEvent]);
+
+        assert(errorSpy.calledOnce);
+    });
+
+
+});
