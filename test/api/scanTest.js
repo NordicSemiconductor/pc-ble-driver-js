@@ -29,7 +29,7 @@ describe('Adapter - Scanning', () => {
 
         let options = {};
         adapter.open(options, err => {
-            assert.ifError(err);
+            assert(!err);
         });
     });
 
@@ -45,16 +45,16 @@ describe('Adapter - Scanning', () => {
         let scanOptions = {};
 
         adapter.startScan(scanOptions, err => {
-            assert.ifError(err);
+            assert(!err);
 
             sinon.assert.calledOnce(adapterStateChangedSpy);
             assert.equal(true, adapterStateChangedSpy.lastCall.args[0].scanning);
 
             adapter.stopScan(err => {
-                assert.ifError(err);
+                assert(!err);
 
                 sinon.assert.calledTwice(adapterStateChangedSpy);
-                assert.ifError(adapterStateChangedSpy.lastCall.args[0].scanning);
+                assert(!adapterStateChangedSpy.lastCall.args[0].scanning);
                 done();
             });
         });
@@ -68,7 +68,7 @@ describe('Adapter - Scanning', () => {
 
         let scanOptions = {};
         adapter.startScan(scanOptions, err => {
-            assert.ifError(err);
+            assert(!err);
 
             sinon.assert.notCalled(deviceDiscoveredSpy);
 

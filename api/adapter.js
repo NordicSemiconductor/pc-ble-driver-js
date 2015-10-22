@@ -36,7 +36,7 @@ class Adapter extends EventEmitter {
         this._descriptors = {};
 
         this._getAttributesCallbacks = {};
-        this._pendingReads = {};
+        this._pendingHandleReads = {};
     }
 
     // Get the instance id
@@ -78,6 +78,7 @@ class Adapter extends EventEmitter {
         }
     }
 
+/*
     _arrayToString(array) {
         let string = '';
 
@@ -90,6 +91,40 @@ class Adapter extends EventEmitter {
         string = '0x' + string.toUpperCase();
 
         return string;
+    }
+*/
+
+    _numberTo16BitUuid(uuid16Bit) {
+        const base = '-0000-1000-8000-00805F9B34FB';
+        let string = '0000';
+
+        let byteString = uuid16Bit.toString(16);
+        byteString = ('000' + byteString).slice(-4);
+        string += byteString;
+
+        string += base;
+        return string.toUpperCase();
+    }
+
+    _arrayTo128BitUuid(array) {
+        const insertHyphen = (string, index) => {
+            return string.substr(0, index) + '-' + string.substr(index);
+        };
+
+        let string = '';
+
+        for (let i = array.length - 1; i >= 0; i--) {
+            let byteString = array[i].toString(16);
+            byteString = ('0' + byteString).slice(-2);
+            string += byteString;
+        }
+
+        string = insertHyphen(string, 20);
+        string = insertHyphen(string, 16);
+        string = insertHyphen(string, 12);
+        string = insertHyphen(string, 8);
+
+        return string.toUpperCase();
     }
 
 
@@ -369,15 +404,27 @@ class Adapter extends EventEmitter {
                         callbackServices.push(this._services[serviceInstanceId]);
                     }
                 }
-                getAttributesCallback.callback(undefined, callbackServices);
+
                 delete this._getAttributesCallbacks[device.instanceId];
+                getAttributesCallback.callback(undefined, callbackServices);
+            } else {
+                for (let handle in getAttributesCallback.pendingHandleReads) {
+                    // Just take the first found handle and start the read process.
+                    this._bleDriver.gattc_read(device.connectionHandle, handle, 0, err => {
+                        if (err) {
+                            this.emit('error', err);
+                            // Call getServices callback??
+                        }
+                    });
+                    break;
+                }
             }
             return;
         }
 
         services.forEach(service => {
-            const handle = service.handle;
-            let uuid = service.uuid.uuid;
+            const handle = service.handle_range.start_handle;
+            let uuid = this._numberTo16BitUuid(service.uuid.uuid);
 
             if (service.uuid.type === this._bleDriver.BLE_UUID_TYPE_UNKNOWN) {
                 uuid = null;
@@ -390,13 +437,7 @@ class Adapter extends EventEmitter {
 
             if (uuid === null) {
                 getAttributesCallback.pendingHandleReads[handle] = newService;
-                this._pendingReads[handle] = getAttributesCallback.pendingHandleReads;
-                this._bleDriver.gattc_read(device.connectionHandle, handle, 0, err => {
-                    if (err) {
-                        this.emit('error', err);
-                        // Call getServices callback??
-                    }
-        });
+                this._pendingHandleReads[handle] = getAttributesCallback.pendingHandleReads;
             } else {
                 this.emit('serviceAdded', newService);
             }
@@ -408,7 +449,7 @@ class Adapter extends EventEmitter {
             if (err) {
                 this.emit('error', 'Failed to get services');
                 // Call getServices callback??
-    }
+            }
         });
     }
 
@@ -418,39 +459,59 @@ class Adapter extends EventEmitter {
         const getAttributesCallback = this._getAttributesCallbacks[device.instanceId];
 
         if (event.count === 0) {
-            if (_.isEmpty(getAttributesCallback.pendingReads)) {
+            if (_.isEmpty(getAttributesCallback.pendingHandleReads)) {
                 // No pending reads to wait for.
-                getAttributesCallback.callback();
+                const callbackCharacteristics = [];
+
+                for (let characteristicInstanceId in this._characteristics) {
+                    const characteristic = this._characteristics[characteristicInstanceId];
+                    if (characteristic.serviceInstanceId === getAttributesCallback.parent.instanceId) {
+                        callbackCharacteristics.push(this._characteristics[characteristicInstanceId]);
+                    }
+                }
                 delete this._getAttributesCallbacks[device.instanceId];
+                getAttributesCallback.callback(undefined, callbackCharacteristics);
+            } else {
+                for (let handle in getAttributesCallback.pendingHandleReads) {
+                    // Just take the first found handle and start the read process.
+                    this._bleDriver.gattc_read(device.connectionHandle, handle, 0, err => {
+                        if (err) {
+                            this.emit('error', err);
+                            // Call getServices callback??
+                        }
+                    });
+                    break;
+                }
             }
             return;
         }
 
         // We should only receive characteristics under one service.
-        const service = this._getServiceByHandle(device.instanceId, characteristics[0].handle);
+        const service = this._getServiceByHandle(device.instanceId, characteristics[0].handle_decl);
 
         characteristics.forEach(characteristic => {
-            const handle = characteristic.handle;
-            let uuid = characteristic.uuid.uuid;
+            const declarationHandle = characteristic.handle_decl;
+            const valueHandle = characteristic.handle_value;
+            let uuid = this._numberTo16BitUuid(characteristic.uuid.uuid);
 
             if (characteristic.uuid.type === this._bleDriver.BLE_UUID_TYPE_UNKNOWN) {
                 uuid = null;
             }
 
             const properties = characteristic.char_props;
-            // TODO: do something with value handle and start a read on that handle to fill inn value
             const newCharacteristic = new Characteristic(service.instanceId, uuid, properties, null);
+            newCharacteristic.declarationHandle = characteristic.handle_decl;
+            newCharacteristic.valueHandle = characteristic.handle_value;
+            this._characteristics[newCharacteristic.instanceId] = newCharacteristic;
 
             if (uuid === null) {
-                getAttributesCallback.pendingHandleReads[handle] = newCharacteristic;
-                this._pendingReads[handle] = getAttributesCallback.pendingHandleReads;
-                this._bleDriver.gattc_read(device.connectionHandle, handle, 0, err => {
-                    if (err) {
-                        this.emit('error', err);
-                        // Call getCharacteristics callback??
-                    }
-                });
+                getAttributesCallback.pendingHandleReads[declarationHandle] = newCharacteristic;
+                this._pendingHandleReads[declarationHandle] = getAttributesCallback.pendingHandleReads;
             }
+
+            // Add pending reads to get characteristics values.
+            getAttributesCallback.pendingHandleReads[valueHandle] = newCharacteristic;
+            this._pendingHandleReads[valueHandle] = getAttributesCallback.pendingHandleReads;
         });
 
         const nextStartHandle = characteristics[characteristics.length - 1].handle + 1;
@@ -470,10 +531,10 @@ class Adapter extends EventEmitter {
         const getAttributesCallback = this._getAttributesCallbacks[device.instanceId];
 
         if (event.count === 0) {
-            if (_.isEmpty(getAttributesCallback.pendingReads)) {
+            if (_.isEmpty(getAttributesCallback.pendingHandleReads)) {
                 // No pending reads to wait for.
-                getAttributesCallback.callback();
                 delete this._getAttributesCallbacks[device.instanceId];
+                getAttributesCallback.callback();
             }
             return;
         }
@@ -483,19 +544,19 @@ class Adapter extends EventEmitter {
 
         descriptors.forEach(descriptor => {
             const handle = descriptor.handle;
-            let uuid = descriptor.uuid.uuid;
+            let uuid = this._numberTo16BitUuid(descriptor.uuid.uuid);
 
             if (characteristic.uuid.type === this._bleDriver.BLE_UUID_TYPE_UNKNOWN) {
                 uuid = null;
             }
 
             // TODO: Fix magic number?
-            if (uuid === 0x2803) {
+            if (uuid === 0x2800 || uuid === 0x2803) {
                 // Found a characteristic declaration
-                if (_.isEmpty(getAttributesCallback.pendingReads)) {
+                if (_.isEmpty(getAttributesCallback.pendingHandleReads)) {
                     // No pending reads to wait for.
-                    getAttributesCallback.callback();
                     delete this._getAttributesCallbacks[device.instanceId];
+                    getAttributesCallback.callback();
                 }
                 return;
             }
@@ -504,7 +565,7 @@ class Adapter extends EventEmitter {
 
             if (uuid === null) {
                 getAttributesCallback.pendingHandleReads[handle] = newDescriptor;
-                this._pendingReads[handle] = getAttributesCallback.pendingHandleReads;
+                this._pendingHandleReads[handle] = getAttributesCallback.pendingHandleReads;
                 this._bleDriver.gattc_read(device.connectionHandle, handle, 0, err => {
                     if (err) {
                         this.emit('error', err);
@@ -530,35 +591,92 @@ class Adapter extends EventEmitter {
     _parseReadResponseEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const handle = event.handle;
-        const data = event.data;
+        const data = event.data.data;
         /*
         event.offset;
         event.len;
         */
 
-        const pendingReads = this._pendingReads[handle];
-        if (pendingReads) {
-            const attribute = pendingReads[handle];
+        const getAttributesCallback = this._getAttributesCallbacks[device.instanceId];
+        let pendingHandleReads;
+
+        if (getAttributesCallback)
+        {
+            pendingHandleReads = getAttributesCallback.pendingHandleReads;
+        }
+
+        if (pendingHandleReads && !_.isEmpty(pendingHandleReads)) {
+            const attribute = pendingHandleReads[handle];
+
+            if (!attribute) {
+                console.log('something went wrong in bookkeeping of pending reads');
+                return;
+            }
+
+            delete pendingHandleReads[handle];
 
             if (attribute instanceof Service) {
                 // TODO: Translate from uuid to name?
-                attribute.uuid = this._arrayToString(data);
+                attribute.uuid = this._arrayTo128BitUuid(data);
+                this.emit('serviceAdded', attribute);
+
+                if (_.isEmpty(pendingHandleReads)) {
+                    const callbackServices = [];
+                    for (let serviceInstanceId in this._services) {
+                        if (this._services[serviceInstanceId].deviceInstanceId === device.instanceId) {
+                            callbackServices.push(this._services[serviceInstanceId]);
+                        }
+                    }
+                    delete this._getAttributesCallbacks[device.instanceId];
+                    getAttributesCallback.callback(undefined, callbackServices);
+            }
             } else if (attribute instanceof Characteristic) {
                 // TODO: Translate from uuid to name?
-                attribute.uuid = this._arrayToString(data.slice(3));
+                if (handle === attribute.declarationHandle) {
+                    attribute.uuid = this._arrayTo128BitUuid(data.slice(2));
+                }
+                else if (handle === attribute.valueHandle) {
+                    attribute.value = data;
+                }
+
+                if (attribute.uuid && attribute.value) {
+                    this.emit('characteristicAdded', attribute);
+                }
+                if (_.isEmpty(pendingHandleReads)) {
+                    const callbackCharacteristics = [];
+                    for (let characteristicInstanceId in this._characteristics) {
+                        if (this._characteristics[characteristicInstanceId].serviceInstanceId === attribute.serviceInstanceId) {
+                            callbackCharacteristics.push(this._characteristics[characteristicInstanceId]);
+                        }
+                    }
+                    delete this._getAttributesCallbacks[device.instanceId];
+                    getAttributesCallback.callback(undefined, callbackCharacteristics);
+                }
             }
 
-            delete pendingReads[handle];
-        }
 
-        // Handle a "proper" characteristic/decriptor value read.
+
+            for (let newReadHandle in pendingHandleReads) {
+                // Just take the first found handle and start the read process.
+                this._bleDriver.gattc_read(device.connectionHandle, newReadHandle, 0, err => {
+                    if (err) {
+                        this.emit('error', err);
+                        // Call getServices callback??
+                    }
+                });
+                break;
+            }
+        }
+        // TODO: Handle a "proper" characteristic/decriptor value read.
     }
 
     _getServiceByHandle(deviceInstanceId, handle) {
-        const services = this._services.filter(service => service.deviceInstanceId === deviceInstanceId);
+        for (let serviceInstanceId in this._services) {
+            const service = this._services[serviceInstanceId];
 
-        for (let serviceInstanceId in services) {
-            const service = services[serviceInstanceId];
+            if (service.deviceInstanceId !== deviceInstanceId) {
+                continue;
+            }
 
             if (service.startHandle <= handle && handle <= service.endHandle) {
                 return service;
@@ -1031,7 +1149,7 @@ class Adapter extends EventEmitter {
             return;
         }
 
-        this._getAttributesCallbacks[device.instanceId] = {callback: callback, foundAllAttributes: false, pendingHandleReads: {}};
+        this._getAttributesCallbacks[device.instanceId] = {callback: callback, pendingHandleReads: {}};
 
         this._bleDriver.gattc_primary_services_discover(device.connectionHandle, 0, null, err => {
             if (err) {
@@ -1039,7 +1157,6 @@ class Adapter extends EventEmitter {
                 callback(err);
                 return;
             }
-
         });
     }
 
@@ -1060,7 +1177,8 @@ class Adapter extends EventEmitter {
             return;
         }
 
-        const handleRange = {startHandle: service.startHandle, endHandle: service.endHandle};
+        const handleRange = {start_handle: service.startHandle, end_handle: service.endHandle};
+        this._getAttributesCallbacks[device.instanceId] = {callback: callback, pendingHandleReads: {}, parent: service};
 
         this._bleDriver.gattc_characteristic_discover(device.connectionHandle, handleRange, err => {
             if (err) {
@@ -1068,8 +1186,6 @@ class Adapter extends EventEmitter {
                 callback(err);
                 return;
             }
-
-            this._getAttributesCallbacks[device.instanceId] = {callback: callback, foundAllAttributes: false, pendingHandleReads: {}};
         });
     }
 
@@ -1091,7 +1207,8 @@ class Adapter extends EventEmitter {
             return;
         }
 
-        const handleRange = {startHandle: characteristic.valueHandle+1, endHandle: service.endHandle};
+        const handleRange = {start_handle: characteristic.valueHandle+1, end_handle: service.endHandle};
+        this._getAttributesCallbacks[device.instanceId] = {callback: callback, pendingHandleReads: {}, parent: characteristic};
 
         this._bleDriver.gattc_descriptor_discover(device.connectionHandle, handleRange, err => {
             if (err) {
@@ -1099,8 +1216,6 @@ class Adapter extends EventEmitter {
                 callback(err);
                 return;
             }
-
-            this._getAttributesCallbacks[device.instanceId] = {callback: callback, foundAllAttributes: false, pendingHandleReads: {}};
         });
     }
 

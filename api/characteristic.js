@@ -10,6 +10,9 @@ class Characteristic {
         this.name = null;
         this.properties = properties;
         this.value = value;
+
+        this.declarationHandle = null;
+        this.valueHandle = null;
     }
 
     get instanceId() {
