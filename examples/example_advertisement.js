@@ -5,9 +5,10 @@ var evt_count = 0;
 var connectionHandle = 0;
 var interval;
 var valueHandle = 0;
+var characteristicHandle = 0;
 
 driver.open(
-    'COM21',
+    'COM19',
     {
         'baudRate': 115200,
         'parity': 'none',
@@ -98,7 +99,7 @@ function onBleEvent(event_array) {
 }
 
 function addVsUuid() {
-        driver.add_vs_uuid({'uuid128': '11220000-3344-5566-7788-99aabbccddee'}, 
+        driver.add_vs_uuid({'uuid128': '11220000-3344-5566-7788-99aabbccddee'},
             function(err, type) {
                 if (err)
                 {
@@ -108,13 +109,12 @@ function addVsUuid() {
                 }
 
                 console.log('Added 128-bit UUID with type %d', type);
+                addService();
         });
-
-        addService();
 }
 
 function addService() {
-    driver.gatts_add_service(1, {'uuid': 0x180D, 'type': driver.BLE_UUID_TYPE_BLE}, 
+    driver.gatts_add_service(1, {'uuid': 0x180D, 'type': driver.BLE_UUID_TYPE_BLE},
         function(err, handle) {
             if (err) {
                 console.log('Error occured when adding service');
@@ -145,9 +145,9 @@ function addCharacteristic(handle) {
             'char_ext_props': {'reliable_wr': false, 'wr_aux': false},
             'char_user_desc_max_size': 0,
             'char_user_desc_size': 0,
-            'p_char_pf': 0,
-            'p_user_desc_md': 0,
-            'p_cccd_md':
+            'p_char_pf': 0, // Presentation format (ble_gatts_char_pf_t) May be 0
+            'p_user_desc_md': 0, // User Description descriptor (ble_gatts_attr_md_t) May be 0
+            'p_cccd_md': // Client Characteristic Configuration Descriptor (ble_gatts_attr_md_t) May be 0
             {
                 'read_perm': {'sm': 1, 'lv': 1},
                 'write_perm': {'sm': 1, 'lv': 1},
@@ -156,7 +156,7 @@ function addCharacteristic(handle) {
                 'rd_auth': 0,
                 'wr_auth': 0,
             },
-            'p_sccd_md': 0,
+            'p_sccd_md': 0, // Server Characteristic Configuration Descriptor (ble_gatts_attr_md_t) May be 0
         },
         {
             'p_uuid': {'uuid': 0x2A37, 'type': 2},
@@ -182,6 +182,38 @@ function addCharacteristic(handle) {
 
             console.log('Added characteristics with handles %s', JSON.stringify(handles));
             valueHandle = handles.value_handle;
+            characteristicHandle = valueHandle - 1;
+
+            addDescriptor();
+    });
+
+}
+
+function addDescriptor() {
+    driver.gatts_add_descriptor(valueHandle,
+        {
+            'p_uuid': {'uuid': 0x2A38, 'type': 2},
+            'p_attr_md': {
+                'read_perm': {'sm': 1, 'lv': 1},
+                'write_perm': {'sm': 1, 'lv': 1},
+                'vlen': 0,
+                'vloc': 1,
+                'rd_auth': 0,
+                'wr_auth': 0,
+            },
+            'init_len': 1,
+            'init_offs': 0,
+            'max_len': 1,
+            'p_value': [43],
+        },
+        function(err, handle) {
+            if (err) {
+                console.log('Error occured when adding descriptor.');
+                console.log(err);
+                return;
+            }
+
+            console.log('Added descriptor with handle %d', handle)
 
             startAdvertising();
     });
@@ -225,5 +257,5 @@ function stopAdvertising() {
         }
 
         console.log('Stopped advertising');
-    });   
+    });
 }

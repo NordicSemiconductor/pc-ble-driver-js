@@ -390,7 +390,7 @@ NAN_METHOD(AddCharacteristic)
 
     try
     {
-        serviceHandle = ConversionUtility::getNativeUint8(info[argumentcount]);
+        serviceHandle = ConversionUtility::getNativeUint16(info[argumentcount]);
         argumentcount++;
 
         metadata = ConversionUtility::getJsObject(info[argumentcount]);
@@ -435,7 +435,7 @@ void AfterAddCharacteristic(uv_work_t *req) {
 
     if (baton->result != NRF_SUCCESS)
     {
-        argv[0] = ErrorMessage::getErrorMessage(baton->result, "adding service");
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "adding characteristic");
         argv[1] = Nan::Undefined();
     }
     else
@@ -447,6 +447,70 @@ void AfterAddCharacteristic(uv_work_t *req) {
     baton->callback->Call(2, argv);
 
     delete baton->p_handles;
+    delete baton;
+}
+
+NAN_METHOD(AddDescriptor)
+{
+    uint16_t characteristicHandle;
+    v8::Local<v8::Object> attributeStructure;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
+
+    try
+    {
+        characteristicHandle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        attributeStructure = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    GattsAddDescriptorBaton *baton = new GattsAddDescriptorBaton(callback);
+    baton->char_handle = characteristicHandle;
+    baton->p_attr = GattsAttribute(attributeStructure);
+
+    uv_queue_work(uv_default_loop(), baton->req, AddDescriptor, (uv_after_work_cb)AfterAddDescriptor);
+}
+
+// This runs in a worker thread (not Main Thread)
+void AddDescriptor(uv_work_t *req) {
+    GattsAddDescriptorBaton *baton = static_cast<GattsAddDescriptorBaton *>(req->data);
+
+    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
+    baton->result = sd_ble_gatts_descriptor_add(baton->char_handle, baton->p_attr, &baton->p_handle);
+}
+
+// This runs in Main Thread
+void AfterAddDescriptor(uv_work_t *req) {
+    Nan::HandleScope scope;
+
+    GattsAddDescriptorBaton *baton = static_cast<GattsAddDescriptorBaton *>(req->data);
+    v8::Local<v8::Value> argv[2];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "adding descriptor");
+        argv[1] = Nan::Undefined();
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+        argv[1] = ConversionUtility::toJsNumber(baton->p_handle);
+    }
+
+    baton->callback->Call(2, argv);
+
+    delete baton->p_attr;
     delete baton;
 }
 
@@ -808,6 +872,7 @@ extern "C" {
     {
         Utility::SetMethod(target, "gatts_add_service", AddService);
         Utility::SetMethod(target, "gatts_add_characteristic", AddCharacteristic);
+        Utility::SetMethod(target, "gatts_add_descriptor", AddDescriptor);
         Utility::SetMethod(target, "gatts_hvx", HVX);
         Utility::SetMethod(target, "gatts_set_system_attribute", SystemAttributeSet);
         Utility::SetMethod(target, "gatts_set_value", ValueSet);
