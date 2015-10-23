@@ -41,6 +41,11 @@ class Adapter extends EventEmitter {
         this._pendingReadCallbacks = {};
 
         this._converter = new Converter(this._bleDriver);
+
+        this._fragmentedWrites = {};
+        this._pendingWriteCallbacks = {};
+        this._maxPayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 3;
+
     }
 
     // Get the instance id
@@ -51,7 +56,7 @@ class Adapter extends EventEmitter {
     checkAndPropagateError(err, userMessage, callback) {
         if(err) {
             var error = make_error(userMessage, err);
-            this.emit('error', error);
+            this.emit('error', JSON.stringify(error));
             if(callback) callback(error);
             return true;
         }
@@ -702,11 +707,12 @@ class Adapter extends EventEmitter {
             }
         } else {
             this._possiblyFragmentedReadResult[device.instanceId] = this._possiblyFragmentedReadResult[device.instanceId].concat(event.data);
-            if (event.data.length < this._bleDriver.GATT_MTU_SIZE_DEFAULT) {
+            const MAX_PAYLOAD_SIZE = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 3;
+            if (event.data.length < MAX_PAYLOAD_SIZE) {
                 this._possiblyFragmentedReadResult[device.instanceId] = undefined;
                 this._pendingReadCallbacks[device.instanceId](undefined, this._possiblyFragmentedReadResult[device.instanceId]);
                 this._pendingReadCallbacks[device.instanceId] = undefined;
-            } else if (event.data.length === this._bleDriver.GATT_MTU_SIZE_DEFAULT) {
+            } else if (event.data.length === MAX_PAYLOAD_SIZE) {
                 // We need to read more:
                 this._bleDriver.read(event.conn_handle, event.handle, this._possiblyFragmentedReadResult.length, (err) => {
                     if (err) {
@@ -721,6 +727,38 @@ class Adapter extends EventEmitter {
                 this._pendingReadCallbacks[device.instanceId]('Invalid read response length. (> mtu)');
             }
         }
+    }
+
+    _parseWriteEvent(event) {
+        // 1. Check if there is a long write in progress for this device
+        // 2a. If there is check if it is done after next write
+        // 2ai. If it is done after next write
+        //      Perform the last write and if success, exec write on fail, cancel write
+        //      callback, delete callback, delete pending write, emit
+        // 2aii. if not done, issue one more PREPARED_WRITE, update pendingwrite
+
+        // TODO: Do more checking of write response?
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
+        if (!device) {
+            emit('error', 'Failed to handle write event, no device with handle ' + device.instanceId + 'found.');
+            return;
+        }
+        if (event.type === this._bleDriver.BLE_GATT_OP_WRITE_CMD) {
+            // TODO: make sure there is no fragmentedwrite for this device?
+
+        } else if (event.type === this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ){
+            const currentWrite = this._fragmentedWrites[device.instanceId];
+            if (currentWrite) {
+
+            }
+        } else if (event.type === this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ) {
+
+        }
+
+        const busyMap = Object.assign({}, this._adapterState.gattBusyMap);
+
+        busyMap[device.instanceId] = false;
+        this._changeAdapterState({gattBusyMap: busyMap});
     }
 
     _getServiceByHandle(deviceInstanceId, handle) {
@@ -795,14 +833,7 @@ class Adapter extends EventEmitter {
         this.emit('characteristicValueChanged', characteristic);
     }
 
-    _parseWriteEvent(event) {
-        // TODO: Do more checking of write response?
-        const device = this._getDeviceByConnectionHandle(event.conn_handle);
-        const busyMap = Object.assign({}, this._adapterState.gattBusyMap);
-
-        busyMap[device.instanceId] = false;
-        this._changeAdapterState({gattBusyMap: busyMap});
-    }
+    
 
     // Callback signature function(err, state) {}
     getAdapterState(callback) {
@@ -913,6 +944,7 @@ class Adapter extends EventEmitter {
 
     // options: { active: x, interval: x, window: x timeout: x TODO: other params}. Callback signature function(err).
     startScan(options, callback) {
+        console.log(this._bleDriver.start_scan);
         this._bleDriver.start_scan(options, err => {
             if (err) {
                 this.emit('error', make_error('Error occured when starting scan', err));
@@ -1338,12 +1370,10 @@ class Adapter extends EventEmitter {
     }
 
     readDescriptorValue(descriptorId, callback) {
-        const mtu = this._bleDriver.GATT_MTU_SIZE_DEFAULT;
         const descriptor = this.getDescriptor(descriptorId);
         const device = this._getDeviceFromDescriptorId(descriptorId);
-        const connectionHandle = device.connectionHandle;
 
-        this._bleDriver.read(connectionHandle, descriptor.handle, 0, (err) => {
+        this._bleDriver.read(device.connectionHandle, descriptor.handle, 0, (err) => {
             if (err) {
                 emit('error', 'Read descriptor value failed: ' + error);
             } else {
@@ -1354,27 +1384,45 @@ class Adapter extends EventEmitter {
     }
 
     // Callback signature function(err) {}, callback will not be called until ack is received. options: {ack, long, offset}
-    writeDescriptorValue(descriptorId, value, ack, callback) {
+    writeDescriptorValue(descriptorId, dataArray, ack, callback) {
+        // Does not support reliable write
         const device = this._getDeviceFromDescriptorId(descriptorId);
+        if (!device) {
+            throw new Error('Write failed: Could not get device with id ' + descriptorId);
+        }
+        if (this._adapterState.gattBusyMap[device.instanceId]) {
+            throw new Error('Cannot write to descriptor. Device with id ' + descriptorId + ' is busy.');
+        }
+
         const descriptor = this.getDescriptor(descriptorId);
-        const connectionHandle = device.connectionHandle;
-        if (!connectionHandle) {
-            throw new Error('No connection handle found for device with instance id: ' + device.instanceId);
+        if (!descriptor) {
+            throw new Error('Write failed: could not get descriptor with id ' + descriptorId);
         }
 
         if (this._adapterState.gattBusyMap[device.instanceId]) {
             throw new Error('Device ' + device.instanceId + ' is busy. Cannot write descriptor value');
         }
+
+        if (dataArray.length > this._maxPayloadSize) {
+            if (!ack) {
+                throw new Error('Long writes do not support BLE_GATT_OP_WRITE_CMD');
+            }
+            this._longWrite(device, descriptor, dataArray, callback);
+        } else {
+            this.shortWrite(device, descriptor, ack, dataArray, callback);
+        }
+    }
+    _shortWrite(device, descriptor, dataArray, ack, callback) {
         const writeParameters = {
             write_op: ack ? this._bleDriver.BLE_GATT_OP_WRITE_REQ : this._bleDriver.BLE_GATT_OP_WRITE_CMD,
             flags: 0, // don't care for WRITE_REQ / WRITE_CMD
             handle: descriptor.handle,
             offset: 0,
-            len: value.length,
-            value: value
+            len: dataArray.length,
+            value: dataArray,
         };
 
-        this._bleDriver.write(connectionHandle, writeParameters, (err) => {
+        this._bleDriver.write(device.connectionHandle, writeParameters, (err) => {
             if (err) {
                 this.emit('error', 'Failed to write to descriptor with handle: ' + descriptor.handle);
             } else {
@@ -1385,6 +1433,45 @@ class Adapter extends EventEmitter {
             callback(err);
         });
     }
+
+    _longWrite(device, descriptor, dataArray, callback) {
+        if (value.length < this._maxPayloadSize) {
+            throw new Error('Wrong write method. Use regular write for payload sizes < ' + this._maxPayloadSize);
+        }
+        const writeParameters = {
+            write_op: this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ,
+            flags: 0,
+            handle: descriptor.handle,
+            offset: 0,
+            len: this._maxPayloadSize,
+            value: dataArray.slice(0, this._maxPayloadSize)
+        };
+        this._fragmentedWrites[device.instanceId] = {bytesWritten: this._maxPayloadSize, dataArray: dataArray};
+        this._pendingWriteCallbacks[device.instanceId] = callback;
+        this._bleDriver.write(device.connectionHandle, writeParameters, (err) => {
+            if (err) {
+                delete this._fragmentedWrites[device.instanceId];
+
+                writeParameters.write_op = this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ;
+                writeParameters.flags = this._bleDriver.BLE_GATT_EXEC_WRITE_FLAG_PREPARED_CANCEL;
+                writeParameters.len = 0;
+                writeParameters.value = [];
+                const errorMessage = 'Failed to write dataArray subset with length ' + this._maxPayloadSize + 
+                                     'to device/handle' + device.instanceId + '/' + descriptor.handle;
+                this._bleDriver.write(device.connectionHandle, writeParameters, (cancelErr) => {
+                    if (err) {
+                        this.emit('error', 'Failed to cancel write: ' + err);
+                        this._pendingWriteCallbacks[device.instanceId]('Failed to write and failed to cancel write');
+                    } else {
+                        this._pendingWriteCallbacks[device.instanceId](errorMessage);
+                    }
+                    delete this._pendingWriteCallbacks[device.instanceId];
+                });
+                this.emit('error', errorMessage);
+            }
+        });
+    }
+
 
     // Only for GATTC role
 

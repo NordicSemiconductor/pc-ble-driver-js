@@ -146,9 +146,9 @@ v8::Local<v8::Object> GattsAttributeContext::ToJs()
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
-    Utility::Set(obj, "srvc_uuid", BleUUID(&native->srvc_uuid));
-    Utility::Set(obj, "char_uuid", BleUUID(&native->char_uuid));
-    Utility::Set(obj, "desc_uuid", BleUUID(&native->desc_uuid));
+    Utility::Set(obj, "srvc_uuid", BleUUID(&native->srvc_uuid).ToJs());
+    Utility::Set(obj, "char_uuid", BleUUID(&native->char_uuid).ToJs());
+    Utility::Set(obj, "desc_uuid", BleUUID(&native->desc_uuid).ToJs());
     Utility::Set(obj, "srvc_handle", ConversionUtility::toJsNumber(native->srvc_handle));
     Utility::Set(obj, "value_handle", ConversionUtility::toJsNumber(native->value_handle));
     Utility::Set(obj, "type", ConversionUtility::toJsNumber(native->type));
@@ -228,7 +228,7 @@ v8::Local<v8::Object> GattsWriteEvent::ToJs()
 
     Utility::Set(obj, "handle", ConversionUtility::toJsNumber(evt->handle));
     Utility::Set(obj, "op", ConversionUtility::toJsNumber(evt->op));
-    Utility::Set(obj, "context", GattsAttributeContext(&evt->context));
+    Utility::Set(obj, "context", GattsAttributeContext(&evt->context).ToJs());
     Utility::Set(obj, "offset", ConversionUtility::toJsNumber(evt->offset));
     Utility::Set(obj, "len", ConversionUtility::toJsNumber(evt->len));
     Utility::Set(obj, "data", ConversionUtility::toJsValueArray(evt->data, evt->len));
@@ -242,7 +242,7 @@ v8::Local<v8::Object> GattsReadEvent::ToJs()
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
     Utility::Set(obj, "handle", ConversionUtility::toJsNumber(native->handle));
-    Utility::Set(obj, "context", GattsAttributeContext(&native->context));
+    Utility::Set(obj, "context", GattsAttributeContext(&native->context).ToJs());
     Utility::Set(obj, "offset", ConversionUtility::toJsNumber(native->offset));
     
     return scope.Escape(obj);
@@ -258,7 +258,7 @@ v8::Local<v8::Object> GattsRWAuthorizeRequestEvent::ToJs()
 
     if (evt->type == BLE_GATTS_AUTHORIZE_TYPE_READ)
     {
-        Utility::Set(obj, "read", GattsReadEvent(&evt->request.read));
+        Utility::Set(obj, "read", GattsReadEvent(&evt->request.read).ToJs());
         Utility::Set(obj, "write", ConversionUtility::toJsNumber(0));
     }
     else if (evt->type == BLE_GATTS_AUTHORIZE_TYPE_WRITE)
