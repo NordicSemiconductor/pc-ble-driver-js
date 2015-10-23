@@ -3,8 +3,6 @@
 var  Adapter = require('./adapter');
 const EventEmitter = require('events');
 
-var _ = require('underscore');
-
 const adapterUpdateInterval = 5000;
 
 /**
@@ -51,13 +49,16 @@ class AdapterFactory extends EventEmitter {
 
     _updateAdapterList() {
         this._bleDriver.get_adapters((err, adapters) => {
+            console.log('!!!!!');
             if (err) {
                 this.emit('error', err);
+                return;
             }
 
             const removedAdapters = Object.assign({}, this._adapters);
 
-            _.each(adapters, adapter => {
+            for(let adapter of adapters) {
+                console.log('Adding new adapter.');
                 const adapterInstanceId = this._getInstanceId(adapter);
 
                 if (this._adapters[adapterInstanceId]) {
@@ -70,12 +71,12 @@ class AdapterFactory extends EventEmitter {
                     this._adapters[adapterInstanceId] = newAdapter;
                     this.emit('added', newAdapter);
                 }
-            });
+            }
 
-            _.each(removedAdapters, adapter => {
+            for(let adapter of removedAdapters) {
                 delete this._adapters[adapter.instanceId];
                 this.emit('removed', adapter);
-            });
+            };
         });
     }
 

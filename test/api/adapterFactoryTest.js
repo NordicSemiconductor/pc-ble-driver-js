@@ -5,7 +5,8 @@ var assert = require('assert');
 
 var proxyquire = require('proxyquire');
 
-var AdapterFactory = require('../../api/adapterFactory.js');
+var api = require('../../index').api;
+var driver = require('../../index').driver;
 
 describe('AdapterFactory', function() {
 /*    var bleDriver;
@@ -28,7 +29,7 @@ describe('AdapterFactory', function() {
 
         // Provide an empty array adapters for the first call
         this.bleDriver.get_adapters.yields(undefined, []);
-        this.adapterFactory = new AdapterFactory(this.bleDriver);
+        this.adapterFactory = new api.AdapterFactory(this.bleDriver);
 
         this.addedSpy = sinon.spy();
         this.removedSpy = sinon.spy();
