@@ -1,4 +1,4 @@
-var driver = require('../index');
+var driver = require('../index').driver;
 
 var evt_count = 0;
 

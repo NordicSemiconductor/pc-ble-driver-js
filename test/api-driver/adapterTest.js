@@ -6,10 +6,10 @@ var sinon = require('sinon');
 
 keypress(process.stdin);
 
-var driver = require('../../index');
+var api = require('../../index').api;
+var driver = require('../../index').driver;
 
-var adapterFactory = require('../../api/adapterFactory.js');
-var adapterFactoryInstance = new adapterFactory(driver);
+var adapterFactoryInstance = new api.AdapterFactory(driver);
 
 var addedSpy = sinon.spy();
 var removedSpy = sinon.spy();
