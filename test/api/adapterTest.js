@@ -59,7 +59,7 @@ describe('Adapter Cancel connect', function(){
 
     beforeEach(function() {
         bleDriver = commonStubs.createBleDriver();
-        
+
         adapter = new Adapter(bleDriver, 'theId', 42);
     });
 
@@ -115,11 +115,11 @@ describe('Adapter Cancel connect', function(){
 });
 
 describe('Adapter disconnect', function(){
-     let bleDriver, adapter;
+    let bleDriver, adapter;
 
     beforeEach(function() {
         bleDriver = commonStubs.createBleDriver();
-        
+
         adapter = new Adapter(bleDriver, 'theId', 42);
         adapter._devices['myDeviceId'] = {connectionHandle: '1234'};
     });

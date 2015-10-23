@@ -10,6 +10,7 @@ const Service = require('./service');
 const Characteristic = require('./characteristic');
 const Descriptor = require('./descriptor');
 const AdType = require('./util/adType');
+const Converter = require('./util/sdConv');
 
 // No caching of devices
 // Do cache service database
@@ -22,9 +23,9 @@ class Adapter extends EventEmitter {
     constructor(bleDriver, instanceId, port) {
         super();
 
-        if(bleDriver === undefined) throw new Error('Missing argument bleDriver');
-        if(instanceId === undefined) throw new Error('Missing argument instanceId');
-        if(port === undefined) throw new Error('Missing argument port');
+        if(bleDriver === undefined) throw new Error('Missing argument bleDriver.');
+        if(instanceId === undefined) throw new Error('Missing argument instanceId.');
+        if(port === undefined) throw new Error('Missing argument port.');
 
         this._bleDriver = bleDriver;
         this._instanceId = instanceId;
@@ -36,10 +37,11 @@ class Adapter extends EventEmitter {
         this._descriptors = {};
 
         this._getAttributesCallbacks = {};
-
         this._pendingHandleReads = {};
         this._possiblyFragmentedReadResult = {};
         this._pendingReadCallbacks = {};
+
+        this._converter = new Converter(this._bleDriver);
     }
 
     // Get the instance id
@@ -1003,8 +1005,6 @@ class Adapter extends EventEmitter {
             }
         }
 
-
-
         return retval;
     }
 
@@ -1132,21 +1132,45 @@ class Adapter extends EventEmitter {
                 } else if(service.type == 'secondary') {
                     type = this._bleDriver.BLE_GATTS_SRVC_TYPE_SECONDARY;
                 } else {
-                    throw new Error(`Service type ${service.type} is unknown to me`);
+                    throw new Error(`Service type ${service.type} is unknown to me.`);
                 }
             }
 
-            this._bleDriver.add_service(type, service.uuid, (err, handle) => {
+            this._bleDriver.gatts_add_service(type, service.uuid, (err, serviceHandle) => {
                 if(this.checkAndPropagateError(err, 'Error occurred adding service.', callback)) return;
 
                 for(let characteristic of service._factory_characteristics) {
+                    this._converter.characteristicToDriver(characteristic, (err, characteristicForDriver) => {
+                        if(this.checkAndPropagateError(err, 'Error converting characteristic to driver.', callback)) return;
 
+                        this._bleDriver.gatts_add_characteristic(
+                            serviceHandle,
+                            characteristicForDriver.metadata,
+                            characteristicForDriver.attribute, (err, handles) => {
+                                if(this.checkAndPropagateError(err, 'Error occurred adding characteristic.', callback)) return;
+
+                                characteristic.handle = handles.value_handle;
+
+                                for(let descriptor in characteristic.descriptors) {
+                                    this._converter.descriptorToDriver(characteristic, (err, descriptorForDriver) => {
+                                        if(this.checkAndPropagateError(err, 'Error converting descriptor to driver.', callback)) return;
+
+                                        this._bleDriver.gatts_add_descriptor(
+                                            characteristic.handle,
+                                            descriptorForDriver,
+                                            (err, handle) => {
+                                                if(this.checkAndPropagateError(err, 'Error adding descriptor.', callback)) return;
+                                                descriptor.handle = handle;
+                                            }
+                                        );
+                                    });
+                                }
+                            }
+                        );
+                    });
                 }
-
             });
         }
-
-
     }
 
     // GATTS/GATTC
