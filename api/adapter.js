@@ -37,7 +37,6 @@ class Adapter extends EventEmitter {
         this._descriptors = {};
 
         this._getAttributesCallbacks = {};
-        this._pendingHandleReads = {};
         this._possiblyFragmentedReadResult = {};
         this._pendingReadCallbacks = {};
 
@@ -442,7 +441,6 @@ class Adapter extends EventEmitter {
 
             if (uuid === null) {
                 getAttributesCallback.pendingHandleReads[handle] = newService;
-                this._pendingHandleReads[handle] = getAttributesCallback.pendingHandleReads;
             } else {
                 this.emit('serviceAdded', newService);
             }
@@ -471,7 +469,7 @@ class Adapter extends EventEmitter {
                 for (let characteristicInstanceId in this._characteristics) {
                     const characteristic = this._characteristics[characteristicInstanceId];
                     if (characteristic.serviceInstanceId === getAttributesCallback.parent.instanceId) {
-                        callbackCharacteristics.push(this._characteristics[characteristicInstanceId]);
+                        callbackCharacteristics.push(characteristic);
                     }
                 }
                 delete this._getAttributesCallbacks[device.instanceId];
@@ -511,12 +509,12 @@ class Adapter extends EventEmitter {
 
             if (uuid === null) {
                 getAttributesCallback.pendingHandleReads[declarationHandle] = newCharacteristic;
-                this._pendingHandleReads[declarationHandle] = getAttributesCallback.pendingHandleReads;
             }
 
             // Add pending reads to get characteristics values.
-            getAttributesCallback.pendingHandleReads[valueHandle] = newCharacteristic;
-            this._pendingHandleReads[valueHandle] = getAttributesCallback.pendingHandleReads;
+            if (properties.read) {
+                getAttributesCallback.pendingHandleReads[valueHandle] = newCharacteristic;
+            }
         });
 
         const nextStartHandle = characteristics[characteristics.length - 1].handle + 1;
@@ -538,26 +536,46 @@ class Adapter extends EventEmitter {
         if (event.count === 0) {
             if (_.isEmpty(getAttributesCallback.pendingHandleReads)) {
                 // No pending reads to wait for.
+                const callbackDescriptors = [];
+
+                for (let descriptorInstanceId in this._descriptors) {
+                    const descriptor = this._descriptors[descriptorInstanceId];
+                    if (descriptor.characteristicInstanceId === getAttributesCallback.parent.instanceId) {
+                        callbackDescriptors.push(descriptor);
+                    }
+                }
                 delete this._getAttributesCallbacks[device.instanceId];
-                getAttributesCallback.callback();
+                getAttributesCallback.callback(undefined, callbackDescriptors);
+            } else {
+                for (let handle in getAttributesCallback.pendingHandleReads) {
+                    // Just take the first found handle and start the read process.
+                    this._bleDriver.gattc_read(device.connectionHandle, handle, 0, err => {
+                        if (err) {
+                            this.emit('error', err);
+                            // Call getServices callback??
+                        }
+                    });
+                    break;
+                }
             }
+
             return;
         }
 
         // We should only receive descriptors under one characteristic.
-        const characteristic = this._getCharacteristicByHandle(device.instanceId, descriptors[0].handle);
+        const characteristic = getAttributesCallback.parent;
 
         descriptors.forEach(descriptor => {
             const handle = descriptor.handle;
             let uuid = this._numberTo16BitUuid(descriptor.uuid.uuid);
 
             if (characteristic.uuid.type === this._bleDriver.BLE_UUID_TYPE_UNKNOWN) {
-                uuid = null;
+                uuid = 'unknown-descriptor-uuid';
             }
 
-            // TODO: Fix magic number?
+            // TODO: Fix magic number? Primary Service and Characteristic Declaration uuids
             if (uuid === 0x2800 || uuid === 0x2803) {
-                // Found a characteristic declaration
+                // Found a service or characteristic declaration
                 if (_.isEmpty(getAttributesCallback.pendingHandleReads)) {
                     // No pending reads to wait for.
                     delete this._getAttributesCallbacks[device.instanceId];
@@ -567,21 +585,21 @@ class Adapter extends EventEmitter {
             }
 
             const newDescriptor = new Descriptor(characteristic.instanceId, uuid, null);
+            newDescriptor.handle = handle;
+            this._descriptors[newDescriptor.instanceId] = newDescriptor;
 
+            // TODO: We cannot read descriptor 128bit uuid.
+            /*
             if (uuid === null) {
                 getAttributesCallback.pendingHandleReads[handle] = newDescriptor;
                 this._pendingHandleReads[handle] = getAttributesCallback.pendingHandleReads;
-                this._bleDriver.gattc_read(device.connectionHandle, handle, 0, err => {
-                    if (err) {
-                        this.emit('error', err);
-                        // Call getCharacteristics callback??
-                        return;
-                    }
-                });
             }
+            */
+
+            getAttributesCallback.pendingHandleReads[handle] = newDescriptor;
         });
 
-        const service = this._getServiceByHandle(device.instanceId, descriptors[0].handle);
+        const service = this._services[getAttributesCallback.parent.serviceInstanceId];
         const nextStartHandle = descriptors[descriptors.length - 1].handle + 1;
         const handleRange = {startHandle: nextStartHandle, endHandle: service.endHandle};
 
@@ -634,7 +652,7 @@ class Adapter extends EventEmitter {
                     }
                     delete this._getAttributesCallbacks[device.instanceId];
                     getAttributesCallback.callback(undefined, callbackServices);
-            }
+                }
             } else if (attribute instanceof Characteristic) {
                 // TODO: Translate from uuid to name?
                 if (handle === attribute.declarationHandle) {
@@ -656,6 +674,19 @@ class Adapter extends EventEmitter {
                     }
                     delete this._getAttributesCallbacks[device.instanceId];
                     getAttributesCallback.callback(undefined, callbackCharacteristics);
+                }
+            } else if(attribute instanceof Descriptor) {
+                attribute.value = data;
+
+                if (_.isEmpty(pendingHandleReads)) {
+                    const callbackDescriptors = [];
+                    for (let descriptorInstanceId in this._descriptors) {
+                        if (this._descriptors[descriptorInstanceId].characteristicInstanceId === attribute.characteristicInstanceId) {
+                            callbackDescriptors.push(this._descriptors[descriptorInstanceId]);
+                        }
+                    }
+                    delete this._getAttributesCallbacks[device.instanceId];
+                    getAttributesCallback.callback(undefined, callbackDescriptors);
                 }
             }
 
@@ -710,14 +741,17 @@ class Adapter extends EventEmitter {
 
     _getCharacteristicByHandle(deviceInstanceId, handle) {
         const service = this._getServiceByHandle(deviceInstanceId, handle);
-        const characteristics = this._characteristics.filter(characteristic => characteristic.serviceInstanceId === service.instanceId);
 
-        let foundCharacteristic = {handle: -1};
+        let foundCharacteristic = null;
 
-        for (let characteristicInstanceId in characteristics) {
-            const characteristic = characteristic[characteristicInstanceId];
+        for (let characteristicInstanceId in this._characteristics) {
+            const characteristic = this._characteristics[characteristicInstanceId];
 
-            if (characteristic.handle <= handle && foundCharacteristic.handle < characteristic.handle) {
+            if (characteristic.serviceInstanceId !== service.instanceId) {
+                continue;
+            }
+
+            if (characteristic.declarationHandle <= handle && (!foundCharacteristic || foundCharacteristic.declarationHandle < characteristic.declarationHandle)) {
                 foundCharacteristic = characteristic;
             }
         }
@@ -727,19 +761,20 @@ class Adapter extends EventEmitter {
 
     _getDescriptorByHandle(deviceInstanceId, handle) {
         const characteristic = this._getCharacteristicByHandle(deviceInstanceId, handle);
-        const descriptors = this._descriptors.filter(descriptor => descriptor.characteristicInstanceId === characteristic.instanceId);
 
-        let descriptor;
+        for (let descriptorInstanceId in this._descriptors) {
+            const descriptor = this._descriptors[descriptorInstanceId];
 
-        for (let descriptorInstanceId in descriptors) {
-            const descriptor = descriptors[descriptorInstanceId];
+            if (descriptor.characteristicInstanceId !== characteristic.instanceId) {
+                continue;
+            }
 
             if (descriptor.handle === handle) {
                 return descriptor;
             }
         }
 
-        return descriptor;
+        return null;
     }
 
     _getCharacteristicByValueHandle(valueHandle) {

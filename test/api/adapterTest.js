@@ -105,7 +105,7 @@ describe('Adapter Cancel connect', function(){
     it('should emit error if gap_cancel_connect fails', (done) =>{
         let errorSpy = sinon.spy();
         adapter.once('error', errorSpy);
-        
+
         bleDriver.gap_cancel_connect.yieldsAsync('Error');
         adapter.cancelConnect(() =>{
             assert(errorSpy.calledOnce);
@@ -226,7 +226,7 @@ describe('Adapter start characteristics notification', () =>{
         adapter.writeDescriptorValue.yieldsAsync(undefined);
         adapter.startCharacteristicsNotifications(characteristic.instanceId, false, ()=>{
             const args = adapter.writeDescriptorValue.lastCall.args;
-            assert.equal(args[0], 'dummyServiceId.1.1');
+            assert.equal(args[0], cccdDescriptor.instanceId);
             assert.deepEqual(args[1], [1,0]);
             assert.equal(args[2], true);
             done();

@@ -12,6 +12,7 @@ const BLE_UUID_TYPE_UNKNOWN = 0;
 
 const BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP = 48;
 const BLE_GATTC_EVT_CHAR_DISC_RSP = 50;
+const BLE_GATTC_EVT_DESC_DISC_RSP = 51;
 const BLE_GATTC_EVT_READ_RSP = 53;
 const BLE_GATTC_EVT_HVX = 56;
 
@@ -46,6 +47,7 @@ module.exports.createBleDriver = function(callbackForReceivingBleDriverEventCall
         BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST,
         BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP,
         BLE_GATTC_EVT_CHAR_DISC_RSP,
+        BLE_GATTC_EVT_DESC_DISC_RSP,
         BLE_GATTC_EVT_READ_RSP,
         BLE_GATTC_EVT_HVX,
         BLE_GATT_HVX_NOTIFICATION,
