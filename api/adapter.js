@@ -36,7 +36,10 @@ class Adapter extends EventEmitter {
         this._descriptors = {};
 
         this._getAttributesCallbacks = {};
+
         this._pendingHandleReads = {};
+        this._possiblyFragmentedReadResult = {};
+        this._pendingReadCallbacks = {};
     }
 
     // Get the instance id
@@ -654,8 +657,6 @@ class Adapter extends EventEmitter {
                 }
             }
 
-
-
             for (let newReadHandle in pendingHandleReads) {
                 // Just take the first found handle and start the read process.
                 this._bleDriver.gattc_read(device.connectionHandle, newReadHandle, 0, err => {
@@ -666,8 +667,27 @@ class Adapter extends EventEmitter {
                 });
                 break;
             }
+        } else {
+            this._possiblyFragmentedReadResult[device.instanceId] = this._possiblyFragmentedReadResult[device.instanceId].concat(event.data);
+            if (event.data.length < this._bleDriver.GATT_MTU_SIZE_DEFAULT) {
+                this._possiblyFragmentedReadResult[device.instanceId] = undefined;
+                this._pendingReadCallbacks[device.instanceId](undefined, this._possiblyFragmentedReadResult[device.instanceId]);
+                this._pendingReadCallbacks[device.instanceId] = undefined;
+            } else if (event.data.length === this._bleDriver.GATT_MTU_SIZE_DEFAULT) {
+                // We need to read more:
+                this._bleDriver.read(event.conn_handle, event.handle, this._possiblyFragmentedReadResult.length, (err) => {
+                    if (err) {
+                        emit('error', 'Read descriptor value failed: ' + error);
+                        this._pendingReadCallbacks[device.instanceId]('Failed reading descriptor at ' + this._possiblyFragmentedReadResult[device.instanceId].length);
+                    } else {
+                        this._pendingReadCallbacks[device.instanceId] = callback;
+                    }
+                });
+            } else {
+                emit('error', 'Length of Read response is > mtu');
+                this._pendingReadCallbacks[device.instanceId]('Invalid read response length. (> mtu)');
+            }
         }
-        // TODO: Handle a "proper" characteristic/decriptor value read.
     }
 
     _getServiceByHandle(deviceInstanceId, handle) {
@@ -742,8 +762,8 @@ class Adapter extends EventEmitter {
         // TODO: Do more checking of write response?
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const busyMap = Object.assign({}, this._adapterState.gattBusyMap);
-        // TODO: should busy map be false?
-        busyMap[device.instanceId] = true;
+
+        busyMap[device.instanceId] = false;
         this._changeAdapterState({gattBusyMap: busyMap});
     }
 
@@ -1258,7 +1278,23 @@ class Adapter extends EventEmitter {
         return device;
     }
 
-    // Callback signature function(err) {}, callback will not be called unti ack is received. options: {ack, long, offset}
+    readDescriptorValue(descriptorId, callback) {
+        const mtu = this._bleDriver.GATT_MTU_SIZE_DEFAULT;
+        const descriptor = this.getDescriptor(descriptorId);
+        const device = this._getDeviceFromDescriptorId(descriptorId);
+        const connectionHandle = device.connectionHandle;
+
+        this._bleDriver.read(connectionHandle, descriptor.handle, 0, (err) => {
+            if (err) {
+                emit('error', 'Read descriptor value failed: ' + error);
+            } else {
+                this._pendingReadCallbacks[device.instanceId] = callback;
+                this._possiblyFragmentedReadResult[device.instanceId] = [];
+            }
+        });
+    }
+
+    // Callback signature function(err) {}, callback will not be called until ack is received. options: {ack, long, offset}
     writeDescriptorValue(descriptorId, value, ack, callback) {
         const device = this._getDeviceFromDescriptorId(descriptorId);
         const descriptor = this.getDescriptor(descriptorId);
