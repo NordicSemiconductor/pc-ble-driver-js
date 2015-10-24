@@ -45,7 +45,6 @@ class Adapter extends EventEmitter {
         this._fragmentedWrites = {};
         this._pendingWriteCallbacks = {};
         this._maxPayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 3;
-
     }
 
     // Get the instance id
@@ -334,45 +333,45 @@ class Adapter extends EventEmitter {
         // TODO: Check address type?
         const address = event.peer_addr.address;
         const discoveredDevice = new Device(address, 'peripheral');
+        if (event.data) {
+            if (event.data.BLE_GAP_AD_TYPE_LONG_LOCAL_NAME) {
+                discoveredDevice.name = event.data.BLE_GAP_AD_TYPE_LONG_LOCAL_NAME;
+            } else if (event.data.BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME) {
+                discoveredDevice.name = event.data.BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME;
+            }
 
-        if (event.data.BLE_GAP_AD_TYPE_LONG_LOCAL_NAME) {
-            discoveredDevice.name = event.data.BLE_GAP_AD_TYPE_LONG_LOCAL_NAME;
-        } else if (event.data.BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME) {
-            discoveredDevice.name = event.data.BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME;
+            let uuids = [];
+
+            if (event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_MORE_AVAILABLE) {
+                uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_MORE_AVAILABLE);
+            }
+
+            if (event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE) {
+                uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE);
+            }
+
+            if (event.data.BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_MORE_AVAILABLE) {
+                uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_MORE_AVAILABLE);
+            }
+
+            if (event.data.BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_COMPLETE) {
+                uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_COMPLETE);
+            }
+
+            if (event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_MORE_AVAILABLE) {
+                uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_MORE_AVAILABLE);
+            }
+
+            if (event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_COMPLETE) {
+                uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_COMPLETE);
+            }
+
+            discoveredDevice.uuids = uuids;
+
+            if (event.data.BLE_GAP_AD_TYPE_TX_POWER_LEVEL) {
+                discoveredDevice.txPower = event.data.BLE_GAP_AD_TYPE_TX_POWER_LEVEL;
+            }
         }
-
-        let uuids = [];
-
-        if (event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_MORE_AVAILABLE) {
-            uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_MORE_AVAILABLE);
-        }
-
-        if (event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE) {
-            uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE);
-        }
-
-        if (event.data.BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_MORE_AVAILABLE) {
-            uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_MORE_AVAILABLE);
-        }
-
-        if (event.data.BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_COMPLETE) {
-            uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_COMPLETE);
-        }
-
-        if (event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_MORE_AVAILABLE) {
-            uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_MORE_AVAILABLE);
-        }
-
-        if (event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_COMPLETE) {
-            uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_COMPLETE);
-        }
-
-        discoveredDevice.uuids = uuids;
-
-        if (event.data.BLE_GAP_AD_TYPE_TX_POWER_LEVEL) {
-            discoveredDevice.txPower = event.data.BLE_GAP_AD_TYPE_TX_POWER_LEVEL;
-        }
-
         discoveredDevice.rssi = event.rssi;
 
         this.emit('deviceDiscovered', discoveredDevice);
@@ -944,8 +943,7 @@ class Adapter extends EventEmitter {
 
     // options: { active: x, interval: x, window: x timeout: x TODO: other params}. Callback signature function(err).
     startScan(options, callback) {
-        console.log(this._bleDriver.start_scan);
-        this._bleDriver.start_scan(options, err => {
+        this._bleDriver.gap_start_scan(options, err => {
             if (err) {
                 this.emit('error', make_error('Error occured when starting scan', err));
             } else {
