@@ -148,6 +148,8 @@ class Adapter extends EventEmitter {
         this._bleDriver.open(this._adapterState.port, options, err => {
             if(this.checkAndPropagateError(err, 'Error occurred opening serial port.', callback)) return;
 
+            this._changeAdapterState({available: true});
+
             this.getAdapterState((err, adapterState) => {
                 if(this.checkAndPropagateError(err, 'Error retrieving adapter state.', callback)) return;
                 if(callback) callback();
@@ -333,11 +335,14 @@ class Adapter extends EventEmitter {
         // TODO: Check address type?
         const address = event.peer_addr.address;
         const discoveredDevice = new Device(address, 'peripheral');
+
         if (event.data) {
             if (event.data.BLE_GAP_AD_TYPE_LONG_LOCAL_NAME) {
                 discoveredDevice.name = event.data.BLE_GAP_AD_TYPE_LONG_LOCAL_NAME;
             } else if (event.data.BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME) {
                 discoveredDevice.name = event.data.BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME;
+            } else if (event.data.BLE_GAP_AD_TYPE_COMPLETE_LOCAL_NAME) {
+                discoveredDevice.name = event.data.BLE_GAP_AD_TYPE_COMPLETE_LOCAL_NAME;
             }
 
             let uuids = [];

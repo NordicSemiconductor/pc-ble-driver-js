@@ -47,18 +47,19 @@ class AdapterFactory extends EventEmitter {
         return parsedAdapter;
     }
 
-    _updateAdapterList() {
+    _updateAdapterList(callback) {
         this._bleDriver.get_adapters((err, adapters) => {
-            console.log('!!!!!');
             if (err) {
                 this.emit('error', err);
+                if (callback && (typeof callback === 'function')) {
+                    callback(error);
+                }
                 return;
             }
-
+            
             const removedAdapters = Object.assign({}, this._adapters);
 
             for(let adapter of adapters) {
-                console.log('Adding new adapter.');
                 const adapterInstanceId = this._getInstanceId(adapter);
 
                 if (this._adapters[adapterInstanceId]) {
@@ -73,10 +74,13 @@ class AdapterFactory extends EventEmitter {
                 }
             }
 
-            for(let adapter of removedAdapters) {
+            for(let adapter in removedAdapters) {
                 delete this._adapters[adapter.instanceId];
                 this.emit('removed', adapter);
             };
+            if (callback && (typeof callback === 'function')) {
+                callback(undefined, this._adapters);
+            }
         });
     }
 
@@ -85,6 +89,11 @@ class AdapterFactory extends EventEmitter {
      */
     getAdapters() {
         return this._adapters;
+    }
+    asyncGetAdapters(callback) {
+        this._updateAdapterList((error, adapters) => {
+            callback(undefined, adapters);
+        });
     }
 }
 
