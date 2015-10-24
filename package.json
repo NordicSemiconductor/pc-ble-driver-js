@@ -4,12 +4,13 @@
   "description": "Javascript bindings for pc-ble-driver",
   "main": "index.js",
   "scripts": {
+    "lint": "jshint api/ test/ && jscs api/ test/",
     "install": "node build.js",
     "test": "mocha --es_staging --recursive test/api"
   },
-  "repository" : {
-    "type" : "git",
-    "url" : "https://github.com/NordicSemiconductor/pc-ble-driver-js.git"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NordicSemiconductor/pc-ble-driver-js.git"
   },
   "author": "",
   "license": "ISC",
@@ -21,6 +22,8 @@
   },
   "devDependencies": {
     "chai": "3.3.0",
+    "jscs": "^2.3.5",
+    "jshint": "^2.8.0",
     "keypress": "0.2.1",
     "mocha": "^2.3.3",
     "proxyquire": "^1.7.3",
