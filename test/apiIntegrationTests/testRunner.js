@@ -15,12 +15,15 @@ var adapterFactoryInstance = new adapterFactory(driver);
 const assert = require('assert');
 
 var argv = require('yargs')
-    .command('connect', 'Connect to a BLE peripheral. Requires --adapter, --peripheral')
     .command('list-adapters', 'List connected boards')
     .command('discover-peripherals', 'List advertising BLE peripherals in the vicinity. Default scan time is 10 seconds.')
+    .command('connect', 'Connect to a BLE peripheral. Requires --adapter, --peripheral')
+    .command('discover-services', 'Try to discover services of a device')
     .command('run-tests', 'Run the integration test suite. Requires --adapter and --peripheral')
     .string('adapter')
     .string('peripheral-address')
+    .demand(1)
+    .help('?')
     .argv
 ;
 
@@ -107,7 +110,19 @@ class TestLibrary {
             });
         });
     }
+    getServices(deviceInstanceId) {
+        return new Promise( (resolve, reject) => {
+            this._adapter.getServices(deviceInstanceId, (err, services) => {
+                if (err) {
+                    reject('Failed to get services: ', err);
+                } else {
+                    console.log(JSON.stringify(services));
+                    resolve(services);
+                }
+            });
+        });
 
+    }
     closeAdapter(){
         return new Promise((resolve, reject)=> {
             this._adapter.close((error) => {
@@ -181,6 +196,25 @@ for(let i = 0; i < argv['_'].length; i++) {
                 });
             break;
         }
+        case 'discover-services': 
+        {
+            const adapterId = argv.adapter;
+            const peripheralAddress = argv['peripheral-address'];
+            testLib.openAdapter(adapterId)
+                .then( testLib.connectToPeripheral.bind(testLib, peripheralAddress) )
+                .then( (device) => {
+                    return testLib.getServices(device.instanceId); 
+                })
+                .then(testLib.closeAdapter.bind(testLib))
+                .then(() => { 
+                    process.exit(0);
+                })
+                .catch( (error) => {
+                    console.log('Connect to device failed: ', error);
+                    process.exit(1);
+                });
+            break;
+        }
         case 'run-tests':
         {
             const mocha = new Mocha();
@@ -203,6 +237,7 @@ for(let i = 0; i < argv['_'].length; i++) {
                 });
                 process.exit(0);
             });
+            break;
         }
     }
 

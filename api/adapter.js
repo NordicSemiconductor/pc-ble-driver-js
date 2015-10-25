@@ -1264,12 +1264,15 @@ class Adapter extends EventEmitter {
         }
 
         this._getAttributesCallbacks[device.instanceId] = {callback: callback, pendingHandleReads: {}};
-
-        this._bleDriver.gattc_primary_services_discover(device.connectionHandle, 0, null, err => {
+        console.log('calling driver');
+        this._bleDriver.gattc_primary_services_discover(device.connectionHandle, 0, 0, (err, services) => {
             if (err) {
                 this.emit('error', make_error('Failed to get services', err));
                 callback(err);
                 return;
+            } else {
+                //TODO: callback only when services have been discovered
+                callback(undefined, services);
             }
         });
     }
