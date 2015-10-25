@@ -26,71 +26,88 @@ var argv = require('yargs')
 
 
 class TestLibrary {
-    getAdapters(callback) {
-        return adapterFactoryInstance.asyncGetAdapters(callback);
-    }
-
-    openAdapter(adapterId, callback) {
-        this.getAdapters((error, adapters) => {
-            const options = {'baudRate': 115200, 'parity': 'none', 'flowControl': 'none',
-                             'eventInterval': 1,'logLevel': 'trace',
-            };
-            const adapter = adapters[adapterId];
-            if (!adapter) {
-                callback('No adapter connected with adapter id ' + adapterId);
-            }
-            adapter.open(options, (err) => {
-                if (err) {
-                    console.log('Failed to open adapter ' + adapterId + ': ' + err);
-                    callback(err);
+    getAdapters() {
+        return new Promise( (resolve, reject) => {
+            adapterFactoryInstance.asyncGetAdapters((error, adapters) => {
+                if (error) {
+                    console.log("Failed to get adapters.");
+                    reject(error);
+                } else {
+                    resolve(adapters);
                 }
-                this._adapter = adapter;
-                callback();
             });
         });
     }
 
-    listAdvertisingPeripherals(callback) {
-        const scanParameters = {
-            'active': true, 'interval': 100, 'window': 50, 'timeout': 20
-        };
-        let foundDevices = [];
-        const advertisingListener = (device)=> {
-            if(!foundDevices.find((seenDevice) => seenDevice.address === device.address)) {
-                foundDevices.push(device);
-                console.log(device.name + ' ' + device.address);
-            }
-
-        };
-        this._adapter.on('deviceDiscovered', advertisingListener);
-        this._adapter.startScan(scanParameters, () =>{
-            console.log('started scan');
-            setTimeout(()=>{
-                this._adapter.removeListener('deviceDiscovered', advertisingListener);
-                callback();
-        }, 10000);
-
+    openAdapter(adapterId) {
+        return new Promise( (resolve, reject) => {
+            this.getAdapters().then( (adapters) => {
+                const options = {'baudRate': 115200, 'parity': 'none', 'flowControl': 'none',
+                                 'eventInterval': 1,'logLevel': 'trace',
+                };
+                const adapter = adapters[adapterId];
+                if (!adapter) {
+                    reject('No adapter connected with adapter id ' + adapterId);
+                }
+                adapter.open(options, (err) => {
+                    if (err) {
+                        console.log('Failed to open adapter ' + adapterId + ': ' + err);
+                        reject(err);
+                    }
+                    this._adapter = adapter;
+                    resolve();
+                });
+            });
         });
     }
-    connectToPeripheral(address, callback) {
-        var connectionParameters = {
-            min_conn_interval: 7.5, max_conn_interval: 7.5, slave_latency: 0, conn_sup_timeout: 4000
-        };
-        const addr = {address: address, type: "BLE_GAP_ADDR_TYPE_RANDOM_STATIC"};
-        const scanParameters = {
-            'active': true, 'interval': 100, 'window': 50, 'timeout': 20
-        };
-        const options = {scanParams: scanParameters, connParams: connectionParameters};
-        this._adapter.once('deviceConnected', (device) => {
-            callback();
-        });
-        this._adapter.connect(addr, options, (error) =>{
-            if (error) {
-                console.log(error);
-            }
-            console.log('Connecting to device at '  + address + '...');
+
+    listAdvertisingPeripherals() {
+        return new Promise((resolve, reject) =>{
+            const scanParameters = {
+                'active': true, 'interval': 100, 'window': 50, 'timeout': 20
+            };
+            let foundDevices = [];
+            const advertisingListener = (device)=> {
+                if(!foundDevices.find((seenDevice) => seenDevice.address === device.address)) {
+                    foundDevices.push(device);
+                    console.log(device.name + ' ' + device.address);
+                }
+
+            };
+            this._adapter.on('deviceDiscovered', advertisingListener);
+            this._adapter.startScan(scanParameters, () =>{
+                console.log('started scan');
+                setTimeout( () => {
+                    this._adapter.removeListener('deviceDiscovered', advertisingListener);
+                    resolve();
+                }, 10000);
+
+            });
         });
     }
+    connectToPeripheral(address) {
+        return new Promise( (resolve, reject) => {
+            var connectionParameters = {
+                min_conn_interval: 7.5, max_conn_interval: 7.5, slave_latency: 0, conn_sup_timeout: 4000
+            };
+            const addr = {address: address, type: "BLE_GAP_ADDR_TYPE_RANDOM_STATIC"};
+            const scanParameters = {
+                'active': true, 'interval': 100, 'window': 50, 'timeout': 20
+            };
+            const options = {scanParams: scanParameters, connParams: connectionParameters};
+            this._adapter.once('deviceConnected', (device) => {
+                resolve(device);
+            });
+            this._adapter.connect(addr, options, (error) =>{
+                if (error) {
+                    console.log(error);
+                    reject(error);
+                }
+                console.log('Connecting to device at '  + address + '...');
+            });
+        });
+    }
+
     closeAdapter(){
         return new Promise((resolve, reject)=> {
             this._adapter.close((error) => {
@@ -109,50 +126,59 @@ var testLib = new TestLibrary();
 for(let i = 0; i < argv['_'].length; i++) {
     switch(argv._[i]) {
         case 'connect':
-            const adapterId = argv['adapter'];
+        {
+            const adapterId = argv.adapter;
             const peripheralAddress = argv['peripheral-address'];
-            testLib.openAdapter(adapterId, (error) => {
-                testLib.connectToPeripheral(peripheralAddress, (error) => {
-                    if (!error) {
-                        console.log('Connected to device at ' + peripheralAddress);
-                        process.exit(0);
-                    } else {
-                        console.log('failed ', error);
-                        process.exit(1);
-                    }
+            testLib.openAdapter(adapterId)
+                .then( testLib.connectToPeripheral.bind(testLib, peripheralAddress) )
+                .then( (device) => {
+                    console.log('connected to device');
+                })
+                .then(testLib.closeAdapter.bind(testLib))
+                .then(() => { 
+                    process.exit(0);
+                })
+                .catch( (error) => {
+                    console.log('Connect to device failed: ', error);
+                    process.exit(1);
                 });
-            });
             break;
+        }
         case 'list-adapters':
             console.log('Connected adapters: ');
-            testLib.getAdapters((error, adapters) => {
-                Object.keys(adapters).forEach((adapterKey, index) =>{
-                    console.log(index + '. ' + adapterKey);
+            testLib.getAdapters()
+                .then( (adapters) => {
+                    Object.keys(adapters).forEach((adapterKey, index) =>{
+                        console.log(index + '. ' + adapterKey);
+                    });
+                })
+                .then(() => {
+                    process.exit(0);
+                })
+                .catch( (error) => {
+                    console.log('list-adapters failed: ', error);
+                    process.exit(1);
                 });
-
-                process.exit(0);
-            });
             break;
         case 'discover-peripherals':
         {
-            const adapterId = argv['adapter'];
+            const adapterId = argv.adapter;
             if (!adapterId) {
-                throw new Error('Missing argument --adapter.');
+                console.log('Missing argument --adapter.');
+                process.exit(1);
             }
             console.log('Opening adapter ' + adapterId + '...');
-            testLib.openAdapter(adapterId, (error) => {
-                if (error) {
-                    console.log('Failed to connect to adapter: ' + error);
+            testLib.openAdapter(adapterId)
+                .then(testLib.listAdvertisingPeripherals.bind(testLib))
+                .then(testLib.closeAdapter.bind(testLib))
+                .then(() => {
+                    console.log('Closed adapter');
+                    process.exit(0);
+                })
+                .catch( (error) => {
+                    console.log('discover-peripherals failed: ' + error);
                     process.exit(1);
-                }
-                console.log('Successfully opened adapter ' + adapterId);
-                testLib.listAdvertisingPeripherals(() =>{
-                    testLib.closeAdapter().then((error)=>{
-                        console.log('closed adapter');
-                        process.exit(0);
-                    });
                 });
-            });
             break;
         }
         case 'run-tests':

@@ -92,7 +92,11 @@ class AdapterFactory extends EventEmitter {
     }
     asyncGetAdapters(callback) {
         this._updateAdapterList((error, adapters) => {
-            callback(undefined, adapters);
+            if (error) {
+                callback(error);
+            } else {
+                callback(undefined, adapters);
+            }
         });
     }
 }
