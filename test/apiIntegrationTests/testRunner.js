@@ -4,8 +4,13 @@
 // -Use promises to chain actions
 // -Create action library, (connect, disconnect) traits: can run, has prerequisites, can fail, common interface
 // /Should be able to put actions in separate files. Two kinds of actions: tests, or usable actions
-var driver = require('../../index.js').driver;
-var adapterFactory = require('../../api/adapterFactory.js');
+const driver = require('../../index.js').driver;
+const adapterFactory = require('../../api/adapterFactory.js');
+const Mocha = require('mocha');
+const fs = require('fs');
+const path = require('path');
+
+
 var adapterFactoryInstance = new adapterFactory(driver);
 const assert = require('assert');
 
@@ -13,10 +18,12 @@ var argv = require('yargs')
     .command('connect', 'Connect to a BLE peripheral. Requires --adapter, --peripheral')
     .command('list-adapters', 'List connected boards')
     .command('discover-peripherals', 'List advertising BLE peripherals in the vicinity. Default scan time is 10 seconds.')
+    .command('run-tests', 'Run the integration test suite. Requires --adapter and --peripheral')
     .string('adapter')
     .string('peripheral-address')
     .argv
 ;
+
 
 class TestLibrary {
     getAdapters(callback) {
@@ -84,6 +91,17 @@ class TestLibrary {
             console.log('Connecting to device at '  + address + '...');
         });
     }
+    closeAdapter(){
+        return new Promise((resolve, reject)=> {
+            this._adapter.close((error) => {
+                if (!error) {
+                    resolve();
+                } else {
+                    reject(error);
+                }
+            });
+        });
+    }
 }
 
 var testLib = new TestLibrary();
@@ -129,50 +147,37 @@ for(let i = 0; i < argv['_'].length; i++) {
                 }
                 console.log('Successfully opened adapter ' + adapterId);
                 testLib.listAdvertisingPeripherals(() =>{
-                    process.exit(0);
+                    testLib.closeAdapter().then((error)=>{
+                        console.log('closed adapter');
+                        process.exit(0);
+                    });
                 });
             });
             break;
         }
-    }
+        case 'run-tests':
+        {
+            const mocha = new Mocha();
 
-}
-/*
-console.log('BLE API test suite');
-console.log('Press 1 to list adapters');
+            const testDir = __dirname;
 
+            // Add each .js file to the mocha instance
+            fs.readdirSync(testDir).filter((file)=>{
+                // Only keep the .js files
+                return (file.substr(-3) === '.js') && file != __filename;
 
-process.stdin.on('keypress', (ch, key) => {
-    if (key && key.ctrl && key.name == 'c') {
-        process.stdin.pause();
-        return;
-    }
-    if(ch) {
-        switch(ch) {
-            case '1':
-                let adapterNames = testLib.getAdapterNames();
-                for (let i = 1; i <= adapterNames.length; i++) {
-                    console.log( i + '.' + adapterNames[i - 1]);
-                }
-            break;
-
+            }).forEach((file) => {
+                mocha.addFile(
+                    path.join(testDir, file)
+                );
+            });
+            mocha.run(function(failures){
+                process.on('exit', function () {
+                    process.exit(failures);
+                });
+                process.exit(0);
+            });
         }
     }
 
-});
-/*
-const connectToAdapter = (nextFun) => {
-    console.log('Connecting to adapter..');
-    if (nextFun) {
-        nextFun();
-    }
-};
-
-const selectPeripheralToConnectTo = (nextFun) => {
-    console.log('Connecting to peripheral');
-    if (nextFun) {
-        nextFun();
-    }
-};
-
-*/
+}
