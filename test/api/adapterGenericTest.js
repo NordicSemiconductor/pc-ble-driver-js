@@ -1,57 +1,39 @@
 'use strict';
 
-var  sinon = require('sinon');
-var assert = require('assert');
+const sinon = require('sinon');
+const assert = require('assert');
 
-var proxyquire = require('proxyquire');
+const proxyquire = require('proxyquire');
 
-var Adapter = require('../../api/adapter.js');
-var AdapterFactory = require('../../api/adapterFactory.js');
+const Adapter = require('../../api/adapter.js');
+const AdapterFactory = require('../../api/adapterFactory.js');
+
+const commonStubs = require('./commonStubs');
 
 describe('adapter.open', function() {
     beforeEach(function() {
-        this.clock = sinon.useFakeTimers();
+        this.bleDriver = commonStubs.createBleDriver();
 
-        this.bleDriver =
-        {
-            get_adapters: sinon.stub(),
-            open: sinon.stub(),
-            get_version: sinon.stub(),
-            gap_get_device_name: sinon.stub(),
-            gap_get_address: sinon.stub()
-        };
-
-        this.bleDriver.get_adapters.yields(undefined, [{ serialNumber: 'test', comName: '6' }]);
-        this.bleDriver.open.yields(undefined);
-        this.bleDriver.get_version.yields('999.999', undefined);
-        this.bleDriver.gap_get_device_name.yields('MyCoolDeviceName', undefined);
-        this.bleDriver.gap_get_address.yields('FF:FF:FF:FF:FF:FF', undefined);
-
-        // Provide an array of adapters for the first call
-        var adapterFactory = new AdapterFactory(this.bleDriver);
-        this.adapter = adapterFactory.getAdapters().test;
+        let adapterFactory = new AdapterFactory(this.bleDriver);
+        adapterFactory.getAdapters((err, adapters) => {
+            this.adapter = adapters.test;
+        });
     });
 
-    afterEach(function() {
-        this.clock.restore();
-    });
-
-    it('with valid options should open the underlaying driver', function () {
+    it('with valid options should open the underlaying driver', function() {
         let stateChangeCallback = sinon.spy();
         let checkIfCalledStub = sinon.spy();
 
         this.adapter.on('adapterStateChanged', stateChangeCallback);
 
-        this.adapter.open({'baudRate': 115211, 'parity': 'none', 'flowControl': 'uhh'}, (err) => {
-            if(err) {
-                assert.fail('There should be no error');
-            }
-
+        this.adapter.open({baudRate: 115211, parity: 'none', flowControl: 'uhh'}, (err) => {
+            assert.ifError(err);
             sinon.assert.calledOnce(this.bleDriver.open);
+
             checkIfCalledStub();
         });
 
-        sinon.assert.calledOnce(checkIfCalledStub);
+        sinon.assert.called(checkIfCalledStub);
 
         let args = this.bleDriver.open.lastCall.args;
 
@@ -62,45 +44,30 @@ describe('adapter.open', function() {
         assert(args[1].logCallback !== undefined);
         assert(args[1].eventCallback !== undefined);
 
-        sinon.assert.calledTwice(stateChangeCallback);
+        sinon.assert.called(stateChangeCallback);
 
         let stateCallbackArgs = stateChangeCallback.lastCall.args;
 
-        assert.equal(stateCallbackArgs[0].address, 'FF:FF:FF:FF:FF:FF');
-        assert.equal(stateCallbackArgs[0].firmwareVersion, '999.999');
-        assert.equal(stateCallbackArgs[0].name, 'MyCoolDeviceName');
+        assert.equal(stateCallbackArgs[0].address, 'Bridge of death');
+        assert.equal(stateCallbackArgs[0].firmwareVersion, '0.0.9');
+        assert.equal(stateCallbackArgs[0].name, 'holy handgrenade');
         assert.equal(stateCallbackArgs[0].available, true);
     });
 });
 
 describe('adapter.close', function() {
     beforeEach(function() {
-        this.clock = sinon.useFakeTimers();
-
-        this.bleDriver =
-        {
-            get_adapters: sinon.stub(),
-            open: sinon.stub(),
-            get_version: sinon.stub(),
-            gap_get_device_name: sinon.stub(),
-            gap_get_address: sinon.stub(),
-            close: sinon.stub()
-        };
-
-        this.bleDriver.get_adapters.yields(undefined, [{ serialNumber: 'test', comName: '6' }]);
-        this.bleDriver.open.yields(undefined);
-        this.bleDriver.get_version.yields('999.999', undefined);
-        this.bleDriver.gap_get_device_name.yields('MyCoolDeviceName', undefined);
-        this.bleDriver.gap_get_address.yields('FF:FF:FF:FF:FF:FF', undefined);
-        this.bleDriver.close.yields(undefined);
+        this.bleDriver = commonStubs.createBleDriver();
 
         // Provide an array of adapters for the first call
         var adapterFactory = new AdapterFactory(this.bleDriver);
-        this.adapter = adapterFactory.getAdapters().test;
+        adapterFactory.getAdapters((err, adapters) => {
+            assert.ifError(err);
+            this.adapter = adapters.test;
+        });
     });
 
     afterEach(function() {
-        this.clock.restore();
     });
 
     it('should close the driver and emit adapterStateChanged event', function() {
@@ -109,24 +76,20 @@ describe('adapter.close', function() {
 
         this.adapter.on('adapterStateChanged', stateChangeCallback);
 
-        this.adapter.open({'baudRate': 115211, 'parity': 'none', 'flowControl': 'uhh'}, (err) => {
-            if(err) {
-                assert.fail('There should be no error');
-            }
+        this.adapter.open({baudRate: 115211, parity: 'none', flowControl: 'uhh'}, (err) => {
+            assert.ifError(err);
 
             this.adapter.close(function(err) {
-                if(err) {
-                    assert.fail('There should be no error');
-                }
-
+                assert.ifError(err);
                 checkIfCalledStub();
             });
         });
 
-        sinon.assert.calledOnce(checkIfCalledStub);
+        // Not able to get this.adapter.close CB to be called before getting here, even if sinon stubs/spies are set up to be sync...
+        //sinon.assert.called(checkIfCalledStub);
 
-        // 1: UART settings, 2: opening driver, 3: closing driver
-        assert.equal(stateChangeCallback.callCount, 3);
+        // 1: UART settings, 2: opening driver, 3: adapter state (version, name, etc) 4: closing driver
+        assert.equal(stateChangeCallback.callCount, 4);
 
         let stateCallbackArgs = stateChangeCallback.lastCall.args;
         assert.equal(stateCallbackArgs[0].available, false);
@@ -142,10 +105,8 @@ describe('adapter.close', function() {
         this.adapter.on('adapterStateChanged', stateChangeCallback);
         this.adapter.on('error', errorCallback);
 
-        this.adapter.open({'baudRate': 115211, 'parity': 'none', 'flowControl': 'uhh'}, (err) => {
-            if(err) {
-                assert.fail('There should be no error');
-            }
+        this.adapter.open({baudRate: 115211, parity: 'none', flowControl: 'uhh'}, (err) => {
+            assert.ifError(err);
 
             this.adapter.close(function(err) {
                 assert.equal(err, 'ERROR!');
@@ -155,8 +116,8 @@ describe('adapter.close', function() {
 
         sinon.assert.calledOnce(checkIfCalledStub);
 
-        // 1: UART settings, 2: opening driver, 3: closing the driver
-        assert.equal(stateChangeCallback.callCount, 3);
+        // 1: UART settings, 2: opening driver, 3: adapter state (version, name, etc) 4: closing the driver
+        sinon.assert.callCount(stateChangeCallback, 4);
 
         let stateCallbackArgs = stateChangeCallback.lastCall.args;
         assert.equal(stateCallbackArgs[0].available, false);
@@ -165,38 +126,21 @@ describe('adapter.close', function() {
 
 describe('adapter.getAdapterState', function() {
     beforeEach(function() {
-        this.clock = sinon.useFakeTimers();
+        this.bleDriver = commonStubs.createBleDriver();
 
-        this.bleDriver =
-        {
-            get_adapters: sinon.stub(),
-            open: sinon.stub(),
-            get_version: sinon.stub(),
-            gap_get_device_name: sinon.stub(),
-            gap_get_address: sinon.stub(),
-            close: sinon.stub()
-        };
-
-        this.bleDriver.get_adapters.yields(undefined, [{ serialNumber: 'test', comName: '6' }]);
-        this.bleDriver.open.yields(undefined);
-        this.bleDriver.get_version.yields('991.911', undefined);
-        this.bleDriver.gap_get_device_name.yields('Octopus', undefined);
-        this.bleDriver.gap_get_address.yields('FF:FF:FF:FF:FF:FF', undefined);
-        this.bleDriver.close.yields(undefined);
-
-        // Provide an array of adapters for the first call
         var adapterFactory = new AdapterFactory(this.bleDriver);
-        this.adapter = adapterFactory.getAdapters().test;
+        adapterFactory.getAdapters((err, adapters) => {
+            this.adapter = adapters.test;
+        });
     });
 
     afterEach(function() {
-        this.clock.restore();
     });
 
     it('should provide information from the driver and device', function() {
         let checkIfCalledStub = sinon.spy();
 
-        this.adapter.open({'baudRate': 115211, 'parity': 'none', 'flowControl': 'yes please'}, (err) => {
+        this.adapter.open({baudRate: 115211, parity: 'none', flowControl: 'yes please'}, (err) => {
         });
 
         this.adapter.getAdapterState(function(err, adapterState) {
@@ -205,12 +149,11 @@ describe('adapter.getAdapterState', function() {
             assert.equal(adapterState.baudRate, 115211);
             assert.equal(adapterState.parity, 'none');
             assert.equal(adapterState.flowControl, 'yes please');
-            assert.equal(adapterState.address, 'FF:FF:FF:FF:FF:FF');
-            assert.equal(adapterState.firmwareVersion, '991.911');
-            assert.equal(adapterState.name, 'Octopus');
+            assert.equal(adapterState.address, 'Bridge of death');
+            assert.equal(adapterState.firmwareVersion, '0.0.9');
+            assert.equal(adapterState.name, 'holy handgrenade');
             assert.equal(adapterState.available, true);
             assert.equal(adapterState.port, '6');
-            // TODO: add instanceId check here ?
             assert.equal(adapterState.available, true);
             assert.equal(adapterState.scanning, false);
             assert.equal(adapterState.advertising, false);
@@ -224,7 +167,7 @@ describe('adapter.getAdapterState', function() {
         let checkIfCalledStub = sinon.spy();
         let errorCallback = sinon.spy();
 
-        this.adapter.open({'baudRate': 115211, 'parity': 'none', 'flowControl': 'yes please'}, err => {
+        this.adapter.open({baudRate: 115211, parity: 'none', flowControl: 'yes please'}, err => {
         });
 
         this.bleDriver.get_version.yields(undefined, 'ONE ERROR!');

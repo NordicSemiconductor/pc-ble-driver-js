@@ -31,7 +31,7 @@ describe('AdapterFactory', function() {
         this.clock.restore();
     });
 
-    it('should provide a list of adapters connected to the computer', function () {
+    it('should provide a list of adapters connected to the computer', function() {
         var adapters = this.adapterFactory.getAdapters((err, adapters) => {
             assert.ifError(err);
             assert(Object.keys(adapters).length === 0, 'Should not be any adapters here yet.');

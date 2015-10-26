@@ -1,4 +1,3 @@
-
 'use strict';
 
 const sinon = require('sinon');
@@ -19,7 +18,6 @@ const BLE_GATTC_EVT_HVX = 56;
 const BLE_GATT_HVX_NOTIFICATION = 1;
 const BLE_GATT_HVX_INDICATION = 2;
 
-
 module.exports.createBleDriver = function(callbackForReceivingBleDriverEventCallback) {
     let bleDriver =
     {
@@ -39,7 +37,11 @@ module.exports.createBleDriver = function(callbackForReceivingBleDriverEventCall
         gattc_descriptor_discover: sinon.stub(),
         gattc_read: sinon.stub(),
         gattc_confirm_handle_value: sinon.stub(),
-        open: (options, err) => {},
+        open: (options, err) => {
+        },
+
+        close: sinon.stub(),
+
         BLE_UUID_TYPE_UNKNOWN,
         BLE_GAP_EVT_CONNECTED,
         BLE_GAP_EVT_DISCONNECTED,
@@ -58,7 +60,7 @@ module.exports.createBleDriver = function(callbackForReceivingBleDriverEventCall
     sinon.stub(bleDriver, 'open', (port, options, callback) => {
         let bleDriverEventCallback = options.eventCallback;
         callback();
-        if(callbackForReceivingBleDriverEventCallback) {
+        if (callbackForReceivingBleDriverEventCallback) {
             callbackForReceivingBleDriverEventCallback(bleDriverEventCallback);
         }
     });
@@ -67,11 +69,11 @@ module.exports.createBleDriver = function(callbackForReceivingBleDriverEventCall
     bleDriver.gap_get_address.yields('DE:AD:BE:EF:FF:FF', undefined);
 
     bleDriver.gap_connect.yields(undefined);
-    bleDriver.gap_disconnect.yieldsAsync(undefined);
+    bleDriver.gap_disconnect.yields(undefined);
     bleDriver.gap_cancel_connect.yields(undefined);
     bleDriver.get_version.yields('0.0.9', undefined);
-    bleDriver.gap_get_device_name.yieldsAsync('holy handgrenade', undefined);
-    bleDriver.gap_get_address.yieldsAsync('Bridge of death', undefined);
+    bleDriver.gap_get_device_name.yields('holy handgrenade', undefined);
+    bleDriver.gap_get_address.yields('Bridge of death', undefined);
 
     return bleDriver;
 };
@@ -86,22 +88,22 @@ module.exports.createConnectEvent = function() {
             min_conn_interval: 10,
             max_conn_interval: 100,
             slave_latency: 100,
-            conn_sup_timeout: 455
-        }
+            conn_sup_timeout: 455,
+        },
     };
 };
 
 module.exports.createConnectionParametersUpdateEvent = function() {
-    return  {
+    return {
         id: BLE_GAP_EVT_CONN_PARAM_UPDATE,
         conn_handle: 123,
-            conn_params: {
-                min_conn_interval: 10,
-                max_conn_interval: 100,
-                slave_latency: 100,
-                conn_sup_timeout: 455
-            }
-        };
+        conn_params: {
+            min_conn_interval: 10,
+            max_conn_interval: 100,
+            slave_latency: 100,
+            conn_sup_timeout: 455,
+        },
+    };
 };
 
 module.exports.createHvxEvent = function(useIndication) {
@@ -111,6 +113,6 @@ module.exports.createHvxEvent = function(useIndication) {
         handle: 3,
         type: useIndication ? BLE_GATT_HVX_INDICATION : BLE_GATT_HVX_NOTIFICATION,
         len: 2,
-        data: [5,6],
+        data: [5, 6],
     };
 };
