@@ -1,31 +1,18 @@
 'use strict';
 
-var  sinon = require('sinon');
-var assert = require('assert');
+const sinon = require('sinon');
+const assert = require('assert');
 
-var proxyquire = require('proxyquire');
+const proxyquire = require('proxyquire');
+const commonStubs = require('./commonStubs');
 
-var api = require('../../index').api;
-var driver = require('../../index').driver;
+const api = require('../../index').api;
 
 describe('AdapterFactory', function() {
-/*    var bleDriver;
-
-    var addedSpy;
-    var removedSpy;
-    var errorSpy;
-
-    var adapterFactoryInstance;*/
-
     beforeEach(function() {
-        console.log('beforeEach called');
-
         this.clock = sinon.useFakeTimers();
 
-        this.bleDriver =
-        {
-            get_adapters: sinon.stub()
-        };
+        this.bleDriver = commonStubs.createBleDriver();
 
         // Provide an empty array adapters for the first call
         this.bleDriver.get_adapters.yields(undefined, []);
@@ -45,29 +32,32 @@ describe('AdapterFactory', function() {
     });
 
     it('should provide a list of adapters connected to the computer', function () {
-        var adapters = this.adapterFactory.getAdapters();
-        assert.equal(Object.keys(adapters).length, 0);
+        var adapters = this.adapterFactory.getAdapters((err, adapters) => {
+            assert.ifError(err);
+            assert(Object.keys(adapters).length === 0, 'Should not be any adapters here yet.');
+        });
     });
 
     it('should provide an event when a new adapter is added to the computer', function() {
         this.bleDriver.get_adapters.yields(undefined,
                     [{ serialNumber: 'test2222', comName: '6' }]);
 
-        this.clock.tick(5001);
-
-        sinon.assert.calledOnce(this.addedSpy);
-        sinon.assert.notCalled(this.removedSpy);
-        sinon.assert.notCalled(this.errorSpy);
-
-        var adapters = this.adapterFactory.getAdapters();
-        assert.equal(Object.keys(adapters).length, 1);
+        this.adapterFactory.getAdapters((err, adapters) => {
+            assert.ifError(err);
+            sinon.assert.calledOnce(this.addedSpy);
+            sinon.assert.notCalled(this.removedSpy);
+            sinon.assert.notCalled(this.errorSpy);
+            assert.equal(Object.keys(adapters).length, 1);
+        });
     });
 
     it('should provide an event when an adapter is removed from the computer', function() {
         var adapterA = { serialNumber: 'test1234', comName: '5' };
         this.bleDriver.get_adapters.yields(undefined, [adapterA]);
 
-        this.clock.tick(5001);
+        this.adapterFactory.getAdapters(err => {
+            assert.ifError(err);
+        });
 
         this.bleDriver.get_adapters.yields(undefined, []);
 
@@ -75,14 +65,13 @@ describe('AdapterFactory', function() {
         this.removedSpy.reset();
         this.errorSpy.reset();
 
-        this.clock.tick(5001);
+        this.adapterFactory.getAdapters((err, adapters) => {
+            assert.ifError(err);
+            assert(Object.keys(adapters).length, 0, 'There should be no adapters attached to the computer now.');
+        });
 
         sinon.assert.notCalled(this.addedSpy);
         sinon.assert.calledOnce(this.removedSpy);
         sinon.assert.notCalled(this.errorSpy);
-
-        var adapters = this.adapterFactory.getAdapters();
-        assert.equal(Object.keys(adapters).length, 0);
     });
 });
-

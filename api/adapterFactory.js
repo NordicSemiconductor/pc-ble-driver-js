@@ -19,12 +19,10 @@ class AdapterFactory extends EventEmitter {
      */
     constructor(bleDriver) {
         // TODO: Should adapters be updated on this.getAdapters call or by time interval? time interval
-        // TODO: Add DI to AdapterFactory? driver path / or module import stuff
         super();
         this._bleDriver = bleDriver;
         this._adapters = {};
         this._updateAdapterList();
-        this.updateAdapterListInterval = setInterval(this._updateAdapterList.bind(this), adapterUpdateInterval);
     }
 
     _getInstanceId(adapter) {
@@ -52,14 +50,15 @@ class AdapterFactory extends EventEmitter {
             if (err) {
                 this.emit('error', err);
                 if (callback && (typeof callback === 'function')) {
-                    callback(error);
+                    callback(err);
                 }
+
                 return;
             }
-            
+
             const removedAdapters = Object.assign({}, this._adapters);
 
-            for(let adapter of adapters) {
+            for (let adapter of adapters) {
                 const adapterInstanceId = this._getInstanceId(adapter);
 
                 if (this._adapters[adapterInstanceId]) {
@@ -68,34 +67,29 @@ class AdapterFactory extends EventEmitter {
 
                 const newAdapter = this._parseAndCreateAdapter(adapter);
 
-                if(this._adapters[adapterInstanceId] === undefined) {
+                if (this._adapters[adapterInstanceId] === undefined) {
                     this._adapters[adapterInstanceId] = newAdapter;
                     this.emit('added', newAdapter);
                 }
             }
 
-            for(let adapter in removedAdapters) {
+            for (let adapter in removedAdapters) {
                 delete this._adapters[adapter.instanceId];
                 this.emit('removed', adapter);
-            };
+            }
+
             if (callback && (typeof callback === 'function')) {
                 callback(undefined, this._adapters);
             }
         });
     }
 
-    /**
-     * @brief Get Nordic BLE adapters connected to the computer
-     */
-    getAdapters() {
-        return this._adapters;
-    }
-    asyncGetAdapters(callback) {
+    getAdapters(callback) {
         this._updateAdapterList((error, adapters) => {
             if (error) {
                 callback(error);
             } else {
-                callback(undefined, adapters);
+                if (callback && (typeof callback === 'function')) callback(undefined, adapters);
             }
         });
     }
