@@ -8,7 +8,7 @@ var valueHandle = 0;
 var characteristicHandle = 0;
 
 driver.open(
-    'COM21',
+    'COM19',
     {
         'baudRate': 115200,
         'parity': 'none',
@@ -98,7 +98,7 @@ function onBleEvent(event_array) {
         else if (event.name === 'BLE_GAP_EVT_SEC_PARAMS_REQUEST')
         {
             console.log("GapSecParamsRequest: " + JSON.stringify(event));
-            secParamsReply();
+            setTimeout(secParamsReply, 1);
         }
     }
 }
@@ -279,7 +279,7 @@ function secParamsReply() {
             'kdist_periph': {
                 'enc': true,
                 'id': false,
-                'sign': false 
+                'sign': false
             },
             'kdist_central': {
                 'enc': true,

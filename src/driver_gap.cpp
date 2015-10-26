@@ -604,12 +604,7 @@ ble_gap_sec_params_t *GapSecParams::ToNative()
     params->bond = ConversionUtility::getNativeBool(jsobj, "bond");
     params->mitm = ConversionUtility::getNativeBool(jsobj, "mitm");
 
-    v8::Local<v8::Value> getIoCaps = Utility::Get(jsobj, "io_caps");
-    v8::Local<v8::String> ioCapsString = getIoCaps->ToString();
-    size_t io_caps_len = ioCapsString->Length() + 1;
-    char *capsString = (char *)malloc(io_caps_len);
-    ioCapsString->WriteUtf8(capsString, io_caps_len);
-    params->io_caps = fromNameToValue(gap_io_caps_map, capsString);
+    params->io_caps = ConversionUtility::getNativeUint8(jsobj, "io_caps");
 
     params->oob = ConversionUtility::getNativeBool(jsobj, "oob");
     params->min_key_size = ConversionUtility::getNativeUint8(jsobj, "min_key_size");
@@ -1999,10 +1994,14 @@ NAN_METHOD(GapSecParamsReply)
     //baton->sec_keyset = GapSecKeyset(sec_keyset_object);
     baton->sec_keyset = new ble_gap_sec_keyset_t();
 
-    uv_queue_work(uv_default_loop(), baton->req, GapSecParamsReply, (uv_after_work_cb)AfterGapSecParamsReply);
+    baton->sec_keyset->keys_central.p_enc_key = new ble_gap_enc_key_t();
+    baton->sec_keyset->keys_central.p_id_key = new ble_gap_id_key_t ();
+    baton->sec_keyset->keys_central.p_sign_key = new ble_gap_sign_info_t();
+    baton->sec_keyset->keys_periph.p_enc_key = new ble_gap_enc_key_t();
+    baton->sec_keyset->keys_periph.p_id_key = new ble_gap_id_key_t();
+    baton->sec_keyset->keys_periph.p_sign_key = new ble_gap_sign_info_t();
 
-    // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    return;
+    uv_queue_work(uv_default_loop(), baton->req, GapSecParamsReply, (uv_after_work_cb)AfterGapSecParamsReply);
 }
 
 // This runs in a worker thread (not Main Thread)
