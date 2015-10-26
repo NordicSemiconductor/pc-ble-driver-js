@@ -237,7 +237,7 @@ public:
     static uint16_t *   getNativePointerToUint16(v8::Local<v8::Value>js);
     static v8::Local<v8::Object> getJsObject(v8::Local<v8::Object>js, char *name);
     static v8::Local<v8::Object> getJsObject(v8::Local<v8::Value>js);
-    static uint16_t     stringToValue(name_map_t name_map, v8::Local<v8::Object> string, uint16_t defaultValue);
+    static uint16_t     stringToValue(name_map_t name_map, v8::Local<v8::Object> string, uint16_t defaultValue = -1);
 
     static uint16_t msecsToUnitsUint16(v8::Local<v8::Object>js, char *name, enum ConversionUnits unit);
     static uint16_t msecsToUnitsUint16(double msecs, enum ConversionUnits unit);

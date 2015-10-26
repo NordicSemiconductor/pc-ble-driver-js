@@ -255,6 +255,25 @@ v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Object>js, ch
     return ConversionUtility::getJsObject(obj);
 }
 
+uint16_t ConversionUtility::stringToValue(name_map_t name_map, v8::Local<v8::Object> string, uint16_t defaultValue)
+{
+    std::map<uint16_t, char*>::const_iterator it;
+    uint16_t key = defaultValue;
+
+    char *name = (char *)ConversionUtility::getNativePointerToUint8(string);
+
+    for (it = name_map.begin(); it != name_map.end(); ++it)
+    {
+        if (strcmp(it->second, name) == 0)
+        {
+            key = it->first;
+            break;
+        }
+    }
+
+    return key;
+}
+
 uint16_t ConversionUtility::msecsToUnitsUint16(v8::Local<v8::Object>js, char *name, enum ConversionUtility::ConversionUnits unit)
 {
     double msecs = getNativeDouble(js, name);
@@ -423,12 +442,12 @@ uint8_t *ConversionUtility::extractHex(v8::Local<v8::Value> js)
 
     jsString->WriteUtf8(cString, length);
 
-    int size = (length / 2) + 1;
+    int size = (length / 2);
 
     uint8_t *retArray = (uint8_t *)malloc(sizeof(uint8_t) * size);
     memset(retArray, 0, size); 
 
-    for (int i = 0, j = 0; i < length; i += 2, j++)
+    for (int i = 0, j = size - 1; i < length; i += 2, j--)
     {
         uint8_t first = extractHexHelper(cString[i]);
         uint8_t second = extractHexHelper(cString[i + 1]);
@@ -447,12 +466,13 @@ uint8_t *ConversionUtility::extractHex(v8::Local<v8::Value> js)
 v8::Handle<v8::Value> ConversionUtility::encodeHex(char *text, int length)
 {
     std::ostringstream encoded;
-    encoded.flags(std::ios::hex | std::ios::uppercase);
+    encoded.flags(std::ios::uppercase);
     encoded.width(2);
+    encoded.fill('0');
 
-    for (int i = 0; i < length; ++i)
+    for (int i = length - 1; i >= 0; --i)
     {
-        encoded << (int)text[i];
+        encoded << std::hex << (((int)text[i]) & 0xFF);
     }
 
     return ConversionUtility::toJsString(encoded.str());
