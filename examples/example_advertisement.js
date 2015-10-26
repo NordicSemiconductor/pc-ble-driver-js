@@ -95,6 +95,10 @@ function onBleEvent(event_array) {
                 }
             }
         }
+        else if (event.name === 'BLE_GAP_EVT_SEC_PARAMS_REQUEST')
+        {
+            console.log("GapSecParamsRequest: " + JSON.stringify(event));
+        }
     }
 }
 
@@ -241,7 +245,7 @@ function startAdvertising() {
 
             console.log('Started advertising');
 
-            setTimeout(onTimeout, 10000);
+            setTimeout(onTimeout, 60000);
         }
     );
 }

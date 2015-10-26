@@ -16,6 +16,7 @@ static name_map_t gap_event_name_map = {
     NAME_MAP_ENTRY(BLE_GAP_EVT_RSSI_CHANGED),
     NAME_MAP_ENTRY(BLE_GAP_EVT_CONN_PARAM_UPDATE),
     NAME_MAP_ENTRY(BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST),
+    NAME_MAP_ENTRY(BLE_GAP_EVT_SEC_PARAMS_REQUEST)
 };
 
 class GapAddr : public BleToJs<ble_gap_addr_t>
@@ -151,6 +152,15 @@ public:
     v8::Local<v8::Object> ToJs();
 };
 
+class GapSecParamsRequest : public BleDriverGapEvent<ble_gap_evt_sec_params_request_t>
+{
+public:
+    GapSecParamsRequest(const std::string timestamp, uint16_t conn_handle, ble_gap_evt_sec_params_request_t *evt)
+        : BleDriverGapEvent<ble_gap_evt_sec_params_request_t>(BLE_GAP_EVT_SEC_PARAMS_REQUEST, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs();
+};
+
 class GapAdvChannelMask : public BleToJs<ble_gap_adv_ch_mask_t>
 {
 public:
@@ -167,6 +177,96 @@ public:
     GapAdvParams(v8::Local<v8::Object> js) : BleToJs<ble_gap_adv_params_t>(js) {}
     v8::Local<v8::Object> ToJs();
     ble_gap_adv_params_t *ToNative();
+};
+
+class GapSecParams : public BleToJs<ble_gap_sec_params_t>
+{
+public:
+    GapSecParams(ble_gap_sec_params_t *sec_params) : BleToJs<ble_gap_sec_params_t>(sec_params) {}
+    GapSecParams(v8::Local<v8::Object> js) : BleToJs<ble_gap_sec_params_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_sec_params_t *ToNative();
+};
+
+class GapSecKdist : public BleToJs<ble_gap_sec_kdist_t>
+{
+public:
+    GapSecKdist(ble_gap_sec_kdist_t *kdist) : BleToJs<ble_gap_sec_kdist_t>(kdist) {}
+    GapSecKdist(v8::Local<v8::Object> js) : BleToJs<ble_gap_sec_kdist_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_sec_kdist_t *ToNative();
+};
+
+class GapSecKeyset : public BleToJs<ble_gap_sec_keyset_t>
+{
+public:
+    GapSecKeyset(ble_gap_sec_keyset_t *keyset) : BleToJs<ble_gap_sec_keyset_t>(keyset) {}
+    GapSecKeyset(v8::Local<v8::Object> js) : BleToJs<ble_gap_sec_keyset_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_sec_keyset_t *ToNative();
+};
+
+class GapSecKeys : public BleToJs<ble_gap_sec_keys_t>
+{
+public:
+    GapSecKeys(ble_gap_sec_keys_t *keys) : BleToJs<ble_gap_sec_keys_t>(keys) {}
+    GapSecKeys(v8::Local<v8::Object> js) : BleToJs<ble_gap_sec_keys_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_sec_keys_t *ToNative();
+};
+
+class GapIdKey : public BleToJs<ble_gap_id_key_t>
+{
+public:
+    GapIdKey(ble_gap_id_key_t *id_key) : BleToJs<ble_gap_id_key_t>(id_key) {}
+    GapIdKey(v8::Local<v8::Object> js) : BleToJs<ble_gap_id_key_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_id_key_t *ToNative();
+};
+
+class GapEncKey : public BleToJs<ble_gap_enc_key_t>
+{
+public:
+    GapEncKey(ble_gap_enc_key_t *enc_key) : BleToJs<ble_gap_enc_key_t>(enc_key) {}
+    GapEncKey(v8::Local<v8::Object> js) : BleToJs<ble_gap_enc_key_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_enc_key_t *ToNative();
+};
+
+class GapSignInfo : public BleToJs<ble_gap_sign_info_t>
+{
+public:
+    GapSignInfo(ble_gap_sign_info_t *sign_info) : BleToJs<ble_gap_sign_info_t>(sign_info) {}
+    GapSignInfo(v8::Local<v8::Object> js) : BleToJs<ble_gap_sign_info_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_sign_info_t  *ToNative();
+};
+
+class GapIrk : public BleToJs<ble_gap_irk_t>
+{
+public:
+    GapIrk(ble_gap_irk_t *irk) : BleToJs<ble_gap_irk_t>(irk) {}
+    GapIrk(v8::Local<v8::Object> js) : BleToJs<ble_gap_irk_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_irk_t *ToNative();
+};
+
+class GapEncInfo : public BleToJs<ble_gap_enc_info_t>
+{
+public:
+    GapEncInfo(ble_gap_enc_info_t *enc_info) : BleToJs<ble_gap_enc_info_t>(enc_info) {}
+    GapEncInfo(v8::Local<v8::Object> js) : BleToJs<ble_gap_enc_info_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_enc_info_t *ToNative();
+};
+
+class GapMasterId : public BleToJs<ble_gap_master_id_t>
+{
+public:
+    GapMasterId(ble_gap_master_id_t *master_id) : BleToJs<ble_gap_master_id_t>(master_id) {}
+    GapMasterId(v8::Local<v8::Object> js) : BleToJs<ble_gap_master_id_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_master_id_t *ToNative();
 };
 
 // Event related struct to JS conversions -- END --
@@ -279,6 +379,15 @@ public:
     BATON_CONSTRUCTOR(GapStopAdvertisingBaton);
 };
 
+struct GapSecParamsReplyBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GapSecParamsReplyBaton);
+    uint16_t conn_handle;
+    uint8_t sec_status;
+    ble_gap_sec_params_t *sec_params;
+    ble_gap_sec_keyset_t *sec_keyset;
+};
+
 ///// End GAP Batons //////////////////////////////////////////////////////////////////////////////////
 
 METHOD_DEFINITIONS(GapSetAddress);
@@ -297,6 +406,7 @@ METHOD_DEFINITIONS(GapCancelConnect);
 METHOD_DEFINITIONS(GapGetRSSI);
 METHOD_DEFINITIONS(GapStartAdvertising);
 METHOD_DEFINITIONS(GapStopAdvertising);
+METHOD_DEFINITIONS(GapSecParamsReply);
 
 extern "C" {
     void init_gap(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
