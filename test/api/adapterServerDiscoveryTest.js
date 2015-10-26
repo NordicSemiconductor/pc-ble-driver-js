@@ -408,7 +408,9 @@ describe('getServices', function() {
         });
 
         const adapterFactory = new AdapterFactory(bleDriver);
-        adapter = adapterFactory.getAdapters().test;
+        adapterFactory.getAdapters((err, adapters) => {
+            adapter = adapters.test;
+        });
         adapter.open({'baudRate': 115200, 'parity': 'none', 'flowControl': 'none'}, function(err) {});
     });
 
@@ -516,7 +518,9 @@ describe('getCharacteristics', function() {
         });
 
         const adapterFactory = new AdapterFactory(bleDriver);
-        adapter = adapterFactory.getAdapters().test;
+        adapterFactory.getAdapters((err, adapters) => {
+            adapter = adapters.test;
+        });
         adapter.open({'baudRate': 115200, 'parity': 'none', 'flowControl': 'none'}, function(err) {});
     });
 
@@ -641,7 +645,10 @@ describe('getDescriptors', function() {
         });
 
         const adapterFactory = new AdapterFactory(bleDriver);
-        adapter = adapterFactory.getAdapters().test;
+        adapterFactory.getAdapters((err, adapters) => {
+            adapter = adapters.test;
+        });
+        
         adapter.open({'baudRate': 115200, 'parity': 'none', 'flowControl': 'none'}, function(err) {});
     });
 

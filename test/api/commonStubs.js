@@ -9,6 +9,8 @@ const BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST = 0x1d;
 
 const BLE_UUID_TYPE_UNKNOWN = 0;
 
+const BLE_GAP_EVT_ADV_REPORT = 27;
+
 const BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP = 48;
 const BLE_GATTC_EVT_CHAR_DISC_RSP = 50;
 const BLE_GATTC_EVT_DESC_DISC_RSP = 51;
@@ -41,12 +43,15 @@ module.exports.createBleDriver = function(callbackForReceivingBleDriverEventCall
         },
 
         close: sinon.stub(),
+        gap_start_scan: sinon.stub(),
+        gap_stop_scan: sinon.stub(),
 
         BLE_UUID_TYPE_UNKNOWN,
         BLE_GAP_EVT_CONNECTED,
         BLE_GAP_EVT_DISCONNECTED,
         BLE_GAP_EVT_CONN_PARAM_UPDATE,
         BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST,
+        BLE_GAP_EVT_ADV_REPORT,
         BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP,
         BLE_GATTC_EVT_CHAR_DISC_RSP,
         BLE_GATTC_EVT_DESC_DISC_RSP,
@@ -74,6 +79,9 @@ module.exports.createBleDriver = function(callbackForReceivingBleDriverEventCall
     bleDriver.get_version.yields('0.0.9', undefined);
     bleDriver.gap_get_device_name.yields('holy handgrenade', undefined);
     bleDriver.gap_get_address.yields('Bridge of death', undefined);
+
+    bleDriver.gap_start_scan.yields(undefined);
+    bleDriver.gap_stop_scan.yields(undefined);
 
     return bleDriver;
 };

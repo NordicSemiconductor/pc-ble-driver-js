@@ -25,15 +25,17 @@ describe('adapter.setServices', function() {
 
         // Provide an array of adapters for the first call
         var adapterFactory = new AdapterFactory(this.bleDriver);
-        this.adapter = adapterFactory.getAdapters().test;
-        this.adapter.open({'baudRate': 115211, 'parity': 'none', 'flowControl': 'uhh'}, function(err) {});
+        adapterFactory.getAdapters((err, adapters) => {
+            this.adapter = adapters.test;
+        });
+        this.adapter.open({baudRate: 115211, parity: 'none', flowControl: 'uhh'}, function(err) {});
     });
 
     afterEach(function() {
         this.clock.restore();
     });
 
-    it('with valid arguments should start advertising and emit adapterStateChange', function () {
+    it('with valid arguments should start advertising and emit adapterStateChange', function() {
         let stateChangeCallback = sinon.spy();
         let setServiceCallback = sinon.spy();
 
@@ -57,8 +59,8 @@ describe('adapter.setServices', function() {
                     writeWoResp: true,
                     reliableWrite: false,
                     notify: false,
-                    indicate: true
-                }
+                    indicate: true,
+                },
             }
         );
 
@@ -74,4 +76,3 @@ describe('adapter.setServices', function() {
         //sinon.assert.calledOnce(setServicesCallback);
     });
 });
-

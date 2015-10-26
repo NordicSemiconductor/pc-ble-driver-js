@@ -1,12 +1,12 @@
 'use strict';
 
-var  sinon = require('sinon');
-var assert = require('assert');
+const  sinon = require('sinon');
+const assert = require('assert');
 
-var proxyquire = require('proxyquire');
+const proxyquire = require('proxyquire');
 
-var Adapter = require('../../api/adapter');
-var AdapterFactory = require('../../api/adapterFactory');
+const Adapter = require('../../api/adapter');
+const AdapterFactory = require('../../api/adapterFactory');
 
 const commonStubs = require('./commonStubs');
 
@@ -22,15 +22,19 @@ describe('adapter.startAdvertising', function() {
 
         // Provide an array of adapters for the first call
         var adapterFactory = new AdapterFactory(this.bleDriver);
-        this.adapter = adapterFactory.getAdapters().test;
-        this.adapter.open({'baudRate': 115211, 'parity': 'none', 'flowControl': 'uhh'}, function(err) {});
+        this.adapter = undefined;
+
+        adapterFactory.getAdapters((err, adapters) => {
+            this.adapter = adapters.test;
+        });
+        this.adapter.open({baudRate: 115211, parity: 'none', flowControl: 'uhh'}, function(err) {});
     });
 
     afterEach(function() {
         this.clock.restore();
     });
 
-    it('with valid arguments should start advertising and emit adapterStateChange', function () {
+    it('with valid arguments should start advertising and emit adapterStateChange', function() {
         let stateChangeCallback = sinon.spy();
         let startAdvertisingCallback = sinon.spy();
 
@@ -39,11 +43,11 @@ describe('adapter.startAdvertising', function() {
         var advertisingData = {
             shortenedLocalName: 'MyCoolName',
             flags: ['leGeneralDiscMode', 'leLimitedDiscMode', 'brEdrNotSupported'],
-            txPowerLevel: -10
+            txPowerLevel: -10,
         };
 
         var scanResponseData = {
-            completeLocalName: 'MyCoolName'
+            completeLocalName: 'MyCoolName',
         };
 
         var options = {
@@ -51,7 +55,7 @@ describe('adapter.startAdvertising', function() {
             interval: 1,
             timeout: 1,
             connectable: true,
-            scannable: false
+            scannable: false,
         };
 
         this.adapter.startAdvertising(advertisingData, scanResponseData, options, function(err) {
@@ -79,15 +83,17 @@ describe('adapter.stopAdvertising', function() {
 
         // Provide an array of adapters for the first call
         var adapterFactory = new AdapterFactory(this.bleDriver);
-        this.adapter = adapterFactory.getAdapters().test;
-        this.adapter.open({'baudRate': 115211, 'parity': 'none', 'flowControl': 'uhh'}, function(err) {});
+        adapterFactory.getAdapters((err, adapters) => {
+            this.adapter = adapters.test;
+        });
+        this.adapter.open({baudRate: 115211, parity: 'none', flowControl: 'uhh'}, function(err) {});
     });
 
     afterEach(function() {
         this.clock.restore();
     });
 
-    it('should stop advertising and emit adapterStateChange', function () {
+    it('should stop advertising and emit adapterStateChange', function() {
         let stateChangeCallback = sinon.spy();
         let stopAdvertisingCallback = sinon.spy();
 
@@ -96,7 +102,7 @@ describe('adapter.stopAdvertising', function() {
         var advertisingData = {
             shortenedLocalName: 'MyCoolName',
             flags: ['leGeneralDiscMode', 'leLimitedDiscMode', 'brEdrNotSupported'],
-            txPowerLevel: 0 // type: 0x0a "Tx Power Level"
+            txPowerLevel: 0,
         };
 
         var scanResponseData = {
@@ -127,4 +133,3 @@ describe('adapter.stopAdvertising', function() {
         assert.equal(this.bleDriver.gap_stop_advertisement.callCount, 1);
     });
 });
-
