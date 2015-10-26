@@ -1,60 +1,82 @@
 'use strict';
 
-var assert = require('chai').assert;
-var keypress = require('keypress');
-var sinon = require('sinon');
-
-keypress(process.stdin);
-
 var api = require('../../index').api;
 var driver = require('../../index').driver;
 
-var adapterFactoryInstance = new api.AdapterFactory(driver);
+var adapterFactory = new api.AdapterFactory(driver);
 
-var addedSpy = sinon.spy();
-var removedSpy = sinon.spy();
-var errorSpy = sinon.spy();
+adapterFactory.on('added', adapter => {
+    console.log(`Adapter added. Adapter: ${adapter.instanceId}`);
+});
 
-adapterFactoryInstance.on('added', addedSpy);
-adapterFactoryInstance.on('removed', removedSpy);
-adapterFactoryInstance.on('error', errorSpy);
+adapterFactory.on('removed', adapter => {
+    console.log(`Adapter removed. Adapter: ${adapter.instanceId}`);
+});
 
-const adapterFactoryUpdateInterval = 5000;
+adapterFactory.on('error', error => {
+    console.log('Error occured:' + error);
+});
 
-console.log('Insert only one SEGGER device into the computer and press 1');
-
-process.stdin.on('keypress', function(ch, key) {
-    if (key && key.ctrl && key.name == 'c') {
-        process.stdin.pause();
+adapterFactory.getAdapters((err, adapters) => {
+    if (err) {
+        console.log('Error:' + err);
         return;
     }
 
-    if(ch) {
-        switch(ch) {
-            case '1':
-                var adapters = adapterFactoryInstance.getAdapters();
-                assert.lengthOf(Object.keys(adapters), 1);
-                console.log('Insert one additional SEGGER device into the computer and press 2');
-                break;
-            case '2':
-                sinon.assert.calledOnce(addedSpy);
-                sinon.assert.notCalled(removedSpy);
-                sinon.assert.notCalled(errorSpy);
-                addedSpy.reset();
-                removedSpy.reset();
-                errorSpy.reset();
-                console.log('Remove the last added SEGGER device into the computer and press 3');
-            case '3':
-                sinon.assert.notCalled(addedSpy);
-                sinon.assert.calledOnce(removedSpy);
-                sinon.assert.notCalled(errorSpy);
-                addedSpy.reset();
-                removedSpy.reset();
-                errorSpy.reset();
-                break;
-            default:
-                console.log('Unknown key pressed!');
-                break;
-        }
+    console.log('Found the following adapters:');
+
+    for (let adapter in adapters) {
+        console.log(adapters[adapter].instanceId);
     }
+
+    var adapter = adapters[Object.keys(adapters)[1]];
+    console.log(`Using adapter ${adapter.instanceId}.`);
+
+    adapter.open(
+        {
+            baudRate: 115200,
+            parity: 'none',
+            flowControl: 'none',
+        },
+        err => {
+            if (err) {
+                console.log(`Error opening adapter ${err}.`);
+                return;
+            }
+
+            console.log('Adapter opened.');
+
+            let services = [];
+            let serviceFactory = new api.ServiceFactory();
+            let service = serviceFactory.createService('aa-bb-cc-dd');
+
+            let characteristic = serviceFactory.createCharacteristic(
+                service,
+                {
+                    uuid: 'be-ef',
+                    value: [1, 2, 3],
+                    maxLength: 3,
+                    readPerm: ['open'],
+                    writePerm: ['encrypt'],
+                    properties: { /* BT properties */
+                        broadcast: true,
+                        read: true,
+                        write: true,
+                        writeWoResp: true,
+                        reliableWrite: false,
+                        notify: false,
+                        indicate: true,
+                    },
+                });
+
+            console.log('Setting services');
+            adapter.setServices([service], err => {
+                if (err) {
+                    console.log(`Error setting services ${err}.`);
+                    return;
+                }
+
+                console.log('Trying to advertise services (WIP).');
+            });
+        });
 });
