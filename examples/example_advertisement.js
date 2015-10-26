@@ -8,7 +8,7 @@ var valueHandle = 0;
 var characteristicHandle = 0;
 
 driver.open(
-    'COM19',
+    'COM21',
     {
         'baudRate': 115200,
         'parity': 'none',
@@ -98,6 +98,7 @@ function onBleEvent(event_array) {
         else if (event.name === 'BLE_GAP_EVT_SEC_PARAMS_REQUEST')
         {
             console.log("GapSecParamsRequest: " + JSON.stringify(event));
+            secParamsReply();
         }
     }
 }
@@ -262,4 +263,37 @@ function stopAdvertising() {
 
         console.log('Stopped advertising');
     });
+}
+
+function secParamsReply() {
+    driver.gap_sec_params_reply(
+        connectionHandle,
+        0, //sec_status
+        { //sec_params
+            'bond': true,
+            'mitm': false,
+            'io_caps': 'BLE_GAP_IO_CAPS_NONE',
+            'oob': false,
+            'min_key_size': 7,
+            'max_key_size': 16,
+            'kdist_periph': {
+                'enc': true,
+                'id': false,
+                'sign': false 
+            },
+            'kdist_central': {
+                'enc': true,
+                'id': false,
+                'sign': false
+            }
+        },
+        null, //sec_keyset
+        function(err) {
+            if (err) {
+                console.log('Error occured in gap_sec_params_reply');
+            }
+
+            console.log('gap_sec_params_reply completed');
+        }
+    );
 }

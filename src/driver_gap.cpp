@@ -644,9 +644,9 @@ ble_gap_sec_kdist_t *GapSecKdist::ToNative()
     ble_gap_sec_kdist_t *kdist = new ble_gap_sec_kdist_t();
     memset(kdist, 0, sizeof(ble_gap_sec_kdist_t));
 
-    kdist->enc = ConversionUtility::getNativeUint8(jsobj, "enc");
-    kdist->id = ConversionUtility::getNativeUint8(jsobj, "id");
-    kdist->sign = ConversionUtility::getNativeUint8(jsobj, "sign");
+    kdist->enc = ConversionUtility::getNativeBool(jsobj, "enc");
+    kdist->id = ConversionUtility::getNativeBool(jsobj, "id");
+    kdist->sign = ConversionUtility::getNativeBool(jsobj, "sign");
 
     return kdist;
 }
@@ -1978,7 +1978,7 @@ NAN_METHOD(GapSecParamsReply)
     }
     v8::Local<v8::Object> sec_params_object = info[2]->ToObject();
 
-    if (!info[3]->IsObject())
+    if (!info[3]->IsObject() && !info[3]->IsNull())
     {
         Nan::ThrowTypeError("Fourth argument must be an object");
         return;
@@ -1996,7 +1996,8 @@ NAN_METHOD(GapSecParamsReply)
     baton->conn_handle = conn_handle;
     baton->sec_status = sec_status;
     baton->sec_params = GapSecParams(sec_params_object);
-    baton->sec_keyset = GapSecKeyset(sec_keyset_object);
+    //baton->sec_keyset = GapSecKeyset(sec_keyset_object);
+    baton->sec_keyset = new ble_gap_sec_keyset_t();
 
     uv_queue_work(uv_default_loop(), baton->req, GapSecParamsReply, (uv_after_work_cb)AfterGapSecParamsReply);
 
@@ -2020,18 +2021,21 @@ void AfterGapSecParamsReply(uv_work_t *req) {
 
     // TODO: handle if .Close is called before this function is called.
     GapSecParamsReplyBaton *baton = static_cast<GapSecParamsReplyBaton *>(req->data);
-    v8::Local<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)
     {
         argv[0] = ErrorMessage::getErrorMessage(baton->result, "replying sec params");
+        argv[1] = Nan::Undefined();
     }
     else
     {
         argv[0] = Nan::Undefined();
+        argv[1] = GapSecKeyset(baton->sec_keyset).ToJs();
     }
 
-    baton->callback->Call(1, argv);
+    baton->callback->Call(2, argv);
+    delete baton->sec_keyset;
     delete baton;
 }
 
@@ -2054,6 +2058,7 @@ extern "C" {
         Utility::SetMethod(target, "gap_get_rssi", GapGetRSSI);
         Utility::SetMethod(target, "gap_start_advertising", GapStartAdvertising);
         Utility::SetMethod(target, "gap_stop_advertising", GapStopAdvertising);
+        Utility::SetMethod(target, "gap_sec_params_reply", GapSecParamsReply);
 
         // Constants from ble_gap.h
 
