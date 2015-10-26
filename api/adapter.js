@@ -455,9 +455,9 @@ class Adapter extends EventEmitter {
             }
         });
 
-        const nextStartHandle = services[services.length - 1].end_handle + 1;
+        const nextStartHandle = services[services.length - 1].handle_range.end_handle + 1;
 
-        this._bleDriver.gattc_primary_services_discover(device.connectionHandle, nextStartHandle, null, err => {
+        this._bleDriver.gattc_primary_services_discover(device.connectionHandle, nextStartHandle, 0, err => {
             if (err) {
                 this.emit('error', 'Failed to get services');
                 // Call getServices callback??
@@ -1265,14 +1265,13 @@ class Adapter extends EventEmitter {
 
         this._getAttributesCallbacks[device.instanceId] = {callback: callback, pendingHandleReads: {}};
         console.log('calling driver');
-        this._bleDriver.gattc_primary_services_discover(device.connectionHandle, 0, 0, (err, services) => {
+        this._bleDriver.gattc_primary_services_discover(device.connectionHandle, 1, 0, (err, services) => {
             if (err) {
                 this.emit('error', make_error('Failed to get services', err));
                 callback(err);
                 return;
             } else {
-                //TODO: callback only when services have been discovered
-                callback(undefined, services);
+                console.log('successfully issued primary_services_discover to driver');
             }
         });
     }

@@ -116,7 +116,7 @@ class TestLibrary {
                 if (err) {
                     reject('Failed to get services: ', err);
                 } else {
-                    console.log(JSON.stringify(services));
+                    //console.log(JSON.stringify(services));
                     resolve(services);
                 }
             });
@@ -204,6 +204,12 @@ for(let i = 0; i < argv['_'].length; i++) {
                 .then( testLib.connectToPeripheral.bind(testLib, peripheralAddress) )
                 .then( (device) => {
                     return testLib.getServices(device.instanceId); 
+                })
+                .then( (services) => {
+                    for (let index in services) {
+                        let service = services[index];
+                        console.log('uuid: ' + service.uuid + ' startHandle: ' + service.startHandle);
+                    }
                 })
                 .then(testLib.closeAdapter.bind(testLib))
                 .then(() => { 
