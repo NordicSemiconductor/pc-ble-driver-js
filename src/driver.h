@@ -17,6 +17,8 @@ METHOD_DEFINITIONS(Open);
 METHOD_DEFINITIONS(Close);
 METHOD_DEFINITIONS(GetVersion);
 METHOD_DEFINITIONS(AddVendorSpecificUUID);
+METHOD_DEFINITIONS(UUIDEncode);
+METHOD_DEFINITIONS(UUIDDecode);
 
 // Synchronous methods
 NAN_METHOD(GetStats);
@@ -121,6 +123,22 @@ public:
     BATON_CONSTRUCTOR(BleAddVendorSpcificUUIDBaton);
     ble_uuid128_t *p_vs_uuid;
     uint8_t p_uuid_type;
+};
+
+class BleUUIDEncodeBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(BleUUIDEncodeBaton);
+    ble_uuid_t *p_uuid;
+    uint8_t uuid_le_len;
+    uint8_t *uuid_le;
+};
+
+class BleUUIDDecodeBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(BleUUIDDecodeBaton);
+    uint8_t uuid_le_len;
+    ble_uuid_t *p_uuid;
+    uint8_t *uuid_le;
 };
 
 ///// Start Batons ////////////////////////////////////////

@@ -6,6 +6,7 @@ var connectionHandle = 0;
 var interval;
 var valueHandle = 0;
 var characteristicHandle = 0;
+var addedVSUUIDType = -1;
 
 driver.open(
     'COM19',
@@ -104,18 +105,49 @@ function onBleEvent(event_array) {
 }
 
 function addVsUuid() {
-        driver.add_vs_uuid({'uuid128': '11220000-3344-5566-7788-99aabbccddee'},
-            function(err, type) {
-                if (err)
-                {
-                    console.log('Error occured when adding 128-bit UUID');
-                    console.log(err);
-                    return;
-                }
+    driver.add_vs_uuid({'uuid128': '11220000-3344-5566-7788-99aabbccddee'},
+        function(err, type) {
+            if (err)
+            {
+                console.log('Error occured when adding 128-bit UUID');
+                console.log(err);
+                return;
+            }
 
-                console.log('Added 128-bit UUID with type %d', type);
-                addService();
-        });
+        console.log('Added 128-bit UUID with type %d', type);
+        addedVSUUIDType = type;
+
+        encodeUUID();
+        decodeUUID();
+
+        addService();
+    });
+}
+
+function encodeUUID() {
+    driver.encode_uuid({'uuid': 0x2A37, 'type': addedVSUUIDType}, function(err, len, uuid, uuidString) {
+        if (err)
+        {
+            console.log('Error occured when encoding UUID');
+            console.log(err);
+            return;
+        }
+
+        console.log('Encoded uuid. Result: Length: %d Full UUID: %s UUIDString: %s', len, JSON.stringify(uuid), uuidString)
+    });
+}
+
+function decodeUUID() {
+    driver.decode_uuid(16, '11222A3733445566778899AABBCCDDEE', function(err, uuid) {
+        if (err)
+        {
+            console.log('Error occured when decoding UUID');
+            console.log(err);
+            return;
+        }
+
+        console.log('Decoded uuid. Result: %s', JSON.stringify(uuid))
+    });
 }
 
 function addService() {
@@ -164,7 +196,7 @@ function addCharacteristic(handle) {
             'p_sccd_md': 0, // Server Characteristic Configuration Descriptor (ble_gatts_attr_md_t) May be 0
         },
         {
-            'p_uuid': {'uuid': 0x2A37, 'type': 2},
+            'p_uuid': {'uuid': 0x2A37, 'type': addedVSUUIDType},
             'p_attr_md': {
                 'read_perm': {'sm': 1, 'lv': 1},
                 'write_perm': {'sm': 1, 'lv': 1},
@@ -222,7 +254,6 @@ function addDescriptor() {
 
             startAdvertising();
     });
-
 }
 
 function startAdvertising() {
@@ -272,7 +303,7 @@ function secParamsReply() {
         { //sec_params
             'bond': true,
             'mitm': false,
-            'io_caps': 'BLE_GAP_IO_CAPS_NONE',
+            'io_caps': driver.BLE_GAP_IO_CAPS_NONE,
             'oob': false,
             'min_key_size': 7,
             'max_key_size': 16,

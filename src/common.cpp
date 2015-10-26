@@ -194,12 +194,12 @@ uint8_t ConversionUtility::getNativeBool(v8::Local<v8::Value>js)
 
 uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Object>js, char *name)
 {
-    v8::Local<v8::Array> jsarray = v8::Local<v8::Array>::Cast(Utility::Get(js, name));
+    v8::Local<v8::Value> value = Utility::Get(js, name);
 
-    return ConversionUtility::getNativePointerToUint8(jsarray);
+    return ConversionUtility::getNativePointerToUint8(value);
 }
 
-uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Object>js)
+uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Value>js)
 {
     v8::Local<v8::Array> jsarray = v8::Local<v8::Array>::Cast(js);
     uint32_t length = jsarray->Length();
@@ -217,12 +217,12 @@ uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Object>js)
 
 uint16_t *ConversionUtility::getNativePointerToUint16(v8::Local<v8::Object>js, char *name)
 {
-    v8::Local<v8::Array> jsarray = v8::Local<v8::Array>::Cast(Utility::Get(js, name));
+    v8::Local<v8::Value> value = Utility::Get(js, name);
 
-    return ConversionUtility::getNativePointerToUint16(jsarray);
+    return ConversionUtility::getNativePointerToUint16(value);
 }
 
-uint16_t *ConversionUtility::getNativePointerToUint16(v8::Local<v8::Object>js)
+uint16_t *ConversionUtility::getNativePointerToUint16(v8::Local<v8::Value>js)
 {
     v8::Local<v8::Array> jsarray = v8::Local<v8::Array>::Cast(js);
     uint32_t length = jsarray->Length();
@@ -348,6 +348,12 @@ v8::Handle<v8::Value> ConversionUtility::toJsString(char *cString, uint16_t leng
     return scope.Escape(_name);
 }
 
+v8::Handle<v8::Value> ConversionUtility::toJsString(uint8_t *cString, uint16_t length)
+{
+    return ConversionUtility::toJsString((char *)cString, length);
+}
+
+
 v8::Handle<v8::Value> ConversionUtility::toJsString(std::string string)
 {
     Nan::EscapableHandleScope scope;
@@ -386,6 +392,70 @@ v8::Local<v8::Function> ConversionUtility::getCallbackFunction(v8::Local<v8::Val
         throw "function";
     }
     return js.As<v8::Function>();
+}
+
+uint8_t ConversionUtility::extractHexHelper(char text)
+{
+    if (text >= '0' && text <= '9')
+    {
+        return text - '0';
+    }
+    
+    if (text >= 'a' && text <= 'f')
+    {
+        return text - 'a' + 10;
+    }
+
+    if (text >= 'A' && text <= 'F')
+    {
+        return text - 'A' + 10;
+    }
+
+    return 0xFF;
+}
+
+uint8_t *ConversionUtility::extractHex(v8::Local<v8::Value> js)
+{
+    v8::Local<v8::String> jsString = v8::Local<v8::String>::Cast(js);
+    int length = jsString->Length();
+    char *cString = (char *)malloc(sizeof(char) * (length + 1));
+    memset(cString, 0, length + 1);
+
+    jsString->WriteUtf8(cString, length);
+
+    int size = (length / 2) + 1;
+
+    uint8_t *retArray = (uint8_t *)malloc(sizeof(uint8_t) * size);
+    memset(retArray, 0, size); 
+
+    for (int i = 0, j = 0; i < length; i += 2, j++)
+    {
+        uint8_t first = extractHexHelper(cString[i]);
+        uint8_t second = extractHexHelper(cString[i + 1]);
+
+        if (first == 0xFF || second == 0xFF)
+        {
+            continue;
+        }
+
+        retArray[j] = (first << 4) + second;
+    }
+
+    return retArray;
+}
+
+v8::Handle<v8::Value> ConversionUtility::encodeHex(char *text, int length)
+{
+    std::ostringstream encoded;
+    encoded.flags(std::ios::hex | std::ios::uppercase);
+    encoded.width(2);
+
+    for (int i = 0; i < length; ++i)
+    {
+        encoded << (int)text[i];
+    }
+
+    return ConversionUtility::toJsString(encoded.str());
 }
 
 v8::Local<v8::Value> Utility::Get(v8::Local<v8::Object> jsobj, char *name)
