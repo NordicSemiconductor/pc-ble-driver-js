@@ -26,6 +26,7 @@ var argv = require('yargs')
     .argv
 ;
 
+let done = false;
 for(let i = 0; i < argv['_'].length; i++) {
     switch(argv._[i]) {
         case 'connect':
@@ -56,7 +57,7 @@ for(let i = 0; i < argv['_'].length; i++) {
                     });
                 })
                 .then(() => {
-                    process.exit(0);
+                    done = true;//process.exit(0);
                 })
                 .catch( (error) => {
                     console.log('list-adapters failed: ', error);
@@ -134,10 +135,16 @@ for(let i = 0; i < argv['_'].length; i++) {
                         process.on('exit', function () {
                             process.exit(failures);
                         });
-                        process.exit(0);
+                        done = true;
                     });
                 });
             break;
         }
     }
 }
+
+(function wait () {
+    if (!done) {
+        setTimeout(wait, 500);
+    }
+})();

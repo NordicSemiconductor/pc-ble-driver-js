@@ -6,7 +6,7 @@ var adapterFactoryInstance = new adapterFactory(driver);
 class TestLibrary {
     getAdapters() {
         return new Promise( (resolve, reject) => {
-            adapterFactoryInstance.asyncGetAdapters((error, adapters) => {
+            adapterFactoryInstance.getAdapters((error, adapters) => {
                 if (error) {
                     console.log("Failed to get adapters.");
                     reject(error);
