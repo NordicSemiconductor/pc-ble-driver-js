@@ -101,7 +101,7 @@ v8::Local<v8::Object> GattsCharacteristicDefinitionHandles::ToJs()
     Utility::Set(obj, "user_desc_handle", ConversionUtility::toJsNumber(native->user_desc_handle));
     Utility::Set(obj, "cccd_handle", ConversionUtility::toJsNumber(native->cccd_handle));
     Utility::Set(obj, "sccd_handle", ConversionUtility::toJsNumber(native->sccd_handle));
-    
+
     return scope.Escape(obj);
 }
 
@@ -137,7 +137,7 @@ v8::Local<v8::Object> GattsValue::ToJs()
     Utility::Set(obj, "len", ConversionUtility::toJsNumber(native->len));
     Utility::Set(obj, "offset", ConversionUtility::toJsNumber(native->offset));
     Utility::Set(obj, "p_value", ConversionUtility::toJsValueArray(native->p_value, native->len));
-    
+
     return scope.Escape(obj);
 }
 
@@ -207,7 +207,7 @@ ble_gatts_rw_authorize_reply_params_t *GattRWAuthorizeReplyParams::ToNative()
     ble_gatts_rw_authorize_reply_params_t *params = new ble_gatts_rw_authorize_reply_params_t();
 
     params->type = ConversionUtility::getNativeUint8(jsobj, "type");
-    
+
     if (params->type == BLE_GATTS_AUTHORIZE_TYPE_READ)
     {
         params->params.read = GattsReadAuthorizeParameters(ConversionUtility::getJsObject(jsobj, "read"));
@@ -244,7 +244,7 @@ v8::Local<v8::Object> GattsReadEvent::ToJs()
     Utility::Set(obj, "handle", ConversionUtility::toJsNumber(native->handle));
     Utility::Set(obj, "context", GattsAttributeContext(&native->context).ToJs());
     Utility::Set(obj, "offset", ConversionUtility::toJsNumber(native->offset));
-    
+
     return scope.Escape(obj);
 }
 
@@ -336,7 +336,7 @@ NAN_METHOD(AddService)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char *error)
+    catch (char const *error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);

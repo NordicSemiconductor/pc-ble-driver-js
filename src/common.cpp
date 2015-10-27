@@ -251,7 +251,7 @@ v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Value>js)
 v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Object>js, char *name)
 {
     v8::Local<v8::Value> obj = Utility::Get(js, name);
-    
+
     return ConversionUtility::getJsObject(obj);
 }
 
@@ -466,7 +466,7 @@ bool Utility::IsObject(v8::Local<v8::Object> jsobj, char *name)
     return Utility::Get(jsobj, name)->IsObject();
 }
 
-v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char *customMessage)
+v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char const *customMessage)
 {
     Nan::EscapableHandleScope scope;
     switch (errorCode)
@@ -502,7 +502,7 @@ v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char *customMe
     }
 }
 
-v8::Local<v8::String> ErrorMessage::getTypeErrorMessage(int argumentNumber, char *message)
+v8::Local<v8::String> ErrorMessage::getTypeErrorMessage(int argumentNumber, char const *message)
 {
     std::ostringstream stream;
 
@@ -535,7 +535,7 @@ v8::Local<v8::String> ErrorMessage::getTypeErrorMessage(int argumentNumber, char
     }
 
     stream << " argument must be a " << message;
-    
+
     return ConversionUtility::toJsString(stream.str())->ToString();
 }
 
