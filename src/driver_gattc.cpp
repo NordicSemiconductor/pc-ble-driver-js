@@ -395,14 +395,11 @@ NAN_METHOD(PrimaryServicesDiscover)
     }
 
     uv_queue_work(uv_default_loop(), baton->req, PrimaryServicesDiscover, (uv_after_work_cb)AfterPrimaryServicesDiscover);
-
-    // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    return;
 }
 
 // This runs in a worker thread (not Main Thread)
-void PrimaryServicesDiscover(uv_work_t *req) {
-    // TODO: handle if .Close is called before this function is called.
+void PrimaryServicesDiscover(uv_work_t *req) 
+{
     GattcPrimaryServicesDiscoverBaton *baton = static_cast<GattcPrimaryServicesDiscoverBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
@@ -410,7 +407,8 @@ void PrimaryServicesDiscover(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterPrimaryServicesDiscover(uv_work_t *req) {
+void AfterPrimaryServicesDiscover(uv_work_t *req) 
+{
 	Nan::HandleScope scope;
 
     GattcPrimaryServicesDiscoverBaton *baton = static_cast<GattcPrimaryServicesDiscoverBaton *>(req->data);
@@ -458,14 +456,11 @@ NAN_METHOD(RelationshipDiscover)
     baton->p_handle_range = GattcHandleRange(handle_range);
 
     uv_queue_work(uv_default_loop(), baton->req, RelationshipDiscover, (uv_after_work_cb)AfterRelationshipDiscover);
-
-    // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    return;
 }
 
 // This runs in a worker thread (not Main Thread)
-void RelationshipDiscover(uv_work_t *req) {
-    // TODO: handle if .Close is called before this function is called.
+void RelationshipDiscover(uv_work_t *req) 
+{
     GattcRelationshipDiscoverBaton *baton = static_cast<GattcRelationshipDiscoverBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
@@ -473,7 +468,8 @@ void RelationshipDiscover(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterRelationshipDiscover(uv_work_t *req) {
+void AfterRelationshipDiscover(uv_work_t *req) 
+{
 	Nan::HandleScope scope;
 
     GattcRelationshipDiscoverBaton *baton = static_cast<GattcRelationshipDiscoverBaton *>(req->data);
@@ -521,14 +517,11 @@ NAN_METHOD(CharacteristicsDiscover)
     baton->p_handle_range = GattcHandleRange(handle_range);
 
     uv_queue_work(uv_default_loop(), baton->req, CharacteristicsDiscover, (uv_after_work_cb)AfterCharacteristicsDiscover);
-
-    // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    return;
 }
 
 // This runs in a worker thread (not Main Thread)
-void CharacteristicsDiscover(uv_work_t *req) {
-    // TODO: handle if .Close is called before this function is called.
+void CharacteristicsDiscover(uv_work_t *req) 
+{
     GattcCharacteristicsDiscoverBaton *baton = static_cast<GattcCharacteristicsDiscoverBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
@@ -536,7 +529,8 @@ void CharacteristicsDiscover(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterCharacteristicsDiscover(uv_work_t *req) {
+void AfterCharacteristicsDiscover(uv_work_t *req) 
+{
 	Nan::HandleScope scope;
 
     GattcCharacteristicsDiscoverBaton *baton = static_cast<GattcCharacteristicsDiscoverBaton *>(req->data);
@@ -584,14 +578,11 @@ NAN_METHOD(DescriptorsDiscover)
     baton->p_handle_range = GattcHandleRange(handle_range);
 
     uv_queue_work(uv_default_loop(), baton->req, DescriptorsDiscover, (uv_after_work_cb)AfterDescriptorsDiscover);
-
-    // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    return;
 }
 
 // This runs in a worker thread (not Main Thread)
-void DescriptorsDiscover(uv_work_t *req) {
-    // TODO: handle if .Close is called before this function is called.
+void DescriptorsDiscover(uv_work_t *req) 
+{
     GattcDescriptorsDiscoverBaton *baton = static_cast<GattcDescriptorsDiscoverBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
@@ -599,7 +590,8 @@ void DescriptorsDiscover(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterDescriptorsDiscover(uv_work_t *req) {
+void AfterDescriptorsDiscover(uv_work_t *req) 
+{
 	Nan::HandleScope scope;
 
     GattcDescriptorsDiscoverBaton *baton = static_cast<GattcDescriptorsDiscoverBaton *>(req->data);
@@ -659,8 +651,8 @@ NAN_METHOD(CharacteristicValueByUUIDRead)
 }
 
 // This runs in a worker thread (not Main Thread)
-void CharacteristicValueByUUIDRead(uv_work_t *req) {
-    // TODO: handle if .Close is called before this function is called.
+void CharacteristicValueByUUIDRead(uv_work_t *req) 
+{
     GattcCharacteristicByUUIDReadBaton *baton = static_cast<GattcCharacteristicByUUIDReadBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
@@ -668,7 +660,8 @@ void CharacteristicValueByUUIDRead(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterCharacteristicValueByUUIDRead(uv_work_t *req) {
+void AfterCharacteristicValueByUUIDRead(uv_work_t *req) 
+{
 	Nan::HandleScope scope;
 
     GattcCharacteristicByUUIDReadBaton *baton = static_cast<GattcCharacteristicByUUIDReadBaton *>(req->data);
@@ -725,14 +718,11 @@ NAN_METHOD(Read)
     baton->offset = offset;
 
     uv_queue_work(uv_default_loop(), baton->req, Read, (uv_after_work_cb)AfterRead);
-
-    // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    return;
 }
 
 // This runs in a worker thread (not Main Thread)
-void Read(uv_work_t *req) {
-    // TODO: handle if .Close is called before this function is called.
+void Read(uv_work_t *req) 
+{
     GattcReadBaton *baton = static_cast<GattcReadBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
@@ -740,7 +730,8 @@ void Read(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterRead(uv_work_t *req) {
+void AfterRead(uv_work_t *req) 
+{
 	Nan::HandleScope scope;
 
     GattcReadBaton *baton = static_cast<GattcReadBaton *>(req->data);
@@ -802,14 +793,11 @@ NAN_METHOD(CharacteristicValuesRead)
     baton->handle_count = handle_count;
 
     uv_queue_work(uv_default_loop(), baton->req, CharacteristicValuesRead, (uv_after_work_cb)AfterCharacteristicValuesRead);
-
-    // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    return;
 }
 
 // This runs in a worker thread (not Main Thread)
-void CharacteristicValuesRead(uv_work_t *req) {
-    // TODO: handle if .Close is called before this function is called.
+void CharacteristicValuesRead(uv_work_t *req) 
+{
     GattcCharacteristicValuesReadBaton *baton = static_cast<GattcCharacteristicValuesReadBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
@@ -819,7 +807,8 @@ void CharacteristicValuesRead(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterCharacteristicValuesRead(uv_work_t *req) {
+void AfterCharacteristicValuesRead(uv_work_t *req) 
+{
 	Nan::HandleScope scope;
 
     GattcCharacteristicValuesReadBaton *baton = static_cast<GattcCharacteristicValuesReadBaton *>(req->data);
@@ -867,14 +856,11 @@ NAN_METHOD(Write)
     baton->p_write_params = GattcWriteParameters(p_write_params);
 
     uv_queue_work(uv_default_loop(), baton->req, Write, (uv_after_work_cb)AfterWrite);
-
-    // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    return;
 }
 
 // This runs in a worker thread (not Main Thread)
-void Write(uv_work_t *req) {
-    // TODO: handle if .Close is called before this function is called.
+void Write(uv_work_t *req) 
+{
     GattcWriteBaton *baton = static_cast<GattcWriteBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
@@ -882,7 +868,8 @@ void Write(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterWrite(uv_work_t *req) {
+void AfterWrite(uv_work_t *req) 
+{
 	Nan::HandleScope scope;
 
     GattcWriteBaton *baton = static_cast<GattcWriteBaton *>(req->data);
@@ -930,14 +917,11 @@ NAN_METHOD(HandleValueConfirm)
     baton->handle = handle;
 
     uv_queue_work(uv_default_loop(), baton->req, HandleValueConfirm, (uv_after_work_cb)AfterHandleValueConfirm);
-
-    // TODO: generate a generic function to handle return code from the SD. If not NRF_SUCCESS, raise an exception.
-    return;
 }
 
 // This runs in a worker thread (not Main Thread)
-void HandleValueConfirm(uv_work_t *req) {
-    // TODO: handle if .Close is called before this function is called.
+void HandleValueConfirm(uv_work_t *req) 
+{
     GattcHandleValueConfirmBaton *baton = static_cast<GattcHandleValueConfirmBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
@@ -945,7 +929,8 @@ void HandleValueConfirm(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterHandleValueConfirm(uv_work_t *req) {
+void AfterHandleValueConfirm(uv_work_t *req) 
+{
 	Nan::HandleScope scope;
 
     GattcHandleValueConfirmBaton *baton = static_cast<GattcHandleValueConfirmBaton *>(req->data);
