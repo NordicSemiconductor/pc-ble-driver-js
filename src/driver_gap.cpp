@@ -609,6 +609,23 @@ v8::Local<v8::Object> GapAuthStatus::ToJs()
 //
 
 //
+// GapConnSecUpdate -- START --
+//
+
+v8::Local<v8::Object> GapConnSecUpdate::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverEvent::ToJs(obj);
+    Utility::Set(obj, "conn_sec", GapConnSec(&(evt->conn_sec)).ToJs());
+    return scope.Escape(obj);
+}
+
+//
+// GapConnSecUpdate -- END --
+//
+
+//
 // GapSecParams -- START --
 //
 
@@ -962,6 +979,34 @@ ble_gap_sec_levels_t *GapSecLevels::ToNative()
 
 //
 // GapSecLevels -- END --
+//
+
+//
+// GapConnSec -- START --
+//
+
+v8::Local<v8::Object> GapConnSec::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    Utility::Set(obj, "sec_mode", GapConnSecMode(&(native->sec_mode)));
+    Utility::Set(obj, "encr_key_size", native->encr_key_size);
+    return scope.Escape(obj);
+}
+
+ble_gap_conn_sec_t *GapConnSec::ToNative()
+{
+    ble_gap_conn_sec_t *conn_sec = new ble_gap_conn_sec_t();
+    memset(conn_sec, 0, sizeof(ble_gap_conn_sec_t));
+
+    conn_sec->sec_mode = GapConnSecMode(ConversionUtility::getJsObject(jsobj, "sec_mode"));
+    conn_sec->encr_key_size = ConversionUtility::getNativeUint8(jsobj, "encr_key_size");
+
+    return conn_sec;
+}
+
+//
+// GapConnSec -- END --
 //
 
 //

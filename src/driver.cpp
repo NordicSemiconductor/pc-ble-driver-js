@@ -255,6 +255,8 @@ void on_rpc_event(uv_async_t *handle)
                 GAP_EVT_CASE(CONN_PARAM_UPDATE,         ConnParamUpdate,        conn_param_update,          array, array_idx, event_entry);
                 GAP_EVT_CASE(CONN_PARAM_UPDATE_REQUEST, ConnParamUpdateRequest, conn_param_update_request,  array, array_idx, event_entry);
                 GAP_EVT_CASE(SEC_PARAMS_REQUEST,        SecParamsRequest,       sec_params_request,         array, array_idx, event_entry);
+                GAP_EVT_CASE(AUTH_STATUS,               AuthStatus,             auth_status,                array, array_idx, event_entry);
+                GAP_EVT_CASE(CONN_SEC_UPDATE,           ConnSecUpdate,          conn_sec_update,            array, array_idx, event_entry);
 
                 GATTC_EVT_CASE(PRIM_SRVC_DISC_RSP,          PrimaryServiceDiscovery,       prim_srvc_disc_rsp,         array, array_idx, event_entry);
                 GATTC_EVT_CASE(REL_DISC_RSP,                RelationshipDiscovery,         rel_disc_rsp,               array, array_idx, event_entry);
