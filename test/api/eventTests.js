@@ -6,7 +6,6 @@ const assert = require('assert');
 const Adapter = require('../../api/adapter.js');
 const commonStubs = require('./commonStubs.js');
 
-
 describe('BLE_GAP_EVT_CONNECTED', function() {
     let bleDriver;
     let adapter;
@@ -14,7 +13,7 @@ describe('BLE_GAP_EVT_CONNECTED', function() {
     let connectEvent;
 
     beforeEach(function(done) {
-        bleDriver = commonStubs.createBleDriver((eventCallback)=>{
+        bleDriver = commonStubs.createBleDriver((eventCallback)=> {
             bleDriverEventCallback = eventCallback;
             connectEvent = commonStubs.createConnectEvent();
             done();
@@ -30,12 +29,14 @@ describe('BLE_GAP_EVT_CONNECTED', function() {
         let connectSpy = sinon.spy();
         adapter.once('deviceConnected', connectSpy);
 
+        adapter.connect('ss', {}, ()=> {});
         bleDriverEventCallback([connectEvent]);
 
         assert(connectSpy.calledOnce);
     });
 
-    it('should populate the adapters list of devices', () =>{
+    it('should populate the adapters list of devices', () => {
+        adapter.connect('ss', {}, ()=> {});
         bleDriverEventCallback([connectEvent]);
 
         let devices = adapter.getDevices();
@@ -43,10 +44,11 @@ describe('BLE_GAP_EVT_CONNECTED', function() {
         assert.notEqual(addedDevice, undefined);
     });
 
-    it('should produce a device connected event with data from connect event', () =>{
+    it('should produce a device connected event with data from connect event', () => {
         let connectSpy = sinon.spy();
         adapter.once('deviceConnected', connectSpy);
 
+        adapter.connect('ss', {}, ()=> {});
         bleDriverEventCallback([connectEvent]);
         let device = connectSpy.args[0][0];
 
@@ -62,19 +64,35 @@ describe('BLE_GAP_EVT_CONNECTED', function() {
         assert.equal(device.connectionSupervisionTimeout, connectEvent.conn_params.conn_sup_timeout);
         assert(connectSpy.calledOnce);
     });
+
+    it('should set driver version, device name and address on connect', (done) => {
+        adapter.connect('deviceAddress', {}, () => {
+            adapter.getAdapterState((error, adapterState) => {
+                assert.equal(adapterState.firmwareVersion, '0.0.9');
+                assert.equal(adapterState.name, 'holy handgrenade');
+                assert.equal(adapterState.address, 'Bridge of death');
+                done();
+            });
+        });
+        bleDriverEventCallback([connectEvent]);
+    });
 });
 
 describe('BLE_GAP_EVT_DISCONNECTED', function() {
-    let bleDriver, adapter, bleDriverEventCallback, disconnectEvent;
+    let bleDriver;
+    let adapter;
+    let bleDriverEventCallback;
+    let disconnectEvent;
     beforeEach((done) => {
-        bleDriver = commonStubs.createBleDriver((eventCallback)=>{
+        bleDriver = commonStubs.createBleDriver((eventCallback)=> {
             bleDriverEventCallback = eventCallback;
+            adapter.connect('ss', {}, ()=> {});
             bleDriverEventCallback([commonStubs.createConnectEvent()]);
 
             disconnectEvent = {
                 id: bleDriver.BLE_GAP_EVT_DISCONNECTED,
                 conn_handle: 123,
-                reason_name: "BLE_HCI_LOCAL_HOST_TERMINATED_CONNECTION"
+                reason_name: "BLE_HCI_LOCAL_HOST_TERMINATED_CONNECTION",
             };
             done();
         });
@@ -121,6 +139,7 @@ describe('BLE_GAP_EVT_CONN_PARAM_UPDATE', () =>{
 
     it('Should update device connection parameters', () => {
         let connectEvent = commonStubs.createConnectEvent();
+        adapter.connect('ss', {}, ()=> {});
         bleDriverEventCallback([connectEvent]);
 
         const originalDevice = adapter.getDevices()['FF:AA:DD.123'];
@@ -148,6 +167,7 @@ describe('BLE_GAP_EVT_CONN_PARAM_UPDATE', () =>{
 
     it('should emit \'connParamUpdate\' with the correct device and with the new conn params', () => {
         const connectEvent = commonStubs.createConnectEvent();
+        adapter.connect('ss', {}, ()=> {});
         bleDriverEventCallback([connectEvent]);
 
         const newConnectionParameters = {
