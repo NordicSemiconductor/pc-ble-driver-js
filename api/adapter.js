@@ -978,7 +978,7 @@ class Adapter extends EventEmitter {
 
     // Callback signature function(err)
     stopScan(callback) {
-        this._bleDriver.stop_scan(err => {
+        this._bleDriver.gap_stop_scan(err => {
             if (err) {
                 // TODO: probably is state already set to false, but should we make sure? if yes, emit adapterStateChanged?
                 this.emit('error', make_error('Error occured when stopping scanning', err));
