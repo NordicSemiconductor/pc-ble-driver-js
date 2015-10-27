@@ -347,47 +347,55 @@ v8::Local<v8::Object> GattcTimeoutEvent::ToJs()
 
 NAN_METHOD(PrimaryServicesDiscover)
 {
+    uint16_t conn_handle;
+    uint16_t start_handle;
     bool has_service_uuid = false;
     v8::Local<v8::Object> service_uuid;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
 
-    if (!info[0]->IsNumber())
+    try
     {
-        Nan::ThrowTypeError("First argument must be a number");
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        start_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        if (info[argumentcount]->IsNumber())
+        {
+            has_service_uuid = true;
+        }
+        else
+        {
+            service_uuid = ConversionUtility::getJsObject(info[argumentcount]);
+        }
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
         return;
     }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
-
-    if (!info[1]->IsNumber())
-    {
-        Nan::ThrowTypeError("Second argument must be a number");
-        return;
-    }
-    uint16_t start_handle = ConversionUtility::getNativeUint16(info[1]);
-
-    if (info[2]->IsObject())
-    {
-        has_service_uuid = true;
-        service_uuid = info[2]->ToObject();
-    }
-    else if (!info[2]->IsNumber())
-    {
-        Nan::ThrowTypeError("Third argument must be a object or number 0");
-        return;
-    }
-
-    if (!info[3]->IsFunction())
-    {
-        Nan::ThrowTypeError("Forth argument must be a function");
-        return;
-    }
-    v8::Local<v8::Function> callback = info[3].As<v8::Function>();
 
     GattcPrimaryServicesDiscoverBaton *baton = new GattcPrimaryServicesDiscoverBaton(callback);
     baton->conn_handle = conn_handle;
     baton->start_handle = start_handle;
     if (has_service_uuid)
     {
-        baton->p_srvc_uuid = BleUUID(service_uuid);
+        try
+        {
+            baton->p_srvc_uuid = BleUUID(service_uuid);
+        }
+        catch (char const *error)
+        {
+            Nan::ThrowTypeError("The provided uuid can not be parsed.");
+            return;
+        }
     }
     else
     {
@@ -430,30 +438,41 @@ void AfterPrimaryServicesDiscover(uv_work_t *req)
 
 NAN_METHOD(RelationshipDiscover)
 {
-    if (!info[0]->IsNumber())
-    {
-        Nan::ThrowTypeError("First argument must be a number");
-        return;
-    }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
+    uint16_t conn_handle;
+    v8::Local<v8::Object> handle_range;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
 
-    if (!info[1]->IsObject())
+    try
     {
-        Nan::ThrowTypeError("Second argument must be a object");
-        return;
-    }
-    v8::Local<v8::Object> handle_range = info[1]->ToObject();
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
 
-    if (!info[2]->IsFunction())
+        handle_range = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("Third argument must be a function");
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
         return;
     }
-    v8::Local<v8::Function> callback = info[2].As<v8::Function>();
 
     GattcRelationshipDiscoverBaton *baton = new GattcRelationshipDiscoverBaton(callback);
     baton->conn_handle = conn_handle;
-    baton->p_handle_range = GattcHandleRange(handle_range);
+    
+    try
+    {
+        baton->p_handle_range = GattcHandleRange(handle_range);
+    }
+    catch (char const *error)
+    {
+        Nan::ThrowTypeError("The provided handle range can not be parsed.");
+        return;
+    }
 
     uv_queue_work(uv_default_loop(), baton->req, RelationshipDiscover, (uv_after_work_cb)AfterRelationshipDiscover);
 }
@@ -491,30 +510,41 @@ void AfterRelationshipDiscover(uv_work_t *req)
 
 NAN_METHOD(CharacteristicsDiscover)
 {
-    if (!info[0]->IsNumber())
-    {
-        Nan::ThrowTypeError("First argument must be a number");
-        return;
-    }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
+    uint16_t conn_handle;
+    v8::Local<v8::Object> handle_range;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
 
-    if (!info[1]->IsObject())
+    try
     {
-        Nan::ThrowTypeError("Second argument must be a object");
-        return;
-    }
-    v8::Local<v8::Object> handle_range = info[1]->ToObject();
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
 
-    if (!info[2]->IsFunction())
+        handle_range = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("Third argument must be a function");
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
         return;
     }
-    v8::Local<v8::Function> callback = info[2].As<v8::Function>();
 
     GattcCharacteristicsDiscoverBaton *baton = new GattcCharacteristicsDiscoverBaton(callback);
     baton->conn_handle = conn_handle;
-    baton->p_handle_range = GattcHandleRange(handle_range);
+
+    try
+    {
+        baton->p_handle_range = GattcHandleRange(handle_range);
+    }
+    catch (char const *error)
+    {
+        Nan::ThrowTypeError("The provided handle range can not be parsed.");
+        return;
+    }
 
     uv_queue_work(uv_default_loop(), baton->req, CharacteristicsDiscover, (uv_after_work_cb)AfterCharacteristicsDiscover);
 }
@@ -552,30 +582,41 @@ void AfterCharacteristicsDiscover(uv_work_t *req)
 
 NAN_METHOD(DescriptorsDiscover)
 {
-    if (!info[0]->IsNumber())
-    {
-        Nan::ThrowTypeError("First argument must be a number");
-        return;
-    }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
+    uint16_t conn_handle;
+    v8::Local<v8::Object> handle_range;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
 
-    if (!info[1]->IsObject())
+    try
     {
-        Nan::ThrowTypeError("Second argument must be a object");
-        return;
-    }
-    v8::Local<v8::Object> handle_range = info[1]->ToObject();
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
 
-    if (!info[2]->IsFunction())
+        handle_range = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("Third argument must be a function");
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
         return;
     }
-    v8::Local<v8::Function> callback = info[2].As<v8::Function>();
 
     GattcDescriptorsDiscoverBaton *baton = new GattcDescriptorsDiscoverBaton(callback);
     baton->conn_handle = conn_handle;
-    baton->p_handle_range = GattcHandleRange(handle_range);
+
+    try
+    {
+        baton->p_handle_range = GattcHandleRange(handle_range);
+    }
+    catch (char const *error)
+    {
+        Nan::ThrowTypeError("The provided handle range can not be parsed.");
+        return;
+    }
 
     uv_queue_work(uv_default_loop(), baton->req, DescriptorsDiscover, (uv_after_work_cb)AfterDescriptorsDiscover);
 }
@@ -613,39 +654,54 @@ void AfterDescriptorsDiscover(uv_work_t *req)
 
 NAN_METHOD(CharacteristicValueByUUIDRead)
 {
-    if (!info[0]->IsNumber())
+    uint16_t conn_handle;
+    v8::Local<v8::Object> uuid;
+    v8::Local<v8::Object> handle_range;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
+
+    try
     {
-        Nan::ThrowTypeError("First argument must be a number");
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        uuid = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        handle_range = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
         return;
     }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
-
-    if (!info[1]->IsObject())
-    {
-        Nan::ThrowTypeError("Second argument must be a object");
-        return;
-    }
-    v8::Local<v8::Object> uuid = info[1]->ToObject();
-
-    if (!info[2]->IsObject())
-    {
-        Nan::ThrowTypeError("Third argument must be a object");
-        return;
-    }
-    v8::Local<v8::Object> handle_range = info[2]->ToObject();
-
-
-    if (!info[3]->IsFunction())
-    {
-        Nan::ThrowTypeError("Forth argument must be a function");
-        return;
-    }
-    v8::Local<v8::Function> callback = info[3].As<v8::Function>();
 
     GattcCharacteristicByUUIDReadBaton *baton = new GattcCharacteristicByUUIDReadBaton(callback);
     baton->conn_handle = conn_handle;
-    baton->p_uuid = BleUUID(uuid);
-    baton->p_handle_range = GattcHandleRange(handle_range);
+    try
+    {
+        baton->p_uuid = BleUUID(uuid);
+    }
+    catch (char const *error)
+    {
+        Nan::ThrowTypeError("The provided uuid can not be parsed.");
+        return;
+    }
+
+    try
+    {
+        baton->p_handle_range = GattcHandleRange(handle_range);
+    }
+    catch (char const *error)
+    {
+        Nan::ThrowTypeError("The provided handle range can not be parsed.");
+        return;
+    }
 
     uv_queue_work(uv_default_loop(), baton->req, CharacteristicValueByUUIDRead, (uv_after_work_cb)AfterCharacteristicValueByUUIDRead);
 }
@@ -683,34 +739,32 @@ void AfterCharacteristicValueByUUIDRead(uv_work_t *req)
 
 NAN_METHOD(Read)
 {
-    if (!info[0]->IsNumber())
+    uint16_t conn_handle;
+    uint16_t handle;
+    uint16_t offset;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
+
+    try
     {
-        Nan::ThrowTypeError("First argument must be a number");
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        offset = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
         return;
     }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
-
-    if (!info[1]->IsNumber())
-    {
-        Nan::ThrowTypeError("Second argument must be a number");
-        return;
-    }
-    uint16_t handle = ConversionUtility::getNativeUint16(info[1]);
-
-    if (!info[2]->IsNumber())
-    {
-        Nan::ThrowTypeError("Third argument must be a number");
-        return;
-    }
-    uint16_t offset = ConversionUtility::getNativeUint16(info[2]);
-
-
-    if (!info[3]->IsFunction())
-    {
-        Nan::ThrowTypeError("Forth argument must be a function");
-        return;
-    }
-    v8::Local<v8::Function> callback = info[3].As<v8::Function>();
 
     GattcReadBaton *baton = new GattcReadBaton(callback);
     baton->conn_handle = conn_handle;
@@ -752,39 +806,48 @@ void AfterRead(uv_work_t *req)
 
 NAN_METHOD(CharacteristicValuesRead)
 {
-    if (!info[0]->IsNumber())
-    {
-        Nan::ThrowTypeError("First argument must be a number");
-        return;
-    }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
+    uint16_t conn_handle;
+    v8::Local<v8::Object> handles;
+    uint16_t handle_count;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
 
-    if (!info[1]->IsObject())
+    try
     {
-        Nan::ThrowTypeError("Second argument must be a object");
-        return;
-    }
-    v8::Local<v8::Object> handles = info[1]->ToObject();
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
 
-    if (!info[2]->IsNumber())
-    {
-        Nan::ThrowTypeError("Third argument must be a number");
-        return;
-    }
-    uint16_t handle_count = ConversionUtility::getNativeUint16(info[2]);
+        handles = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
 
-    if (!info[3]->IsFunction())
+        handle_count = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("Forth argument must be a function");
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
         return;
     }
-    v8::Local<v8::Function> callback = info[3].As<v8::Function>();
 
     uint16_t *p_handles = (uint16_t *)malloc(sizeof(uint16_t) * handle_count);
 
-    for (int i = 0; i < handle_count; ++i)
+    try
     {
-        p_handles[i] = ConversionUtility::getNativeUint16(handles->Get(Nan::New<v8::Number>(i)));
+        for (int i = 0; i < handle_count; ++i)
+        {
+        
+                p_handles[i] = ConversionUtility::getNativeUint16(handles->Get(Nan::New<v8::Number>(i)));
+     
+        }
+    }
+    catch (char const *error)
+    {
+        Nan::ThrowTypeError("The provided handles can not be parsed.");
+        return;
     }
 
     GattcCharacteristicValuesReadBaton *baton = new GattcCharacteristicValuesReadBaton(callback);
@@ -830,30 +893,41 @@ void AfterCharacteristicValuesRead(uv_work_t *req)
 
 NAN_METHOD(Write)
 {
-    if (!info[0]->IsNumber())
-    {
-        Nan::ThrowTypeError("First argument must be a number");
-        return;
-    }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
+    uint16_t conn_handle;
+    v8::Local<v8::Object> p_write_params;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
 
-    if (!info[1]->IsObject())
+    try
     {
-        Nan::ThrowTypeError("Second argument must be a object");
-        return;
-    }
-    v8::Local<v8::Object> p_write_params = info[1]->ToObject();
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
 
-    if (!info[2]->IsFunction())
+        p_write_params = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("Third argument must be a function");
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
         return;
     }
-    v8::Local<v8::Function> callback = info[2].As<v8::Function>();
 
     GattcWriteBaton *baton = new GattcWriteBaton(callback);
     baton->conn_handle = conn_handle;
-    baton->p_write_params = GattcWriteParameters(p_write_params);
+
+    try
+    {
+        baton->p_write_params = GattcWriteParameters(p_write_params);
+    }
+    catch (char const *error)
+    {
+        Nan::ThrowTypeError("The provided write parameters can not be parsed.");
+        return;
+    }
 
     uv_queue_work(uv_default_loop(), baton->req, Write, (uv_after_work_cb)AfterWrite);
 }
@@ -891,26 +965,28 @@ void AfterWrite(uv_work_t *req)
 
 NAN_METHOD(HandleValueConfirm)
 {
-    if (!info[0]->IsNumber())
-    {
-        Nan::ThrowTypeError("First argument must be a number");
-        return;
-    }
-    uint16_t conn_handle = ConversionUtility::getNativeUint16(info[0]);
+    uint16_t conn_handle;
+    uint16_t handle;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
 
-    if (!info[1]->IsNumber())
+    try
     {
-        Nan::ThrowTypeError("Second argument must be a number");
-        return;
-    }
-    uint16_t handle = ConversionUtility::getNativeUint16(info[1]);
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
 
-    if (!info[2]->IsFunction())
+        handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("Third argument must be a function");
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
         return;
     }
-    v8::Local<v8::Function> callback = info[2].As<v8::Function>();
 
     GattcHandleValueConfirmBaton *baton = new GattcHandleValueConfirmBaton(callback);
     baton->conn_handle = conn_handle;
