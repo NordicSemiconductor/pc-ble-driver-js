@@ -258,6 +258,8 @@ public:
     static v8::Handle<v8::Value> toJsString(std::string string);
     static char *                valueToString(uint16_t value, name_map_t name_map, char *defaultValue = "Unknown value");
     static v8::Handle<v8::Value> valueToJsString(uint16_t, name_map_t name_map, v8::Handle<v8::Value> defaultValue = Nan::New<v8::String>("Unknown value").ToLocalChecked());
+
+    static v8::Local<v8::Function> getCallbackFunction(v8::Local<v8::Object> js, char *name);
     static v8::Local<v8::Function> getCallbackFunction(v8::Local<v8::Value> js);
 
     static uint8_t extractHexHelper(char text);
@@ -268,7 +270,7 @@ public:
 class ErrorMessage
 {
 public:
-    static v8::Local<v8::Value> getErrorMessage(int errorCode, char const *customMessage);
+    static v8::Local<v8::Value> getErrorMessage(int errorCode, char const*customMessage);
     static v8::Local<v8::String> getTypeErrorMessage(int argumentNumber, char const *message);
 };
 

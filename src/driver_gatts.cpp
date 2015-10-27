@@ -345,13 +345,23 @@ NAN_METHOD(AddService)
 
     GattsAddServiceBaton *baton = new GattsAddServiceBaton(callback);
     baton->type = type;
-    baton->p_uuid = BleUUID(uuid);
+
+    try
+    {
+        baton->p_uuid = BleUUID(uuid);
+    }
+    catch (char const *)
+    {
+        Nan::ThrowTypeError("The provided uuid can not be parsed.");
+        return;
+    }
 
     uv_queue_work(uv_default_loop(), baton->req, AddService, (uv_after_work_cb)AfterAddService);
 }
 
 // This runs in a worker thread (not Main Thread)
-void AddService(uv_work_t *req) {
+void AddService(uv_work_t *req) 
+{
     GattsAddServiceBaton *baton = static_cast<GattsAddServiceBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
@@ -359,7 +369,8 @@ void AddService(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterAddService(uv_work_t *req) {
+void AfterAddService(uv_work_t *req) 
+{
     Nan::HandleScope scope;
 
     GattsAddServiceBaton *baton = static_cast<GattsAddServiceBaton *>(req->data);
@@ -402,7 +413,7 @@ NAN_METHOD(AddCharacteristic)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char *error)
+    catch (char const *error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -411,15 +422,35 @@ NAN_METHOD(AddCharacteristic)
 
     GattsAddCharacteristicBaton *baton = new GattsAddCharacteristicBaton(callback);
     baton->service_handle = serviceHandle;
-    baton->p_char_md = GattsCharacteristicMetadata(metadata);
-    baton->p_attr_char_value = GattsAttribute(attributeStructure);
+
+    try
+    {
+        baton->p_char_md = GattsCharacteristicMetadata(metadata);
+    }
+    catch (char const *)
+    {
+        Nan::ThrowTypeError("The provided characteristic metadata can not be parsed.");
+        return;
+    }
+
+    try
+    {
+        baton->p_attr_char_value = GattsAttribute(attributeStructure);
+    }
+    catch (char const *)
+    {
+        Nan::ThrowTypeError("The provided attribute can not be parsed.");
+        return;
+    }
+
     baton->p_handles = new ble_gatts_char_handles_t();
 
     uv_queue_work(uv_default_loop(), baton->req, AddCharacteristic, (uv_after_work_cb)AfterAddCharacteristic);
 }
 
 // This runs in a worker thread (not Main Thread)
-void AddCharacteristic(uv_work_t *req) {
+void AddCharacteristic(uv_work_t *req) 
+{
     GattsAddCharacteristicBaton *baton = static_cast<GattsAddCharacteristicBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
@@ -427,7 +458,8 @@ void AddCharacteristic(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterAddCharacteristic(uv_work_t *req) {
+void AfterAddCharacteristic(uv_work_t *req) 
+{
     Nan::HandleScope scope;
 
     GattsAddCharacteristicBaton *baton = static_cast<GattsAddCharacteristicBaton *>(req->data);
@@ -468,7 +500,7 @@ NAN_METHOD(AddDescriptor)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char *error)
+    catch (char const *error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -477,13 +509,23 @@ NAN_METHOD(AddDescriptor)
 
     GattsAddDescriptorBaton *baton = new GattsAddDescriptorBaton(callback);
     baton->char_handle = characteristicHandle;
-    baton->p_attr = GattsAttribute(attributeStructure);
+
+    try
+    {
+        baton->p_attr = GattsAttribute(attributeStructure);
+    }
+    catch (char const *)
+    {
+        Nan::ThrowTypeError("The provided attribute can not be parsed.");
+        return;
+    }
 
     uv_queue_work(uv_default_loop(), baton->req, AddDescriptor, (uv_after_work_cb)AfterAddDescriptor);
 }
 
 // This runs in a worker thread (not Main Thread)
-void AddDescriptor(uv_work_t *req) {
+void AddDescriptor(uv_work_t *req) 
+{
     GattsAddDescriptorBaton *baton = static_cast<GattsAddDescriptorBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
@@ -491,7 +533,8 @@ void AddDescriptor(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterAddDescriptor(uv_work_t *req) {
+void AfterAddDescriptor(uv_work_t *req) 
+{
     Nan::HandleScope scope;
 
     GattsAddDescriptorBaton *baton = static_cast<GattsAddDescriptorBaton *>(req->data);
@@ -532,7 +575,7 @@ NAN_METHOD(HVX)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char *error)
+    catch (char const *error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -541,13 +584,23 @@ NAN_METHOD(HVX)
 
     GattsHVXBaton *baton = new GattsHVXBaton(callback);
     baton->conn_handle = conn_handle;
-    baton->p_hvx_params = GattsHVXParams(hvx_params);
+
+    try
+    {
+        baton->p_hvx_params = GattsHVXParams(hvx_params);
+    }
+    catch (char const *)
+    {
+        Nan::ThrowTypeError("The provided hvxparameters can not be parsed.");
+        return;
+    }
 
     uv_queue_work(uv_default_loop(), baton->req, HVX, (uv_after_work_cb)AfterHVX);
 }
 
 // This runs in a worker thread (not Main Thread)
-void HVX(uv_work_t *req) {
+void HVX(uv_work_t *req) 
+{
     GattsHVXBaton *baton = static_cast<GattsHVXBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
@@ -555,7 +608,8 @@ void HVX(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterHVX(uv_work_t *req) {
+void AfterHVX(uv_work_t *req) 
+{
     Nan::HandleScope scope;
 
     GattsHVXBaton *baton = static_cast<GattsHVXBaton *>(req->data);
@@ -612,7 +666,7 @@ NAN_METHOD(SystemAttributeSet)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char *error)
+    catch (char const *error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -638,7 +692,8 @@ NAN_METHOD(SystemAttributeSet)
 }
 
 // This runs in a worker thread (not Main Thread)
-void SystemAttributeSet(uv_work_t *req) {
+void SystemAttributeSet(uv_work_t *req) 
+{
     GattsSystemAttributeSetBaton *baton = static_cast<GattsSystemAttributeSetBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
@@ -646,7 +701,8 @@ void SystemAttributeSet(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterSystemAttributeSet(uv_work_t *req) {
+void AfterSystemAttributeSet(uv_work_t *req) 
+{
     Nan::HandleScope scope;
 
     GattsSystemAttributeSetBaton *baton = static_cast<GattsSystemAttributeSetBaton *>(req->data);
@@ -689,7 +745,7 @@ NAN_METHOD(ValueSet)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char *error)
+    catch (char const *error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -699,13 +755,23 @@ NAN_METHOD(ValueSet)
     GattsValueSetBaton *baton = new GattsValueSetBaton(callback);
     baton->conn_handle = conn_handle;
     baton->handle = handle;
-    baton->p_value = GattsValue(value);
+
+    try
+    {
+        baton->p_value = GattsValue(value);
+    }
+    catch (char const *)
+    {
+        Nan::ThrowTypeError("The provided gatts value can not be parsed.");
+        return;
+    }
 
     uv_queue_work(uv_default_loop(), baton->req, ValueSet, (uv_after_work_cb)AfterValueSet);
 }
 
 // This runs in a worker thread (not Main Thread)
-void ValueSet(uv_work_t *req) {
+void ValueSet(uv_work_t *req) 
+{
     GattsValueSetBaton *baton = static_cast<GattsValueSetBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
@@ -713,7 +779,8 @@ void ValueSet(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterValueSet(uv_work_t *req) {
+void AfterValueSet(uv_work_t *req) 
+{
     Nan::HandleScope scope;
 
     GattsValueSetBaton *baton = static_cast<GattsValueSetBaton *>(req->data);
@@ -758,7 +825,7 @@ NAN_METHOD(ValueGet)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char *error)
+    catch (char const *error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -768,13 +835,23 @@ NAN_METHOD(ValueGet)
     GattsValueSetBaton *baton = new GattsValueSetBaton(callback);
     baton->conn_handle = conn_handle;
     baton->handle = handle;
-    baton->p_value = GattsValue(value);
+
+    try
+    {
+        baton->p_value = GattsValue(value);
+    }
+    catch (char const *)
+    {
+        Nan::ThrowTypeError("The provided gatts value can not be parsed.");
+        return;
+    }
 
     uv_queue_work(uv_default_loop(), baton->req, ValueGet, (uv_after_work_cb)AfterValueGet);
 }
 
 // This runs in a worker thread (not Main Thread)
-void ValueGet(uv_work_t *req) {
+void ValueGet(uv_work_t *req) 
+{
     GattsValueGetBaton *baton = static_cast<GattsValueGetBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
@@ -782,7 +859,8 @@ void ValueGet(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterValueGet(uv_work_t *req) {
+void AfterValueGet(uv_work_t *req) 
+{
     Nan::HandleScope scope;
 
     GattsValueGetBaton *baton = static_cast<GattsValueGetBaton *>(req->data);
@@ -823,7 +901,7 @@ NAN_METHOD(RWAuthorizeReply)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char *error)
+    catch (char const *error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -832,13 +910,23 @@ NAN_METHOD(RWAuthorizeReply)
 
     GattsRWAuthorizeReplyBaton *baton = new GattsRWAuthorizeReplyBaton(callback);
     baton->conn_handle = conn_handle;
-    baton->p_rw_authorize_reply_params = GattRWAuthorizeReplyParams(params);
+
+    try
+    {
+        baton->p_rw_authorize_reply_params = GattRWAuthorizeReplyParams(params);
+    }
+    catch (char const *)
+    {
+        Nan::ThrowTypeError("The provided rw authorize reply parameters can not be parsed.");
+        return;
+    }
 
     uv_queue_work(uv_default_loop(), baton->req, RWAuthorizeReply, (uv_after_work_cb)AfterRWAuthorizeReply);
 }
 
 // This runs in a worker thread (not Main Thread)
-void RWAuthorizeReply(uv_work_t *req) {
+void RWAuthorizeReply(uv_work_t *req) 
+{
     GattsRWAuthorizeReplyBaton *baton = static_cast<GattsRWAuthorizeReplyBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
@@ -846,7 +934,8 @@ void RWAuthorizeReply(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterRWAuthorizeReply(uv_work_t *req) {
+void AfterRWAuthorizeReply(uv_work_t *req) 
+{
     Nan::HandleScope scope;
 
     GattsRWAuthorizeReplyBaton *baton = static_cast<GattsRWAuthorizeReplyBaton *>(req->data);

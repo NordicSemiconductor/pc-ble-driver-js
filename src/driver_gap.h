@@ -16,45 +16,12 @@ static name_map_t gap_event_name_map = {
     NAME_MAP_ENTRY(BLE_GAP_EVT_RSSI_CHANGED),
     NAME_MAP_ENTRY(BLE_GAP_EVT_CONN_PARAM_UPDATE),
     NAME_MAP_ENTRY(BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST),
-    NAME_MAP_ENTRY(BLE_GAP_EVT_SEC_PARAMS_REQUEST)
+    NAME_MAP_ENTRY(BLE_GAP_EVT_SEC_PARAMS_REQUEST),
+    NAME_MAP_ENTRY(BLE_GAP_EVT_AUTH_STATUS),
+    NAME_MAP_ENTRY(BLE_GAP_EVT_CONN_SEC_UPDATE)
 };
 
-class GapAddr : public BleToJs<ble_gap_addr_t>
-{
-public:
-    GapAddr(ble_gap_addr_t *gap_addr) : BleToJs<ble_gap_addr_t>(gap_addr) {}
-    GapAddr(v8::Local<v8::Object> js) : BleToJs<ble_gap_addr_t>(js) {}
-    v8::Local<v8::Object> ToJs();
-    ble_gap_addr_t *ToNative();
-};
-
-
-class GapConnParams : public BleToJs<ble_gap_conn_params_t>
-{
-public:
-    GapConnParams(ble_gap_conn_params_t *conn_params) : BleToJs<ble_gap_conn_params_t>(conn_params) {}
-    GapConnParams(v8::Local<v8::Object> js) : BleToJs<ble_gap_conn_params_t>(js) {}
-    v8::Local<v8::Object> ToJs();
-    ble_gap_conn_params_t *ToNative();
-};
-
-class GapConnSecMode : public BleToJs<ble_gap_conn_sec_mode_t>
-{
-public:
-    GapConnSecMode(ble_gap_conn_sec_mode_t *conn_sec_mode) : BleToJs<ble_gap_conn_sec_mode_t>(conn_sec_mode) {}
-    GapConnSecMode(v8::Local<v8::Object> js) : BleToJs<ble_gap_conn_sec_mode_t>(js) {}
-    v8::Local<v8::Object> ToJs();
-    ble_gap_conn_sec_mode_t *ToNative();
-};
-
-class GapScanParams : public BleToJs<ble_gap_scan_params_t>
-{
-public:
-    GapScanParams(ble_gap_scan_params_t *scanParams) : BleToJs<ble_gap_scan_params_t>(scanParams) {}
-    GapScanParams(v8::Local<v8::Object> js) : BleToJs<ble_gap_scan_params_t>(js) {}
-    v8::Local<v8::Object> ToJs();
-    ble_gap_scan_params_t *ToNative();
-};
+// Gap events -- START --
 
 template<typename EventType>
 class BleDriverGapEvent : public BleDriverEvent<EventType>
@@ -159,6 +126,64 @@ public:
         : BleDriverGapEvent<ble_gap_evt_sec_params_request_t>(BLE_GAP_EVT_SEC_PARAMS_REQUEST, timestamp, conn_handle, evt) {}
 
     v8::Local<v8::Object> ToJs();
+};
+
+class GapAuthStatus : public BleDriverGapEvent<ble_gap_evt_auth_status_t>
+{
+public:
+    GapAuthStatus(const std::string timestamp, uint16_t conn_handle, ble_gap_evt_auth_status_t *evt) 
+        : BleDriverGapEvent<ble_gap_evt_auth_status_t>(BLE_GAP_EVT_AUTH_STATUS, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs();
+};
+
+class GapConnSecUpdate : public BleDriverGapEvent<ble_gap_evt_conn_sec_update_t>
+{
+public:
+    GapConnSecUpdate(const std::string timestamp, uint16_t conn_handle, ble_gap_evt_conn_sec_update_t *evt)
+        : BleDriverGapEvent<ble_gap_evt_conn_sec_update_t>(BLE_GAP_EVT_CONN_SEC_UPDATE, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs();
+};
+
+// Gap events -- END --
+
+// Gap structs --START --
+
+class GapAddr : public BleToJs<ble_gap_addr_t>
+{
+public:
+    GapAddr(ble_gap_addr_t *gap_addr) : BleToJs<ble_gap_addr_t>(gap_addr) {}
+    GapAddr(v8::Local<v8::Object> js) : BleToJs<ble_gap_addr_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_addr_t *ToNative();
+};
+
+class GapConnParams : public BleToJs<ble_gap_conn_params_t>
+{
+public:
+    GapConnParams(ble_gap_conn_params_t *conn_params) : BleToJs<ble_gap_conn_params_t>(conn_params) {}
+    GapConnParams(v8::Local<v8::Object> js) : BleToJs<ble_gap_conn_params_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_conn_params_t *ToNative();
+};
+
+class GapConnSecMode : public BleToJs<ble_gap_conn_sec_mode_t>
+{
+public:
+    GapConnSecMode(ble_gap_conn_sec_mode_t *conn_sec_mode) : BleToJs<ble_gap_conn_sec_mode_t>(conn_sec_mode) {}
+    GapConnSecMode(v8::Local<v8::Object> js) : BleToJs<ble_gap_conn_sec_mode_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_conn_sec_mode_t *ToNative();
+};
+
+class GapScanParams : public BleToJs<ble_gap_scan_params_t>
+{
+public:
+    GapScanParams(ble_gap_scan_params_t *scanParams) : BleToJs<ble_gap_scan_params_t>(scanParams) {}
+    GapScanParams(v8::Local<v8::Object> js) : BleToJs<ble_gap_scan_params_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_scan_params_t *ToNative();
 };
 
 class GapAdvChannelMask : public BleToJs<ble_gap_adv_ch_mask_t>
@@ -269,7 +294,25 @@ public:
     ble_gap_master_id_t *ToNative();
 };
 
-// Event related struct to JS conversions -- END --
+class GapSecLevels : public BleToJs<ble_gap_sec_levels_t>
+{
+public:
+    GapSecLevels(ble_gap_sec_levels_t *sec_levels) : BleToJs<ble_gap_sec_levels_t>(sec_levels) {}
+    GapSecLevels(v8::Local<v8::Object> js) : BleToJs<ble_gap_sec_levels_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_sec_levels_t *ToNative();
+};
+
+class GapConnSec : public BleToJs<ble_gap_conn_sec_t>
+{
+public:
+    GapConnSec(ble_gap_conn_sec_t *conn_sec) : BleToJs<ble_gap_conn_sec_t>(conn_sec) {}
+    GapConnSec(v8::Local<v8::Object> js) : BleToJs<ble_gap_conn_sec_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_conn_sec_t *ToNative();
+};
+
+// Gap structs -- END --
 
 
 ///// Start GAP Batons ////////////////////////////////////////////////////////////////////////////////
