@@ -404,7 +404,7 @@ v8::Handle<v8::Value> ConversionUtility::valueToJsString(uint16_t value, name_ma
     return scope.Escape(Nan::New<v8::String>(it->second).ToLocalChecked());
 }
 
-v8::Local<v8::Function> ConversionUtility::getCallbackFunction(v8::Local<v8::Value> js, char *name)
+v8::Local<v8::Function> ConversionUtility::getCallbackFunction(v8::Local<v8::Object> js, char *name)
 {
     v8::Local<v8::Value> obj = Utility::Get(js, name);
 

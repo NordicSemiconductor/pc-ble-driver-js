@@ -317,13 +317,15 @@ v8::Local<v8::Object> CommonTXCompleteEvent::ToJs()
 }
 
 // This function runs in the Main Thread
-NAN_METHOD(Open) {
+NAN_METHOD(Open) 
+{
     v8::Local<v8::Object> options;
     v8::Local<v8::Function> callback;
     int argumentcount = 0;
 
     // Path to device
-    if (!info[0]->IsString()) {
+    if (!info[0]->IsString()) 
+    {
         Nan::ThrowTypeError("First argument must be a string");
         return;
     }
@@ -362,34 +364,13 @@ NAN_METHOD(Open) {
     catch (char const *error)
     {
         std::stringstream errormessage;
-        std::string optionName = "";
         errormessage << "A setup option was wrong. Option: ";
 
-        switch (parameter)
-        {
-        case 0:
-            optionName = "baudrate";
-            break;
-        case 1:
-            optionName = "parity";
-            break;
-        case 2:
-            optionName = "flowControl";
-            break;
-        case 3:
-            optionName = "eventInterval";
-            break;
-        case 4:
-            optionName = "logLevel";
-            break;
-        default:
-            optionName = "unknown";
-            break;
-        }
-        errormessage << optionName << ". Reason: " << error;
+        char *options[] = { "baudrate", "parity", "flowcontrol", "eventInterval", "logLevel" };
 
-        v8::Local<v8::String> message = ConversionUtility::toJsString(errormessage.str());
-        Nan::ThrowTypeError(message);
+        errormessage << options[parameter] << ". Reason: " << error;
+
+        Nan::ThrowTypeError(errormessage.str().c_str());
         return;
     }
 
@@ -397,7 +378,7 @@ NAN_METHOD(Open) {
     {
         baton->log_callback = new Nan::Callback(ConversionUtility::getCallbackFunction(options, "logCallback"));
     }
-    catch (char const *error)
+    catch (char const *)
     {
         Nan::ThrowTypeError("The provided logCallback is not a function or no callback is provided.");
         return;
@@ -407,7 +388,7 @@ NAN_METHOD(Open) {
     {
         baton->event_callback = new Nan::Callback(ConversionUtility::getCallbackFunction(options, "eventCallback"));
     }
-    catch (char const *error)
+    catch (char const *)
     {
         Nan::ThrowTypeError("The provided eventCallback is not a function or no callback is provided.");
         return;
@@ -417,7 +398,8 @@ NAN_METHOD(Open) {
 }
 
 // This runs in a worker thread (not Main Thread)
-void Open(uv_work_t *req) {
+void Open(uv_work_t *req) 
+{
     OpenBaton *baton = static_cast<OpenBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
@@ -457,7 +439,8 @@ void Open(uv_work_t *req) {
     // Open RPC connection to device
     int err = sd_rpc_open();
 
-    if (err != NRF_SUCCESS) {
+    if (err != NRF_SUCCESS) 
+    {
         // Need to communicate back to Main Thread that this failed.
         baton->result = err;
         return;
@@ -472,7 +455,8 @@ void Open(uv_work_t *req) {
 }
 
 // This runs in  Main Thread
-void AfterOpen(uv_work_t *req) {
+void AfterOpen(uv_work_t *req) 
+{
     // TODO: handle if .Close is called before this function is called.
 	Nan::HandleScope scope;
     OpenBaton *baton = static_cast<OpenBaton *>(req->data);
@@ -506,7 +490,8 @@ void AfterOpen(uv_work_t *req) {
     delete baton;
 }
 
-NAN_METHOD(Close) {
+NAN_METHOD(Close) 
+{
     v8::Local<v8::Function> callback;
 
     int argumentcount = 0;
@@ -528,7 +513,8 @@ NAN_METHOD(Close) {
     uv_queue_work(uv_default_loop(), baton->req, Close, (uv_after_work_cb)AfterClose);
 }
 
-void Close(uv_work_t *req) {
+void Close(uv_work_t *req) 
+{
     CloseBaton *baton = static_cast<CloseBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
@@ -538,7 +524,8 @@ void Close(uv_work_t *req) {
     delete driver_log_callback;
 }
 
-void AfterClose(uv_work_t *req) {
+void AfterClose(uv_work_t *req) 
+{
     Nan::HandleScope scope;
     CloseBaton *baton = static_cast<CloseBaton *>(req->data);
 
@@ -557,7 +544,8 @@ void AfterClose(uv_work_t *req) {
     delete baton;
 }
 
-NAN_METHOD(AddVendorSpecificUUID) {
+NAN_METHOD(AddVendorSpecificUUID) 
+{
     v8::Local<v8::Object> uuid;
     v8::Local<v8::Function> callback;
 
@@ -584,14 +572,16 @@ NAN_METHOD(AddVendorSpecificUUID) {
     uv_queue_work(uv_default_loop(), baton->req, AddVendorSpecificUUID, (uv_after_work_cb)AfterAddVendorSpecificUUID);
 }
 
-void AddVendorSpecificUUID(uv_work_t *req) {
+void AddVendorSpecificUUID(uv_work_t *req) 
+{
     BleAddVendorSpcificUUIDBaton *baton = static_cast<BleAddVendorSpcificUUIDBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_uuid_vs_add(baton->p_vs_uuid, &baton->p_uuid_type);
 }
 
-void AfterAddVendorSpecificUUID(uv_work_t *req) {
+void AfterAddVendorSpecificUUID(uv_work_t *req) 
+{
     Nan::HandleScope scope;
     BleAddVendorSpcificUUIDBaton *baton = static_cast<BleAddVendorSpcificUUIDBaton *>(req->data);
 
@@ -612,7 +602,8 @@ void AfterAddVendorSpecificUUID(uv_work_t *req) {
     delete baton;
 }
 
-NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& v8str) {
+NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& v8str) 
+{
     sd_rpc_parity_t parity = SD_RPC_PARITY_NONE;
 
     if (v8str->Equals(Nan::New("none").ToLocalChecked()))
@@ -627,7 +618,8 @@ NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& v8str) {
     return parity;
 }
 
-NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const v8::Handle<v8::String>& v8str) {
+NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const v8::Handle<v8::String>& v8str) 
+{
     sd_rpc_flow_control_t flow_control = SD_RPC_FLOW_CONTROL_NONE;
 
     if (v8str->Equals(Nan::New("none").ToLocalChecked()))
@@ -642,7 +634,8 @@ NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const v8::Handle<v8::String>&
     return flow_control;
 }
 
-NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const v8::Handle<v8::String>& v8str) {
+NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const v8::Handle<v8::String>& v8str) 
+{
     sd_rpc_log_severity_t log_severity = SD_RPC_LOG_DEBUG;
 
     if (v8str->Equals(Nan::New("trace").ToLocalChecked()))
@@ -697,7 +690,8 @@ NAN_METHOD(GetVersion)
     return;
 }
 
-void GetVersion(uv_work_t *req) {
+void GetVersion(uv_work_t *req) 
+{
     GetVersionBaton *baton = static_cast<GetVersionBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
@@ -705,7 +699,8 @@ void GetVersion(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterGetVersion(uv_work_t *req) {
+void AfterGetVersion(uv_work_t *req) 
+{
 	Nan::HandleScope scope;
     GetVersionBaton *baton = static_cast<GetVersionBaton *>(req->data);
     v8::Local<v8::Value> argv[2];
@@ -768,7 +763,8 @@ NAN_METHOD(UUIDEncode)
     return;
 }
 
-void UUIDEncode(uv_work_t *req) {
+void UUIDEncode(uv_work_t *req) 
+{
     BleUUIDEncodeBaton *baton = static_cast<BleUUIDEncodeBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
@@ -776,7 +772,8 @@ void UUIDEncode(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterUUIDEncode(uv_work_t *req) {
+void AfterUUIDEncode(uv_work_t *req) 
+{
     Nan::HandleScope scope;
     BleUUIDEncodeBaton *baton = static_cast<BleUUIDEncodeBaton *>(req->data);
     v8::Local<v8::Value> argv[4];
@@ -836,7 +833,8 @@ NAN_METHOD(UUIDDecode)
     return;
 }
 
-void UUIDDecode(uv_work_t *req) {
+void UUIDDecode(uv_work_t *req) 
+{
     BleUUIDDecodeBaton *baton = static_cast<BleUUIDDecodeBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
@@ -844,7 +842,8 @@ void UUIDDecode(uv_work_t *req) {
 }
 
 // This runs in Main Thread
-void AfterUUIDDecode(uv_work_t *req) {
+void AfterUUIDDecode(uv_work_t *req) 
+{
     Nan::HandleScope scope;
     BleUUIDDecodeBaton *baton = static_cast<BleUUIDDecodeBaton *>(req->data);
     v8::Local<v8::Value> argv[2];
