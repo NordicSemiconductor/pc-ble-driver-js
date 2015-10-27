@@ -125,6 +125,11 @@ static name_map_t gap_sec_status_map =
     NAME_MAP_ENTRY(BLE_GAP_SEC_STATUS_RFU_RANGE2_END)
 };
 
+static name_map_t gap_sec_status_sources_map =
+{
+    NAME_MAP_ENTRY(BLE_GAP_SEC_STATUS_SOURCE_LOCAL),
+    NAME_MAP_ENTRY(BLE_GAP_SEC_STATUS_SOURCE_REMOTE)
+};
 
 
 // BleDriverEvent -- START --
@@ -577,6 +582,31 @@ v8::Local<v8::Object> GapSecParamsRequest::ToJs()
 //
 
 //
+// GapAuthStatus -- START --
+//
+
+v8::Local<v8::Object> GapAuthStatus::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverEvent::ToJs(obj);
+    Utility::Set(obj, "auth_status", ConversionUtility::toJsNumber(evt->auth_status));
+    Utility::Set(obj, "auth_status_name", ConversionUtility::valueToJsString(evt->auth_status, gap_sec_status_map));
+    Utility::Set(obj, "error_src", ConversionUtility::toJsNumber(evt->error_src));
+    Utility::Set(obj, "error_src_name", ConversionUtility::valueToJsString(evt->error_src, gap_sec_status_sources_map));
+    Utility::Set(obj, "bonded", ConversionUtility::toJsBool(evt->bonded));
+    Utility::Set(obj, "sm1_levels", GapSecLevels(&(evt->sm1_levels)).ToJs());
+    Utility::Set(obj, "sm2_levels", GapSecLevels(&(evt->sm2_levels)).ToJs());
+    Utility::Set(obj, "kdist_periph", GapSecKdist(&(evt->kdist_periph)).ToJs());
+    Utility::Set(obj, "kdist_central", GapSecKdist(&(evt->kdist_central)).ToJs());
+    return scope.Escape(obj);
+}
+
+//
+// GapAuthStatus -- END --
+//
+
+//
 // GapSecParams -- START --
 //
 
@@ -901,6 +931,36 @@ ble_gap_master_id_t *GapMasterId::ToNative()
 // 
 // GapMasterId -- END --
 // 
+
+//
+// GapSecLevels -- START --
+//
+
+v8::Local<v8::Object> GapSecLevels::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    Utility::Set(obj, "lv1", ConversionUtility::toJsBool(native->lv1));
+    Utility::Set(obj, "lv2", ConversionUtility::toJsBool(native->lv2));
+    Utility::Set(obj, "lv3", ConversionUtility::toJsBool(native->lv3));
+    return scope.Escape(obj);
+}
+
+ble_gap_sec_levels_t *GapSecLevels::ToNative()
+{
+    ble_gap_sec_levels_t *sec_levels = new ble_gap_sec_levels_t();
+    memset(sec_levels, 0, sizeof(ble_gap_sec_levels_t));
+
+    sec_levels->lv1 = ConversionUtility::getNativeBool(jsobj, "lv1");
+    sec_levels->lv2 = ConversionUtility::getNativeBool(jsobj, "lv2");
+    sec_levels->lv3 = ConversionUtility::getNativeBool(jsobj, "lv3");
+
+    return sec_levels;
+}
+
+//
+// GapSecLevels -- END --
+//
 
 //
 // GapScanParams -- START --
