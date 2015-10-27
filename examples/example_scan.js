@@ -3,12 +3,12 @@ var driver = require('../index').driver;
 var evt_count = 0;
 
 driver.get_adapters(function(err, adapters) {
-    if(err) {
+    if (err) {
         console.log('Error trying to fetch adapters! ' + err);
         return;
     }
 
-    if(adapters.length == 0) {
+    if (adapters.length === 0) {
         console.log('No adapters found!');
         return;
     }
@@ -19,49 +19,48 @@ driver.get_adapters(function(err, adapters) {
     driver.open(
         adapter_to_use,
         {
-            'baudRate': 115200,
-            'parity': 'none',
-            'flowControl': 'none',
-            'eventInterval': 100,
-            'logCallback': function(severity, message) {
-                if (severity > 0)
-                {
-                    console.log("log: " + severity + ", " + message);
+            baudRate: 115200,
+            parity: 'none',
+            flowControl: 'none',
+            eventInterval: 100,
+            logCallback: function(severity, message) {
+                if (severity > 0) {
+                    console.log('log: ' + severity + ', ' + message);
                 }
             },
-            'eventCallback': function(event_array) {
-                console.log("event_array length: " + event_array.length)
+
+            eventCallback: function(event_array) {
+                console.log('event_array length: ' + event_array.length);
 
                 for (var i = 0; i < event_array.length; i++)
                 {
                     event = event_array[i];
                     evt_count = evt_count + 1;
-                    console.log("evt #" +  evt_count  + ", id: " + event.id + ", name: " + event.name);
-                    console.log("time:" + event.time);
-                    console.log("JSON: %s", JSON.stringify(event));
+                    console.log('evt #' +  evt_count  + ', id: ' + event.id + ', name: ' + event.name);
+                    console.log('time:' + event.time);
+                    console.log('JSON: %s', JSON.stringify(event));
 
-                    if(event.name === 'BLE_GAP_EVT_ADV_REPORT') {
-                        console.log("ADDRESS: %s", event.peer_addr.address);
-                        console.log("RSSI: %s", event.rssi);
-                    }
-                    else if (event.name === 'BLE_GAP_EVT_TIMEOUT') {
-                        console.log("Timeout source: %s", event.src);
+                    if (event.name === 'BLE_GAP_EVT_ADV_REPORT') {
+                        console.log('ADDRESS: %s', event.peer_addr.address);
+                        console.log('RSSI: %s', event.rssi);
+                    } else if (event.name === 'BLE_GAP_EVT_TIMEOUT') {
+                        console.log('Timeout source: %s', event.src);
                     }
                 }
 
-                if(global.gc) {
+                if (global.gc) {
                     global.gc();
                 }
-            }
+            },
         },
         function(err) {
-            if(err) {
+            if (err) {
                 console.log('Error occurred opening serial port: %d', err);
                 return;
             }
 
-            driver.start_scan({'active': true, 'interval': 100, 'window': 31.25, 'timeout': 0}, function(err) {
-                if(err) {
+            driver.start_scan({active: true, interval: 100, window: 31.25, timeout: 0}, function(err) {
+                if (err) {
                     console.log('Error occured when starting scan');
                     return;
                 }
@@ -70,7 +69,7 @@ driver.get_adapters(function(err, adapters) {
             // Close the driver after 10 seconds
             setTimeout(function() {
                 driver.close(function(err) {
-                    if(err) {
+                    if (err) {
                         console.log('ERROR closing driver: ' + err);
                         return;
                     }
