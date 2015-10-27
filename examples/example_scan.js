@@ -1,8 +1,8 @@
-var driver = require('../index').driver;
+const driver = require('../index').driver;
 
 var evt_count = 0;
 
-driver.get_adapters(function(err, adapters) {
+driver.get_adapters((err, adapters) => {
     if (err) {
         console.log('Error trying to fetch adapters! ' + err);
         return;
@@ -14,7 +14,7 @@ driver.get_adapters(function(err, adapters) {
     }
 
     var adapter_to_use = adapters[0].comName;
-    console.log('Using adapter connected to ' + adapter_to_use + ' with SEGGER serial number: ' + adapters[0].serialNumber);
+    console.log(`Using adapter connected to ${adapter_to_use} with SEGGER serial number: ${adapter_to_use.serialNumber}`);
 
     driver.open(
         adapter_to_use,
@@ -53,13 +53,13 @@ driver.get_adapters(function(err, adapters) {
                 }
             },
         },
-        function(err) {
+        err => {
             if (err) {
                 console.log('Error occurred opening serial port: %d', err);
                 return;
             }
 
-            driver.start_scan({active: true, interval: 100, window: 31.25, timeout: 0}, function(err) {
+            driver.gap_start_scan({active: true, interval: 100, window: 31.25, timeout: 0}, err => {
                 if (err) {
                     console.log('Error occured when starting scan');
                     return;
