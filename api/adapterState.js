@@ -17,7 +17,6 @@ class AdapterState {
         this.address = null;
         this.name = null;
         this.firmwareVersion = null;
-        this.gattBusyMap = {}; // map from device instance id to bool
     }
 
     get instanceId() {
