@@ -16,16 +16,16 @@ const Converter = require('./util/sdConv');
 // Do cache service database
 
 var make_error = function(userMessage, description) {
-    return { 'message': userMessage, 'description': description };
+    return { message: userMessage, description: description };
 };
 
 class Adapter extends EventEmitter {
     constructor(bleDriver, instanceId, port) {
         super();
 
-        if(bleDriver === undefined) throw new Error('Missing argument bleDriver.');
-        if(instanceId === undefined) throw new Error('Missing argument instanceId.');
-        if(port === undefined) throw new Error('Missing argument port.');
+        if (bleDriver === undefined) throw new Error('Missing argument bleDriver.');
+        if (instanceId === undefined) throw new Error('Missing argument instanceId.');
+        if (port === undefined) throw new Error('Missing argument port.');
 
         this._bleDriver = bleDriver;
         this._instanceId = instanceId;
@@ -53,10 +53,10 @@ class Adapter extends EventEmitter {
     }
 
     checkAndPropagateError(err, userMessage, callback) {
-        if(err) {
+        if (err) {
             var error = make_error(userMessage, err);
             this.emit('error', JSON.stringify(error));
-            if(callback) callback(error);
+            if (callback) callback(error);
             return true;
         }
 
@@ -135,24 +135,22 @@ class Adapter extends EventEmitter {
         return string.toUpperCase();
     }
 
-
-    // options = { baudRate: x, parity: x, flowControl: x }
     // Callback signature function(err) {}
     open(options, callback) {
         this._changeAdapterState({baudRate: options.baudRate, parity: options.parity, flowControl: options.flowControl});
 
-        // options.eventInterval = options.eventInterval;
+        if (!options.eventInterval) options.eventInterval = 0;
         options.logCallback = this._logCallback.bind(this);
         options.eventCallback = this._eventCallback.bind(this);
 
         this._bleDriver.open(this._adapterState.port, options, err => {
-            if(this.checkAndPropagateError(err, 'Error occurred opening serial port.', callback)) return;
+            if (this.checkAndPropagateError(err, 'Error occurred opening serial port.', callback)) return;
 
             this._changeAdapterState({available: true});
 
             this.getAdapterState((err, adapterState) => {
-                if(this.checkAndPropagateError(err, 'Error retrieving adapter state.', callback)) return;
-                if(callback) callback();
+                if (this.checkAndPropagateError(err, 'Error retrieving adapter state.', callback)) return;
+                if (callback) callback();
             });
         });
     }
@@ -837,7 +835,7 @@ class Adapter extends EventEmitter {
         this.emit('characteristicValueChanged', characteristic);
     }
 
-    
+
 
     // Callback signature function(err, state) {}
     getAdapterState(callback) {
@@ -860,7 +858,7 @@ class Adapter extends EventEmitter {
                 changedAdapterStates.name = name;
 
                 this._bleDriver.gap_get_address( (address, err) => {
-                    if(this.checkAndPropagateError(
+                    if (this.checkAndPropagateError(
                         err,
                         'Failed to retrieve device address.',
                         callback)) return;
@@ -869,7 +867,7 @@ class Adapter extends EventEmitter {
                     changedAdapterStates.available = true;
 
                     this._changeAdapterState(changedAdapterStates);
-                    if(callback) callback(undefined, this._adapterState);
+                    if (callback) callback(undefined, this._adapterState);
                 });
             });
         });
@@ -1199,11 +1197,13 @@ class Adapter extends EventEmitter {
             if(service.type) {
                 if(service.type === 'primary') {
                     type = this._bleDriver.BLE_GATTS_SRVC_TYPE_PRIMARY;
-                } else if(service.type == 'secondary') {
+                } else if(service.type === 'secondary') {
                     type = this._bleDriver.BLE_GATTS_SRVC_TYPE_SECONDARY;
                 } else {
-                    throw new Error(`Service type ${service.type} is unknown to me.`);
+                    throw new Error(`Service type ${service.type} is unknown to me. Must be 'primary' or 'secondary'.`);
                 }
+            } else {
+                throw new Error(`Service type is not specified. Must be 'primary' or 'secondary'.`);
             }
 
             this._bleDriver.gatts_add_service(type, service.uuid, (err, serviceHandle) => {
@@ -1461,7 +1461,7 @@ class Adapter extends EventEmitter {
                 writeParameters.flags = this._bleDriver.BLE_GATT_EXEC_WRITE_FLAG_PREPARED_CANCEL;
                 writeParameters.len = 0;
                 writeParameters.value = [];
-                const errorMessage = 'Failed to write dataArray subset with length ' + this._maxPayloadSize + 
+                const errorMessage = 'Failed to write dataArray subset with length ' + this._maxPayloadSize +
                                      'to device/handle' + device.instanceId + '/' + descriptor.handle;
                 this._bleDriver.write(device.connectionHandle, writeParameters, (cancelErr) => {
                     if (err) {

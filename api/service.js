@@ -2,17 +2,28 @@
 
 var i = 1;
 
+var assertValidType = function(type) {
+    if (type !== 'primary' && type !== 'secondary') {
+        throw new Error(`Type can only be 'primary' or 'secondary', not '${type}'.`);
+    }
+};
+
 class Service {
-    constructor(deviceInstanceId, uuid) {
+    constructor(deviceInstanceId, uuid, type) {
         this._instanceId = deviceInstanceId + '.' + (i++).toString();
         this._deviceInstanceId = deviceInstanceId;
         this.uuid = uuid;
         this.name = null;
 
+        if (type !== undefined) {
+            assertValidType(type);
+            this._type = type;
+        } else {
+            this._type = null;
+        }
+
         this.startHandle = null;
         this.endHandle = null;
-
-        this._type = null;
     }
 
     // unique ID for the service (since uuid is not enough to separate between services)
@@ -39,10 +50,7 @@ class Service {
     }
 
     set type(type) {
-        if(type !== 'primary' || type !=='secondary') {
-            throw new Error('Type can only be \'primary\' or \'secondary\'');
-        }
-
+        assertValidType(type);
         this._type = type;
     }
 
