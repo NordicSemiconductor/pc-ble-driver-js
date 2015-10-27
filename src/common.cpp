@@ -404,13 +404,21 @@ v8::Handle<v8::Value> ConversionUtility::valueToJsString(uint16_t value, name_ma
     return scope.Escape(Nan::New<v8::String>(it->second).ToLocalChecked());
 }
 
+v8::Local<v8::Function> ConversionUtility::getCallbackFunction(v8::Local<v8::Value> js, char *name)
+{
+    v8::Local<v8::Value> obj = Utility::Get(js, name);
+
+    return ConversionUtility::getCallbackFunction(obj);
+}
+
 v8::Local<v8::Function> ConversionUtility::getCallbackFunction(v8::Local<v8::Value> js)
 {
+    Nan::EscapableHandleScope scope;
     if (!js->IsFunction())
     {
         throw "function";
     }
-    return js.As<v8::Function>();
+    return scope.Escape(js.As<v8::Function>());
 }
 
 uint8_t ConversionUtility::extractHexHelper(char text)
@@ -592,7 +600,7 @@ v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char *customMe
     }
 }
 
-v8::Local<v8::String> ErrorMessage::getTypeErrorMessage(int argumentNumber, char *message)
+v8::Local<v8::String> ErrorMessage::getTypeErrorMessage(int argumentNumber, char const *message)
 {
     std::ostringstream stream;
 

@@ -2,6 +2,7 @@
 #include <deque>
 #include <mutex>
 #include <chrono>
+#include <sstream>
 
 #include <ble.h>
 
@@ -317,39 +318,100 @@ v8::Local<v8::Object> CommonTXCompleteEvent::ToJs()
 
 // This function runs in the Main Thread
 NAN_METHOD(Open) {
+    v8::Local<v8::Object> options;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
+
     // Path to device
     if (!info[0]->IsString()) {
         Nan::ThrowTypeError("First argument must be a string");
         return;
     }
     v8::String::Utf8Value path(info[0]->ToString());
+    argumentcount++;
 
-    // Options
-    if (!info[1]->IsObject()) {
-        Nan::ThrowTypeError("Second argument must be an object");
+    try
+    {
+        options = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
         return;
     }
-    v8::Local<v8::Object> options = info[1]->ToObject();
-
-    // Callback
-    if (!info[2]->IsFunction()) {
-        Nan::ThrowTypeError("Third argument must be a function");
-        return;
-    }
-    v8::Local<v8::Function> callback = info[2].As<v8::Function>();
 
     OpenBaton *baton = new OpenBaton(callback);
 
     strncpy(baton->path, *path, PATH_STRING_SIZE);
 
-    baton->baud_rate = ConversionUtility::getNativeUint32(options, "baudRate");
-    baton->parity = ToParityEnum(Utility::Get(options, "parity")->ToString());
-    baton->flow_control = ToFlowControlEnum(Utility::Get(options, "flowControl")->ToString());
-    baton->evt_interval = ConversionUtility::getNativeUint32(options, "eventInterval");
-    baton->log_level = ToLogSeverityEnum(Utility::Get(options, "logLevel")->ToString());
+    int parameter = 0;
 
-    baton->log_callback = new Nan::Callback(Utility::Get(options, "logCallback").As<v8::Function>());
-    baton->event_callback = new Nan::Callback(Utility::Get(options, "eventCallback").As<v8::Function>());
+    try
+    {
+        baton->baud_rate = ConversionUtility::getNativeUint32(options, "baudRate"); parameter++;
+        baton->parity = ToParityEnum(Utility::Get(options, "parity")->ToString()); parameter++;
+        baton->flow_control = ToFlowControlEnum(Utility::Get(options, "flowControl")->ToString()); parameter++;
+        baton->evt_interval = ConversionUtility::getNativeUint32(options, "eventInterval"); parameter++;
+        baton->log_level = ToLogSeverityEnum(Utility::Get(options, "logLevel")->ToString()); parameter++;
+    }
+    catch (char const *error)
+    {
+        std::stringstream errormessage;
+        std::string optionName = "";
+        errormessage << "A setup option was wrong. Option: ";
+
+        switch (parameter)
+        {
+        case 0:
+            optionName = "baudrate";
+            break;
+        case 1:
+            optionName = "parity";
+            break;
+        case 2:
+            optionName = "flowControl";
+            break;
+        case 3:
+            optionName = "eventInterval";
+            break;
+        case 4:
+            optionName = "logLevel";
+            break;
+        default:
+            optionName = "unknown";
+            break;
+        }
+        errormessage << optionName << ". Reason: " << error;
+
+        v8::Local<v8::String> message = ConversionUtility::toJsString(errormessage.str());
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    try
+    {
+        baton->log_callback = new Nan::Callback(ConversionUtility::getCallbackFunction(options, "logCallback"));
+    }
+    catch (char const *error)
+    {
+        Nan::ThrowTypeError("The provided logCallback is not a function or no callback is provided.");
+        return;
+    }
+
+    try
+    {
+        baton->event_callback = new Nan::Callback(ConversionUtility::getCallbackFunction(options, "eventCallback"));
+    }
+    catch (char const *error)
+    {
+        Nan::ThrowTypeError("The provided eventCallback is not a function or no callback is provided.");
+        return;
+    }
 
     uv_queue_work(uv_default_loop(), baton->req, Open, (uv_after_work_cb)AfterOpen);
 }
@@ -609,12 +671,20 @@ NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const v8::Handle<v8::String>&
 
 NAN_METHOD(GetVersion)
 {
-    // Callback
-    if (!info[0]->IsFunction()) {
-        Nan::ThrowTypeError("First argument must be a function");
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
+
+    try
+    {
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
         return;
     }
-    v8::Local<v8::Function> callback = info[0].As<v8::Function>();
 
     ble_version_t *version = new ble_version_t();
     memset(version, 0, sizeof(ble_version_t));
@@ -678,7 +748,19 @@ NAN_METHOD(UUIDEncode)
     }
 
     BleUUIDEncodeBaton *baton = new BleUUIDEncodeBaton(callback);
-    baton->p_uuid = BleUUID(uuid);
+    
+    try
+    {
+        baton->p_uuid = BleUUID(uuid);
+    }
+    catch (char const *error)
+    {
+        std::stringstream errormessage;
+        errormessage << "Could not process the UUID. Reason: " << error;
+        Nan::ThrowTypeError(errormessage.str().c_str());
+        return;
+    }
+
     baton->uuid_le = new uint8_t[16];
 
     uv_queue_work(uv_default_loop(), baton->req, UUIDEncode, (uv_after_work_cb)AfterUUIDEncode);
@@ -933,7 +1015,6 @@ extern "C" {
 
     NAN_MODULE_INIT(init)
     {
-//        Nan::HandleScope scope;
         init_adapter_list(target);
         init_driver(target);
         init_types(target);
