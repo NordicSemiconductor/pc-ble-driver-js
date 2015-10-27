@@ -391,7 +391,7 @@ NAN_METHOD(PrimaryServicesDiscover)
         {
             baton->p_srvc_uuid = BleUUID(service_uuid);
         }
-        catch (char const *error)
+        catch (char const *)
         {
             Nan::ThrowTypeError("The provided uuid can not be parsed.");
             return;
@@ -468,7 +468,7 @@ NAN_METHOD(RelationshipDiscover)
     {
         baton->p_handle_range = GattcHandleRange(handle_range);
     }
-    catch (char const *error)
+    catch (char const *)
     {
         Nan::ThrowTypeError("The provided handle range can not be parsed.");
         return;
@@ -540,7 +540,7 @@ NAN_METHOD(CharacteristicsDiscover)
     {
         baton->p_handle_range = GattcHandleRange(handle_range);
     }
-    catch (char const *error)
+    catch (char const *)
     {
         Nan::ThrowTypeError("The provided handle range can not be parsed.");
         return;
@@ -612,7 +612,7 @@ NAN_METHOD(DescriptorsDiscover)
     {
         baton->p_handle_range = GattcHandleRange(handle_range);
     }
-    catch (char const *error)
+    catch (char const *)
     {
         Nan::ThrowTypeError("The provided handle range can not be parsed.");
         return;
@@ -687,7 +687,7 @@ NAN_METHOD(CharacteristicValueByUUIDRead)
     {
         baton->p_uuid = BleUUID(uuid);
     }
-    catch (char const *error)
+    catch (char const *)
     {
         Nan::ThrowTypeError("The provided uuid can not be parsed.");
         return;
@@ -697,7 +697,7 @@ NAN_METHOD(CharacteristicValueByUUIDRead)
     {
         baton->p_handle_range = GattcHandleRange(handle_range);
     }
-    catch (char const *error)
+    catch (char const *)
     {
         Nan::ThrowTypeError("The provided handle range can not be parsed.");
         return;
@@ -844,7 +844,7 @@ NAN_METHOD(CharacteristicValuesRead)
      
         }
     }
-    catch (char const *error)
+    catch (char const *)
     {
         Nan::ThrowTypeError("The provided handles can not be parsed.");
         return;
@@ -923,7 +923,7 @@ NAN_METHOD(Write)
     {
         baton->p_write_params = GattcWriteParameters(p_write_params);
     }
-    catch (char const *error)
+    catch (char const *)
     {
         Nan::ThrowTypeError("The provided write parameters can not be parsed.");
         return;
