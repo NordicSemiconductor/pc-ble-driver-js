@@ -40,22 +40,23 @@ class TestLibrary {
     }
 
     listAdvertisingPeripherals() {
-        return new Promise((resolve, reject) =>{
+        return new Promise((resolve, reject) => {
             const scanParameters = {
                 'active': true, 'interval': 100, 'window': 50, 'timeout': 20
             };
             let foundDevices = [];
             const advertisingListener = (device)=> {
-                if(!foundDevices.find((seenDevice) => seenDevice.address === device.address)) {
+                if (!foundDevices.find((seenDevice) => seenDevice.address === device.address)) {
                     foundDevices.push(device);
                     console.log(device.name + ' ' + device.address);
                 }
 
             };
+
             this._adapter.on('deviceDiscovered', advertisingListener);
-            this._adapter.startScan(scanParameters, () =>{
+            this._adapter.startScan(scanParameters, () => {
                 console.log('started scan');
-                setTimeout( () => {
+                setTimeout(() => {
                     this._adapter.removeListener('deviceDiscovered', advertisingListener);
                     resolve();
                 }, 10000);
@@ -63,30 +64,57 @@ class TestLibrary {
             });
         });
     }
+
     connectToPeripheral(address) {
-        return new Promise( (resolve, reject) => {
+        return new Promise((resolve, reject) => {
             var connectionParameters = {
-                min_conn_interval: 7.5, max_conn_interval: 7.5, slave_latency: 0, conn_sup_timeout: 4000
+                min_conn_interval: 7.5, max_conn_interval: 7.5, slave_latency: 0, conn_sup_timeout: 4000,
             };
-            const addr = {address: address, type: "BLE_GAP_ADDR_TYPE_RANDOM_STATIC"};
+            const addr = {address: address, type: 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC'};
             const scanParameters = {
-                'active': true, 'interval': 100, 'window': 50, 'timeout': 20
+                active: true, interval: 100, window: 50, timeout: 20,
             };
             const options = {scanParams: scanParameters, connParams: connectionParameters};
             this._adapter.once('deviceConnected', (device) => {
                 resolve(device);
             });
-            this._adapter.connect(addr, options, (error) =>{
+            this._adapter.connect(addr, options, (error) => {
                 if (error) {
-                    console.log(error);
+                    console.log('ddd' + error);
                     reject(error);
                 }
+
                 console.log('Connecting to device at '  + address + '...');
             });
         });
     }
+
+    disconnect(deviceInstanceId) {
+        return new Promise((resolve, reject) => {
+            this._adapter.disconnect(deviceInstanceId, (error, device) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(device);
+                }
+            });
+        });
+    }
+
+    cancelConnect() {
+        return new Promise((resolve, reject) => {
+            this._adapter.cancelConnect((error) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve();
+                }
+            });
+        });
+    }
+
     getServices(deviceInstanceId) {
-        return new Promise( (resolve, reject) => {
+        return new Promise((resolve, reject) => {
             this._adapter.getServices(deviceInstanceId, (err, services) => {
                 if (err) {
                     reject('Failed to get services: ', err);
@@ -98,7 +126,8 @@ class TestLibrary {
         });
 
     }
-    closeAdapter(){
+
+    closeAdapter() {
         return new Promise((resolve, reject)=> {
             this._adapter.close((error) => {
                 if (!error) {
@@ -111,13 +140,13 @@ class TestLibrary {
     }
 
     openAdapterAndConnectToPeripheral(adapterId, peripheralAddress) {
-        return new Promise( (resolve, reject) =>{
+        return new Promise((resolve, reject) => {
             this.openAdapter(adapterId)
-            .then( this.connectToPeripheral.bind(this, peripheralAddress) )
-            .then( (device) => {
+            .then(this.connectToPeripheral.bind(this, peripheralAddress))
+            .then((device) => {
                 resolve(device);
             })
-            .catch( (error) => {
+            .catch((error) => {
                 console.log('Connect to device failed: ', error);
                 reject(error);
             });
@@ -131,10 +160,11 @@ const singletonContainer = {
         if (!this._testLibInstance) {
             this._testLibInstance = new TestLibrary();
         }
+
         return this._testLibInstance;
-    }
+    },
 };
 module.exports = {
     testLibrary: TestLibrary,
     singletonContainer: singletonContainer,
-}
+};

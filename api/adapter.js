@@ -45,6 +45,7 @@ class Adapter extends EventEmitter {
         this._fragmentedWrites = {};
         this._pendingWriteCallbacks = {};
         this._maxPayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 3;
+        this._gapOperationsMap = {};
     }
 
     // Get the instance id
@@ -288,17 +289,35 @@ class Adapter extends EventEmitter {
         this._devices[device.instanceId] = device;
 
         this._changeAdapterState({connecting: false});
+        const callback = this._gapOperationsMap.connecting.callback;
+        delete this._gapOperationsMap.connecting;
+
         this.emit('deviceConnected', device);
+        if (deviceRole === 'peripheral') {
+            callback(undefined, device);
+        }
     }
 
     _parseDisconnectedEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         if (!device) {
-            this.emit('error', 'Internal inconsistency: Could not find device with connection handle ' + event.conn_handle);
+            const errorObject = make_error('Disconnect failed', 'Internal inconsistency: Could not find device with connection handle ' + event.conn_handle);
+
+            // cannot reach callback when there is no device. The best we can do is emit error and return.
+            this.emit('error', errorObject);
             return;
         }
 
         device.connected = false;
+
+        // TODO: Delete all operations for this device.
+
+        if (this._gapOperationsMap[device.instanceId]) {
+            const callback = this._gapOperationsMap[device.instanceId].callback;
+            delete this._gapOperationsMap[device.instanceId];
+            callback(undefined, device);
+        }
+
         delete this._devices[device.instanceId];
         this.emit('deviceDisconnected', device);
     }
@@ -973,14 +992,19 @@ class Adapter extends EventEmitter {
 
     // options: scanParams, connParams, Callback signature function(err) {}. Do not start service discovery. Err if connection timed out, +++
     connect(deviceAddress, options, callback) {
+        if (!_.isEmpty(this._gapOperationsMap) ) {
+            const errorObject = make_error('Could not connect. Another connect is in progress.');
+            this.emit('error', errorObject);
+            callback(errorObject);
+        }
         this._bleDriver.gap_connect(deviceAddress, options.scanParams, options.connParams, err => {
             if (err) {
                 this.emit('error', make_error(`Could not connect to ${deviceAddress}`, err));
+                callback(make_error('Failed to connect to ' + deviceAddress, err));
             } else {
                 this._changeAdapterState({scanning: false, connecting: true});
+                this._gapOperationsMap['connecting'] = {callback: callback};
             }
-
-            callback(err);
         });
     }
 
@@ -989,12 +1013,14 @@ class Adapter extends EventEmitter {
         this._bleDriver.gap_cancel_connect(err => {
             if (err) {
                 // TODO: log more
-                this.emit('error', make_error('Error occured when canceling connection', err));
+                const newError = make_error('Error occured when canceling connection', err);
+                this.emit('error', newError);
+                callback(newError);
             } else {
+                delete this._gapOperationsMap['connecting'];
                 this._changeAdapterState({connecting: false});
+                callback(undefined);
             }
-
-            callback(err);
         });
     }
 
@@ -1110,13 +1136,23 @@ class Adapter extends EventEmitter {
 
     disconnect(deviceInstanceId, callback) {
         const device = this.getDevice(deviceInstanceId);
+        if (!device) {
+            const errorObject = make_error('Failed to disconnect', 'Failed to find device with id ' + deviceInstanceId);
+            this.emit('error', errorObject);
+            callback(errorObject);
+        }
         const hciStatusCode = this._bleDriver.BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION;
         this._bleDriver.gap_disconnect(device.connectionHandle, hciStatusCode, err => {
             if (err) {
-                this.emit('error', make_error('Failed to disconnect', err));
+                const errorObject = make_error('Failed to disconnect', err);
+                this.emit('error', errorObject);
+                callback(errorObject);
+            } else {
+                // Expect a disconnect event down the road
+                this._gapOperationsMap[deviceInstanceId] = {
+                    callback: callback,
+                };
             }
-
-            callback(err);
         });
     }
 

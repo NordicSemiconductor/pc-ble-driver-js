@@ -37,6 +37,7 @@ for(let i = 0; i < argv['_'].length; i++) {
                 .then( testLib.connectToPeripheral.bind(testLib, peripheralAddress) )
                 .then( (device) => {
                     console.log('connected to device');
+                    console.log(JSON.stringify(device.address));
                 })
                 .then(testLib.closeAdapter.bind(testLib))
                 .then(() => { 
@@ -101,18 +102,19 @@ for(let i = 0; i < argv['_'].length; i++) {
                     }
                 })
                 .then(testLib.closeAdapter.bind(testLib))
-                .then(() => { 
+                .then(() => {
                     process.exit(0);
                 })
-                .catch( (error) => {
+                .catch((error) => {
                     console.log('Connect to device failed: ', error);
                     process.exit(1);
                 });
             break;
         }
+
         case 'run-tests':
         {
-            // Run the tests, but open adapter first. 
+            // Run the tests, but open adapter first.
             // (A bug in the driver makes it possible to open the adapter only once)
             const adapterId = argv.adapter;
             const peripheralAddress = argv['peripheral-address'];
@@ -124,18 +126,19 @@ for(let i = 0; i < argv['_'].length; i++) {
                     const mocha = new Mocha();
                     const testDir = __dirname;
 
-                    fs.readdirSync(testDir).filter((file)=>{
+                    fs.readdirSync(testDir).filter((file)=> {
                         return (file.substr(-3) === '.js') && file != __filename;
                     }).forEach((file) => {
                         mocha.addFile(
                             path.join(testDir, file)
                         );
                     });
-                    mocha.run(function(failures){
-                        process.on('exit', function () {
+                    mocha.run(function(failures) {
+                        process.on('exit', function() {
                             process.exit(failures);
                         });
-                        done = true;
+
+                        process.exit(0);
                     });
                 });
             break;
