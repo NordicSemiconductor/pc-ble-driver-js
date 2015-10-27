@@ -253,6 +253,7 @@ void on_rpc_event(uv_async_t *handle)
                 GAP_EVT_CASE(RSSI_CHANGED,              RssiChanged,            rssi_changed,               array, array_idx, event_entry);
                 GAP_EVT_CASE(CONN_PARAM_UPDATE,         ConnParamUpdate,        conn_param_update,          array, array_idx, event_entry);
                 GAP_EVT_CASE(CONN_PARAM_UPDATE_REQUEST, ConnParamUpdateRequest, conn_param_update_request,  array, array_idx, event_entry);
+                GAP_EVT_CASE(SEC_PARAMS_REQUEST,        SecParamsRequest,       sec_params_request,         array, array_idx, event_entry);
 
                 GATTC_EVT_CASE(PRIM_SRVC_DISC_RSP,          PrimaryServiceDiscovery,       prim_srvc_disc_rsp,         array, array_idx, event_entry);
                 GATTC_EVT_CASE(REL_DISC_RSP,                RelationshipDiscovery,         rel_disc_rsp,               array, array_idx, event_entry);
@@ -536,7 +537,7 @@ void AfterAddVendorSpecificUUID(uv_work_t *req) {
 
     if (baton->result != NRF_SUCCESS)
     {
-        argv[0] = ErrorMessage::getErrorMessage(baton->result, "closing connection");
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "adding vendor specific 128-bit UUID");
         argv[1] = Nan::Undefined();
     }
     else
@@ -652,6 +653,134 @@ void AfterGetVersion(uv_work_t *req) {
 
     baton->callback->Call(2, argv);
     delete baton->version;
+    delete baton;
+}
+
+NAN_METHOD(UUIDEncode)
+{
+    v8::Local<v8::Object> uuid;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
+
+    try
+    {
+        uuid = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    BleUUIDEncodeBaton *baton = new BleUUIDEncodeBaton(callback);
+    baton->p_uuid = BleUUID(uuid);
+    baton->uuid_le = new uint8_t[16];
+
+    uv_queue_work(uv_default_loop(), baton->req, UUIDEncode, (uv_after_work_cb)AfterUUIDEncode);
+
+    return;
+}
+
+void UUIDEncode(uv_work_t *req) {
+    BleUUIDEncodeBaton *baton = static_cast<BleUUIDEncodeBaton *>(req->data);
+
+    lock_guard<mutex> lock(ble_driver_call_mutex);
+    baton->result = sd_ble_uuid_encode(baton->p_uuid, &baton->uuid_le_len, baton->uuid_le);
+}
+
+// This runs in Main Thread
+void AfterUUIDEncode(uv_work_t *req) {
+    Nan::HandleScope scope;
+    BleUUIDEncodeBaton *baton = static_cast<BleUUIDEncodeBaton *>(req->data);
+    v8::Local<v8::Value> argv[4];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "encoding UUID.");
+        argv[1] = Nan::Undefined();
+        argv[2] = Nan::Undefined();
+        argv[3] = Nan::Undefined();
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+        argv[1] = ConversionUtility::toJsNumber(baton->uuid_le_len);
+        argv[2] = ConversionUtility::toJsValueArray(baton->uuid_le, baton->uuid_le_len);
+        argv[3] = ConversionUtility::encodeHex((char *)baton->uuid_le, baton->uuid_le_len);
+    }
+
+    baton->callback->Call(4, argv);
+    delete baton->uuid_le;
+    delete baton;
+}
+
+NAN_METHOD(UUIDDecode)
+{
+    uint8_t le_len;
+    v8::Local<v8::Value> uuid_le;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
+
+    try
+    {
+        le_len = ConversionUtility::getNativeUint8(info[argumentcount]);
+        argumentcount++;
+
+        uuid_le = info[argumentcount]->ToString();
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    BleUUIDDecodeBaton *baton = new BleUUIDDecodeBaton(callback);
+    baton->uuid_le_len = le_len;
+    baton->uuid_le = ConversionUtility::extractHex(uuid_le);
+    baton->p_uuid = new ble_uuid_t();
+
+    uv_queue_work(uv_default_loop(), baton->req, UUIDDecode, (uv_after_work_cb)AfterUUIDDecode);
+
+    return;
+}
+
+void UUIDDecode(uv_work_t *req) {
+    BleUUIDDecodeBaton *baton = static_cast<BleUUIDDecodeBaton *>(req->data);
+
+    lock_guard<mutex> lock(ble_driver_call_mutex);
+    baton->result = sd_ble_uuid_decode(baton->uuid_le_len, baton->uuid_le, baton->p_uuid);
+}
+
+// This runs in Main Thread
+void AfterUUIDDecode(uv_work_t *req) {
+    Nan::HandleScope scope;
+    BleUUIDDecodeBaton *baton = static_cast<BleUUIDDecodeBaton *>(req->data);
+    v8::Local<v8::Value> argv[2];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "decoding UUID.");
+        argv[1] = Nan::Undefined();
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+        argv[1] = BleUUID(baton->p_uuid);
+    }
+
+    baton->callback->Call(2, argv);
+    delete baton->p_uuid;
+    delete baton->uuid_le;
     delete baton;
 }
 
@@ -828,6 +957,8 @@ extern "C" {
         Utility::SetMethod(target, "close", Close);
         Utility::SetMethod(target, "get_version", GetVersion);
         Utility::SetMethod(target, "add_vs_uuid", AddVendorSpecificUUID);
+        Utility::SetMethod(target, "encode_uuid", UUIDEncode);
+        Utility::SetMethod(target, "decode_uuid", UUIDDecode);
 
         Utility::SetMethod(target, "get_stats", GetStats);
 

@@ -206,6 +206,14 @@ public:
     ble_gatts_char_handles_t *p_handles;
 };
 
+struct GattsAddDescriptorBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GattsAddDescriptorBaton);
+    uint16_t char_handle;
+    ble_gatts_attr_t *p_attr;
+    uint16_t p_handle;
+};
+
 struct GattsHVXBaton : public Baton {
 public:
     BATON_CONSTRUCTOR(GattsHVXBaton);
@@ -247,6 +255,7 @@ public:
 
 METHOD_DEFINITIONS(AddService)
 METHOD_DEFINITIONS(AddCharacteristic)
+METHOD_DEFINITIONS(AddDescriptor)
 METHOD_DEFINITIONS(HVX)
 METHOD_DEFINITIONS(SystemAttributeSet)
 METHOD_DEFINITIONS(ValueSet)

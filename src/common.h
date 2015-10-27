@@ -232,11 +232,12 @@ public:
     static uint8_t      getNativeBool(v8::Local<v8::Object>js, char *name);
     static uint8_t      getNativeBool(v8::Local<v8::Value>js);
     static uint8_t *    getNativePointerToUint8(v8::Local<v8::Object>js, char *name);
-    static uint8_t *    getNativePointerToUint8(v8::Local<v8::Object>js);
-    static uint16_t *    getNativePointerToUint16(v8::Local<v8::Object>js, char *name);
-    static uint16_t *    getNativePointerToUint16(v8::Local<v8::Object>js);
-    static v8::Local<v8::Object> getJsObject(v8::Local<v8::Value>js);
+    static uint8_t *    getNativePointerToUint8(v8::Local<v8::Value>js);
+    static uint16_t *   getNativePointerToUint16(v8::Local<v8::Object>js, char *name);
+    static uint16_t *   getNativePointerToUint16(v8::Local<v8::Value>js);
     static v8::Local<v8::Object> getJsObject(v8::Local<v8::Object>js, char *name);
+    static v8::Local<v8::Object> getJsObject(v8::Local<v8::Value>js);
+    static uint16_t     stringToValue(name_map_t name_map, v8::Local<v8::Object> string, uint16_t defaultValue = -1);
 
     static uint16_t msecsToUnitsUint16(v8::Local<v8::Object>js, char *name, enum ConversionUnits unit);
     static uint16_t msecsToUnitsUint16(double msecs, enum ConversionUnits unit);
@@ -253,10 +254,15 @@ public:
     static v8::Handle<v8::Value> toJsValueArray(uint8_t *nativeValue, uint16_t length);
     static v8::Handle<v8::Value> toJsString(char *cString);
     static v8::Handle<v8::Value> toJsString(char *cString, uint16_t length);
+    static v8::Handle<v8::Value> toJsString(uint8_t *cString, uint16_t length);
     static v8::Handle<v8::Value> toJsString(std::string string);
     static char *                valueToString(uint16_t value, name_map_t name_map, char *defaultValue = "Unknown value");
     static v8::Handle<v8::Value> valueToJsString(uint16_t, name_map_t name_map, v8::Handle<v8::Value> defaultValue = Nan::New<v8::String>("Unknown value").ToLocalChecked());
     static v8::Local<v8::Function> getCallbackFunction(v8::Local<v8::Value> js);
+
+    static uint8_t extractHexHelper(char text);
+    static uint8_t *extractHex(v8::Local<v8::Value> js);
+    static v8::Handle<v8::Value> encodeHex(char *text, int length);
 };
 
 class ErrorMessage
