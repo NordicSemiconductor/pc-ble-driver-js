@@ -312,6 +312,7 @@ public:
     ble_gap_conn_sec_t *ToNative();
 };
 
+
 // Gap structs -- END --
 
 
@@ -431,6 +432,13 @@ public:
     ble_gap_sec_keyset_t *sec_keyset;
 };
 
+struct GapConnSecGetBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GapConnSecGetBaton);
+    uint16_t conn_handle;
+    ble_gap_conn_sec_t *conn_sec;
+};
+
 ///// End GAP Batons //////////////////////////////////////////////////////////////////////////////////
 
 METHOD_DEFINITIONS(GapSetAddress);
@@ -450,6 +458,7 @@ METHOD_DEFINITIONS(GapGetRSSI);
 METHOD_DEFINITIONS(GapStartAdvertising);
 METHOD_DEFINITIONS(GapStopAdvertising);
 METHOD_DEFINITIONS(GapSecParamsReply);
+METHOD_DEFINITIONS(GapConnSecGet);
 
 extern "C" {
     void init_gap(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
