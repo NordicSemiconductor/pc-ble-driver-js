@@ -54,6 +54,7 @@ function onBleEvent(event_array) {
         {
             connectionHandle = event.conn_handle;
             console.log("Connected. Handle: %d", connectionHandle);
+            connSecGet();
         }
         else if (event.name === 'BLE_GATTS_EVT_SYS_ATTR_MISSING')
         {
@@ -99,7 +100,7 @@ function onBleEvent(event_array) {
         else if (event.name === 'BLE_GAP_EVT_SEC_PARAMS_REQUEST')
         {
             console.log("GapSecParamsRequest: " + JSON.stringify(event));
-            setTimeout(secParamsReply, 1);
+            setTimeout(secParamsReply, 1000);
         }
     }
 }
@@ -277,13 +278,31 @@ function startAdvertising() {
 
             console.log('Started advertising');
 
-            setTimeout(onTimeout, 60000);
+            //setTimeout(stopAdvertising, 60000);
         }
     );
 }
 
-function onTimeout() {
-    stopAdvertising();
+function connSecGet() {
+    /* gap_conn_sec_get(connHandle, callback)
+     * signature of callback: function(err, connSec)
+     * 
+     * connSec: {
+     *       'sec_mode': {
+     *           'sm': <1 to 2>,
+     *           'lv': <1 to 3>,
+     *       },
+     *       'encr_key_size': <7 to 16>,
+     *   }
+     *
+     * http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.s130.api.v1.0.0/group___b_l_e___g_a_p___f_u_n_c_t_i_o_n_s.html?cp=2_7_2_1_0_2_1_4_10#ga05ed7aaeb2d1f1ff91019a1ffeaf9fc0
+     */
+    driver.gap_conn_sec_get(connectionHandle, function(err, connSec) {
+        if (err) {
+            console.log('Error occured in gap_conn_sec_')
+        }
+        console.log("GapConnSecGet : " + JSON.stringify(connSec));
+    });
 }
 
 function stopAdvertising() {
@@ -328,3 +347,4 @@ function secParamsReply() {
         }
     );
 }
+

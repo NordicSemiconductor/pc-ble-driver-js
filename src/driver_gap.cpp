@@ -2138,16 +2138,12 @@ void AfterGapStopAdvertising(uv_work_t *req)
 NAN_METHOD(GapConnSecGet)
 {
     uint16_t conn_handle;
-    v8::Local<v8::Object> conn_sec_object;
     v8::Local<v8::Function> callback;
     int argumentcount = 0;
 
     try
     {
         conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
-        argumentcount++;
-
-        conn_sec_object = ConversionUtility::getJsObject(info[argumentcount]);
         argumentcount++;
 
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
@@ -2162,14 +2158,7 @@ NAN_METHOD(GapConnSecGet)
 
     GapConnSecGetBaton *baton = new GapConnSecGetBaton(callback);
     baton->conn_handle = conn_handle;
-    try
-    {
-        baton->conn_sec = GapConnSec(conn_sec_object);
-    }
-    catch (char const *)
-    {
-        Nan::ThrowTypeError("The provided connection security paramters can not be parsed.");
-    }
+    baton->conn_sec = new ble_gap_conn_sec_t();
 
     uv_queue_work(uv_default_loop(), baton->req, GapConnSecGet, (uv_after_work_cb)AfterGapConnSecGet);
 }
@@ -2203,6 +2192,8 @@ void AfterGapConnSecGet(uv_work_t *req)
     }
 
     baton->callback->Call(2, argv);
+    delete baton->conn_sec;
+    delete baton;
 }
 
 NAN_METHOD(GapSecParamsReply)
