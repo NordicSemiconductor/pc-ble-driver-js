@@ -639,8 +639,8 @@ v8::Local<v8::Object> GapSecParams::ToJs()
     Utility::Set(obj, "oob", ConversionUtility::toJsBool(native->oob));
     Utility::Set(obj, "min_key_size", native->min_key_size);
     Utility::Set(obj, "max_key_size", native->max_key_size);
-    Utility::Set(obj, "kdist_periph", GapSecKdist(&(native->kdist_periph)));
-    Utility::Set(obj, "kdist_central", GapSecKdist(&(native->kdist_central)));
+    Utility::Set(obj, "kdist_periph", GapSecKdist(&(native->kdist_periph)).ToJs());
+    Utility::Set(obj, "kdist_central", GapSecKdist(&(native->kdist_central)).ToJs());
 
     return scope.Escape(obj);
 }
@@ -707,8 +707,8 @@ v8::Local<v8::Object> GapSecKeyset::ToJs()
 {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    Utility::Set(obj, "keys_periph", GapSecKeys(&native->keys_periph));
-    Utility::Set(obj, "keys_central", GapSecKeys(&native->keys_central));
+    Utility::Set(obj, "keys_periph", GapSecKeys(&native->keys_periph).ToJs());
+    Utility::Set(obj, "keys_central", GapSecKeys(&native->keys_central).ToJs());
 
     return scope.Escape(obj);
 }
@@ -736,9 +736,9 @@ v8::Local<v8::Object> GapSecKeys::ToJs()
 {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    Utility::Set(obj, "p_enc_key", GapEncKey(native->p_enc_key));
-    Utility::Set(obj, "p_id_key", GapIdKey(native->p_id_key));
-    Utility::Set(obj, "p_sign_key", GapSignInfo(native->p_sign_key));
+    Utility::Set(obj, "p_enc_key", GapEncKey(native->p_enc_key).ToJs());
+    Utility::Set(obj, "p_id_key", GapIdKey(native->p_id_key).ToJs());
+    Utility::Set(obj, "p_sign_key", GapSignInfo(native->p_sign_key).ToJs());
 
     return scope.Escape(obj);
 }
@@ -767,8 +767,8 @@ v8::Local<v8::Object> GapEncKey::ToJs()
 {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    Utility::Set(obj, "enc_info", GapEncInfo(&native->enc_info));
-    Utility::Set(obj, "master_id", GapMasterId(&native->master_id));
+    Utility::Set(obj, "enc_info", GapEncInfo(&native->enc_info).ToJs());
+    Utility::Set(obj, "master_id", GapMasterId(&native->master_id).ToJs());
 
     return scope.Escape(obj);
 }
@@ -796,8 +796,8 @@ v8::Local<v8::Object> GapIdKey::ToJs()
 {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    Utility::Set(obj, "id_info", GapIrk(&native->id_info));
-    Utility::Set(obj, "id_addr_info", GapAddr(&native->id_addr_info));
+    Utility::Set(obj, "id_info", GapIrk(&native->id_info).ToJs());
+    Utility::Set(obj, "id_addr_info", GapAddr(&native->id_addr_info).ToJs());
 
     return scope.Escape(obj);    
 }
@@ -989,7 +989,7 @@ v8::Local<v8::Object> GapConnSec::ToJs()
 {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    Utility::Set(obj, "sec_mode", GapConnSecMode(&(native->sec_mode)));
+    Utility::Set(obj, "sec_mode", GapConnSecMode(&(native->sec_mode)).ToJs());
     Utility::Set(obj, "encr_key_size", native->encr_key_size);
     return scope.Escape(obj);
 }
