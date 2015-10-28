@@ -127,6 +127,19 @@ class TestLibrary {
 
     }
 
+    getCharacteristics(serviceInstanceId) {
+        return new Promise((resolve, reject) => {
+            console.log('hello world: ' +JSON.stringify(serviceInstanceId));
+            this._adapter.getCharacteristics(serviceInstanceId, (error, characteristics) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(characteristics);
+                }
+            });
+        });
+    }
+
     closeAdapter() {
         return new Promise((resolve, reject)=> {
             this._adapter.close((error) => {

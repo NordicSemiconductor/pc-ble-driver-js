@@ -1345,6 +1345,9 @@ class Adapter extends EventEmitter {
     getCharacteristics(serviceId, callback) {
         // TODO: Implement something for when device is local
         const service = this.getService(serviceId);
+        if (!service) {
+            throw new Error(make_error('Failed to get characteristics.', 'Could not find service with id: ' + serviceId));
+        }
         const device = this.getDevice(service.deviceInstanceId);
 
         if (this._gattOperationMap[device.instanceId]) {

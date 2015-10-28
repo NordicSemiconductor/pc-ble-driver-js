@@ -138,8 +138,15 @@ for(let i = 0; i < argv['_'].length; i++) {
                             process.exit(failures);
                         });
 
-                        process.exit(0);
+                        testLib.closeAdapter()
+                            .then(() => {
+                                process.exit(0);
+                            });
                     });
+                })
+                .catch((error)=> {
+                    console.log(error);
+                    process.exit(0);
                 });
             break;
         }
