@@ -6,7 +6,7 @@ class Characteristic {
     constructor(serviceInstanceId, uuid, properties, value) {
         this._instanceId = serviceInstanceId + '.' + (i++).toString();
         this._serviceInstanceId = serviceInstanceId;
-        this.uuid = uuid;
+        this.uuid = uuid.replace(/-/g, '');
         this.name = null;
         this.properties = properties;
         this.value = value;

@@ -12,7 +12,7 @@ class Service {
     constructor(deviceInstanceId, uuid, type) {
         this._instanceId = deviceInstanceId + '.' + (i++).toString();
         this._deviceInstanceId = deviceInstanceId;
-        this.uuid = uuid;
+        this.uuid = uuid.replace(/-/g, '');
         this.name = null;
 
         if (type !== undefined) {
