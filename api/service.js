@@ -13,6 +13,11 @@ class Service {
         this._instanceId = deviceInstanceId + '.' + (i++).toString();
         this._deviceInstanceId = deviceInstanceId;
         this.uuid = uuid.replace(/-/g, '');
+
+        if (this.uuid.length !== 2 && this.uuid.length !== 32) {
+            throw new Error('uuid must be 128-bit (32 chars in hex) or 16-bit (2 chars in hex)');
+        }
+
         this.name = null;
 
         if (type !== undefined) {

@@ -1308,8 +1308,7 @@ class Adapter extends EventEmitter {
     setServices(services, callback) {
         let addService = (service, type, data) => {
             return new Promise((resolve, reject) => {
-                // TODO: check if 16 bytes or 2 bytes service.uuid
-                this._bleDriver.decode_uuid(16, service.uuid, (err, uuid) => {
+                this._bleDriver.decode_uuid(service.uuid.length === 32 ? 16 : 2, service.uuid, (err, uuid) => {
                     if (err) {
                         reject(make_error(`Unable to decode UUID ${service.uuid}`, err));
                         return;
