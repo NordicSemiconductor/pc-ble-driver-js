@@ -810,15 +810,45 @@ class Adapter extends EventEmitter {
 
         if (event.type === this._bleDriver.BLE_GATT_OP_WRITE_CMD) {
             gattOperation.attribute.value = gattOperation.value;
+        } else if (event.type === this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ) {
+            const writeParameters = {
+                write_op: 0,
+                flags: 0,
+                handle: handle,
+                offset: 0,
+                len: 0,
+                value: [],
+            };
 
+            if (gattOperation.bytesWritten < gattOperation.value.length) {
+                const value = gattOperation.value.slice(gattOperation.bytesWritten, gattOperation.bytesWritten + this._maxPayloadSize);
 
-        } else if (event.type === this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ){
-            const currentWrite = this._fragmentedWrites[device.instanceId];
-            if (currentWrite) {
+                writeParameters.write_op = this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ;
+                writeParameters.handle = handle;
+                writeParameters.offset = gattOperation.bytesWritten;
+                writeParameters.len = value.length;
+                writeParameters.value = value;
 
+                this._bleDriver.write(device.connectionHandle, writeParameters, err => {
+                    if (err) {
+                        this._longWriteCancel(device, handle);
+                        this.emit('error', make_error('Failed to write value to device/handle ' + device.instanceId + '/' + handle, err));
+                    }
+                });
+            } else {
+                writeParameters.write_op = this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ;
+                writeParameters.flags = this._bleDriver.BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE;
+
+                this._bleDriver.write(device.connectionHandle, writeParameters, (err) => {
+                    if (err) {
+                        this._longWriteCancel(device, handle);
+                        this.emit('error', make_error('Failed to write value to device/handle ' + device.instanceId + '/' + handle, err));
+                    }
+                });
             }
         } else if (event.type === this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ) {
-
+            // TODO: Need to check if gattOperation.bytesWritten is equal to gattOperation.value length?
+            gattOperation.attribute.value = gattOperation.value;
         }
 
         if (gattOperation.attribute instanceof Characteristic) {
@@ -1650,24 +1680,31 @@ class Adapter extends EventEmitter {
 
         this._bleDriver.write(device.connectionHandle, writeParameters, (err) => {
             if (err) {
-                writeParameters.write_op = this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ;
-                writeParameters.flags = this._bleDriver.BLE_GATT_EXEC_WRITE_FLAG_PREPARED_CANCEL;
-                writeParameters.len = 0;
-                writeParameters.value = [];
+                this._longWriteCancel(device, handle);
+                this.emit('error', make_error('Failed to write value to device/handle ' + device.instanceId + '/' + handle, err));
+            }
+        });
+    }
 
-                const errorMessage = 'Failed to write value subset with length ' + this._maxPayloadSize +
-                                     'to device/handle' + device.instanceId + '/' + handle;
-                this._bleDriver.write(device.connectionHandle, writeParameters, (cancelErr) => {
-                    delete this._gattOperationsMap[device.instanceId];
+    _longWriteCancel(device, attributeHandle) {
+        const gattOperation = this._gattOperationsMap[device.instanceId];
+        const writeParameters = {
+            write_op: this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ,
+            flags: this._bleDriver.BLE_GATT_EXEC_WRITE_FLAG_PREPARED_CANCEL,
+            handle: attributeHandle,
+            offset: 0,
+            len: 0,
+            value: [],
+        };
 
-                    if (err) {
-                        this.emit('error', make_error('Failed to cancel failed long write', err));
-                        callback('Failed to write and failed to cancel write');
-                    } else {
-                        callback(errorMessage);
-                    }
-                });
-                this.emit('error', make_error(errorMessage, err));
+        this._bleDriver.write(device.connectionHandle, writeParameters, err => {
+            delete this._gattOperationsMap[device.instanceId];
+
+            if (err) {
+                this.emit('error', make_error('Failed to cancel failed long write', err));
+                gattOperation.callback('Failed to write and failed to cancel write');
+            } else {
+                gattOperation.callback('Failed to write value to device/handle ' + device.instanceId + '/' + attributeHandle);
             }
         });
     }
