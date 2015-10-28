@@ -349,7 +349,7 @@ NAN_METHOD(PrimaryServicesDiscover)
 {
     uint16_t conn_handle;
     uint16_t start_handle;
-    bool has_service_uuid = false;
+    bool has_service_uuid = true;
     v8::Local<v8::Object> service_uuid;
     v8::Local<v8::Function> callback;
     int argumentcount = 0;
@@ -364,7 +364,7 @@ NAN_METHOD(PrimaryServicesDiscover)
 
         if (info[argumentcount]->IsNumber())
         {
-            has_service_uuid = true;
+            has_service_uuid = false;
         }
         else
         {
@@ -385,6 +385,7 @@ NAN_METHOD(PrimaryServicesDiscover)
     GattcPrimaryServicesDiscoverBaton *baton = new GattcPrimaryServicesDiscoverBaton(callback);
     baton->conn_handle = conn_handle;
     baton->start_handle = start_handle;
+
     if (has_service_uuid)
     {
         try
