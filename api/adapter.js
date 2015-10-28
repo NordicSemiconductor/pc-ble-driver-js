@@ -1411,6 +1411,7 @@ class Adapter extends EventEmitter {
             // TODO: Ierate over all servicses, descriptors, characterstics from parameter services
             callback();
         }).catch(err => {
+            this.emit('error', err);
             callback(err);
         });
     }
