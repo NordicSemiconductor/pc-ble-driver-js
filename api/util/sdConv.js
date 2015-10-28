@@ -68,14 +68,16 @@ class SoftDeviceConverter {
         var retval = {};
 
         // Try to register the UUID
-        if(uuid.length == 5) {
+        // TODO: cleanup UUID before validating length
+        if (uuid.length == 5) {
             retval.type = this._bleDriver.BLE_UUID_TYPE_BLE; // Bluetooth SIG UUID (16-bit)
             retval.uuid = uuid;
             callback(undefined, retval);
-        } else if(uuid.length == 36) {
+        } else if (uuid.length == 36) {
             // Register UUID with SoftDevice
+            // TODO: add UUID to a API register, if it does not exist in register, call function below
             this._bleDriver.add_vs_uuid({ uuid128: uuid }, (err, type) => {
-                if(err) {
+                if (err) {
                     callback(err);
                     return;
                 }
@@ -99,11 +101,11 @@ class SoftDeviceConverter {
         var err = '';
 
         // Check if mandatory attributes are present in the characteristic object
-        if(!descriptor.uuid) err = 'UUID must be provided. ';
-        if(!descriptor.value) err += 'value must be provided. ';
-        if(!descriptor.maxLength) err += 'maxLength must be provided. ';
+        if (!descriptor.uuid) err = 'UUID must be provided. ';
+        if (!descriptor.value) err += 'value must be provided. ';
+        if (!descriptor.maxLength) err += 'maxLength must be provided. ';
 
-        if(err.length !== 0) {
+        if (err.length !== 0) {
             callback(err);
             return;
         }
@@ -112,7 +114,7 @@ class SoftDeviceConverter {
         var retval = {};
 
         this.uuidToDriver(descriptor.uuid, (err, uuid) => {
-            if(err) {
+            if (err) {
                 callback(err);
                 return;
             }
@@ -156,12 +158,12 @@ class SoftDeviceConverter {
         var err = '';
 
         // Check if mandatory attributes are present in the characteristic object
-        if(!characteristic.uuid) err = 'UUID must be provided. ';
-        if(!characteristic.value) err += 'value must be provided. ';
-        if(!characteristic.maxLength) err += 'maxLength must be provided. ';
-        if(!characteristic.properties) err += 'properties must be provided. ';
+        if (!characteristic.uuid) err = 'UUID must be provided. ';
+        if (!characteristic.value) err += 'value must be provided. ';
+        if (!characteristic.maxLength) err += 'maxLength must be provided. ';
+        if (!characteristic.properties) err += 'properties must be provided. ';
 
-        if(err.length !== 0) {
+        if (err.length !== 0) {
             callback(err);
             return;
         }
@@ -186,7 +188,7 @@ class SoftDeviceConverter {
         retval.metadata.char_ext_props.wr_aux = false;
 
         this.uuidToDriver(characteristic.uuid, (err, uuid) => {
-            if(err) {
+            if (err) {
                 callback(err);
                 return;
             }
