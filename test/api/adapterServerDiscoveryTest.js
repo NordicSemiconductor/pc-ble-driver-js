@@ -602,11 +602,7 @@ describe('getCharacteristics', () => {
 
         bleDriverEventCallback([twoCharacteristicDiscoveryEvent]);
         //assert(characteristicAddedSpy.calledThrice);
-        assert(bleDriver.gattc_characteristic_discover.calledThrice);
-
-        bleDriverEventCallback([zeroCharacteristicDiscoveryEvent]);
-        //assert(characteristicAddedSpy.calledThrice);
-        assert(bleDriver.gattc_characteristic_discover.calledThrice);
+        assert(bleDriver.gattc_characteristic_discover.calledTwice);
 
         assert(bleDriver.gattc_read.calledOnce);
         bleDriverEventCallback([secondValueCharacteristicReadEvent]);

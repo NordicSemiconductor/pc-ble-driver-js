@@ -245,7 +245,7 @@ describe('Adapter start characteristics notification', () => {
         bleDriver = commonStubs.createBleDriver(() => {});
         adapter = new Adapter(bleDriver, 'theId', 42);
         characteristic = new Characteristic('dummyServiceId', 'ffaabb');
-        adapter._characteristics.dummy = characteristic;
+        adapter._characteristics[characteristic.instanceId] = characteristic;
         cccdDescriptor = new Descriptor(characteristic.instanceId, cccdUuid, 42);
         adapter._descriptors[cccdDescriptor.instanceId] = cccdDescriptor;
     });
@@ -308,7 +308,7 @@ describe('Adapter start characteristics notification', () => {
         bleDriver = commonStubs.createBleDriver(() => {});
         adapter = new Adapter(bleDriver, 'theId', 42);
         characteristic = new Characteristic('dummyServiceId', 'ffaabb');
-        adapter._characteristics.dummy = characteristic;
+        adapter._characteristics[characteristic.instanceId] = characteristic;
         cccdDescriptor = new Descriptor(characteristic.instanceId, cccdUuid, 42);
         adapter._descriptors[cccdDescriptor.instanceId] = cccdDescriptor;
     });

@@ -36,17 +36,12 @@ class Adapter extends EventEmitter {
         this._characteristics = {};
         this._descriptors = {};
 
-        this._possiblyFragmentedReadResult = {};
-        this._pendingReadCallbacks = {};
-
         this._converter = new Converter(this._bleDriver);
 
-        this._fragmentedWrites = {};
-        this._pendingWriteCallbacks = {};
         this._maxPayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 3;
 
         this._gapOperationsMap = {};
-        this._gattOperationMap = {};
+        this._gattOperationsMap = {};
     }
 
     // Get the instance id
@@ -232,7 +227,7 @@ class Adapter extends EventEmitter {
                 case this._bleDriver.BLE_GATTC_EVT_CHAR_VALS_READ_RSP:
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_WRITE_RSP:
-                    this._parseWriteEvent(event);
+                    this._parseWriteResponseEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_HVX:
                     this._parseHvxEvent(event);
@@ -428,24 +423,24 @@ class Adapter extends EventEmitter {
     _parsePrimaryServiceDiscoveryResponseEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const services = event.services;
-        const getAttributesState = this._gattOperationMap[device.instanceId];
+        const gattOperation = this._gattOperationsMap[device.instanceId];
 
         if (event.count === 0) {
-            if (_.isEmpty(getAttributesState.pendingHandleReads)) {
+            if (_.isEmpty(gattOperation.pendingHandleReads)) {
                 // No pending reads to wait for.
                 const callbackServices = [];
 
                 for (let serviceInstanceId in this._services) {
                     const service = this._services[serviceInstanceId];
-                    if (service.deviceInstanceId === getAttributesState.parent.instanceId) {
+                    if (service.deviceInstanceId === gattOperation.parent.instanceId) {
                         callbackServices.push(this._services[serviceInstanceId]);
                     }
                 }
 
-                delete this._gattOperationMap[device.instanceId];
-                getAttributesState.callback(undefined, callbackServices);
+                delete this._gattOperationsMap[device.instanceId];
+                gattOperation.callback(undefined, callbackServices);
             } else {
-                for (let handle in getAttributesState.pendingHandleReads) {
+                for (let handle in gattOperation.pendingHandleReads) {
                     // Just take the first found handle and start the read process.
                     this._bleDriver.gattc_read(device.connectionHandle, handle, 0, err => {
                         if (err) {
@@ -475,7 +470,7 @@ class Adapter extends EventEmitter {
             this._services[newService.instanceId] = newService;
 
             if (uuid === null) {
-                getAttributesState.pendingHandleReads[handle] = newService;
+                gattOperation.pendingHandleReads[handle] = newService;
             } else {
                 this.emit('serviceAdded', newService);
             }
@@ -495,24 +490,24 @@ class Adapter extends EventEmitter {
     _parseCharacteristicDiscoveryResponseEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const characteristics = event.chars;
-        const getAttributesState = this._gattOperationMap[device.instanceId];
+        const gattOperation = this._gattOperationsMap[device.instanceId];
 
         const finishCharacteristicDiscovery = () => {
-            if (_.isEmpty(getAttributesState.pendingHandleReads)) {
+            if (_.isEmpty(gattOperation.pendingHandleReads)) {
                 // No pending reads to wait for.
                 const callbackCharacteristics = [];
 
                 for (let characteristicInstanceId in this._characteristics) {
                     const characteristic = this._characteristics[characteristicInstanceId];
-                    if (characteristic.serviceInstanceId === getAttributesState.parent.instanceId) {
+                    if (characteristic.serviceInstanceId === gattOperation.parent.instanceId) {
                         callbackCharacteristics.push(characteristic);
                     }
                 }
 
-                delete this._gattOperationMap[device.instanceId];
-                getAttributesState.callback(undefined, callbackCharacteristics);
+                delete this._gattOperationsMap[device.instanceId];
+                gattOperation.callback(undefined, callbackCharacteristics);
             } else {
-                for (let handle in getAttributesState.pendingHandleReads) {
+                for (let handle in gattOperation.pendingHandleReads) {
                     // Just take the first found handle and start the read process.
                     this._bleDriver.gattc_read(device.connectionHandle, handle, 0, err => {
                         if (err) {
@@ -550,17 +545,22 @@ class Adapter extends EventEmitter {
             this._characteristics[newCharacteristic.instanceId] = newCharacteristic;
 
             if (uuid === null) {
-                getAttributesState.pendingHandleReads[declarationHandle] = newCharacteristic;
+                gattOperation.pendingHandleReads[declarationHandle] = newCharacteristic;
             }
 
             // Add pending reads to get characteristics values.
             if (properties.read) {
-                getAttributesState.pendingHandleReads[valueHandle] = newCharacteristic;
+                gattOperation.pendingHandleReads[valueHandle] = newCharacteristic;
             }
         });
 
-        const nextStartHandle = characteristics[characteristics.length - 1].handle + 1;
+        const nextStartHandle = characteristics[characteristics.length - 1].handle_decl + 1;
         const handleRange = {startHandle: nextStartHandle, endHandle: service.endHandle};
+
+        if (service.endHandle <= nextStartHandle) {
+            finishCharacteristicDiscovery();
+            return;
+        }
 
         this._bleDriver.gattc_characteristic_discover(device.connectionHandle, handleRange, err => {
             if (err) {
@@ -574,24 +574,24 @@ class Adapter extends EventEmitter {
     _parseDescriptorDiscoveryResponseEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const descriptors = event.descs;
-        const getAttributesState = this._gattOperationMap[device.instanceId];
+        const gattOperation = this._gattOperationsMap[device.instanceId];
 
         const finishDescriptorDiscovery = () => {
-            if (_.isEmpty(getAttributesState.pendingHandleReads)) {
+            if (_.isEmpty(gattOperation.pendingHandleReads)) {
                 // No pending reads to wait for.
                 const callbackDescriptors = [];
 
                 for (let descriptorInstanceId in this._descriptors) {
                     const descriptor = this._descriptors[descriptorInstanceId];
-                    if (descriptor.characteristicInstanceId === getAttributesState.parent.instanceId) {
+                    if (descriptor.characteristicInstanceId === gattOperation.parent.instanceId) {
                         callbackDescriptors.push(descriptor);
                     }
                 }
 
-                delete this._getAttributesStates[device.instanceId];
-                getAttributesState.callback(undefined, callbackDescriptors);
+                delete this._gattOperationsMap[device.instanceId];
+                gattOperation.callback(undefined, callbackDescriptors);
             } else {
-                for (let handle in getAttributesState.pendingHandleReads) {
+                for (let handle in gattOperation.pendingHandleReads) {
                     // Just take the first found handle and start the read process.
                     this._bleDriver.gattc_read(device.connectionHandle, handle, 0, err => {
                         if (err) {
@@ -611,7 +611,7 @@ class Adapter extends EventEmitter {
         }
 
         // We should only receive descriptors under one characteristic.
-        const characteristic = getAttributesState.parent;
+        const characteristic = gattOperation.parent;
 
         descriptors.forEach(descriptor => {
             const handle = descriptor.handle;
@@ -634,10 +634,10 @@ class Adapter extends EventEmitter {
 
             // TODO: We cannot read descriptor 128bit uuid.
 
-            getAttributesState.pendingHandleReads[handle] = newDescriptor;
+            gattOperation.pendingHandleReads[handle] = newDescriptor;
         });
 
-        const service = this._services[getAttributesState.parent.serviceInstanceId];
+        const service = this._services[gattOperation.parent.serviceInstanceId];
         const nextStartHandle = descriptors[descriptors.length - 1].handle + 1;
 
         if (service.endHandle < nextStartHandle) {
@@ -660,19 +660,12 @@ class Adapter extends EventEmitter {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const handle = event.handle;
         const data = event.data.data;
-        const getAttributesState = this._gattOperationMap[device.instanceId];
-        let pendingHandleReads;
+        const gattOperation = this._gattOperationsMap[device.instanceId];
+        const pendingHandleReads = gattOperation.pendingHandleReads;
         /*
         event.offset;
         event.len;
         */
-
-        console.log(event);
-
-        if (getAttributesState)
-        {
-            pendingHandleReads = getAttributesState.pendingHandleReads;
-        }
 
         if (pendingHandleReads && !_.isEmpty(pendingHandleReads)) {
             const attribute = pendingHandleReads[handle];
@@ -697,8 +690,8 @@ class Adapter extends EventEmitter {
                         }
                     }
 
-                    delete this._gattOperationMap[device.instanceId];
-                    getAttributesState.callback(undefined, callbackServices);
+                    delete this._gattOperationsMap[device.instanceId];
+                    gattOperation.callback(undefined, callbackServices);
                 }
             } else if (attribute instanceof Characteristic) {
                 // TODO: Translate from uuid to name?
@@ -720,8 +713,8 @@ class Adapter extends EventEmitter {
                         }
                     }
 
-                    delete this._gattOperationMap[device.instanceId];
-                    getAttributesState.callback(undefined, callbackCharacteristics);
+                    delete this._gattOperationsMap[device.instanceId];
+                    gattOperation.callback(undefined, callbackCharacteristics);
                 }
             } else if (attribute instanceof Descriptor) {
                 attribute.value = data;
@@ -734,8 +727,8 @@ class Adapter extends EventEmitter {
                         }
                     }
 
-                    delete this._gattOperationMap[device.instanceId];
-                    getAttributesState.callback(undefined, callbackDescriptors);
+                    delete this._gattOperationsMap[device.instanceId];
+                    gattOperation.callback(undefined, callbackDescriptors);
                 }
             }
 
@@ -751,28 +744,29 @@ class Adapter extends EventEmitter {
                 break;
             }
         } else {
-            this._possiblyFragmentedReadResult[device.instanceId] = this._possiblyFragmentedReadResult[device.instanceId].concat(event.data);
-            const MAX_PAYLOAD_SIZE = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 3;
-            if (event.data.length < MAX_PAYLOAD_SIZE) {
-                this._possiblyFragmentedReadResult[device.instanceId] = undefined;
-                this._pendingReadCallbacks[device.instanceId](undefined, this._possiblyFragmentedReadResult[device.instanceId]);
-                this._pendingReadCallbacks[device.instanceId] = undefined;
-            } else if (event.data.length === MAX_PAYLOAD_SIZE) {
+            gattOperation.readBytes = gattOperation.readBytes.concat(event.data);
+
+            if (event.data.length < this._maxPayloadSize) {
+                delete this._gattOperationsMap[device.instanceId];
+                gattOperation.callback(undefined, gattOperation.readBytes);
+            } else if (event.data.length === this._maxPayloadSize) {
                 // We need to read more:
-                this._bleDriver.read(event.conn_handle, event.handle, this._possiblyFragmentedReadResult.length, (err) => {
+                this._bleDriver.read(event.conn_handle, event.handle, gattOperation.readBytes.length, (err) => {
                     if (err) {
-                        this.emit('error', 'Read descriptor value failed: ' + err);
-                        this._pendingReadCallbacks[device.instanceId]('Failed reading descriptor at ' + this._possiblyFragmentedReadResult[device.instanceId].length);
+                        delete this._gattOperationsMap[device.instanceId];
+                        this.emit('error', make_error('Read value failed', err));
+                        gattOperation.callback('Failed reading at byte #' + gattOperation.readBytes.length);
                     }
                 });
             } else {
+                delete this._gattOperationsMap[device.instanceId];
                 this.emit('error', 'Length of Read response is > mtu');
-                this._pendingReadCallbacks[device.instanceId]('Invalid read response length. (> mtu)');
+                gattOperation.callback('Invalid read response length. (> mtu)');
             }
         }
     }
 
-    _parseWriteEvent(event) {
+    _parseWriteResponseEvent(event) {
         // 1. Check if there is a long write in progress for this device
         // 2a. If there is check if it is done after next write
         // 2ai. If it is done after next write
@@ -782,12 +776,23 @@ class Adapter extends EventEmitter {
 
         // TODO: Do more checking of write response?
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
+        const handle = event.handle;
+        const gattOperation = this._gattOperationsMap[device.instanceId];
+
+        const go = ['callback', 'bytesWritten', 'value', 'attribute'];
+
         if (!device) {
-            emit('error', 'Failed to handle write event, no device with handle ' + device.instanceId + 'found.');
+            delete this._gattOperationsMap[device.instanceId];
+            this.emit('error', 'Failed to handle write event, no device with handle ' + device.instanceId + 'found.');
+            gattOperation.callback(make_error('Failed to handle write event, no device with connection handle ' + event.conn_handle + 'found'));
             return;
         }
+
+        // TODO: Check gatt error? event.gatt_status === BLE_GATT_STATUS_SUCCESS
+
         if (event.type === this._bleDriver.BLE_GATT_OP_WRITE_CMD) {
-            // TODO: make sure there is no fragmentedwrite for this device?
+            gattOperation.attribute.value = gattOperation.value;
+
 
         } else if (event.type === this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ){
             const currentWrite = this._fragmentedWrites[device.instanceId];
@@ -796,6 +801,12 @@ class Adapter extends EventEmitter {
             }
         } else if (event.type === this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ) {
 
+        }
+
+        if (gattOperation.attribute instanceof Characteristic) {
+            this.emit('characteristicValueChanged', gattOperation.attribute);
+        } else if (gattOperation.attribute instanceof Descriptor) {
+            this.emit('descriptorValueChanged', gattOperation.attribute);
         }
     }
 
@@ -1157,6 +1168,7 @@ class Adapter extends EventEmitter {
             this.emit('error', errorObject);
             callback(errorObject);
         }
+
         const hciStatusCode = this._bleDriver.BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION;
         this._bleDriver.gap_disconnect(device.connectionHandle, hciStatusCode, err => {
             if (err) {
@@ -1303,8 +1315,8 @@ class Adapter extends EventEmitter {
     // GATTS/GATTC
 
     // Callback signature function(err, service) {}
-    getService(serviceInstanceId) {
-        // TODO: Do read on service?
+    getService(serviceInstanceId, callback) {
+        // TODO: Do read on service? callback?
         return this._services[serviceInstanceId];
     }
 
@@ -1313,19 +1325,12 @@ class Adapter extends EventEmitter {
         // TODO: Implement something for when device is local
         const device = this.getDevice(deviceInstanceId);
 
-        if (this._gattOperationMap[device.instanceId]) {
-            const err = 'Still waiting for last getAttribute call';
-            this.emit('error', err);
-            callback(err, []);
-            return;
-        }
-
-        if (this._gattOperationMap[device.instanceId]) {
+        if (this._gattOperationsMap[device.instanceId]) {
             this.emit('error', make_error('Failed to get services, a gatt operation already in progress', undefined));
             return;
         }
 
-        this._gattOperationMap[device.instanceId] = {callback: callback, pendingHandleReads: {}, parent: device};
+        this._gattOperationsMap[device.instanceId] = {callback: callback, pendingHandleReads: {}, parent: device};
         this._bleDriver.gattc_primary_services_discover(device.connectionHandle, 1, 0, (err, services) => {
             if (err) {
                 this.emit('error', make_error('Failed to get services', err));
@@ -1344,27 +1349,21 @@ class Adapter extends EventEmitter {
     // Callback signature function(err, characteristics) {}
     getCharacteristics(serviceId, callback) {
         // TODO: Implement something for when device is local
+
         const service = this.getService(serviceId);
         if (!service) {
             throw new Error(make_error('Failed to get characteristics.', 'Could not find service with id: ' + serviceId));
         }
         const device = this.getDevice(service.deviceInstanceId);
 
-        if (this._gattOperationMap[device.instanceId]) {
-            const err = 'Still waiting for last getAttribute call';
-            this.emit('error', err);
-            callback(err, []);
-            return;
-        }
-
-        if (this._gattOperationMap[device.instanceId]) {
+        if (this._gattOperationsMap[device.instanceId]) {
             this.emit('error', make_error('Failed to get characteristics, a gatt operation already in progress', undefined));
             return;
         }
 
-        this._gattOperationMap[device.instanceId] = {callback: callback, pendingHandleReads: {}, parent: service};
-
         const handleRange = {start_handle: service.startHandle, end_handle: service.endHandle};
+        this._gattOperationsMap[device.instanceId] = {callback: callback, pendingHandleReads: {}, parent: service};
+
         this._bleDriver.gattc_characteristic_discover(device.connectionHandle, handleRange, err => {
             if (err) {
                 this.emit('error', make_error('Failed to get Characteristics', err));
@@ -1385,21 +1384,13 @@ class Adapter extends EventEmitter {
         const service = this.getService(characteristic.serviceInstanceId);
         const device = this.getDevice(service.deviceInstanceId);
 
-        if (this._gattOperationMap[device.instanceId]) {
-            const err = 'Still waiting for last getAttribute call';
-            this.emit('error', err);
-            callback(err, []);
-            return;
-        }
-
-        if (this._gattOperationMap[device.instanceId]) {
+        if (this._gattOperationsMap[device.instanceId]) {
             this.emit('error', make_error('Failed to get descriptors, a gatt operation already in progress', undefined));
             return;
         }
 
-        this._gattOperationMap[device.instanceId] = {callback: callback, pendingHandleReads: {}, parent: characteristic};
-
         const handleRange = {start_handle: characteristic.valueHandle + 1, end_handle: service.endHandle};
+        this._gattOperationsMap[device.instanceId] = {callback: callback, pendingHandleReads: {}, parent: characteristic};
         this._bleDriver.gattc_descriptor_discover(device.connectionHandle, handleRange, err => {
             if (err) {
                 this.emit('error', make_error('Failed to get Descriptors', err));
@@ -1410,28 +1401,72 @@ class Adapter extends EventEmitter {
     }
 
     // Callback signature function(err) {}
-    readCharacteristicsValue(characteristicId, offset, callback) {
+    readCharacteristicValue(characteristicId, offset, callback) {
+        const characteristic = this.getCharacteristic(characteristicId);
+        if (!characteristic) {
+            throw new Error('Characteristic value read failed: Could not get characteristic with id ' + characteristicId);
+        }
 
+        const device = this._getDeviceByCharacteristicId(characteristicId);
+        if (!device) {
+            throw new Error('Characteristic value read failed: Could not get device');
+        }
+
+        if (this._gattOperationsMap[device.instanceId]) {
+            throw new Error('Characteristic value read failed: A gatt operation already in progress with device id ' + device.instanceId);
+        }
+
+        this._gattOperationsMap[device.instanceId] = {callback: callback, readBytes: []};
+
+        this._bleDriver.read(device.connectionHandle, characteristic.valueHandle, 0, err => {
+            if (err) {
+                this.emit('error', make_error('Read characteristic value failed', err));
+            }
+        });
     }
 
     // Callback signature function(err) {}  ack: require acknowledge from device, irrelevant in GATTS role. options: {ack, long, offset}
-    writeCharacteristicsValue(characteristicId, value, options, callback) {
-
-    }
-
-    _getDeviceFromDescriptorId(descriptorId) {
-        const descriptor = this._descriptors[descriptorId];
-        if (!descriptor) {
-            throw new Error('No descriptor found with descriptor id: ', descriptorId);
+    writeCharacteristicValue(characteristicId, value, ack, callback) {
+        const characteristic = this.getCharacteristic(characteristicId);
+        if (!characteristic) {
+            throw new Error('Characteristic value write failed: Could not get characteristic with id ' + characteristicId);
         }
 
-        return this._getDeviceFromCharacteristicId(descriptor.characteristicInstanceId);
+        const device = this._getDeviceByCharacteristicId(characteristicId);
+        if (!device) {
+            throw new Error('Characteristic value write failed: Could not get device');
+        }
+
+        if (this._gattOperationsMap[device.instanceId]) {
+            throw new Error('Characteristic value write failed: A gatt operation already in progress with device id ' + device.instanceId);
+        }
+
+        this._gattOperationsMap[device.instanceId] = {callback: callback, bytesWritten: this._maxPayloadSize, value: value.slice(), attribute: characteristic};
+
+        if (value.length > this._maxPayloadSize) {
+            if (!ack) {
+                throw new Error('Long writes do not support BLE_GATT_OP_WRITE_CMD');
+            }
+
+            this._longWrite(device, characteristic.valueHandle, value, callback);
+        } else {
+            this.shortWrite(device, characteristic.valueHandle, ack, value, callback);
+        }
     }
 
-    _getDeviceFromCharacteristicId(characteristicId) {
+    _getDeviceByDescriptorId(descriptorId) {
+        const descriptor = this._descriptors[descriptorId];
+        if (!descriptor) {
+            throw new Error('No descriptor found with descriptor id: ' + descriptorId);
+        }
+
+        return this._getDeviceByCharacteristicId(descriptor.characteristicInstanceId);
+    }
+
+    _getDeviceByCharacteristicId(characteristicId) {
         const characteristic = this._characteristics[characteristicId];
         if (!characteristic) {
-            throw new Error('No characteristic found with id: ' + characteristic.characteristicInstanceId);
+            throw new Error('No characteristic found with id: ' + characteristicId);
         }
 
         const service = this._services[characteristic.serviceInstanceId];
@@ -1449,105 +1484,117 @@ class Adapter extends EventEmitter {
 
     readDescriptorValue(descriptorId, callback) {
         const descriptor = this.getDescriptor(descriptorId);
-        const device = this._getDeviceFromDescriptorId(descriptorId);
+        if (!descriptor) {
+            throw new Error('Descriptor read failed: could not get descriptor with id ' + descriptorId);
+        }
+
+        const device = this._getDeviceByDescriptorId(descriptorId);
+        if (!device) {
+            throw new Error('Descriptor read failed: Could not get device');
+        }
+
+        if (this._gattOperationsMap[device.instanceId]) {
+            throw new Error('Descriptor read failed: A gatt operation already in progress with device with id ' + device.instanceId);
+        }
+
+        this._gattOperationsMap[device.instanceId] = {callback: callback, readBytes: []};
 
         this._bleDriver.read(device.connectionHandle, descriptor.handle, 0, (err) => {
             if (err) {
-                this.emit('error', 'Read descriptor value failed: ' + err);
-            } else {
-                this._pendingReadCallbacks[device.instanceId] = callback;
-                this._possiblyFragmentedReadResult[device.instanceId] = [];
+                this.emit('error', make_error('Read descriptor value failed', err));
             }
         });
     }
 
     // Callback signature function(err) {}, callback will not be called until ack is received. options: {ack, long, offset}
-    writeDescriptorValue(descriptorId, dataArray, ack, callback) {
+    writeDescriptorValue(descriptorId, value, ack, callback) {
         // Does not support reliable write
-        const device = this._getDeviceFromDescriptorId(descriptorId);
-        if (!device) {
-            throw new Error('Write failed: Could not get device with id ' + descriptorId);
-        }
-
-        if (this._gattOperationMap[device.instanceId]) {
-            throw new Error('Cannot write to descriptor. Device with id ' + descriptorId + ' is busy.');
-        }
-
         const descriptor = this.getDescriptor(descriptorId);
         if (!descriptor) {
-            throw new Error('Write failed: could not get descriptor with id ' + descriptorId);
+            throw new Error('Descriptor write failed: could not get descriptor with id ' + descriptorId);
         }
 
-        if (this._gattOperationMap[device.instanceId]) {
-            throw new Error('Device ' + device.instanceId + ' is busy. Cannot write descriptor value');
+        const device = this._getDeviceByDescriptorId(descriptorId);
+        if (!device) {
+            throw new Error('Descriptor write failed: Could not get device');
         }
 
-        if (dataArray.length > this._maxPayloadSize) {
+        if (this._gattOperationsMap[device.instanceId]) {
+            throw new Error('Descriptor write failed: A gatt operation already in progress with device with id ' + device.instanceId);
+        }
+
+        this._gattOperationsMap[device.instanceId] = {callback: callback, bytesWritten: this._maxPayloadSize, value: value.slice(), attribute: descriptor};
+
+        if (value.length > this._maxPayloadSize) {
             if (!ack) {
                 throw new Error('Long writes do not support BLE_GATT_OP_WRITE_CMD');
             }
 
-            this._longWrite(device, descriptor, dataArray, callback);
+            this._longWrite(device, descriptor.handle, value, callback);
         } else {
-            this.shortWrite(device, descriptor, ack, dataArray, callback);
+            this.shortWrite(device, descriptor.handle, ack, value, callback);
         }
     }
 
-    _shortWrite(device, descriptor, dataArray, ack, callback) {
+    _shortWrite(device, handle, value, ack, callback) {
         const writeParameters = {
             write_op: ack ? this._bleDriver.BLE_GATT_OP_WRITE_REQ : this._bleDriver.BLE_GATT_OP_WRITE_CMD,
             flags: 0, // don't care for WRITE_REQ / WRITE_CMD
-            handle: descriptor.handle,
+            handle: handle,
             offset: 0,
-            len: dataArray.length,
-            value: dataArray,
+            len: value.length,
+            value: value,
         };
 
         this._bleDriver.write(device.connectionHandle, writeParameters, (err) => {
             if (err) {
-                this.emit('error', 'Failed to write to descriptor with handle: ' + descriptor.handle);
+                delete this._gattOperationsMap[device.instanceId];
+                this.emit('error', 'Failed to write to attribute with handle: ' + handle);
+                callback(err);
+                return;
             }
 
-            callback(err);
+            if (!ack) {
+                delete this._gattOperationsMap[device.instanceId];
+                callback(undefined);
+            }
         });
     }
 
-    _longWrite(device, descriptor, dataArray, callback) {
-        if (dataArray.length < this._maxPayloadSize) {
+    _longWrite(device, handle, value, callback) {
+        if (value.length < this._maxPayloadSize) {
             throw new Error('Wrong write method. Use regular write for payload sizes < ' + this._maxPayloadSize);
         }
 
         const writeParameters = {
             write_op: this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ,
             flags: 0,
-            handle: descriptor.handle,
+            handle: handle,
             offset: 0,
             len: this._maxPayloadSize,
-            value: dataArray.slice(0, this._maxPayloadSize),
+            value: value.slice(0, this._maxPayloadSize),
         };
-        this._fragmentedWrites[device.instanceId] = {bytesWritten: this._maxPayloadSize, dataArray: dataArray};
-        this._pendingWriteCallbacks[device.instanceId] = callback;
+
         this._bleDriver.write(device.connectionHandle, writeParameters, (err) => {
             if (err) {
-                delete this._fragmentedWrites[device.instanceId];
-
                 writeParameters.write_op = this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ;
                 writeParameters.flags = this._bleDriver.BLE_GATT_EXEC_WRITE_FLAG_PREPARED_CANCEL;
                 writeParameters.len = 0;
                 writeParameters.value = [];
-                const errorMessage = 'Failed to write dataArray subset with length ' + this._maxPayloadSize +
-                                     'to device/handle' + device.instanceId + '/' + descriptor.handle;
-                this._bleDriver.write(device.connectionHandle, writeParameters, (cancelErr) => {
-                    if (err) {
-                        this.emit('error', 'Failed to cancel write: ' + err);
-                        this._pendingWriteCallbacks[device.instanceId]('Failed to write and failed to cancel write');
-                    } else {
-                        this._pendingWriteCallbacks[device.instanceId](errorMessage);
-                    }
 
-                    delete this._pendingWriteCallbacks[device.instanceId];
+                const errorMessage = 'Failed to write value subset with length ' + this._maxPayloadSize +
+                                     'to device/handle' + device.instanceId + '/' + handle;
+                this._bleDriver.write(device.connectionHandle, writeParameters, (cancelErr) => {
+                    delete this._gattOperationsMap[device.instanceId];
+
+                    if (err) {
+                        this.emit('error', make_error('Failed to cancel failed long write', err));
+                        callback('Failed to write and failed to cancel write');
+                    } else {
+                        callback(errorMessage);
+                    }
                 });
-                this.emit('error', errorMessage);
+                this.emit('error', make_error(errorMessage, err));
             }
         });
     }
@@ -1559,12 +1606,16 @@ class Adapter extends EventEmitter {
         // TODO: If CCCD not discovered do a decriptor discovery
         const enableNotificationBitfield = requireAck ? 2 : 1;
         const characteristic = this._characteristics[characteristicId];
+        if (!characteristic) {
+            throw new Error('Start characteristic notifications failed: Could not get characteristic with id ' + characteristicId);
+        }
+
         const cccdDescriptor = _.find(this._descriptors, (descriptor) => {
             return (descriptor.characteristicInstanceId === characteristicId) &&
                 (descriptor.uuid === 0x2902);
         });
         if (!cccdDescriptor) {
-            throw new Error('Could not find CCCD descriptor with parent characteristic id: ' + characteristicId);
+            throw new Error('Start characteristic notifications failed: Could not find CCCD descriptor with parent characteristic id: ' + characteristicId);
         }
 
         this.writeDescriptorValue(cccdDescriptor.instanceId, [enableNotificationBitfield, 0], true, (err) => {
@@ -1581,10 +1632,17 @@ class Adapter extends EventEmitter {
         // TODO: If CCCD not discovered how did we start it?
         const enableNotificationBitfield = 0;
         const characteristic = this._characteristics[characteristicId];
+        if (!characteristic) {
+            throw new Error('Stop characteristic notifications failed: Could not get characteristic with id ' + characteristicId);
+        }
+
         const cccdDescriptor = _.find(this._descriptors, (descriptor) => {
             return (descriptor.characteristicInstanceId === characteristicId) &&
                 (descriptor.uuid === 0x2902);
         });
+        if (!cccdDescriptor) {
+            throw new Error('Stop characteristic notifications failed: Could not find CCCD descriptor with parent characteristic id: ' + characteristicId);
+        }
 
         this.writeDescriptorValue(cccdDescriptor.instanceId, [enableNotificationBitfield, 0], (err) => {
             if (err) {
