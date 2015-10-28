@@ -299,9 +299,10 @@ function connSecGet() {
      */
     driver.gap_conn_sec_get(connectionHandle, function(err, connSec) {
         if (err) {
-            console.log('Error occured in gap_conn_sec_')
+            console.log('Error occured in gap_conn_sec_get');
+            return;
         }
-        console.log("GapConnSecGet : " + JSON.stringify(connSec));
+        console.log('GapConnSecGet: ' + JSON.stringify(connSec));
     });
 }
 
