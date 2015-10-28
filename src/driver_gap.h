@@ -447,6 +447,15 @@ public:
     ble_gap_enc_info_t *enc_info;
 };
 
+struct GapSecInfoReplyBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GapSecInfoReplyBaton);
+    uint16_t conn_handle;
+    ble_gap_enc_info_t *enc_info;
+    ble_gap_irk_t *id_info;
+    ble_gap_sign_info_t *sign_info;
+};
+
 ///// End GAP Batons //////////////////////////////////////////////////////////////////////////////////
 
 METHOD_DEFINITIONS(GapSetAddress);
@@ -468,6 +477,7 @@ METHOD_DEFINITIONS(GapStopAdvertising);
 METHOD_DEFINITIONS(GapSecParamsReply);
 METHOD_DEFINITIONS(GapConnSecGet);
 METHOD_DEFINITIONS(GapEncrypt);
+METHOD_DEFINITIONS(GapSecInfoReply);
 
 extern "C" {
     void init_gap(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
