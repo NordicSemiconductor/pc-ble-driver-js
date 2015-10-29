@@ -259,7 +259,7 @@ class Adapter extends EventEmitter {
                     this._parseWriteEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST:
-                    // TODO: Implement when doing other security features?
+                    this._parseRWAutorizeRequestEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_SYS_ATTR_MISSING:
                     // TODO: Implement
@@ -335,6 +335,7 @@ class Adapter extends EventEmitter {
         // TODO: Delete all operations for this device.
 
         if (this._gapOperationsMap[device.instanceId]) {
+            // TODO: How do we know what the callback expects? Check disconnected event reason?
             const callback = this._gapOperationsMap[device.instanceId].callback;
             delete this._gapOperationsMap[device.instanceId];
             callback(undefined, device);
@@ -533,8 +534,8 @@ class Adapter extends EventEmitter {
                 gattOperation.callback(undefined, callbackCharacteristics);
             } else {
                 for (let handle in gattOperation.pendingHandleReads) {
+                    // Only take the first found handle and start the read process.
                     const handleAsNumber = parseInt(handle, 10);
-                    // Just take the first found handle and start the read process.
                     this._bleDriver.gattc_read(device.connectionHandle, handleAsNumber, 0, err => {
                         if (err) {
                             this.emit('error', err);
@@ -865,11 +866,7 @@ class Adapter extends EventEmitter {
             gattOperation.attribute.value = gattOperation.value;
         }
 
-        if (gattOperation.attribute instanceof Characteristic) {
-            this.emit('characteristicValueChanged', gattOperation.attribute);
-        } else if (gattOperation.attribute instanceof Descriptor) {
-            this.emit('descriptorValueChanged', gattOperation.attribute);
-        }
+        this._emitAttributeValueChanged(gattOperation.attribute);
 
         gattOperation.callback(undefined, gattOperation.attribute);
     }
@@ -910,6 +907,10 @@ class Adapter extends EventEmitter {
         return foundCharacteristic;
     }
 
+    _getCharacteristicByValueHandle(valueHandle) {
+        return _.find(this._characteristics, (characteristic) => characteristic.valueHandle === valueHandle);
+    }
+
     _getDescriptorByHandle(deviceInstanceId, handle) {
         const characteristic = this._getCharacteristicByHandle(deviceInstanceId, handle);
 
@@ -928,8 +929,19 @@ class Adapter extends EventEmitter {
         return null;
     }
 
-    _getCharacteristicByValueHandle(valueHandle) {
-        return _.find(this._characteristics, (characteristic) => characteristic.valueHandle === valueHandle);
+    _getAttributeByHandle(deviceInstanceId, handle) {
+        return this._getDescriptorByHandle(deviceInstanceId, handle) ||
+               this._getCharacteristicByValueHandle(deviceInstanceId, handle) ||
+               this._getCharacteristicByHandle(deviceInstanceId, handle) ||
+               this._getServiceByHandle(deviceInstanceId, handle);
+    }
+
+    _emitAttributeValueChanged(attribute) {
+        if (attribute instanceof Characteristic) {
+            this.emit('characteristicValueChanged', attribute);
+        } else if (attribute instanceof Descriptor) {
+            this.emit('descriptorValueChanged', attribute);
+        }
     }
 
     _parseHvxEvent(event) {
@@ -948,48 +960,62 @@ class Adapter extends EventEmitter {
     }
 
     _parseWriteEvent(event) {
-        event.conn_handle;
-        event.handle;
-        event.op;
-        event.contex;
-        event.offset;
-        event.len;
-        event.data;
-
+        // TODO: BLE_GATTS_OP_SIGN_WRITE_CMD not supported?
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
+        const attribute = this._getAttributeByHandle(device.instanceId, event.handle);
 
         if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ) {
-            // TODO: Find attribute and change value
+            const attribute = this._getAttributeByHandle(event.handle);
+            this._setAttributeValueWithOffset(attribute, event.data, event.offset);
             delete this._preparedWritesMap[device.instanceId];
-            this.emit('attributeChanged', attribute);
+            this._emitAttributeValueChanged(attribute);
         } else if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_CMD) {
             // TODO: Find attribute and change value
+            const attribute = this._getAttributeByHandle(event.handle);
+            this._setAttributeValueWithOffset(attribute, event.data, event.offset);
             delete this._preparedWritesMap[device.instanceId];
-            this.emit('attributeChanged', attribute);
-        } else if (event.op === this._bleDriver.BLE_GATTS_OP_SIGN_WRITE_CMD) {
-            // TODO: Not supported?
+            this._emitAttributeValueChanged(attribute);
         } else if (event.op === this._bleDriver.BLE_GATTS_OP_PREP_WRITE_REQ) {
-            // TODO: Store prepared write
             if (!this._preparedWritesMap[device.instanceId]) {
-                this._preparedWritesMap[device.instanceId] = {}; // {handle: }
+                this._preparedWritesMap[device.instanceId] = {};
             }
 
-            const preparedWrites = this._preparedWritesMap[device.instanceId][event.handle];
-            if (!preparedWrites) {
-                this._preparedWritesMap[device.instanceId][event.handle] = {offset: event.offset, value: event.data};
-            } else {
-                if (event.offset <= preparedWrites.offset) {
-                    this._preparedWritesMap[device.instanceId][event.handle] = {offset: event.offset, value: event.data};
-                } else {
-                    preparedWrites.value = preparedWrites.value.slice(0, event.offset - preparedWrites.offset).concat(event.data);
-                }
+            const preparedWrite = this._preparedWritesMap[device.instanceId][event.handle];
+            if (!preparedWrite || event.offset <= preparedWrite.offset) {
+                this._preparedWritesMap[device.instanceId][event.handle] = {value: event.data, offset: event.offset};
+                return;
             }
+
+            // TODO: What to do if event.offset > preparedWrite.offset + preparedWrite.value.length?
+            preparedWrite.value = preparedWrite.value.slice(0, event.offset - preparedWrite.offset).concat(event.data);
         } else if (event.op === this._bleDriver.BLE_GATTS_OP_EXEC_WRITE_REQ_CANCEL) {
             delete this._preparedWritesMap[device.instanceId];
         } else if (event.op === this._bleDriver.BLE_GATTS_OP_EXEC_WRITE_REQ_NOW) {
-            // TODO: Execute the writes
-            //for (attribute)
+            for (let handle of this._preparedWritesMap[device.instanceId]) {
+                const preparedWrite = this._preparedWritesMap[device.instanceId][handle];
+                const attribute = this._getAttributeByHandle(handle);
+
+                this._writeLocalValue(attribute, preparedWrite.value, preparedWrite.offset, err => {
+                    if (err) {
+                        // TODO: Rollback if we fail? if yes should we wait with emiting attributes?
+                        this.emit('error', make_error('Failed to set local attribute value when executing prepared writes'));
+                        return;
+                    }
+
+                    this._emitAttributeValueChanged(attribute);
+                });
+            }
+
+            delete this._preparedWritesMap[device.instanceId];
         }
+    }
+
+    _parseRWAutorizeRequestEvent(event) {
+        // TODO: What to do here? Ask user of API for accept or reject?
+    }
+
+    _setAttributeValueWithOffset(attribute, value, offset) {
+        attribute.value = attribute.value.slice(0, offset).concat(value);
     }
 
     // Callback signature function(err, state) {}
@@ -1665,7 +1691,7 @@ class Adapter extends EventEmitter {
         }
 
         if (this._instanceIdIsOnLocalDevice(characteristicId)) {
-            this._writeLocalValue(characteristic, value, callback);
+            this._writeLocalValue(characteristic, value, 0, callback);
             return;
         }
 
@@ -1761,7 +1787,7 @@ class Adapter extends EventEmitter {
         }
 
         if (this._instanceIdIsOnLocalDevice(descriptorId)) {
-            this._writeLocalValue(descriptor, value, callback);
+            this._writeLocalValue(descriptor, value, 0, callback);
             return;
         }
 
@@ -1858,10 +1884,10 @@ class Adapter extends EventEmitter {
         });
     }
 
-    _writeLocalValue(attribute, value, callback) {
+    _writeLocalValue(attribute, value, offset, callback) {
         const writeParameters = {
             len: value.length,
-            offset: 0,
+            offset: offset,
             p_value: value,
         };
 
@@ -1872,7 +1898,7 @@ class Adapter extends EventEmitter {
                 return;
             }
 
-            attribute.value = writeResult.p_value;
+            _setAttributeValueWithOffset(attribute, value, offset);
             callback(undefined, attribute);
         });
     }
