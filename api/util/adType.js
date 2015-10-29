@@ -9,7 +9,7 @@ let cleanUpUuid = function(uuid) {
 let flagsTypeMarshaller = function(buf, offset, flags) {
     let value = 0x00;
 
-    for (let flag in flags) {
+    for (const flag in flags) {
         switch (flags[flag]) {
             case 'leLimitedDiscMode':
                 value |= 0x01;
@@ -139,10 +139,6 @@ class AdType {
         return buffer.slice(0, bufferPosition);
     }
 
-    /**
-     * @brief Generates a decoded representation of the data in the buffer
-     *
-     */
     static convertFromBuffer(buffer) {
         throw new Error('Not implemented!');
     }

@@ -948,6 +948,7 @@ class Adapter extends EventEmitter {
 
         if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ) {
             this.emit.('attributeChanged', attribute);
+            this.emit('attributeChanged', attribute);
         } else if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_CMD) {
 
         } else if (event.op === this._bleDriver.BLE_GATTS_OP_SIGN_WRITE_CMD) {
@@ -1218,14 +1219,14 @@ class Adapter extends EventEmitter {
     startAdvertising(advData, scanRespData, options, callback) {
         const advParams = this._getAdvertisementParams(options);
 
-        const advDataStruct = AdType.convertToBuffer(advData);
-        const scanRespDataStruct = AdType.convertToBuffer(scanRespData);
+        const advDataStruct = Array.from(AdType.convertToBuffer(advData));
+        const scanRespDataStruct = Array.from(AdType.convertToBuffer(scanRespData));
 
         console.log('advParams: ' + JSON.stringify(advParams));
         console.log('advDataStruct: ' + JSON.stringify(advDataStruct));
         console.log('scanRespDataStruct: ' + JSON.stringify(scanRespDataStruct));
 
-        this._bleDriver.gap_set_adv_data(
+        this._bleDriver.gap_set_advertising_data(
             advDataStruct,
             scanRespDataStruct,
             err => {
@@ -1367,7 +1368,6 @@ class Adapter extends EventEmitter {
                             this._bleDriver.add_vs_uuid(
                                 {uuid128: base_uuid},
                                 (err, type) => {
-                                    console.log('add_vs_uuid: type:' + type + ' uuid:' + uuid + ' base_uuid:' + base_uuid);
                                     if (err) {
                                         reject(make_error(`Unable to add UUID ${uuid} to SoftDevice`, err));
                                     } else {

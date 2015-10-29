@@ -31,6 +31,11 @@ adapterFactory.getAdapters((err, adapters) => {
 
     let adapter = adapters[Object.keys(adapters)[0]];
     adapter.on('error', error => { console.log('Error from adapter:' + error); });
+    adapter.on(
+        'adapterStateChanged',
+        adapterState => { console.log('Adapter state changed: ' + JSON.stringify(adapterState));}
+    );
+
     console.log(`Using adapter ${adapter.instanceId}.`);
 
     adapter.open(
@@ -78,16 +83,16 @@ adapterFactory.getAdapters((err, adapters) => {
                     process.exit();
                 }
 
-                console.log('Trying to advertise services (WIP).');
+                console.log('Trying to advertise services.');
 
                 var advertisingData = {
                     shortenedLocalName: 'MyCoolName',
-                    flags: ['leGeneralDiscMode', 'leLimitedDiscMode', 'brEdrNotSupported'],
+                    flags: ['leGeneralDiscMode', 'brEdrNotSupported'],
                     txPowerLevel: -10,
                 };
 
                 var scanResponseData = {
-                    completeLocalName: 'MyCoolName',
+                    completeLocalName: 'MyReallyCoolName',
                 };
 
                 var options = {
