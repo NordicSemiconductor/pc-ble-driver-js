@@ -82,7 +82,6 @@ class TestLibrary {
             });
             this._adapter.connect(addr, options, (error) => {
                 if (error) {
-                    console.log('ddd' + error);
                     reject(error);
                 }
 
