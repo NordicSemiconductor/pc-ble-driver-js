@@ -36,6 +36,10 @@ class Characteristic {
     set name(name) {
         this._name = name;
     }
+
+    get handle() {
+        return this.valueHandle;
+    }
 }
 
 module.exports = Characteristic;

@@ -254,7 +254,7 @@ class Adapter extends EventEmitter {
                     // TODO: Implement
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_WRITE:
-                    // TODO: Implement
+                    this._parseWriteEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST:
                     // TODO: Implement when doing other security features?
@@ -339,7 +339,7 @@ class Adapter extends EventEmitter {
 
     _parseConnectionParameterUpdateEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
-         if (!device) {
+        if (!device) {
             this.emit('error', 'Internal inconsistency: Could not find device with connection handle ' + event.conn_handle);
             return;
         }
@@ -802,8 +802,6 @@ class Adapter extends EventEmitter {
         const handle = event.handle;
         const gattOperation = this._gattOperationsMap[device.instanceId];
 
-        const go = ['callback', 'bytesWritten', 'value', 'attribute'];
-
         if (!device) {
             delete this._gattOperationsMap[device.instanceId];
             this.emit('error', 'Failed to handle write event, no device with handle ' + device.instanceId + 'found.');
@@ -836,7 +834,7 @@ class Adapter extends EventEmitter {
 
                 this._bleDriver.write(device.connectionHandle, writeParameters, err => {
                     if (err) {
-                        this._longWriteCancel(device, handle);
+                        this._longWriteCancel(device, gattOperation.attribute);
                         this.emit('error', make_error('Failed to write value to device/handle ' + device.instanceId + '/' + handle, err));
                     }
                 });
@@ -846,11 +844,13 @@ class Adapter extends EventEmitter {
 
                 this._bleDriver.write(device.connectionHandle, writeParameters, (err) => {
                     if (err) {
-                        this._longWriteCancel(device, handle);
+                        this._longWriteCancel(device, gattOperation.attribute);
                         this.emit('error', make_error('Failed to write value to device/handle ' + device.instanceId + '/' + handle, err));
                     }
                 });
             }
+
+            return;
         } else if (event.type === this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ) {
             // TODO: Need to check if gattOperation.bytesWritten is equal to gattOperation.value length?
             gattOperation.attribute.value = gattOperation.value;
@@ -861,6 +861,8 @@ class Adapter extends EventEmitter {
         } else if (gattOperation.attribute instanceof Descriptor) {
             this.emit('descriptorValueChanged', gattOperation.attribute);
         }
+
+        gattOperation.callback(undefined, gattOperation.attribute);
     }
 
     _getServiceByHandle(deviceInstanceId, handle) {
@@ -934,6 +936,29 @@ class Adapter extends EventEmitter {
 
         characteristic.value = event.data;
         this.emit('characteristicValueChanged', characteristic);
+    }
+
+    _parseWriteEvent(event) {
+        event.handle;
+        event.op;
+        event.contex;
+        event.offest;
+        event.len;
+        event.data;
+
+        if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ) {
+            this.emit.('attributeChanged', attribute);
+        } else if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_CMD) {
+
+        } else if (event.op === this._bleDriver.BLE_GATTS_OP_SIGN_WRITE_CMD) {
+            // TODO: Not supported?
+        } else if (event.op === this._bleDriver.BLE_GATTS_OP_PREP_WRITE_REQ) {
+
+        } else if (event.op === this._bleDriver.BLE_GATTS_OP_EXEC_WRITE_REQ_CANCEL) {
+
+        } else if (event.op === this._bleDriver.BLE_GATTS_OP_EXEC_WRITE_REQ_NOW) {
+
+        }
     }
 
     // Callback signature function(err, state) {}
@@ -1072,18 +1097,19 @@ class Adapter extends EventEmitter {
 
     // options: scanParams, connParams, Callback signature function(err) {}. Do not start service discovery. Err if connection timed out, +++
     connect(deviceAddress, options, callback) {
-        if (!_.isEmpty(this._gapOperationsMap) ) {
+        if (!_.isEmpty(this._gapOperationsMap)) {
             const errorObject = make_error('Could not connect. Another connect is in progress.');
             this.emit('error', errorObject);
             callback(errorObject);
         }
+
         this._bleDriver.gap_connect(deviceAddress, options.scanParams, options.connParams, err => {
             if (err) {
                 this.emit('error', make_error(`Could not connect to ${deviceAddress}`, err));
                 callback(make_error('Failed to connect to ' + deviceAddress, err));
             } else {
                 this._changeAdapterState({scanning: false, connecting: true});
-                this._gapOperationsMap['connecting'] = {callback: callback};
+                this._gapOperationsMap.connecting = {callback: callback};
             }
         });
     }
@@ -1097,7 +1123,7 @@ class Adapter extends EventEmitter {
                 this.emit('error', newError);
                 callback(newError);
             } else {
-                delete this._gapOperationsMap['connecting'];
+                delete this._gapOperationsMap.connecting;
                 this._changeAdapterState({connecting: false});
                 callback(undefined);
             }
@@ -1462,6 +1488,7 @@ class Adapter extends EventEmitter {
         if (!service) {
             throw new Error(make_error('Failed to get characteristics.', 'Could not find service with id: ' + serviceId));
         }
+
         const device = this.getDevice(service.deviceInstanceId);
 
         if (this._gattOperationsMap[device.instanceId]) {
@@ -1515,6 +1542,11 @@ class Adapter extends EventEmitter {
             throw new Error('Characteristic value read failed: Could not get characteristic with id ' + characteristicId);
         }
 
+        if (this._instanceIdIsOnLocalDevice(characteristicId)) {
+            this._readLocalValue(characteristic, callback);
+            return;
+        }
+
         const device = this._getDeviceByCharacteristicId(characteristicId);
         if (!device) {
             throw new Error('Characteristic value read failed: Could not get device');
@@ -1540,6 +1572,11 @@ class Adapter extends EventEmitter {
             throw new Error('Characteristic value write failed: Could not get characteristic with id ' + characteristicId);
         }
 
+        if (this._instanceIdIsOnLocalDevice(characteristicId)) {
+            this._writeLocalValue(characteristic, value, callback);
+            return;
+        }
+
         const device = this._getDeviceByCharacteristicId(characteristicId);
         if (!device) {
             throw new Error('Characteristic value write failed: Could not get device');
@@ -1556,9 +1593,9 @@ class Adapter extends EventEmitter {
                 throw new Error('Long writes do not support BLE_GATT_OP_WRITE_CMD');
             }
 
-            this._longWrite(device, characteristic.valueHandle, value, callback);
+            this._longWrite(device, characteristic, value, callback);
         } else {
-            this.shortWrite(device, characteristic.valueHandle, ack, value, callback);
+            this._shortWrite(device, characteristic, ack, value, callback);
         }
     }
 
@@ -1590,10 +1627,19 @@ class Adapter extends EventEmitter {
         return device;
     }
 
+    _instanceIdIsOnLocalDevice(instanceId) {
+        return instanceId.split('.')[0] === 'local';
+    }
+
     readDescriptorValue(descriptorId, callback) {
         const descriptor = this.getDescriptor(descriptorId);
         if (!descriptor) {
             throw new Error('Descriptor read failed: could not get descriptor with id ' + descriptorId);
+        }
+
+        if (this._instanceIdIsOnLocalDevice(descriptorId)) {
+            this._readLocalValue(descriptor, callback);
+            return;
         }
 
         const device = this._getDeviceByDescriptorId(descriptorId);
@@ -1622,6 +1668,11 @@ class Adapter extends EventEmitter {
             throw new Error('Descriptor write failed: could not get descriptor with id ' + descriptorId);
         }
 
+        if (this._instanceIdIsOnLocalDevice(descriptorId)) {
+            this._writeLocalValue(descriptor, value, callback);
+            return;
+        }
+
         const device = this._getDeviceByDescriptorId(descriptorId);
         if (!device) {
             throw new Error('Descriptor write failed: Could not get device');
@@ -1638,17 +1689,17 @@ class Adapter extends EventEmitter {
                 throw new Error('Long writes do not support BLE_GATT_OP_WRITE_CMD');
             }
 
-            this._longWrite(device, descriptor.handle, value, callback);
+            this._longWrite(device, descriptor, value, callback);
         } else {
-            this.shortWrite(device, descriptor.handle, ack, value, callback);
+            this._shortWrite(device, descriptor, ack, value, callback);
         }
     }
 
-    _shortWrite(device, handle, value, ack, callback) {
+    _shortWrite(device, attribute, value, ack, callback) {
         const writeParameters = {
             write_op: ack ? this._bleDriver.BLE_GATT_OP_WRITE_REQ : this._bleDriver.BLE_GATT_OP_WRITE_CMD,
             flags: 0, // don't care for WRITE_REQ / WRITE_CMD
-            handle: handle,
+            handle: attribute.handle,
             offset: 0,
             len: value.length,
             value: value,
@@ -1657,19 +1708,20 @@ class Adapter extends EventEmitter {
         this._bleDriver.write(device.connectionHandle, writeParameters, (err) => {
             if (err) {
                 delete this._gattOperationsMap[device.instanceId];
-                this.emit('error', 'Failed to write to attribute with handle: ' + handle);
+                this.emit('error', 'Failed to write to attribute with handle: ' + attribute.handle);
                 callback(err);
                 return;
             }
 
             if (!ack) {
                 delete this._gattOperationsMap[device.instanceId];
-                callback(undefined);
+                attribute.value = value;
+                callback(undefined, attribute);
             }
         });
     }
 
-    _longWrite(device, handle, value, callback) {
+    _longWrite(device, attribute, value, callback) {
         if (value.length < this._maxPayloadSize) {
             throw new Error('Wrong write method. Use regular write for payload sizes < ' + this._maxPayloadSize);
         }
@@ -1677,7 +1729,7 @@ class Adapter extends EventEmitter {
         const writeParameters = {
             write_op: this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ,
             flags: 0,
-            handle: handle,
+            handle: attribute.handle,
             offset: 0,
             len: this._maxPayloadSize,
             value: value.slice(0, this._maxPayloadSize),
@@ -1685,18 +1737,18 @@ class Adapter extends EventEmitter {
 
         this._bleDriver.write(device.connectionHandle, writeParameters, (err) => {
             if (err) {
-                this._longWriteCancel(device, handle);
-                this.emit('error', make_error('Failed to write value to device/handle ' + device.instanceId + '/' + handle, err));
+                this._longWriteCancel(device, attribute);
+                this.emit('error', make_error('Failed to write value to device/handle ' + device.instanceId + '/' + attribute.handle, err));
             }
         });
     }
 
-    _longWriteCancel(device, attributeHandle) {
+    _longWriteCancel(device, attribute) {
         const gattOperation = this._gattOperationsMap[device.instanceId];
         const writeParameters = {
             write_op: this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ,
             flags: this._bleDriver.BLE_GATT_EXEC_WRITE_FLAG_PREPARED_CANCEL,
-            handle: attributeHandle,
+            handle: attribute.handle,
             offset: 0,
             len: 0,
             value: [],
@@ -1709,8 +1761,46 @@ class Adapter extends EventEmitter {
                 this.emit('error', make_error('Failed to cancel failed long write', err));
                 gattOperation.callback('Failed to write and failed to cancel write');
             } else {
-                gattOperation.callback('Failed to write value to device/handle ' + device.instanceId + '/' + attributeHandle);
+                gattOperation.callback('Failed to write value to device/handle ' + device.instanceId + '/' + attribute.handle);
             }
+        });
+    }
+
+    _writeLocalValue(attribute, value, callback) {
+        const writeParameters = {
+            len: value.length,
+            offset: 0,
+            p_value: value,
+        };
+
+        this._bleDriver.gatts_set_value(this._bleDriver.BLE_CONN_HANDLE_INVALID, attribute.handle, writeParameters, (err, writeResult) => {
+            if (err) {
+                this.emit('error', make_error('Failed to write local value', err));
+                callback(err, undefined);
+                return;
+            }
+
+            attribute.value = writeResult.p_value;
+            callback(undefined, attribute);
+        });
+    }
+
+    _readLocalValue(attribute, callback) {
+        const readParameters = {
+            len: 512,
+            offset: 0,
+            p_value: [],
+        };
+
+        this._bleDriver.gatts_get_value(this._bleDriver.BLE_CONN_HANDLE_INVALID, attribute, readParameters, (err, readResults) => {
+            if (err) {
+                this.emit('error', make_error('Failed to write local value', err));
+                callback(err, undefined);
+                return;
+            }
+
+            attribute.value = readResults.p_value;
+            callback(undefined, attribute);
         });
     }
 
