@@ -17,10 +17,10 @@ ble_gatts_attr_md_t *GattsAttributeMetadata::ToNative()
     attributeMetadata->read_perm = GapConnSecMode(ConversionUtility::getJsObject(jsobj, "read_perm"));
     attributeMetadata->write_perm = GapConnSecMode(ConversionUtility::getJsObject(jsobj, "write_perm"));
 
-    attributeMetadata->vlen = ConversionUtility::getNativeUint8(jsobj, "vlen");
+    attributeMetadata->vlen = ConversionUtility::getNativeBool(jsobj, "vlen");
     attributeMetadata->vloc = ConversionUtility::getNativeUint8(jsobj, "vloc");
-    attributeMetadata->rd_auth = ConversionUtility::getNativeUint8(jsobj, "rd_auth");
-    attributeMetadata->wr_auth = ConversionUtility::getNativeUint8(jsobj, "wr_auth");
+    attributeMetadata->rd_auth = ConversionUtility::getNativeBool(jsobj, "rd_auth");
+    attributeMetadata->wr_auth = ConversionUtility::getNativeBool(jsobj, "wr_auth");
 
     return attributeMetadata;
 }
