@@ -14,8 +14,10 @@ class Service {
         this._deviceInstanceId = deviceInstanceId;
         this.uuid = uuid.replace(/-/g, '');
 
-        if (this.uuid.length !== 2 && this.uuid.length !== 32) {
-            throw new Error('uuid must be 128-bit (32 chars in hex) or 16-bit (2 chars in hex)');
+        console.log('uuid:' + this.uuid);
+
+        if (!(this.uuid.length === 4 || this.uuid.length === 32)) {
+            throw new Error('uuid must be 128-bit or 16-bit.');
         }
 
         this.name = null;

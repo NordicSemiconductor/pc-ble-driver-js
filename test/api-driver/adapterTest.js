@@ -1,7 +1,7 @@
 'use strict';
 
-var api = require('../../index').api;
-var driver = require('../../index').driver;
+const api = require('../../index').api;
+const driver = require('../../index').driver;
 
 var adapterFactory = new api.AdapterFactory(driver);
 
@@ -29,7 +29,8 @@ adapterFactory.getAdapters((err, adapters) => {
         console.log(adapters[adapter].instanceId);
     }
 
-    var adapter = adapters[Object.keys(adapters)[1]];
+    let adapter = adapters[Object.keys(adapters)[0]];
+    adapter.on('error', error => { console.log('Error from adapter:' + error); });
     console.log(`Using adapter ${adapter.instanceId}.`);
 
     adapter.open(
@@ -48,13 +49,13 @@ adapterFactory.getAdapters((err, adapters) => {
 
             let services = [];
             let serviceFactory = new api.ServiceFactory();
-            let service = serviceFactory.createService('aa-bb-cc-dd');
+            let service = serviceFactory.createService('adabfb00-6e7d-4601-bda2-bffaa68956ba');
 
             let characteristic = serviceFactory.createCharacteristic(
                 service,
+                '18-0d',
+                [1, 2, 3],
                 {
-                    uuid: 'be-ef',
-                    value: [1, 2, 3],
                     maxLength: 3,
                     readPerm: ['open'],
                     writePerm: ['encrypt'],
@@ -67,16 +68,43 @@ adapterFactory.getAdapters((err, adapters) => {
                         notify: false,
                         indicate: true,
                     },
-                });
+                }
+            );
 
             console.log('Setting services');
             adapter.setServices([service], err => {
                 if (err) {
                     console.log(`Error setting services ${err}.`);
-                    return;
+                    process.exit();
                 }
 
                 console.log('Trying to advertise services (WIP).');
+
+                var advertisingData = {
+                    shortenedLocalName: 'MyCoolName',
+                    flags: ['leGeneralDiscMode', 'leLimitedDiscMode', 'brEdrNotSupported'],
+                    txPowerLevel: -10,
+                };
+
+                var scanResponseData = {
+                    completeLocalName: 'MyCoolName',
+                };
+
+                var options = {
+                    interval: 40,
+                    timeout: 180,
+                    connectable: true,
+                    scannable: false,
+                };
+
+                adapter.startAdvertising(advertisingData, scanResponseData, options, function(err) {
+                    if (err) {
+                        console.log(`Error starting advertising. ${err}`);
+                        process.exit();
+                    }
+
+                    console.log('We are advertising!');
+                });
             });
         });
 });

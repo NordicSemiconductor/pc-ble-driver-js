@@ -1,6 +1,7 @@
 #include <chrono>
 #include <ctime>
 #include <sstream>
+#include <iostream>
 #include <cassert>
 
 #include "common.h"
@@ -112,9 +113,20 @@ uint16_t fromNameToValue(name_map_t names, char *name)
     return key;
 }
 
+#define CATCH_EXCEPTION(method) \
+try { \
+    return method; \
+} \
+catch(char const *error) \
+{ \
+    std::cout << "Exception: " << name << ":" << error << std::endl; \
+    std::string ex = std::string("Failed to get property ") + std::string(name) + ": " + std::string(error); \
+    throw ex.c_str(); \
+}
+
 uint32_t ConversionUtility::getNativeUint32(v8::Local<v8::Object>js, char *name)
 {
-    return ConvUtil<uint32_t>::getNativeUnsigned(js, name);
+    CATCH_EXCEPTION(ConvUtil<uint32_t>::getNativeUnsigned(js, name));
 }
 
 uint32_t ConversionUtility::getNativeUint32(v8::Local<v8::Value> js)
@@ -124,7 +136,7 @@ uint32_t ConversionUtility::getNativeUint32(v8::Local<v8::Value> js)
 
 uint16_t ConversionUtility::getNativeUint16(v8::Local<v8::Object>js, char *name)
 {
-    return ConvUtil<uint16_t>::getNativeUnsigned(js, name);
+    CATCH_EXCEPTION(ConvUtil<uint16_t>::getNativeUnsigned(js, name));
 }
 
 uint16_t ConversionUtility::getNativeUint16(v8::Local<v8::Value> js)
@@ -134,7 +146,7 @@ uint16_t ConversionUtility::getNativeUint16(v8::Local<v8::Value> js)
 
 uint8_t ConversionUtility::getNativeUint8(v8::Local<v8::Object>js, char *name)
 {
-    return ConvUtil<uint8_t>::getNativeUnsigned(js, name);
+    CATCH_EXCEPTION(ConvUtil<uint8_t>::getNativeUnsigned(js, name));
 }
 
 uint8_t ConversionUtility::getNativeUint8(v8::Local<v8::Value> js)
@@ -144,7 +156,7 @@ uint8_t ConversionUtility::getNativeUint8(v8::Local<v8::Value> js)
 
 int32_t ConversionUtility::getNativeInt32(v8::Local<v8::Object>js, char *name)
 {
-    return ConvUtil<int32_t>::getNativeSigned(js, name);
+    CATCH_EXCEPTION(ConvUtil<int32_t>::getNativeSigned(js, name));
 }
 
 int32_t ConversionUtility::getNativeInt32(v8::Local<v8::Value>js)
@@ -154,7 +166,7 @@ int32_t ConversionUtility::getNativeInt32(v8::Local<v8::Value>js)
 
 int16_t ConversionUtility::getNativeInt16(v8::Local<v8::Object>js, char *name)
 {
-    return ConvUtil<int16_t>::getNativeSigned(js, name);
+    CATCH_EXCEPTION(ConvUtil<int16_t>::getNativeSigned(js, name));
 }
 
 int16_t ConversionUtility::getNativeInt16(v8::Local<v8::Value>js)
@@ -164,7 +176,7 @@ int16_t ConversionUtility::getNativeInt16(v8::Local<v8::Value>js)
 
 int8_t ConversionUtility::getNativeInt8(v8::Local<v8::Object>js, char *name)
 {
-    return ConvUtil<int8_t>::getNativeSigned(js, name);
+    CATCH_EXCEPTION(ConvUtil<int8_t>::getNativeSigned(js, name));
 }
 
 int8_t ConversionUtility::getNativeInt8(v8::Local<v8::Value>js)
@@ -174,7 +186,7 @@ int8_t ConversionUtility::getNativeInt8(v8::Local<v8::Value>js)
 
 double ConversionUtility::getNativeDouble(v8::Local<v8::Object>js, char *name)
 {
-    return ConvUtil<double>::getNativeFloat(js, name);
+    CATCH_EXCEPTION(ConvUtil<double>::getNativeFloat(js, name));
 }
 
 double ConversionUtility::getNativeDouble(v8::Local<v8::Value>js)
@@ -184,7 +196,7 @@ double ConversionUtility::getNativeDouble(v8::Local<v8::Value>js)
 
 uint8_t ConversionUtility::getNativeBool(v8::Local<v8::Object>js, char *name)
 {
-    return ConvUtil<bool>::getNativeBool(js, name);
+    CATCH_EXCEPTION(ConvUtil<bool>::getNativeBool(js, name));
 }
 
 uint8_t ConversionUtility::getNativeBool(v8::Local<v8::Value>js)
@@ -196,7 +208,7 @@ uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Object>js, cha
 {
     v8::Local<v8::Value> value = Utility::Get(js, name);
 
-    return ConversionUtility::getNativePointerToUint8(value);
+    CATCH_EXCEPTION(ConversionUtility::getNativePointerToUint8(value));
 }
 
 uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Value>js)
@@ -219,7 +231,7 @@ uint16_t *ConversionUtility::getNativePointerToUint16(v8::Local<v8::Object>js, c
 {
     v8::Local<v8::Value> value = Utility::Get(js, name);
 
-    return ConversionUtility::getNativePointerToUint16(value);
+    CATCH_EXCEPTION(ConversionUtility::getNativePointerToUint16(value));
 }
 
 uint16_t *ConversionUtility::getNativePointerToUint16(v8::Local<v8::Value>js)
@@ -427,7 +439,7 @@ uint8_t ConversionUtility::extractHexHelper(char text)
     {
         return text - '0';
     }
-    
+
     if (text >= 'a' && text <= 'f')
     {
         return text - 'a' + 10;
@@ -453,7 +465,7 @@ uint8_t *ConversionUtility::extractHex(v8::Local<v8::Value> js)
     int size = (length / 2);
 
     uint8_t *retArray = (uint8_t *)malloc(sizeof(uint8_t) * size);
-    memset(retArray, 0, size); 
+    memset(retArray, 0, size);
 
     for (int i = 0, j = size - 1; i < length; i += 2, j--)
     {
@@ -571,7 +583,7 @@ v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char const *cu
     {
         case NRF_SUCCESS:
             return scope.Escape(Nan::Undefined());
-        
+
         case NRF_ERROR_SVC_HANDLER_MISSING:
         case NRF_ERROR_SOFTDEVICE_NOT_ENABLED:
         case NRF_ERROR_INTERNAL:
