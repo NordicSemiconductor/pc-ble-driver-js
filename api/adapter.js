@@ -959,12 +959,8 @@ class Adapter extends EventEmitter {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
 
         if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ) {
-<<<<<<< HEAD
             // TODO: Find attribute and change value
             delete this._preparedWritesMap[device.instanceId];
-=======
-            this.emit.('attributeChanged', attribute);
->>>>>>> 68a81911eadc15d9c0a2f11032a4bfdf720f2d46
             this.emit('attributeChanged', attribute);
         } else if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_CMD) {
             // TODO: Find attribute and change value
