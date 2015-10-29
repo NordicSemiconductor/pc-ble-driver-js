@@ -625,7 +625,7 @@ v8::Local<v8::String> ErrorMessage::getTypeErrorMessage(int argumentNumber, char
             stream << "Third";
             break;
         case 3:
-            stream << "Forth";
+            stream << "Fourth";
             break;
         case 4:
             stream << "Fifth";

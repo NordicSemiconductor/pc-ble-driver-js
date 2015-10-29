@@ -258,8 +258,33 @@ function addDescriptor() {
 
             console.log('Added descriptor with handle %d', handle)
 
-            startAdvertising();
+            setAdvertisingData();
     });
+}
+
+function setAdvertisingData() {
+    // gap_set_advertising_data(adv_data, scan_response_data, callback)
+    //
+    // adv_data: null or <array of utf8 values, length 0 to BLE_GAP_ADV_MAX_SIZE (31)
+    //
+    // scan_response_data: same as adv_data
+    //
+    // callback: function(err)
+    //
+    // http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.s130.api.v1.0.0/group___b_l_e___g_a_p___f_u_n_c_t_i_o_n_s.html?cp=2_7_2_1_0_2_1_4_2#gaddbb12e078d536ef2e93b41d77ff6243
+    driver.gap_set_advertising_data(
+        [8, 9, 87, 97, 121, 108, 97, 110, 100], // adv_data: 8=length, 9=complete_local_name, 'Wayland'
+        [0x02, 0x0A, 0x00], // scan response, 2=length, 0xA=txpower, 0dBm
+        function(err) {
+            if (err) {
+                console.log('Error occured when setting advertising data: ' + err);
+                return;
+            }
+            console.log('Added advertising data.');
+
+            startAdvertising();
+        }
+    );
 }
 
 function startAdvertising() {
