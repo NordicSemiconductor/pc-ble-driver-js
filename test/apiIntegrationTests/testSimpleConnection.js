@@ -7,7 +7,7 @@ const sinon = require('sinon');
 // Use old style 'function' here or else this.timeout won't work
 describe('Adapter Connect', function() {
     this.timeout(10000);
-    it('should be able to connect and disconnect without errors', (done)=> {
+    /*it('should be able to connect and disconnect without errors', (done)=> {
         const errorSpy = sinon.spy();
         testLib._adapter.once('error', errorSpy);
         testLib.connectToPeripheral(process.env.testPeripheral)
@@ -44,7 +44,7 @@ describe('Adapter Connect', function() {
             .catch(done);
 
         setTimeout(done, 1000); // Let the event loop run a while to catch a(n erronous) connect event.
-    });
+    });*/
 
     it('should be possibe to read all characteristics in a service ', (done) => {
         const peripheralAddress = process.env.testPeripheral;
@@ -63,13 +63,13 @@ describe('Adapter Connect', function() {
                 return services;
             })
             .then((services) => {
-                return testLib.getCharacteristics(services[0].instanceId).bind(testLib);
+                return testLib.getCharacteristics(services[0].instanceId);
             })
             .then((characteristics) => {
                 console.log('chars ' + JSON.stringify(characteristics));
             })
             .then(() => {
-                return testLib.disconnect.bind(testLib, theDevice.instanceId);
+                return testLib.disconnect(theDevice.instanceId);
             })
             .then(() => {done()})
             .catch((error) => {
