@@ -2298,6 +2298,79 @@ void AfterGapSecParamsReply(uv_work_t *req)
     delete baton;
 }
 
+NAN_METHOD(GapAuthenticate)
+{
+    uint16_t conn_handle;
+    v8::Local<v8::Object> sec_params;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
+
+    try
+    {
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        sec_params = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    GapAuthenticateBaton *baton = new GapAuthenticateBaton(callback);
+    baton->conn_handle = conn_handle;
+
+    try
+    {
+        baton->p_sec_params = GapSecParams(sec_params);
+    }
+    catch (char const *)
+    {
+        Nan::ThrowTypeError("The provided advertisement parameters can not be parsed.");
+        return;
+    }
+
+    uv_queue_work(uv_default_loop(), baton->req, GapAuthenticate, (uv_after_work_cb)AfterGapAuthenticate);
+}
+
+// This runs in a worker thread (not Main Thread)
+void GapAuthenticate(uv_work_t *req)
+{
+    GapAuthenticateBaton *baton = static_cast<GapAuthenticateBaton *>(req->data);
+
+    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
+
+    baton->result = sd_ble_gap_authenticate(baton->conn_handle, baton->p_sec_params);
+
+}
+
+// This runs in Main Thread
+void AfterGapAuthenticate(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+
+    GapAuthenticateBaton *baton = static_cast<GapAuthenticateBaton *>(req->data);
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "authenticating");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+    delete baton;
+}
+
 extern "C" {
     void init_gap(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
@@ -2319,6 +2392,7 @@ extern "C" {
         Utility::SetMethod(target, "gap_stop_advertising", GapStopAdvertising);
         Utility::SetMethod(target, "gap_sec_params_reply", GapSecParamsReply);
         Utility::SetMethod(target, "gap_conn_sec_get", GapConnSecGet);
+        Utility::SetMethod(target, "gap_authenticate", GapAuthenticate);
 
         // Constants from ble_gap.h
 

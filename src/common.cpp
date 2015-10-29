@@ -571,7 +571,7 @@ v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char const *cu
     {
         case NRF_SUCCESS:
             return scope.Escape(Nan::Undefined());
-
+        
         case NRF_ERROR_SVC_HANDLER_MISSING:
         case NRF_ERROR_SOFTDEVICE_NOT_ENABLED:
         case NRF_ERROR_INTERNAL:
@@ -595,7 +595,16 @@ v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char const *cu
             errorStringStream << "Error occured when " << customMessage << ". "
                 << "Errorcode: " << ConversionUtility::valueToString(errorCode, error_message_name_map) << " (" << errorCode << ")" << std::endl;
 
-            return scope.Escape(v8::Exception::Error(Nan::New<v8::String>(errorStringStream.str()).ToLocalChecked()));
+            v8::Local<v8::Value> error = v8::Exception::Error(ConversionUtility::toJsString(errorStringStream.str())->ToString());
+
+            v8::Local<v8::Object> errorObject = error.As<v8::Object>();
+
+            Utility::Set(errorObject, "errno", errorCode);
+            Utility::Set(errorObject, "errcode", ConversionUtility::valueToString(errorCode, error_message_name_map));
+            Utility::Set(errorObject, "erroperation", ConversionUtility::toJsString(customMessage));
+            Utility::Set(errorObject, "errmsg", errorStringStream.str());
+
+            return scope.Escape(error);
         }
     }
 }

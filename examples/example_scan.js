@@ -17,7 +17,7 @@ driver.get_adapters((err, adapters) => {
     console.log(`Using adapter connected to ${adapter_to_use} with SEGGER serial number: ${adapter_to_use.serialNumber}`);
 
     driver.open(
-        adapter_to_use,
+        'COM19',
         {
             baudRate: 115200,
             parity: 'none',
@@ -43,8 +43,18 @@ driver.get_adapters((err, adapters) => {
                     if (event.name === 'BLE_GAP_EVT_ADV_REPORT') {
                         console.log('ADDRESS: %s', event.peer_addr.address);
                         console.log('RSSI: %s', event.rssi);
+
+                        if (event.peer_addr.address === 'E3:38:1E:0B:70:FE')
+                        {
+                            connect({'address': 'E3:38:1E:0B:70:FE', 'type': 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC'});
+                        }
                     } else if (event.name === 'BLE_GAP_EVT_TIMEOUT') {
                         console.log('Timeout source: %s', event.src);
+                    }
+                    else if (event.name === 'BLE_GAP_EVT_CONNECTED')
+                    {
+                        console.log("Connected: %s", JSON.stringify(event));
+                        authenticate(event.conn_handle);
                     }
                 }
 
@@ -65,7 +75,7 @@ driver.get_adapters((err, adapters) => {
                     return;
                 }
             });
-
+/*
             // Close the driver after 10 seconds
             setTimeout(function() {
                 driver.close(function(err) {
@@ -77,6 +87,51 @@ driver.get_adapters((err, adapters) => {
                     console.log('Driver closed OK!');
                 });
             }, 10 * 1000);
+*/
         }
     );
 });
+
+function connect(address) {
+    driver.gap_connect(address, // Address
+                       {'active': true, 'interval': 100, 'window': 50, 'timeout': 20}, // Scan parameters
+                       {'min_conn_interval': 30, 'max_conn_interval': 60, 'slave_latency': 0, 'conn_sup_timeout': 4000}, // Connection parameters
+                       function(err) {
+                if(err) {
+                    console.log('Could not connect');
+                    return;
+                }
+
+                console.log('Connection initiated to %s', address.address);
+            });
+}
+
+function authenticate(conn_handle) {
+    console.log('Con Handle: %d', conn_handle);
+    driver.gap_authenticate(conn_handle, {
+        bond: true,
+        mitm: false,
+        io_caps: driver.BLE_GAP_IO_CAPS_NONE,
+        oob: false,
+        min_key_size: 7,
+        max_key_size: 16,
+        kdist_periph: {
+            enc: true,
+            id: false,
+            sign: false,
+        },
+        kdist_central: {
+            enc: true,
+            id: false,
+            sign: false,
+        }
+    }, err => {
+        if (err)
+        {
+            console.log("Error number: %d, Error code: %s, Errpr operation: %s, Error message: %s", err.errno, err.errcode, err.erroperation, err.errmsg);
+            console.log(err);
+            return;
+        }
+        console.log('Initiated authenticate');
+    });
+}
