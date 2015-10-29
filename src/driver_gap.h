@@ -439,6 +439,23 @@ public:
     ble_gap_conn_sec_t *conn_sec;
 };
 
+struct GapEncryptBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GapEncryptBaton);
+    uint16_t conn_handle;
+    ble_gap_master_id_t *master_id;
+    ble_gap_enc_info_t *enc_info;
+};
+
+struct GapSecInfoReplyBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GapSecInfoReplyBaton);
+    uint16_t conn_handle;
+    ble_gap_enc_info_t *enc_info;
+    ble_gap_irk_t *id_info;
+    ble_gap_sign_info_t *sign_info;
+};
+
 struct GapAuthenticateBaton : public Baton {
 public:
     BATON_CONSTRUCTOR(GapAuthenticateBaton);
@@ -466,6 +483,8 @@ METHOD_DEFINITIONS(GapStartAdvertising);
 METHOD_DEFINITIONS(GapStopAdvertising);
 METHOD_DEFINITIONS(GapSecParamsReply);
 METHOD_DEFINITIONS(GapConnSecGet);
+METHOD_DEFINITIONS(GapEncrypt);
+METHOD_DEFINITIONS(GapSecInfoReply);
 METHOD_DEFINITIONS(GapAuthenticate);
 
 extern "C" {

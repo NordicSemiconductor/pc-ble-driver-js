@@ -46,36 +46,5 @@ describe('Adapter Connect', function() {
         setTimeout(done, 1000); // Let the event loop run a while to catch a(n erronous) connect event.
     });
 
-    it('should be possibe to read all characteristics in a service ', (done) => {
-        const peripheralAddress = process.env.testPeripheral;
-        let theDevice;
-        testLib.connectToPeripheral(peripheralAddress)
-            .then((device) => {
-                theDevice = device;
-                return testLib.getServices(device.instanceId);
-            })
-            .then((services) => {
-                for (let index in services) {
-                    let service = services[index];
-                    console.log('uuid: ' + service.uuid + ' startHandle: ' + service.startHandle);
-                }
 
-                return services;
-            })
-            .then((services) => {
-                return testLib.getCharacteristics(services[0].instanceId).bind(testLib);
-            })
-            .then((characteristics) => {
-                console.log('chars ' + JSON.stringify(characteristics));
-            })
-            .then(() => {
-                return testLib.disconnect.bind(testLib, theDevice.instanceId);
-            })
-            .then(() => {done()})
-            .catch((error) => {
-                console.log('Enumerating characteristics failed: ', JSON.stringify(error));
-                done();
-                //assert(false, error);
-            });
-    });
 });

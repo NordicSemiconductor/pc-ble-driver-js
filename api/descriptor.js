@@ -6,7 +6,7 @@ class Descriptor {
     constructor(characteristicInstanceId, uuid, value) {
         this._instanceId = characteristicInstanceId + '.' + (i++).toString();
         this._characteristicInstanceId = characteristicInstanceId;
-        this.uuid = uuid;
+        this.uuid = uuid.replace(/-/g, '');
         this.name = null;
         this.value = value;
         this.handle = null;

@@ -9,40 +9,41 @@ class SoftDeviceConverter {
         let sm;
         let lv;
 
-        for(let m of mode) {
-            switch(m) {
+        for (let m of mode) {
+            switch (m) {
                 case 'open':
-                    if(sm !== undefined || lv !== undefined) throw new Error('Illegal combination.');
+                    if (sm !== undefined || lv !== undefined) throw new Error('Illegal combination.');
                     sm = 1; lv = 1;
                     break;
                 case 'no-access':
-                    if(sm !== undefined || lv !== undefined) throw new Error('Illegal combination.');
+                    if (sm !== undefined || lv !== undefined) throw new Error('Illegal combination.');
                     sm = 0; lv = 0;
                     break;
                 case 'encrypt':
-                    if(sm !== undefined) throw new Error('Illegal combination.');
+                    if (sm !== undefined) throw new Error('Illegal combination.');
                     sm = 1;
                     break;
                 case 'signed':
-                    if(sm !== undefined) throw new Error('Illegal combination.');
+                    if (sm !== undefined) throw new Error('Illegal combination.');
                     sm = 2;
                     break;
                 case 'mitm-protection':
+
                     // This one we have to handle after all other elements have been processed
                     break;
                 default:
-                    throw new Error(`Huh? I've never heard of security mode ${mode}` );
+                    throw new Error(`Huh? I've never heard of security mode ${mode}`);
             }
         }
 
-        if(!sm) throw new Error('Mode not specified. Can be: \'open\', \'no-access\', \'encrypt\', \'signed\'.');
+        if (!sm) throw new Error('Mode not specified. Can be: \'open\', \'no-access\', \'encrypt\', \'signed\'.');
 
-        if(mode.indexOf('mitm-protection') != -1) {
-            if(sm == 1) lv = 3;
-            if(sm == 2) lv = 2;
+        if (mode.indexOf('mitm-protection') != -1) {
+            if (sm == 1) lv = 3;
+            if (sm == 2) lv = 2;
         } else {
-            if(sm == 1) lv = 2;
-            if(sm == 2) lv = 1;
+            if (sm == 1) lv = 2;
+            if (sm == 2) lv = 1;
         }
     }
 
@@ -67,15 +68,20 @@ class SoftDeviceConverter {
     uuidToDriver(uuid, callback) {
         var retval = {};
 
+        // Remove - in uuid because driver do not support that.
+        uuid = uuid.replace(/-/g, '');
+
         // Try to register the UUID
-        if(uuid.length == 5) {
+        // TODO: cleanup UUID before validating length
+        if (uuid.length == 4) {
             retval.type = this._bleDriver.BLE_UUID_TYPE_BLE; // Bluetooth SIG UUID (16-bit)
             retval.uuid = uuid;
             callback(undefined, retval);
-        } else if(uuid.length == 36) {
+        } else if (uuid.length == 32) {
             // Register UUID with SoftDevice
+            // TODO: add UUID to a API register, if it does not exist in register, call function below
             this._bleDriver.add_vs_uuid({ uuid128: uuid }, (err, type) => {
-                if(err) {
+                if (err) {
                     callback(err);
                     return;
                 }
@@ -90,20 +96,14 @@ class SoftDeviceConverter {
     }
 
     descriptorToDriver(descriptor, callback) {
-        /* INPUT
-            uuid: 'be-ef',
-            value: [1],
-            maxLength: 3,
-            readPerm: ['open'], // can be ['encrypt,'mitm-protection'], ['signed','mitm-protection'] or ['no-access'] default is ['open']
-            writePerm: ['encrypt'] */
         var err = '';
 
         // Check if mandatory attributes are present in the characteristic object
-        if(!descriptor.uuid) err = 'UUID must be provided. ';
-        if(!descriptor.value) err += 'value must be provided. ';
-        if(!descriptor.maxLength) err += 'maxLength must be provided. ';
+        if (!descriptor.uuid) err = 'UUID must be provided. ';
+        if (!descriptor.value) err += 'value must be provided. ';
+        if (!descriptor.maxLength) err += 'maxLength must be provided. ';
 
-        if(err.length !== 0) {
+        if (err.length !== 0) {
             callback(err);
             return;
         }
@@ -112,7 +112,7 @@ class SoftDeviceConverter {
         var retval = {};
 
         this.uuidToDriver(descriptor.uuid, (err, uuid) => {
-            if(err) {
+            if (err) {
                 callback(err);
                 return;
             }
@@ -156,12 +156,12 @@ class SoftDeviceConverter {
         var err = '';
 
         // Check if mandatory attributes are present in the characteristic object
-        if(!characteristic.uuid) err = 'UUID must be provided. ';
-        if(!characteristic.value) err += 'value must be provided. ';
-        if(!characteristic.maxLength) err += 'maxLength must be provided. ';
-        if(!characteristic.properties) err += 'properties must be provided. ';
+        if (!characteristic.uuid) err = 'UUID must be provided. ';
+        if (!characteristic.value) err += 'value must be provided. ';
+        if (!characteristic.maxLength) err += 'maxLength must be provided. ';
+        if (!characteristic.properties) err += 'properties must be provided. ';
 
-        if(err.length !== 0) {
+        if (err.length !== 0) {
             callback(err);
             return;
         }
@@ -186,7 +186,7 @@ class SoftDeviceConverter {
         retval.metadata.char_ext_props.wr_aux = false;
 
         this.uuidToDriver(characteristic.uuid, (err, uuid) => {
-            if(err) {
+            if (err) {
                 callback(err);
                 return;
             }

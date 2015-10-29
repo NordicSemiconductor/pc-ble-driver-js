@@ -2196,6 +2196,90 @@ void AfterGapConnSecGet(uv_work_t *req)
     delete baton;
 }
 
+NAN_METHOD(GapEncrypt)
+{
+    uint16_t conn_handle;
+    v8::Local<v8::Object> master_id_object;
+    v8::Local<v8::Object> enc_info_object;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
+
+    try
+    {
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        master_id_object = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        enc_info_object = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    GapEncryptBaton *baton = new GapEncryptBaton(callback);
+    baton->conn_handle = conn_handle;
+
+    try
+    {
+        baton->master_id = GapMasterId(master_id_object);
+    }
+    catch (char const *)
+    {
+        Nan::ThrowTypeError("The provided master id can not be parsed.");
+        return;
+    }
+
+    try
+    {
+        baton->master_id = GapMasterId(master_id_object);
+        baton->enc_info = GapEncInfo(enc_info_object);
+    }
+    catch (char const *)
+    {
+        Nan::ThrowTypeError("The provided encryption parameters can not be parsed.");
+        return;
+    }
+
+    uv_queue_work(uv_default_loop(), baton->req, GapEncrypt, (uv_after_work_cb)AfterGapEncrypt);
+}
+
+void GapEncrypt(uv_work_t *req)
+{
+    GapEncryptBaton *baton = static_cast<GapEncryptBaton *>(req->data);
+
+    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
+    baton->result = sd_ble_gap_encrypt(baton->conn_handle, baton->master_id, baton->enc_info);
+}
+
+void AfterGapEncrypt(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+
+    GapEncryptBaton *baton = static_cast<GapEncryptBaton *>(req->data);
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "encrypting");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+    delete baton;
+}
+
 NAN_METHOD(GapSecParamsReply)
 {
     uint16_t conn_handle;
@@ -2298,6 +2382,149 @@ void AfterGapSecParamsReply(uv_work_t *req)
     delete baton;
 }
 
+NAN_METHOD(GapSecInfoReply)
+{
+    uint16_t conn_handle;
+    v8::Local<v8::Object> enc_info_object;
+    v8::Local<v8::Object> id_info_object;
+    v8::Local<v8::Object> sign_info_object;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
+    bool enc_info_is_null = false;
+    bool id_info_is_null = false;
+    bool sign_info_is_null = false;
+
+    try
+    {
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        if (info[argumentcount]->IsNull())
+        {
+            enc_info_is_null = true;
+        }
+        else
+        {
+            enc_info_object = ConversionUtility::getJsObject(info[argumentcount]);
+        }
+        argumentcount++;
+
+        if (info[argumentcount]->IsNull())
+        {
+            id_info_is_null = true;
+        }
+        else
+        {
+            id_info_object = ConversionUtility::getJsObject(info[argumentcount]);            
+        }
+        argumentcount++;
+
+        if (info[argumentcount]->IsNull()) 
+        {
+            sign_info_is_null = true;
+        }
+        else
+        {
+            sign_info_object = ConversionUtility::getJsObject(info[argumentcount]);
+        }    
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    GapSecInfoReplyBaton *baton = new GapSecInfoReplyBaton(callback);
+
+    baton->conn_handle = conn_handle;
+
+    try
+    {
+        if (enc_info_is_null)
+        {
+            baton->enc_info = 0;
+        }
+        else
+        {
+            baton->enc_info = GapEncInfo(enc_info_object);
+        }
+    }
+    catch (char const *)
+    {
+        Nan::ThrowTypeError("The provided enc_info can not be parsed");
+        return;
+    }
+
+    try
+    {
+        if (id_info_is_null) 
+        {
+            baton->id_info = 0;
+        }
+        else
+        {
+            baton->id_info = GapIrk(id_info_object);
+        }
+    }
+    catch (char const *)
+    {
+        Nan::ThrowTypeError("The provided id_info can not be parsed");
+        return;
+    }
+
+    try
+    {
+        if (sign_info_is_null)
+        {
+            baton->sign_info = 0;
+        }
+        else
+        {
+            baton->sign_info = GapSignInfo(sign_info_object);
+        }
+    }
+    catch (char const *)
+    {
+        Nan::ThrowTypeError("The provided sign_info can not be parsed");
+        return;
+    }
+
+    uv_queue_work(uv_default_loop(), baton->req, GapSecInfoReply, (uv_after_work_cb)AfterGapSecInfoReply);
+}
+
+void GapSecInfoReply(uv_work_t *req)
+{
+    GapSecInfoReplyBaton *baton = static_cast<GapSecInfoReplyBaton *>(req->data);
+
+    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
+    baton->result = sd_ble_gap_sec_info_reply(baton->conn_handle, baton->enc_info, baton->id_info, baton->sign_info);
+}
+
+void AfterGapSecInfoReply(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+
+    GapSecInfoReplyBaton *baton = static_cast<GapSecInfoReplyBaton *>(req->data);
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "replying sec info");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+    delete baton;    
+}
+
 NAN_METHOD(GapAuthenticate)
 {
     uint16_t conn_handle;
@@ -2392,6 +2619,8 @@ extern "C" {
         Utility::SetMethod(target, "gap_stop_advertising", GapStopAdvertising);
         Utility::SetMethod(target, "gap_sec_params_reply", GapSecParamsReply);
         Utility::SetMethod(target, "gap_conn_sec_get", GapConnSecGet);
+        Utility::SetMethod(target, "gap_encrypt", GapEncrypt);
+        Utility::SetMethod(target, "gap_sec_info_reply", GapSecInfoReply);
         Utility::SetMethod(target, "gap_authenticate", GapAuthenticate);
 
         // Constants from ble_gap.h

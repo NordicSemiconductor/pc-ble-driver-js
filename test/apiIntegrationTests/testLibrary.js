@@ -5,10 +5,10 @@ const adapterFactory = require('../../api/adapterFactory.js');
 var adapterFactoryInstance = new adapterFactory(driver);
 class TestLibrary {
     getAdapters() {
-        return new Promise( (resolve, reject) => {
+        return new Promise((resolve, reject) => {
             adapterFactoryInstance.getAdapters((error, adapters) => {
                 if (error) {
-                    console.log("Failed to get adapters.");
+                    console.log('Failed to get adapters.');
                     reject(error);
                 } else {
                     resolve(adapters);
@@ -27,11 +27,13 @@ class TestLibrary {
                 if (!adapter) {
                     reject('No adapter connected with adapter id ' + adapterId);
                 }
+
                 adapter.open(options, (err) => {
                     if (err) {
                         console.log('Failed to open adapter ' + adapterId + ': ' + err);
                         reject(err);
                     }
+
                     this._adapter = adapter;
                     resolve();
                 });
@@ -80,7 +82,6 @@ class TestLibrary {
             });
             this._adapter.connect(addr, options, (error) => {
                 if (error) {
-                    console.log('ddd' + error);
                     reject(error);
                 }
 
@@ -129,7 +130,6 @@ class TestLibrary {
 
     getCharacteristics(serviceInstanceId) {
         return new Promise((resolve, reject) => {
-            console.log('hello world: ' +JSON.stringify(serviceInstanceId));
             this._adapter.getCharacteristics(serviceInstanceId, (error, characteristics) => {
                 if (error) {
                     reject(error);

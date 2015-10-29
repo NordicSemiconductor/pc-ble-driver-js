@@ -19,6 +19,24 @@ var make_error = function(userMessage, description) {
     return { message: userMessage, description: description };
 };
 
+var getType = function(service) {
+    var type;
+
+    if (service.type) {
+        if (service.type === 'primary') {
+            type = this._bleDriver.BLE_GATTS_SRVC_TYPE_PRIMARY;
+        } else if (service.type === 'secondary') {
+            type = this._bleDriver.BLE_GATTS_SRVC_TYPE_SECONDARY;
+        } else {
+            throw new Error(`Service type ${service.type} is unknown to me. Must be 'primary' or 'secondary'.`);
+        }
+    } else {
+        throw new Error(`Service type is not specified. Must be 'primary' or 'secondary'.`);
+    }
+
+    return type;
+};
+
 class Adapter extends EventEmitter {
     constructor(bleDriver, instanceId, port) {
         super();
@@ -508,8 +526,9 @@ class Adapter extends EventEmitter {
                 gattOperation.callback(undefined, callbackCharacteristics);
             } else {
                 for (let handle in gattOperation.pendingHandleReads) {
+                    const handleAsNumber = parseInt(handle, 10);
                     // Just take the first found handle and start the read process.
-                    this._bleDriver.gattc_read(device.connectionHandle, handle, 0, err => {
+                    this._bleDriver.gattc_read(device.connectionHandle, handleAsNumber, 0, err => {
                         if (err) {
                             this.emit('error', err);
 
@@ -733,8 +752,10 @@ class Adapter extends EventEmitter {
             }
 
             for (let newReadHandle in pendingHandleReads) {
+                const newReadHandleAsNumber = parseInt(newReadHandle, 10);
+
                 // Just take the first found handle and start the read process.
-                this._bleDriver.gattc_read(device.connectionHandle, newReadHandle, 0, err => {
+                this._bleDriver.gattc_read(device.connectionHandle, newReadHandleAsNumber, 0, err => {
                     if (err) {
                         this.emit('error', err);
 
@@ -792,15 +813,45 @@ class Adapter extends EventEmitter {
 
         if (event.type === this._bleDriver.BLE_GATT_OP_WRITE_CMD) {
             gattOperation.attribute.value = gattOperation.value;
+        } else if (event.type === this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ) {
+            const writeParameters = {
+                write_op: 0,
+                flags: 0,
+                handle: handle,
+                offset: 0,
+                len: 0,
+                value: [],
+            };
 
+            if (gattOperation.bytesWritten < gattOperation.value.length) {
+                const value = gattOperation.value.slice(gattOperation.bytesWritten, gattOperation.bytesWritten + this._maxPayloadSize);
 
-        } else if (event.type === this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ){
-            const currentWrite = this._fragmentedWrites[device.instanceId];
-            if (currentWrite) {
+                writeParameters.write_op = this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ;
+                writeParameters.handle = handle;
+                writeParameters.offset = gattOperation.bytesWritten;
+                writeParameters.len = value.length;
+                writeParameters.value = value;
 
+                this._bleDriver.write(device.connectionHandle, writeParameters, err => {
+                    if (err) {
+                        this._longWriteCancel(device, handle);
+                        this.emit('error', make_error('Failed to write value to device/handle ' + device.instanceId + '/' + handle, err));
+                    }
+                });
+            } else {
+                writeParameters.write_op = this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ;
+                writeParameters.flags = this._bleDriver.BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE;
+
+                this._bleDriver.write(device.connectionHandle, writeParameters, (err) => {
+                    if (err) {
+                        this._longWriteCancel(device, handle);
+                        this.emit('error', make_error('Failed to write value to device/handle ' + device.instanceId + '/' + handle, err));
+                    }
+                });
             }
         } else if (event.type === this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ) {
-
+            // TODO: Need to check if gattOperation.bytesWritten is equal to gattOperation.value length?
+            gattOperation.attribute.value = gattOperation.value;
         }
 
         if (gattOperation.attribute instanceof Characteristic) {
@@ -1256,60 +1307,115 @@ class Adapter extends EventEmitter {
     // Bonding (peripheral role)
 
     // GATTS
-
     // Array of services
     setServices(services, callback) {
-        // Iterate over all services, add characteristics
-        for (let service of services) {
-            var type;
+        let addService = (service, type, data) => {
+            return new Promise((resolve, reject) => {
+                this._bleDriver.decode_uuid(service.uuid.length === 32 ? 16 : 2, service.uuid, (err, uuid) => {
+                    if (err) {
+                        reject(make_error(`Unable to decode UUID ${service.uuid}`, err));
+                        return;
+                    }
 
-            if (service.type) {
-                if (service.type === 'primary') {
-                    type = this._bleDriver.BLE_GATTS_SRVC_TYPE_PRIMARY;
-                } else if (service.type === 'secondary') {
-                    type = this._bleDriver.BLE_GATTS_SRVC_TYPE_SECONDARY;
-                } else {
-                    throw new Error(`Service type ${service.type} is unknown to me. Must be 'primary' or 'secondary'.`);
-                }
-            } else {
-                throw new Error(`Service type is not specified. Must be 'primary' or 'secondary'.`);
-            }
+                    this._bleDriver.gatts_add_service(type, uuid, (err, serviceHandle) => {
+                        if (err) {
+                            reject(make_error('Error occurred adding service.', err));
+                            return;
+                        }
 
-            this._bleDriver.gatts_add_service(type, service.uuid, (err, serviceHandle) => {
-                if (this.checkAndPropagateError(err, 'Error occurred adding service.', callback)) return;
+                        data.serviceHandle = serviceHandle;
+                        service.handle = serviceHandle;
+                        this._services[service.instanceId] = service; // TODO: what if we fail later on this service ?
+                        resolve(data);
+                    });
+                });
+            });
+        };
 
-                for (let characteristic of service._factory_characteristics) {
-                    this._converter.characteristicToDriver(characteristic, (err, characteristicForDriver) => {
-                        if (this.checkAndPropagateError(err, 'Error converting characteristic to driver.', callback)) return;
-
+        let addCharacteristic = (characteristic, data) => {
+            return new Promise((resolve, reject) => {
+                this._converter.characteristicToDriver(characteristic, (err, characteristicForDriver) => {
+                    if (err) {
+                        reject(make_error('Error converting characteristic to driver.', err));
+                    } else {
                         this._bleDriver.gatts_add_characteristic(
-                            serviceHandle,
+                            data.serviceHandle,
                             characteristicForDriver.metadata,
-                            characteristicForDriver.attribute, (err, handles) => {
-                                if (this.checkAndPropagateError(err, 'Error occurred adding characteristic.', callback)) return;
-
-                                characteristic.handle = handles.value_handle;
-
-                                for (let descriptor in characteristic.descriptors) {
-                                    this._converter.descriptorToDriver(characteristic, (err, descriptorForDriver) => {
-                                        if (this.checkAndPropagateError(err, 'Error converting descriptor to driver.', callback)) return;
-
-                                        this._bleDriver.gatts_add_descriptor(
-                                            characteristic.handle,
-                                            descriptorForDriver,
-                                            (err, handle) => {
-                                                if (this.checkAndPropagateError(err, 'Error adding descriptor.', callback)) return;
-                                                descriptor.handle = handle;
-                                            }
-                                        );
-                                    });
+                            characteristicForDriver.attribute,
+                            (err, handles) => {
+                                if (err) {
+                                    reject(make_error('Error occurred adding characteristic.', err));
+                                } else {
+                                    characteristic.valueHandle = data.characteristicHandle = handles.value_handle;
+                                    this._characteristics[characteristic.instanceId] = characteristic; // TODO: what if we fail later on this ?
+                                    resolve(data);
                                 }
                             }
                         );
-                    });
-                }
+                    }
+                });
             });
+        };
+
+        let addDescriptor = (descriptor, data) => {
+            return new Promise((resolve, reject) => {
+                this._converter.descriptorToDriver(descriptor, (err, descriptorForDriver) => {
+                    if (err) {
+                        reject(make_error('Error converting descriptor.', err));
+                    } else {
+                        this._bleDriver.gatts_add_descriptor(
+                            data.characteristicHandle,
+                            descriptorForDriver,
+                            (err, handle) => {
+                                if (err) {
+                                    reject(make_error(err, 'Error adding descriptor.'));
+                                } else {
+                                    descriptor.handle = data.descriptorHandle = handle;
+                                    this._descriptors[descriptor.instanceId] = descriptor; // TODO: what if we fail later on this ?
+                                    resolve(data);
+                                }
+                            }
+                        );
+                    }
+                });
+            });
+        };
+
+        let promiseSequencer = (list, data) => {
+            var p = Promise.resolve(data);
+            return list.reduce((previousP, nextP) => {
+                return previousP.then(nextP);
+            }, p);
+        };
+
+        // Create array of function objects to call in sequence.
+        var promises = [];
+
+        for (let service of services) {
+            var p;
+            p = addService.bind(undefined, service, getType(service));
+            promises.push(p);
+
+            for (let characteristic of service._factory_characteristics) {
+                p = addCharacteristic.bind(undefined, characteristic);
+                promises.push(p);
+
+                for (let descriptor of characteristic._factory_descriptors) {
+                    p = addDescriptor.bind(undefined, descriptor);
+                    promises.push(p);
+                }
+            }
         }
+
+        // Execute the promises in sequence, start with an empty object that
+        // is propagated to all promises.
+        promiseSequencer(promises, {}).then(data => {
+            // TODO: Ierate over all servicses, descriptors, characterstics from parameter services
+            callback();
+        }).catch(err => {
+            this.emit('error', err);
+            callback(err);
+        });
     }
 
     // GATTS/GATTC
@@ -1577,24 +1683,31 @@ class Adapter extends EventEmitter {
 
         this._bleDriver.write(device.connectionHandle, writeParameters, (err) => {
             if (err) {
-                writeParameters.write_op = this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ;
-                writeParameters.flags = this._bleDriver.BLE_GATT_EXEC_WRITE_FLAG_PREPARED_CANCEL;
-                writeParameters.len = 0;
-                writeParameters.value = [];
+                this._longWriteCancel(device, handle);
+                this.emit('error', make_error('Failed to write value to device/handle ' + device.instanceId + '/' + handle, err));
+            }
+        });
+    }
 
-                const errorMessage = 'Failed to write value subset with length ' + this._maxPayloadSize +
-                                     'to device/handle' + device.instanceId + '/' + handle;
-                this._bleDriver.write(device.connectionHandle, writeParameters, (cancelErr) => {
-                    delete this._gattOperationsMap[device.instanceId];
+    _longWriteCancel(device, attributeHandle) {
+        const gattOperation = this._gattOperationsMap[device.instanceId];
+        const writeParameters = {
+            write_op: this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ,
+            flags: this._bleDriver.BLE_GATT_EXEC_WRITE_FLAG_PREPARED_CANCEL,
+            handle: attributeHandle,
+            offset: 0,
+            len: 0,
+            value: [],
+        };
 
-                    if (err) {
-                        this.emit('error', make_error('Failed to cancel failed long write', err));
-                        callback('Failed to write and failed to cancel write');
-                    } else {
-                        callback(errorMessage);
-                    }
-                });
-                this.emit('error', make_error(errorMessage, err));
+        this._bleDriver.write(device.connectionHandle, writeParameters, err => {
+            delete this._gattOperationsMap[device.instanceId];
+
+            if (err) {
+                this.emit('error', make_error('Failed to cancel failed long write', err));
+                gattOperation.callback('Failed to write and failed to cancel write');
+            } else {
+                gattOperation.callback('Failed to write value to device/handle ' + device.instanceId + '/' + attributeHandle);
             }
         });
     }

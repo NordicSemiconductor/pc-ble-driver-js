@@ -92,6 +92,44 @@ driver.get_adapters((err, adapters) => {
     );
 });
 
+function encrypt() {
+    /* gap_encrypt(conn_handle, master_id, enc_info, callback)
+     *
+     * master_id: {
+     *     'ediv': <0 to 0xFFFF>,
+     *     'rand': <array of length BLE_GAP_SEC_RAND_LEN (=8)>
+     * }
+     * 
+     * enc_info: {
+     *     'ltk': <array of length BLE_GAP_SEC_KEY_LEN (=16)>
+     *     'auth': <bool>
+     *     'ltk_len': <0 to 4096 (7 bits)>
+     * }
+     *
+     * callback signature: function(err)
+     *
+     * http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.s130.api.v1.0.0/group___b_l_e___g_a_p___f_u_n_c_t_i_o_n_s.html?cp=2_7_2_1_0_2_1_4_16#ga5b10ba191122c7cf7cfccbdf76b3c657
+     */
+     driver.gap_encrypt(
+        connectionHandle,
+        { //master_id
+            'ediv': 0,
+            'rand': [1, 2, 3, 4, 5, 6, 7, 8]
+        },
+        { //enc_info
+            'ltk': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+            'auth': false,
+            'ltk_len': 16
+        },
+        function (err) {
+            if (err) {
+                console.log('Error occured in gap_encrypt: ' + err);
+                return;
+            }
+            console.log('gap_encrypt completed');
+        });
+}
+
 function connect(address) {
     driver.gap_connect(address, // Address
                        {'active': true, 'interval': 100, 'window': 50, 'timeout': 20}, // Scan parameters

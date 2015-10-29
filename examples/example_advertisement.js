@@ -299,9 +299,10 @@ function connSecGet() {
      */
     driver.gap_conn_sec_get(connectionHandle, function(err, connSec) {
         if (err) {
-            console.log('Error occured in gap_conn_sec_')
+            console.log('Error occured in gap_conn_sec_get');
+            return;
         }
-        console.log("GapConnSecGet : " + JSON.stringify(connSec));
+        console.log('GapConnSecGet: ' + JSON.stringify(connSec));
     });
 }
 
@@ -341,6 +342,7 @@ function secParamsReply() {
         function(err) {
             if (err) {
                 console.log('Error occured in gap_sec_params_reply');
+                return;
             }
 
             console.log('gap_sec_params_reply completed');
@@ -348,3 +350,40 @@ function secParamsReply() {
     );
 }
 
+function secInfoReply() {
+    // gap_sec_info_reply(conn_handle, enc_info, id_info, sign_info, callback)
+    //
+    // enc_info: null or {
+    //  'ltk': <array of length 8>,
+    //  'auth': <bool>,
+    //  'ltk_len': <number>
+    // }
+    //
+    // id_info: null or {
+    //  'irk': <array og length 8>
+    // }
+    //
+    // sign_info: null or {
+    //  'csrk': <array of length 8>
+    // }
+    // callback: function(err)
+    //
+    // http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.s130.api.v1.0.0/group___b_l_e___g_a_p___f_u_n_c_t_i_o_n_s.html?cp=2_7_2_1_0_2_1_4_24#ga9015143d731193672dc306f6e4aff684
+    driver.gap_sec_info_reply(
+        connectionHandle,
+        { //enc_info
+            'ltk': [1, 2, 3, 4, 5, 6, 7, 8],
+            'auth': false,
+            'ltk_len': 8
+        },
+        null, //id_info
+        null, //sign_info
+        function(err) {
+            if (err) {
+                console.log('Error occured in gap_sec_info_reply:' + err);
+                return;
+            }
+
+            console.log('gap_sec_info_reply completed');
+        });
+}
