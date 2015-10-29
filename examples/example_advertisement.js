@@ -99,8 +99,13 @@ function onBleEvent(event_array) {
         }
         else if (event.name === 'BLE_GAP_EVT_SEC_PARAMS_REQUEST')
         {
-            console.log("GapSecParamsRequest: " + JSON.stringify(event));
-            setTimeout(secParamsReply, 1000);
+            console.log('GapSecParamsRequest: ' + JSON.stringify(event));
+            secParamsReply();
+        }
+        else if (event.name === 'BLE_GAP_EVT_SEC_INFO_REQUEST')
+        {
+            console.log('GapSecInfoRequest: ' + JSON.stringify(event));
+            secInfoReply();
         }
     }
 }
@@ -283,6 +288,16 @@ function startAdvertising() {
     );
 }
 
+function stopAdvertising() {
+    driver.gap_stop_advertising(function(err) {
+        if (err) {
+            console.log('Error occured when stopping advertising');
+        }
+
+        console.log('Stopped advertising');
+    });
+}
+
 function connSecGet() {
     /* gap_conn_sec_get(connHandle, callback)
      * signature of callback: function(err, connSec)
@@ -306,20 +321,65 @@ function connSecGet() {
     });
 }
 
-function stopAdvertising() {
-    driver.gap_stop_advertising(function(err) {
-        if (err) {
-            console.log('Error occured when stopping advertising');
-        }
-
-        console.log('Stopped advertising');
-    });
-}
-
 function secParamsReply() {
+    // gap_sec_params_reply(connHandle, sec_status, sec_params, sec_keyset, callback)
+    //
+    // sec_status: <number> (driver.BLE_GAP_SEC_STATUS_)
+    //
+    // sec_params: {
+    //     'bond': <bool>,
+    //     'mitm': <bool>,
+    //     'io_caps': <number> (driver.BLE_GAP_IO_CAPS_),
+    //     'oob': <bool>,
+    //     'min_key_size': <number, 7 to 16>,
+    //     'max_key_size': <number, 7 to 16>,
+    //     'kdist_periph': {
+    //         'enc': <bool>,
+    //         'id': <bool>,
+    //         'sign': <bool>
+    //     },
+    //     'kdist_central': {
+    //         'enc': <bool>,
+    //         'id': <bool>,
+    //         'sign': <bool>
+    //     },
+    // }
+    //
+    // sec_keyset: {
+    //     'keys_periph': {
+    //         'enc_key': null or {
+    //             'enc_info': {
+    //                 'ltk': <array of length 8>,
+    //                 'auth': <bool>,
+    //                 'ltk_len': <number>
+    //             },
+    //             'master_id': {
+    //                 'ediv': <number, 16bit>,
+    //                 'rand': <array of length 16>
+    //             }
+    //         },
+    //         'id_key': null or {
+    //             'id_info': {
+    //                 'irk': <array of length 8>,
+    //             },
+    //             'id_addr_info': {
+    //                 'addr': <string ('xx:xx:xx:xx:xx:xx')>,
+    //                 'type': <number> (driver.BLE_GAP_ADDR_TYPE_),
+    //             }
+    //         },
+    //         'sign_key': null or {
+    //             'csrk': <array of length 8>
+    //         }
+    //     },
+    //     'keys_central': (same as keys_periph)
+    // }
+    //
+    // callback: function(err)
+    //
+    // http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.s130.api.v1.0.0/group___b_l_e___g_a_p___f_u_n_c_t_i_o_n_s.html?cp=2_7_2_1_0_2_1_4_25#ga7b23027c97b3df21f6cbc23170e55663
     driver.gap_sec_params_reply(
         connectionHandle,
-        0, //sec_status
+        driver.BLE_GAP_SEC_STATUS_SUCCESS, //sec_status
         { //sec_params
             'bond': true,
             'mitm': false,

@@ -625,6 +625,23 @@ v8::Local<v8::Object> GapConnSecUpdate::ToJs()
 // GapConnSecUpdate -- END --
 //
 
+// GapSecInfoRequest -- START --
+
+v8::Local<v8::Object> GapSecInfoRequest::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverEvent::ToJs(obj);
+    Utility::Set(obj, "peer_addr", GapAddr(&(evt->peer_addr)).ToJs());
+    Utility::Set(obj, "master_id", GapMasterId(&(evt->master_id)).ToJs());
+    Utility::Set(obj, "enc_info", ConversionUtility::toJsBool(evt->enc_info));
+    Utility::Set(obj, "id_info", ConversionUtility::toJsBool(evt->id_info));
+    Utility::Set(obj, "sign_info", ConversionUtility::toJsBool(evt->sign_info));
+    return scope.Escape(obj);
+}
+
+// GapSecInfoRequest -- END --
+
 //
 // GapSecParams -- START --
 //
