@@ -5,6 +5,8 @@
 #include "driver_gap.h"
 #include "driver_gatt.h"
 
+#include <iostream>
+
 ble_gatts_attr_md_t *GattsAttributeMetadata::ToNative()
 {
     if (jsobj->IsNumber())
@@ -360,7 +362,7 @@ NAN_METHOD(AddService)
 }
 
 // This runs in a worker thread (not Main Thread)
-void AddService(uv_work_t *req) 
+void AddService(uv_work_t *req)
 {
     GattsAddServiceBaton *baton = static_cast<GattsAddServiceBaton *>(req->data);
 
@@ -369,7 +371,7 @@ void AddService(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterAddService(uv_work_t *req) 
+void AfterAddService(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
@@ -427,9 +429,10 @@ NAN_METHOD(AddCharacteristic)
     {
         baton->p_char_md = GattsCharacteristicMetadata(metadata);
     }
-    catch (char const *)
+    catch (char const *err)
     {
-        Nan::ThrowTypeError("The provided characteristic metadata can not be parsed.");
+        std::cout << "Error characteristic:" << err << std::endl;
+        Nan::ThrowTypeError(ErrorMessage::getTypeErrorMessage(0, err));
         return;
     }
 
@@ -437,9 +440,10 @@ NAN_METHOD(AddCharacteristic)
     {
         baton->p_attr_char_value = GattsAttribute(attributeStructure);
     }
-    catch (char const *)
+    catch (char const *err)
     {
-        Nan::ThrowTypeError("The provided attribute can not be parsed.");
+        std::cout << "Error attribute:" << err << std::endl;
+        Nan::ThrowTypeError(ErrorMessage::getTypeErrorMessage(0, err));
         return;
     }
 
@@ -449,7 +453,7 @@ NAN_METHOD(AddCharacteristic)
 }
 
 // This runs in a worker thread (not Main Thread)
-void AddCharacteristic(uv_work_t *req) 
+void AddCharacteristic(uv_work_t *req)
 {
     GattsAddCharacteristicBaton *baton = static_cast<GattsAddCharacteristicBaton *>(req->data);
 
@@ -458,7 +462,7 @@ void AddCharacteristic(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterAddCharacteristic(uv_work_t *req) 
+void AfterAddCharacteristic(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
@@ -524,7 +528,7 @@ NAN_METHOD(AddDescriptor)
 }
 
 // This runs in a worker thread (not Main Thread)
-void AddDescriptor(uv_work_t *req) 
+void AddDescriptor(uv_work_t *req)
 {
     GattsAddDescriptorBaton *baton = static_cast<GattsAddDescriptorBaton *>(req->data);
 
@@ -533,7 +537,7 @@ void AddDescriptor(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterAddDescriptor(uv_work_t *req) 
+void AfterAddDescriptor(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
@@ -599,7 +603,7 @@ NAN_METHOD(HVX)
 }
 
 // This runs in a worker thread (not Main Thread)
-void HVX(uv_work_t *req) 
+void HVX(uv_work_t *req)
 {
     GattsHVXBaton *baton = static_cast<GattsHVXBaton *>(req->data);
 
@@ -608,7 +612,7 @@ void HVX(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterHVX(uv_work_t *req) 
+void AfterHVX(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
@@ -692,7 +696,7 @@ NAN_METHOD(SystemAttributeSet)
 }
 
 // This runs in a worker thread (not Main Thread)
-void SystemAttributeSet(uv_work_t *req) 
+void SystemAttributeSet(uv_work_t *req)
 {
     GattsSystemAttributeSetBaton *baton = static_cast<GattsSystemAttributeSetBaton *>(req->data);
 
@@ -701,7 +705,7 @@ void SystemAttributeSet(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterSystemAttributeSet(uv_work_t *req) 
+void AfterSystemAttributeSet(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
@@ -770,7 +774,7 @@ NAN_METHOD(ValueSet)
 }
 
 // This runs in a worker thread (not Main Thread)
-void ValueSet(uv_work_t *req) 
+void ValueSet(uv_work_t *req)
 {
     GattsValueSetBaton *baton = static_cast<GattsValueSetBaton *>(req->data);
 
@@ -779,7 +783,7 @@ void ValueSet(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterValueSet(uv_work_t *req) 
+void AfterValueSet(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
@@ -850,7 +854,7 @@ NAN_METHOD(ValueGet)
 }
 
 // This runs in a worker thread (not Main Thread)
-void ValueGet(uv_work_t *req) 
+void ValueGet(uv_work_t *req)
 {
     GattsValueGetBaton *baton = static_cast<GattsValueGetBaton *>(req->data);
 
@@ -859,7 +863,7 @@ void ValueGet(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterValueGet(uv_work_t *req) 
+void AfterValueGet(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
@@ -925,7 +929,7 @@ NAN_METHOD(RWAuthorizeReply)
 }
 
 // This runs in a worker thread (not Main Thread)
-void RWAuthorizeReply(uv_work_t *req) 
+void RWAuthorizeReply(uv_work_t *req)
 {
     GattsRWAuthorizeReplyBaton *baton = static_cast<GattsRWAuthorizeReplyBaton *>(req->data);
 
@@ -934,7 +938,7 @@ void RWAuthorizeReply(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterRWAuthorizeReply(uv_work_t *req) 
+void AfterRWAuthorizeReply(uv_work_t *req)
 {
     Nan::HandleScope scope;
 

@@ -2590,7 +2590,7 @@ NAN_METHOD(GapAuthenticate)
     }
     catch (char const *)
     {
-        Nan::ThrowTypeError("The provided advertisement parameters can not be parsed.");
+        Nan::ThrowTypeError("The provided security parameters can not be parsed.");
         return;
     }
 
@@ -2605,7 +2605,6 @@ void GapAuthenticate(uv_work_t *req)
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
 
     baton->result = sd_ble_gap_authenticate(baton->conn_handle, baton->p_sec_params);
-
 }
 
 // This runs in Main Thread
@@ -2619,6 +2618,95 @@ void AfterGapAuthenticate(uv_work_t *req)
     if (baton->result != NRF_SUCCESS)
     {
         argv[0] = ErrorMessage::getErrorMessage(baton->result, "authenticating");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+    delete baton;
+}
+
+NAN_METHOD(GapSetAdvertisingData)
+{
+    uint8_t *adv_data;
+    uint8_t adv_data_length;
+    uint8_t *scan_response;
+    uint8_t scan_response_length;
+    v8::Local<v8::Function> callback;
+    uint8_t argumentcount = 0;
+
+    try
+    {
+        if (info[argumentcount]->IsNull())
+        {
+            adv_data = 0;
+            adv_data_length = 0;
+        }
+        else
+        {
+            adv_data = ConversionUtility::getNativePointerToUint8(info[argumentcount]);
+
+            v8::Local<v8::Array> js_advdata_array = v8::Local<v8::Array>::Cast(info[argumentcount]);
+            adv_data_length = (uint8_t)js_advdata_array->Length();
+        }
+        argumentcount++;
+
+        if (info[argumentcount]->IsNull())
+        {
+            scan_response = 0;
+            scan_response_length = 0;
+        }
+        else
+        {
+            scan_response = ConversionUtility::getNativePointerToUint8(info[argumentcount]);
+
+            v8::Local<v8::Array> js_scanresponse_array = v8::Local<v8::Array>::Cast(info[argumentcount]);
+            scan_response_length = (uint8_t)js_scanresponse_array->Length();            
+        }
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    GapSetAdvertisingDataBaton *baton = new GapSetAdvertisingDataBaton(callback);
+    baton->data = adv_data;
+    baton->dlen = adv_data_length;
+    baton->sr_data = scan_response;
+    baton->srdlen = scan_response_length;
+
+    uv_queue_work(uv_default_loop(), baton->req, GapSetAdvertisingData, (uv_after_work_cb)AfterGapSetAdvertisingData);
+}
+
+// This runs in a worker thread (not Main Thread)
+void GapSetAdvertisingData(uv_work_t *req)
+{
+    GapSetAdvertisingDataBaton *baton = static_cast<GapSetAdvertisingDataBaton *>(req->data);
+
+    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
+
+    baton->result = sd_ble_gap_adv_data_set(baton->data, baton->dlen, baton->sr_data, baton->srdlen);
+}
+
+// This runs in Main Thread
+void AfterGapSetAdvertisingData(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+
+    GapSetAdvertisingDataBaton *baton = static_cast<GapSetAdvertisingDataBaton *>(req->data);
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "setting advertising data");
     }
     else
     {
@@ -2653,6 +2741,7 @@ extern "C" {
         Utility::SetMethod(target, "gap_encrypt", GapEncrypt);
         Utility::SetMethod(target, "gap_sec_info_reply", GapSecInfoReply);
         Utility::SetMethod(target, "gap_authenticate", GapAuthenticate);
+        Utility::SetMethod(target, "gap_set_advertising_data", GapSetAdvertisingData);
 
         // Constants from ble_gap.h
 

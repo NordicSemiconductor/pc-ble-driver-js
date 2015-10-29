@@ -5,10 +5,7 @@ const Characteristic = require('./characteristic');
 const Descriptor = require('./descriptor');
 
 class ServiceFactory {
-    constructor(database) {
-        if (database) {
-            this._database = database;
-        }
+    constructor() {
     }
 
     createService(uuid, serviceType) {
@@ -17,14 +14,19 @@ class ServiceFactory {
     }
 
     // returns Characteristic
-    createCharacteristic(service, properties) {
+    createCharacteristic(service, uuid, value, properties) {
         if (!service) throw new Error('Service to add characteritics to must be provided.');
 
         if (service._factory_characteristics === undefined) {
             service._factory_characteristics = [];
         }
 
-        const characteristic = new Characteristic(service.instanceId, properties);
+        const characteristic = new Characteristic(
+            service.instanceId,
+            uuid,
+            value,
+            properties);
+
         service._factory_characteristics.push(characteristic);
         return characteristic;
     }

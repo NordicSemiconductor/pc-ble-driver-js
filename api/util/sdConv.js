@@ -9,6 +9,8 @@ class SoftDeviceConverter {
         let sm;
         let lv;
 
+        if (!mode) throw new Error('mode must be specified.');
+
         for (let m of mode) {
             switch (m) {
                 case 'open':
@@ -45,6 +47,8 @@ class SoftDeviceConverter {
             if (sm == 1) lv = 2;
             if (sm == 2) lv = 1;
         }
+
+        return {sm: sm, lv: lv};
     }
 
     /*
@@ -75,7 +79,7 @@ class SoftDeviceConverter {
         // TODO: cleanup UUID before validating length
         if (uuid.length == 4) {
             retval.type = this._bleDriver.BLE_UUID_TYPE_BLE; // Bluetooth SIG UUID (16-bit)
-            retval.uuid = uuid;
+            retval.uuid = parseInt(uuid, 16);
             callback(undefined, retval);
         } else if (uuid.length == 32) {
             // Register UUID with SoftDevice
@@ -158,13 +162,15 @@ class SoftDeviceConverter {
         // Check if mandatory attributes are present in the characteristic object
         if (!characteristic.uuid) err = 'UUID must be provided. ';
         if (!characteristic.value) err += 'value must be provided. ';
-        if (!characteristic.maxLength) err += 'maxLength must be provided. ';
         if (!characteristic.properties) err += 'properties must be provided. ';
+        if (!characteristic.properties.maxLength) err += 'maxLength must be provided. ';
 
         if (err.length !== 0) {
             callback(err);
             return;
         }
+
+        console.log('SRC: ' + JSON.stringify(characteristic));
 
         // Now let's start converting
         var retval = {};
@@ -175,15 +181,19 @@ class SoftDeviceConverter {
         retval.attribute.p_attr_md = {};
 
         var props = retval.metadata.char_props;
-        props.broadcast = characteristic.properties.broadcast || null;
-        props.read = characteristic.properties.read || null;
-        props.write_wo_respo = characteristic.properties.writeWoResp || null;
-        props.write = characteristic.properties.write || null;
-        props.notify = characteristic.properties.notify || null;
-        props.indicate = characteristic.properties.indicate || null;
+        props.broadcast = characteristic.properties.properties.broadcast || false;
+        props.read = characteristic.properties.properties.read || false;
+        props.write_wo_resp = characteristic.properties.properties.writeWoResp || false;
+        props.write = characteristic.properties.properties.write || false;
+        props.notify = characteristic.properties.properties.notify || false;
+        props.indicate = characteristic.properties.properties.indicate || false;
+        props.auth_signed_wr = characteristic.properties.properties.authSignedWr || false;
 
-        retval.metadata.char_ext_props.reliable_wr = characteristic.properties.reliableWrite || null;
+        retval.metadata.char_ext_props.reliable_wr = characteristic.properties.properties.reliableWrite || false;
         retval.metadata.char_ext_props.wr_aux = false;
+
+        retval.metadata.char_user_desc_max_size = 0; // TODO: check what this is used for
+        retval.metadata.char_user_desc_size = 0; // TODO: check what this is used for
 
         this.uuidToDriver(characteristic.uuid, (err, uuid) => {
             if (err) {
@@ -194,12 +204,17 @@ class SoftDeviceConverter {
             retval.attribute.p_uuid = uuid;
 
             retval.attribute.p_value = characteristic.value;
-            retval.attribute.p_attr_md.read_perm = SoftDeviceConverter.securityModeToDriver(characteristic.readPerm);
-            retval.attribute.p_attr_md.write_perm = SoftDeviceConverter.securityModeToDriver(characteristic.writePerm);
+            retval.attribute.p_attr_md.read_perm = SoftDeviceConverter.securityModeToDriver(characteristic.properties.readPerm);
+            retval.attribute.p_attr_md.write_perm = SoftDeviceConverter.securityModeToDriver(characteristic.properties.writePerm);
             retval.attribute.p_attr_md.vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
-            retval.attribute.p_attr_md.vlen = characteristic.properties.variableLength || null; // TODO: validate purpose of this varible
+            retval.attribute.p_attr_md.vlen = characteristic.properties.variableLength || false;
             retval.attribute.p_attr_md.rd_auth = characteristic.properties.readAuth || false;
             retval.attribute.p_attr_md.wr_auth = characteristic.properties.writeAuth || false;
+            retval.attribute.init_len = characteristic.value.length;
+            retval.attribute.init_offs = 0;
+            retval.attribute.max_len = characteristic.properties.maxLength || retval.attribute.init_len;
+
+            console.log('DST: ' + JSON.stringify(retval));
             callback(undefined, retval);
         });
     }
