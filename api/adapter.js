@@ -526,8 +526,9 @@ class Adapter extends EventEmitter {
                 gattOperation.callback(undefined, callbackCharacteristics);
             } else {
                 for (let handle in gattOperation.pendingHandleReads) {
+                    const handleAsNumber = parseInt(handle, 10);
                     // Just take the first found handle and start the read process.
-                    this._bleDriver.gattc_read(device.connectionHandle, handle, 0, err => {
+                    this._bleDriver.gattc_read(device.connectionHandle, handleAsNumber, 0, err => {
                         if (err) {
                             this.emit('error', err);
 
@@ -751,8 +752,10 @@ class Adapter extends EventEmitter {
             }
 
             for (let newReadHandle in pendingHandleReads) {
+                const newReadHandleAsNumber = parseInt(newReadHandle, 10);
+
                 // Just take the first found handle and start the read process.
-                this._bleDriver.gattc_read(device.connectionHandle, newReadHandle, 0, err => {
+                this._bleDriver.gattc_read(device.connectionHandle, newReadHandleAsNumber, 0, err => {
                     if (err) {
                         this.emit('error', err);
 

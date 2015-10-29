@@ -46,7 +46,7 @@ describe('Adapter Connect', function() {
         setTimeout(done, 1000); // Let the event loop run a while to catch a(n erronous) connect event.
     });*/
 
-    it('should be possibe to read all characteristics in a service ', (done) => {
+    it('should be possibe to read all characteristics in the first service found', (done) => {
         const peripheralAddress = process.env.testPeripheral;
         let theDevice;
         testLib.connectToPeripheral(peripheralAddress)
@@ -66,7 +66,8 @@ describe('Adapter Connect', function() {
                 return testLib.getCharacteristics(services[0].instanceId);
             })
             .then((characteristics) => {
-                console.log('chars ' + JSON.stringify(characteristics));
+                assert(characteristics.length > 0);
+                assert(characteristicsp[0].uuid);
             })
             .then(() => {
                 return testLib.disconnect(theDevice.instanceId);
