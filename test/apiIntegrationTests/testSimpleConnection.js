@@ -6,7 +6,6 @@ const sinon = require('sinon');
 
 // Use old style 'function' here or else this.timeout won't work
 describe('Adapter Connect', function() {
-    /*
     this.timeout(10000);
     it('should be able to connect and disconnect without errors', (done)=> {
         const errorSpy = sinon.spy();
@@ -46,6 +45,4 @@ describe('Adapter Connect', function() {
 
         setTimeout(done, 1000); // Let the event loop run a while to catch a(n erronous) connect event.
     });
-*/
-
 });

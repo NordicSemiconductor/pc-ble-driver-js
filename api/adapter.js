@@ -574,7 +574,7 @@ class Adapter extends EventEmitter {
         });
 
         const nextStartHandle = characteristics[characteristics.length - 1].handle_decl + 1;
-        const handleRange = {startHandle: nextStartHandle, endHandle: service.endHandle};
+        const handleRange = {start_handle: nextStartHandle, end_handle: service.endHandle};
 
         if (service.endHandle <= nextStartHandle) {
             finishCharacteristicDiscovery();

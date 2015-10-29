@@ -18,8 +18,8 @@ class TestLibrary {
     }
 
     openAdapter(adapterId) {
-        return new Promise( (resolve, reject) => {
-            this.getAdapters().then( (adapters) => {
+        return new Promise((resolve, reject) => {
+            this.getAdapters().then((adapters) => {
                 const options = {'baudRate': 115200, 'parity': 'none', 'flowControl': 'none',
                                  'eventInterval': 1,'logLevel': 'trace',
                 };
@@ -136,6 +136,47 @@ class TestLibrary {
                 } else {
                     resolve(characteristics);
                 }
+            });
+        });
+    }
+
+    getAllDescriptorsForService(serviceInstanceId) {
+        return this.getCharacteristics(serviceInstanceId).then((characteristics) => {
+            let allPromises = [];
+            let allDescriptors = [];
+            let descriptorPromise = new Promise((resolve, reject) => {
+                resolve([]);
+            });
+            for (let i = 0; i < characteristics.length; i++) {
+                descriptorPromise = descriptorPromise.then((descriptors) => {
+                    allDescriptors.push.apply(allDescriptors, descriptors);
+                    return this.getDescriptors(characteristics[i].instanceId);
+                });
+            }
+
+            return descriptorPromise.then((descriptors) => {
+                allDescriptors.push.apply(allDescriptors, descriptors);
+                return allDescriptors;
+            });
+        });
+    }
+
+    getAllDescriptorsForAllServices(deviceInstanceId) {
+        return this.getServices(deviceInstanceId).then((services) => {
+            let allDescriptors = [];
+            let descriptorsPromise = new Promise((resolve, reject) => {
+                resolve([]);
+            });
+            for (let i = 0; i < services.length; i++) {
+                descriptorsPromise = descriptorsPromise.then((descriptors) => {
+                    allDescriptors.push.apply(allDescriptors, descriptors);
+                    return this.getAllDescriptorsForService(services[i].instanceId);
+                });
+            }
+
+            return descriptorsPromise.then((descriptors) => {
+                allDescriptors.push.apply(allDescriptors, descriptors);
+                return allDescriptors;
             });
         });
     }
