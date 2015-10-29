@@ -60,6 +60,8 @@ class Adapter extends EventEmitter {
 
         this._gapOperationsMap = {};
         this._gattOperationsMap = {};
+
+        this._preparedWritesMap = {};
     }
 
     // Get the instance id
@@ -271,6 +273,10 @@ class Adapter extends EventEmitter {
                 case this._bleDriver.BLE_GATTS_EVT_TIMEOUT:
                     // TODO: Implement
                     break;
+                case this._bleDriver.BLE_EVT_USER_MEM_REQUEST:
+                    // TODO: Need this for receiving long writes?
+                    //this._bleDriver.user_mem_request(null);
+                    break;
                 default:
                     console.log(`Unsupported event received from SoftDevice: ${event.id} - ${event.name}`);
                     break;
@@ -304,11 +310,12 @@ class Adapter extends EventEmitter {
         this._devices[device.instanceId] = device;
 
         this._changeAdapterState({connecting: false});
-        const callback = this._gapOperationsMap.connecting.callback;
-        delete this._gapOperationsMap.connecting;
 
         this.emit('deviceConnected', device);
+
         if (deviceRole === 'peripheral') {
+            const callback = this._gapOperationsMap.connecting.callback;
+            delete this._gapOperationsMap.connecting;
             callback(undefined, device);
         }
     }
@@ -836,6 +843,7 @@ class Adapter extends EventEmitter {
                     if (err) {
                         this._longWriteCancel(device, gattOperation.attribute);
                         this.emit('error', make_error('Failed to write value to device/handle ' + device.instanceId + '/' + handle, err));
+                        return;
                     }
                 });
             } else {
@@ -846,6 +854,7 @@ class Adapter extends EventEmitter {
                     if (err) {
                         this._longWriteCancel(device, gattOperation.attribute);
                         this.emit('error', make_error('Failed to write value to device/handle ' + device.instanceId + '/' + handle, err));
+                        return;
                     }
                 });
             }
@@ -939,25 +948,47 @@ class Adapter extends EventEmitter {
     }
 
     _parseWriteEvent(event) {
+        event.conn_handle;
         event.handle;
         event.op;
         event.contex;
-        event.offest;
+        event.offset;
         event.len;
         event.data;
 
-        if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ) {
-            this.emit.('attributeChanged', attribute);
-        } else if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_CMD) {
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
 
+        if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ) {
+            // TODO: Find attribute and change value
+            delete this._preparedWritesMap[device.instanceId];
+            this.emit('attributeChanged', attribute);
+        } else if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_CMD) {
+            // TODO: Find attribute and change value
+            delete this._preparedWritesMap[device.instanceId];
+            this.emit('attributeChanged', attribute);
         } else if (event.op === this._bleDriver.BLE_GATTS_OP_SIGN_WRITE_CMD) {
             // TODO: Not supported?
         } else if (event.op === this._bleDriver.BLE_GATTS_OP_PREP_WRITE_REQ) {
+            // TODO: Store prepared write
+            if (!this._preparedWritesMap[device.instanceId]) {
+                this._preparedWritesMap[device.instanceId] = {}; // {handle: }
+            }
 
+            const preparedWrites = this._preparedWritesMap[device.instanceId][event.handle];
+            if (!preparedWrites) {
+                this._preparedWritesMap[device.instanceId][event.handle] = {offset: event.offset, value: event.data};
+            } else {
+                if (event.offset <= preparedWrites.offset) {
+                    this._preparedWritesMap[device.instanceId][event.handle] = {offset: event.offset, value: event.data};
+                } else {
+                    preparedWrites.value = preparedWrites.value.slice(0, event.offset - preparedWrites.offset).concat(event.data);
+                }
+            }
         } else if (event.op === this._bleDriver.BLE_GATTS_OP_EXEC_WRITE_REQ_CANCEL) {
-
+            delete this._preparedWritesMap[device.instanceId];
         } else if (event.op === this._bleDriver.BLE_GATTS_OP_EXEC_WRITE_REQ_NOW) {
-
+            // TODO: Execute the writes
+            //for (attribute)
         }
     }
 
