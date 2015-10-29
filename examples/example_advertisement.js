@@ -1,4 +1,3 @@
-
 var driver = require('../build/Debug/ble_driver_js');
 
 var evt_count = 0;
@@ -54,7 +53,8 @@ function onBleEvent(event_array) {
         {
             connectionHandle = event.conn_handle;
             console.log("Connected. Handle: %d", connectionHandle);
-            connSecGet();
+            //connSecGet();
+            setTimeout(authenticate, 2000);
         }
         else if (event.name === 'BLE_GATTS_EVT_SYS_ATTR_MISSING')
         {
@@ -446,4 +446,32 @@ function secInfoReply() {
 
             console.log('gap_sec_info_reply completed');
         });
+}
+
+function authenticate() {
+    driver.gap_authenticate(connectionHandle, {
+        bond: true,
+        mitm: false,
+        io_caps: driver.BLE_GAP_IO_CAPS_NONE,
+        oob: false,
+        min_key_size: 7,
+        max_key_size: 16,
+        kdist_periph: {
+            enc: true,
+            id: false,
+            sign: false,
+        },
+        kdist_central: {
+            enc: true,
+            id: false,
+            sign: false,
+        }
+    }, 
+    err => {
+        if (err) {
+            console.log('Error occured in authenticate: ' + JSON.stringify(err));
+            return;
+        }
+        console.log('Initiated authenticate');
+    });
 }

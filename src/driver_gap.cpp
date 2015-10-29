@@ -642,6 +642,20 @@ v8::Local<v8::Object> GapSecInfoRequest::ToJs()
 
 // GapSecInfoRequest -- END --
 
+// GapSecRequest -- START --
+
+v8::Local<v8::Object> GapSecRequest::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverEvent::ToJs(obj);
+    Utility::Set(obj, "bond", ConversionUtility::toJsBool(evt->bond));
+    Utility::Set(obj, "mitm", ConversionUtility::toJsBool(evt->mitm));
+    return scope.Escape(obj);
+}
+
+// GapSecRequest -- END --
+
 //
 // GapSecParams -- START --
 //
