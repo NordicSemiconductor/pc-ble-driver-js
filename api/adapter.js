@@ -19,24 +19,6 @@ var make_error = function(userMessage, description) {
     return { message: userMessage, description: description };
 };
 
-var getType = function(service) {
-    var type;
-
-    if (service.type) {
-        if (service.type === 'primary') {
-            type = this._bleDriver.BLE_GATTS_SRVC_TYPE_PRIMARY;
-        } else if (service.type === 'secondary') {
-            type = this._bleDriver.BLE_GATTS_SRVC_TYPE_SECONDARY;
-        } else {
-            throw new Error(`Service type ${service.type} is unknown to me. Must be 'primary' or 'secondary'.`);
-        }
-    } else {
-        throw new Error(`Service type is not specified. Must be 'primary' or 'secondary'.`);
-    }
-
-    return type;
-};
-
 class Adapter extends EventEmitter {
     constructor(bleDriver, instanceId, port) {
         super();
@@ -60,6 +42,24 @@ class Adapter extends EventEmitter {
 
         this._gapOperationsMap = {};
         this._gattOperationsMap = {};
+    }
+
+    _getServiceType(service) {
+        var type;
+
+        if (service.type) {
+            if (service.type === 'primary') {
+                type = this._bleDriver.BLE_GATTS_SRVC_TYPE_PRIMARY;
+            } else if (service.type === 'secondary') {
+                type = this._bleDriver.BLE_GATTS_SRVC_TYPE_SECONDARY;
+            } else {
+                throw new Error(`Service type ${service.type} is unknown to me. Must be 'primary' or 'secondary'.`);
+            }
+        } else {
+            throw new Error(`Service type is not specified. Must be 'primary' or 'secondary'.`);
+        }
+
+        return type;
     }
 
     // Get the instance id
@@ -1157,19 +1157,22 @@ class Adapter extends EventEmitter {
     _getAdvertisementParams(params) {
         var retval = {};
 
-        if (params.channelMask) {
-            retval.channel_mask = {};
+        retval.channel_mask = {};
+        retval.channel_mask.ch_37_off = 0;
+        retval.channel_mask.ch_38_off = 0;
+        retval.channel_mask.ch_39_off = 0;
 
+        if (params.channelMask) {
             for (let channel in params.channelMask) {
                 switch (params.channelMask[channel]) {
                     case 'ch37off':
-                        retval.channel_mask.ch_37_off = true;
+                        retval.channel_mask.ch_37_off = 1;
                         break;
                     case 'ch38off':
-                        retval.channel_mask.ch_38_off = true;
+                        retval.channel_mask.ch_38_off = 1;
                         break;
                     case 'ch39off':
-                        retval.channel_mask.ch_39_off = true;
+                        retval.channel_mask.ch_39_off = 1;
                         break;
                     default:
                         throw new Error(`Channel ${channel} is not possible to switch off during advertising.`);
@@ -1189,8 +1192,11 @@ class Adapter extends EventEmitter {
             throw new Error('You have to provide an timeout.');
         }
 
+        // TOOD: fix fp logic later
+        retval.fp = this._bleDriver.BLE_GAP_ADV_FP_ANY;
+
         // Default value is that device is connectable undirected.
-        retval.type = this._bleDriver.BLE_GAP_ADV_TYPE_IND;
+        retval.type = this._bleDriver.BLE_GAP_ADV_TYPE_ADV_IND;
 
         // TODO: we do not support directed connectable mode yet
         if (params.connectable !== undefined) {
@@ -1212,8 +1218,12 @@ class Adapter extends EventEmitter {
     startAdvertising(advData, scanRespData, options, callback) {
         const advParams = this._getAdvertisementParams(options);
 
-        var advDataStruct = AdType.convertToBuffer(advData);
-        var scanRespDataStruct = AdType.convertToBuffer(scanRespData);
+        const advDataStruct = AdType.convertToBuffer(advData);
+        const scanRespDataStruct = AdType.convertToBuffer(scanRespData);
+
+        console.log('advParams: ' + JSON.stringify(advParams));
+        console.log('advDataStruct: ' + JSON.stringify(advDataStruct));
+        console.log('scanRespDataStruct: ' + JSON.stringify(scanRespDataStruct));
 
         this._bleDriver.gap_set_adv_data(
             advDataStruct,
@@ -1221,12 +1231,13 @@ class Adapter extends EventEmitter {
             err => {
                 if (this.checkAndPropagateError(err, 'Failed to set advertising data.', callback)) return;
 
-                this._bleDriver.gap_start_advertisement(advParams, err => {
+                this._bleDriver.gap_start_advertising(advParams, err => {
                     if (this.checkAndPropagateError(err, 'Failed to start advertising.', callback)) return;
                     this._changeAdapterState({advertising: true});
                     if (callback) callback();
                 });
-            });
+            }
+        );
     }
 
     // Callback function signature: function(err) {}
@@ -1337,31 +1348,79 @@ class Adapter extends EventEmitter {
     // GATTS
     // Array of services
     setServices(services, callback) {
+        let decodeUUID = (uuid, data) => {
+            return new Promise((resolve, reject) => {
+                const length = uuid.length === 32 ? 16 : 2;
+
+                this._bleDriver.decode_uuid(length, uuid, (err, _uuid) => {
+                    if (err) {
+                        // If the UUID is not found it is a 128-bit UUID
+                        // so we have to add it to the SD and try again
+                        if (err.errno === this._bleDriver.NRF_ERROR_NOT_FOUND && length === 16) {
+                            const base_uuid =
+                                uuid.substr(0, 4) + '0000-' +
+                                uuid.substr(8, 4) + '-' +
+                                uuid.substr(12, 4) + '-' +
+                                uuid.substr(16, 4) + '-' +
+                                uuid.substr(20);
+
+                            this._bleDriver.add_vs_uuid(
+                                {uuid128: base_uuid},
+                                (err, type) => {
+                                    console.log('add_vs_uuid: type:' + type + ' uuid:' + uuid + ' base_uuid:' + base_uuid);
+                                    if (err) {
+                                        reject(make_error(`Unable to add UUID ${uuid} to SoftDevice`, err));
+                                    } else {
+                                        this._bleDriver.decode_uuid(length, uuid, (err, _uuid) => {
+                                            if (err) {
+                                                console.log('I prpapdslfsal:' + err);
+                                                reject(make_error(`Unable to decode UUID ${uuid}`, err));
+                                            } else {
+                                                data.decoded_uuid = _uuid;
+                                                resolve(data);
+                                            }
+                                        });
+                                    }
+                                }
+                            );
+                        } else {
+                            reject(make_error(`Unable to decode UUID ${uuid}`, err));
+                        }
+                    } else {
+                        data.decoded_uuid = _uuid;
+                        resolve(data);
+                    }
+                });
+            });
+        };
+
         let addService = (service, type, data) => {
             return new Promise((resolve, reject) => {
-                this._bleDriver.decode_uuid(service.uuid.length === 32 ? 16 : 2, service.uuid, (err, uuid) => {
-                    if (err) {
-                        reject(make_error(`Unable to decode UUID ${service.uuid}`, err));
-                        return;
-                    }
+                console.log(`Adding service ${JSON.stringify(service)}`);
 
-                    this._bleDriver.gatts_add_service(type, uuid, (err, serviceHandle) => {
+                var p = Promise.resolve(data);
+                var decode = decodeUUID.bind(undefined, service.uuid);
+
+                p.then(decode).then(data => {
+                    this._bleDriver.gatts_add_service(type, data.decoded_uuid, (err, serviceHandle) => {
                         if (err) {
                             reject(make_error('Error occurred adding service.', err));
-                            return;
+                        } else {
+                            data.serviceHandle = serviceHandle;
+                            service.handle = serviceHandle;
+                            this._services[service.instanceId] = service; // TODO: what if we fail later on this service ?
+                            resolve(data);
                         }
-
-                        data.serviceHandle = serviceHandle;
-                        service.handle = serviceHandle;
-                        this._services[service.instanceId] = service; // TODO: what if we fail later on this service ?
-                        resolve(data);
                     });
+                }).catch(err => {
+                    reject(err);
                 });
             });
         };
 
         let addCharacteristic = (characteristic, data) => {
             return new Promise((resolve, reject) => {
+                console.log(`Adding characterstic ${JSON.stringify(characteristic)}`);
                 this._converter.characteristicToDriver(characteristic, (err, characteristicForDriver) => {
                     if (err) {
                         reject(make_error('Error converting characteristic to driver.', err));
@@ -1386,6 +1445,7 @@ class Adapter extends EventEmitter {
         };
 
         let addDescriptor = (descriptor, data) => {
+            console.log(`Adding descriptor ${JSON.stringify(descriptor)}`);
             return new Promise((resolve, reject) => {
                 this._converter.descriptorToDriver(descriptor, (err, descriptorForDriver) => {
                     if (err) {
@@ -1421,16 +1481,18 @@ class Adapter extends EventEmitter {
 
         for (let service of services) {
             var p;
-            p = addService.bind(undefined, service, getType(service));
+            p = addService.bind(undefined, service, this._getServiceType(service));
             promises.push(p);
 
             for (let characteristic of service._factory_characteristics) {
                 p = addCharacteristic.bind(undefined, characteristic);
                 promises.push(p);
 
-                for (let descriptor of characteristic._factory_descriptors) {
-                    p = addDescriptor.bind(undefined, descriptor);
-                    promises.push(p);
+                if (characteristic._factory_descriptors) {
+                    for (let descriptor of characteristic._factory_descriptors) {
+                        p = addDescriptor.bind(undefined, descriptor);
+                        promises.push(p);
+                    }
                 }
             }
         }

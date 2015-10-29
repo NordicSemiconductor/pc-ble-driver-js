@@ -3,13 +3,19 @@
 var i = 1;
 
 class Characteristic {
-    constructor(serviceInstanceId, uuid, properties, value) {
+    constructor(serviceInstanceId, uuid, value, properties) {
+        if (!serviceInstanceId) throw new Error('serviceInstanceId must be provided.');
+        if (!uuid) throw new Error('uuid must be provided.');
+        if (!value) throw new Error('value must be provided.');
+        if (!properties) throw new Error('properties must be provided.');
+
         this._instanceId = serviceInstanceId + '.' + (i++).toString();
         this._serviceInstanceId = serviceInstanceId;
         this.uuid = uuid.replace(/-/g, '');
-        this.name = null;
-        this.properties = properties;
         this.value = value;
+        this.properties = properties;
+
+        this.name = null;
 
         this.declarationHandle = null;
         this.valueHandle = null;
