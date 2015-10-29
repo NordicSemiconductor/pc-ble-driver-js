@@ -611,8 +611,10 @@ class Adapter extends EventEmitter {
                 gattOperation.callback(undefined, callbackDescriptors);
             } else {
                 for (let handle in gattOperation.pendingHandleReads) {
+                    const handleAsNumber = parseInt(handle, 10);
+
                     // Just take the first found handle and start the read process.
-                    this._bleDriver.gattc_read(device.connectionHandle, handle, 0, err => {
+                    this._bleDriver.gattc_read(device.connectionHandle, handleAsNumber, 0, err => {
                         if (err) {
                             this.emit('error', err);
 

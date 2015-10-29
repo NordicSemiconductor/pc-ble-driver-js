@@ -1,0 +1,1708 @@
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 358 Entering PrimaryServicesDiscover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 391 After parsing --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 393 Created baton --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 420 No uuid --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 423 Just before queue add --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 440 Under  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 543 Enter cahraterstics discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 562 Creating baton for char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 575 Queueing char discover... --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 577 Successfully queued char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 586 Calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 587 handle range  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 588 0 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 589 1 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 590 7 --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 592 done calling driver char discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 599 After characteristic discover --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver_gattc.cpp 611 just before calback --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 499 Entering close...  --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 523 dobbeltfnutt --  
+/Users/torleifs/customers/nordic/pc-ble-driver-js/src/driver.cpp 539 Aftereight --  

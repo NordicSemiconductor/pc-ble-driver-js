@@ -140,6 +140,18 @@ class TestLibrary {
         });
     }
 
+    getDescriptors(characteristicInstanceId) {
+        return new Promise((resolve, reject) => {
+            this._adapter.getDescriptors(characteristicInstanceId, (error, descriptors) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(descriptors);
+                }
+            });
+        });
+    }
+
     closeAdapter() {
         return new Promise((resolve, reject)=> {
             this._adapter.close((error) => {
