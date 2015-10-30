@@ -107,6 +107,16 @@ function onBleEvent(event_array) {
             console.log('GapSecInfoRequest: ' + JSON.stringify(event));
             secInfoReply();
         }
+        else if (event.name === 'BLE_GAP_EVT_CONN_SEC_UPDATE')
+        {
+            console.log('Connection security update event received:');
+            console.log(JSON.stringify(event));
+        }
+        else if (event.name === 'BLE_GAP_EVT_AUTH_STATUS')
+        {
+            console.log('Auth status event received:');
+            console.log(JSON.stringify(event));
+        }
     }
 }
 
@@ -194,10 +204,10 @@ function addCharacteristic(handle) {
             {
                 'read_perm': {'sm': 1, 'lv': 1},
                 'write_perm': {'sm': 1, 'lv': 1},
-                'vlen': 0,
+                'vlen': false,
                 'vloc': driver.BLE_GATTS_VLOC_STACK,
-                'rd_auth': 0,
-                'wr_auth': 0,
+                'rd_auth': false,
+                'wr_auth': false,
             },
             'p_sccd_md': 0, // Server Characteristic Configuration Descriptor (ble_gatts_attr_md_t) May be 0
         },
@@ -206,10 +216,10 @@ function addCharacteristic(handle) {
             'p_attr_md': {
                 'read_perm': {'sm': 1, 'lv': 1},
                 'write_perm': {'sm': 1, 'lv': 1},
-                'vlen': 0,
+                'vlen': false,
                 'vloc': 1,
-                'rd_auth': 0,
-                'wr_auth': 0,
+                'rd_auth': false,
+                'wr_auth': false,
             },
             'init_len': 1,
             'init_offs': 0,
@@ -239,10 +249,10 @@ function addDescriptor() {
             'p_attr_md': {
                 'read_perm': {'sm': 1, 'lv': 1},
                 'write_perm': {'sm': 1, 'lv': 1},
-                'vlen': 0,
+                'vlen': false,
                 'vloc': 1,
-                'rd_auth': 0,
-                'wr_auth': 0,
+                'rd_auth': false,
+                'wr_auth': false,
             },
             'init_len': 1,
             'init_offs': 0,
@@ -423,7 +433,38 @@ function secParamsReply() {
                 'sign': false
             }
         },
-        null, //sec_keyset
+        { // sec_keyset
+            'keys_periph': {
+                'enc_key': {
+                    'enc_info': {
+                        'ltk': [0,0,0,0,0,0,0,0],
+                        'auth': false,
+                        'ltk_len': 8
+                    },
+                    'master_id': {
+                        'ediv': 0x1234,
+                        'rand': [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+                    }
+                },
+                'id_key': null,
+                'sign_key': null
+            },
+            'keys_central': {
+                'enc_key': {
+                    'enc_info': {
+                        'ltk': [0,0,0,0,0,0,0,0],
+                        'auth': false,
+                        'ltk_len': 8
+                    },
+                    'master_id': {
+                        'ediv': 0x1234,
+                        'rand': [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+                    }
+                },
+                'id_key': null,
+                'sign_key': null
+            }
+        },
         function(err) {
             if (err) {
                 console.log('Error occured in gap_sec_params_reply');
