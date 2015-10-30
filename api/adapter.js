@@ -822,6 +822,7 @@ class Adapter extends EventEmitter {
         if (event.type === this._bleDriver.BLE_GATT_OP_WRITE_CMD) {
             gattOperation.attribute.value = gattOperation.value;
         } else if (event.type === this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ) {
+
             const writeParameters = {
                 write_op: 0,
                 flags: 0,
@@ -864,6 +865,10 @@ class Adapter extends EventEmitter {
         } else if (event.type === this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ) {
             // TODO: Need to check if gattOperation.bytesWritten is equal to gattOperation.value length?
             gattOperation.attribute.value = gattOperation.value;
+            delete this._gattOperationsMap[device.instanceId];
+        } else if (event.write_op === this._bleDriver.BLE_GATT_OP_WRITE_REQ) {
+            gattOperation.attribute.value = event.data;
+            delete this._gattOperationsMap[device.instanceId];
         }
 
         this._emitAttributeValueChanged(gattOperation.attribute);
