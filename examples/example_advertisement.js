@@ -184,7 +184,7 @@ function addService() {
 
 function addCharacteristic(handle) {
     driver.gatts_add_characteristic(handle,
-        {
+        { // metadata
             'char_props':
             {
                 'broadcast': false,
@@ -211,7 +211,7 @@ function addCharacteristic(handle) {
             },
             'p_sccd_md': 0, // Server Characteristic Configuration Descriptor (ble_gatts_attr_md_t) May be 0
         },
-        {
+        { // attributeStructure
             'p_uuid': {'uuid': 0x2A37, 'type': addedVSUUIDType},
             'p_attr_md': {
                 'read_perm': {'sm': 1, 'lv': 1},
@@ -409,7 +409,7 @@ function secParamsReply() {
     //     'keys_central': (same as keys_periph)
     // }
     //
-    // callback: function(err)
+    // callback: function(err, keyset)
     //
     // http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.s130.api.v1.0.0/group___b_l_e___g_a_p___f_u_n_c_t_i_o_n_s.html?cp=2_7_2_1_0_2_1_4_25#ga7b23027c97b3df21f6cbc23170e55663
     driver.gap_sec_params_reply(
@@ -465,13 +465,14 @@ function secParamsReply() {
                 'sign_key': null
             }
         },
-        function(err) {
+        function(err, keyset) {
             if (err) {
                 console.log('Error occured in gap_sec_params_reply');
                 return;
             }
 
             console.log('gap_sec_params_reply completed');
+            console.log('keyset: ' + JSON.stringify(keyset));
         }
     );
 }

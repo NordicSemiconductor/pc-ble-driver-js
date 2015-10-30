@@ -767,9 +767,32 @@ v8::Local<v8::Object> GapSecKeys::ToJs()
 {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    Utility::Set(obj, "p_enc_key", GapEncKey(native->p_enc_key).ToJs());
-    Utility::Set(obj, "p_id_key", GapIdKey(native->p_id_key).ToJs());
-    Utility::Set(obj, "p_sign_key", GapSignInfo(native->p_sign_key).ToJs());
+    if (native->p_enc_key == 0)
+    {
+        Utility::Set(obj, "enc_key", Nan::Null());
+    }
+    else
+    {
+       Utility::Set(obj, "enc_key", GapEncKey(native->p_enc_key).ToJs());    
+    }
+
+    if (native->p_id_key == 0)
+    {
+        Utility::Set(obj, "id_key", Nan::Null());
+    }
+    else 
+    {
+        Utility::Set(obj, "id_key", GapIdKey(native->p_id_key).ToJs());
+    }
+
+    if (native->p_sign_key == 0)
+    {
+        Utility::Set(obj, "sign_key", Nan::Null());
+    }
+    else
+    {
+        Utility::Set(obj, "sign_key", GapSignInfo(native->p_sign_key).ToJs());
+    }
 
     return scope.Escape(obj);
 }
@@ -779,9 +802,32 @@ ble_gap_sec_keys_t *GapSecKeys::ToNative()
     ble_gap_sec_keys_t *keys = new ble_gap_sec_keys_t();
     memset(keys, 0, sizeof(ble_gap_sec_keys_t));
 
-    keys->p_enc_key = GapEncKey(ConversionUtility::getJsObject(jsobj, "p_enc_key"));
-    keys->p_id_key = GapIdKey(ConversionUtility::getJsObject(jsobj, "p_id_key"));
-    keys->p_sign_key = GapSignInfo(ConversionUtility::getJsObject(jsobj, "p_sign_key"));
+    if ((Utility::Get(jsobj, "enc_key"))->IsNull())
+    {
+        keys->p_enc_key = 0;
+    }
+    else
+    {
+        keys->p_enc_key = GapEncKey(ConversionUtility::getJsObject(jsobj, "enc_key"));
+    }
+
+    if (Utility::Get(jsobj, "id_key")->IsNull())
+    {
+        keys->p_id_key = 0;
+    }
+    else
+    {
+        keys->p_id_key = GapIdKey(ConversionUtility::getJsObject(jsobj, "id_key"));
+    }
+
+    if (Utility::Get(jsobj, "sign_key")->IsNull())
+    {
+        keys->p_sign_key = 0;
+    }
+    else
+    {
+        keys->p_sign_key = GapSignInfo(ConversionUtility::getJsObject(jsobj, "sign_key"));
+    }
 
     return keys;
 }
@@ -2322,6 +2368,8 @@ NAN_METHOD(GapSecParamsReply)
     v8::Local<v8::Object> sec_keyset_object;
     v8::Local<v8::Function> callback;
     int argumentcount = 0;
+    bool sec_params_is_null = false;
+    bool sec_keyset_is_null = false;
 
     try
     {
@@ -2331,10 +2379,24 @@ NAN_METHOD(GapSecParamsReply)
         sec_status = ConversionUtility::getNativeUint8(info[argumentcount]);
         argumentcount++;
 
-        sec_params_object = ConversionUtility::getJsObject(info[argumentcount]);
+        if (info[argumentcount]->IsNull())
+        {
+            sec_params_is_null = true;
+        }
+        else
+        {
+            sec_params_object = ConversionUtility::getJsObject(info[argumentcount]);
+        }
         argumentcount++;
 
-        sec_keyset_object = ConversionUtility::getJsObject(info[argumentcount]);
+        if (info[argumentcount]->IsNull())
+        {
+            sec_keyset_is_null = true;
+        }
+        else
+        {
+            sec_keyset_object = ConversionUtility::getJsObject(info[argumentcount]);
+        }
         argumentcount++;
 
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
@@ -2352,7 +2414,14 @@ NAN_METHOD(GapSecParamsReply)
     baton->sec_status = sec_status;
     try
     {
-        baton->sec_params = GapSecParams(sec_params_object);
+        if (sec_params_is_null)
+        {
+            baton->sec_params = 0;
+        }
+        else
+        {
+            baton->sec_params = GapSecParams(sec_params_object);
+        }
     }
     catch (char const *error)
     {
@@ -2361,24 +2430,31 @@ NAN_METHOD(GapSecParamsReply)
         return;
     }
 
-    /*try
+    try
     {
-        baton->sec_keyset = GapSecKeyset(sec_keyset_object);
+        if (sec_keyset_is_null)
+        {
+            baton->sec_keyset = 0;
+        }
+        else
+        {
+            baton->sec_keyset = GapSecKeyset(sec_keyset_object);
+        }
     }
-    catch (char const *error)
+    catch (char const *)
     {
         Nan::ThrowTypeError("The provided keyset can not be parsed.");
         return;
-    }*/
+    }
 
-    baton->sec_keyset = new ble_gap_sec_keyset_t();
-
-    baton->sec_keyset->keys_central.p_enc_key = new ble_gap_enc_key_t();
-    baton->sec_keyset->keys_central.p_id_key = new ble_gap_id_key_t ();
-    baton->sec_keyset->keys_central.p_sign_key = new ble_gap_sign_info_t();
-    baton->sec_keyset->keys_periph.p_enc_key = new ble_gap_enc_key_t();
-    baton->sec_keyset->keys_periph.p_id_key = new ble_gap_id_key_t();
-    baton->sec_keyset->keys_periph.p_sign_key = new ble_gap_sign_info_t();
+//    baton->sec_keyset = new ble_gap_sec_keyset_t();
+//
+//    baton->sec_keyset->keys_central.p_enc_key = new ble_gap_enc_key_t();
+//    baton->sec_keyset->keys_central.p_id_key = new ble_gap_id_key_t ();
+//    baton->sec_keyset->keys_central.p_sign_key = new ble_gap_sign_info_t();
+//    baton->sec_keyset->keys_periph.p_enc_key = new ble_gap_enc_key_t();
+//    baton->sec_keyset->keys_periph.p_id_key = new ble_gap_id_key_t();
+//    baton->sec_keyset->keys_periph.p_sign_key = new ble_gap_sign_info_t();
 
     uv_queue_work(uv_default_loop(), baton->req, GapSecParamsReply, (uv_after_work_cb)AfterGapSecParamsReply);
 }
@@ -2413,7 +2489,6 @@ void AfterGapSecParamsReply(uv_work_t *req)
     }
 
     baton->callback->Call(2, argv);
-    delete baton->sec_keyset;
     delete baton;
 }
 
