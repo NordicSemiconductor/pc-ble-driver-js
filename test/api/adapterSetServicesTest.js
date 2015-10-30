@@ -43,7 +43,7 @@ describe('adapter.setServices', function() {
 
         let services = [];
         let serviceFactory = new ServiceFactory();
-        let service = serviceFactory.createService('aa-bb-cc-dd');
+        let service = serviceFactory.createService('aabb');
 
         let characteristic = serviceFactory.createCharacteristic(service,
             {

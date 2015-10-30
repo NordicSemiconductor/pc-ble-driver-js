@@ -5,13 +5,12 @@ var i = 1;
 class Characteristic {
     constructor(serviceInstanceId, uuid, value, properties) {
         if (!serviceInstanceId) throw new Error('serviceInstanceId must be provided.');
-        if (!uuid) throw new Error('uuid must be provided.');
         if (!value) throw new Error('value must be provided.');
         if (!properties) throw new Error('properties must be provided.');
 
         this._instanceId = serviceInstanceId + '.' + (i++).toString();
         this._serviceInstanceId = serviceInstanceId;
-        this.uuid = uuid.replace(/-/g, '');
+        this.uuid = uuid;
         this.value = value;
         this.properties = properties;
 
@@ -28,6 +27,18 @@ class Characteristic {
     // The GATT service this characteristic belongs to
     get serviceInstanceId() {
         return this._serviceInstanceId;
+    }
+
+    get uuid() {
+        return this._uuid;
+    }
+
+    set uuid(uuid) {
+        if (uuid) {
+            this._uuid = uuid.replace(/-/g, '');
+        } else {
+            this._uuid = uuid;
+        }
     }
 
     get name() {

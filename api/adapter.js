@@ -566,7 +566,7 @@ class Adapter extends EventEmitter {
             }
 
             const properties = characteristic.char_props;
-            const newCharacteristic = new Characteristic(service.instanceId, uuid, properties, null);
+            const newCharacteristic = new Characteristic(service.instanceId, uuid, [], properties);
             newCharacteristic.declarationHandle = characteristic.handle_decl;
             newCharacteristic.valueHandle = characteristic.handle_value;
             this._characteristics[newCharacteristic.instanceId] = newCharacteristic;
@@ -1935,7 +1935,7 @@ class Adapter extends EventEmitter {
 
         const cccdDescriptor = _.find(this._descriptors, (descriptor) => {
             return (descriptor.characteristicInstanceId === characteristicId) &&
-                (descriptor.uuid === 0x2902);
+                (descriptor.uuid === '2902');
         });
         if (!cccdDescriptor) {
             throw new Error('Start characteristic notifications failed: Could not find CCCD descriptor with parent characteristic id: ' + characteristicId);
@@ -1961,7 +1961,7 @@ class Adapter extends EventEmitter {
 
         const cccdDescriptor = _.find(this._descriptors, (descriptor) => {
             return (descriptor.characteristicInstanceId === characteristicId) &&
-                (descriptor.uuid === 0x2902);
+                (descriptor.uuid === '2902');
         });
         if (!cccdDescriptor) {
             throw new Error('Stop characteristic notifications failed: Could not find CCCD descriptor with parent characteristic id: ' + characteristicId);

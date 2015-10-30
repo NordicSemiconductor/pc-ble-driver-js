@@ -12,11 +12,11 @@ class Service {
     constructor(deviceInstanceId, uuid, type) {
         this._instanceId = deviceInstanceId + '.' + (i++).toString();
         this._deviceInstanceId = deviceInstanceId;
-        this.uuid = uuid.replace(/-/g, '');
+        this.uuid = uuid;
 
         console.log('uuid:' + this.uuid);
 
-        if (!(this.uuid.length === 4 || this.uuid.length === 32)) {
+        if (this.uuid && !(this.uuid.length === 4 || this.uuid.length === 32)) {
             throw new Error('uuid must be 128-bit or 16-bit.');
         }
 
@@ -41,6 +41,18 @@ class Service {
     // device address of the remote peripheral that the GATT service belongs to. 'local' when local.
     get deviceInstanceId() {
         return this._deviceInstanceId;
+    }
+
+    get uuid() {
+        return this._uuid;
+    }
+
+    set uuid(uuid) {
+        if (uuid) {
+            this._uuid = uuid.replace(/-/g, '');
+        } else {
+            this._uuid = uuid;
+        }
     }
 
     get name() {

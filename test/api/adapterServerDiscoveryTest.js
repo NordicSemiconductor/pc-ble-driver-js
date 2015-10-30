@@ -429,13 +429,13 @@ const thirdValueDescriptorReadEvent = {
     },
 };
 
-describe('getServices', function() {
+describe('getServices', () => {
     let bleDriver;
     let adapter;
     let bleDriverEventCallback = {};
     let connectEvent;
 
-    beforeEach(function(done) {
+    beforeEach(done => {
         bleDriver = commonStubs.createBleDriver((eventCallback)=> {
             bleDriverEventCallback = eventCallback;
             connectEvent = commonStubs.createConnectEvent();
@@ -467,15 +467,15 @@ describe('getServices', function() {
             assert.equal(services[1], secondService);
             assert.equal(services[2], thirdService);
 
-            assert.equal(firstService.uuid, '00001800-0000-1000-8000-00805F9B34FB');
+            assert.equal(firstService.uuid, '0000180000001000800000805F9B34FB');
             assert.equal(firstService.startHandle, 1);
             assert.equal(firstService.endHandle, 7);
 
-            assert.equal(secondService.uuid, '00001801-0000-1000-8000-00805F9B34FB');
+            assert.equal(secondService.uuid, '0000180100001000800000805F9B34FB');
             assert.equal(secondService.startHandle, 8);
             assert.equal(secondService.endHandle, 8);
 
-            assert.equal(thirdService.uuid, '00001809-0000-1000-8000-00805F9B34FB');
+            assert.equal(thirdService.uuid, '0000180900001000800000805F9B34FB');
             assert.equal(thirdService.startHandle, 9);
             assert.equal(thirdService.endHandle, 12);
 
@@ -509,8 +509,8 @@ describe('getServices', function() {
 
         adapter.getServices(device.instanceId, (err, services) => {
             assert(serviceAddedSpy.calledTwice);
-            assert.equal(services[0].uuid, '00001234-0000-0000-0000-000000000000');
-            assert.equal(services[1].uuid, '00005678-0000-0000-0000-000000000000');
+            assert.equal(services[0].uuid, '00001234000000000000000000000000');
+            assert.equal(services[1].uuid, '00005678000000000000000000000000');
             done();
         });
 
@@ -567,17 +567,17 @@ describe('getCharacteristics', () => {
 
         adapter.getServices(device.instanceId, (err, services) => {
             adapter.getCharacteristics(services[0].instanceId, (err, characteristics) => {
-                assert.equal(characteristics[0].uuid, '00002A00-0000-1000-8000-00805F9B34FB');
+                assert.equal(characteristics[0].uuid, '00002A0000001000800000805F9B34FB');
                 assert.equal(characteristics[0].declarationHandle, 2);
                 assert.equal(characteristics[0].valueHandle, 3);
-                assert(_.isEqual(characteristics[0].value, null));
+                assert(_.isEqual(characteristics[0].value, []));
 
-                assert.equal(characteristics[1].uuid, '00002A01-0000-1000-8000-00805F9B34FB');
+                assert.equal(characteristics[1].uuid, '00002A0100001000800000805F9B34FB');
                 assert.equal(characteristics[1].declarationHandle, 4);
                 assert.equal(characteristics[1].valueHandle, 5);
                 assert(_.isEqual(characteristics[1].value, [4, 5, 6]));
 
-                assert.equal(characteristics[2].uuid, '00002A04-0000-1000-8000-00805F9B34FB');
+                assert.equal(characteristics[2].uuid, '00002A0400001000800000805F9B34FB');
                 assert.equal(characteristics[2].declarationHandle, 6);
                 assert.equal(characteristics[2].valueHandle, 7);
                 assert(_.isEqual(characteristics[2].value, []));
@@ -597,11 +597,9 @@ describe('getCharacteristics', () => {
 
         assert(bleDriver.gattc_characteristic_discover.calledOnce);
         bleDriverEventCallback([oneCharacteristicDiscoveryEvent]);
-        //assert(characteristicAddedSpy.calledTwice);
         assert(bleDriver.gattc_characteristic_discover.calledTwice);
 
         bleDriverEventCallback([twoCharacteristicDiscoveryEvent]);
-        //assert(characteristicAddedSpy.calledThrice);
         assert(bleDriver.gattc_characteristic_discover.calledTwice);
 
         assert(bleDriver.gattc_read.calledOnce);
@@ -619,10 +617,10 @@ describe('getCharacteristics', () => {
 
         adapter.getServices(device.instanceId, (err, services) => {
             adapter.getCharacteristics(services[0].instanceId, (err, characteristics) => {
-                assert.equal(characteristics[0].uuid, '00001234-0000-0000-0000-000000000000');
-                assert(_.isEqual(characteristics[0].value, [1,2,3]));
-                assert.equal(characteristics[1].uuid, '00005678-0000-0000-0000-000000000000');
-                assert(_.isEqual(characteristics[1].value, [4,5,6]));
+                assert.equal(characteristics[0].uuid, '00001234000000000000000000000000');
+                assert(_.isEqual(characteristics[0].value, [1, 2, 3]));
+                assert.equal(characteristics[1].uuid, '00005678000000000000000000000000');
+                assert(_.isEqual(characteristics[1].value, [4, 5, 6]));
 
                 done();
             });
@@ -639,15 +637,12 @@ describe('getCharacteristics', () => {
 
         assert(bleDriver.gattc_characteristic_discover.calledOnce);
         bleDriverEventCallback([firstUnknownUuidCharacteristicDiscoveryEvent]);
-        //assert(characteristicAddedSpy.calledTwice);
         assert(bleDriver.gattc_characteristic_discover.calledTwice);
 
         bleDriverEventCallback([secondUnknownUuidCharacteristicDiscoveryEvent]);
-        //assert(characteristicAddedSpy.calledThrice);
         assert(bleDriver.gattc_characteristic_discover.calledThrice);
 
         bleDriverEventCallback([zeroCharacteristicDiscoveryEvent]);
-        //assert(characteristicAddedSpy.calledThrice);
         assert(bleDriver.gattc_characteristic_discover.calledThrice);
 
         assert(bleDriver.gattc_read.calledOnce);
@@ -662,14 +657,14 @@ describe('getCharacteristics', () => {
     });
 });
 
-describe('getDescriptors', function() {
+describe('getDescriptors', () => {
     let bleDriver;
     let adapter;
     let bleDriverEventCallback = {};
     let connectEvent;
 
-    beforeEach(function(done) {
-        bleDriver = commonStubs.createBleDriver((eventCallback)=>{
+    beforeEach((done) => {
+        bleDriver = commonStubs.createBleDriver(eventCallback => {
             bleDriverEventCallback = eventCallback;
             connectEvent = commonStubs.createConnectEvent();
             done();
@@ -680,10 +675,10 @@ describe('getDescriptors', function() {
             adapter = adapters.test;
         });
 
-        adapter.open({'baudRate': 115200, 'parity': 'none', 'flowControl': 'none'}, function(err) {});
+        adapter.open({baudRate: 115200, parity: 'none', flowControl: 'none'}, err => {});
     });
 
-    it('should receive descriptors from events and callback', function (done) {
+    it('should receive descriptors from events and callback', done => {
         const device = new Device('remote', 'peripheral');
         device.connectionHandle = 123;
 
@@ -692,19 +687,19 @@ describe('getDescriptors', function() {
         adapter.getServices(device.instanceId, (err, services) => {
             adapter.getCharacteristics(services[0].instanceId, (err, characteristics) => {
                 adapter.getDescriptors(characteristics[0].instanceId, (err, descriptors) => {
-                assert.equal(descriptors[0].uuid, '00002901-0000-1000-8000-00805F9B34FB');
-                assert.equal(descriptors[0].handle, 4);
-                assert(_.isEqual(descriptors[0].value, [1,2,3]));
+                    assert.equal(descriptors[0].uuid, '0000290100001000800000805F9B34FB');
+                    assert.equal(descriptors[0].handle, 4);
+                    assert(_.isEqual(descriptors[0].value, [1, 2, 3]));
 
-                assert.equal(descriptors[1].uuid, '00002902-0000-1000-8000-00805F9B34FB');
-                assert.equal(descriptors[1].handle, 5);
-                assert(_.isEqual(descriptors[1].value, [4,5,6]));
+                    assert.equal(descriptors[1].uuid, '0000290200001000800000805F9B34FB');
+                    assert.equal(descriptors[1].handle, 5);
+                    assert(_.isEqual(descriptors[1].value, [4, 5, 6]));
 
-                assert.equal(descriptors[2].uuid, '00002903-0000-1000-8000-00805F9B34FB');
-                assert.equal(descriptors[2].handle, 6);
-                assert(_.isEqual(descriptors[2].value, []));
+                    assert.equal(descriptors[2].uuid, '0000290300001000800000805F9B34FB');
+                    assert.equal(descriptors[2].handle, 6);
+                    assert(_.isEqual(descriptors[2].value, []));
 
-                done();
+                    done();
                 });
             });
         });
@@ -723,15 +718,12 @@ describe('getDescriptors', function() {
 
         assert(bleDriver.gattc_descriptor_discover.calledOnce);
         bleDriverEventCallback([twoDescriptorDiscoveryEvent]);
-        //assert(descriptorAddedSpy.calledTwice);
         assert(bleDriver.gattc_descriptor_discover.calledTwice);
 
         bleDriverEventCallback([oneDescriptorDiscoveryEvent]);
-        //assert(descriptorAddedSpy.calledThrice);
         assert(bleDriver.gattc_descriptor_discover.calledThrice);
 
         bleDriverEventCallback([zeroDescriptorDiscoveryEvent]);
-        //assert(descriptorAddedSpy.calledThrice);
         assert(bleDriver.gattc_descriptor_discover.calledThrice);
 
         // One call for one of the characteristics with read property + one call for first descriptor

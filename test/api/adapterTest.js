@@ -240,11 +240,11 @@ describe('Adapter start characteristics notification', () => {
     let bleDriverEventCallback;
     let characteristic;
     let cccdDescriptor;
-    const cccdUuid = 0x2902;
+    const cccdUuid = '2902';
     beforeEach(()=> {
         bleDriver = commonStubs.createBleDriver(() => {});
         adapter = new Adapter(bleDriver, 'theId', 42);
-        characteristic = new Characteristic('dummyServiceId', 'ffaabb');
+        characteristic = new Characteristic('dummyServiceId', 'ffaabb', [], {});
         adapter._characteristics[characteristic.instanceId] = characteristic;
         cccdDescriptor = new Descriptor(characteristic.instanceId, cccdUuid, 42);
         adapter._descriptors[cccdDescriptor.instanceId] = cccdDescriptor;
@@ -303,11 +303,11 @@ describe('Adapter start characteristics notification', () => {
     let bleDriverEventCallback;
     let characteristic;
     let cccdDescriptor;
-    const cccdUuid = 0x2902;
+    const cccdUuid = '2902';
     beforeEach(()=> {
         bleDriver = commonStubs.createBleDriver(() => {});
         adapter = new Adapter(bleDriver, 'theId', 42);
-        characteristic = new Characteristic('dummyServiceId', 'ffaabb');
+        characteristic = new Characteristic('dummyServiceId', 'ffaabb', [], {});
         adapter._characteristics[characteristic.instanceId] = characteristic;
         cccdDescriptor = new Descriptor(characteristic.instanceId, cccdUuid, 42);
         adapter._descriptors[cccdDescriptor.instanceId] = cccdDescriptor;
