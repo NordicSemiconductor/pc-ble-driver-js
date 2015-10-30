@@ -216,6 +216,11 @@ uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Object>js, cha
 
 uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Value>js)
 {
+    if (!js->IsArray())
+    {
+        throw "array";
+    }
+
     v8::Local<v8::Array> jsarray = v8::Local<v8::Array>::Cast(js);
     uint32_t length = jsarray->Length();
     uint8_t *string = (uint8_t *)malloc(sizeof(uint8_t) * length);
