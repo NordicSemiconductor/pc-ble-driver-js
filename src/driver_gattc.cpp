@@ -392,9 +392,10 @@ NAN_METHOD(PrimaryServicesDiscover)
         {
             baton->p_srvc_uuid = BleUUID(service_uuid);
         }
-        catch (char const *)
+        catch (char const *error)
         {
-            Nan::ThrowTypeError("The provided uuid can not be parsed.");
+            v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_srvc_uuid", error);
+            Nan::ThrowTypeError(message);
             return;
         }
     }
@@ -469,9 +470,10 @@ NAN_METHOD(RelationshipDiscover)
     {
         baton->p_handle_range = GattcHandleRange(handle_range);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided handle range can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_handle_range", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -541,9 +543,10 @@ NAN_METHOD(CharacteristicsDiscover)
     {
         baton->p_handle_range = GattcHandleRange(handle_range);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided handle range can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_handle_range", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -613,9 +616,10 @@ NAN_METHOD(DescriptorsDiscover)
     {
         baton->p_handle_range = GattcHandleRange(handle_range);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided handle range can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_handle_range", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -688,9 +692,10 @@ NAN_METHOD(CharacteristicValueByUUIDRead)
     {
         baton->p_uuid = BleUUID(uuid);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided uuid can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_uuid", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -698,9 +703,10 @@ NAN_METHOD(CharacteristicValueByUUIDRead)
     {
         baton->p_handle_range = GattcHandleRange(handle_range);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided handle range can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_handle_range", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -840,14 +846,13 @@ NAN_METHOD(CharacteristicValuesRead)
     {
         for (int i = 0; i < handle_count; ++i)
         {
-        
-                p_handles[i] = ConversionUtility::getNativeUint16(handles->Get(Nan::New<v8::Number>(i)));
-     
+            p_handles[i] = ConversionUtility::getNativeUint16(handles->Get(Nan::New<v8::Number>(i)));
         }
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided handles can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_handles", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -924,9 +929,10 @@ NAN_METHOD(Write)
     {
         baton->p_write_params = GattcWriteParameters(p_write_params);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided write parameters can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_write_params", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 

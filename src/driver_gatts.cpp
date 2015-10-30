@@ -352,9 +352,10 @@ NAN_METHOD(AddService)
     {
         baton->p_uuid = BleUUID(uuid);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided uuid can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_uuid", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -518,9 +519,10 @@ NAN_METHOD(AddDescriptor)
     {
         baton->p_attr = GattsAttribute(attributeStructure);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided attribute can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_attr", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -593,9 +595,10 @@ NAN_METHOD(HVX)
     {
         baton->p_hvx_params = GattsHVXParams(hvx_params);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided hvxparameters can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_hvx_params", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -764,9 +767,10 @@ NAN_METHOD(ValueSet)
     {
         baton->p_value = GattsValue(value);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided gatts value can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_value", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -844,9 +848,10 @@ NAN_METHOD(ValueGet)
     {
         baton->p_value = GattsValue(value);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided gatts value can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_value", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -919,9 +924,10 @@ NAN_METHOD(RWAuthorizeReply)
     {
         baton->p_rw_authorize_reply_params = GattRWAuthorizeReplyParams(params);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided rw authorize reply parameters can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_rw_authorize_reply_params", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 

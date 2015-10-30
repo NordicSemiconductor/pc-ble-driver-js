@@ -272,6 +272,7 @@ class ErrorMessage
 public:
     static v8::Local<v8::Value> getErrorMessage(int errorCode, char const*customMessage);
     static v8::Local<v8::String> getTypeErrorMessage(int argumentNumber, char const *message);
+    static v8::Local<v8::String> getStructErrorMessage(char const *name, char const *message);
 };
 
 class HciStatus

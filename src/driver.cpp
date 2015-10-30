@@ -382,9 +382,10 @@ NAN_METHOD(Open)
     {
         baton->log_callback = new Nan::Callback(ConversionUtility::getCallbackFunction(options, "logCallback"));
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided logCallback is not a function or no callback is provided.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("log_callback", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -392,9 +393,10 @@ NAN_METHOD(Open)
     {
         baton->event_callback = new Nan::Callback(ConversionUtility::getCallbackFunction(options, "eventCallback"));
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided eventCallback is not a function or no callback is provided.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("event_callback", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 

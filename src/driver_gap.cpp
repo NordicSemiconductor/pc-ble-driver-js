@@ -1158,25 +1158,21 @@ NAN_METHOD(GapSetAddress)
     }
 
     ble_gap_addr_t *address;
+    GapAddressSetBaton *baton = new GapAddressSetBaton(callback);
+    baton->addr_cycle_mode = address_cycle_mode;
 
     try
     {
-        address = GapAddr(addressObject);
+        baton->address = GapAddr(addressObject);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided address can not be parsed as an address.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("address", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
-
-    GapAddressSetBaton *baton = new GapAddressSetBaton(callback);
-    baton->addr_cycle_mode = address_cycle_mode;
-    baton->address = address;
-
     uv_queue_work(uv_default_loop(), baton->req, GapSetAddress, (uv_after_work_cb)AfterGapSetAddress);
-
-    return;
 }
 
 void GapSetAddress(uv_work_t *req) 
@@ -1298,9 +1294,10 @@ NAN_METHOD(GapUpdateConnectionParameters)
     {
         baton->connectionParameters = GapConnParams(connParamsObject);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided connection parameters can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("connectionParameters", error);
+        Nan::ThrowTypeError(message);
         return;
     }
     
@@ -1493,9 +1490,10 @@ NAN_METHOD(GapSetDeviceName)
     {
         baton->conn_sec_mode = GapConnSecMode(conn_sec_mode);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided gap connection security mode can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("conn_sec_mode", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -1869,9 +1867,10 @@ NAN_METHOD(GapConnect)
     {
         baton->address = GapAddr(address);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided address can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("address", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -1879,9 +1878,10 @@ NAN_METHOD(GapConnect)
     {
         baton->scan_params = GapScanParams(scan_params);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided scan parameters can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("scan_params", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -1889,9 +1889,10 @@ NAN_METHOD(GapConnect)
     {
         baton->conn_params = GapConnParams(conn_params);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided connection parameters can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("conn_params", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -2073,9 +2074,10 @@ NAN_METHOD(GapStartAdvertising)
     {
         baton->p_adv_params = GapAdvParams(adv_params);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided advertisement parameters can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_adv_params", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -2263,20 +2265,21 @@ NAN_METHOD(GapEncrypt)
     {
         baton->master_id = GapMasterId(master_id_object);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided master id can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("master_id", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
     try
     {
-        baton->master_id = GapMasterId(master_id_object);
         baton->enc_info = GapEncInfo(enc_info_object);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided encryption parameters can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("enc_info", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -2351,9 +2354,10 @@ NAN_METHOD(GapSecParamsReply)
     {
         baton->sec_params = GapSecParams(sec_params_object);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided security parameters can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("sec_params", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -2485,9 +2489,10 @@ NAN_METHOD(GapSecInfoReply)
             baton->enc_info = GapEncInfo(enc_info_object);
         }
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided enc_info can not be parsed");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("enc_info", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -2502,9 +2507,10 @@ NAN_METHOD(GapSecInfoReply)
             baton->id_info = GapIrk(id_info_object);
         }
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided id_info can not be parsed");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("id_info", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -2519,9 +2525,10 @@ NAN_METHOD(GapSecInfoReply)
             baton->sign_info = GapSignInfo(sign_info_object);
         }
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided sign_info can not be parsed");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("sign_info", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 
@@ -2588,9 +2595,10 @@ NAN_METHOD(GapAuthenticate)
     {
         baton->p_sec_params = GapSecParams(sec_params);
     }
-    catch (char const *)
+    catch (char const *error)
     {
-        Nan::ThrowTypeError("The provided security parameters can not be parsed.");
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_sec_params", error);
+        Nan::ThrowTypeError(message);
         return;
     }
 

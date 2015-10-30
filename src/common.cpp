@@ -6,6 +6,19 @@
 
 #include "common.h"
 
+#define RETURN_VALUE_OR_THROW_EXCEPTION(method) \
+try { \
+    return (method); \
+} \
+catch(char const *error) \
+{ \
+    std::cout << "Exception: " << name << ":" << error << std::endl; \
+    std::string ex = std::string("Failed to get property ") + std::string(name) + ": " + std::string(error); \
+    char *exceptionText = new char[ex.length() + 1]; \
+    std::strcpy (exceptionText, ex.c_str()); \
+    throw exceptionText; \
+}
+
 static name_map_t error_message_name_map = {
     NAME_MAP_ENTRY(NRF_SUCCESS),
     NAME_MAP_ENTRY(NRF_ERROR_SVC_HANDLER_MISSING),
@@ -113,20 +126,10 @@ uint16_t fromNameToValue(name_map_t names, char *name)
     return key;
 }
 
-#define CATCH_EXCEPTION(method) \
-try { \
-    return method; \
-} \
-catch(char const *error) \
-{ \
-    std::cout << "Exception: " << name << ":" << error << std::endl; \
-    std::string ex = std::string("Failed to get property ") + std::string(name) + ": " + std::string(error); \
-    throw ex.c_str(); \
-}
 
 uint32_t ConversionUtility::getNativeUint32(v8::Local<v8::Object>js, char *name)
 {
-    CATCH_EXCEPTION(ConvUtil<uint32_t>::getNativeUnsigned(js, name));
+    RETURN_VALUE_OR_THROW_EXCEPTION(ConvUtil<uint32_t>::getNativeUnsigned(js, name));
 }
 
 uint32_t ConversionUtility::getNativeUint32(v8::Local<v8::Value> js)
@@ -136,7 +139,7 @@ uint32_t ConversionUtility::getNativeUint32(v8::Local<v8::Value> js)
 
 uint16_t ConversionUtility::getNativeUint16(v8::Local<v8::Object>js, char *name)
 {
-    CATCH_EXCEPTION(ConvUtil<uint16_t>::getNativeUnsigned(js, name));
+    RETURN_VALUE_OR_THROW_EXCEPTION(ConvUtil<uint16_t>::getNativeUnsigned(js, name));
 }
 
 uint16_t ConversionUtility::getNativeUint16(v8::Local<v8::Value> js)
@@ -146,7 +149,7 @@ uint16_t ConversionUtility::getNativeUint16(v8::Local<v8::Value> js)
 
 uint8_t ConversionUtility::getNativeUint8(v8::Local<v8::Object>js, char *name)
 {
-    CATCH_EXCEPTION(ConvUtil<uint8_t>::getNativeUnsigned(js, name));
+    RETURN_VALUE_OR_THROW_EXCEPTION(ConvUtil<uint8_t>::getNativeUnsigned(js, name));
 }
 
 uint8_t ConversionUtility::getNativeUint8(v8::Local<v8::Value> js)
@@ -156,7 +159,7 @@ uint8_t ConversionUtility::getNativeUint8(v8::Local<v8::Value> js)
 
 int32_t ConversionUtility::getNativeInt32(v8::Local<v8::Object>js, char *name)
 {
-    CATCH_EXCEPTION(ConvUtil<int32_t>::getNativeSigned(js, name));
+    RETURN_VALUE_OR_THROW_EXCEPTION(ConvUtil<int32_t>::getNativeSigned(js, name));
 }
 
 int32_t ConversionUtility::getNativeInt32(v8::Local<v8::Value>js)
@@ -166,7 +169,7 @@ int32_t ConversionUtility::getNativeInt32(v8::Local<v8::Value>js)
 
 int16_t ConversionUtility::getNativeInt16(v8::Local<v8::Object>js, char *name)
 {
-    CATCH_EXCEPTION(ConvUtil<int16_t>::getNativeSigned(js, name));
+    RETURN_VALUE_OR_THROW_EXCEPTION(ConvUtil<int16_t>::getNativeSigned(js, name));
 }
 
 int16_t ConversionUtility::getNativeInt16(v8::Local<v8::Value>js)
@@ -176,7 +179,7 @@ int16_t ConversionUtility::getNativeInt16(v8::Local<v8::Value>js)
 
 int8_t ConversionUtility::getNativeInt8(v8::Local<v8::Object>js, char *name)
 {
-    CATCH_EXCEPTION(ConvUtil<int8_t>::getNativeSigned(js, name));
+    RETURN_VALUE_OR_THROW_EXCEPTION(ConvUtil<int8_t>::getNativeSigned(js, name));
 }
 
 int8_t ConversionUtility::getNativeInt8(v8::Local<v8::Value>js)
@@ -186,7 +189,7 @@ int8_t ConversionUtility::getNativeInt8(v8::Local<v8::Value>js)
 
 double ConversionUtility::getNativeDouble(v8::Local<v8::Object>js, char *name)
 {
-    CATCH_EXCEPTION(ConvUtil<double>::getNativeFloat(js, name));
+    RETURN_VALUE_OR_THROW_EXCEPTION(ConvUtil<double>::getNativeFloat(js, name));
 }
 
 double ConversionUtility::getNativeDouble(v8::Local<v8::Value>js)
@@ -196,7 +199,7 @@ double ConversionUtility::getNativeDouble(v8::Local<v8::Value>js)
 
 uint8_t ConversionUtility::getNativeBool(v8::Local<v8::Object>js, char *name)
 {
-    CATCH_EXCEPTION(ConvUtil<bool>::getNativeBool(js, name));
+    RETURN_VALUE_OR_THROW_EXCEPTION(ConvUtil<bool>::getNativeBool(js, name));
 }
 
 uint8_t ConversionUtility::getNativeBool(v8::Local<v8::Value>js)
@@ -208,7 +211,7 @@ uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Object>js, cha
 {
     v8::Local<v8::Value> value = Utility::Get(js, name);
 
-    CATCH_EXCEPTION(ConversionUtility::getNativePointerToUint8(value));
+    RETURN_VALUE_OR_THROW_EXCEPTION(ConversionUtility::getNativePointerToUint8(value));
 }
 
 uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Value>js)
@@ -231,7 +234,7 @@ uint16_t *ConversionUtility::getNativePointerToUint16(v8::Local<v8::Object>js, c
 {
     v8::Local<v8::Value> value = Utility::Get(js, name);
 
-    CATCH_EXCEPTION(ConversionUtility::getNativePointerToUint16(value));
+    RETURN_VALUE_OR_THROW_EXCEPTION(ConversionUtility::getNativePointerToUint16(value));
 }
 
 uint16_t *ConversionUtility::getNativePointerToUint16(v8::Local<v8::Value>js)
@@ -656,6 +659,12 @@ v8::Local<v8::String> ErrorMessage::getTypeErrorMessage(int argumentNumber, char
     stream << " argument must be a " << message;
 
     return ConversionUtility::toJsString(stream.str())->ToString();
+}
+
+v8::Local<v8::String> ErrorMessage::getStructErrorMessage(char const *name, char const *message)
+{
+    std::string errormessage = "Property: " + std::string(name) + " Message: " + std::string(message);
+    return ConversionUtility::toJsString(errormessage)->ToString();
 }
 
 v8::Local<v8::Value> HciStatus::getHciStatus(int statusCode)
