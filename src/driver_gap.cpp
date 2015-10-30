@@ -1203,7 +1203,6 @@ NAN_METHOD(GapSetAddress)
         return;
     }
 
-    ble_gap_addr_t *address;
     GapAddressSetBaton *baton = new GapAddressSetBaton(callback);
     baton->addr_cycle_mode = address_cycle_mode;
 
