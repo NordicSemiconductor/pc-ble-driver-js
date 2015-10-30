@@ -1,3 +1,4 @@
+
 var driver = require('../build/Debug/ble_driver_js');
 
 var evt_count = 0;
@@ -53,8 +54,7 @@ function onBleEvent(event_array) {
         {
             connectionHandle = event.conn_handle;
             console.log("Connected. Handle: %d", connectionHandle);
-            //connSecGet();
-            setTimeout(authenticate, 2000);
+            connSecGet();
         }
         else if (event.name === 'BLE_GATTS_EVT_SYS_ATTR_MISSING')
         {
@@ -99,13 +99,8 @@ function onBleEvent(event_array) {
         }
         else if (event.name === 'BLE_GAP_EVT_SEC_PARAMS_REQUEST')
         {
-            console.log('GapSecParamsRequest: ' + JSON.stringify(event));
-            secParamsReply();
-        }
-        else if (event.name === 'BLE_GAP_EVT_SEC_INFO_REQUEST')
-        {
-            console.log('GapSecInfoRequest: ' + JSON.stringify(event));
-            secInfoReply();
+            console.log("GapSecParamsRequest: " + JSON.stringify(event));
+            setTimeout(secParamsReply, 1000);
         }
         else if (event.name === 'BLE_GAP_EVT_CONN_SEC_UPDATE')
         {
@@ -268,33 +263,8 @@ function addDescriptor() {
 
             console.log('Added descriptor with handle %d', handle)
 
-            setAdvertisingData();
-    });
-}
-
-function setAdvertisingData() {
-    // gap_set_advertising_data(adv_data, scan_response_data, callback)
-    //
-    // adv_data: null or <array of utf8 values, length 0 to BLE_GAP_ADV_MAX_SIZE (31)
-    //
-    // scan_response_data: same as adv_data
-    //
-    // callback: function(err)
-    //
-    // http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.s130.api.v1.0.0/group___b_l_e___g_a_p___f_u_n_c_t_i_o_n_s.html?cp=2_7_2_1_0_2_1_4_2#gaddbb12e078d536ef2e93b41d77ff6243
-    driver.gap_set_advertising_data(
-        [8, 9, 87, 97, 121, 108, 97, 110, 100], // adv_data: 8=length, 9=complete_local_name, 'Wayland'
-        [0x02, 0x0A, 0x00], // scan response, 2=length, 0xA=txpower, 0dBm
-        function(err) {
-            if (err) {
-                console.log('Error occured when setting advertising data: ' + err);
-                return;
-            }
-            console.log('Added advertising data.');
-
             startAdvertising();
-        }
-    );
+    });
 }
 
 function startAdvertising() {
@@ -323,20 +293,10 @@ function startAdvertising() {
     );
 }
 
-function stopAdvertising() {
-    driver.gap_stop_advertising(function(err) {
-        if (err) {
-            console.log('Error occured when stopping advertising');
-        }
-
-        console.log('Stopped advertising');
-    });
-}
-
 function connSecGet() {
     /* gap_conn_sec_get(connHandle, callback)
      * signature of callback: function(err, connSec)
-     * 
+     *
      * connSec: {
      *       'sec_mode': {
      *           'sm': <1 to 2>,
@@ -356,65 +316,20 @@ function connSecGet() {
     });
 }
 
+function stopAdvertising() {
+    driver.gap_stop_advertising(function(err) {
+        if (err) {
+            console.log('Error occured when stopping advertising');
+        }
+
+        console.log('Stopped advertising');
+    });
+}
+
 function secParamsReply() {
-    // gap_sec_params_reply(connHandle, sec_status, sec_params, sec_keyset, callback)
-    //
-    // sec_status: <number> (driver.BLE_GAP_SEC_STATUS_)
-    //
-    // sec_params: {
-    //     'bond': <bool>,
-    //     'mitm': <bool>,
-    //     'io_caps': <number> (driver.BLE_GAP_IO_CAPS_),
-    //     'oob': <bool>,
-    //     'min_key_size': <number, 7 to 16>,
-    //     'max_key_size': <number, 7 to 16>,
-    //     'kdist_periph': {
-    //         'enc': <bool>,
-    //         'id': <bool>,
-    //         'sign': <bool>
-    //     },
-    //     'kdist_central': {
-    //         'enc': <bool>,
-    //         'id': <bool>,
-    //         'sign': <bool>
-    //     },
-    // }
-    //
-    // sec_keyset: {
-    //     'keys_periph': {
-    //         'enc_key': null or {
-    //             'enc_info': {
-    //                 'ltk': <array of length 8>,
-    //                 'auth': <bool>,
-    //                 'ltk_len': <number>
-    //             },
-    //             'master_id': {
-    //                 'ediv': <number, 16bit>,
-    //                 'rand': <array of length 16>
-    //             }
-    //         },
-    //         'id_key': null or {
-    //             'id_info': {
-    //                 'irk': <array of length 8>,
-    //             },
-    //             'id_addr_info': {
-    //                 'addr': <string ('xx:xx:xx:xx:xx:xx')>,
-    //                 'type': <number> (driver.BLE_GAP_ADDR_TYPE_),
-    //             }
-    //         },
-    //         'sign_key': null or {
-    //             'csrk': <array of length 8>
-    //         }
-    //     },
-    //     'keys_central': (same as keys_periph)
-    // }
-    //
-    // callback: function(err, keyset)
-    //
-    // http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.s130.api.v1.0.0/group___b_l_e___g_a_p___f_u_n_c_t_i_o_n_s.html?cp=2_7_2_1_0_2_1_4_25#ga7b23027c97b3df21f6cbc23170e55663
     driver.gap_sec_params_reply(
         connectionHandle,
-        driver.BLE_GAP_SEC_STATUS_SUCCESS, //sec_status
+        0, //sec_status
         { //sec_params
             'bond': true,
             'mitm': false,
@@ -468,77 +383,10 @@ function secParamsReply() {
         function(err, keyset) {
             if (err) {
                 console.log('Error occured in gap_sec_params_reply');
-                return;
             }
 
             console.log('gap_sec_params_reply completed');
             console.log('keyset: ' + JSON.stringify(keyset));
         }
     );
-}
-
-function secInfoReply() {
-    // gap_sec_info_reply(conn_handle, enc_info, id_info, sign_info, callback)
-    //
-    // enc_info: null or {
-    //  'ltk': <array of length 8>,
-    //  'auth': <bool>,
-    //  'ltk_len': <number>
-    // }
-    //
-    // id_info: null or {
-    //  'irk': <array og length 8>
-    // }
-    //
-    // sign_info: null or {
-    //  'csrk': <array of length 8>
-    // }
-    // callback: function(err)
-    //
-    // http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.s130.api.v1.0.0/group___b_l_e___g_a_p___f_u_n_c_t_i_o_n_s.html?cp=2_7_2_1_0_2_1_4_24#ga9015143d731193672dc306f6e4aff684
-    driver.gap_sec_info_reply(
-        connectionHandle,
-        { //enc_info
-            'ltk': [1, 2, 3, 4, 5, 6, 7, 8],
-            'auth': false,
-            'ltk_len': 8
-        },
-        null, //id_info
-        null, //sign_info
-        function(err) {
-            if (err) {
-                console.log('Error occured in gap_sec_info_reply:' + err);
-                return;
-            }
-
-            console.log('gap_sec_info_reply completed');
-        });
-}
-
-function authenticate() {
-    driver.gap_authenticate(connectionHandle, {
-        bond: true,
-        mitm: false,
-        io_caps: driver.BLE_GAP_IO_CAPS_NONE,
-        oob: false,
-        min_key_size: 7,
-        max_key_size: 16,
-        kdist_periph: {
-            enc: true,
-            id: false,
-            sign: false,
-        },
-        kdist_central: {
-            enc: true,
-            id: false,
-            sign: false,
-        }
-    }, 
-    err => {
-        if (err) {
-            console.log('Error occured in authenticate: ' + JSON.stringify(err));
-            return;
-        }
-        console.log('Initiated authenticate');
-    });
 }

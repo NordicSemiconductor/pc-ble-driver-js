@@ -6,15 +6,15 @@ const driver = require('../../index').driver;
 var adapterFactory = new api.AdapterFactory(driver);
 
 adapterFactory.on('added', adapter => {
-    console.log(`Adapter added. Adapter: ${adapter.instanceId}`);
+    console.log(`onAdded: Adapter added. Adapter: ${adapter.instanceId}`);
 });
 
 adapterFactory.on('removed', adapter => {
-    console.log(`Adapter removed. Adapter: ${adapter.instanceId}`);
+    console.log(`onRemoved: Adapter removed. Adapter: ${adapter.instanceId}`);
 });
 
 adapterFactory.on('error', error => {
-    console.log('Error occured:' + error);
+    console.log('onError: Error occured: ' + JSON.stringify(error, null, 1));
 });
 
 adapterFactory.getAdapters((err, adapters) => {
@@ -30,11 +30,12 @@ adapterFactory.getAdapters((err, adapters) => {
     }
 
     let adapter = adapters[Object.keys(adapters)[0]];
-    adapter.on('error', error => { console.log('Error from adapter:' + error); });
+    adapter.on('error', error => { console.log('adapter.onError: ' + JSON.stringify(error, null, 1)); });
     adapter.on(
         'adapterStateChanged',
         adapterState => { console.log('Adapter state changed: ' + JSON.stringify(adapterState));}
     );
+    adapter.on('deviceDisconnected', device => { console.log('adapter.deviceDisconnected: ' + JSON.stringify(device)); });
 
     console.log(`Using adapter ${adapter.instanceId}.`);
 
@@ -58,28 +59,41 @@ adapterFactory.getAdapters((err, adapters) => {
 
             let characteristic = serviceFactory.createCharacteristic(
                 service,
-                '18-0d',
+                '180d',
                 [1, 2, 3],
                 {
                     maxLength: 3,
                     readPerm: ['open'],
-                    writePerm: ['encrypt'],
+                    writePerm: ['open'],
                     properties: { /* BT properties */
-                        broadcast: true,
+                        broadcast: false,
                         read: true,
-                        write: true,
-                        writeWoResp: true,
-                        reliableWrite: false,
-                        notify: false,
-                        indicate: true,
+                        write: false,
+                        writeWoResp: false,
+                        reliableWrite: true, /* extended property in MCP ? */
+                        notify: true,
+                        indicate: false, /* notify/indicate is cccd, therefore it must be set */
                     },
+                }
+            );
+
+            // TODO: evalute if - is necessary for 2 byte UUIDs.
+            let descriptor = serviceFactory.createDescriptor(
+                characteristic,
+                '2902',
+                [0, 0],
+                {
+                    maxLength: 2,
+                    readPerm: ['open'],
+                    writePerm: ['open'],
+                    variableLength: false,
                 }
             );
 
             console.log('Setting services');
             adapter.setServices([service], err => {
                 if (err) {
-                    console.log(`Error setting services ${err}.`);
+                    console.log(`Error setting services: '${JSON.stringify(err, null, 1)}'.`);
                     process.exit();
                 }
 

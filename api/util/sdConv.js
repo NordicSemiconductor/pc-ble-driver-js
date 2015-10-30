@@ -43,7 +43,7 @@ class SoftDeviceConverter {
         if (mode.indexOf('mitm-protection') != -1) {
             if (sm == 1) lv = 3;
             if (sm == 2) lv = 2;
-        } else {
+        } else if (lv === undefined) {
             if (sm == 1) lv = 2;
             if (sm == 2) lv = 1;
         }
@@ -105,31 +105,43 @@ class SoftDeviceConverter {
         // Check if mandatory attributes are present in the characteristic object
         if (!descriptor.uuid) err = 'UUID must be provided. ';
         if (!descriptor.value) err += 'value must be provided. ';
-        if (!descriptor.maxLength) err += 'maxLength must be provided. ';
+        if (!descriptor.properties) err += 'properties must be provided. ';
+        if (!descriptor.properties.maxLength) err += 'maxLength must be provided. ';
 
         if (err.length !== 0) {
             callback(err);
             return;
         }
 
+        console.log('D->: SRC: ' + JSON.stringify(descriptor, null, 1));
+
         // Now let's start converting
         var retval = {};
+        retval.p_attr_md = {};
 
         this.uuidToDriver(descriptor.uuid, (err, uuid) => {
             if (err) {
+                console.log('Error converting uuid to driver.');
                 callback(err);
                 return;
             }
 
-            retval.attribute.p_uuid = uuid;
+            retval.p_uuid = uuid;
 
-            retval.p_uuid = {};
-            retval.p_attr_md.read_perm = SoftDeviceConverter.securityModeToDriver(descriptor.readPerm);
-            retval.p_attr_md.write_perm = SoftDeviceConverter.securityModeToDriver(descriptor.writePerm);
+            retval.p_attr_md.read_perm = SoftDeviceConverter.securityModeToDriver(descriptor.properties.readPerm);
+            retval.p_attr_md.write_perm = SoftDeviceConverter.securityModeToDriver(descriptor.properties.writePerm);
             retval.p_attr_md.vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
-            retval.p_attr_md.vlen = descriptor.properties.variableLength || null; // TODO: validate purpose of this varible
+            retval.p_attr_md.vlen = descriptor.properties.variableLength || false; // TODO: validate purpose of this varible
             retval.p_attr_md.rd_auth = descriptor.properties.readAuth || false;
             retval.p_attr_md.wr_auth = descriptor.properties.writeAuth || false;
+
+            retval.init_len = descriptor.value.length;
+            retval.init_offs = 0;
+            retval.max_len = descriptor.properties.maxLength || retval.init_len;
+            retval.p_value = descriptor.value;
+
+            console.log('D -> DST: ' + JSON.stringify(retval, null, 1));
+
             callback(undefined, retval);
         });
     }
@@ -170,7 +182,7 @@ class SoftDeviceConverter {
             return;
         }
 
-        console.log('SRC: ' + JSON.stringify(characteristic));
+        console.log('SRC: ' + JSON.stringify(characteristic, null, 1));
 
         // Now let's start converting
         var retval = {};
@@ -214,7 +226,7 @@ class SoftDeviceConverter {
             retval.attribute.init_offs = 0;
             retval.attribute.max_len = characteristic.properties.maxLength || retval.attribute.init_len;
 
-            console.log('DST: ' + JSON.stringify(retval));
+            console.log('DST: ' + JSON.stringify(retval, null, 1));
             callback(undefined, retval);
         });
     }
