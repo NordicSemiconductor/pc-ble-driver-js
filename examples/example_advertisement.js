@@ -1,5 +1,4 @@
-
-var driver = require('../build/Debug/ble_driver_js');
+const driver = require('../index').driver;
 
 var evt_count = 0;
 var connectionHandle = 0;
@@ -11,19 +10,20 @@ var addedVSUUIDType = -1;
 driver.open(
     'COM19',
     {
-        'baudRate': 115200,
-        'parity': 'none',
-        'flowControl': 'none',
-        'eventInterval': 200,
-        'logCallback': function(severity, message) {
+        baudRate: 115200,
+        parity: 'none',
+        flowControl: 'none',
+        eventInterval: 200,
+        logCallback: function(severity, message) {
             if (severity > 0) {
-                console.log("log: " + severity + ", " + message);
+                console.log('log: ' + severity + ', ' + message);
             }
         },
-        'eventCallback': onBleEvent,
+
+        eventCallback: onBleEvent,
     },
     function(err) {
-        if(err) {
+        if (err) {
             console.log('Error occurred opening serial port: %d', err);
             return;
         }
@@ -33,82 +33,69 @@ driver.open(
 );
 
 function onBleEvent(event_array) {
-    console.log("event_array length: " + event_array.length)
+    console.log('event_array length: ' + event_array.length);
 
     for (var i = 0; i < event_array.length; i++)
     {
         event = event_array[i];
         evt_count = evt_count + 1;
-        console.log("evt #" +  evt_count  + ", id: " + event.id + ", name: " + event.name);
-        console.log("time:" + event.time);
-        //console.log("JSON: %s", JSON.stringify(event));
+        console.log('evt #' +  evt_count  + ', id: ' + event.id + ', name: ' + event.name);
+        console.log('time:' + event.time);
 
-        if(event.name === 'BLE_GAP_EVT_ADV_REPORT') {
-            console.log("ADDRESS: %s", event.peer_addr.address);
-            console.log("RSSI: %s", event.rssi);
-        }
-        else if (event.name === 'BLE_GAP_EVT_TIMEOUT') {
-            console.log("Timeout source: %s", event.src);
-        }
-        else if (event.name === 'BLE_GAP_EVT_CONNECTED')
-        {
+        //console.log("JSON: %s", JSON.stringify(event));
+        if (event.name === 'BLE_GAP_EVT_ADV_REPORT') {
+            console.log('ADDRESS: %s', event.peer_addr.address);
+            console.log('RSSI: %s', event.rssi);
+        } else if (event.name === 'BLE_GAP_EVT_TIMEOUT') {
+            console.log('Timeout source: %s', event.src);
+        } else if (event.name === 'BLE_GAP_EVT_CONNECTED') {
             connectionHandle = event.conn_handle;
-            console.log("Connected. Handle: %d", connectionHandle);
-            connSecGet();
-        }
-        else if (event.name === 'BLE_GATTS_EVT_SYS_ATTR_MISSING')
-        {
+            console.log('Connected. Handle: %d', connectionHandle);
+
+            //connSecGet();
+            setTimeout(authenticate, 2000);
+        } else if (event.name === 'BLE_GATTS_EVT_SYS_ATTR_MISSING') {
             driver.gatts_set_system_attribute(connectionHandle, 0, 0, 0, function(err) {
-                if (err)
-                {
+                if (err) {
                     console.log('Failed setting system attributes');
                     console.log(err);
                 }
             });
-        }
-        else if (event.name === 'BLE_GATTS_EVT_WRITE')
-        {
-            if (event.context.char_uuid.uuid == 0x2A37)
-            {
+        } else if (event.name === 'BLE_GATTS_EVT_WRITE') {
+            if (event.context.char_uuid.uuid == 0x2A37) {
                 var write_data = event.data[0];
-                if (write_data === driver.BLE_GATT_HVX_NOTIFICATION)
-                {
+                if (write_data === driver.BLE_GATT_HVX_NOTIFICATION) {
                     heartRate = 10;
-                    interval = setInterval(function () {
+                    interval = setInterval(function() {
                         heartRate += 5;
                         hvxParams = {
-                            'handle': valueHandle,
-                            'type': driver.BLE_GATT_HVX_NOTIFICATION,
-                            'offset': 0,
-                            'p_len': [1],
-                            'p_data': [heartRate, 0],
+                            handle: valueHandle,
+                            type: driver.BLE_GATT_HVX_NOTIFICATION,
+                            offset: 0,
+                            p_len: [1],
+                            p_data: [heartRate, 0],
                         };
                         driver.gatts_hvx(connectionHandle, hvxParams, function(err, hvx_length) {
                             if (err) {
-                                console.log("HVX error");
+                                console.log('HVX error');
                                 console.log(err);
                             }
-                        })
+                        });
                     }, 1000);
-                }
-                else
-                {
+                } else {
                     clearInterval(interval);
                 }
             }
-        }
-        else if (event.name === 'BLE_GAP_EVT_SEC_PARAMS_REQUEST')
-        {
-            console.log("GapSecParamsRequest: " + JSON.stringify(event));
-            setTimeout(secParamsReply, 1000);
-        }
-        else if (event.name === 'BLE_GAP_EVT_CONN_SEC_UPDATE')
-        {
+        } else if (event.name === 'BLE_GAP_EVT_SEC_PARAMS_REQUEST') {
+            console.log('GapSecParamsRequest: ' + JSON.stringify(event));
+            secParamsReply();
+        } else if (event.name === 'BLE_GAP_EVT_SEC_INFO_REQUEST') {
+            console.log('GapSecInfoRequest: ' + JSON.stringify(event));
+            secInfoReply();
+        } else if (event.name === 'BLE_GAP_EVT_CONN_SEC_UPDATE') {
             console.log('Connection security update event received:');
             console.log(JSON.stringify(event));
-        }
-        else if (event.name === 'BLE_GAP_EVT_AUTH_STATUS')
-        {
+        } else if (event.name === 'BLE_GAP_EVT_AUTH_STATUS') {
             console.log('Auth status event received:');
             console.log(JSON.stringify(event));
         }
@@ -116,7 +103,7 @@ function onBleEvent(event_array) {
 }
 
 function addVsUuid() {
-    driver.add_vs_uuid({'uuid128': '11220000-3344-5566-7788-99aabbccddee'},
+    driver.add_vs_uuid({uuid128: '11220000-3344-5566-7788-99aabbccddee'},
         function(err, type) {
             if (err)
             {
@@ -125,18 +112,19 @@ function addVsUuid() {
                 return;
             }
 
-        console.log('Added 128-bit UUID with type %d', type);
-        addedVSUUIDType = type;
+            console.log('Added 128-bit UUID with type %d', type);
+            addedVSUUIDType = type;
 
-        encodeUUID();
-        decodeUUID();
+            encodeUUID();
+            decodeUUID();
 
-        addService();
-    });
+            addService();
+        }
+    );
 }
 
 function encodeUUID() {
-    driver.encode_uuid({'uuid': 0x2A37, 'type': addedVSUUIDType}, function(err, len, uuid, uuidString) {
+    driver.encode_uuid({uuid: 0x2A37, type: addedVSUUIDType}, function(err, len, uuid, uuidString) {
         if (err)
         {
             console.log('Error occured when encoding UUID');
@@ -144,7 +132,7 @@ function encodeUUID() {
             return;
         }
 
-        console.log('Encoded uuid. Result: Length: %d Full UUID: %s UUIDString: %s', len, JSON.stringify(uuid), uuidString)
+        console.log('Encoded uuid. Result: Length: %d Full UUID: %s UUIDString: %s', len, JSON.stringify(uuid), uuidString);
     });
 }
 
@@ -157,12 +145,12 @@ function decodeUUID() {
             return;
         }
 
-        console.log('Decoded uuid. Result: %s', JSON.stringify(uuid))
+        console.log('Decoded uuid. Result: %s', JSON.stringify(uuid));
     });
 }
 
 function addService() {
-    driver.gatts_add_service(1, {'uuid': 0x180D, 'type': driver.BLE_UUID_TYPE_BLE},
+    driver.gatts_add_service(1, {uuid: 0x180D, type: driver.BLE_UUID_TYPE_BLE},
         function(err, handle) {
             if (err) {
                 console.log('Error occured when adding service');
@@ -180,46 +168,46 @@ function addService() {
 function addCharacteristic(handle) {
     driver.gatts_add_characteristic(handle,
         { // metadata
-            'char_props':
+            char_props:
             {
-                'broadcast': false,
-                'read': true,
-                'write_wo_resp': false,
-                'write': false,
-                'notify': true,
-                'indicate': false,
-                'auth_signed_wr': false
+                broadcast: false,
+                read: true,
+                write_wo_resp: false,
+                write: false,
+                notify: true,
+                indicate: false,
+                auth_signed_wr: false,
             },
-            'char_ext_props': {'reliable_wr': false, 'wr_aux': false},
-            'char_user_desc_max_size': 0,
-            'char_user_desc_size': 0,
-            'p_char_pf': 0, // Presentation format (ble_gatts_char_pf_t) May be 0
-            'p_user_desc_md': 0, // User Description descriptor (ble_gatts_attr_md_t) May be 0
-            'p_cccd_md': // Client Characteristic Configuration Descriptor (ble_gatts_attr_md_t) May be 0
+            char_ext_props: {reliable_wr: false, wr_aux: false},
+            char_user_desc_max_size: 0,
+            char_user_desc_size: 0,
+            p_char_pf: 0, // Presentation format (ble_gatts_char_pf_t) May be 0
+            p_user_desc_md: 0, // User Description descriptor (ble_gatts_attr_md_t) May be 0
+            p_cccd_md: // Client Characteristic Configuration Descriptor (ble_gatts_attr_md_t) May be 0
             {
-                'read_perm': {'sm': 1, 'lv': 1},
-                'write_perm': {'sm': 1, 'lv': 1},
-                'vlen': false,
-                'vloc': driver.BLE_GATTS_VLOC_STACK,
-                'rd_auth': false,
-                'wr_auth': false,
+                read_perm: {sm: 1, lv: 1},
+                write_perm: {sm: 1, lv: 1},
+                vlen: false,
+                vloc: driver.BLE_GATTS_VLOC_STACK,
+                rd_auth: false,
+                wr_auth: false,
             },
-            'p_sccd_md': 0, // Server Characteristic Configuration Descriptor (ble_gatts_attr_md_t) May be 0
+            p_sccd_md: 0, // Server Characteristic Configuration Descriptor (ble_gatts_attr_md_t) May be 0
         },
         { // attributeStructure
-            'p_uuid': {'uuid': 0x2A37, 'type': addedVSUUIDType},
-            'p_attr_md': {
-                'read_perm': {'sm': 1, 'lv': 1},
-                'write_perm': {'sm': 1, 'lv': 1},
-                'vlen': false,
-                'vloc': 1,
-                'rd_auth': false,
-                'wr_auth': false,
+            p_uuid: {uuid: 0x2A37, type: addedVSUUIDType},
+            p_attr_md: {
+                read_perm: {sm: 1, lv: 1},
+                write_perm: {sm: 1, lv: 1},
+                vlen: false,
+                vloc: 1,
+                rd_auth: false,
+                wr_auth: false,
             },
-            'init_len': 1,
-            'init_offs': 0,
-            'max_len': 1,
-            'p_value': [43],
+            init_len: 1,
+            init_offs: 0,
+            max_len: 1,
+            p_value: [43],
         },
         function(err, handles) {
             if (err) {
@@ -233,26 +221,26 @@ function addCharacteristic(handle) {
             characteristicHandle = valueHandle - 1;
 
             addDescriptor();
-    });
-
+        }
+    );
 }
 
 function addDescriptor() {
     driver.gatts_add_descriptor(valueHandle,
         {
-            'p_uuid': {'uuid': 0x2A38, 'type': 2},
-            'p_attr_md': {
-                'read_perm': {'sm': 1, 'lv': 1},
-                'write_perm': {'sm': 1, 'lv': 1},
-                'vlen': false,
-                'vloc': 1,
-                'rd_auth': false,
-                'wr_auth': false,
+            p_uuid: {uuid: 0x2A38, type: 2},
+            p_attr_md: {
+                read_perm: {sm: 1, lv: 1},
+                write_perm: {sm: 1, lv: 1},
+                vlen: false,
+                vloc: 1,
+                rd_auth: false,
+                wr_auth: false,
             },
-            'init_len': 1,
-            'init_offs': 0,
-            'max_len': 1,
-            'p_value': [43],
+            init_len: 1,
+            init_offs: 0,
+            max_len: 1,
+            p_value: [43],
         },
         function(err, handle) {
             if (err) {
@@ -261,26 +249,53 @@ function addDescriptor() {
                 return;
             }
 
-            console.log('Added descriptor with handle %d', handle)
+            console.log('Added descriptor with handle %d', handle);
+
+            setAdvertisingData();
+        }
+    );
+}
+
+function setAdvertisingData() {
+    // gap_set_advertising_data(adv_data, scan_response_data, callback)
+    //
+    // adv_data: null or <array of utf8 values, length 0 to BLE_GAP_ADV_MAX_SIZE (31)
+    //
+    // scan_response_data: same as adv_data
+    //
+    // callback: function(err)
+    //
+    // http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.s130.api.v1.0.0/group___b_l_e___g_a_p___f_u_n_c_t_i_o_n_s.html?cp=2_7_2_1_0_2_1_4_2#gaddbb12e078d536ef2e93b41d77ff6243
+    driver.gap_set_advertising_data(
+        [8, 9, 87, 97, 121, 108, 97, 110, 100], // adv_data: 8=length, 9=complete_local_name, 'Wayland'
+        [0x02, 0x0A, 0x00], // scan response, 2=length, 0xA=txpower, 0dBm
+        function(err) {
+            if (err) {
+                console.log('Error occured when setting advertising data: ' + err);
+                return;
+            }
+
+            console.log('Added advertising data.');
 
             startAdvertising();
-    });
+        }
+    );
 }
 
 function startAdvertising() {
     driver.gap_start_advertising({
-            'type': driver.BLE_GAP_ADV_TYPE_ADV_IND,
-            'fp': driver.BLE_GAP_ADV_FP_ANY,
-            'interval': 40,
-            'timeout': 180,
-            'channel_mask': {
-                'ch_37_off': 0,
-                'ch_38_off': 0,
-                'ch_39_off': 0,
+            type: driver.BLE_GAP_ADV_TYPE_ADV_IND,
+            fp: driver.BLE_GAP_ADV_FP_ANY,
+            interval: 40,
+            timeout: 180,
+            channel_mask: {
+                ch_37_off: 0,
+                ch_38_off: 0,
+                ch_39_off: 0,
             },
         },
         function(err) {
-            if(err) {
+            if (err) {
                 console.log('Error occured when starting advertisement');
                 console.log(err);
                 return;
@@ -291,6 +306,16 @@ function startAdvertising() {
             //setTimeout(stopAdvertising, 60000);
         }
     );
+}
+
+function stopAdvertising() {
+    driver.gap_stop_advertising(function(err) {
+        if (err) {
+            console.log('Error occured when stopping advertising');
+        }
+
+        console.log('Stopped advertising');
+    });
 }
 
 function connSecGet() {
@@ -312,81 +337,195 @@ function connSecGet() {
             console.log('Error occured in gap_conn_sec_get');
             return;
         }
+
         console.log('GapConnSecGet: ' + JSON.stringify(connSec));
     });
 }
 
-function stopAdvertising() {
-    driver.gap_stop_advertising(function(err) {
-        if (err) {
-            console.log('Error occured when stopping advertising');
-        }
-
-        console.log('Stopped advertising');
-    });
-}
-
 function secParamsReply() {
+    // gap_sec_params_reply(connHandle, sec_status, sec_params, sec_keyset, callback)
+    //
+    // sec_status: <number> (driver.BLE_GAP_SEC_STATUS_)
+    //
+    // sec_params: {
+    //     'bond': <bool>,
+    //     'mitm': <bool>,
+    //     'io_caps': <number> (driver.BLE_GAP_IO_CAPS_),
+    //     'oob': <bool>,
+    //     'min_key_size': <number, 7 to 16>,
+    //     'max_key_size': <number, 7 to 16>,
+    //     'kdist_periph': {
+    //         'enc': <bool>,
+    //         'id': <bool>,
+    //         'sign': <bool>
+    //     },
+    //     'kdist_central': {
+    //         'enc': <bool>,
+    //         'id': <bool>,
+    //         'sign': <bool>
+    //     },
+    // }
+    //
+    // sec_keyset: {
+    //     'keys_periph': {
+    //         'enc_key': null or {
+    //             'enc_info': {
+    //                 'ltk': <array of length 8>,
+    //                 'auth': <bool>,
+    //                 'ltk_len': <number>
+    //             },
+    //             'master_id': {
+    //                 'ediv': <number, 16bit>,
+    //                 'rand': <array of length 16>
+    //             }
+    //         },
+    //         'id_key': null or {
+    //             'id_info': {
+    //                 'irk': <array of length 8>,
+    //             },
+    //             'id_addr_info': {
+    //                 'addr': <string ('xx:xx:xx:xx:xx:xx')>,
+    //                 'type': <number> (driver.BLE_GAP_ADDR_TYPE_),
+    //             }
+    //         },
+    //         'sign_key': null or {
+    //             'csrk': <array of length 8>
+    //         }
+    //     },
+    //     'keys_central': (same as keys_periph)
+    // }
+    //
+    // callback: function(err, keyset)
+    //
+    // http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.s130.api.v1.0.0/group___b_l_e___g_a_p___f_u_n_c_t_i_o_n_s.html?cp=2_7_2_1_0_2_1_4_25#ga7b23027c97b3df21f6cbc23170e55663
     driver.gap_sec_params_reply(
         connectionHandle,
-        0, //sec_status
+        driver.BLE_GAP_SEC_STATUS_SUCCESS, //sec_status
         { //sec_params
-            'bond': true,
-            'mitm': false,
-            'io_caps': driver.BLE_GAP_IO_CAPS_NONE,
-            'oob': false,
-            'min_key_size': 7,
-            'max_key_size': 16,
-            'kdist_periph': {
-                'enc': true,
-                'id': false,
-                'sign': false
+            bond: true,
+            mitm: false,
+            io_caps: driver.BLE_GAP_IO_CAPS_NONE,
+            oob: false,
+            min_key_size: 7,
+            max_key_size: 16,
+            kdist_periph: {
+                enc: true,
+                id: false,
+                sign: false,
             },
-            'kdist_central': {
-                'enc': true,
-                'id': false,
-                'sign': false
-            }
+            kdist_central: {
+                enc: true,
+                id: false,
+                sign: false,
+            },
         },
         { // sec_keyset
-            'keys_periph': {
-                'enc_key': {
-                    'enc_info': {
-                        'ltk': [0,0,0,0,0,0,0,0],
-                        'auth': false,
-                        'ltk_len': 8
+            keys_periph: {
+                enc_key: {
+                    enc_info: {
+                        ltk: [0, 0, 0, 0, 0, 0, 0, 0],
+                        auth: false,
+                        ltk_len: 8,
                     },
-                    'master_id': {
-                        'ediv': 0x1234,
-                        'rand': [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-                    }
+                    master_id: {
+                        ediv: 0x1234,
+                        rand: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    },
                 },
-                'id_key': null,
-                'sign_key': null
+                id_key: null,
+                sign_key: null,
             },
-            'keys_central': {
-                'enc_key': {
-                    'enc_info': {
-                        'ltk': [0,0,0,0,0,0,0,0],
-                        'auth': false,
-                        'ltk_len': 8
+            keys_central: {
+                enc_key: {
+                    enc_info: {
+                        ltk: [0, 0, 0, 0, 0, 0, 0, 0],
+                        auth: false,
+                        ltk_len: 8,
                     },
-                    'master_id': {
-                        'ediv': 0x1234,
-                        'rand': [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-                    }
+                    master_id: {
+                        ediv: 0x1234,
+                        rand: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    },
                 },
-                'id_key': null,
-                'sign_key': null
-            }
+                id_key: null,
+                sign_key: null,
+            },
         },
         function(err, keyset) {
             if (err) {
                 console.log('Error occured in gap_sec_params_reply');
+                return;
             }
 
             console.log('gap_sec_params_reply completed');
             console.log('keyset: ' + JSON.stringify(keyset));
         }
     );
+}
+
+function secInfoReply() {
+    // gap_sec_info_reply(conn_handle, enc_info, id_info, sign_info, callback)
+    //
+    // enc_info: null or {
+    //  'ltk': <array of length 8>,
+    //  'auth': <bool>,
+    //  'ltk_len': <number>
+    // }
+    //
+    // id_info: null or {
+    //  'irk': <array og length 8>
+    // }
+    //
+    // sign_info: null or {
+    //  'csrk': <array of length 8>
+    // }
+    // callback: function(err)
+    //
+    // http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.s130.api.v1.0.0/group___b_l_e___g_a_p___f_u_n_c_t_i_o_n_s.html?cp=2_7_2_1_0_2_1_4_24#ga9015143d731193672dc306f6e4aff684
+    driver.gap_sec_info_reply(
+        connectionHandle,
+        { //enc_info
+            ltk: [1, 2, 3, 4, 5, 6, 7, 8],
+            auth: false,
+            ltk_len: 8,
+        },
+        null, //id_info
+        null, //sign_info
+        function(err) {
+            if (err) {
+                console.log('Error occured in gap_sec_info_reply:' + err);
+                return;
+            }
+
+            console.log('gap_sec_info_reply completed');
+        });
+}
+
+function authenticate() {
+    driver.gap_authenticate(connectionHandle, {
+        bond: true,
+        mitm: false,
+        io_caps: driver.BLE_GAP_IO_CAPS_NONE,
+        oob: false,
+        min_key_size: 7,
+        max_key_size: 16,
+        kdist_periph: {
+            enc: true,
+            id: false,
+            sign: false,
+        },
+        kdist_central: {
+            enc: true,
+            id: false,
+            sign: false,
+        },
+    },
+    err => {
+        if (err) {
+            console.log('Error occured in authenticate: ' + JSON.stringify(err));
+            return;
+        }
+
+        console.log('Initiated authenticate');
+    });
 }
