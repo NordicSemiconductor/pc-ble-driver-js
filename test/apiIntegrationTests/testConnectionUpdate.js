@@ -1,6 +1,7 @@
 'use strict';
 const assert = require('assert');
 const testLib = require('./testLibrary').singletonContainer.testLibrary;
+const sinon = require('sinon');
 
 describe('Connection update', function() {
     this.timeout(100000);
@@ -35,6 +36,41 @@ describe('Connection update', function() {
             .catch((error) => {
                 console.log('error ');
                 done(error);
+            });
+    });
+
+    it('should fail with NRF_ERROR_INVALID_PARAM when unreasonable connection parameters', (done) => {
+        let theDevice;
+        const errorSpy = sinon.spy();
+        const connectionParameters = {
+            minConnectionInterval: 10000,
+            maxConnectionInterval: 10000,
+            slaveLatency: 10,
+            connectionSupervisionTimeout: 4000,
+        };
+        testLib.connectToPeripheral(peripheralAddress)
+            .then((device) => {
+                testLib._adapter.once('error', () => {});
+                theDevice = device;
+                return device;
+            })
+            .then((device) => {
+                return testLib.updateConnectionParameters(device.instanceId, connectionParameters);
+            })
+            .then((device) => {
+                console.log(device);
+                assert(false);
+            })
+            .then(() => {
+                done();
+            })
+            .catch((error) => {
+                testLib.disconnect(theDevice.instanceId).then(() => {
+                    done();
+                });
+                console.log('Expected error: ');
+                console.log(error);
+                assert.equal(error.description.errcode, 'NRF_ERROR_INVALID_PARAM');
             });
     });
 });
