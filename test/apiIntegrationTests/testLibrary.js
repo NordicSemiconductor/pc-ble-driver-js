@@ -205,6 +205,43 @@ class TestLibrary {
         });
     }
 
+    writeDescriptorValue(descriptorId, value, ack) {
+        return new Promise((resolve, reject) => {
+            //console.log(this._adapter._characteristics);
+            this._adapter.writeDescriptorValue(descriptorId, value, ack, (error, attribute) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(attribute);
+                }
+            });
+        });
+    }
+
+    readDescriptorValue(descriptorId) {
+        return new Promise((resolve, reject) => {
+            this._adapter.readDescriptorValue(descriptorId, (error, valueArray) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(valueArray);
+                }
+            });
+        });
+    }
+
+    writeCharacteristicValue(characteristicId, value, ack) {
+        return new Promise((resolve, reject) => {
+            this._adapter.writeCharacteristicValue(characteristicId, value, ack, (error, attribute) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(attribute);
+                }
+            });
+        });
+    }
+
     openAdapterAndConnectToPeripheral(adapterId, peripheralAddress) {
         return new Promise((resolve, reject) => {
             this.openAdapter(adapterId)

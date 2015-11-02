@@ -38,7 +38,7 @@ class Adapter extends EventEmitter {
 
         this._converter = new Converter(this._bleDriver);
 
-        this._maxPayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 3;
+        this._maxPayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 5;
 
         this._gapOperationsMap = {};
         this._gattOperationsMap = {};
@@ -188,6 +188,7 @@ class Adapter extends EventEmitter {
     // TODO: event callback function declared here or in open call?;
     _eventCallback(eventArray) {
         eventArray.forEach(event => {
+            console.log(event);
             switch (event.id){
                 case this._bleDriver.BLE_GAP_EVT_CONNECTED:
                     this._parseConnectedEvent(event);
@@ -253,6 +254,8 @@ class Adapter extends EventEmitter {
                     this._parseHvxEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_TIMEOUT:
+                    console.log('GATTC timeout');
+                    console.log(event);
                     // TODO: Implement
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_WRITE:
@@ -272,6 +275,7 @@ class Adapter extends EventEmitter {
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_TIMEOUT:
                     // TODO: Implement
+                    console.log('Timeout');
                     break;
                 case this._bleDriver.BLE_EVT_USER_MEM_REQUEST:
                     // TODO: Need this for receiving long writes?
@@ -798,6 +802,8 @@ class Adapter extends EventEmitter {
     }
 
     _parseWriteResponseEvent(event) {
+        console.log('got write response');
+        console.log(event);
         // 1. Check if there is a long write in progress for this device
         // 2a. If there is check if it is done after next write
         // 2ai. If it is done after next write
@@ -839,20 +845,25 @@ class Adapter extends EventEmitter {
                 writeParameters.handle = handle;
                 writeParameters.offset = gattOperation.bytesWritten;
                 writeParameters.len = value.length;
-                writeParameters.value = value;
+                writeParameters.p_value = value;
+                console.log(writeParameters);
+                this._bleDriver.gattc_write(device.connectionHandle, writeParameters, err => {
 
-                this._bleDriver.write(device.connectionHandle, writeParameters, err => {
                     if (err) {
+                        console.log('some error');
                         this._longWriteCancel(device, gattOperation.attribute);
                         this.emit('error', make_error('Failed to write value to device/handle ' + device.instanceId + '/' + handle, err));
                         return;
                     }
+                    console.log('successfully sent write to driver');
                 });
             } else {
                 writeParameters.write_op = this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ;
                 writeParameters.flags = this._bleDriver.BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE;
 
-                this._bleDriver.write(device.connectionHandle, writeParameters, (err) => {
+                console.log(writeParameters);
+                this._bleDriver.gattc_write(device.connectionHandle, writeParameters, (err) => {
+
                     if (err) {
                         this._longWriteCancel(device, gattOperation.attribute);
                         this.emit('error', make_error('Failed to write value to device/handle ' + device.instanceId + '/' + handle, err));
@@ -1828,7 +1839,8 @@ class Adapter extends EventEmitter {
             value: value,
         };
 
-        this._bleDriver.write(device.connectionHandle, writeParameters, (err) => {
+        console.log(writeParameters);
+        this._bleDriver.gattc_write(device.connectionHandle, writeParameters, (err) => {
             if (err) {
                 delete this._gattOperationsMap[device.instanceId];
                 this.emit('error', 'Failed to write to attribute with handle: ' + attribute.handle);
@@ -1851,18 +1863,22 @@ class Adapter extends EventEmitter {
 
         const writeParameters = {
             write_op: this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ,
-            flags: 0,
+            flags: this._bleDriver.BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE,
             handle: attribute.handle,
             offset: 0,
             len: this._maxPayloadSize,
-            value: value.slice(0, this._maxPayloadSize),
+            p_value: value.slice(0, this._maxPayloadSize),
         };
 
-        this._bleDriver.write(device.connectionHandle, writeParameters, (err) => {
+        console.log(writeParameters);
+        this._bleDriver.gattc_write(device.connectionHandle, writeParameters, (err) => {
             if (err) {
+                console.log(err);
                 this._longWriteCancel(device, attribute);
                 this.emit('error', make_error('Failed to write value to device/handle ' + device.instanceId + '/' + attribute.handle, err));
+                return;
             }
+            console.log('successfully sent write');
         });
     }
 
@@ -1874,10 +1890,10 @@ class Adapter extends EventEmitter {
             handle: attribute.handle,
             offset: 0,
             len: 0,
-            value: [],
+            p_value: [],
         };
-
-        this._bleDriver.write(device.connectionHandle, writeParameters, err => {
+        console.log(writeParameters);
+        this._bleDriver.gattc_write(device.connectionHandle, writeParameters, err => {
             delete this._gattOperationsMap[device.instanceId];
 
             if (err) {
