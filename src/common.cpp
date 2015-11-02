@@ -214,7 +214,7 @@ uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Object>js, cha
     RETURN_VALUE_OR_THROW_EXCEPTION(ConversionUtility::getNativePointerToUint8(value));
 }
 
-uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Value>js)
+uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Value> js)
 {
     if (!js->IsArray())
     {

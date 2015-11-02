@@ -6,8 +6,8 @@ class Descriptor {
     constructor(characteristicInstanceId, uuid, value, properties) {
         if (!characteristicInstanceId) throw new Error('serviceInstanceId must be provided.');
         if (!uuid) throw new Error('uuid must be provided.');
-        if (!value) throw new Error('value must be provided.');
-        if (!properties) throw new Error('properties must be provided.');
+//        if (!value) throw new Error('value must be provided.');
+//        if (!properties) throw new Error('properties must be provided.');
 
         this._instanceId = characteristicInstanceId + '.' + (i++).toString();
         this._characteristicInstanceId = characteristicInstanceId;

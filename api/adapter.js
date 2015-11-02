@@ -188,7 +188,6 @@ class Adapter extends EventEmitter {
     // TODO: event callback function declared here or in open call?;
     _eventCallback(eventArray) {
         eventArray.forEach(event => {
-            console.log(event);
             switch (event.id){
                 case this._bleDriver.BLE_GAP_EVT_CONNECTED:
                     this._parseConnectedEvent(event);
@@ -360,7 +359,11 @@ class Adapter extends EventEmitter {
         device.maxConnectionInterval = event.conn_params.max_conn_interval;
         device.slaveLatency = event.conn_params.slave_latency;
         device.connectionSupervisionTimeout = event.conn_params.conn_sup_timeout;
-
+        if (this._gapOperationsMap[device.instanceId]) {
+            const callback = this._gapOperationsMap[device.instanceId].callback;
+            delete this._gapOperationsMap[device.instanceId];
+            callback(undefined, device);
+        }
         this.emit('connParamUpdate', device);
     }
 
@@ -1357,19 +1360,23 @@ class Adapter extends EventEmitter {
     }
 
     // options: connParams, callback signature function(err) {} returns true/false
-    updateConnParams(deviceInstanceId, options, callback) {
-        const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
-        if (!connectionHandle) {
-            throw new Error('No connection handle found for device with instance id: ' + deviceInstanceId);
+    updateConnectionParameters(deviceInstanceId, options, callback) {
+        const device = this.getDevice(deviceInstanceId);
+        if (!device) {
+            throw new Error('No device with instance id: ' + deviceInstanceId);
         }
 
         const connectionParamsStruct = this._getConnectionUpdateParams(options);
-        this._bleDriver.gap_update_connection_parameters(connectionHandle, connectionParamsStruct, err => {
+        this._bleDriver.gap_update_connection_parameters(device.connectionHandle, connectionParamsStruct, err => {
             if (err) {
-                this.emit('error', make_error('Failed to update connection parameters', err));
+                const errorObject = make_error('Failed to update connection parameters', err);
+                this.emit('error', errorObject);
+                callback(errorObject);
+            } else {
+                this._gapOperationsMap[deviceInstanceId] = {
+                    callback,
+                };
             }
-
-            callback(err);
         });
     }
 
@@ -1787,7 +1794,7 @@ class Adapter extends EventEmitter {
 
         this._gattOperationsMap[device.instanceId] = {callback: callback, readBytes: []};
 
-        this._bleDriver.read(device.connectionHandle, descriptor.handle, 0, (err) => {
+        this._bleDriver.gattc_read(device.connectionHandle, descriptor.handle, 0, (err) => {
             if (err) {
                 this.emit('error', make_error('Read descriptor value failed', err));
             }
@@ -1825,7 +1832,7 @@ class Adapter extends EventEmitter {
 
             this._longWrite(device, descriptor, value, callback);
         } else {
-            this._shortWrite(device, descriptor, ack, value, callback);
+            this._shortWrite(device, descriptor, value, ack, callback);
         }
     }
 
@@ -1836,7 +1843,7 @@ class Adapter extends EventEmitter {
             handle: attribute.handle,
             offset: 0,
             len: value.length,
-            value: value,
+            p_value: value,
         };
 
         console.log(writeParameters);

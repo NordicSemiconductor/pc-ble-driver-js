@@ -114,6 +114,18 @@ class TestLibrary {
         });
     }
 
+    updateConnectionParameters(deviceInstanceId, newParameters) {
+        return new Promise( (resolve, reject) => {
+            this._adapter.updateConnectionParameters(deviceInstanceId, newParameters, (error, connectionParameters) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(connectionParameters);
+                }
+            });
+        });
+    }
+
     getServices(deviceInstanceId) {
         return new Promise((resolve, reject) => {
             this._adapter.getServices(deviceInstanceId, (err, services) => {
