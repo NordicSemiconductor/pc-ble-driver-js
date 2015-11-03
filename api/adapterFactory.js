@@ -71,9 +71,9 @@ class AdapterFactory extends EventEmitter {
                 }
             }
 
-            for (let adapter in removedAdapters) {
-                const removedAdapter = this._adapters[adapter.instanceId];
-                delete this._adapters[adapter.instanceId];
+            for (let adapterId in removedAdapters) {
+                const removedAdapter = this._adapters[adapterId];
+                delete this._adapters[adapterId];
                 this.emit('removed', removedAdapter);
             }
 
