@@ -69,6 +69,11 @@ class Adapter extends EventEmitter {
         return this._instanceId;
     }
 
+    // get current adapter state. No calls to driver.
+    get adapterState() {
+        return this._adapterState;
+    }
+
     checkAndPropagateError(err, userMessage, callback) {
         if (err) {
             var error = make_error(userMessage, err);
