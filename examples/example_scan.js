@@ -46,14 +46,12 @@ driver.get_adapters((err, adapters) => {
 
                         if (event.peer_addr.address === 'E3:38:1E:0B:70:FE')
                         {
-                            connect({'address': 'E3:38:1E:0B:70:FE', 'type': 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC'});
+                            connect({address: 'E3:38:1E:0B:70:FE', type: 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC'});
                         }
                     } else if (event.name === 'BLE_GAP_EVT_TIMEOUT') {
                         console.log('Timeout source: %s', event.src);
-                    }
-                    else if (event.name === 'BLE_GAP_EVT_CONNECTED')
-                    {
-                        console.log("Connected: %s", JSON.stringify(event));
+                    } else if (event.name === 'BLE_GAP_EVT_CONNECTED') {
+                        console.log('Connected: %s', JSON.stringify(event));
                         authenticate(event.conn_handle);
                     }
                 }
@@ -75,7 +73,7 @@ driver.get_adapters((err, adapters) => {
                     return;
                 }
             });
-/*
+            /*
             // Close the driver after 10 seconds
             setTimeout(function() {
                 driver.close(function(err) {
@@ -87,7 +85,7 @@ driver.get_adapters((err, adapters) => {
                     console.log('Driver closed OK!');
                 });
             }, 10 * 1000);
-*/
+            */
         }
     );
 });
@@ -99,7 +97,7 @@ function encrypt() {
      *     'ediv': <0 to 0xFFFF>,
      *     'rand': <array of length BLE_GAP_SEC_RAND_LEN (=8)>
      * }
-     * 
+     *
      * enc_info: {
      *     'ltk': <array of length BLE_GAP_SEC_KEY_LEN (=16)>
      *     'auth': <bool>
@@ -110,32 +108,33 @@ function encrypt() {
      *
      * http://infocenter.nordicsemi.com/topic/com.nordic.infocenter.s130.api.v1.0.0/group___b_l_e___g_a_p___f_u_n_c_t_i_o_n_s.html?cp=2_7_2_1_0_2_1_4_16#ga5b10ba191122c7cf7cfccbdf76b3c657
      */
-     driver.gap_encrypt(
+    driver.gap_encrypt(
         connectionHandle,
         { //master_id
-            'ediv': 0,
-            'rand': [1, 2, 3, 4, 5, 6, 7, 8]
+            ediv: 0,
+            rand: [1, 2, 3, 4, 5, 6, 7, 8],
         },
         { //enc_info
-            'ltk': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
-            'auth': false,
-            'ltk_len': 16
+            ltk: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+            auth: false,
+            ltk_len: 16,
         },
-        function (err) {
+        function(err) {
             if (err) {
                 console.log('Error occured in gap_encrypt: ' + err);
                 return;
             }
+
             console.log('gap_encrypt completed');
         });
 }
 
 function connect(address) {
     driver.gap_connect(address, // Address
-                       {'active': true, 'interval': 100, 'window': 50, 'timeout': 20}, // Scan parameters
-                       {'min_conn_interval': 30, 'max_conn_interval': 60, 'slave_latency': 0, 'conn_sup_timeout': 4000}, // Connection parameters
+                       {active: true, interval: 100, window: 50, timeout: 20}, // Scan parameters
+                       {min_conn_interval: 30, max_conn_interval: 60, slave_latency: 0, conn_sup_timeout: 4000}, // Connection parameters
                        function(err) {
-                if(err) {
+                if (err) {
                     console.log('Could not connect');
                     return;
                 }
@@ -162,14 +161,15 @@ function authenticate(conn_handle) {
             enc: true,
             id: false,
             sign: false,
-        }
+        },
     }, err => {
         if (err)
         {
-            console.log("Error number: %d, Error code: %s, Errpr operation: %s, Error message: %s", err.errno, err.errcode, err.erroperation, err.errmsg);
+            console.log('Error number: %d, Error code: %s, Errpr operation: %s, Error message: %s', err.errno, err.errcode, err.erroperation, err.errmsg);
             console.log(err);
             return;
         }
+
         console.log('Initiated authenticate');
     });
 }
