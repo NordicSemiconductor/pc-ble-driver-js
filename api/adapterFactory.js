@@ -3,8 +3,6 @@
 var  Adapter = require('./adapter');
 const EventEmitter = require('events');
 
-const adapterUpdateInterval = 5000;
-
 /**
  * @brief A factory that instantiates new Adapters
  *
