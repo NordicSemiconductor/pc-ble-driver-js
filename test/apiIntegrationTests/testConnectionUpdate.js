@@ -35,7 +35,9 @@ describe('Connection update', function() {
             })
             .catch((error) => {
                 console.log('error ');
-                done(error);
+                testLib.disconnect(theDevice.instanceId).then(() => {
+                    done();
+                });
             });
     });
 
@@ -68,9 +70,10 @@ describe('Connection update', function() {
                 testLib.disconnect(theDevice.instanceId).then(() => {
                     done();
                 });
-                console.log('Expected error: ');
-                console.log(error);
                 assert.equal(error.description.errcode, 'NRF_ERROR_INVALID_PARAM');
+                if (error.description.errcode !== 'NRF_ERROR_INVALID_PARAM') {
+                    console.log(error);
+                }
             });
     });
 });

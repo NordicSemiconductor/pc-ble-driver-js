@@ -805,8 +805,6 @@ class Adapter extends EventEmitter {
     }
 
     _parseWriteResponseEvent(event) {
-        console.log('got write response');
-        console.log(event);
         // 1. Check if there is a long write in progress for this device
         // 2a. If there is check if it is done after next write
         // 2ai. If it is done after next write
@@ -1611,8 +1609,6 @@ class Adapter extends EventEmitter {
                 this.emit('error', make_error('Failed to get services', err));
                 callback(err);
                 return;
-            } else {
-                console.log('successfully issued primary_services_discover to driver');
             }
         });
     }
@@ -1846,7 +1842,6 @@ class Adapter extends EventEmitter {
             p_value: value,
         };
 
-        console.log(writeParameters);
         this._bleDriver.gattc_write(device.connectionHandle, writeParameters, (err) => {
             if (err) {
                 delete this._gattOperationsMap[device.instanceId];
@@ -1877,7 +1872,6 @@ class Adapter extends EventEmitter {
             p_value: value.slice(0, this._maxPayloadSize),
         };
 
-        console.log(writeParameters);
         this._bleDriver.gattc_write(device.connectionHandle, writeParameters, (err) => {
             if (err) {
                 console.log(err);
@@ -1885,7 +1879,7 @@ class Adapter extends EventEmitter {
                 this.emit('error', make_error('Failed to write value to device/handle ' + device.instanceId + '/' + attribute.handle, err));
                 return;
             }
-            console.log('successfully sent write');
+
         });
     }
 
@@ -1899,7 +1893,7 @@ class Adapter extends EventEmitter {
             len: 0,
             p_value: [],
         };
-        console.log(writeParameters);
+
         this._bleDriver.gattc_write(device.connectionHandle, writeParameters, err => {
             delete this._gattOperationsMap[device.instanceId];
 

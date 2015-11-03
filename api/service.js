@@ -14,8 +14,6 @@ class Service {
         this._deviceInstanceId = deviceInstanceId;
         this.uuid = uuid;
 
-        console.log('uuid:' + this.uuid);
-
         if (this.uuid && !(this.uuid.length === 4 || this.uuid.length === 32)) {
             throw new Error('uuid must be 128-bit or 16-bit.');
         }

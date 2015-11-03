@@ -1,8 +1,8 @@
 'use strict';
 
 const driver = require('../../index.js').driver;
-const adapterFactory = require('../../api/adapterFactory.js');
-var adapterFactoryInstance = new adapterFactory(driver);
+const AdapterFactory = require('../../api/adapterFactory.js');
+var adapterFactoryInstance = new AdapterFactory(driver);
 class TestLibrary {
     getAdapters() {
         return new Promise((resolve, reject) => {
@@ -20,9 +20,14 @@ class TestLibrary {
     openAdapter(adapterId) {
         return new Promise((resolve, reject) => {
             this.getAdapters().then((adapters) => {
-                const options = {'baudRate': 115200, 'parity': 'none', 'flowControl': 'none',
-                                 'eventInterval': 1,'logLevel': 'trace',
+                const options = {
+                    baudRate: 115200,
+                    parity: 'none',
+                    flowControl: 'none',
+                    eventInterval: 1,
+                    logLevel: 'trace',
                 };
+
                 const adapter = adapters[adapterId];
                 if (!adapter) {
                     reject('No adapter connected with adapter id ' + adapterId);
@@ -33,7 +38,6 @@ class TestLibrary {
                         console.log('Failed to open adapter ' + adapterId + ': ' + err);
                         reject(err);
                     }
-
                     this._adapter = adapter;
                     resolve();
                 });
@@ -44,7 +48,10 @@ class TestLibrary {
     listAdvertisingPeripherals() {
         return new Promise((resolve, reject) => {
             const scanParameters = {
-                'active': true, 'interval': 100, 'window': 50, 'timeout': 20
+                active: true,
+                interval: 100,
+                window: 50,
+                timeout: 20,
             };
             let foundDevices = [];
             const advertisingListener = (device)=> {
@@ -84,8 +91,6 @@ class TestLibrary {
                 if (error) {
                     reject(error);
                 }
-
-                console.log('Connecting to device at '  + address + '...');
             });
         });
     }
@@ -115,7 +120,7 @@ class TestLibrary {
     }
 
     updateConnectionParameters(deviceInstanceId, newParameters) {
-        return new Promise( (resolve, reject) => {
+        return new Promise((resolve, reject) => {
             this._adapter.updateConnectionParameters(deviceInstanceId, newParameters, (error, connectionParameters) => {
                 if (error) {
                     reject(error);
@@ -132,7 +137,6 @@ class TestLibrary {
                 if (err) {
                     reject('Failed to get services: ', err);
                 } else {
-                    //console.log(JSON.stringify(services));
                     resolve(services);
                 }
             });
@@ -219,7 +223,6 @@ class TestLibrary {
 
     writeDescriptorValue(descriptorId, value, ack) {
         return new Promise((resolve, reject) => {
-            //console.log(this._adapter._characteristics);
             this._adapter.writeDescriptorValue(descriptorId, value, ack, (error, attribute) => {
                 if (error) {
                     reject(error);

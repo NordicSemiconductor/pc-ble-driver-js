@@ -1,18 +1,9 @@
 'use strict';
+
 const assert = require('assert');
 const testLib = require('./testLibrary').singletonContainer.testLibrary;
-const sinon = require('sinon');
-
-let promiseSequencer = (list, data) => {
-    console.log(JSON.stringify(data));
-    var p = Promise.resolve(data);
-    return list.reduce((previousP, nextP) => {
-        return previousP.then(nextP);
-    }, p);
-};
 
 describe('Service Discovery', function() {
-
     const peripheralAddress = process.env.testPeripheral;
     this.timeout(10000);
 
@@ -22,14 +13,6 @@ describe('Service Discovery', function() {
             .then((device) => {
                 theDevice = device;
                 return testLib.getServices(device.instanceId);
-            })
-            .then((services) => {
-                for (let index in services) {
-                    let service = services[index];
-                    console.log('uuid: ' + service.uuid + ' startHandle: ' + service.startHandle);
-                }
-
-                return services;
             })
             .then((services) => {
                 return testLib.getCharacteristics(services[0].instanceId);
