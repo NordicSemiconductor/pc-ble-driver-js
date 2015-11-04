@@ -58,6 +58,7 @@ class Device {
         this._findAndSetNameFromAdvertisingData(event.data);
         this._processAndSetServiceUuidsFromAdvertisingData(event.data);
         this._processFlagsFromAdvertisingData(event.data);
+        this._setRssiLevel();
     }
 
     _findAndSetNameFromAdvertisingData(advertisingData) {
@@ -76,9 +77,9 @@ class Device {
 
     _processFlagsFromAdvertisingData(advertisingData) {
         if (advertisingData && advertisingData.BLE_GAP_AD_TYPE_FLAGS) {
-            this.flags = advertisingData.BLE_GAP_AD_TYPE_FLAGS.map( (flag) =>{
+            this.flags = advertisingData.BLE_GAP_AD_TYPE_FLAGS.map((flag) => {
                 return camelCaseFlag(flag);
-            })
+            });
         }
     }
 
@@ -130,7 +131,7 @@ class Device {
             return Math.max(toMin, Math.min(toMax, n));
         }
 
-        this.rssi_level = mapRange(device.rssi, MIN_RSSI, MAX_RSSI, 4, 20)
+        this.rssi_level = mapRange(this.rssi, MIN_RSSI, MAX_RSSI, 4, 20);
     }
 }
 
