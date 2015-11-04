@@ -389,51 +389,7 @@ class Adapter extends EventEmitter {
         // TODO: Check address type?
         const address = event.peer_addr.address;
         const discoveredDevice = new Device(address, 'peripheral');
-
-        if (event.data) {
-            if (event.data.BLE_GAP_AD_TYPE_LONG_LOCAL_NAME) {
-                discoveredDevice.name = event.data.BLE_GAP_AD_TYPE_LONG_LOCAL_NAME;
-            } else if (event.data.BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME) {
-                discoveredDevice.name = event.data.BLE_GAP_AD_TYPE_SHORT_LOCAL_NAME;
-            } else if (event.data.BLE_GAP_AD_TYPE_COMPLETE_LOCAL_NAME) {
-                discoveredDevice.name = event.data.BLE_GAP_AD_TYPE_COMPLETE_LOCAL_NAME;
-            }
-
-            let uuids = [];
-
-            if (event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_MORE_AVAILABLE) {
-                uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_MORE_AVAILABLE);
-            }
-
-            if (event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE) {
-                uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE);
-            }
-
-            if (event.data.BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_MORE_AVAILABLE) {
-                uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_MORE_AVAILABLE);
-            }
-
-            if (event.data.BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_COMPLETE) {
-                uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_COMPLETE);
-            }
-
-            if (event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_MORE_AVAILABLE) {
-                uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_MORE_AVAILABLE);
-            }
-
-            if (event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_COMPLETE) {
-                uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_COMPLETE);
-            }
-
-            discoveredDevice.uuids = uuids;
-
-            if (event.data.BLE_GAP_AD_TYPE_TX_POWER_LEVEL) {
-                discoveredDevice.txPower = event.data.BLE_GAP_AD_TYPE_TX_POWER_LEVEL;
-            }
-        }
-
-        discoveredDevice.rssi = event.rssi;
-
+        discoveredDevice.processEventData(event);
         this.emit('deviceDiscovered', discoveredDevice);
     }
 
@@ -1321,7 +1277,7 @@ class Adapter extends EventEmitter {
 
     // Callback function signature: function(err) {}
     stopAdvertising(callback) {
-        this._bleDriver.gap_stop_advertisement(err => {
+        this._bleDriver.gap_stop_advertising(err => {
             if (this.checkAndPropagateError(err, 'Failed to stop advertising.', callback)) return;
             this._changeAdapterState({advertising: false});
             if (callback) callback();

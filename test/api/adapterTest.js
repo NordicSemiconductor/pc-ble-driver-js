@@ -189,21 +189,18 @@ describe('Adapter updateConnParams', () => {
     });
 
     it('should call bleDriver with the passed parameters', (done) => {
-        bleDriver.gap_update_connection_parameters.yieldsAsync(undefined);
+        bleDriver.gap_update_connection_parameters.yields(undefined);
         adapter.once('deviceConnected', (device) => {
             console.log('cc');
             const connectionUpdateParameters = createConnectionUpdateParameters();
-            adapter.updateConnParams(device.instanceId, connectionUpdateParameters, (error) => {
-                assert(!error);
-                const args = bleDriver.gap_update_connection_parameters.args[0];
-                assert.equal(args[0], 123);
-                assert.equal(args[1].min_conn_interval, connectionUpdateParameters.minConnectionInterval);
-                assert.equal(args[1].max_conn_interval, connectionUpdateParameters.maxConnectionInterval);
-                assert.equal(args[1].slave_latency, connectionUpdateParameters.slaveLatency);
-                assert.equal(args[1].conn_sup_timeout, connectionUpdateParameters.connectionSupervisionTimeout);
-
-                done();
-            });
+            adapter.updateConnectionParameters(device.instanceId, connectionUpdateParameters, (error) => {});
+            const args = bleDriver.gap_update_connection_parameters.args[0];
+            assert.equal(args[0], 123);
+            assert.equal(args[1].min_conn_interval, connectionUpdateParameters.minConnectionInterval);
+            assert.equal(args[1].max_conn_interval, connectionUpdateParameters.maxConnectionInterval);
+            assert.equal(args[1].slave_latency, connectionUpdateParameters.slaveLatency);
+            assert.equal(args[1].conn_sup_timeout, connectionUpdateParameters.connectionSupervisionTimeout);
+            done();
         });
         adapter.connect('ss', {}, ()=> {});
         bleDriverEventCallback([commonStubs.createConnectEvent()]);
@@ -215,7 +212,7 @@ describe('Adapter updateConnParams', () => {
         bleDriver.gap_update_connection_parameters.yieldsAsync('err');
         adapter.on('deviceConnected', (device) => {
             const connectionUpdateParameters = createConnectionUpdateParameters();
-            adapter.updateConnParams(device.instanceId, connectionUpdateParameters, (error) => {
+            adapter.updateConnectionParameters(device.instanceId, connectionUpdateParameters, (error) => {
                 assert(error);
                 assert(errorSpy.calledOnce);
                 done();

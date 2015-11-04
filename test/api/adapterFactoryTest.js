@@ -67,7 +67,7 @@ describe('AdapterFactory', function() {
 
         this.adapterFactory.getAdapters((err, adapters) => {
             assert.ifError(err);
-            assert(Object.keys(adapters).length, 0, 'There should be no adapters attached to the computer now.');
+            assert.equal(Object.keys(adapters).length, 0, 'There should be no adapters attached to the computer now.');
         });
 
         sinon.assert.notCalled(this.addedSpy);

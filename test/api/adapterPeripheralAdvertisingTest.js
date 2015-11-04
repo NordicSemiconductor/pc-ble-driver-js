@@ -16,9 +16,9 @@ describe('adapter.startAdvertising', function() {
 
         this.bleDriver = commonStubs.createBleDriver();
 
-        this.bleDriver.gap_set_adv_data.yields(undefined);
-        this.bleDriver.gap_start_advertisement.yields(undefined);
-        this.bleDriver.gap_stop_advertisement.yields(undefined);
+        this.bleDriver.gap_set_advertising_data.yields(undefined);
+        this.bleDriver.gap_start_advertising.yields(undefined);
+        this.bleDriver.gap_stop_advertising.yields(undefined);
 
         // Provide an array of adapters for the first call
         var adapterFactory = new AdapterFactory(this.bleDriver);
@@ -66,8 +66,8 @@ describe('adapter.startAdvertising', function() {
         sinon.assert.calledOnce(startAdvertisingCallback);
         sinon.assert.calledOnce(stateChangeCallback);
 
-        assert.equal(this.bleDriver.gap_set_adv_data.callCount, 1);
-        assert.equal(this.bleDriver.gap_start_advertisement.callCount, 1);
+        assert.equal(this.bleDriver.gap_set_advertising_data.callCount, 1);
+        assert.equal(this.bleDriver.gap_start_advertising.callCount, 1);
     });
 });
 
@@ -77,9 +77,9 @@ describe('adapter.stopAdvertising', function() {
 
         this.bleDriver = commonStubs.createBleDriver();
 
-        this.bleDriver.gap_set_adv_data.yields(undefined);
-        this.bleDriver.gap_start_advertisement.yields(undefined);
-        this.bleDriver.gap_stop_advertisement.yields(undefined);
+        this.bleDriver.gap_set_advertising_data.yields(undefined);
+        this.bleDriver.gap_start_advertising.yields(undefined);
+        this.bleDriver.gap_stop_advertising.yields(undefined);
 
         // Provide an array of adapters for the first call
         var adapterFactory = new AdapterFactory(this.bleDriver);
@@ -130,6 +130,6 @@ describe('adapter.stopAdvertising', function() {
         sinon.assert.calledOnce(stopAdvertisingCallback);
         sinon.assert.calledOnce(stateChangeCallback);
 
-        assert.equal(this.bleDriver.gap_stop_advertisement.callCount, 1);
+        assert.equal(this.bleDriver.gap_stop_advertising.callCount, 1);
     });
 });
