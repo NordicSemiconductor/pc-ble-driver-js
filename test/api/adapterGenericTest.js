@@ -14,7 +14,11 @@ describe('adapter.open', function() {
     beforeEach(function() {
         this.bleDriver = commonStubs.createBleDriver();
 
-        let adapterFactory = new AdapterFactory(this.bleDriver);
+        let adapterFactory = AdapterFactory.getInstance(this.bleDriver);
+
+        // Sorry! The singleton keeps the first bleDriver it gets otherwise
+        adapterFactory.clearForNextUnitTest(this.bleDriver);
+
         adapterFactory.getAdapters((err, adapters) => {
             this.adapter = adapters.test;
         });
@@ -60,7 +64,11 @@ describe('adapter.close', function() {
         this.bleDriver = commonStubs.createBleDriver();
 
         // Provide an array of adapters for the first call
-        var adapterFactory = new AdapterFactory(this.bleDriver);
+        var adapterFactory = AdapterFactory.getInstance(this.bleDriver);
+
+        // Sorry! The singleton keeps the first bleDriver it gets otherwise
+        adapterFactory.clearForNextUnitTest(this.bleDriver);
+
         adapterFactory.getAdapters((err, adapters) => {
             assert.ifError(err);
             this.adapter = adapters.test;
@@ -128,7 +136,11 @@ describe('adapter.getAdapterState', function() {
     beforeEach(function() {
         this.bleDriver = commonStubs.createBleDriver();
 
-        var adapterFactory = new AdapterFactory(this.bleDriver);
+        var adapterFactory = AdapterFactory.getInstance(this.bleDriver);
+
+        // Sorry! The singleton keeps the first bleDriver it gets otherwise
+        adapterFactory.clearForNextUnitTest(this.bleDriver);
+
         adapterFactory.getAdapters((err, adapters) => {
             this.adapter = adapters.test;
         });

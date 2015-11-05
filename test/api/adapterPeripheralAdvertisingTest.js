@@ -21,7 +21,11 @@ describe('adapter.startAdvertising', function() {
         this.bleDriver.gap_stop_advertising.yields(undefined);
 
         // Provide an array of adapters for the first call
-        var adapterFactory = new AdapterFactory(this.bleDriver);
+        var adapterFactory = AdapterFactory.getInstance(this.bleDriver);
+
+        // Sorry! The singleton keeps the first bleDriver it gets otherwise
+        adapterFactory.clearForNextUnitTest(this.bleDriver);
+
         this.adapter = undefined;
 
         adapterFactory.getAdapters((err, adapters) => {
@@ -82,7 +86,11 @@ describe('adapter.stopAdvertising', function() {
         this.bleDriver.gap_stop_advertising.yields(undefined);
 
         // Provide an array of adapters for the first call
-        var adapterFactory = new AdapterFactory(this.bleDriver);
+        var adapterFactory = AdapterFactory.getInstance(this.bleDriver);
+
+        // Sorry! The singleton keeps the first bleDriver it gets otherwise
+        adapterFactory.clearForNextUnitTest(this.bleDriver);
+
         adapterFactory.getAdapters((err, adapters) => {
             this.adapter = adapters.test;
         });

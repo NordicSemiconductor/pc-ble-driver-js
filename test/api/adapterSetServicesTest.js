@@ -24,7 +24,11 @@ describe('adapter.setServices', function() {
         */
 
         // Provide an array of adapters for the first call
-        var adapterFactory = new AdapterFactory(this.bleDriver);
+        var adapterFactory = AdapterFactory.getInstance(this.bleDriver);
+
+        // Sorry! The singleton keeps the first bleDriver it gets otherwise
+        adapterFactory.clearForNextUnitTest(this.bleDriver);
+
         adapterFactory.getAdapters((err, adapters) => {
             this.adapter = adapters.test;
         });
@@ -45,10 +49,10 @@ describe('adapter.setServices', function() {
         let serviceFactory = new ServiceFactory();
         let service = serviceFactory.createService('aabb');
 
-        let characteristic = serviceFactory.createCharacteristic(service,
+        let characteristic = serviceFactory.createCharacteristic(service, 'be-ef', [1,2,3],
             {
-                uuid: 'be-ef', // Automatically determine type by uuid length (BT SIG: 16-bit, UUID: 128-bit)
-                value: [1, 2, 3], /* copies the value in value into memory managed by SD */
+//                uuid: 'be-ef', // Automatically determine type by uuid length (BT SIG: 16-bit, UUID: 128-bit)
+//                value: [1, 2, 3], /* copies the value in value into memory managed by SD */
                 maxLength: 3,
                 readPerm: ['open'], /* can be ['encrypt,'mitm-protection'], ['signed','mitm-protection'] or ['no-access'] default is ['open'] */
                 writePerm: ['encrypt'],

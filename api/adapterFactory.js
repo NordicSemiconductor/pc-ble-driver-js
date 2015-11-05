@@ -4,23 +4,42 @@ var  Adapter = require('./adapter');
 const EventEmitter = require('events');
 
 /**
- * @brief A factory that instantiates new Adapters
+ * @brief A factory that instantiates new Adapters. 
+ * 
+ * @event added - A new adapter was connected
+ * @event removed - A connected adapter was disconnected
+ * @event adapterOpened - One of the connected adapters was opened.
+ * @event adapterClosed - One of the connected adapters was closed
  *
  * @param err undefined if not error
  * @param callback callback
  * @class AdapterFactory
  */
+
+let _singleton = Symbol();
+
 class AdapterFactory extends EventEmitter {
-    /**
-     * AdapterFactory constructor
-     * @constructor
-     */
-    constructor(bleDriver) {
+    constructor(singletonToken, bleDriver) {
+        if (_singleton !== singletonToken)
+            throw new Error('Cannot instantiate directly.');
+
         // TODO: Should adapters be updated on this.getAdapters call or by time interval? time interval
         super();
         this._bleDriver = bleDriver;
         this._adapters = {};
         this._updateAdapterList();
+    }
+
+    clearForNextUnitTest(bleDriver) {
+        this._bleDriver = bleDriver;
+        this._adapters = {};
+    }
+
+    static getInstance(bleDriver) {
+        if (!this[_singleton])
+            this[_singleton] = new AdapterFactory(_singleton, bleDriver);
+
+        return this[_singleton];
     }
 
     _getInstanceId(adapter) {
@@ -89,10 +108,10 @@ class AdapterFactory extends EventEmitter {
     // It is convenient to get events when an adapter is 'available'
     _setUpListenersForAdapterOpenAndClose(adapter) {
         adapter.on('opened', (adapter) => {
-            this.emit('AdapterOpened', adapter);
+            this.emit('adapterOpened', adapter);
         });
         adapter.on('closed', (adapter) => {
-            this.emit('AdapterClosed', adapter);
+            this.emit('adapterClosed', adapter);
         })
     }
 

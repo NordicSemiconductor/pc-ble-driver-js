@@ -16,8 +16,10 @@ describe('AdapterFactory', function() {
 
         // Provide an empty array adapters for the first call
         this.bleDriver.get_adapters.yields(undefined, []);
-        this.adapterFactory = new api.AdapterFactory(this.bleDriver);
+        this.adapterFactory = api.AdapterFactory.getInstance(this.bleDriver);
 
+        // Sorry! The singleton keeps the first bleDriver it gets otherwise
+        this.adapterFactory._bleDriver = this.bleDriver;
         this.addedSpy = sinon.spy();
         this.removedSpy = sinon.spy();
         this.errorSpy = sinon.spy();

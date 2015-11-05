@@ -442,7 +442,11 @@ describe('getServices', () => {
             done();
         });
 
-        const adapterFactory = new AdapterFactory(bleDriver);
+        const adapterFactory = AdapterFactory.getInstance(bleDriver);
+
+        // Sorry! The singleton keeps the first bleDriver it gets otherwise
+        adapterFactory.clearForNextUnitTest(bleDriver);
+
         adapterFactory.getAdapters((err, adapters) => {
             adapter = adapters.test;
         });
@@ -552,11 +556,14 @@ describe('getCharacteristics', () => {
             done();
         });
 
-        const adapterFactory = new AdapterFactory(bleDriver);
+        const adapterFactory = AdapterFactory.getInstance(bleDriver);
+        // Sorry! The singleton keeps the first bleDriver it gets otherwise
+        adapterFactory.clearForNextUnitTest(bleDriver);
+
         adapterFactory.getAdapters((err, adapters) => {
             adapter = adapters.test;
+            adapter.open({baudRate: 115200, parity: 'none', flowControl: 'none'}, err => {});
         });
-        adapter.open({baudRate: 115200, parity: 'none', flowControl: 'none'}, err => {});
     });
 
     it('should receive characteristics from events and callback', done => {
@@ -670,12 +677,14 @@ describe('getDescriptors', () => {
             done();
         });
 
-        const adapterFactory = new AdapterFactory(bleDriver);
+        const adapterFactory = AdapterFactory.getInstance(bleDriver);
+        // Sorry! The singleton keeps the first bleDriver it gets otherwise
+        adapterFactory.clearForNextUnitTest(bleDriver);
+
         adapterFactory.getAdapters((err, adapters) => {
             adapter = adapters.test;
+            adapter.open({baudRate: 115200, parity: 'none', flowControl: 'none'}, err => {});
         });
-
-        adapter.open({baudRate: 115200, parity: 'none', flowControl: 'none'}, err => {});
     });
 
     it('should receive descriptors from events and callback', done => {
