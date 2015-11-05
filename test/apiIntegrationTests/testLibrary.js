@@ -2,7 +2,7 @@
 
 const driver = require('../../index.js').driver;
 const AdapterFactory = require('../../api/adapterFactory.js');
-var adapterFactoryInstance = new AdapterFactory(driver);
+var adapterFactoryInstance = AdapterFactory.getInstance(driver);
 class TestLibrary {
     getAdapters() {
         return new Promise((resolve, reject) => {
