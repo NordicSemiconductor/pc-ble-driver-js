@@ -87,7 +87,7 @@ class AdapterFactory extends EventEmitter {
 
                 if (this._adapters[adapterInstanceId] === undefined) {
                     this._adapters[adapterInstanceId] = newAdapter;
-                    this._setUpListenersForAdapterOpenAndClose
+                    this._setUpListenersForAdapterOpenAndClose(newAdapter);
                     this.emit('added', newAdapter);
                 }
             }
