@@ -37,6 +37,7 @@ class AdapterFactory extends EventEmitter {
     }
 
     _parseAndCreateAdapter(adapter) {
+        // How about moving id generation and equality check within adapter class?
         const instanceId = this._getInstanceId(adapter);
         const parsedAdapter = new Adapter(this._bleDriver, instanceId, adapter.comName);
 
@@ -67,12 +68,14 @@ class AdapterFactory extends EventEmitter {
 
                 if (this._adapters[adapterInstanceId] === undefined) {
                     this._adapters[adapterInstanceId] = newAdapter;
+                    this._setUpListenersForAdapterOpenAndClose
                     this.emit('added', newAdapter);
                 }
             }
 
             for (let adapterId in removedAdapters) {
                 const removedAdapter = this._adapters[adapterId];
+                removedAdapter.removeAllListeners('opened');
                 delete this._adapters[adapterId];
                 this.emit('removed', removedAdapter);
             }
@@ -81,6 +84,16 @@ class AdapterFactory extends EventEmitter {
                 callback(undefined, this._adapters);
             }
         });
+    }
+
+    // It is convenient to get events when an adapter is 'available'
+    _setUpListenersForAdapterOpenAndClose(adapter) {
+        adapter.on('opened', (adapter) => {
+            this.emit('AdapterOpened', adapter);
+        });
+        adapter.on('closed', (adapter) => {
+            this.emit('AdapterClosed', adapter);
+        })
     }
 
     getAdapters(callback) {

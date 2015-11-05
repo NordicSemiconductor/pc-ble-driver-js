@@ -169,7 +169,7 @@ class Adapter extends EventEmitter {
             if (this.checkAndPropagateError(err, 'Error occurred opening serial port.', callback)) return;
 
             this._changeAdapterState({available: true});
-
+            this.emit('opened', this);
             this.getAdapterState((err, adapterState) => {
                 if (this.checkAndPropagateError(err, 'Error retrieving adapter state.', callback)) return;
                 if (callback) callback();
@@ -181,6 +181,7 @@ class Adapter extends EventEmitter {
     close(callback) {
         this._bleDriver.close(callback);
         this._changeAdapterState({available: false});
+        this.emit('closed', this);
     }
 
     // TODO: log callback function declared here or in open call?;
