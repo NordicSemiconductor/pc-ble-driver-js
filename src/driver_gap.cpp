@@ -2799,6 +2799,247 @@ void AfterGapSetAdvertisingData(uv_work_t *req)
     delete baton;
 }
 
+NAN_METHOD(GapSetPPCP)
+{
+    v8::Local<v8::Object> connectionParameters;
+    v8::Local<v8::Function> callback;
+    uint8_t argumentcount = 0;
+
+    try
+    {
+        connectionParameters = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    GapSetPPCPBaton *baton = new GapSetPPCPBaton(callback);
+    
+    try
+    {
+        baton->p_conn_params = GapConnParams(connectionParameters);
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("setppcp", error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    uv_queue_work(uv_default_loop(), baton->req, GapSetPPCP, (uv_after_work_cb)AfterGapSetPPCP);
+}
+
+// This runs in a worker thread (not Main Thread)
+void GapSetPPCP(uv_work_t *req)
+{
+    GapSetPPCPBaton *baton = static_cast<GapSetPPCPBaton *>(req->data);
+
+    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
+
+    baton->result = sd_ble_gap_ppcp_set(baton->p_conn_params);
+}
+
+// This runs in Main Thread
+void AfterGapSetPPCP(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+
+    GapSetPPCPBaton *baton = static_cast<GapSetPPCPBaton *>(req->data);
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "setting ppcp");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+    delete baton->p_conn_params;
+    delete baton;
+}
+
+
+NAN_METHOD(GapGetPPCP)
+{
+    v8::Local<v8::Function> callback;
+    uint8_t argumentcount = 0;
+
+    try
+    {
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    GapGetPPCPBaton *baton = new GapGetPPCPBaton(callback);
+    baton->p_conn_params = new ble_gap_conn_params_t();
+
+    uv_queue_work(uv_default_loop(), baton->req, GapGetPPCP, (uv_after_work_cb)AfterGapGetPPCP);
+}
+
+// This runs in a worker thread (not Main Thread)
+void GapGetPPCP(uv_work_t *req)
+{
+    GapGetPPCPBaton *baton = static_cast<GapGetPPCPBaton *>(req->data);
+
+    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
+
+    baton->result = sd_ble_gap_ppcp_get(baton->p_conn_params);
+}
+
+// This runs in Main Thread
+void AfterGapGetPPCP(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+
+    GapGetPPCPBaton *baton = static_cast<GapGetPPCPBaton *>(req->data);
+    v8::Local<v8::Value> argv[2];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "getting ppcp");
+        argv[1] = Nan::Undefined();
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+        argv[1] = GapConnParams(baton->p_conn_params);
+    }
+
+    baton->callback->Call(2, argv);
+    delete baton->p_conn_params;
+    delete baton;
+}
+
+NAN_METHOD(GapSetAppearance)
+{
+    uint16_t appearance;
+    v8::Local<v8::Function> callback;
+    uint8_t argumentcount = 0;
+
+    try
+    {
+        appearance = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    GapSetAppearanceBaton *baton = new GapSetAppearanceBaton(callback);
+    baton->appearance = appearance;
+    
+    uv_queue_work(uv_default_loop(), baton->req, GapSetAppearance, (uv_after_work_cb)AfterGapSetAppearance);
+}
+
+// This runs in a worker thread (not Main Thread)
+void GapSetAppearance(uv_work_t *req)
+{
+    GapSetAppearanceBaton *baton = static_cast<GapSetAppearanceBaton *>(req->data);
+
+    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
+
+    baton->result = sd_ble_gap_appearance_set(baton->appearance);
+}
+
+// This runs in Main Thread
+void AfterGapSetAppearance(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+
+    GapSetAppearanceBaton *baton = static_cast<GapSetAppearanceBaton *>(req->data);
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "setting appearance");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+    delete baton;
+}
+
+
+NAN_METHOD(GapGetAppearance)
+{
+    v8::Local<v8::Function> callback;
+    uint8_t argumentcount = 0;
+
+    try
+    {
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    GapGetAppearanceBaton *baton = new GapGetAppearanceBaton(callback);
+
+    uv_queue_work(uv_default_loop(), baton->req, GapGetAppearance, (uv_after_work_cb)AfterGapGetAppearance);
+}
+
+// This runs in a worker thread (not Main Thread)
+void GapGetAppearance(uv_work_t *req)
+{
+    GapGetAppearanceBaton *baton = static_cast<GapGetAppearanceBaton *>(req->data);
+
+    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
+
+    baton->result = sd_ble_gap_appearance_get(&baton->appearance);
+}
+
+// This runs in Main Thread
+void AfterGapGetAppearance(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+
+    GapGetAppearanceBaton *baton = static_cast<GapGetAppearanceBaton *>(req->data);
+    v8::Local<v8::Value> argv[2];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "getting appearance");
+        argv[1] = Nan::Undefined();
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+        argv[1] = ConversionUtility::toJsNumber(baton->appearance);
+    }
+
+    baton->callback->Call(2, argv);
+    delete baton;
+}
+
 extern "C" {
     void init_gap(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
@@ -2824,6 +3065,12 @@ extern "C" {
         Utility::SetMethod(target, "gap_sec_info_reply", GapSecInfoReply);
         Utility::SetMethod(target, "gap_authenticate", GapAuthenticate);
         Utility::SetMethod(target, "gap_set_advertising_data", GapSetAdvertisingData);
+
+        Utility::SetMethod(target, "gap_set_ppcp", GapSetPPCP);
+        Utility::SetMethod(target, "gap_get_ppcp", GapGetPPCP);
+
+        Utility::SetMethod(target, "gap_set_appearance", GapSetAppearance);
+        Utility::SetMethod(target, "gap_get_appearance", GapGetAppearance);
 
         // Constants from ble_gap.h
 

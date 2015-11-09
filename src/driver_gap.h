@@ -492,6 +492,30 @@ public:
     uint8_t srdlen;
 };
 
+struct GapSetPPCPBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GapSetPPCPBaton);
+    ble_gap_conn_params_t *p_conn_params;
+};
+
+struct GapGetPPCPBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GapGetPPCPBaton);
+    ble_gap_conn_params_t *p_conn_params;
+};
+
+struct GapSetAppearanceBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GapSetAppearanceBaton);
+    uint16_t appearance;
+};
+
+struct GapGetAppearanceBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GapGetAppearanceBaton);
+    uint16_t appearance;
+};
+
 ///// End GAP Batons //////////////////////////////////////////////////////////////////////////////////
 
 METHOD_DEFINITIONS(GapSetAddress);
@@ -516,6 +540,10 @@ METHOD_DEFINITIONS(GapEncrypt);
 METHOD_DEFINITIONS(GapSecInfoReply);
 METHOD_DEFINITIONS(GapAuthenticate);
 METHOD_DEFINITIONS(GapSetAdvertisingData);
+METHOD_DEFINITIONS(GapSetPPCP);
+METHOD_DEFINITIONS(GapGetPPCP);
+METHOD_DEFINITIONS(GapSetAppearance);
+METHOD_DEFINITIONS(GapGetAppearance);
 
 extern "C" {
     void init_gap(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);

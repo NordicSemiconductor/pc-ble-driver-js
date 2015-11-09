@@ -118,9 +118,74 @@ function addVsUuid() {
             encodeUUID();
             decodeUUID();
 
-            addService();
+            setAppearance();
         }
     );
+}
+
+function setAppearance()
+{
+    driver.gap_set_appearance(driver.BLE_APPEARANCE_GENERIC_TAG, function(err) {
+        if (err)
+        {
+            console.log('Error occured when setting appearance');
+            console.log(err);
+            return;
+        }
+
+        getAppearance();
+    });
+}
+
+function getAppearance()
+{
+    driver.gap_get_appearance(function(err, appearance) {
+        if (err)
+        {
+            console.log('Error occured when getting appearance');
+            console.log(err);
+            return;
+        }
+
+        setPPCP();
+    });
+}
+
+
+function setPPCP()
+{
+    driver.gap_set_ppcp({
+                            min_conn_interval: 0x0050,
+                            max_conn_interval: 0x00A0,
+                            slave_latency: 0,
+                            conn_sup_timeout: 0x03E8
+                        },
+                        function(err) {
+        if (err)
+        {
+            console.log('Error occured when setting ppcp');
+            console.log(err);
+            return;
+        }
+
+        getPPCP();
+    });
+}
+
+function getPPCP()
+{
+    driver.gap_get_ppcp(function(err, ppcp) {
+        if (err)
+        {
+            console.log('Error occured when getting ppcp');
+            console.log(err);
+            return;
+        }
+
+        console.log(JSON.stringify(ppcp));
+
+        addService();
+    });
 }
 
 function encodeUUID() {
