@@ -89,8 +89,8 @@ public:
     virtual void ToJs(v8::Local<v8::Object> obj)
     {
         BleDriverEvent<EventType>::ToJs(obj);
-        Utility::Set(obj, "gatt_status", gatt_status);
-        Utility::Set(obj, "gatt_status_name", gatt_status_map[gatt_status]);
+        Utility::Set(obj, "gatt_status", gatt_status);        
+        Utility::Set(obj, "gatt_status_name", ConversionUtility::valueToJsString(gatt_status, gatt_status_map, ConversionUtility::toJsString("Unknown GATT status")));
         Utility::Set(obj, "error_handle", error_handle);
     }
 

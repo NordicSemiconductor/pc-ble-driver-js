@@ -95,8 +95,8 @@ uint32_t evt_cb_batch_evt_total_count;
 uint32_t evt_cb_batch_number;
 
 // This is just a hack for now. Just want to test the event-loop all the way up to JavaScript.
-Nan::Callback *driver_log_callback;
-Nan::Callback *driver_event_callback;
+Nan::Callback *driver_log_callback = NULL;
+Nan::Callback *driver_event_callback = NULL;
 
 // This function is ran by the thread that the SoftDevice Driver has initiated
 void sd_rpc_on_log_event(sd_rpc_log_severity_t severity, const char *log_message)
@@ -526,8 +526,17 @@ void Close(uv_work_t *req)
     lock_guard<mutex> lock(ble_driver_call_mutex);
     baton->result = sd_rpc_close();
 
-    delete driver_event_callback;
-    delete driver_log_callback;
+    if (driver_event_callback != NULL)
+    {
+        delete driver_event_callback;
+        driver_event_callback = NULL;
+    }
+
+    if (driver_log_callback != NULL)
+    {
+        delete driver_log_callback;
+        driver_log_callback = NULL;
+    }
 }
 
 void AfterClose(uv_work_t *req) 
