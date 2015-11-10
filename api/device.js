@@ -22,6 +22,8 @@ class Device {
         this.maxConnectionInterval = null;
         this.slaveLatency = null;
         this.connectionSupervisionTimeout = null;
+
+        this.paired = false;
     }
 
     // null if not connected
