@@ -204,10 +204,11 @@ class Adapter extends EventEmitter {
                 case this._bleDriver.BLE_GAP_EVT_CONN_PARAM_UPDATE:
                     this._parseConnectionParameterUpdateEvent(event);
                     break;
-
+                case this._bleDriver.BLE_GAP_EVT_SEC_PARAMS_REQUEST:
+                    this._parseSecParamsRequestEvent(event);
+                    break;
                 // TODO: Implement for security/bonding
                 /*
-                case this._bleDriver.BLE_GAP_EVT_SEC_PARAMS_REQUEST:
                 case this._bleDriver.BLE_GAP_EVT_SEC_INFO_REQUEST:
                 case this._bleDriver.BLE_GAP_EVT_PASSKEY_DISPLAY:
                 case this._bleDriver.BLE_GAP_EVT_AUTH_KEY_REQUEST:
@@ -371,6 +372,72 @@ class Adapter extends EventEmitter {
             callback(undefined, device);
         }
         this.emit('connParamUpdate', device);
+    }
+
+    _parseSecParamsRequestEvent(event) {
+        driver.gap_sec_params_reply(
+            event.conn_handle,
+            driver.BLE_GAP_SEC_STATUS_SUCCESS, //sec_status
+            { //sec_params
+                bond: false,
+                mitm: false,
+                io_caps: driver.BLE_GAP_IO_CAPS_NONE,
+                oob: false,
+                min_key_size: 7,
+                max_key_size: 16,
+                kdist_periph: {
+                    enc: false,
+                    id: false,
+                    sign: false,
+                },
+                kdist_central: {
+                    enc: false,
+                    id: false,
+                    sign: false,
+                },
+            },
+            { // sec_keyset
+                keys_periph: {
+                    enc_key: {
+                        enc_info: {
+                            ltk: [0, 0, 0, 0, 0, 0, 0, 0],
+                            auth: false,
+                            ltk_len: 8,
+                        },
+                        master_id: {
+                            ediv: 0x1234,
+                            rand: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        },
+                    },
+                    id_key: null,
+                    sign_key: null,
+                },
+                keys_central: {
+                    enc_key: {
+                        enc_info: {
+                            ltk: [0, 0, 0, 0, 0, 0, 0, 0],
+                            auth: false,
+                            ltk_len: 8,
+                        },
+                        master_id: {
+                            ediv: 0x1234,
+                            rand: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        },
+                    },
+                    id_key: null,
+                    sign_key: null,
+                },
+            },
+            function(err, keyset) {
+                if (err) {
+                    this.emit('error', 'Failed to call security parameters reply');
+
+                    // Call getServices callback??
+                }
+                console.log('gap_sec_params_reply completed');
+                console.log('keyset: ' + JSON.stringify(keyset));
+            }
+        );
     }
 
     _parseConnectionParameterUpdateRequestEvent(event) {
@@ -1225,7 +1292,7 @@ class Adapter extends EventEmitter {
         if (params.timeout) {
             retval.timeout = params.timeout;
         } else {
-            throw new Error('You have to provide an timeout.');
+            throw new Error('You have to provide a timeout.');
         }
 
         // TOOD: fix fp logic later
@@ -1356,34 +1423,73 @@ class Adapter extends EventEmitter {
         });
     }
 
-    // Bonding (when in central role)
+    // callback signature function(err) {}
+    pair(deviceInstanceId, bond /*not supported in MS2*/, callback) {
+        if (bond !== undefined || bond !== null) {
+            throw new Error('Bonding is not (yet) supported, use null or undefined')
+        }
+        const device = this.getDevice(deviceInstanceId);
+        let deviceRole;
 
-    setCapabilities(keyboard, screen) {
-        this._keyboard = keyboard;
-        this._screen = screen;
+        // If our role is central set the device role to be peripheral.
+        if (device.role === 'BLE_GAP_ROLE_CENTRAL') {
+            deviceRole = 'peripheral';
+        } else if (device.role === 'BLE_GAP_ROLE_PERIPH') {
+            deviceRole = 'central';
+        }
+
+        if (deviceRole === 'central') {
+            this._driver.gap_authenticate(device.connectionHandle, {
+                bond: false,
+                mitm: false,
+                io_caps: driver.BLE_GAP_IO_CAPS_NONE,
+                oob: false,
+                min_key_size: 7,
+                max_key_size: 16,
+                kdist_periph: {
+                    enc: false,
+                    id: false,
+                    sign: false,
+                },
+                kdist_central: {
+                    enc: false,
+                    id: false,
+                    sign: false,
+                },
+            },
+            err => {
+                if (err) {
+                    const errorObject = make_error('Failed to authenticate', err);
+                    this.emit('error', errorObject);
+                }
+                callback(errorObject);
+            }
+            );
+
+    /* Central role
+        gap_authenticate(no_bond, no_mitm, no_io_caps)
+            wait for gap_evt_sec_params_request
+        gap_sec_params_reply(success, central_params: null, null)
+            wait for gap_evt_conn_sec_update(enc_no_mitm)
+            wait for gap_evt_auth_status(success)
+        OR
+        gap_sec_params_reply(invalid_params, central_params: null, null)
+            wait for gap_evt_auth_status(failure)
+    */
+
+        } else { // deviceRole peripheral
+
+        }
+
+    /* Peripheral role
+        gap_authenticate(no_bond, no_mitm, no_io_caps)
+            wait for gap_evt_sec_params_request()
+        gap_sec_params_reply(periph_params: no_bond, no_mitm, no_io_caps, null)
+            wait for gap_evt_conn_sec_update(enc_no_mitm)
+            wait for gap_evt_auth_status(success)
+    */
     }
 
-    setLongTermKey(deviceAddress, ltk) {
-
-    }
-
-    // TODO: clarify when needed
-    setEDIV(ediv, rnd) {
-
-    }
-
-    // Callback signature function(err) {}
-    pair(deviceAddress, mitm, passkey, callback) {
-
-    }
-
-    // TODO: check if sending paramters from event is OK
-    // Callback signature function(err) {}
-    encrypt(deviceAddress, callback) {
-
-    }
-
-    // Bonding (peripheral role)
 
     // GATTS
     // Array of services

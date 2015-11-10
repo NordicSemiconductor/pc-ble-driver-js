@@ -111,6 +111,24 @@ for(let i = 0; i < argv['_'].length; i++) {
                 });
             break;
         }
+        case 'start-advertising':
+        {
+            const adapterId = argv.adapter;
+            if (!adapterId) {
+                console.log('Missing argument --adapter.');
+                process.exit(1);
+            }
+            testLib.openAdapter(adapterId)
+                .then(testLib.startAdvertising.bind(testLib))
+                .then(() => {
+                    console.log('Starting advertising');
+                })
+                .catch(error => {
+                    console.log('Start advertising failed: ', error);
+                    process.exit(1);
+                });
+            break;
+        }
 
         case 'run-tests':
         {

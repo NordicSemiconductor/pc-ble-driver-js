@@ -95,6 +95,24 @@ class TestLibrary {
         });
     }
 
+    startAdvertising() {
+        return new Promise((resolve, reject) => {
+            const advData = {completeLocalName: 'Wayland', txPowerLevel: 20};
+            const scanRespData = {};
+            const advOptions = {
+                interval: 100,
+                timeout: 10000
+            };
+            this._adapter.startAdvertising(advData, scanRespData, advOptions, error => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve();
+                }
+            });
+        });
+    }
+
     disconnect(deviceInstanceId) {
         return new Promise((resolve, reject) => {
             this._adapter.disconnect(deviceInstanceId, (error, device) => {
@@ -106,7 +124,6 @@ class TestLibrary {
             });
         });
     }
-
     cancelConnect() {
         return new Promise((resolve, reject) => {
             this._adapter.cancelConnect((error) => {
