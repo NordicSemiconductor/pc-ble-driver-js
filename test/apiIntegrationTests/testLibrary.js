@@ -127,6 +127,16 @@ class TestLibrary {
         });
     }
 
+    waitForConnectedEvent() {
+        return new Promise((resolve, reject) => {
+            this._adapter.once('deviceConnected', device => {
+                console.log("Was connected");
+                resolve(device);
+            });
+            console.log('Waiting to get connected');
+        });
+    }
+
     startAdvertising(advData) {
         return new Promise((resolve, reject) => {
             if (advData === undefined) {
@@ -160,6 +170,20 @@ class TestLibrary {
                     reject(error);
                 } else {
                     resolve();
+                }
+            });
+        });
+    }
+
+    pairWithCentral(deviceInstanceId) {
+        return new Promise((resolve, reject) => {
+            this._adapter.once('pairingCompleted', () => {
+                console.log('Pairing has completed');
+                resolve();
+            });
+            this._adapter.pair(deviceInstanceId, false /*bond*/, (error) => {
+                if (error) {
+                    reject(error);
                 }
             });
         });
