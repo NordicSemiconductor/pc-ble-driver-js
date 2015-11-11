@@ -75,6 +75,37 @@ class TestLibrary {
         });
     }
 
+    startScan() {
+        return new Promise((resolve, reject) => {
+            const scanParameters = {
+                active: true,
+                interval: 100,
+                window: 50,
+                timeout: 20,
+            };
+
+            this._adapter.startScan(scanParameters, error => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve();
+                }
+            });
+        });
+    }
+
+    stopScan() {
+        return new Promise((resolve, reject) => {
+            this._adapter.stopScan(error => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve();
+                }
+            });
+        });
+    }
+
     connectToPeripheral(address) {
         return new Promise((resolve, reject) => {
             var connectionParameters = {
