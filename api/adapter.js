@@ -2016,7 +2016,7 @@ class Adapter extends EventEmitter {
                 return;
             }
 
-            _setAttributeValueWithOffset(attribute, value, offset);
+            this._setAttributeValueWithOffset(attribute, value, offset);
             callback(undefined, attribute);
         });
     }
@@ -2071,7 +2071,7 @@ class Adapter extends EventEmitter {
     // Callback signature function(err) {}
     stopCharacteristicsNotifications(characteristicId, callback) {
         // TODO: If CCCD not discovered how did we start it?
-        const enableNotificationBitfield = 0;
+        const disableNotificationBitfield = 0;
         const characteristic = this._characteristics[characteristicId];
         if (!characteristic) {
             throw new Error('Stop characteristic notifications failed: Could not get characteristic with id ' + characteristicId);
@@ -2085,7 +2085,7 @@ class Adapter extends EventEmitter {
             throw new Error('Stop characteristic notifications failed: Could not find CCCD descriptor with parent characteristic id: ' + characteristicId);
         }
 
-        this.writeDescriptorValue(cccdDescriptor.instanceId, [enableNotificationBitfield, 0], (err) => {
+        this.writeDescriptorValue(cccdDescriptor.instanceId, [disableNotificationBitfield, 0], true, (err) => {
             if (err) {
                 this.emit('error', 'Failed to stop characteristics notifications');
             }
