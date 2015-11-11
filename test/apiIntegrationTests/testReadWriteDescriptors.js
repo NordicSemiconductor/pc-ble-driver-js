@@ -4,7 +4,7 @@ const testLib = require('./testLibrary').singletonContainer.testLibrary;
 const _ = require('underscore');
 
 describe('Read and write operations', function() {
-    this.timeout(100000);
+    this.timeout(10000);
 
     const peripheralAddress = process.env.testPeripheral;
     it('should write a value to a descriptor and read it back. (short write)', (done) => {
@@ -25,13 +25,13 @@ describe('Read and write operations', function() {
                 });
 
                 assert(cccdDescriptor);
-                return testLib.writeDescriptorValue(cccdDescriptor.instanceId, [66], true);
+                return testLib.writeDescriptorValue(cccdDescriptor.instanceId, [0x01, 0x00], true);
             })
             .then((attribute) => {
                 return testLib.readDescriptorValue(cccdDescriptor.instanceId);
             })
             .then((buffer) => {
-                assert.equal(buffer[0], 66);
+                assert.equal(buffer[0], 0x01);
                 return testLib.disconnect(theDevice.instanceId);
             })
             .then(() => {done();})
@@ -60,7 +60,7 @@ describe('Read and write operations', function() {
             })
             .then((characteristics) => {
                 const characteristic = _.find(characteristics, characteristic => {
-                    return (characteristic.uuid.indexOf("2A00") === 4);
+                    return (characteristic.uuid.indexOf('2A00') === 4);
                 });
                 console.log(characteristic);
                 return testLib.writeCharacteristicValue(characteristic.instanceId, [77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77, 77], true);

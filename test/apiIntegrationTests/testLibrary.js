@@ -38,6 +38,7 @@ class TestLibrary {
                         console.log('Failed to open adapter ' + adapterId + ': ' + err);
                         reject(err);
                     }
+
                     this._adapter = adapter;
                     resolve();
                 });
@@ -173,6 +174,27 @@ class TestLibrary {
         });
     }
 
+    getAllCharacteristicsForAllServices(deviceInstanceId) {
+        return this.getServices(deviceInstanceId).then(services => {
+            let allCharacteristics = [];
+            let characteristicsPromise = new Promise((resolve, reject) => {
+                resolve([]);
+            });
+
+            for (let i = 0; i < services.length; i++) {
+                characteristicsPromise = characteristicsPromise.then(characteristics => {
+                    allCharacteristics.push.apply(allCharacteristics, characteristics);
+                    return this.getCharacteristics(services[i].instanceId);
+                });
+            }
+
+            return characteristicsPromise.then(characteristics => {
+                allCharacteristics.push.apply(allCharacteristics, characteristics);
+                return allCharacteristics;
+            });
+        });
+    }
+
     getAllDescriptorsForService(serviceInstanceId) {
         return this.getCharacteristics(serviceInstanceId).then((characteristics) => {
             let allPromises = [];
@@ -180,6 +202,7 @@ class TestLibrary {
             let descriptorPromise = new Promise((resolve, reject) => {
                 resolve([]);
             });
+
             for (let i = 0; i < characteristics.length; i++) {
                 descriptorPromise = descriptorPromise.then((descriptors) => {
                     allDescriptors.push.apply(allDescriptors, descriptors);
@@ -269,6 +292,30 @@ class TestLibrary {
                     reject(error);
                 } else {
                     resolve(attribute);
+                }
+            });
+        });
+    }
+
+    startCharacteristicsNotifications(characteristicId, ack) {
+        return new Promise((resolve, reject) => {
+            this._adapter.startCharacteristicsNotifications(characteristicId, ack, err => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
+        });
+    }
+
+    stopCharacteristicsNotifications(characteristicId) {
+        return new Promise((resolve, reject) => {
+            this._adapter.stopCharacteristicsNotifications(characteristicId, err => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
                 }
             });
         });

@@ -2,50 +2,71 @@
 const assert = require('assert');
 const testLib = require('./testLibrary').singletonContainer.testLibrary;
 const _ = require('underscore');
-describe('Read write ', function() {
-    this.timeout(100000);
+describe('Characteristic notifications', function() {
+    this.timeout(10000);
 
     const peripheralAddress = process.env.testPeripheral;
-   /* it('should be possible to write a value to a descriptor and read back what was written', (done) => {
+    it('starting characteristic notification', (done) => {
         let theDevice;
+        let notificationCharacteristic;
         let cccdDescriptor;
+        let i = 0;
+
         testLib.connectToPeripheral(peripheralAddress)
             .then((device) => {
                 theDevice = device;
                 return device;
-            })
-            .then((device) => {
+            }).then((device) => {
                 return testLib.getAllDescriptorsForAllServices(theDevice.instanceId);
-                testLib._adapter.on('characteristicValueChanged', (characteristic) => {
-                    console.log('value changed');
-                    console.log(characteristic);
-                });
             })
             .then((descriptors) => {
-                console.log(descriptors);
+                const characteristics = testLib.getAllCharacteristicsForAllServices(theDevice.instanceId);
+                return characteristics;
+            })
+            .then((characteristics) => {
+                assert(characteristics.length > 0);
+                notificationCharacteristic =  _.find(characteristics, (characteristic) => {
+                    return characteristic.properties.notify;
+                });
+
+                assert(notificationCharacteristic);
+                testLib._adapter.once('descriptorValueChanged', descriptor => {
+                    assert(descriptor.uuid.indexOf('2902') === 4);
+                    assert.equal(descriptor.value[0], 0x01);
+                    assert.equal(descriptor.value[1], 0x00);
+                });
+                return testLib.startCharacteristicsNotifications(notificationCharacteristic.instanceId, false);
+            })
+            .then(() => {
+                return testLib.getAllDescriptorsForAllServices(theDevice.instanceId);
+            })
+            .then((descriptors) => {
                 assert(descriptors.length > 0);
                 cccdDescriptor =  _.find(descriptors, (descriptor) => {
-                    return descriptor.uuid.indexOf('2902') === 4;
+                    if (notificationCharacteristic.instanceId === descriptor.characteristicInstanceId) {
+                        return descriptor.uuid.indexOf('2902') === 4;
+                    }
+
+                    return false;
                 });
 
                 assert(cccdDescriptor);
-                return testLib.writeDescriptorValue(cccdDescriptor.instanceId, [0xFF, 0xFF], true);
-            })
-            .then((attribute) => {
-                console.log(attribute);
                 return testLib.readDescriptorValue(cccdDescriptor.instanceId);
             })
             .then((buffer) => {
-                console.log(buffer);
-                setTimeout(() => {
-                    return testLib.disconnect(theDevice.instanceId);
-                }, 10000);
+                assert.equal(buffer[0], 0x01);
 
+                return testLib.stopCharacteristicsNotifications(notificationCharacteristic.instanceId);
             })
-            .then(() => {})//done();})
+            .then(() => {
+                return testLib.disconnect(theDevice.instanceId);
+            })
+            .then(() => {
+                done();
+            })
             .catch((error) => {
-                console.log('error ');
+                console.log(error);
                 done(error);
             });
-    });*/
+    });
 });

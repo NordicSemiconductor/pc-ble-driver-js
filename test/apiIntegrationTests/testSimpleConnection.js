@@ -32,17 +32,23 @@ describe('Adapter Connect', function() {
         const errorSpy = sinon.spy();
         testLib._adapter.once('error', errorSpy);
 
-        testLib.connectToPeripheral(process.env.testPeripheral)
+        // INVALID ADDRESS
+        testLib.connectToPeripheral('12:7A:11:AD:12:E5')
             .then((device) => {
                 assert(!errorSpy.calledOnce);
+
+                // TODO: Should it call the callback?
                 assert(false, 'should not reach connect handler when canceling connect');
-                done();
-            });
+            })
+            .catch((error => {
+                assert(false, 'connect should not fail, just be canceled');
+            }));
         testLib.cancelConnect()
             .then(() => {
+                done();
             })
-            .catch(done);
-
-        setTimeout(done, 1000); // Let the event loop run a while to catch a(n erronous) connect event.
+            .catch((error) => {
+                console.log(error);
+            });
     });
 });

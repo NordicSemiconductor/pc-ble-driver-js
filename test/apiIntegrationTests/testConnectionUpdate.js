@@ -4,7 +4,7 @@ const testLib = require('./testLibrary').singletonContainer.testLibrary;
 const sinon = require('sinon');
 
 describe('Connection update', function() {
-    this.timeout(100000);
+    this.timeout(10000);
 
     const peripheralAddress = process.env.testPeripheral;
     it('should send off a connection update and receive an event when parameters have changed.', (done) => {

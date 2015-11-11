@@ -724,7 +724,7 @@ class Adapter extends EventEmitter {
     _parseReadResponseEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const handle = event.handle;
-        const data = event.data.data;
+        const data = event.data;
         const gattOperation = this._gattOperationsMap[device.instanceId];
         const pendingHandleReads = gattOperation.pendingHandleReads;
         /*
@@ -885,6 +885,7 @@ class Adapter extends EventEmitter {
                         this.emit('error', make_error('Failed to write value to device/handle ' + device.instanceId + '/' + handle, err));
                         return;
                     }
+
                     console.log('successfully sent write to driver');
                 });
             } else {
@@ -908,7 +909,7 @@ class Adapter extends EventEmitter {
             gattOperation.attribute.value = gattOperation.value;
             delete this._gattOperationsMap[device.instanceId];
         } else if (event.write_op === this._bleDriver.BLE_GATT_OP_WRITE_REQ) {
-            gattOperation.attribute.value = event.data;
+            gattOperation.attribute.value = gattOperation.value;
             delete this._gattOperationsMap[device.instanceId];
         }
 
@@ -1671,6 +1672,15 @@ class Adapter extends EventEmitter {
             return;
         }
 
+        const alreadyFoundServices = _.filter(this._services, service => {
+            return deviceInstanceId === service.deviceInstanceId;
+        });
+
+        if (!_.isEmpty(alreadyFoundServices)) {
+            callback(undefined, alreadyFoundServices);
+            return;
+        }
+
         this._gattOperationsMap[device.instanceId] = {callback: callback, pendingHandleReads: {}, parent: device};
         this._bleDriver.gattc_primary_services_discover(device.connectionHandle, 1, 0, (err, services) => {
             if (err) {
@@ -1701,6 +1711,15 @@ class Adapter extends EventEmitter {
             return;
         }
 
+        const alreadyFoundCharacteristics = _.filter(this._characteristics, characteristic => {
+            return serviceId === characteristic.serviceInstanceId;
+        });
+
+        if (!_.isEmpty(alreadyFoundCharacteristics)) {
+            callback(undefined, alreadyFoundCharacteristics);
+            return;
+        }
+
         const handleRange = {start_handle: service.startHandle, end_handle: service.endHandle};
         this._gattOperationsMap[device.instanceId] = {callback: callback, pendingHandleReads: {}, parent: service};
 
@@ -1726,6 +1745,15 @@ class Adapter extends EventEmitter {
 
         if (this._gattOperationsMap[device.instanceId]) {
             this.emit('error', make_error('Failed to get descriptors, a gatt operation already in progress', undefined));
+            return;
+        }
+
+        const alreadyFoundDescriptor = _.filter(this._descriptors, descriptor => {
+            return characteristicId === descriptor.characteristicInstanceId;
+        });
+
+        if (!_.isEmpty(alreadyFoundDescriptor)) {
+            callback(undefined, alreadyFoundDescriptor);
             return;
         }
 
@@ -2025,7 +2053,7 @@ class Adapter extends EventEmitter {
 
         const cccdDescriptor = _.find(this._descriptors, (descriptor) => {
             return (descriptor.characteristicInstanceId === characteristicId) &&
-                (descriptor.uuid === '2902');
+                (descriptor.uuid === '0000290200001000800000805F9B34FB');
         });
         if (!cccdDescriptor) {
             throw new Error('Start characteristic notifications failed: Could not find CCCD descriptor with parent characteristic id: ' + characteristicId);
@@ -2051,7 +2079,7 @@ class Adapter extends EventEmitter {
 
         const cccdDescriptor = _.find(this._descriptors, (descriptor) => {
             return (descriptor.characteristicInstanceId === characteristicId) &&
-                (descriptor.uuid === '2902');
+                (descriptor.uuid === '0000290200001000800000805F9B34FB');
         });
         if (!cccdDescriptor) {
             throw new Error('Stop characteristic notifications failed: Could not find CCCD descriptor with parent characteristic id: ' + characteristicId);
