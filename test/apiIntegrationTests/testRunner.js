@@ -1,6 +1,6 @@
 'use strict';
 
-//TODO: 
+//TODO:
 // -Use promises to chain actions
 // -Create action library, (connect, disconnect) traits: can run, has prerequisites, can fail, common interface
 // /Should be able to put actions in separate files. Two kinds of actions: tests, or usable actions
@@ -40,7 +40,7 @@ for(let i = 0; i < argv['_'].length; i++) {
                     console.log(JSON.stringify(device.address));
                 })
                 .then(testLib.closeAdapter.bind(testLib))
-                .then(() => { 
+                .then(() => {
                     process.exit(0);
                 })
                 .catch( (error) => {
@@ -86,14 +86,14 @@ for(let i = 0; i < argv['_'].length; i++) {
                 });
             break;
         }
-        case 'discover-services': 
+        case 'discover-services':
         {
             const adapterId = argv.adapter;
             const peripheralAddress = argv['peripheral-address'];
             testLib.openAdapter(adapterId)
                 .then( testLib.connectToPeripheral.bind(testLib, peripheralAddress) )
                 .then( (device) => {
-                    return testLib.getServices(device.instanceId); 
+                    return testLib.getServices(device.instanceId);
                 })
                 .then( (services) => {
                     for (let index in services) {
@@ -136,6 +136,8 @@ for(let i = 0; i < argv['_'].length; i++) {
             // (A bug in the driver makes it possible to open the adapter only once)
             const adapterId = argv.adapter;
             const peripheralAddress = argv['peripheral-address'];
+            const testFile = argv['test'];
+            const testFileName = 'test' + testFile + '.js';
 
             // Use process.env to pass peripheral-address to test
             process.env.testPeripheral = peripheralAddress;
@@ -147,9 +149,13 @@ for(let i = 0; i < argv['_'].length; i++) {
                     fs.readdirSync(testDir).filter((file)=> {
                         return (file.substr(-3) === '.js') && file != __filename;
                     }).forEach((file) => {
-                        mocha.addFile(
-                            path.join(testDir, file)
-                        );
+                        if (testFile === undefined || file === testFileName)
+                        {
+                            console.log('Adding test' + file);
+                            mocha.addFile(
+                                path.join(testDir, file)
+                            );
+                        }
                     });
                     mocha.run(function(failures) {
                         process.on('exit', function() {
