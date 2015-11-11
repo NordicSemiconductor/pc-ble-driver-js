@@ -96,15 +96,35 @@ class TestLibrary {
         });
     }
 
-    startAdvertising() {
+    startAdvertising(advData) {
         return new Promise((resolve, reject) => {
-            const advData = {completeLocalName: 'Wayland', txPowerLevel: 20};
+            if (advData === undefined) {
+                advData = {};
+            }
+            if (advData.completeLocalName === undefined) {
+                advData.completeLocalName = 'Wayland';
+            }
+            if (advData.txPowerLevel === undefined) {
+                advData.txPowerLevel = 20;
+            }
             const scanRespData = {};
             const advOptions = {
                 interval: 100,
                 timeout: 10000
             };
             this._adapter.startAdvertising(advData, scanRespData, advOptions, error => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve();
+                }
+            });
+        });
+    }
+
+    stopAdvertising() {
+        return new Promise((resolve, reject) => {
+            this._adapter.stopAdvertising(error => {
                 if (error) {
                     reject(error);
                 } else {

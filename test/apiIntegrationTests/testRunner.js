@@ -151,7 +151,6 @@ for(let i = 0; i < argv['_'].length; i++) {
                     }).forEach((file) => {
                         if (testFile === undefined || file === testFileName)
                         {
-                            console.log('Adding test' + file);
                             mocha.addFile(
                                 path.join(testDir, file)
                             );
