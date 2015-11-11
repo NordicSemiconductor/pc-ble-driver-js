@@ -42,6 +42,7 @@ class Adapter extends EventEmitter {
 
         this._gapOperationsMap = {};
         this._gattOperationsMap = {};
+        this._securityOperationsMap = undefined;
 
         this._preparedWritesMap = {};
     }
@@ -194,7 +195,7 @@ class Adapter extends EventEmitter {
     // TODO: event callback function declared here or in open call?;
     _eventCallback(eventArray) {
         eventArray.forEach(event => {
-            switch (event.id){
+            switch (event.id) {
                 case this._bleDriver.BLE_GAP_EVT_CONNECTED:
                     this._parseConnectedEvent(event);
                     break;
@@ -207,13 +208,17 @@ class Adapter extends EventEmitter {
                 case this._bleDriver.BLE_GAP_EVT_SEC_PARAMS_REQUEST:
                     this._parseSecParamsRequestEvent(event);
                     break;
+                case this._bleDriver.BLE_GAP_EVT_AUTH_STATUS:
+                    this._parseAuthStatusEvent(event);
+                    break;
+                case this._bleDriver.BLE_GAP_EVT_CONN_SEC_UPDATE:
+                    this._parseConnSecUpdateEvent(event);
+                    break;
                 // TODO: Implement for security/bonding
                 /*
                 case this._bleDriver.BLE_GAP_EVT_SEC_INFO_REQUEST:
                 case this._bleDriver.BLE_GAP_EVT_PASSKEY_DISPLAY:
                 case this._bleDriver.BLE_GAP_EVT_AUTH_KEY_REQUEST:
-                case this._bleDriver.BLE_GAP_EVT_AUTH_STATUS:
-                case this._bleDriver.BLE_GAP_EVT_CONN_SEC_UPDATE:
                 */
                 case this._bleDriver.BLE_GAP_EVT_TIMEOUT:
                     this._parseTimeoutEvent(event);
@@ -375,13 +380,14 @@ class Adapter extends EventEmitter {
     }
 
     _parseSecParamsRequestEvent(event) {
-        driver.gap_sec_params_reply(
-            event.conn_handle,
-            driver.BLE_GAP_SEC_STATUS_SUCCESS, //sec_status
-            { //sec_params
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
+        const role = device.role;
+
+        const secParamsCentral = null;
+        const secParamsPeripheral = {
                 bond: false,
                 mitm: false,
-                io_caps: driver.BLE_GAP_IO_CAPS_NONE,
+                io_caps: this._bleDriver.BLE_GAP_IO_CAPS_NONE,
                 oob: false,
                 min_key_size: 7,
                 max_key_size: 16,
@@ -395,7 +401,21 @@ class Adapter extends EventEmitter {
                     id: false,
                     sign: false,
                 },
-            },
+        };
+
+        let secParams;
+        if (role === 'central') {
+            secParams = secParamsPeripheral;
+        } else {
+            secParams = secParamsCentral;
+        }
+
+        const connectionHandle = event.conn_handle;
+
+        this._bleDriver.gap_sec_params_reply(
+            event.conn_handle,
+            this._bleDriver.BLE_GAP_SEC_STATUS_SUCCESS, //sec_status
+            secParams,
             { // sec_keyset
                 keys_periph: {
                     enc_key: {
@@ -428,16 +448,28 @@ class Adapter extends EventEmitter {
                     sign_key: null,
                 },
             },
-            function(err, keyset) {
+            (err, keyset) => {
                 if (err) {
                     this.emit('error', 'Failed to call security parameters reply');
-
-                    // Call getServices callback??
+                    delete this._securityOperationsMap;
+                    return;
                 }
-                console.log('gap_sec_params_reply completed');
-                console.log('keyset: ' + JSON.stringify(keyset));
             }
         );
+    }
+
+    _parseConnSecUpdateEvent(event) {
+        console.log('Received connSecUpdate event: ' + JSON.stringify(event));
+    }
+
+    _parseAuthStatusEvent(event) {
+        console.log('Received authStatus event: ' + JSON.stringify(event));
+        if (event.auth_status === this._bleDriver.BLE_GAP_SEC_STATUS_SUCCESS) {
+            this.emit('securityChanged', event);
+        } else {
+            this.emit('error', 'Pairing failed with error ' + event.auth_status);
+        }
+        delete this._securityOperationsMap;
     }
 
     _parseConnectionParameterUpdateRequestEvent(event) {
@@ -1170,6 +1202,13 @@ class Adapter extends EventEmitter {
         return this._devices[foundDeviceId];
     }
 
+    _getDeviceByAddress(address) {
+        const foundDeviceId = Object.keys(this._devices).find(deviceId => {
+            return this._devices[deviceId].address === address;
+        });
+        return this._devices[foundDeviceId];
+    }
+
     // Only for central
 
     // options: { active: x, interval: x, window: x timeout: x TODO: other params}. Callback signature function(err).
@@ -1425,72 +1464,63 @@ class Adapter extends EventEmitter {
     }
 
     // callback signature function(err) {}
-    pair(deviceInstanceId, bond /*not supported in MS2*/, callback) {
-        if (bond !== undefined || bond !== null) {
-            throw new Error('Bonding is not (yet) supported, use null or undefined')
-        }
-        const device = this.getDevice(deviceInstanceId);
-        let deviceRole;
-
-        // If our role is central set the device role to be peripheral.
-        if (device.role === 'BLE_GAP_ROLE_CENTRAL') {
-            deviceRole = 'peripheral';
-        } else if (device.role === 'BLE_GAP_ROLE_PERIPH') {
-            deviceRole = 'central';
+    pair(deviceInstanceId, bond, callback) {
+        if (bond) {
+            const errorObject = make_error('Bonding is not (yet) supported', undefined);
+            this.emit('error', errorObject);
+            callback(errorObject);
+            return;
         }
 
-        if (deviceRole === 'central') {
-            this._driver.gap_authenticate(device.connectionHandle, {
-                bond: false,
-                mitm: false,
-                io_caps: driver.BLE_GAP_IO_CAPS_NONE,
-                oob: false,
-                min_key_size: 7,
-                max_key_size: 16,
-                kdist_periph: {
-                    enc: false,
-                    id: false,
-                    sign: false,
-                },
-                kdist_central: {
-                    enc: false,
-                    id: false,
-                    sign: false,
-                },
+        if (this._securityOperationsMap !== undefined) {
+            const errorObject = make_error('Failed to pair, a security operation is already in progress', undefined);
+            this.emit('error', errorObject);
+            callback(errorObject);
+            return;
+        }
+
+        //const device = this.getDevice(deviceInstanceId); //TODO: Does not work. Why?
+        const device = this._getDeviceByAddress(deviceInstanceId.address);
+
+        if (!device) {
+            const errorObject = make_error('Failed to pair, could not find device with id ' + deviceInstanceId);
+            this.emit('error', errorObject);
+            callback(errorObject);
+            return;
+        }
+
+        this._securityOperationsMap = {};
+
+        this._bleDriver.gap_authenticate(device.connectionHandle, {
+            bond: false,
+            mitm: false,
+            io_caps: this._bleDriver.BLE_GAP_IO_CAPS_NONE,
+            oob: false,
+            min_key_size: 7,
+            max_key_size: 16,
+            kdist_periph: {
+                enc: false,
+                id: false,
+                sign: false,
             },
-            err => {
-                if (err) {
-                    const errorObject = make_error('Failed to authenticate', err);
-                    this.emit('error', errorObject);
-                }
-                callback(errorObject);
+            kdist_central: {
+                enc: false,
+                id: false,
+                sign: false,
+            },
+        },
+        err => {
+            let errorObject;
+            if (err) {
+                errorObject = make_error('Failed to authenticate', err);
+                this.emit('error', errorObject);
             }
-            );
 
-    /* Central role
-        gap_authenticate(no_bond, no_mitm, no_io_caps)
-            wait for gap_evt_sec_params_request
-        gap_sec_params_reply(success, central_params: null, null)
-            wait for gap_evt_conn_sec_update(enc_no_mitm)
-            wait for gap_evt_auth_status(success)
-        OR
-        gap_sec_params_reply(invalid_params, central_params: null, null)
-            wait for gap_evt_auth_status(failure)
-    */
+            delete this._securityOperationsMap;
+            callback(errorObject);
+        });
 
-        } else { // deviceRole peripheral
-
-        }
-
-    /* Peripheral role
-        gap_authenticate(no_bond, no_mitm, no_io_caps)
-            wait for gap_evt_sec_params_request()
-        gap_sec_params_reply(periph_params: no_bond, no_mitm, no_io_caps, null)
-            wait for gap_evt_conn_sec_update(enc_no_mitm)
-            wait for gap_evt_auth_status(success)
-    */
     }
-
 
     // GATTS
     // Array of services

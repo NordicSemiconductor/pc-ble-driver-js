@@ -130,10 +130,24 @@ class TestLibrary {
     waitForConnectedEvent() {
         return new Promise((resolve, reject) => {
             this._adapter.once('deviceConnected', device => {
-                console.log("Was connected");
+                console.log('Was connected');
                 resolve(device);
             });
             console.log('Waiting to get connected');
+        });
+    }
+
+    waitForSecurityChangedEvent() {
+        return new Promise((resolve, reject) => {
+            this._adapter.once('securityChanged', event => {
+                console.log('Security changed');
+                resolve(event);
+            });
+            this._adapter.once('error', error => {
+                console.log('Error: ' + error);
+                reject(error);
+            });
+            console.log('Waiting for securityChanged event');
         });
     }
 
@@ -175,13 +189,12 @@ class TestLibrary {
         });
     }
 
-    pairWithCentral(deviceInstanceId) {
+    pair(deviceInstanceId) {
         return new Promise((resolve, reject) => {
-            this._adapter.once('pairingCompleted', () => {
-                console.log('Pairing has completed');
-                resolve();
+            this._adapter.once('securityChanged', event => {
+                resolve(event);
             });
-            this._adapter.pair(deviceInstanceId, false /*bond*/, (error) => {
+            this._adapter.pair(deviceInstanceId, false, error => {
                 if (error) {
                     reject(error);
                 }
@@ -200,6 +213,7 @@ class TestLibrary {
             });
         });
     }
+
     cancelConnect() {
         return new Promise((resolve, reject) => {
             this._adapter.cancelConnect((error) => {
