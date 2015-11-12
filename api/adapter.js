@@ -461,11 +461,11 @@ class Adapter extends EventEmitter {
     }
 
     _parseConnSecUpdateEvent(event) {
-        console.log('Received connSecUpdate event: ' + JSON.stringify(event));
+        //console.log('Received connSecUpdate event: ' + JSON.stringify(event));
     }
 
     _parseAuthStatusEvent(event) {
-        console.log('Received authStatus event: ' + JSON.stringify(event));
+        //console.log('Received authStatus event: ' + JSON.stringify(event));
         if (event.auth_status === this._bleDriver.BLE_GAP_SEC_STATUS_SUCCESS) {
             this.emit('securityChanged', event);
         } else {
@@ -869,7 +869,6 @@ class Adapter extends EventEmitter {
                 });
             } else {
                 delete this._gattOperationsMap[device.instanceId];
-                console.log(event);
                 this.emit('error', 'Length of Read response is > mtu');
                 gattOperation.callback('Invalid read response length. (> mtu)');
             }
@@ -888,8 +887,6 @@ class Adapter extends EventEmitter {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const handle = event.handle;
         const gattOperation = this._gattOperationsMap[device.instanceId];
-
-        console.log(event);
 
         if (!device) {
             delete this._gattOperationsMap[device.instanceId];
@@ -931,14 +928,11 @@ class Adapter extends EventEmitter {
                         this.emit('error', make_error('Failed to write value to device/handle ' + device.instanceId + '/' + handle, err));
                         return;
                     }
-
-                    console.log('successfully sent write to driver');
                 });
             } else {
                 writeParameters.write_op = this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ;
                 writeParameters.flags = this._bleDriver.BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE;
 
-                console.log(writeParameters);
                 this._bleDriver.gattc_write(device.connectionHandle, writeParameters, err => {
 
                     if (err) {
@@ -1044,7 +1038,7 @@ class Adapter extends EventEmitter {
 
         const characteristic = this._getCharacteristicByValueHandle(event.handle);
         if (!characteristic) {
-            this.emit('error', 'Cannot handle HVX event. No characteristic has a value descriptor with handle: ' + event.handle);
+            this.emit('error', make_Error('Cannot handle HVX event', 'No characteristic has a value descriptor with handle: ' + event.handle));
             return;
         }
 
@@ -1378,10 +1372,6 @@ class Adapter extends EventEmitter {
         const advDataStruct = Array.from(AdType.convertToBuffer(advData));
         const scanRespDataStruct = Array.from(AdType.convertToBuffer(scanRespData));
 
-        console.log('advParams: ' + JSON.stringify(advParams));
-        console.log('advDataStruct: ' + JSON.stringify(advDataStruct));
-        console.log('scanRespDataStruct: ' + JSON.stringify(scanRespDataStruct));
-
         this._bleDriver.gap_set_advertising_data(
             advDataStruct,
             scanRespDataStruct,
@@ -1496,7 +1486,7 @@ class Adapter extends EventEmitter {
         const device = this.getDevice(deviceInstanceId);
 
         if (!device) {
-            const errorObject = make_error('Failed to pair, could not find device with id ' + deviceInstanceId);
+            const errorObject = make_error('Failed to pair, Could not find device with id ' + JSON.stringify(deviceInstanceId));
             this.emit('error', errorObject);
             callback(errorObject);
             return;
@@ -1561,7 +1551,6 @@ class Adapter extends EventEmitter {
                                     } else {
                                         this._bleDriver.decode_uuid(length, uuid, (err, _uuid) => {
                                             if (err) {
-                                                console.log('I prpapdslfsal:' + err);
                                                 reject(make_error(`Unable to decode UUID ${uuid}`, err));
                                             } else {
                                                 data.decoded_uuid = _uuid;

@@ -7,7 +7,7 @@ describe('Long Read and write operations', function() {
     this.timeout(30000);
 
     const peripheralAddress = process.env.testPeripheral;
-    it('should write a value to a descriptor and read it back. (short write)', done => {
+    xit('should write a value to a descriptor and read it back. (short write)', done => {
         let theDevice;
         let longWriteCharacteristic;
         const longValue = [
@@ -35,14 +35,11 @@ describe('Long Read and write operations', function() {
                 return testLib.writeCharacteristicValue(longWriteCharacteristic.instanceId, longValue, true);
             })
             .then(attribute => {
-                console.log('attribute');
-                console.log(attribute);
-
                 return testLib.readCharacteristicValue(longWriteCharacteristic.instanceId);
             })
             .then(readValue => {
-                console.log(readValue);
                 assert(_.isEqual(longValue, readValue));
+                return testLib.disconnect(theDevice.instanceId);
             })
             .then(() => {done();})
             .catch(error => {

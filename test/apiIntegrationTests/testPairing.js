@@ -8,13 +8,13 @@ const sinon = require('sinon');
 describe('Adapter pairing', function() {
     this.timeout(40000);
 
-    it('should be possible to pair with a peer central', done => {
+    xit('should be possible to pair with a peer central', done => {
         let theDevice;
         testLib.startAdvertising()
         .then(() => {
             return testLib.waitForConnectedEvent();
         })
-        .then((device) => {
+        .then(device => {
             theDevice = device;
             return testLib.pair(theDevice.instanceId);
         })
@@ -28,27 +28,29 @@ describe('Adapter pairing', function() {
         });
     });
 
-    xit('should be possible to pair with a peripheral', done => {
+    it('should be possible to pair with a peripheral', done => {
         const errorSpy = sinon.spy();
+        let theDevice;
         testLib._adapter.once('error', errorSpy);
         testLib.connectToPeripheral(process.env.testPeripheral)
         .then(device => {
+            theDevice = device;
             assert(!errorSpy.calledOnce);
-            assert.equal(device.address, process.env.testPeripheral);
-            return device;
+            assert.equal(theDevice.address, process.env.testPeripheral);
+
+            return testLib.pair(theDevice.instanceId);
         })
-        .then(device => {
-            return testLib.pair(device);
-        })
-        .then((event) => {
+        .then(event => {
             assert(!errorSpy.calledOnce);
             //assert.equal(device.address, process.env.testPeripheral);
             assert(event.auth_status === 0);
-            done();
+
+            return testLib.disconnect(theDevice.instanceId);
         })
+        .then(() => {done();})
         .catch(error => {
-            console.log('error: ' + error);
-            testLib.disconnect();
+            console.log(error);
+            testLib.disconnect(theDevice.instanceId);
             done();
         });
     });
