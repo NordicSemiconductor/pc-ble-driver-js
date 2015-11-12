@@ -137,6 +137,20 @@ class TestLibrary {
         });
     }
 
+    waitForSecurityChangedEvent() {
+        return new Promise((resolve, reject) => {
+            this._adapter.once('securityChanged', event => {
+                console.log('Security changed');
+                resolve(event);
+            });
+            this._adapter.once('error', error => {
+                console.log('Error: ' + error);
+                reject(error);
+            });
+            console.log('Waiting for securityChanged event');
+        });
+    }
+
     startAdvertising(advData) {
         return new Promise((resolve, reject) => {
             if (advData === undefined) {
@@ -178,13 +192,15 @@ class TestLibrary {
         });
     }
 
-    pairWithCentral(deviceInstanceId) {
+    pair(deviceInstanceId) {
         return new Promise((resolve, reject) => {
-            this._adapter.once('pairingCompleted', () => {
-                console.log('Pairing has completed');
-                resolve();
+            this._adapter.once('securityChanged', event => {
+                resolve(event);
             });
-            this._adapter.pair(deviceInstanceId, false /*bond*/, (error) => {
+            this._adapter.once('error', error => {
+                reject(error);
+            });
+            this._adapter.pair(deviceInstanceId, false, error => {
                 if (error) {
                     reject(error);
                 }
