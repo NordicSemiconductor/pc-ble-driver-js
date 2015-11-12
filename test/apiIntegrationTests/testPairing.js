@@ -16,7 +16,7 @@ describe('Adapter pairing', function() {
         })
         .then((device) => {
             theDevice = device;
-            return testLib.pair(theDevice);
+            return testLib.pair(theDevice.instanceId);
         })
         .then(() => {
             done();

@@ -1479,8 +1479,7 @@ class Adapter extends EventEmitter {
             return;
         }
 
-        //const device = this.getDevice(deviceInstanceId); //TODO: Does not work. Why?
-        const device = this._getDeviceByAddress(deviceInstanceId.address);
+        const device = this.getDevice(deviceInstanceId);
 
         if (!device) {
             const errorObject = make_error('Failed to pair, could not find device with id ' + deviceInstanceId);
