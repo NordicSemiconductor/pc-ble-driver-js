@@ -266,9 +266,7 @@ class Adapter extends EventEmitter {
                     this._parseHvxEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_TIMEOUT:
-                    console.log('GATTC timeout');
-                    console.log(event);
-                    // TODO: Implement
+                    this._parseGattTimeoutEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_WRITE:
                     this._parseWriteEvent(event);
@@ -286,8 +284,7 @@ class Adapter extends EventEmitter {
                     // TODO: Implement when we want service changed...
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_TIMEOUT:
-                    // TODO: Implement
-                    console.log('Timeout');
+                    this._parseGattTimeoutEvent(event);
                     break;
                 case this._bleDriver.BLE_EVT_USER_MEM_REQUEST:
                     // TODO: Need this for receiving long writes?
@@ -1053,6 +1050,14 @@ class Adapter extends EventEmitter {
 
         characteristic.value = event.data;
         this.emit('characteristicValueChanged', characteristic);
+    }
+
+    _parseGattTimeoutEvent(event) {
+        const gattOperation = this._gattOperationsMap[event.conn_handle];
+        if (gattOperation) {
+            gattOperation.callback(make_error('Received a Gatt timeout'));
+            delete this._gattOperationsMap[event.conn_handle];
+        }
     }
 
     _parseWriteEvent(event) {
