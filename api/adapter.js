@@ -230,9 +230,9 @@ class Adapter extends EventEmitter {
                 case this._bleDriver.BLE_GAP_EVT_ADV_REPORT:
                     this._parseAdvertismentReportEvent(event);
                     break;
-                /*
                 case this._bleDriver.BLE_GAP_EVT_SEC_REQUEST:
-                */
+                    this._parseSecurityRequestEvent(event);
+                    break;
                 case this._bleDriver.BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST:
                     this._parseConnectionParameterUpdateRequestEvent(event);
                     break;
@@ -494,6 +494,15 @@ class Adapter extends EventEmitter {
         const discoveredDevice = new Device(address, 'peripheral');
         discoveredDevice.processEventData(event);
         this.emit('deviceDiscovered', discoveredDevice);
+    }
+
+    _parseSecurityRequestEvent(event) {
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
+        this.pair(device.instanceId, false, error => {
+            if (error) {
+                console.log(error);
+            }
+        });
     }
 
     _parseGapTimeoutEvent(event) {
