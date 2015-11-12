@@ -1112,7 +1112,32 @@ class Adapter extends EventEmitter {
     }
 
     _parseRWAutorizeRequestEvent(event) {
-        // TODO: What to do here? Ask user of API for accept or reject?
+        let authorizeReplyParams;
+        if (event.type === this._bleDriver.BLE_GATTS_AUTHORIZE_TYPE_WRITE) {
+            authorizeReplyParams = {
+                type: event.type,
+                write: {
+                    gattc_status: this._bleDriver.BLE_GATT_STATUS_SUCCESS,
+                },
+            };
+        } else if (event.type === this._bleDriver.BLE_GATTS_AUTHORIZE_TYPE_READ) {
+            authorizeReplyParams = {
+                type: event.type,
+                read: {
+                    gatt_status: this._bleDriver.BLE_GATT_STATUS_SUCCESS,
+                    update: 0,
+                    offset: 0,
+                    len: 0,
+                    p_data: [],
+                },
+            };
+        }
+
+        this._bleDriver.RWAuthorizeReply(event.conn_handle, authorizeReplyParams, error => {
+            if (error) {
+                this.emit('error', make_error('Failed to call RWAuthorizeReply', error));
+            }
+        });
     }
 
     _setAttributeValueWithOffset(attribute, value, offset) {
