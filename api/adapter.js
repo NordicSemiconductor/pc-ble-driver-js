@@ -38,7 +38,9 @@ class Adapter extends EventEmitter {
 
         this._converter = new Converter(this._bleDriver);
 
-        this._maxPayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 5;
+        this._maxReadPayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 1;
+        this._maxShortWritePayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 3;
+        this._maxLongWritePayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 5;
 
         this._gapOperationsMap = {};
         this._gattOperationsMap = {};
@@ -371,6 +373,7 @@ class Adapter extends EventEmitter {
             delete this._gapOperationsMap[device.instanceId];
             callback(undefined, device);
         }
+
         this.emit('connParamUpdate', device);
     }
 
@@ -434,6 +437,7 @@ class Adapter extends EventEmitter {
 
                     // Call getServices callback??
                 }
+
                 console.log('gap_sec_params_reply completed');
                 console.log('keyset: ' + JSON.stringify(keyset));
             }
@@ -813,12 +817,12 @@ class Adapter extends EventEmitter {
         } else {
             gattOperation.readBytes = gattOperation.readBytes.concat(event.data);
 
-            if (event.data.length < this._maxPayloadSize) {
+            if (event.data.length < this._maxReadPayloadSize) {
                 delete this._gattOperationsMap[device.instanceId];
                 gattOperation.callback(undefined, gattOperation.readBytes);
-            } else if (event.data.length === this._maxPayloadSize) {
+            } else if (event.data.length === this._maxReadPayloadSize) {
                 // We need to read more:
-                this._bleDriver.read(event.conn_handle, event.handle, gattOperation.readBytes.length, (err) => {
+                this._bleDriver.gattc_read(event.conn_handle, event.handle, gattOperation.readBytes.length, err => {
                     if (err) {
                         delete this._gattOperationsMap[device.instanceId];
                         this.emit('error', make_error('Read value failed', err));
@@ -827,6 +831,7 @@ class Adapter extends EventEmitter {
                 });
             } else {
                 delete this._gattOperationsMap[device.instanceId];
+                console.log(event);
                 this.emit('error', 'Length of Read response is > mtu');
                 gattOperation.callback('Invalid read response length. (> mtu)');
             }
@@ -846,6 +851,8 @@ class Adapter extends EventEmitter {
         const handle = event.handle;
         const gattOperation = this._gattOperationsMap[device.instanceId];
 
+        console.log(event);
+
         if (!device) {
             delete this._gattOperationsMap[device.instanceId];
             this.emit('error', 'Failed to handle write event, no device with handle ' + device.instanceId + 'found.');
@@ -855,9 +862,9 @@ class Adapter extends EventEmitter {
 
         // TODO: Check gatt error? event.gatt_status === BLE_GATT_STATUS_SUCCESS
 
-        if (event.type === this._bleDriver.BLE_GATT_OP_WRITE_CMD) {
+        if (event.write_op === this._bleDriver.BLE_GATT_OP_WRITE_CMD) {
             gattOperation.attribute.value = gattOperation.value;
-        } else if (event.type === this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ) {
+        } else if (event.write_op === this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ) {
 
             const writeParameters = {
                 write_op: 0,
@@ -865,18 +872,19 @@ class Adapter extends EventEmitter {
                 handle: handle,
                 offset: 0,
                 len: 0,
-                value: [],
+                p_value: [],
             };
 
             if (gattOperation.bytesWritten < gattOperation.value.length) {
-                const value = gattOperation.value.slice(gattOperation.bytesWritten, gattOperation.bytesWritten + this._maxPayloadSize);
+                const value = gattOperation.value.slice(gattOperation.bytesWritten, gattOperation.bytesWritten + this._maxLongWritePayloadSize);
 
                 writeParameters.write_op = this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ;
                 writeParameters.handle = handle;
                 writeParameters.offset = gattOperation.bytesWritten;
                 writeParameters.len = value.length;
                 writeParameters.p_value = value;
-                console.log(writeParameters);
+                gattOperation.bytesWritten += value.length;
+
                 this._bleDriver.gattc_write(device.connectionHandle, writeParameters, err => {
 
                     if (err) {
@@ -893,7 +901,7 @@ class Adapter extends EventEmitter {
                 writeParameters.flags = this._bleDriver.BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE;
 
                 console.log(writeParameters);
-                this._bleDriver.gattc_write(device.connectionHandle, writeParameters, (err) => {
+                this._bleDriver.gattc_write(device.connectionHandle, writeParameters, err => {
 
                     if (err) {
                         this._longWriteCancel(device, gattOperation.attribute);
@@ -904,7 +912,7 @@ class Adapter extends EventEmitter {
             }
 
             return;
-        } else if (event.type === this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ) {
+        } else if (event.write_op === this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ) {
             // TODO: Need to check if gattOperation.bytesWritten is equal to gattOperation.value length?
             gattOperation.attribute.value = gattOperation.value;
             delete this._gattOperationsMap[device.instanceId];
@@ -1427,8 +1435,9 @@ class Adapter extends EventEmitter {
     // callback signature function(err) {}
     pair(deviceInstanceId, bond /*not supported in MS2*/, callback) {
         if (bond !== undefined || bond !== null) {
-            throw new Error('Bonding is not (yet) supported, use null or undefined')
+            throw new Error('Bonding is not (yet) supported, use null or undefined');
         }
+
         const device = this.getDevice(deviceInstanceId);
         let deviceRole;
 
@@ -1463,6 +1472,7 @@ class Adapter extends EventEmitter {
                     const errorObject = make_error('Failed to authenticate', err);
                     this.emit('error', errorObject);
                 }
+
                 callback(errorObject);
             }
             );
@@ -1769,7 +1779,7 @@ class Adapter extends EventEmitter {
     }
 
     // Callback signature function(err) {}
-    readCharacteristicValue(characteristicId, offset, callback) {
+    readCharacteristicValue(characteristicId, callback) {
         const characteristic = this.getCharacteristic(characteristicId);
         if (!characteristic) {
             throw new Error('Characteristic value read failed: Could not get characteristic with id ' + characteristicId);
@@ -1791,7 +1801,7 @@ class Adapter extends EventEmitter {
 
         this._gattOperationsMap[device.instanceId] = {callback: callback, readBytes: []};
 
-        this._bleDriver.read(device.connectionHandle, characteristic.valueHandle, 0, err => {
+        this._bleDriver.gattc_read(device.connectionHandle, characteristic.valueHandle, 0, err => {
             if (err) {
                 this.emit('error', make_error('Read characteristic value failed', err));
             }
@@ -1819,15 +1829,17 @@ class Adapter extends EventEmitter {
             throw new Error('Characteristic value write failed: A gatt operation already in progress with device id ' + device.instanceId);
         }
 
-        this._gattOperationsMap[device.instanceId] = {callback: callback, bytesWritten: this._maxPayloadSize, value: value.slice(), attribute: characteristic};
+        this._gattOperationsMap[device.instanceId] = {callback: callback, bytesWritten: 0, value: value.slice(), attribute: characteristic};
 
-        if (value.length > this._maxPayloadSize) {
+        if (value.length > this._maxShortWritePayloadSize) {
             if (!ack) {
                 throw new Error('Long writes do not support BLE_GATT_OP_WRITE_CMD');
             }
 
+            this._gattOperationsMap[device.instanceId].bytesWritten = this._maxLongWritePayloadSize;
             this._longWrite(device, characteristic, value, callback);
         } else {
+            this._gattOperationsMap[device.instanceId].bytesWritten = value.length;
             this._shortWrite(device, characteristic, ack, value, callback);
         }
     }
@@ -1915,15 +1927,17 @@ class Adapter extends EventEmitter {
             throw new Error('Descriptor write failed: A gatt operation already in progress with device with id ' + device.instanceId);
         }
 
-        this._gattOperationsMap[device.instanceId] = {callback: callback, bytesWritten: this._maxPayloadSize, value: value.slice(), attribute: descriptor};
+        this._gattOperationsMap[device.instanceId] = {callback: callback, bytesWritten: 0, value: value.slice(), attribute: descriptor};
 
-        if (value.length > this._maxPayloadSize) {
+        if (value.length > this._maxShortWritePayloadSize) {
             if (!ack) {
                 throw new Error('Long writes do not support BLE_GATT_OP_WRITE_CMD');
             }
 
+            this._gattOperationsMap[device.instanceId].bytesWritten = this._maxLongWritePayloadSize;
             this._longWrite(device, descriptor, value, callback);
         } else {
+            this._gattOperationsMap[device.instanceId].bytesWritten = value.length;
             this._shortWrite(device, descriptor, value, ack, callback);
         }
     }
@@ -1955,8 +1969,8 @@ class Adapter extends EventEmitter {
     }
 
     _longWrite(device, attribute, value, callback) {
-        if (value.length < this._maxPayloadSize) {
-            throw new Error('Wrong write method. Use regular write for payload sizes < ' + this._maxPayloadSize);
+        if (value.length < this._maxShortWritePayloadSize) {
+            throw new Error('Wrong write method. Use regular write for payload sizes < ' + this._maxShortWritePayloadSize);
         }
 
         const writeParameters = {
@@ -1964,8 +1978,8 @@ class Adapter extends EventEmitter {
             flags: this._bleDriver.BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE,
             handle: attribute.handle,
             offset: 0,
-            len: this._maxPayloadSize,
-            p_value: value.slice(0, this._maxPayloadSize),
+            len: this._maxLongWritePayloadSize,
+            p_value: value.slice(0, this._maxLongWritePayloadSize),
         };
 
         this._bleDriver.gattc_write(device.connectionHandle, writeParameters, (err) => {

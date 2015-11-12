@@ -130,7 +130,7 @@ class TestLibrary {
     waitForConnectedEvent() {
         return new Promise((resolve, reject) => {
             this._adapter.once('deviceConnected', device => {
-                console.log("Was connected");
+                console.log('Was connected');
                 resolve(device);
             });
             console.log('Waiting to get connected');
@@ -142,16 +142,19 @@ class TestLibrary {
             if (advData === undefined) {
                 advData = {};
             }
+
             if (advData.completeLocalName === undefined) {
                 advData.completeLocalName = 'Wayland';
             }
+
             if (advData.txPowerLevel === undefined) {
                 advData.txPowerLevel = 20;
             }
+
             const scanRespData = {};
             const advOptions = {
                 interval: 100,
-                timeout: 10000
+                timeout: 10000,
             };
             this._adapter.startAdvertising(advData, scanRespData, advOptions, error => {
                 if (error) {
@@ -200,6 +203,7 @@ class TestLibrary {
             });
         });
     }
+
     cancelConnect() {
         return new Promise((resolve, reject) => {
             this._adapter.cancelConnect((error) => {
@@ -367,6 +371,18 @@ class TestLibrary {
                     reject(error);
                 } else {
                     resolve(attribute);
+                }
+            });
+        });
+    }
+
+    readCharacteristicValue(characteristicId) {
+        return new Promise((resolve, reject) => {
+            this._adapter.readCharacteristicValue(characteristicId, (error, characteristic) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(characteristic);
                 }
             });
         });

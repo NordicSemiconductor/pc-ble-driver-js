@@ -10,7 +10,6 @@ const fs = require('fs');
 const path = require('path');
 const testLib = require('./testLibrary').singletonContainer.testLibrary;
 
-
 const assert = require('assert');
 
 var argv = require('yargs')
@@ -27,15 +26,15 @@ var argv = require('yargs')
 ;
 
 let done = false;
-for(let i = 0; i < argv['_'].length; i++) {
-    switch(argv._[i]) {
+for (let i = 0; i < argv._.length; i++) {
+    switch (argv._[i]) {
         case 'connect':
         {
             const adapterId = argv.adapter;
             const peripheralAddress = argv['peripheral-address'];
             testLib.openAdapter(adapterId)
-                .then( testLib.connectToPeripheral.bind(testLib, peripheralAddress) )
-                .then( (device) => {
+                .then(testLib.connectToPeripheral.bind(testLib, peripheralAddress))
+                .then((device) => {
                     console.log('connected to device');
                     console.log(JSON.stringify(device.address));
                 })
@@ -43,28 +42,32 @@ for(let i = 0; i < argv['_'].length; i++) {
                 .then(() => {
                     process.exit(0);
                 })
-                .catch( (error) => {
+                .catch((error) => {
                     console.log('Connect to device failed: ', error);
                     process.exit(1);
                 });
             break;
         }
+
         case 'list-adapters':
+        {
             console.log('Connected adapters: ');
             testLib.getAdapters()
-                .then( (adapters) => {
-                    Object.keys(adapters).forEach((adapterKey, index) =>{
+                .then((adapters) => {
+                    Object.keys(adapters).forEach((adapterKey, index) => {
                         console.log(index + '. ' + adapterKey);
                     });
                 })
                 .then(() => {
                     done = true;//process.exit(0);
                 })
-                .catch( (error) => {
+                .catch((error) => {
                     console.log('list-adapters failed: ', error);
                     process.exit(1);
                 });
             break;
+        }
+
         case 'discover-peripherals':
         {
             const adapterId = argv.adapter;
@@ -72,6 +75,7 @@ for(let i = 0; i < argv['_'].length; i++) {
                 console.log('Missing argument --adapter.');
                 process.exit(1);
             }
+
             console.log('Opening adapter ' + adapterId + '...');
             testLib.openAdapter(adapterId)
                 .then(testLib.listAdvertisingPeripherals.bind(testLib))
@@ -80,22 +84,23 @@ for(let i = 0; i < argv['_'].length; i++) {
                     console.log('Closed adapter');
                     process.exit(0);
                 })
-                .catch( (error) => {
+                .catch((error) => {
                     console.log('discover-peripherals failed: ' + error);
                     process.exit(1);
                 });
             break;
         }
+
         case 'discover-services':
         {
             const adapterId = argv.adapter;
             const peripheralAddress = argv['peripheral-address'];
             testLib.openAdapter(adapterId)
-                .then( testLib.connectToPeripheral.bind(testLib, peripheralAddress) )
-                .then( (device) => {
+                .then(testLib.connectToPeripheral.bind(testLib, peripheralAddress))
+                .then((device) => {
                     return testLib.getServices(device.instanceId);
                 })
-                .then( (services) => {
+                .then((services) => {
                     for (let index in services) {
                         let service = services[index];
                         console.log('uuid: ' + service.uuid + ' startHandle: ' + service.startHandle);
@@ -111,6 +116,7 @@ for(let i = 0; i < argv['_'].length; i++) {
                 });
             break;
         }
+
         case 'start-advertising':
         {
             const adapterId = argv.adapter;
@@ -118,6 +124,7 @@ for(let i = 0; i < argv['_'].length; i++) {
                 console.log('Missing argument --adapter.');
                 process.exit(1);
             }
+
             testLib.openAdapter(adapterId)
                 .then(testLib.startAdvertising.bind(testLib))
                 .then(() => {
@@ -136,7 +143,7 @@ for(let i = 0; i < argv['_'].length; i++) {
             // (A bug in the driver makes it possible to open the adapter only once)
             const adapterId = argv.adapter;
             const peripheralAddress = argv['peripheral-address'];
-            const testFile = argv['test'];
+            const testFile = argv.test;
             const testFileName = 'test' + testFile + '.js';
 
             // Use process.env to pass peripheral-address to test
@@ -176,7 +183,7 @@ for(let i = 0; i < argv['_'].length; i++) {
     }
 }
 
-(function wait () {
+(function wait() {
     if (!done) {
         setTimeout(wait, 500);
     }
