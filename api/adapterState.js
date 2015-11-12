@@ -13,6 +13,7 @@ class AdapterState {
         this.scanning = false;
         this.advertising = false;
         this.connecting = false;
+        this.securityRequestPending = false;
 
         this.address = null;
         this.name = null;

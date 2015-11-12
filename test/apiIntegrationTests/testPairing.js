@@ -6,9 +6,9 @@ const sinon = require('sinon');
 
 //Use old style 'function' here or else this.timeout won't work
 describe('Adapter pairing', function() {
-    this.timeout(20000);
+    this.timeout(40000);
 
-    xit('should be possible to pair with a peer central', done => {
+    it('should be possible to pair with a peer central', done => {
         let theDevice;
         testLib.startAdvertising()
         .then(() => {
@@ -22,8 +22,9 @@ describe('Adapter pairing', function() {
             done();
         })
         .catch(error => {
-            console.log('error: ' + error);
+            console.log('error: ' + JSON.stringify(error));
             testLib.disconnect();
+            done();
         });
     });
 
@@ -48,6 +49,7 @@ describe('Adapter pairing', function() {
         .catch(error => {
             console.log('error: ' + error);
             testLib.disconnect();
+            done();
         });
     });
 });

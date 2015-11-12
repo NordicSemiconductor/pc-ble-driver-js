@@ -42,7 +42,6 @@ class Adapter extends EventEmitter {
 
         this._gapOperationsMap = {};
         this._gattOperationsMap = {};
-        this._securityOperationsMap = undefined;
 
         this._preparedWritesMap = {};
     }
@@ -221,7 +220,7 @@ class Adapter extends EventEmitter {
                 case this._bleDriver.BLE_GAP_EVT_AUTH_KEY_REQUEST:
                 */
                 case this._bleDriver.BLE_GAP_EVT_TIMEOUT:
-                    this._parseTimeoutEvent(event);
+                    this._parseGapTimeoutEvent(event);
                     break;
                 case this._bleDriver.BLE_GAP_EVT_RSSI_CHANGED:
                     this._parseRssiChangedEvent(event);
@@ -451,7 +450,7 @@ class Adapter extends EventEmitter {
             (err, keyset) => {
                 if (err) {
                     this.emit('error', 'Failed to call security parameters reply');
-                    delete this._securityOperationsMap;
+                    this._changeAdapterState({securityRequestPending: false});
                     return;
                 }
             }
@@ -469,7 +468,8 @@ class Adapter extends EventEmitter {
         } else {
             this.emit('error', 'Pairing failed with error ' + event.auth_status);
         }
-        delete this._securityOperationsMap;
+
+        this._changeAdapterState({securityRequestPending: false});
     }
 
     _parseConnectionParameterUpdateRequestEvent(event) {
@@ -493,13 +493,20 @@ class Adapter extends EventEmitter {
         this.emit('deviceDiscovered', discoveredDevice);
     }
 
-    _parseTimeoutEvent(event) {
+    _parseGapTimeoutEvent(event) {
         switch (event.src) {
+            case this._bleDriver.BLE_GAP_TIMEOUT_SRC_ADVERTISING:
+                this._changeAdapterState({advertising: false});
+                break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_SCAN:
                 this._changeAdapterState({scanning: false});
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_CONN:
                 this._changeAdapterState({connecting: false});
+                break;
+            case this._bleDriver.BLE_GAP_TIMEOUT_SRC_SECURITY_REQUEST:
+                this._changeAdapterState({securityRequestPending: false});
+                this.emit('error', make_error('Security operation timeout.'));
                 break;
             default:
                 console.log(`GAP operation timed out: ${event.src_name} (${event.src}).`);
@@ -1472,7 +1479,7 @@ class Adapter extends EventEmitter {
             return;
         }
 
-        if (this._securityOperationsMap !== undefined) {
+        if (this.adapterState.securityRequestPending) {
             const errorObject = make_error('Failed to pair, a security operation is already in progress', undefined);
             this.emit('error', errorObject);
             callback(errorObject);
@@ -1488,7 +1495,7 @@ class Adapter extends EventEmitter {
             return;
         }
 
-        this._securityOperationsMap = {};
+        this._changeAdapterState({securityRequestPending: true});
 
         this._bleDriver.gap_authenticate(device.connectionHandle, {
             bond: false,
@@ -1515,10 +1522,9 @@ class Adapter extends EventEmitter {
                 this.emit('error', errorObject);
             }
 
-            delete this._securityOperationsMap;
+            this._changeAdapterState({securityRequestPending: false});
             callback(errorObject);
         });
-
     }
 
     // GATTS

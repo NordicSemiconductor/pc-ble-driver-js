@@ -194,6 +194,9 @@ class TestLibrary {
             this._adapter.once('securityChanged', event => {
                 resolve(event);
             });
+            this._adapter.once('error', error => {
+                reject(error);
+            });
             this._adapter.pair(deviceInstanceId, false, error => {
                 if (error) {
                     reject(error);
