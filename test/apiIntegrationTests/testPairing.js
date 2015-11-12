@@ -54,4 +54,23 @@ describe('Adapter pairing', function() {
             done();
         });
     });
+
+    xit('should be possible for a central to initiate pairing when receiving security request', done => {
+        const errorSpy = sinon.spy();
+        testLib._adapter.once('error', errorSpy);
+        testLib.connectToPeripheral(process.env.testPeripheral)
+        .then(() => {
+            return testLib.waitForSecurityChangedEvent();
+        })
+        .then(event => {
+            assert(event.auth_status === 0);
+            done();
+        })
+        .catch(error => {
+            console.log('error: ' + error);
+            testLib.disconnect();
+            done();
+        });
+    });
 });
+//C59B853D2AE7

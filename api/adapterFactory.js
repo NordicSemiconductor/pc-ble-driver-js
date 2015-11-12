@@ -4,8 +4,8 @@ var  Adapter = require('./adapter');
 const EventEmitter = require('events');
 
 /**
- * @brief A factory that instantiates new Adapters. 
- * 
+ * @brief A factory that instantiates new Adapters.
+ *
  * @event added - A new adapter was connected
  * @event removed - A connected adapter was disconnected
  * @event adapterOpened - One of the connected adapters was opened.
@@ -18,6 +18,8 @@ const EventEmitter = require('events');
 
 let _singleton = Symbol();
 
+const UPDATE_INTERVAL = 2000; // Update interval in seconds
+
 class AdapterFactory extends EventEmitter {
     constructor(singletonToken, bleDriver) {
         if (_singleton !== singletonToken)
@@ -27,7 +29,7 @@ class AdapterFactory extends EventEmitter {
         super();
         this._bleDriver = bleDriver;
         this._adapters = {};
-        this._updateAdapterList();
+        this.updateInterval = setInterval(this._updateAdapterList.bind(this), UPDATE_INTERVAL);
     }
 
     clearForNextUnitTest(bleDriver) {
@@ -112,7 +114,7 @@ class AdapterFactory extends EventEmitter {
         });
         adapter.on('closed', (adapter) => {
             this.emit('adapterClosed', adapter);
-        })
+        });
     }
 
     getAdapters(callback) {
