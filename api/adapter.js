@@ -79,7 +79,7 @@ class Adapter extends EventEmitter {
     checkAndPropagateError(err, userMessage, callback) {
         if (err) {
             var error = make_error(userMessage, err);
-            this.emit('error', JSON.stringify(error));
+            this.emit('error', error);
             if (callback) callback(error);
             return true;
         }
