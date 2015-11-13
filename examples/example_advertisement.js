@@ -53,7 +53,7 @@ function onBleEvent(event_array) {
             console.log('Connected. Handle: %d', connectionHandle);
 
             //connSecGet();
-            setTimeout(authenticate, 2000);
+            //setTimeout(authenticate, 2000);
         } else if (event.name === 'BLE_GATTS_EVT_SYS_ATTR_MISSING') {
             driver.gatts_set_system_attribute(connectionHandle, 0, 0, 0, function(err) {
                 if (err) {
@@ -88,16 +88,29 @@ function onBleEvent(event_array) {
             }
         } else if (event.name === 'BLE_GAP_EVT_SEC_PARAMS_REQUEST') {
             console.log('GapSecParamsRequest: ' + JSON.stringify(event));
-            secParamsReply();
+            //secParamsReply();
         } else if (event.name === 'BLE_GAP_EVT_SEC_INFO_REQUEST') {
             console.log('GapSecInfoRequest: ' + JSON.stringify(event));
-            secInfoReply();
+            //secInfoReply();
         } else if (event.name === 'BLE_GAP_EVT_CONN_SEC_UPDATE') {
             console.log('Connection security update event received:');
             console.log(JSON.stringify(event));
         } else if (event.name === 'BLE_GAP_EVT_AUTH_STATUS') {
             console.log('Auth status event received:');
             console.log(JSON.stringify(event));
+        } else if (event.name === 'BLE_EVT_USER_MEM_REQUEST') {
+            console.log('User Mem request received:');
+            console.log(JSON.stringify(event));
+            driver.user_mem_reply(event.conn_handle, 0, function(err) {
+                if (err)
+                {
+                    console.log('Error when replying to user memory request');
+                    console.log(err);
+                    return;
+                }
+
+                console.log('Denied user memory request');
+            });
         }
     }
 }

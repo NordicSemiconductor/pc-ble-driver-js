@@ -244,7 +244,9 @@ void on_rpc_event(uv_async_t *handle)
         {
             switch (event->header.evt_id)
             {
-                COMMON_EVT_CASE(TX_COMPLETE,    TXComplete,     tx_complete, array, array_idx, event_entry);
+                COMMON_EVT_CASE(TX_COMPLETE,      TXComplete, tx_complete,      array, array_idx, event_entry);
+                COMMON_EVT_CASE(USER_MEM_REQUEST, MemRequest, user_mem_request, array, array_idx, event_entry);
+                COMMON_EVT_CASE(USER_MEM_RELEASE, MemRelease, user_mem_release, array, array_idx, event_entry);
 
                 GAP_EVT_CASE(CONNECTED,                 Connected,              connected,                  array, array_idx, event_entry);
                 GAP_EVT_CASE(DISCONNECTED,              Disconnected,           disconnected,               array, array_idx, event_entry);
@@ -317,6 +319,30 @@ v8::Local<v8::Object> CommonTXCompleteEvent::ToJs()
 
     Utility::Set(obj, "count", ConversionUtility::toJsNumber(evt->count));
     
+    return scope.Escape(obj);
+}
+
+v8::Local<v8::Object> CommonMemRequestEvent::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverCommonEvent::ToJs(obj);
+
+    Utility::Set(obj, "type", ConversionUtility::toJsNumber(evt->type));
+
+    return scope.Escape(obj);
+}
+
+
+v8::Local<v8::Object> CommonMemReleaseEvent::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverCommonEvent::ToJs(obj);
+
+    Utility::Set(obj, "type", ConversionUtility::toJsNumber(evt->type));
+    Utility::Set(obj, "mem_block", UserMemBlock(&evt->mem_block));
+
     return scope.Escape(obj);
 }
 
@@ -900,6 +926,94 @@ NAN_METHOD(GetStats)
     Utility::SetReturnValue(info, obj);
 }
 
+NAN_METHOD(UserMemReply)
+{
+    uint16_t conn_handle;
+    bool hasMemoryBlock = true;
+    v8::Local<v8::Object> mem_block;
+    v8::Local<v8::Function> callback;
+    int argumentcount = 0;
+
+    try
+    {
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        if (info[argumentcount]->IsNumber())
+        {
+            hasMemoryBlock = false;
+        }
+        else
+        {
+            mem_block = ConversionUtility::getJsObject(info[argumentcount]);
+        }
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    BleUserMemReplyBaton *baton = new BleUserMemReplyBaton(callback);
+    baton->conn_handle = conn_handle;
+
+    if (hasMemoryBlock)
+    {
+        try
+        {
+            baton->p_block = UserMemBlock(mem_block);
+        }
+        catch (char const *error)
+        {
+            v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("user mem reply", error);
+            Nan::ThrowTypeError(message);
+            return;
+        }
+    }
+    else
+    {
+        baton->p_block = 0;
+    }
+
+    uv_queue_work(uv_default_loop(), baton->req, UserMemReply, (uv_after_work_cb)AfterUserMemReply);
+
+    return;
+}
+
+void UserMemReply(uv_work_t *req)
+{
+    BleUserMemReplyBaton *baton = static_cast<BleUserMemReplyBaton *>(req->data);
+
+    lock_guard<mutex> lock(ble_driver_call_mutex);
+    baton->result = sd_ble_user_mem_reply(baton->conn_handle, baton->p_block);
+}
+
+// This runs in Main Thread
+void AfterUserMemReply(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+    BleUserMemReplyBaton *baton = static_cast<BleUserMemReplyBaton *>(req->data);
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "replying on user mem request.");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+    delete baton->p_block;
+    delete baton;
+}
+
 //
 // Version -- START --
 //
@@ -927,6 +1041,35 @@ ble_version_t *Version::ToNative()
 
 //
 // Version -- END --
+//
+
+//
+// UserMemBlock -- START --
+//
+
+v8::Local<v8::Object> UserMemBlock::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+
+    Utility::Set(obj, "p_mem", ConversionUtility::toJsValueArray(native->p_mem, native->len));
+    Utility::Set(obj, "len", native->len);
+    
+    return scope.Escape(obj);
+}
+
+ble_user_mem_block_t *UserMemBlock::ToNative()
+{
+    ble_user_mem_block_t *uuid = new ble_user_mem_block_t();
+
+    uuid->p_mem = ConversionUtility::getNativePointerToUint8(jsobj, "p_mem");
+    uuid->len = ConversionUtility::getNativeUint16(jsobj, "len");
+
+    return uuid;
+}
+
+//
+// UserMemBlock -- END --
 //
 
 //
@@ -1054,6 +1197,7 @@ extern "C" {
         Utility::SetMethod(target, "add_vs_uuid", AddVendorSpecificUUID);
         Utility::SetMethod(target, "encode_uuid", UUIDEncode);
         Utility::SetMethod(target, "decode_uuid", UUIDDecode);
+        Utility::SetMethod(target, "user_mem_reply", UserMemReply);
 
         Utility::SetMethod(target, "get_stats", GetStats);
 

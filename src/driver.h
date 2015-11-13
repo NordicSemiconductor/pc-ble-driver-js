@@ -9,7 +9,9 @@
 #include "common.h"
 
 static name_map_t common_event_name_map = {
-    NAME_MAP_ENTRY(BLE_EVT_TX_COMPLETE)
+    NAME_MAP_ENTRY(BLE_EVT_TX_COMPLETE),
+    NAME_MAP_ENTRY(BLE_EVT_USER_MEM_REQUEST),
+    NAME_MAP_ENTRY(BLE_EVT_USER_MEM_RELEASE),
 };
 
 // Async methods
@@ -19,6 +21,7 @@ METHOD_DEFINITIONS(GetVersion);
 METHOD_DEFINITIONS(AddVendorSpecificUUID);
 METHOD_DEFINITIONS(UUIDEncode);
 METHOD_DEFINITIONS(UUIDDecode);
+METHOD_DEFINITIONS(UserMemReply);
 
 // Synchronous methods
 NAN_METHOD(GetStats);
@@ -34,6 +37,15 @@ public:
     Version(v8::Local<v8::Object> js) : BleToJs<ble_version_t>(js) {}
     v8::Local<v8::Object> ToJs();
     ble_version_t *ToNative();
+};
+
+class UserMemBlock : public BleToJs<ble_user_mem_block_t>
+{
+public:
+    UserMemBlock(ble_user_mem_block_t *user_mem_block) : BleToJs<ble_user_mem_block_t>(user_mem_block) {}
+    UserMemBlock(v8::Local<v8::Object> js) : BleToJs<ble_user_mem_block_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_user_mem_block_t *ToNative();
 };
 
 class BleUUID : public BleToJs<ble_uuid_t>
@@ -85,6 +97,25 @@ public:
 
     v8::Local<v8::Object> ToJs();
 };
+
+class CommonMemRequestEvent : BleDriverCommonEvent<ble_evt_user_mem_request_t>
+{
+public:
+    CommonMemRequestEvent(std::string timestamp, uint16_t conn_handle, ble_evt_user_mem_request_t *evt)
+        : BleDriverCommonEvent<ble_evt_user_mem_request_t>(BLE_EVT_USER_MEM_REQUEST, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs();
+};
+
+class CommonMemReleaseEvent : BleDriverCommonEvent<ble_evt_user_mem_release_t>
+{
+public:
+    CommonMemReleaseEvent(std::string timestamp, uint16_t conn_handle, ble_evt_user_mem_release_t *evt)
+        : BleDriverCommonEvent<ble_evt_user_mem_release_t>(BLE_EVT_USER_MEM_RELEASE, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs();
+};
+
 
 ///// Start Batons ////////////////////////////////////////
 
@@ -141,7 +172,14 @@ public:
     uint8_t *uuid_le;
 };
 
-///// Start Batons ////////////////////////////////////////
+class BleUserMemReplyBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(BleUserMemReplyBaton);
+    uint16_t conn_handle;
+    ble_user_mem_block_t *p_block;
+};
+
+///// End Batons ////////////////////////////////////////
 
 struct LogEntry {
 public:

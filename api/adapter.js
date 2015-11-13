@@ -1641,11 +1641,13 @@ class Adapter extends EventEmitter {
                     if (err) {
                         reject(make_error('Error converting characteristic to driver.', err));
                     } else {
+                        console.log('Calling dersdfasfasdf');
                         this._bleDriver.gatts_add_characteristic(
                             data.serviceHandle,
                             characteristicForDriver.metadata,
                             characteristicForDriver.attribute,
                             (err, handles) => {
+                                console.log('Callback asdfqwertasf');
                                 if (err) {
                                     reject(make_error('Error occurred adding characteristic.', err));
                                 } else {
@@ -1666,7 +1668,7 @@ class Adapter extends EventEmitter {
                 this._converter.descriptorToDriver(descriptor, (err, descriptorForDriver) => {
                     if (err) {
                         reject(make_error('Error converting descriptor.', err));
-                    } else {
+                    } else if (descriptorForDriver) {
                         this._bleDriver.gatts_add_descriptor(
                             data.characteristicHandle,
                             descriptorForDriver,
@@ -1706,8 +1708,10 @@ class Adapter extends EventEmitter {
 
                 if (characteristic._factory_descriptors) {
                     for (let descriptor of characteristic._factory_descriptors) {
-                        p = addDescriptor.bind(undefined, descriptor);
-                        promises.push(p);
+                        if (!this._converter.isSpecialUUID(descriptor.uuid)) {
+                            p = addDescriptor.bind(undefined, descriptor);
+                            promises.push(p);
+                        }
                     }
                 }
             }
@@ -2090,7 +2094,7 @@ class Adapter extends EventEmitter {
                 return;
             }
 
-            this._setAttributeValueWithOffset(attribute, value, offset);
+            _setAttributeValueWithOffset(attribute, value, offset);
             callback(undefined, attribute);
         });
     }
@@ -2145,7 +2149,7 @@ class Adapter extends EventEmitter {
     // Callback signature function(err) {}
     stopCharacteristicsNotifications(characteristicId, callback) {
         // TODO: If CCCD not discovered how did we start it?
-        const disableNotificationBitfield = 0;
+        const enableNotificationBitfield = 0;
         const characteristic = this._characteristics[characteristicId];
         if (!characteristic) {
             throw new Error('Stop characteristic notifications failed: Could not get characteristic with id ' + characteristicId);

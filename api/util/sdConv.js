@@ -99,6 +99,31 @@ class SoftDeviceConverter {
         }
     }
 
+    attributeMetadataToDriver(properties) {
+        var retval = {};
+
+        retval.read_perm = SoftDeviceConverter.securityModeToDriver(properties.readPerm);
+        retval.write_perm = SoftDeviceConverter.securityModeToDriver(properties.writePerm);
+        retval.vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
+        retval.vlen = properties.variableLength || false; // TODO: validate purpose of this varible
+        retval.rd_auth = properties.readAuth || false;
+        retval.wr_auth = properties.writeAuth || false;
+
+        return retval;
+    }
+
+    isSpecialUUID(uuid) {
+        if (uuid === '2901') {
+            return true;
+        } else if (uuid === '2902') {
+            return true;
+        } else if (uuid === '2903') {
+            return true;
+        }
+
+        return false;
+    }
+
     descriptorToDriver(descriptor, callback) {
         var err = '';
 
@@ -128,12 +153,7 @@ class SoftDeviceConverter {
 
             retval.p_uuid = uuid;
 
-            retval.p_attr_md.read_perm = SoftDeviceConverter.securityModeToDriver(descriptor.properties.readPerm);
-            retval.p_attr_md.write_perm = SoftDeviceConverter.securityModeToDriver(descriptor.properties.writePerm);
-            retval.p_attr_md.vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
-            retval.p_attr_md.vlen = descriptor.properties.variableLength || false; // TODO: validate purpose of this varible
-            retval.p_attr_md.rd_auth = descriptor.properties.readAuth || false;
-            retval.p_attr_md.wr_auth = descriptor.properties.writeAuth || false;
+            retval.p_attr_md = this.attributeMetadataToDriver(descriptor.properties);
 
             retval.init_len = descriptor.value.length;
             retval.init_offs = 0;
@@ -144,6 +164,28 @@ class SoftDeviceConverter {
 
             callback(undefined, retval);
         });
+    }
+
+    getAttributeMetadataForSpecialDescriptor(characteristic, uuid) {
+        if (characteristic._factory_descriptors === undefined) {
+            return 0;
+        }
+
+        var descriptorsLength = characteristic._factory_descriptors.length;
+
+        for (var i = 0; i < descriptorsLength; i++) {
+            var descriptor = characteristic._factory_descriptors[i];
+            if (descriptor.uuid === uuid) {
+                return this.attributeMetadataToDriver(descriptor);
+            }
+        }
+
+        return 0;
+    }
+
+    getPresentationFormat(characteristic) {
+        //TODO: Implement
+        return 0;
     }
 
     characteristicToDriver(characteristic, callback) {
@@ -207,6 +249,11 @@ class SoftDeviceConverter {
         retval.metadata.char_user_desc_max_size = 0; // TODO: check what this is used for
         retval.metadata.char_user_desc_size = 0; // TODO: check what this is used for
 
+        retval.metadata.p_char_pf = this.getPresentationFormat(characteristic);
+        retval.metadata.p_user_desc_md = this.getAttributeMetadataForSpecialDescriptor(characteristic, '2901');
+        retval.metadata.p_cccd_md = this.getAttributeMetadataForSpecialDescriptor(characteristic, '2902');
+        retval.metadata.p_sccd_md = this.getAttributeMetadataForSpecialDescriptor(characteristic, '2903');
+
         this.uuidToDriver(characteristic.uuid, (err, uuid) => {
             if (err) {
                 callback(err);
@@ -216,12 +263,7 @@ class SoftDeviceConverter {
             retval.attribute.p_uuid = uuid;
 
             retval.attribute.p_value = characteristic.value;
-            retval.attribute.p_attr_md.read_perm = SoftDeviceConverter.securityModeToDriver(characteristic.properties.readPerm);
-            retval.attribute.p_attr_md.write_perm = SoftDeviceConverter.securityModeToDriver(characteristic.properties.writePerm);
-            retval.attribute.p_attr_md.vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
-            retval.attribute.p_attr_md.vlen = characteristic.properties.variableLength || false;
-            retval.attribute.p_attr_md.rd_auth = characteristic.properties.readAuth || false;
-            retval.attribute.p_attr_md.wr_auth = characteristic.properties.writeAuth || false;
+            retval.attribute.p_attr_md = this.attributeMetadataToDriver(characteristic.properties);
             retval.attribute.init_len = characteristic.value.length;
             retval.attribute.init_offs = 0;
             retval.attribute.max_len = characteristic.properties.maxLength || retval.attribute.init_len;

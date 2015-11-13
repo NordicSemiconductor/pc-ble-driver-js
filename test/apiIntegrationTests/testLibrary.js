@@ -442,6 +442,19 @@ class TestLibrary {
         });
     }
 
+    addService(services) {
+        return new Promise((resolve, reject) => {
+            this._adapter.setServices(services, (err => {
+                if (err) {
+                    console.log(`Error setting services: '${JSON.stringify(err, null, 1)}'.`);
+                    reject(error);
+                }
+                else {
+                    resolve();
+                }
+            }));
+        });
+    }
 }
 const singletonContainer = {
     _testLibInstance: null,
