@@ -180,7 +180,7 @@ ble_gatts_read_authorize_params_t *GattsReadAuthorizeParameters::ToNative()
     params->update = ConversionUtility::getNativeUint8(jsobj, "update");
     params->offset = ConversionUtility::getNativeUint16(jsobj, "offset");
     params->len = ConversionUtility::getNativeUint16(jsobj, "len");
-    params->p_data = ConversionUtility::getNativePointerToUint8(jsobj, "update");
+    params->p_data = ConversionUtility::getNativePointerToUint8(jsobj, "p_data");
 
     return params;
 }

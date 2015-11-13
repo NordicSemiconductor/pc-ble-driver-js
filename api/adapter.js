@@ -384,22 +384,22 @@ class Adapter extends EventEmitter {
 
         const secParamsCentral = null;
         const secParamsPeripheral = {
-                bond: false,
-                mitm: false,
-                io_caps: this._bleDriver.BLE_GAP_IO_CAPS_NONE,
-                oob: false,
-                min_key_size: 7,
-                max_key_size: 16,
-                kdist_periph: {
-                    enc: false,
-                    id: false,
-                    sign: false,
-                },
-                kdist_central: {
-                    enc: false,
-                    id: false,
-                    sign: false,
-                },
+            bond: false,
+            mitm: false,
+            io_caps: this._bleDriver.BLE_GAP_IO_CAPS_NONE,
+            oob: false,
+            min_key_size: 7,
+            max_key_size: 16,
+            kdist_periph: {
+                enc: false,
+                id: false,
+                sign: false,
+            },
+            kdist_central: {
+                enc: false,
+                id: false,
+                sign: false,
+            },
         };
 
         let secParams;
@@ -1001,7 +1001,7 @@ class Adapter extends EventEmitter {
     }
 
     _getCharacteristicByValueHandle(valueHandle) {
-        return _.find(this._characteristics, (characteristic) => characteristic.valueHandle === valueHandle);
+        return _.find(this._characteristics, characteristic => characteristic.valueHandle === valueHandle);
     }
 
     _getDescriptorByHandle(deviceInstanceId, handle) {
@@ -1044,7 +1044,7 @@ class Adapter extends EventEmitter {
 
         const characteristic = this._getCharacteristicByValueHandle(event.handle);
         if (!characteristic) {
-            this.emit('error', make_Error('Cannot handle HVX event', 'No characteristic has a value descriptor with handle: ' + event.handle));
+            this.emit('error', make_error('Cannot handle HVX event', 'No characteristic has a value descriptor with handle: ' + event.handle));
             return;
         }
 
@@ -1125,7 +1125,7 @@ class Adapter extends EventEmitter {
                 type: event.type,
                 read: {
                     gatt_status: this._bleDriver.BLE_GATT_STATUS_SUCCESS,
-                    update: 0,
+                    update: 0, // 0 = Don't provide data here, read from server.
                     offset: 0,
                     len: 0,
                     p_data: [],
@@ -1534,34 +1534,34 @@ class Adapter extends EventEmitter {
         this._changeAdapterState({securityRequestPending: true});
 
         this._bleDriver.gap_authenticate(device.connectionHandle, {
-                bond: false,
-                mitm: false,
+            bond: false,
+            mitm: false,
             io_caps: this._bleDriver.BLE_GAP_IO_CAPS_NONE,
-                oob: false,
-                min_key_size: 7,
-                max_key_size: 16,
-                kdist_periph: {
-                    enc: false,
-                    id: false,
-                    sign: false,
-                },
-                kdist_central: {
-                    enc: false,
-                    id: false,
-                    sign: false,
-                },
+            oob: false,
+            min_key_size: 7,
+            max_key_size: 16,
+            kdist_periph: {
+                enc: false,
+                id: false,
+                sign: false,
             },
-            err => {
+            kdist_central: {
+                enc: false,
+                id: false,
+                sign: false,
+            },
+        },
+        err => {
             let errorObject;
-                if (err) {
+            if (err) {
                 errorObject = make_error('Failed to authenticate', err);
-                    this.emit('error', errorObject);
-                }
+                this.emit('error', errorObject);
+            }
 
             this._changeAdapterState({securityRequestPending: false});
             callback(errorObject);
         });
-            }
+    }
 
     // GATTS
     // Array of services
@@ -1958,7 +1958,7 @@ class Adapter extends EventEmitter {
 
         this._gattOperationsMap[device.instanceId] = {callback: callback, readBytes: []};
 
-        this._bleDriver.gattc_read(device.connectionHandle, descriptor.handle, 0, (err) => {
+        this._bleDriver.gattc_read(device.connectionHandle, descriptor.handle, 0, err => {
             if (err) {
                 this.emit('error', make_error('Read descriptor value failed', err));
             }
@@ -2012,7 +2012,7 @@ class Adapter extends EventEmitter {
             p_value: value,
         };
 
-        this._bleDriver.gattc_write(device.connectionHandle, writeParameters, (err) => {
+        this._bleDriver.gattc_write(device.connectionHandle, writeParameters, err => {
             if (err) {
                 delete this._gattOperationsMap[device.instanceId];
                 this.emit('error', 'Failed to write to attribute with handle: ' + attribute.handle);
@@ -2042,7 +2042,7 @@ class Adapter extends EventEmitter {
             p_value: value.slice(0, this._maxLongWritePayloadSize),
         };
 
-        this._bleDriver.gattc_write(device.connectionHandle, writeParameters, (err) => {
+        this._bleDriver.gattc_write(device.connectionHandle, writeParameters, err => {
             if (err) {
                 console.log(err);
                 this._longWriteCancel(device, attribute);
@@ -2125,7 +2125,7 @@ class Adapter extends EventEmitter {
             throw new Error('Start characteristic notifications failed: Could not get characteristic with id ' + characteristicId);
         }
 
-        const cccdDescriptor = _.find(this._descriptors, (descriptor) => {
+        const cccdDescriptor = _.find(this._descriptors, descriptor => {
             return (descriptor.characteristicInstanceId === characteristicId) &&
                 (descriptor.uuid === '0000290200001000800000805F9B34FB');
         });
@@ -2133,7 +2133,7 @@ class Adapter extends EventEmitter {
             throw new Error('Start characteristic notifications failed: Could not find CCCD descriptor with parent characteristic id: ' + characteristicId);
         }
 
-        this.writeDescriptorValue(cccdDescriptor.instanceId, [enableNotificationBitfield, 0], true, (err) => {
+        this.writeDescriptorValue(cccdDescriptor.instanceId, [enableNotificationBitfield, 0], true, err => {
             if (err) {
                 this.emit('error', 'Failed to start characteristics notifications');
             }
@@ -2151,7 +2151,7 @@ class Adapter extends EventEmitter {
             throw new Error('Stop characteristic notifications failed: Could not get characteristic with id ' + characteristicId);
         }
 
-        const cccdDescriptor = _.find(this._descriptors, (descriptor) => {
+        const cccdDescriptor = _.find(this._descriptors, descriptor => {
             return (descriptor.characteristicInstanceId === characteristicId) &&
                 (descriptor.uuid === '0000290200001000800000805F9B34FB');
         });
@@ -2159,7 +2159,7 @@ class Adapter extends EventEmitter {
             throw new Error('Stop characteristic notifications failed: Could not find CCCD descriptor with parent characteristic id: ' + characteristicId);
         }
 
-        this.writeDescriptorValue(cccdDescriptor.instanceId, [disableNotificationBitfield, 0], true, (err) => {
+        this.writeDescriptorValue(cccdDescriptor.instanceId, [disableNotificationBitfield, 0], true, err => {
             if (err) {
                 this.emit('error', 'Failed to stop characteristics notifications');
             }
