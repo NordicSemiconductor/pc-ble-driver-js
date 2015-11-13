@@ -1112,8 +1112,13 @@ class Adapter extends EventEmitter {
     }
 
     _parseRWAutorizeRequestEvent(event) {
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
         let authorizeReplyParams;
         if (event.type === this._bleDriver.BLE_GATTS_AUTHORIZE_TYPE_WRITE) {
+            const attribute = this._getAttributeByHandle(device.instanceId, event.write.handle);
+            this._writeLocalValue(attribute, event.write.p_data, event.write.offset, error => {
+                this.emit('error', make_error('Failed to set local attribute value from rwAuthorizeRequest'));
+            });
             authorizeReplyParams = {
                 type: event.type,
                 write: {
