@@ -8,7 +8,7 @@ describe('Add service', function() {
     const peripheralAddress = process.env.testPeripheral;
     this.timeout(10000);
 
-    it('should be possible to add a service', (done) => {
+    it('should be possible to add a service', done => {
         let services = [];
         let serviceFactory = new api.ServiceFactory();
         let service = serviceFactory.createService('adabfb00-6e7d-4601-bda2-bffaa68956ba');
@@ -55,11 +55,11 @@ describe('Add service', function() {
                 // to more devices at once.
                 testLib.startAdvertising()
                     .then(() => { done(); })
-                    .catch((error) => {
+                    .catch(error => {
                         done(error);
                     });
             })
-            .catch((error) => {
+            .catch(error => {
                 done(error);
             });
     });

@@ -1641,13 +1641,11 @@ class Adapter extends EventEmitter {
                     if (err) {
                         reject(make_error('Error converting characteristic to driver.', err));
                     } else {
-                        console.log('Calling dersdfasfasdf');
                         this._bleDriver.gatts_add_characteristic(
                             data.serviceHandle,
                             characteristicForDriver.metadata,
                             characteristicForDriver.attribute,
                             (err, handles) => {
-                                console.log('Callback asdfqwertasf');
                                 if (err) {
                                     reject(make_error('Error occurred adding characteristic.', err));
                                 } else {

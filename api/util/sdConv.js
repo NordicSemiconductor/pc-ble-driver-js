@@ -102,6 +102,8 @@ class SoftDeviceConverter {
     attributeMetadataToDriver(properties) {
         var retval = {};
 
+        console.log(properties);
+
         retval.read_perm = SoftDeviceConverter.securityModeToDriver(properties.readPerm);
         retval.write_perm = SoftDeviceConverter.securityModeToDriver(properties.writePerm);
         retval.vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
@@ -176,7 +178,7 @@ class SoftDeviceConverter {
         for (var i = 0; i < descriptorsLength; i++) {
             var descriptor = characteristic._factory_descriptors[i];
             if (descriptor.uuid === uuid) {
-                return this.attributeMetadataToDriver(descriptor);
+                return this.attributeMetadataToDriver(descriptor.properties);
             }
         }
 

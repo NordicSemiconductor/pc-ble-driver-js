@@ -31,14 +31,14 @@ class ServiceFactory {
         return characteristic;
     }
 
-    createDescriptor(characteristic, uuid, value) {
+    createDescriptor(characteristic, uuid, value, properties) {
         if (!characteristic) throw new Error('Characteristic to add descriptor to must be provided.');
 
         if (characteristic._factory_descriptors === undefined) {
             characteristic._factory_descriptors = [];
         }
 
-        const descriptor = new Descriptor(characteristic.instanceId, uuid, value);
+        const descriptor = new Descriptor(characteristic.instanceId, uuid, value, properties);
 
         characteristic._factory_descriptors.push(descriptor);
         return descriptor;
