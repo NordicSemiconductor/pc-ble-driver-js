@@ -237,13 +237,13 @@ class Adapter extends EventEmitter {
                     this._parseConnectionParameterUpdateRequestEvent(event);
                     break;
                 case this._bleDriver.BLE_GAP_EVT_SCAN_REQ_REPORT:
-                    // TODO: implement to know when a scan request is received.
+                    // Not needed. Received when a scan request is received.
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP:
                     this._parsePrimaryServiceDiscoveryResponseEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_REL_DISC_RSP:
-                    // TODO: Needed?
+                    // Not needed. Used for included services discovery.
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_CHAR_DISC_RSP:
                     this._parseCharacteristicDiscoveryResponseEvent(event);
@@ -252,12 +252,13 @@ class Adapter extends EventEmitter {
                     this._parseDescriptorDiscoveryResponseEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_CHAR_VAL_BY_UUID_READ_RSP:
-                    // TODO: Needed?
+                    // Not needed, service discovery is not using the related function.
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_READ_RSP:
                     this._parseReadResponseEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_CHAR_VALS_READ_RSP:
+                    // Not needed, characteristic discovery is not using the related function.
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_WRITE_RSP:
                     this._parseWriteResponseEvent(event);
@@ -275,20 +276,19 @@ class Adapter extends EventEmitter {
                     this._parseRWAutorizeRequestEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_SYS_ATTR_MISSING:
-                    // TODO: Implement
+                    this._parseSysAttrMissingEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_HVC:
                     // TODO: Implement
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_SC_CONFIRM:
-                    // TODO: Implement when we want service changed...
+                    // Not needed, service changed is not supported currently.
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_TIMEOUT:
                     this._parseGattTimeoutEvent(event);
                     break;
                 case this._bleDriver.BLE_EVT_USER_MEM_REQUEST:
-                    // TODO: Need this for receiving long writes?
-                    //this._bleDriver.user_mem_request(null);
+                    // TODO: Implement when user_mem_reply is supported in ble_driver.
                     break;
                 default:
                     console.log(`Unsupported event received from SoftDevice: ${event.id} - ${event.name}`);
@@ -1133,9 +1133,17 @@ class Adapter extends EventEmitter {
             };
         }
 
-        this._bleDriver.RWAuthorizeReply(event.conn_handle, authorizeReplyParams, error => {
+        this._bleDriver.gatts_rw_authorize_reply(event.conn_handle, authorizeReplyParams, error => {
             if (error) {
-                this.emit('error', make_error('Failed to call RWAuthorizeReply', error));
+                this.emit('error', make_error('Failed to call gatts_rw_authorize_reply', error));
+            }
+        });
+    }
+
+    _parseSysAttrMissingEvent(event) {
+        this._bleDriver.gatts_set_system_attribute(event.conn_handle, null, 0, 0, error => {
+            if (error) {
+                this.emit('error', make_error('Failed to call gatts_set_system_attribute', error));
             }
         });
     }

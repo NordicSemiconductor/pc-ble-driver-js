@@ -976,6 +976,7 @@ extern "C" {
         Utility::SetMethod(target, "gatts_set_system_attribute", SystemAttributeSet);
         Utility::SetMethod(target, "gatts_set_value", ValueSet);
         Utility::SetMethod(target, "gatts_get_value", ValueGet);
+        Utility::SetMethod(target, "gatts_rw_authorize_reply", RWAuthorizeReply);
 
 
         /* BLE_ERRORS_GATTS SVC return values specific to GATTS */
