@@ -654,7 +654,7 @@ NAN_METHOD(SystemAttributeSet)
         conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
         argumentcount++;
 
-        if (info[argumentcount]->IsNumber())
+        if (info[argumentcount]->IsNull())
         {
             sys_attr_data_isNullPointer = true;
         }
