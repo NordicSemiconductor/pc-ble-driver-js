@@ -1071,38 +1071,31 @@ class Adapter extends EventEmitter {
 
     _parseWriteEvent(event) {
         // TODO: BLE_GATTS_OP_SIGN_WRITE_CMD not supported?
-        const device = this._getDeviceByConnectionHandle(event.conn_handle);
-        const attribute = this._getAttributeByHandle(device.instanceId, event.handle);
+        const remoteDevice = this._getDeviceByConnectionHandle(event.conn_handle);
+        const attribute = this._getAttributeByHandle('local', event.handle);
 
-        if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ) {
-            const attribute = this._getAttributeByHandle(event.handle);
+        if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ ||
+            event.op === this._bleDriver.BLE_GATTS_OP_WRITE_CMD) {
             this._setAttributeValueWithOffset(attribute, event.data, event.offset);
-            delete this._preparedWritesMap[device.instanceId];
-            this._emitAttributeValueChanged(attribute);
-        } else if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_CMD) {
-            // TODO: Find attribute and change value
-            const attribute = this._getAttributeByHandle(event.handle);
-            this._setAttributeValueWithOffset(attribute, event.data, event.offset);
-            delete this._preparedWritesMap[device.instanceId];
             this._emitAttributeValueChanged(attribute);
         } else if (event.op === this._bleDriver.BLE_GATTS_OP_PREP_WRITE_REQ) {
-            if (!this._preparedWritesMap[device.instanceId]) {
-                this._preparedWritesMap[device.instanceId] = {};
+            if (!this._preparedWritesMap[remoteDevice.instanceId]) {
+                this._preparedWritesMap[remoteDevice.instanceId] = {};
             }
 
-            const preparedWrite = this._preparedWritesMap[device.instanceId][event.handle];
+            const preparedWrite = this._preparedWritesMap[remoteDevice.instanceId][event.handle];
             if (!preparedWrite || event.offset <= preparedWrite.offset) {
-                this._preparedWritesMap[device.instanceId][event.handle] = {value: event.data, offset: event.offset};
+                this._preparedWritesMap[remoteDevice.instanceId][event.handle] = {value: event.data, offset: event.offset};
                 return;
             }
 
             // TODO: What to do if event.offset > preparedWrite.offset + preparedWrite.value.length?
             preparedWrite.value = preparedWrite.value.slice(0, event.offset - preparedWrite.offset).concat(event.data);
         } else if (event.op === this._bleDriver.BLE_GATTS_OP_EXEC_WRITE_REQ_CANCEL) {
-            delete this._preparedWritesMap[device.instanceId];
+            delete this._preparedWritesMap[remoteDevice.instanceId];
         } else if (event.op === this._bleDriver.BLE_GATTS_OP_EXEC_WRITE_REQ_NOW) {
-            for (let handle of this._preparedWritesMap[device.instanceId]) {
-                const preparedWrite = this._preparedWritesMap[device.instanceId][handle];
+            for (let handle of this._preparedWritesMap[remoteDevice.instanceId]) {
+                const preparedWrite = this._preparedWritesMap[remoteDevice.instanceId][handle];
                 const attribute = this._getAttributeByHandle(handle);
 
                 this._writeLocalValue(attribute, preparedWrite.value, preparedWrite.offset, err => {
@@ -1116,7 +1109,7 @@ class Adapter extends EventEmitter {
                 });
             }
 
-            delete this._preparedWritesMap[device.instanceId];
+            delete this._preparedWritesMap[remoteDevice.instanceId];
         }
     }
 
@@ -2290,7 +2283,7 @@ class Adapter extends EventEmitter {
     // Callback signature function(err) {}
     stopCharacteristicsNotifications(characteristicId, callback) {
         // TODO: If CCCD not discovered how did we start it?
-        const enableNotificationBitfield = 0;
+        const disableNotificationBitfield = 0;
         const characteristic = this._characteristics[characteristicId];
         if (!characteristic) {
             throw new Error('Stop characteristic notifications failed: Could not get characteristic with id ' + characteristicId);
