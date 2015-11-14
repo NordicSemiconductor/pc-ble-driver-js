@@ -46,6 +46,8 @@ class Adapter extends EventEmitter {
         this._gattOperationsMap = {};
 
         this._preparedWritesMap = {};
+
+        this._pendingIndicates = {};
     }
 
     _getServiceType(service) {
@@ -279,7 +281,7 @@ class Adapter extends EventEmitter {
                     this._parseSysAttrMissingEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_HVC:
-                    // TODO: Implement
+                    this._parseHvcEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_SC_CONFIRM:
                     // Not needed, service changed is not supported currently.
@@ -326,6 +328,8 @@ class Adapter extends EventEmitter {
 
         this.emit('deviceConnected', device);
 
+        this._addDeviceToAllPerConnectionValues(device.instanceId);
+
         if (deviceRole === 'peripheral') {
             const callback = this._gapOperationsMap.connecting.callback;
             delete this._gapOperationsMap.connecting;
@@ -356,6 +360,8 @@ class Adapter extends EventEmitter {
 
         delete this._devices[device.instanceId];
         this.emit('deviceDisconnected', device);
+
+        this._clearDeviceFromAllPerConnectionValues(device.instanceId);
     }
 
     _parseConnectionParameterUpdateEvent(event) {
@@ -1054,8 +1060,11 @@ class Adapter extends EventEmitter {
 
     _parseGattTimeoutEvent(event) {
         const gattOperation = this._gattOperationsMap[event.conn_handle];
+        const error = make_error('Received a Gatt timeout');
+        this.emit('error', error);
+
         if (gattOperation) {
-            gattOperation.callback(make_error('Received a Gatt timeout'));
+            gattOperation.callback(error);
             delete this._gattOperationsMap[event.conn_handle];
         }
     }
@@ -1151,6 +1160,18 @@ class Adapter extends EventEmitter {
                 this.emit('error', make_error('Failed to call gatts_set_system_attribute', error));
             }
         });
+    }
+
+    _parseHvcEvent(event) {
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
+        const characteristic = this._getCharacteristicByHandle(device.instanceId, event.handle);
+
+        this.emit('deviceNotifiedOrIndicated'. device, characteristic);
+        this._pendingIndicates.deviceNotifiedOrIndicated(device, characteristic);
+
+        if (!--this._pendingIndicates.count) {
+            this._pendingIndicates.completeCallback(undefined, characteristic);
+        }
     }
 
     _setAttributeValueWithOffset(attribute, value, offset) {
@@ -1821,6 +1842,48 @@ class Adapter extends EventEmitter {
         return this._descriptors[descriptorId];
     }
 
+    _isDescriptorPerConnectionBased(descriptor) {
+        return descriptor.uuid === '0000290200001000800000805F9B34FB';
+    }
+
+    _setDescriptorValue(descriptor, value, deviceInstanceId) {
+        if (this._isDescriptorPerConnectionBased(descriptor)) {
+            descriptor.value[deviceInstanceId] = value;
+        } else {
+            descriptor.value = value;
+        }
+    }
+
+    _getDescriptorValue(descriptor, deviceInstanceId) {
+        if (this._isDescriptorPerConnectionBased(descriptor)) {
+            return descriptor.value[deviceInstanceId];
+        } else {
+            return descriptor.value;
+        }
+    }
+
+    _addDeviceToAllPerConnectionValues(deviceId) {
+        for (let descriptorInstanceId in this._descriptors) {
+            const descriptor = this._descriptors[descriptorInstanceId];
+            if (this._instanceIdIsOnLocalDevice(descriptorInstanceId) &&
+                this._isDescriptorPerConnectionBased(descriptor)) {
+                this._setDescriptorValue(descriptor, 0, deviceId);
+                this.emit('descriptorValueChanged', descriptor);
+            }
+        }
+    }
+
+    _clearDeviceFromAllPerConnectionValues(deviceId) {
+        for (let descriptorInstanceId in this._descriptors) {
+            const descriptor = this._descriptors[descriptorInstanceId];
+            if (this._instanceIdIsOnLocalDevice(descriptorInstanceId) &&
+                this._isDescriptorPerConnectionBased(descriptor)) {
+                delete descriptor.value[deviceId];
+                this.emit('descriptorValueChanged', descriptor);
+            }
+        }
+    }
+
     // Callback signature function(err, descriptors) {}
     getDescriptors(characteristicId, callback) {
         // TODO: Implement something for when device is local
@@ -1884,14 +1947,14 @@ class Adapter extends EventEmitter {
     }
 
     // Callback signature function(err) {}  ack: require acknowledge from device, irrelevant in GATTS role. options: {ack, long, offset}
-    writeCharacteristicValue(characteristicId, value, ack, callback) {
+    writeCharacteristicValue(characteristicId, value, ack, completeCallback, deviceNotifiedOrIndicated) {
         const characteristic = this.getCharacteristic(characteristicId);
         if (!characteristic) {
             throw new Error('Characteristic value write failed: Could not get characteristic with id ' + characteristicId);
         }
 
         if (this._instanceIdIsOnLocalDevice(characteristicId)) {
-            this._writeLocalValue(characteristic, value, 0, callback);
+            this._writeLocalValue(characteristic, value, 0, completeCallback, deviceNotifiedOrIndicated);
             return;
         }
 
@@ -1904,7 +1967,7 @@ class Adapter extends EventEmitter {
             throw new Error('Characteristic value write failed: A gatt operation already in progress with device id ' + device.instanceId);
         }
 
-        this._gattOperationsMap[device.instanceId] = {callback: callback, bytesWritten: 0, value: value.slice(), attribute: characteristic};
+        this._gattOperationsMap[device.instanceId] = {callback: completeCallback, bytesWritten: 0, value: value.slice(), attribute: characteristic};
 
         if (value.length > this._maxShortWritePayloadSize) {
             if (!ack) {
@@ -1912,10 +1975,10 @@ class Adapter extends EventEmitter {
             }
 
             this._gattOperationsMap[device.instanceId].bytesWritten = this._maxLongWritePayloadSize;
-            this._longWrite(device, characteristic, value, callback);
+            this._longWrite(device, characteristic, value, completeCallback);
         } else {
             this._gattOperationsMap[device.instanceId].bytesWritten = value.length;
-            this._shortWrite(device, characteristic, ack, value, callback);
+            this._shortWrite(device, characteristic, ack, value, completeCallback);
         }
     }
 
@@ -1945,6 +2008,13 @@ class Adapter extends EventEmitter {
         }
 
         return device;
+    }
+
+    _getCCCDOfCharacteristic(characteristicId) {
+        return _.find(this._descriptors, descriptor => {
+            return (descriptor.characteristicInstanceId === characteristicId) &&
+                   (descriptor.uuid === '0000290200001000800000805F9B34FB');
+        });
     }
 
     _instanceIdIsOnLocalDevice(instanceId) {
@@ -2091,22 +2161,85 @@ class Adapter extends EventEmitter {
         });
     }
 
-    _writeLocalValue(attribute, value, offset, callback) {
+    _writeLocalValue(attribute, value, offset, completeCallback, deviceNotifiedOrIndicated) {
         const writeParameters = {
             len: value.length,
             offset: offset,
             p_value: value,
         };
 
+        if (!this._instanceIdIsOnLocalDevice(attribute.instanceId)) {
+            this.emit('error', make_error('Attribute was not a local attribute'));
+            return;
+        }
+
+        // TODO: Figure out if we should use hvx?
+        const cccdDescriptor = this._getCCCDOfCharacteristic(attribute.instanceId);
+        let sentHvx = false;
+
+        if (cccdDescriptor) {
+            // TODO: This is probably way to simple, do we need a map of devices indication is sent to?
+            this._pendingIndicates = {
+                completeCallback: completeCallback,
+                deviceNotifiedOrIndicated: deviceNotifiedOrIndicated,
+                count: 0,
+            };
+
+            for (let deviceInstanceId in this._devices) {
+                const cccdValue = cccdDescriptor.value[deviceInstanceId][0];
+
+                if ((cccdValue === 1) || (cccdValue === 2)) {
+                    const device = this._devices[deviceInstanceId];
+                    const hvxParams = {
+                        handle: attribute.valueHandle,
+                        type: cccdValue,
+                        offset: offset,
+                        p_len: value.length,
+                        p_data: value,
+                    };
+                    sentHvx = true;
+
+                    if (cccdValue === 2) {
+                        this._pendingIndicates.count++;
+                    }
+
+                    this._bleDriver.gatts_hvx(device.connectionHandle, hvxParams, err => {
+                        if (err) {
+                            this.emit('error', make_error('Failed to send notification', err));
+
+                            if (cccdValue === 2) {
+                                this._pendingIndicates.count--;
+                            }
+
+                            return;
+                        } else {
+                            this._setAttributeValueWithOffset(attribute, value, offset);
+
+                            if (cccdValue === 2) {
+                                return;
+                            } else if (deviceNotifiedOrIndicated) {
+                                deviceNotifiedOrIndicated(device, attribute);
+                                this.emit('deviceNotifiedOrIndicated', device, attribute);
+                            }
+                        }
+                    });
+                }
+            }
+        }
+
+        if (sentHvx) {
+            return;
+        }
+
         this._bleDriver.gatts_set_value(this._bleDriver.BLE_CONN_HANDLE_INVALID, attribute.handle, writeParameters, (err, writeResult) => {
             if (err) {
                 this.emit('error', make_error('Failed to write local value', err));
-                callback(err, undefined);
+                completeCallback(err, undefined);
                 return;
             }
 
             _setAttributeValueWithOffset(attribute, value, offset);
-            callback(undefined, attribute);
+            completeCallback(undefined, attribute);
         });
     }
 
@@ -2140,10 +2273,7 @@ class Adapter extends EventEmitter {
             throw new Error('Start characteristic notifications failed: Could not get characteristic with id ' + characteristicId);
         }
 
-        const cccdDescriptor = _.find(this._descriptors, descriptor => {
-            return (descriptor.characteristicInstanceId === characteristicId) &&
-                (descriptor.uuid === '0000290200001000800000805F9B34FB');
-        });
+        const cccdDescriptor = this._getCCCDOfCharacteristic(characteristicId);
         if (!cccdDescriptor) {
             throw new Error('Start characteristic notifications failed: Could not find CCCD descriptor with parent characteristic id: ' + characteristicId);
         }
@@ -2166,10 +2296,7 @@ class Adapter extends EventEmitter {
             throw new Error('Stop characteristic notifications failed: Could not get characteristic with id ' + characteristicId);
         }
 
-        const cccdDescriptor = _.find(this._descriptors, descriptor => {
-            return (descriptor.characteristicInstanceId === characteristicId) &&
-                (descriptor.uuid === '0000290200001000800000805F9B34FB');
-        });
+        const cccdDescriptor = this._getCCCDOfCharacteristic(characteristicId);
         if (!cccdDescriptor) {
             throw new Error('Stop characteristic notifications failed: Could not find CCCD descriptor with parent characteristic id: ' + characteristicId);
         }
