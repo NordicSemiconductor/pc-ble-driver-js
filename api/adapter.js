@@ -1680,6 +1680,7 @@ class Adapter extends EventEmitter {
                                     reject(make_error('Error occurred adding characteristic.', err));
                                 } else {
                                     characteristic.valueHandle = data.characteristicHandle = handles.value_handle;
+                                    characteristic.declarationHandle = characteristic.valueHandle - 1; // valueHandle is always directly after declarationHandle
                                     this._characteristics[characteristic.instanceId] = characteristic; // TODO: what if we fail later on this ?
                                     resolve(data);
                                 }
