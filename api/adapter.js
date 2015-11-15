@@ -1078,8 +1078,14 @@ class Adapter extends EventEmitter {
 
         if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ ||
             event.op === this._bleDriver.BLE_GATTS_OP_WRITE_CMD) {
-            this._setAttributeValueWithOffset(attribute, event.data, event.offset);
-            this._emitAttributeValueChanged(attribute);
+            if (this._instanceIdIsOnLocalDevice(attribute.instanceId) && this._isCCCDDescriptor(attribute.instanceId)) {
+                console.log(attribute);
+                this._setDescriptorValue(attribute, event.data, remoteDevice.instanceId);
+                this._emitAttributeValueChanged(attribute);
+            } else {
+                this._setAttributeValueWithOffset(attribute, event.data, event.offset);
+                this._emitAttributeValueChanged(attribute);
+            }
         } else if (event.op === this._bleDriver.BLE_GATTS_OP_PREP_WRITE_REQ) {
             if (!this._preparedWritesMap[remoteDevice.instanceId]) {
                 this._preparedWritesMap[remoteDevice.instanceId] = {};
@@ -1699,6 +1705,7 @@ class Adapter extends EventEmitter {
                                     if (handles.cccd_handle) {
                                         const cccdDescriptor = findDescriptor('2902');
                                         cccdDescriptor.handle = handles.cccd_handle;
+                                        cccdDescriptor.value = {};
                                         this._descriptors[cccdDescriptor.instanceId] = cccdDescriptor;
                                     }
 
@@ -1864,7 +1871,7 @@ class Adapter extends EventEmitter {
     }
 
     _isDescriptorPerConnectionBased(descriptor) {
-        return descriptor.uuid === '0000290200001000800000805F9B34FB';
+        return this._isCCCDDescriptor(descriptor.instanceId);
     }
 
     _setDescriptorValue(descriptor, value, deviceInstanceId) {
@@ -2031,10 +2038,16 @@ class Adapter extends EventEmitter {
         return device;
     }
 
+    _isCCCDDescriptor(descriptorId) {
+        const descriptor = this._descriptors[descriptorId];
+        return (descriptor.uuid === '0000290200001000800000805F9B34FB') ||
+               (descriptor.uuid === '2902');
+    }
+
     _getCCCDOfCharacteristic(characteristicId) {
         return _.find(this._descriptors, descriptor => {
             return (descriptor.characteristicInstanceId === characteristicId) &&
-                   (descriptor.uuid === '0000290200001000800000805F9B34FB');
+                   (this._isCCCDDescriptor(descriptor.instanceId));
         });
     }
 
@@ -2224,7 +2237,10 @@ class Adapter extends EventEmitter {
                         this._pendingIndicates.count++;
                     }
 
+                    console.log('sending hvx');
+
                     this._bleDriver.gatts_hvx(device.connectionHandle, hvxParams, err => {
+                        console.log('hvx callback');
                         if (err) {
                             this.emit('error', make_error('Failed to send notification', err));
 
@@ -2244,6 +2260,8 @@ class Adapter extends EventEmitter {
                             }
                         }
                     });
+
+                    console.log('sent hvx');
                 }
             }
         }
