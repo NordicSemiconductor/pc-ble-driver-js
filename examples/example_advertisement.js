@@ -367,9 +367,9 @@ function startAdvertising() {
             interval: 40,
             timeout: 180,
             channel_mask: {
-                ch_37_off: 0,
-                ch_38_off: 0,
-                ch_39_off: 0,
+                ch_37_off: false,
+                ch_38_off: false,
+                ch_39_off: false,
             },
         },
         function(err) {

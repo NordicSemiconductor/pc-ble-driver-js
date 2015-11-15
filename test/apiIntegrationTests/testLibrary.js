@@ -19,7 +19,7 @@ class TestLibrary {
 
     openAdapter(adapterId) {
         return new Promise((resolve, reject) => {
-            this.getAdapters().then((adapters) => {
+            this.getAdapters().then(adapters => {
                 const options = {
                     baudRate: 115200,
                     parity: 'none',
@@ -33,10 +33,10 @@ class TestLibrary {
                     reject('No adapter connected with adapter id ' + adapterId);
                 }
 
-                adapter.open(options, (err) => {
-                    if (err) {
-                        console.log('Failed to open adapter ' + adapterId + ': ' + err);
-                        reject(err);
+                adapter.open(options, error => {
+                    if (error) {
+                        console.log('Failed to open adapter ' + adapterId + ': ' + error);
+                        reject(error);
                     }
 
                     this._adapter = adapter;
@@ -55,8 +55,8 @@ class TestLibrary {
                 timeout: 20,
             };
             let foundDevices = [];
-            const advertisingListener = (device)=> {
-                if (!foundDevices.find((seenDevice) => seenDevice.address === device.address)) {
+            const advertisingListener = device=> {
+                if (!foundDevices.find(seenDevice => seenDevice.address === device.address)) {
                     foundDevices.push(device);
                     console.log(device.name + ' ' + device.address);
                 }
@@ -116,10 +116,10 @@ class TestLibrary {
                 active: true, interval: 100, window: 50, timeout: 20,
             };
             const options = {scanParams: scanParameters, connParams: connectionParameters};
-            this._adapter.once('deviceConnected', (device) => {
+            this._adapter.once('deviceConnected', device => {
                 resolve(device);
             });
-            this._adapter.connect(addr, options, (error) => {
+            this._adapter.connect(addr, options, error => {
                 if (error) {
                     reject(error);
                 }
@@ -148,6 +148,20 @@ class TestLibrary {
                 reject(error);
             });
             console.log('Waiting for securityChanged event');
+        });
+    }
+
+    waitForDescriptorValueChangedEvent() {
+        return new Promise((resolve, reject) => {
+            this._adapter.once('descriptorValueChanged', descriptor => {
+                console.log('Descriptor changed');
+                resolve(descriptor);
+            });
+            this._adapter.once('error', error => {
+                console.log('Error: ' + error);
+                reject(error);
+            });
+            console.log('Waiting for descriptorValueChanged event');
         });
     }
 
@@ -222,7 +236,7 @@ class TestLibrary {
 
     cancelConnect() {
         return new Promise((resolve, reject) => {
-            this._adapter.cancelConnect((error) => {
+            this._adapter.cancelConnect(error => {
                 if (error) {
                     reject(error);
                 } else {
@@ -246,9 +260,9 @@ class TestLibrary {
 
     getServices(deviceInstanceId) {
         return new Promise((resolve, reject) => {
-            this._adapter.getServices(deviceInstanceId, (err, services) => {
-                if (err) {
-                    reject('Failed to get services: ', err);
+            this._adapter.getServices(deviceInstanceId, (error, services) => {
+                if (error) {
+                    reject('Failed to get services: ', error);
                 } else {
                     resolve(services);
                 }
@@ -291,7 +305,7 @@ class TestLibrary {
     }
 
     getAllDescriptorsForService(serviceInstanceId) {
-        return this.getCharacteristics(serviceInstanceId).then((characteristics) => {
+        return this.getCharacteristics(serviceInstanceId).then(characteristics => {
             let allPromises = [];
             let allDescriptors = [];
             let descriptorPromise = new Promise((resolve, reject) => {
@@ -299,13 +313,13 @@ class TestLibrary {
             });
 
             for (let i = 0; i < characteristics.length; i++) {
-                descriptorPromise = descriptorPromise.then((descriptors) => {
+                descriptorPromise = descriptorPromise.then(descriptors => {
                     allDescriptors.push.apply(allDescriptors, descriptors);
                     return this.getDescriptors(characteristics[i].instanceId);
                 });
             }
 
-            return descriptorPromise.then((descriptors) => {
+            return descriptorPromise.then(descriptors => {
                 allDescriptors.push.apply(allDescriptors, descriptors);
                 return allDescriptors;
             });
@@ -313,19 +327,19 @@ class TestLibrary {
     }
 
     getAllDescriptorsForAllServices(deviceInstanceId) {
-        return this.getServices(deviceInstanceId).then((services) => {
+        return this.getServices(deviceInstanceId).then(services => {
             let allDescriptors = [];
             let descriptorsPromise = new Promise((resolve, reject) => {
                 resolve([]);
             });
             for (let i = 0; i < services.length; i++) {
-                descriptorsPromise = descriptorsPromise.then((descriptors) => {
+                descriptorsPromise = descriptorsPromise.then(descriptors => {
                     allDescriptors.push.apply(allDescriptors, descriptors);
                     return this.getAllDescriptorsForService(services[i].instanceId);
                 });
             }
 
-            return descriptorsPromise.then((descriptors) => {
+            return descriptorsPromise.then(descriptors => {
                 allDescriptors.push.apply(allDescriptors, descriptors);
                 return allDescriptors;
             });
@@ -346,7 +360,7 @@ class TestLibrary {
 
     closeAdapter() {
         return new Promise((resolve, reject)=> {
-            this._adapter.close((error) => {
+            this._adapter.close(error => {
                 if (!error) {
                     resolve();
                 } else {
@@ -383,6 +397,7 @@ class TestLibrary {
     writeCharacteristicValue(characteristicId, value, ack) {
         return new Promise((resolve, reject) => {
             this._adapter.writeCharacteristicValue(characteristicId, value, ack, (error, attribute) => {
+                console.log('testLibrary writeCharacteristicValue callback');
                 if (error) {
                     reject(error);
                 } else {
@@ -406,9 +421,9 @@ class TestLibrary {
 
     startCharacteristicsNotifications(characteristicId, ack) {
         return new Promise((resolve, reject) => {
-            this._adapter.startCharacteristicsNotifications(characteristicId, ack, err => {
-                if (err) {
-                    reject(err);
+            this._adapter.startCharacteristicsNotifications(characteristicId, ack, error => {
+                if (error) {
+                    reject(error);
                 } else {
                     resolve();
                 }
@@ -418,9 +433,9 @@ class TestLibrary {
 
     stopCharacteristicsNotifications(characteristicId) {
         return new Promise((resolve, reject) => {
-            this._adapter.stopCharacteristicsNotifications(characteristicId, err => {
-                if (err) {
-                    reject(err);
+            this._adapter.stopCharacteristicsNotifications(characteristicId, error => {
+                if (error) {
+                    reject(error);
                 } else {
                     resolve();
                 }
@@ -432,10 +447,10 @@ class TestLibrary {
         return new Promise((resolve, reject) => {
             this.openAdapter(adapterId)
             .then(this.connectToPeripheral.bind(this, peripheralAddress))
-            .then((device) => {
+            .then(device => {
                 resolve(device);
             })
-            .catch((error) => {
+            .catch(error => {
                 console.log('Connect to device failed: ', error);
                 reject(error);
             });
@@ -444,10 +459,10 @@ class TestLibrary {
 
     addService(services) {
         return new Promise((resolve, reject) => {
-            this._adapter.setServices(services, (err => {
-                if (err) {
-                    console.log(`Error setting services: '${JSON.stringify(err, null, 1)}'.`);
-                    reject(err);
+            this._adapter.setServices(services, (error => {
+                if (error) {
+                    console.log(`Error setting services: '${JSON.stringify(error, null, 1)}'.`);
+                    reject(error);
                 } else {
                     resolve();
                 }
