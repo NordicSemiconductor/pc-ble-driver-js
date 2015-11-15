@@ -167,7 +167,7 @@ v8::Local<v8::Object> GattsReadAuthorizeParameters::ToJs()
     Utility::Set(obj, "update", ConversionUtility::toJsNumber(native->update));
     Utility::Set(obj, "offset", ConversionUtility::toJsNumber(native->offset));
     Utility::Set(obj, "len", ConversionUtility::toJsNumber(native->len));
-    Utility::Set(obj, "p_data", ConversionUtility::toJsValueArray(native->p_data, native->len));
+    Utility::Set(obj, "data", ConversionUtility::toJsValueArray(native->p_data, native->len));
 
     return scope.Escape(obj);
 }
@@ -180,7 +180,7 @@ ble_gatts_read_authorize_params_t *GattsReadAuthorizeParameters::ToNative()
     params->update = ConversionUtility::getNativeUint8(jsobj, "update");
     params->offset = ConversionUtility::getNativeUint16(jsobj, "offset");
     params->len = ConversionUtility::getNativeUint16(jsobj, "len");
-    params->p_data = ConversionUtility::getNativePointerToUint8(jsobj, "p_data");
+    params->p_data = ConversionUtility::getNativePointerToUint8(jsobj, "data");
 
     return params;
 }
@@ -960,7 +960,7 @@ void AfterRWAuthorizeReply(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(2, argv);
+    baton->callback->Call(1, argv);
 
     delete baton->p_rw_authorize_reply_params;
     delete baton;

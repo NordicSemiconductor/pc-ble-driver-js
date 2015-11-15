@@ -1,9 +1,9 @@
 'use strict';
 
 const api = require('../../index').api;
-const driver = require('../../index').driver;
-
-var adapterFactory = new api.AdapterFactory(driver);
+const driver = require('../../index.js').driver;
+const AdapterFactory = require('../../api/adapterFactory.js');
+var adapterFactory = AdapterFactory.getInstance(driver);
 
 adapterFactory.on('added', adapter => {
     console.log(`onAdded: Adapter added. Adapter: ${adapter.instanceId}`);
@@ -65,13 +65,15 @@ adapterFactory.getAdapters((err, adapters) => {
                     maxLength: 3,
                     readPerm: ['open'],
                     writePerm: ['open'],
+                    writeAuth: true,
+                    readAuth: true,
                     properties: { /* BT properties */
                         broadcast: false,
-                        read: true,
+                        read: false,
                         write: false,
                         writeWoResp: false,
-                        reliableWrite: true, /* extended property in MCP ? */
-                        notify: true,
+                        reliableWrite: false, /* extended property in MCP ? */
+                        notify: false,
                         indicate: false, /* notify/indicate is cccd, therefore it must be set */
                     },
                 }
