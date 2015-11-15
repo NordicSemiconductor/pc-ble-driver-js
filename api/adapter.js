@@ -1378,21 +1378,21 @@ class Adapter extends EventEmitter {
         var retval = {};
 
         retval.channel_mask = {};
-        retval.channel_mask.ch_37_off = 0;
-        retval.channel_mask.ch_38_off = 0;
-        retval.channel_mask.ch_39_off = 0;
+        retval.channel_mask.ch_37_off = false;
+        retval.channel_mask.ch_38_off = false;
+        retval.channel_mask.ch_39_off = false;
 
         if (params.channelMask) {
             for (let channel in params.channelMask) {
                 switch (params.channelMask[channel]) {
                     case 'ch37off':
-                        retval.channel_mask.ch_37_off = 1;
+                        retval.channel_mask.ch_37_off = true;
                         break;
                     case 'ch38off':
-                        retval.channel_mask.ch_38_off = 1;
+                        retval.channel_mask.ch_38_off = true;
                         break;
                     case 'ch39off':
-                        retval.channel_mask.ch_39_off = 1;
+                        retval.channel_mask.ch_39_off = true;
                         break;
                     default:
                         throw new Error(`Channel ${channel} is not possible to switch off during advertising.`);

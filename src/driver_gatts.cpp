@@ -572,7 +572,7 @@ NAN_METHOD(HVX)
 
     try
     {
-        conn_handle = ConversionUtility::getNativeUint8(info[argumentcount]);
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
         argumentcount++;
 
         hvx_params = ConversionUtility::getJsObject(info[argumentcount]);

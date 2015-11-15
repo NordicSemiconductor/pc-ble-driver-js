@@ -1167,9 +1167,9 @@ ble_gap_adv_ch_mask_t *GapAdvChannelMask::ToNative()
     ble_gap_adv_ch_mask_t *mask = new ble_gap_adv_ch_mask_t();
     memset(mask, 0, sizeof(ble_gap_adv_ch_mask_t));
 
-    mask->ch_37_off = ConversionUtility::getNativeUint8(jsobj, "ch_37_off");
-    mask->ch_38_off = ConversionUtility::getNativeUint8(jsobj, "ch_38_off");
-    mask->ch_39_off = ConversionUtility::getNativeUint8(jsobj, "ch_39_off");
+    mask->ch_37_off = ConversionUtility::getNativeBool(jsobj, "ch_37_off");
+    mask->ch_38_off = ConversionUtility::getNativeBool(jsobj, "ch_38_off");
+    mask->ch_39_off = ConversionUtility::getNativeBool(jsobj, "ch_39_off");
 
     return mask;
 }
