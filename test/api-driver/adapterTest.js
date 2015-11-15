@@ -55,18 +55,19 @@ adapterFactory.getAdapters((err, adapters) => {
 
             let services = [];
             let serviceFactory = new api.ServiceFactory();
-            let service = serviceFactory.createService('adabfb00-6e7d-4601-bda2-bffaa68956ba');
+            let service1 = serviceFactory.createService('adabfb00-6e7d-4601-bda2-bffaa68956ba');
+            let service2 = serviceFactory.createService('1234');
 
-            let characteristic = serviceFactory.createCharacteristic(
-                service,
+            let characteristic1 = serviceFactory.createCharacteristic(
+                service1,
                 '180d',
                 [1, 2, 3],
                 {
                     maxLength: 3,
                     readPerm: ['open'],
                     writePerm: ['open'],
-                    writeAuth: true,
-                    readAuth: true,
+                    writeAuth: false,
+                    readAuth: false,
                     properties: { /* BT properties */
                         broadcast: false,
                         read: false,
@@ -79,9 +80,32 @@ adapterFactory.getAdapters((err, adapters) => {
                 }
             );
 
+            let characteristic2 = serviceFactory.createCharacteristic(
+                service2,
+                '9876',
+                [6, 5, 4],
+                {
+                    maxLength: 3,
+                    readPerm: ['open'],
+                    writePerm: ['open'],
+                    writeAuth: false,
+                    readAuth: false,
+                    properties: { /* BT properties */
+                        broadcast: false,
+                        read: true,
+                        write: true,
+                        writeWoResp: false,
+                        reliableWrite: false, /* extended property in MCP ? */
+                        notify: true,
+                        indicate: false, /* notify/indicate is cccd, therefore it must be set */
+                    },
+                }
+            );
+
+
             // TODO: evalute if - is necessary for 2 byte UUIDs.
-            let descriptor = serviceFactory.createDescriptor(
-                characteristic,
+            let descriptor1 = serviceFactory.createDescriptor(
+                characteristic1,
                 '2902',
                 [0, 0],
                 {
@@ -92,8 +116,20 @@ adapterFactory.getAdapters((err, adapters) => {
                 }
             );
 
+            let descriptor2 = serviceFactory.createDescriptor(
+                characteristic2,
+                '4567',
+                [0, 0],
+                {
+                    maxLength: 2,
+                    readPerm: ['open'],
+                    writePerm: ['open'],
+                    variableLength: false,
+                }
+            );
+
             console.log('Setting services');
-            adapter.setServices([service], err => {
+            adapter.setServices([service1, service2], err => {
                 if (err) {
                     console.log(`Error setting services: '${JSON.stringify(err, null, 1)}'.`);
                     process.exit();

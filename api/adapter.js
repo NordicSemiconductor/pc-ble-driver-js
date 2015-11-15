@@ -227,61 +227,61 @@ class Adapter extends EventEmitter {
                     this._parseGapTimeoutEvent(event);
                     break;
                 case this._bleDriver.BLE_GAP_EVT_RSSI_CHANGED:
-                    this._parseRssiChangedEvent(event);
+                    this._parseGapRssiChangedEvent(event);
                     break;
                 case this._bleDriver.BLE_GAP_EVT_ADV_REPORT:
-                    this._parseAdvertismentReportEvent(event);
+                    this._parseGapAdvertismentReportEvent(event);
                     break;
                 case this._bleDriver.BLE_GAP_EVT_SEC_REQUEST:
-                    this._parseSecurityRequestEvent(event);
+                    this._parseGapSecurityRequestEvent(event);
                     break;
                 case this._bleDriver.BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST:
-                    this._parseConnectionParameterUpdateRequestEvent(event);
+                    this._parseGapConnectionParameterUpdateRequestEvent(event);
                     break;
                 case this._bleDriver.BLE_GAP_EVT_SCAN_REQ_REPORT:
                     // Not needed. Received when a scan request is received.
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP:
-                    this._parsePrimaryServiceDiscoveryResponseEvent(event);
+                    this._parseGattcPrimaryServiceDiscoveryResponseEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_REL_DISC_RSP:
                     // Not needed. Used for included services discovery.
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_CHAR_DISC_RSP:
-                    this._parseCharacteristicDiscoveryResponseEvent(event);
+                    this._parseGattcCharacteristicDiscoveryResponseEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_DESC_DISC_RSP:
-                    this._parseDescriptorDiscoveryResponseEvent(event);
+                    this._parseGattcDescriptorDiscoveryResponseEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_CHAR_VAL_BY_UUID_READ_RSP:
                     // Not needed, service discovery is not using the related function.
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_READ_RSP:
-                    this._parseReadResponseEvent(event);
+                    this._parseGattcReadResponseEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_CHAR_VALS_READ_RSP:
                     // Not needed, characteristic discovery is not using the related function.
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_WRITE_RSP:
-                    this._parseWriteResponseEvent(event);
+                    this._parseGattcWriteResponseEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_HVX:
-                    this._parseHvxEvent(event);
+                    this._parseGattcHvxEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTC_EVT_TIMEOUT:
                     this._parseGattTimeoutEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_WRITE:
-                    this._parseWriteEvent(event);
+                    this._parseGattsWriteEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST:
-                    this._parseRWAutorizeRequestEvent(event);
+                    this._parseGattsRWAutorizeRequestEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_SYS_ATTR_MISSING:
-                    this._parseSysAttrMissingEvent(event);
+                    this._parseGattsSysAttrMissingEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_HVC:
-                    this._parseHvcEvent(event);
+                    this._parseGattsHvcEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_SC_CONFIRM:
                     // Not needed, service changed is not supported currently.
@@ -478,7 +478,7 @@ class Adapter extends EventEmitter {
         this._changeAdapterState({securityRequestPending: false});
     }
 
-    _parseConnectionParameterUpdateRequestEvent(event) {
+    _parseGapConnectionParameterUpdateRequestEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
 
         const connectionParameters = {deviceInstanceId: device.instanceId,
@@ -491,7 +491,7 @@ class Adapter extends EventEmitter {
         this.emit('connParamUpdateRequest', connectionParameters);
     }
 
-    _parseAdvertismentReportEvent(event) {
+    _parseGapAdvertismentReportEvent(event) {
         // TODO: Check address type?
         const address = event.peer_addr.address;
         const discoveredDevice = new Device(address, 'peripheral');
@@ -499,7 +499,7 @@ class Adapter extends EventEmitter {
         this.emit('deviceDiscovered', discoveredDevice);
     }
 
-    _parseSecurityRequestEvent(event) {
+    _parseGapSecurityRequestEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         this.pair(device.instanceId, false, error => {
             if (error) {
@@ -528,7 +528,7 @@ class Adapter extends EventEmitter {
         }
     }
 
-    _parseRssiChangedEvent(event) {
+    _parseGapRssiChangedEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         device.rssi = event.rssi;
 
@@ -536,7 +536,7 @@ class Adapter extends EventEmitter {
         //emit('rssiChanged', device);
     }
 
-    _parsePrimaryServiceDiscoveryResponseEvent(event) {
+    _parseGattcPrimaryServiceDiscoveryResponseEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const services = event.services;
         const gattOperation = this._gattOperationsMap[device.instanceId];
@@ -603,7 +603,7 @@ class Adapter extends EventEmitter {
         });
     }
 
-    _parseCharacteristicDiscoveryResponseEvent(event) {
+    _parseGattcCharacteristicDiscoveryResponseEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const characteristics = event.chars;
         const gattOperation = this._gattOperationsMap[device.instanceId];
@@ -688,7 +688,7 @@ class Adapter extends EventEmitter {
         });
     }
 
-    _parseDescriptorDiscoveryResponseEvent(event) {
+    _parseGattcDescriptorDiscoveryResponseEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const descriptors = event.descs;
         const gattOperation = this._gattOperationsMap[device.instanceId];
@@ -775,7 +775,7 @@ class Adapter extends EventEmitter {
         });
     }
 
-    _parseReadResponseEvent(event) {
+    _parseGattcReadResponseEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const handle = event.handle;
         const data = event.data;
@@ -887,7 +887,7 @@ class Adapter extends EventEmitter {
         }
     }
 
-    _parseWriteResponseEvent(event) {
+    _parseGattcWriteResponseEvent(event) {
         // 1. Check if there is a long write in progress for this device
         // 2a. If there is check if it is done after next write
         // 2ai. If it is done after next write
@@ -1045,7 +1045,7 @@ class Adapter extends EventEmitter {
         }
     }
 
-    _parseHvxEvent(event) {
+    _parseGattcHvxEvent(event) {
         if (event.type === this._bleDriver.BLE_GATT_HVX_INDICATION) {
             this._bleDriver.gattc_confirm_handle_value(event.conn_handle, event.handle);
         }
@@ -1071,7 +1071,7 @@ class Adapter extends EventEmitter {
         }
     }
 
-    _parseWriteEvent(event) {
+    _parseGattsWriteEvent(event) {
         // TODO: BLE_GATTS_OP_SIGN_WRITE_CMD not supported?
         const remoteDevice = this._getDeviceByConnectionHandle(event.conn_handle);
         const attribute = this._getAttributeByHandle('local', event.handle);
@@ -1115,7 +1115,7 @@ class Adapter extends EventEmitter {
         }
     }
 
-    _parseRWAutorizeRequestEvent(event) {
+    _parseGattsRWAutorizeRequestEvent(event) {
         let authorizeReplyParams;
         if (event.type === this._bleDriver.BLE_GATTS_AUTHORIZE_TYPE_WRITE) {
             const attribute = this._getAttributeByHandle('local', event.write.handle);
@@ -1150,7 +1150,7 @@ class Adapter extends EventEmitter {
         });
     }
 
-    _parseSysAttrMissingEvent(event) {
+    _parseGattsSysAttrMissingEvent(event) {
         this._bleDriver.gatts_set_system_attribute(event.conn_handle, null, 0, 0, error => {
             if (error) {
                 this.emit('error', make_error('Failed to call gatts_set_system_attribute', error));
@@ -1158,7 +1158,7 @@ class Adapter extends EventEmitter {
         });
     }
 
-    _parseHvcEvent(event) {
+    _parseGattsHvcEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const characteristic = this._getCharacteristicByHandle(device.instanceId, event.handle);
 
