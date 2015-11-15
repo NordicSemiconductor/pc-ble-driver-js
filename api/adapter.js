@@ -1683,6 +1683,30 @@ class Adapter extends EventEmitter {
                                     characteristic.declarationHandle = characteristic.valueHandle - 1; // valueHandle is always directly after declarationHandle
                                     this._characteristics[characteristic.instanceId] = characteristic; // TODO: what if we fail later on this ?
                                     resolve(data);
+
+                                    const findDescriptor = uuid => {
+                                        return characteristic._factory_descriptors.find(descriptor => {
+                                            return descriptor.uuid === uuid;
+                                        });
+                                    };
+
+                                    if (handles.user_desc_handle) {
+                                        const userDescriptionDescriptor = findDescriptor('2901');
+                                        userDescriptionDescriptor.handle = handles.user_desc_handle;
+                                        this._descriptors[userDescriptionDescriptor.instanceId] = userDescriptionDescriptor;
+                                    }
+
+                                    if (handles.cccd_handle) {
+                                        const cccdDescriptor = findDescriptor('2902');
+                                        cccdDescriptor.handle = handles.cccd_handle;
+                                        this._descriptors[cccdDescriptor.instanceId] = cccdDescriptor;
+                                    }
+
+                                    if (handles.sccd_handle) {
+                                        const sccdDescriptor = findDescriptor('2903');
+                                        sccdDescriptor.handle = handles.sccd_handle;
+                                        this._descriptors[sccdDescriptor.instanceId] = sccdDescriptor;
+                                    }
                                 }
                             }
                         );
