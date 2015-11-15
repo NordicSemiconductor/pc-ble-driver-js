@@ -56,23 +56,23 @@ ble_gatts_char_md_t *GattsCharacteristicMetadata::ToNative()
     metadata->char_user_desc_max_size = ConversionUtility::getNativeUint16(jsobj, "char_user_desc_max_size");
     metadata->char_user_desc_size = ConversionUtility::getNativeUint16(jsobj, "char_user_desc_size");
 
-    if (Utility::IsObject(jsobj, "p_char_pf"))
-        metadata->p_char_pf = GattsCharacteristicPresentationFormat(ConversionUtility::getJsObject(jsobj, "p_char_pf"));
+    if (Utility::IsObject(jsobj, "char_pf") && !Utility::IsNull(jsobj, "char_pf"))
+        metadata->p_char_pf = GattsCharacteristicPresentationFormat(ConversionUtility::getJsObject(jsobj, "char_pf"));
     else
         metadata->p_char_pf = 0;
 
-    if (Utility::IsObject(jsobj, "p_user_desc_md"))
-        metadata->p_user_desc_md = GattsAttributeMetadata(ConversionUtility::getJsObject(jsobj, "p_user_desc_md"));
+    if (Utility::IsObject(jsobj, "user_desc_md") && !Utility::IsNull(jsobj, "user_desc_md"))
+        metadata->p_user_desc_md = GattsAttributeMetadata(ConversionUtility::getJsObject(jsobj, "user_desc_md"));
     else
         metadata->p_user_desc_md = 0;
 
-    if (Utility::IsObject(jsobj, "p_cccd_md"))
-        metadata->p_cccd_md = GattsAttributeMetadata(ConversionUtility::getJsObject(jsobj, "p_cccd_md"));
+    if (Utility::IsObject(jsobj, "cccd_md") && !Utility::IsNull(jsobj, "cccd_md"))
+        metadata->p_cccd_md = GattsAttributeMetadata(ConversionUtility::getJsObject(jsobj, "cccd_md"));
     else
         metadata->p_cccd_md = 0;
 
-    if (Utility::IsObject(jsobj, "p_sccd_md"))
-        metadata->p_sccd_md = GattsAttributeMetadata(ConversionUtility::getJsObject(jsobj, "p_sccd_md"));
+    if (Utility::IsObject(jsobj, "sccd_md") && !Utility::IsNull(jsobj, "sccd_md"))
+        metadata->p_sccd_md = GattsAttributeMetadata(ConversionUtility::getJsObject(jsobj, "sccd_md"));
     else
         metadata->p_sccd_md = 0;
 
@@ -83,13 +83,13 @@ ble_gatts_attr_t *GattsAttribute::ToNative()
 {
     ble_gatts_attr_t *attribute = new ble_gatts_attr_t();
 
-    attribute->p_uuid = BleUUID(ConversionUtility::getJsObject(jsobj, "p_uuid"));
-    attribute->p_attr_md = GattsAttributeMetadata(ConversionUtility::getJsObject(jsobj, "p_attr_md"));
+    attribute->p_uuid = BleUUID(ConversionUtility::getJsObject(jsobj, "uuid"));
+    attribute->p_attr_md = GattsAttributeMetadata(ConversionUtility::getJsObject(jsobj, "attr_md"));
 
     attribute->init_len = ConversionUtility::getNativeUint16(jsobj, "init_len");
     attribute->init_offs = ConversionUtility::getNativeUint16(jsobj, "init_offs");
     attribute->max_len = ConversionUtility::getNativeUint16(jsobj, "max_len");
-    attribute->p_value = ConversionUtility::getNativePointerToUint8(jsobj, "p_value");
+    attribute->p_value = ConversionUtility::getNativePointerToUint8(jsobj, "value");
 
     return attribute;
 }
@@ -116,8 +116,8 @@ ble_gatts_hvx_params_t *GattsHVXParams::ToNative()
     hvxparams->handle = ConversionUtility::getNativeUint16(jsobj, "handle");
     hvxparams->type = ConversionUtility::getNativeUint8(jsobj, "type");
     hvxparams->offset = ConversionUtility::getNativeUint16(jsobj, "offset");
-    *(hvxparams->p_len) = ConversionUtility::getNativeUint16(jsobj, "p_len");
-    hvxparams->p_data = ConversionUtility::getNativePointerToUint8(jsobj, "p_data");
+    *(hvxparams->p_len) = ConversionUtility::getNativeUint16(jsobj, "len");
+    hvxparams->p_data = ConversionUtility::getNativePointerToUint8(jsobj, "data");
 
     return hvxparams;
 }
@@ -128,7 +128,7 @@ ble_gatts_value_t *GattsValue::ToNative()
 
     value->len = ConversionUtility::getNativeUint16(jsobj, "len");
     value->offset = ConversionUtility::getNativeUint16(jsobj, "offset");
-    value->p_value = ConversionUtility::getNativePointerToUint8(jsobj, "p_value");
+    value->p_value = ConversionUtility::getNativePointerToUint8(jsobj, "value");
 
     return value;
 }
@@ -140,7 +140,7 @@ v8::Local<v8::Object> GattsValue::ToJs()
 
     Utility::Set(obj, "len", ConversionUtility::toJsNumber(native->len));
     Utility::Set(obj, "offset", ConversionUtility::toJsNumber(native->offset));
-    Utility::Set(obj, "p_value", ConversionUtility::toJsValueArray(native->p_value, native->len));
+    Utility::Set(obj, "value", ConversionUtility::toJsValueArray(native->p_value, native->len));
 
     return scope.Escape(obj);
 }
@@ -356,7 +356,7 @@ NAN_METHOD(AddService)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_uuid", error);
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("uuid", error);
         Nan::ThrowTypeError(message);
         return;
     }

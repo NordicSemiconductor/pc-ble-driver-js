@@ -77,6 +77,7 @@ public:
 	static void SetReturnValue(Nan::NAN_METHOD_ARGS_TYPE info, v8::Local<v8::Object> value);
 
     static bool IsObject(v8::Local<v8::Object> jsobj, char *name);
+    static bool IsNull(v8::Local<v8::Object> jsobj, char *name);
 };
 
 template<typename EventType>

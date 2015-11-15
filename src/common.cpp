@@ -590,6 +590,11 @@ bool Utility::IsObject(v8::Local<v8::Object> jsobj, char *name)
     return Utility::Get(jsobj, name)->IsObject();
 }
 
+bool Utility::IsNull(v8::Local<v8::Object> jsobj, char *name)
+{
+    return Utility::Get(jsobj, name)->IsNull();
+}
+
 v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char const *customMessage)
 {
     Nan::EscapableHandleScope scope;
