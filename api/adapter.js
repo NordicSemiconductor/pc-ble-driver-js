@@ -971,6 +971,8 @@ class Adapter extends EventEmitter {
     }
 
     _getServiceByHandle(deviceInstanceId, handle) {
+        let foundService = null;
+
         for (let serviceInstanceId in this._services) {
             const service = this._services[serviceInstanceId];
 
@@ -978,12 +980,12 @@ class Adapter extends EventEmitter {
                 continue;
             }
 
-            if (service.startHandle <= handle && handle <= service.endHandle) {
-                return service;
+            if (service.startHandle <= handle && (!foundService || foundService.startHandle <= service.startHandle)) {
+                foundService = service;
             }
         }
 
-        return null;
+        return foundService;
     }
 
     _getCharacteristicByHandle(deviceInstanceId, handle) {
