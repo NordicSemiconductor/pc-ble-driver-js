@@ -8,7 +8,6 @@ var Device = require('./api/device');
 var Service = require('./api/Service');
 var ServiceFactory = require('./api/ServiceFactory');
 
-
 module.exports.driver = require('bindings')('ble_driver_js');
 module.exports.api = {
     Adapter,
@@ -18,5 +17,5 @@ module.exports.api = {
     Descriptor,
     Device,
     Service,
-    ServiceFactory
+    ServiceFactory,
 };

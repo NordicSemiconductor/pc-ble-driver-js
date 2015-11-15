@@ -60,7 +60,6 @@ class TestLibrary {
                     foundDevices.push(device);
                     console.log(device.name + ' ' + device.address);
                 }
-
             };
 
             this._adapter.on('deviceDiscovered', advertisingListener);

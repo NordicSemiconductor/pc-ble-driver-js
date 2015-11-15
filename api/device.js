@@ -6,6 +6,15 @@ const uuidDefinitions = require('./util/uuid_definitions');
 class Device {
     constructor(address, role) {
         this._instanceId = null;
+        this._address = {};
+
+        if (typeof deviceAddress === 'string') {
+            this._address.address = address;
+            this._address.type = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
+        } else {
+            this._address = address;
+        }
+
         this._address = address;
         this.name = null;
         this._role = role;
@@ -128,7 +137,7 @@ class Device {
 
         function mapRange(n, fromMin, fromMax, toMin, toMax) {
             //scale number n from the range [fromMin, fromMax] to [toMin, toMax]
-            n = toMin + ((toMax - toMin) / (fromMax - fromMin)) * (n - fromMin)
+            n = toMin + ((toMax - toMin) / (fromMax - fromMin)) * (n - fromMin);
             n = Math.round(n);
             return Math.max(toMin, Math.min(toMax, n));
         }
@@ -150,7 +159,7 @@ function camelCaseFlag(flag) {
                 return $2.toLowerCase()
                 .replace(/(\_[a-z])/g,
                     function($1) {
-                        var camelCase = $1.toUpperCase().replace('_','');
+                        var camelCase = $1.toUpperCase().replace('_', '');
                         return camelCase[0].toUpperCase() + camelCase.slice(1);
                     });
             });

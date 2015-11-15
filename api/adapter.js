@@ -302,7 +302,7 @@ class Adapter extends EventEmitter {
     _parseConnectedEvent(event) {
         // TODO: Update device with connection handle
         // TODO: Should 'deviceConnected' event emit the updated device?
-        const deviceAddress = event.peer_addr.address;
+        const deviceAddress = event.peer_addr;
         const connectionParameters = event.conn_params;
         let deviceRole;
 
@@ -493,7 +493,7 @@ class Adapter extends EventEmitter {
 
     _parseGapAdvertismentReportEvent(event) {
         // TODO: Check address type?
-        const address = event.peer_addr.address;
+        const address = event.peer_addr;
         const discoveredDevice = new Device(address, 'peripheral');
         discoveredDevice.processEventData(event);
         this.emit('deviceDiscovered', discoveredDevice);
