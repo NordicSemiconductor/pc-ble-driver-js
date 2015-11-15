@@ -111,10 +111,12 @@ ble_gatts_hvx_params_t *GattsHVXParams::ToNative()
 {
     ble_gatts_hvx_params_t *hvxparams = new ble_gatts_hvx_params_t();
 
+    hvxparams->p_len = (uint16_t*)malloc(sizeof(uint16_t));
+
     hvxparams->handle = ConversionUtility::getNativeUint16(jsobj, "handle");
     hvxparams->type = ConversionUtility::getNativeUint8(jsobj, "type");
     hvxparams->offset = ConversionUtility::getNativeUint16(jsobj, "offset");
-    hvxparams->p_len = ConversionUtility::getNativePointerToUint16(jsobj, "p_len");
+    *(hvxparams->p_len) = ConversionUtility::getNativeUint16(jsobj, "p_len");
     hvxparams->p_data = ConversionUtility::getNativePointerToUint8(jsobj, "p_data");
 
     return hvxparams;
@@ -635,6 +637,7 @@ void AfterHVX(uv_work_t *req)
 
     baton->callback->Call(1, argv);
 
+    delete baton->p_hvx_params->p_len;
     delete baton->p_hvx_params;
     delete baton;
 }
