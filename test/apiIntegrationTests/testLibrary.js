@@ -447,9 +447,8 @@ class TestLibrary {
             this._adapter.setServices(services, (err => {
                 if (err) {
                     console.log(`Error setting services: '${JSON.stringify(err, null, 1)}'.`);
-                    reject(error);
-                }
-                else {
+                    reject(err);
+                } else {
                     resolve();
                 }
             }));

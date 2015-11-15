@@ -1323,7 +1323,16 @@ class Adapter extends EventEmitter {
             callback(errorObject);
         }
 
-        this._bleDriver.gap_connect(deviceAddress, options.scanParams, options.connParams, err => {
+        var address = {};
+
+        if (typeof deviceAddress === 'string') {
+            address.address = deviceAddress;
+            address.type = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
+        } else {
+            address = deviceAddress;
+        }
+
+        this._bleDriver.gap_connect(address, options.scanParams, options.connParams, err => {
             if (err) {
                 this.emit('error', make_error(`Could not connect to ${deviceAddress}`, err));
                 callback(make_error('Failed to connect to ' + deviceAddress, err));
