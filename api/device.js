@@ -21,6 +21,7 @@ class Device {
         this.uuids = [];
         this.services = [];
         this.flags = [];
+        this.scanResponse = null;
 
         this.connected = false;
         this.rssi = null;
@@ -69,6 +70,7 @@ class Device {
 
     processEventData(event) {
         this.time = new Date(event.time);
+        this.scanResponse = event.scan_rsp;
         this.rssi = event.rssi;
         this.txPower = event.data ? event.data.BLE_GAP_AD_TYPE_TX_POWER_LEVEL : undefined;
         this._findAndSetNameFromAdvertisingData(event.data);
