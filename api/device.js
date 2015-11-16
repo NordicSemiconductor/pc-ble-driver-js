@@ -8,14 +8,14 @@ class Device {
         this._instanceId = null;
         this._address = {};
 
-        if (typeof deviceAddress === 'string') {
-            this._address.address = address;
-            this._address.type = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
-        } else {
+        if (typeof address === 'string') {
             this._address = address;
+            this._addressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
+        } else {
+            this._address = address.address;
+            this._addressType = address.type;
         }
 
-        this._address = address;
         this.name = null;
         this._role = role;
         this.uuids = [];
@@ -43,6 +43,11 @@ class Device {
     // Get the BLE address. 'local': local/adapter, non-'local': other device
     get address() {
         return this._address;
+    }
+
+    // Get the BLE address type. 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC' is default type.
+    get addressType() {
+        return this._addressType;
     }
 
     // 'peripheral', 'central'
