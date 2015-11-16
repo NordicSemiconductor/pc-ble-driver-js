@@ -4,10 +4,10 @@ const testLib = require('./testLibrary').singletonContainer.testLibrary;
 const api = require('../../index').api;
 const _ = require('underscore');
 
-describe('Long Read and write operations', function() {
+describe('Sending notification and indication', function() {
     this.timeout(100000);
 
-    it('should write a value to a descriptor and read it back. (short write)', done => {
+    it('Sending notification and indication', done => {
         let theDevice;
 
         let serviceFactory = new api.ServiceFactory();
@@ -45,10 +45,18 @@ describe('Long Read and write operations', function() {
                 variableLength: false,
             }
         );
+        const value = [0x04, 0x05, 0x06];
+
+        const eventPromise = new Promise((resolve, reject) => {
+            testLib._adapter.on('deviceNotifiedOrIndicated', (device, attribute) => {
+                console.log('deviceNotifiedOrIndicated event');
+                assert(_.isEqual(attribute.value, value));
+                resolve();
+            });
+        });
 
         testLib.addService([service])
             .then(() => {
-                console.log('added service');
                 return testLib.startAdvertising();
             })
             .then(() => {
@@ -59,11 +67,16 @@ describe('Long Read and write operations', function() {
                 return testLib.waitForDescriptorValueChangedEvent();
             })
             .then(descriptor => {
-                console.log(descriptor);
-                return testLib.writeCharacteristicValue(characteristic.instanceId, [0x04, 0x05, 0x06]);
+                return testLib.writeCharacteristicValue(characteristic.instanceId, value, false, (device, attribute) => {
+                    console.log('deviceNotifiedOrIndicated callback');
+                    assert(_.isEqual(attribute.value, value));
+                });
             })
             .then(attribute => {
-                console.log(attribute);
+                console.log('waiting for a train');
+                return eventPromise;
+            })
+            .then(() => {
                 return testLib.disconnect(theDevice.instanceId);
             })
             .then(() => {done();})

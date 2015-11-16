@@ -979,7 +979,7 @@ class Adapter extends EventEmitter {
         for (let serviceInstanceId in this._services) {
             const service = this._services[serviceInstanceId];
 
-            if (service.deviceInstanceId !== deviceInstanceId) {
+            if (!_.isEqual(service.deviceInstanceId, deviceInstanceId)) {
                 continue;
             }
 
@@ -1082,7 +1082,6 @@ class Adapter extends EventEmitter {
         if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ ||
             event.op === this._bleDriver.BLE_GATTS_OP_WRITE_CMD) {
             if (this._instanceIdIsOnLocalDevice(attribute.instanceId) && this._isCCCDDescriptor(attribute.instanceId)) {
-                console.log(attribute);
                 this._setDescriptorValue(attribute, event.data, remoteDevice.instanceId);
                 this._emitAttributeValueChanged(attribute);
             } else {
@@ -1168,14 +1167,14 @@ class Adapter extends EventEmitter {
     }
 
     _parseGattsHvcEvent(event) {
-        const device = this._getDeviceByConnectionHandle(event.conn_handle);
-        const characteristic = this._getCharacteristicByHandle(device.instanceId, event.handle);
+        const remoteDevice = this._getDeviceByConnectionHandle(event.conn_handle);
+        const characteristic = this._getCharacteristicByHandle('local', event.handle);
 
         if (this._pendingNotificationsAndIndications.deviceNotifiedOrIndicated) {
-            this._pendingNotificationsAndIndications.deviceNotifiedOrIndicated(device, characteristic);
+            this._pendingNotificationsAndIndications.deviceNotifiedOrIndicated(remoteDevice, characteristic);
         }
 
-        this.emit('deviceNotifiedOrIndicated'. device, characteristic);
+        this.emit('deviceNotifiedOrIndicated', remoteDevice, characteristic);
 
         this._pendingNotificationsAndIndications.remainingIndicationConfirmations--;
         if (this._sendingNotificationsAndIndicationsComplete()) {
@@ -1722,7 +1721,6 @@ class Adapter extends EventEmitter {
         };
 
         let addDescriptor = (descriptor, data) => {
-            console.log(`Adding descriptor ${JSON.stringify(descriptor)}`);
             return new Promise((resolve, reject) => {
                 this._converter.descriptorToDriver(descriptor, (err, descriptorForDriver) => {
                     if (err) {

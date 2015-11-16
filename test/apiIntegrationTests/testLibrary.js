@@ -394,7 +394,7 @@ class TestLibrary {
         });
     }
 
-    writeCharacteristicValue(characteristicId, value, ack) {
+    writeCharacteristicValue(characteristicId, value, ack, deviceNotifiedOrIndicated) {
         return new Promise((resolve, reject) => {
             this._adapter.writeCharacteristicValue(characteristicId, value, ack, (error, attribute) => {
                 console.log('testLibrary writeCharacteristicValue callback');
@@ -403,7 +403,7 @@ class TestLibrary {
                 } else {
                     resolve(attribute);
                 }
-            });
+            }, deviceNotifiedOrIndicated);
         });
     }
 
