@@ -59,7 +59,7 @@ class Device {
         this._connectionHandle = connectionHandle;
 
         //TODO: Should instanceId involve role or is that handled by connectionHandle?
-        this._instanceId = this._address + '.' + connectionHandle;
+        this._instanceId = this._address.address + '.' + connectionHandle;
     }
 
     processEventData(event) {

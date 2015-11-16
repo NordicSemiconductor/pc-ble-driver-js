@@ -517,7 +517,10 @@ class Adapter extends EventEmitter {
                 this._changeAdapterState({scanning: false});
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_CONN:
+                this._gapOperationsMap.connecting.callback('Failed to connect, timed out');
+                delete this._gapOperationsMap.connecting;
                 this._changeAdapterState({connecting: false});
+                this.emit('error', make_error('Failed to connect', 'Connection timed out'));
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_SECURITY_REQUEST:
                 this._changeAdapterState({securityRequestPending: false});
@@ -1168,10 +1171,13 @@ class Adapter extends EventEmitter {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const characteristic = this._getCharacteristicByHandle(device.instanceId, event.handle);
 
-        this.emit('deviceNotifiedOrIndicated'. device, characteristic);
-        this._pendingNotificationsAndIndications.deviceNotifiedOrIndicated(device, characteristic);
-        this._pendingNotificationsAndIndications.remainingIndicationConfirmations--;
+        if (this._pendingNotificationsAndIndications.deviceNotifiedOrIndicated) {
+            this._pendingNotificationsAndIndications.deviceNotifiedOrIndicated(device, characteristic);
+        }
 
+        this.emit('deviceNotifiedOrIndicated'. device, characteristic);
+
+        this._pendingNotificationsAndIndications.remainingIndicationConfirmations--;
         if (this._sendingNotificationsAndIndicationsComplete()) {
             this._pendingNotificationsAndIndications.completeCallback(undefined, characteristic);
             this._pendingNotificationsAndIndications = {};
@@ -2269,7 +2275,7 @@ class Adapter extends EventEmitter {
                             this.emit('error', make_error('Failed to send notification', err));
 
                             if (this._sendingNotificationsAndIndicationsComplete()) {
-                                this.completeCallback(make_error('Failed to send notification or indication', err));
+                                completeCallback(make_error('Failed to send notification or indication', err));
                                 this._pendingNotificationsAndIndications = {};
                             }
 
@@ -2278,12 +2284,15 @@ class Adapter extends EventEmitter {
                             this._setAttributeValueWithOffset(attribute, value, offset);
 
                             if (cccdValue === 1) {
-                                this._pendingNotificationsAndIndications.remainingNotificationCallbacks--;
-                                deviceNotifiedOrIndicated(device, attribute);
+                                if (deviceNotifiedOrIndicated) {
+                                    deviceNotifiedOrIndicated(device, attribute);
+                                }
+
                                 this.emit('deviceNotifiedOrIndicated', device, attribute);
 
+                                this._pendingNotificationsAndIndications.remainingNotificationCallbacks--;
                                 if (this._sendingNotificationsAndIndicationsComplete()) {
-                                    this.completeCallback(undefined);
+                                    completeCallback(undefined);
                                     this._pendingNotificationsAndIndications = {};
                                 }
                             } else if (cccdValue === 2) {
@@ -2299,7 +2308,7 @@ class Adapter extends EventEmitter {
 
         if (sentHvx) {
             if (this._sendingNotificationsAndIndicationsComplete()) {
-                this.completeCallback(undefined);
+                completeCallback(undefined);
                 this._pendingNotificationsAndIndications = {};
             }
 
