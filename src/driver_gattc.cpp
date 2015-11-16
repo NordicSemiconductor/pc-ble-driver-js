@@ -45,6 +45,11 @@ v8::Local<v8::Object> GattcHandleRange::ToJs()
 
 ble_gattc_handle_range_t *GattcHandleRange::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gattc_handle_range_t *handleRange = new ble_gattc_handle_range_t();
 
     handleRange->start_handle = ConversionUtility::getNativeUint16(jsobj, "start_handle");
@@ -138,6 +143,11 @@ v8::Local<v8::Object> GattcDescriptor::ToJs()
 
 ble_gattc_write_params_t *GattcWriteParameters::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gattc_write_params_t *writeparams = new ble_gattc_write_params_t();
 
     writeparams->write_op = ConversionUtility::getNativeUint8(jsobj, "write_op");
@@ -349,7 +359,6 @@ NAN_METHOD(PrimaryServicesDiscover)
 {
     uint16_t conn_handle;
     uint16_t start_handle;
-    bool has_service_uuid = true;
     v8::Local<v8::Object> service_uuid;
     v8::Local<v8::Function> callback;
     int argumentcount = 0;
@@ -362,14 +371,7 @@ NAN_METHOD(PrimaryServicesDiscover)
         start_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
         argumentcount++;
 
-        if (info[argumentcount]->IsNumber())
-        {
-            has_service_uuid = false;
-        }
-        else
-        {
-            service_uuid = ConversionUtility::getJsObject(info[argumentcount]);
-        }
+        service_uuid = ConversionUtility::getJsObjectOrNull(info[argumentcount]);
         argumentcount++;
 
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
@@ -386,22 +388,15 @@ NAN_METHOD(PrimaryServicesDiscover)
     baton->conn_handle = conn_handle;
     baton->start_handle = start_handle;
 
-    if (has_service_uuid)
+    try
     {
-        try
-        {
-            baton->p_srvc_uuid = BleUUID(service_uuid);
-        }
-        catch (char const *error)
-        {
-            v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_srvc_uuid", error);
-            Nan::ThrowTypeError(message);
-            return;
-        }
+        baton->p_srvc_uuid = BleUUID(service_uuid);
     }
-    else
+    catch (char const *error)
     {
-        baton->p_srvc_uuid = 0;
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_srvc_uuid", error);
+        Nan::ThrowTypeError(message);
+        return;
     }
 
     uv_queue_work(uv_default_loop(), baton->req, PrimaryServicesDiscover, (uv_after_work_cb)AfterPrimaryServicesDiscover);

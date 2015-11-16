@@ -164,6 +164,11 @@ v8::Local<v8::Object> GapAddr::ToJs()
 
 ble_gap_addr_t *GapAddr::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gap_addr_t *address = new ble_gap_addr_t();
 
     uint32_t ptr[BLE_GAP_ADDR_LEN];
@@ -220,6 +225,11 @@ v8::Local<v8::Object> GapConnParams::ToJs()
 
 ble_gap_conn_params_t *GapConnParams::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gap_conn_params_t *conn_params = new ble_gap_conn_params_t();
     memset(conn_params, 0, sizeof(ble_gap_conn_params_t));
 
@@ -252,6 +262,11 @@ v8::Local<v8::Object> GapConnSecMode::ToJs()
 
 ble_gap_conn_sec_mode_t *GapConnSecMode::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gap_conn_sec_mode_t *conn_sec_mode = new ble_gap_conn_sec_mode_t();
 
     conn_sec_mode->sm = ConversionUtility::getNativeUint8(jsobj, "sm");
@@ -678,6 +693,11 @@ v8::Local<v8::Object> GapSecParams::ToJs()
 
 ble_gap_sec_params_t *GapSecParams::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gap_sec_params_t *params = new ble_gap_sec_params_t();
     memset(params, 0, sizeof(ble_gap_sec_params_t));
 
@@ -716,6 +736,11 @@ v8::Local<v8::Object> GapSecKdist::ToJs()
 
 ble_gap_sec_kdist_t *GapSecKdist::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gap_sec_kdist_t *kdist = new ble_gap_sec_kdist_t();
     memset(kdist, 0, sizeof(ble_gap_sec_kdist_t));
 
@@ -746,6 +771,11 @@ v8::Local<v8::Object> GapSecKeyset::ToJs()
 
 ble_gap_sec_keyset_t *GapSecKeyset::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gap_sec_keyset_t *keyset = new ble_gap_sec_keyset_t();
     memset(keyset, 0, sizeof(ble_gap_sec_keyset_t));
 
@@ -799,36 +829,18 @@ v8::Local<v8::Object> GapSecKeys::ToJs()
 
 ble_gap_sec_keys_t *GapSecKeys::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gap_sec_keys_t *keys = new ble_gap_sec_keys_t();
     memset(keys, 0, sizeof(ble_gap_sec_keys_t));
 
-    if ((Utility::Get(jsobj, "enc_key"))->IsNull())
-    {
-        keys->p_enc_key = 0;
-    }
-    else
-    {
-        keys->p_enc_key = GapEncKey(ConversionUtility::getJsObject(jsobj, "enc_key"));
-    }
-
-    if (Utility::Get(jsobj, "id_key")->IsNull())
-    {
-        keys->p_id_key = 0;
-    }
-    else
-    {
-        keys->p_id_key = GapIdKey(ConversionUtility::getJsObject(jsobj, "id_key"));
-    }
-
-    if (Utility::Get(jsobj, "sign_key")->IsNull())
-    {
-        keys->p_sign_key = 0;
-    }
-    else
-    {
-        keys->p_sign_key = GapSignInfo(ConversionUtility::getJsObject(jsobj, "sign_key"));
-    }
-
+    keys->p_enc_key = GapEncKey(ConversionUtility::getJsObjectOrNull(jsobj, "enc_key"));
+    keys->p_id_key = GapIdKey(ConversionUtility::getJsObjectOrNull(jsobj, "id_key"));
+    keys->p_sign_key = GapSignInfo(ConversionUtility::getJsObjectOrNull(jsobj, "sign_key"));
+    
     return keys;
 }
 
@@ -852,6 +864,11 @@ v8::Local<v8::Object> GapEncKey::ToJs()
 
 ble_gap_enc_key_t *GapEncKey::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gap_enc_key_t* enc_key = new ble_gap_enc_key_t();
     memset(enc_key, 0, sizeof(ble_gap_enc_key_t));
 
@@ -881,6 +898,11 @@ v8::Local<v8::Object> GapIdKey::ToJs()
 
 ble_gap_id_key_t *GapIdKey::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gap_id_key_t* id_key = new ble_gap_id_key_t();
     memset(id_key, 0, sizeof(ble_gap_id_key_t));
 
@@ -909,6 +931,11 @@ v8::Local<v8::Object> GapSignInfo::ToJs()
 
 ble_gap_sign_info_t *GapSignInfo::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gap_sign_info_t *sign_info = new ble_gap_sign_info_t();
     memset(sign_info, 0, sizeof(ble_gap_sign_info_t));
 
@@ -940,6 +967,11 @@ v8::Local<v8::Object> GapIrk::ToJs()
 
 ble_gap_irk_t *GapIrk::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gap_irk_t *irk = new ble_gap_irk_t();
     memset(irk, 0, sizeof(ble_gap_irk_t));
 
@@ -973,6 +1005,11 @@ v8::Local<v8::Object> GapEncInfo::ToJs()
 
 ble_gap_enc_info_t *GapEncInfo::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gap_enc_info_t* enc_info = new ble_gap_enc_info_t();
     memset(enc_info, 0, sizeof(ble_gap_enc_info_t));
 
@@ -1008,6 +1045,11 @@ v8::Local<v8::Object> GapMasterId::ToJs()
 
 ble_gap_master_id_t *GapMasterId::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gap_master_id_t *master_id = new ble_gap_master_id_t();
     memset(master_id, 0, sizeof(ble_gap_master_id_t));
 
@@ -1044,6 +1086,11 @@ v8::Local<v8::Object> GapSecLevels::ToJs()
 
 ble_gap_sec_levels_t *GapSecLevels::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gap_sec_levels_t *sec_levels = new ble_gap_sec_levels_t();
     memset(sec_levels, 0, sizeof(ble_gap_sec_levels_t));
 
@@ -1073,6 +1120,11 @@ v8::Local<v8::Object> GapConnSec::ToJs()
 
 ble_gap_conn_sec_t *GapConnSec::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gap_conn_sec_t *conn_sec = new ble_gap_conn_sec_t();
     memset(conn_sec, 0, sizeof(ble_gap_conn_sec_t));
 
@@ -1100,6 +1152,11 @@ v8::Local<v8::Object> GapScanParams::ToJs()
 
 ble_gap_scan_params_t *GapScanParams::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gap_scan_params_t *params = new ble_gap_scan_params_t();
     memset(params, 0, sizeof(ble_gap_scan_params_t));
 
@@ -1131,6 +1188,11 @@ v8::Local<v8::Object> GapAdvParams::ToJs()
 
 ble_gap_adv_params_t *GapAdvParams::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gap_adv_params_t *params = new ble_gap_adv_params_t();
     memset(params, 0, sizeof(ble_gap_adv_params_t));
 
@@ -1164,6 +1226,11 @@ v8::Local<v8::Object> GapAdvChannelMask::ToJs()
 
 ble_gap_adv_ch_mask_t *GapAdvChannelMask::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gap_adv_ch_mask_t *mask = new ble_gap_adv_ch_mask_t();
     memset(mask, 0, sizeof(ble_gap_adv_ch_mask_t));
 
@@ -1346,7 +1413,6 @@ NAN_METHOD(GapUpdateConnectionParameters)
         return;
     }
     
-
     uv_queue_work(uv_default_loop(), baton->req, GapUpdateConnectionParameters, (uv_after_work_cb)AfterGapUpdateConnectionParameters);
 }
 
@@ -2168,7 +2234,7 @@ NAN_METHOD(GapStopAdvertising)
 
     try
     {
-         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
     catch (char const *error)
@@ -2367,8 +2433,6 @@ NAN_METHOD(GapSecParamsReply)
     v8::Local<v8::Object> sec_keyset_object;
     v8::Local<v8::Function> callback;
     int argumentcount = 0;
-    bool sec_params_is_null = false;
-    bool sec_keyset_is_null = false;
 
     try
     {
@@ -2378,24 +2442,10 @@ NAN_METHOD(GapSecParamsReply)
         sec_status = ConversionUtility::getNativeUint8(info[argumentcount]);
         argumentcount++;
 
-        if (info[argumentcount]->IsNull())
-        {
-            sec_params_is_null = true;
-        }
-        else
-        {
-            sec_params_object = ConversionUtility::getJsObject(info[argumentcount]);
-        }
+        sec_params_object = ConversionUtility::getJsObjectOrNull(info[argumentcount]);
         argumentcount++;
 
-        if (info[argumentcount]->IsNull())
-        {
-            sec_keyset_is_null = true;
-        }
-        else
-        {
-            sec_keyset_object = ConversionUtility::getJsObject(info[argumentcount]);
-        }
+        sec_keyset_object = ConversionUtility::getJsObjectOrNull(info[argumentcount]);
         argumentcount++;
 
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
@@ -2413,14 +2463,7 @@ NAN_METHOD(GapSecParamsReply)
     baton->sec_status = sec_status;
     try
     {
-        if (sec_params_is_null)
-        {
-            baton->sec_params = 0;
-        }
-        else
-        {
-            baton->sec_params = GapSecParams(sec_params_object);
-        }
+        baton->sec_params = GapSecParams(sec_params_object);
     }
     catch (char const *error)
     {
@@ -2431,14 +2474,7 @@ NAN_METHOD(GapSecParamsReply)
 
     try
     {
-        if (sec_keyset_is_null)
-        {
-            baton->sec_keyset = 0;
-        }
-        else
-        {
-            baton->sec_keyset = GapSecKeyset(sec_keyset_object);
-        }
+        baton->sec_keyset = GapSecKeyset(sec_keyset_object);
     }
     catch (char const *)
     {
@@ -2464,8 +2500,10 @@ void GapSecParamsReply(uv_work_t *req)
     GapSecParamsReplyBaton *baton = static_cast<GapSecParamsReplyBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_gap_sec_params_reply(baton->conn_handle, baton->sec_status, 
-        baton->sec_params, baton->sec_keyset);
+    baton->result = sd_ble_gap_sec_params_reply(baton->conn_handle, 
+                                                baton->sec_status, 
+                                                baton->sec_params, 
+                                                baton->sec_keyset);
 }
 
 // This runs in Main Thread
@@ -2499,43 +2537,19 @@ NAN_METHOD(GapSecInfoReply)
     v8::Local<v8::Object> sign_info_object;
     v8::Local<v8::Function> callback;
     int argumentcount = 0;
-    bool enc_info_is_null = false;
-    bool id_info_is_null = false;
-    bool sign_info_is_null = false;
 
     try
     {
         conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
         argumentcount++;
 
-        if (info[argumentcount]->IsNull())
-        {
-            enc_info_is_null = true;
-        }
-        else
-        {
-            enc_info_object = ConversionUtility::getJsObject(info[argumentcount]);
-        }
+        enc_info_object = ConversionUtility::getJsObjectOrNull(info[argumentcount]);
         argumentcount++;
 
-        if (info[argumentcount]->IsNull())
-        {
-            id_info_is_null = true;
-        }
-        else
-        {
-            id_info_object = ConversionUtility::getJsObject(info[argumentcount]);            
-        }
+        id_info_object = ConversionUtility::getJsObjectOrNull(info[argumentcount]);
         argumentcount++;
 
-        if (info[argumentcount]->IsNull()) 
-        {
-            sign_info_is_null = true;
-        }
-        else
-        {
-            sign_info_object = ConversionUtility::getJsObject(info[argumentcount]);
-        }    
+        sign_info_object = ConversionUtility::getJsObjectOrNull(info[argumentcount]);
         argumentcount++;
 
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
@@ -2554,14 +2568,7 @@ NAN_METHOD(GapSecInfoReply)
 
     try
     {
-        if (enc_info_is_null)
-        {
-            baton->enc_info = 0;
-        }
-        else
-        {
-            baton->enc_info = GapEncInfo(enc_info_object);
-        }
+        baton->enc_info = GapEncInfo(enc_info_object);
     }
     catch (char const *error)
     {
@@ -2572,14 +2579,7 @@ NAN_METHOD(GapSecInfoReply)
 
     try
     {
-        if (id_info_is_null) 
-        {
-            baton->id_info = 0;
-        }
-        else
-        {
-            baton->id_info = GapIrk(id_info_object);
-        }
+        baton->id_info = GapIrk(id_info_object);
     }
     catch (char const *error)
     {
@@ -2590,14 +2590,7 @@ NAN_METHOD(GapSecInfoReply)
 
     try
     {
-        if (sign_info_is_null)
-        {
-            baton->sign_info = 0;
-        }
-        else
-        {
-            baton->sign_info = GapSignInfo(sign_info_object);
-        }
+        baton->sign_info = GapSignInfo(sign_info_object);
     }
     catch (char const *error)
     {

@@ -56,6 +56,11 @@ v8::Local<v8::Object> GattCharProps::ToJs()
 
 ble_gatt_char_props_t *GattCharProps::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gatt_char_props_t *char_props = new ble_gatt_char_props_t();
 
     char_props->broadcast = ConversionUtility::getNativeBool(jsobj, "broadcast");
@@ -90,6 +95,11 @@ v8::Local<v8::Object> GattCharExtProps::ToJs()
 
 ble_gatt_char_ext_props_t *GattCharExtProps::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gatt_char_ext_props_t *char_ext_props = new ble_gatt_char_ext_props_t();
 
     char_ext_props->reliable_wr = ConversionUtility::getNativeBool(jsobj, "reliable_wr");

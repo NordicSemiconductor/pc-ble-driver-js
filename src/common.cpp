@@ -272,7 +272,28 @@ v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Object>js, ch
 {
     v8::Local<v8::Value> obj = Utility::Get(js, name);
 
-    return ConversionUtility::getJsObject(obj);
+    RETURN_VALUE_OR_THROW_EXCEPTION(ConversionUtility::getJsObject(obj));
+}
+
+v8::Local<v8::Object> ConversionUtility::getJsObjectOrNull(v8::Local<v8::Value>js)
+{
+    if (js->IsNull())
+    {
+        return js->ToObject();
+    }
+    else if (js->IsObject())
+    {
+        return js->ToObject();
+    }
+
+    throw "object or null";
+}
+
+v8::Local<v8::Object> ConversionUtility::getJsObjectOrNull(v8::Local<v8::Object>js, char *name)
+{
+    v8::Local<v8::Value> obj = Utility::Get(js, name);
+
+    RETURN_VALUE_OR_THROW_EXCEPTION(ConversionUtility::getJsObjectOrNull(obj));
 }
 
 uint16_t ConversionUtility::stringToValue(name_map_t name_map, v8::Local<v8::Object> string, uint16_t defaultValue)

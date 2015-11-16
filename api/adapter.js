@@ -594,7 +594,7 @@ class Adapter extends EventEmitter {
 
         const nextStartHandle = services[services.length - 1].handle_range.end_handle + 1;
 
-        this._bleDriver.gattc_primary_services_discover(device.connectionHandle, nextStartHandle, 0, err => {
+        this._bleDriver.gattc_primary_services_discover(device.connectionHandle, nextStartHandle, null, err => {
             if (err) {
                 this.emit('error', 'Failed to get services');
 
@@ -1657,8 +1657,6 @@ class Adapter extends EventEmitter {
 
         let addService = (service, type, data) => {
             return new Promise((resolve, reject) => {
-                console.log(`Adding service ${JSON.stringify(service)}`);
-
                 var p = Promise.resolve(data);
                 var decode = decodeUUID.bind(undefined, service.uuid);
 
@@ -1681,11 +1679,11 @@ class Adapter extends EventEmitter {
 
         let addCharacteristic = (characteristic, data) => {
             return new Promise((resolve, reject) => {
-                console.log(`Adding characterstic ${JSON.stringify(characteristic)}`);
                 this._converter.characteristicToDriver(characteristic, (err, characteristicForDriver) => {
                     if (err) {
                         reject(make_error('Error converting characteristic to driver.', err));
                     } else {
+                        console.log(characteristicForDriver);
                         this._bleDriver.gatts_add_characteristic(
                             data.serviceHandle,
                             characteristicForDriver.metadata,
@@ -1825,7 +1823,7 @@ class Adapter extends EventEmitter {
         }
 
         this._gattOperationsMap[device.instanceId] = {callback: callback, pendingHandleReads: {}, parent: device};
-        this._bleDriver.gattc_primary_services_discover(device.connectionHandle, 1, 0, (err, services) => {
+        this._bleDriver.gattc_primary_services_discover(device.connectionHandle, 1, null, (err, services) => {
             if (err) {
                 this.emit('error', make_error('Failed to get services', err));
                 callback(err);

@@ -140,11 +140,9 @@ class SoftDeviceConverter {
             return;
         }
 
-        console.log('D->: SRC: ' + JSON.stringify(descriptor, null, 1));
-
         // Now let's start converting
         var retval = {};
-        retval.p_attr_md = {};
+        retval.attr_md = {};
 
         this.uuidToDriver(descriptor.uuid, (err, uuid) => {
             if (err) {
@@ -153,16 +151,14 @@ class SoftDeviceConverter {
                 return;
             }
 
-            retval.p_uuid = uuid;
+            retval.uuid = uuid;
 
-            retval.p_attr_md = this.attributeMetadataToDriver(descriptor.properties);
+            retval.attr_md = this.attributeMetadataToDriver(descriptor.properties);
 
             retval.init_len = descriptor.value.length;
             retval.init_offs = 0;
             retval.max_len = descriptor.properties.maxLength || retval.init_len;
-            retval.p_value = descriptor.value;
-
-            console.log('D -> DST: ' + JSON.stringify(retval, null, 1));
+            retval.value = descriptor.value;
 
             callback(undefined, retval);
         });
@@ -170,7 +166,7 @@ class SoftDeviceConverter {
 
     getAttributeMetadataForSpecialDescriptor(characteristic, uuid) {
         if (characteristic._factory_descriptors === undefined) {
-            return 0;
+            return null;
         }
 
         var descriptorsLength = characteristic._factory_descriptors.length;
@@ -182,12 +178,12 @@ class SoftDeviceConverter {
             }
         }
 
-        return 0;
+        return null;
     }
 
     getPresentationFormat(characteristic) {
         //TODO: Implement
-        return 0;
+        return null;
     }
 
     characteristicToDriver(characteristic, callback) {
@@ -226,8 +222,6 @@ class SoftDeviceConverter {
             return;
         }
 
-        console.log('SRC: ' + JSON.stringify(characteristic, null, 1));
-
         // Now let's start converting
         var retval = {};
         retval.metadata = {};
@@ -251,10 +245,10 @@ class SoftDeviceConverter {
         retval.metadata.char_user_desc_max_size = 0; // TODO: check what this is used for
         retval.metadata.char_user_desc_size = 0; // TODO: check what this is used for
 
-        retval.metadata.p_char_pf = this.getPresentationFormat(characteristic);
-        retval.metadata.p_user_desc_md = this.getAttributeMetadataForSpecialDescriptor(characteristic, '2901');
-        retval.metadata.p_cccd_md = this.getAttributeMetadataForSpecialDescriptor(characteristic, '2902');
-        retval.metadata.p_sccd_md = this.getAttributeMetadataForSpecialDescriptor(characteristic, '2903');
+        retval.metadata.char_pf = this.getPresentationFormat(characteristic);
+        retval.metadata.user_desc_md = this.getAttributeMetadataForSpecialDescriptor(characteristic, '2901');
+        retval.metadata.cccd_md = this.getAttributeMetadataForSpecialDescriptor(characteristic, '2902');
+        retval.metadata.sccd_md = this.getAttributeMetadataForSpecialDescriptor(characteristic, '2903');
 
         this.uuidToDriver(characteristic.uuid, (err, uuid) => {
             if (err) {
@@ -262,15 +256,14 @@ class SoftDeviceConverter {
                 return;
             }
 
-            retval.attribute.p_uuid = uuid;
+            retval.attribute.uuid = uuid;
 
-            retval.attribute.p_value = characteristic.value;
-            retval.attribute.p_attr_md = this.attributeMetadataToDriver(characteristic.properties);
+            retval.attribute.value = characteristic.value;
+            retval.attribute.attr_md = this.attributeMetadataToDriver(characteristic.properties);
             retval.attribute.init_len = characteristic.value.length;
             retval.attribute.init_offs = 0;
             retval.attribute.max_len = characteristic.properties.maxLength || retval.attribute.init_len;
 
-            console.log('DST: ' + JSON.stringify(retval, null, 1));
             callback(undefined, retval);
         });
     }

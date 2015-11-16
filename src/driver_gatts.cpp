@@ -9,7 +9,7 @@
 
 ble_gatts_attr_md_t *GattsAttributeMetadata::ToNative()
 {
-    if (jsobj->IsNumber())
+    if (jsobj->IsNull())
     {
         return 0;
     }
@@ -29,7 +29,7 @@ ble_gatts_attr_md_t *GattsAttributeMetadata::ToNative()
 
 ble_gatts_char_pf_t *GattsCharacteristicPresentationFormat::ToNative()
 {
-    if (jsobj->IsNumber())
+    if (jsobj->IsNull())
     {
         return 0;
     }
@@ -47,6 +47,11 @@ ble_gatts_char_pf_t *GattsCharacteristicPresentationFormat::ToNative()
 
 ble_gatts_char_md_t *GattsCharacteristicMetadata::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gatts_char_md_t *metadata = new ble_gatts_char_md_t();
 
     metadata->char_props = GattCharProps(ConversionUtility::getJsObject(jsobj, "char_props"));
@@ -56,31 +61,21 @@ ble_gatts_char_md_t *GattsCharacteristicMetadata::ToNative()
     metadata->char_user_desc_max_size = ConversionUtility::getNativeUint16(jsobj, "char_user_desc_max_size");
     metadata->char_user_desc_size = ConversionUtility::getNativeUint16(jsobj, "char_user_desc_size");
 
-    if (Utility::IsObject(jsobj, "char_pf") && !Utility::IsNull(jsobj, "char_pf"))
-        metadata->p_char_pf = GattsCharacteristicPresentationFormat(ConversionUtility::getJsObject(jsobj, "char_pf"));
-    else
-        metadata->p_char_pf = 0;
-
-    if (Utility::IsObject(jsobj, "user_desc_md") && !Utility::IsNull(jsobj, "user_desc_md"))
-        metadata->p_user_desc_md = GattsAttributeMetadata(ConversionUtility::getJsObject(jsobj, "user_desc_md"));
-    else
-        metadata->p_user_desc_md = 0;
-
-    if (Utility::IsObject(jsobj, "cccd_md") && !Utility::IsNull(jsobj, "cccd_md"))
-        metadata->p_cccd_md = GattsAttributeMetadata(ConversionUtility::getJsObject(jsobj, "cccd_md"));
-    else
-        metadata->p_cccd_md = 0;
-
-    if (Utility::IsObject(jsobj, "sccd_md") && !Utility::IsNull(jsobj, "sccd_md"))
-        metadata->p_sccd_md = GattsAttributeMetadata(ConversionUtility::getJsObject(jsobj, "sccd_md"));
-    else
-        metadata->p_sccd_md = 0;
+    metadata->p_char_pf = GattsCharacteristicPresentationFormat(ConversionUtility::getJsObjectOrNull(jsobj, "char_pf"));
+    metadata->p_user_desc_md = GattsAttributeMetadata(ConversionUtility::getJsObjectOrNull(jsobj, "user_desc_md"));
+    metadata->p_cccd_md = GattsAttributeMetadata(ConversionUtility::getJsObjectOrNull(jsobj, "cccd_md"));
+    metadata->p_sccd_md = GattsAttributeMetadata(ConversionUtility::getJsObjectOrNull(jsobj, "sccd_md"));
 
     return metadata;
 }
 
 ble_gatts_attr_t *GattsAttribute::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gatts_attr_t *attribute = new ble_gatts_attr_t();
 
     attribute->p_uuid = BleUUID(ConversionUtility::getJsObject(jsobj, "uuid"));
@@ -109,6 +104,11 @@ v8::Local<v8::Object> GattsCharacteristicDefinitionHandles::ToJs()
 
 ble_gatts_hvx_params_t *GattsHVXParams::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gatts_hvx_params_t *hvxparams = new ble_gatts_hvx_params_t();
 
     hvxparams->p_len = (uint16_t*)malloc(sizeof(uint16_t));
@@ -124,6 +124,11 @@ ble_gatts_hvx_params_t *GattsHVXParams::ToNative()
 
 ble_gatts_value_t *GattsValue::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gatts_value_t *value = new ble_gatts_value_t();
 
     value->len = ConversionUtility::getNativeUint16(jsobj, "len");
@@ -176,6 +181,11 @@ v8::Local<v8::Object> GattsReadAuthorizeParameters::ToJs()
 
 ble_gatts_read_authorize_params_t *GattsReadAuthorizeParameters::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gatts_read_authorize_params_t *params = new ble_gatts_read_authorize_params_t();
 
     params->gatt_status = ConversionUtility::getNativeUint16(jsobj, "gatt_status");
@@ -199,6 +209,11 @@ v8::Local<v8::Object> GattsWriteAuthorizeParameters::ToJs()
 
 ble_gatts_write_authorize_params_t *GattsWriteAuthorizeParameters::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gatts_write_authorize_params_t *params = new ble_gatts_write_authorize_params_t();
 
     params->gatt_status = ConversionUtility::getNativeUint16(jsobj, "gatt_status");
@@ -208,6 +223,11 @@ ble_gatts_write_authorize_params_t *GattsWriteAuthorizeParameters::ToNative()
 
 ble_gatts_rw_authorize_reply_params_t *GattRWAuthorizeReplyParams::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_gatts_rw_authorize_reply_params_t *params = new ble_gatts_rw_authorize_reply_params_t();
 
     params->type = ConversionUtility::getNativeUint8(jsobj, "type");
@@ -434,8 +454,7 @@ NAN_METHOD(AddCharacteristic)
     }
     catch (char const *err)
     {
-        std::cout << "Error characteristic:" << err << std::endl;
-        Nan::ThrowTypeError(ErrorMessage::getTypeErrorMessage(0, err));
+        Nan::ThrowTypeError(ErrorMessage::getStructErrorMessage("p_char_md", err));
         return;
     }
 
@@ -445,8 +464,7 @@ NAN_METHOD(AddCharacteristic)
     }
     catch (char const *err)
     {
-        std::cout << "Error attribute:" << err << std::endl;
-        Nan::ThrowTypeError(ErrorMessage::getTypeErrorMessage(0, err));
+        Nan::ThrowTypeError(ErrorMessage::getStructErrorMessage("p_attr_char_value", err));
         return;
     }
 

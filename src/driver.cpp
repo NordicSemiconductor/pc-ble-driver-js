@@ -169,22 +169,6 @@ void sd_rpc_on_event(ble_evt_t *event)
         return;
     }
 
-    /*if (event->header.evt_id == BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP)
-    {
-        std::cout << "====================================" << std::endl;
-        std::cout << "Length: " << event->header.evt_len << std::endl;
-        std::cout << "Count: " << event->evt.gattc_evt.params.prim_srvc_disc_rsp.count << std::endl;
-        for (int i = 0; i < event->evt.gattc_evt.params.prim_srvc_disc_rsp.count; ++i)
-        {
-            std::cout << "Service " << i << ": " << std::endl;
-            std::cout << "\tuuid: " << hex << event->evt.gattc_evt.params.prim_srvc_disc_rsp.services[i].uuid.uuid << " "
-                                    << event->evt.gattc_evt.params.prim_srvc_disc_rsp.services[i].uuid.type << std::endl;
-            std::cout << "\thandle range: " << hex << event->evt.gattc_evt.params.prim_srvc_disc_rsp.services[i].handle_range.start_handle << " "
-                                    << event->evt.gattc_evt.params.prim_srvc_disc_rsp.services[i].handle_range.end_handle << std::endl;
-        }
-        std::cout << "====================================" << std::endl;
-    }*/
-
     evt_cb_count += 1;
     evt_cb_batch_evt_counter += 1;
 
@@ -214,7 +198,6 @@ void sd_rpc_on_event(ble_evt_t *event)
 void on_rpc_event(uv_async_t *handle)
 {
     Nan::HandleScope scope;
-    // TODO: Check if we must add NanScope() to this function
 
     EventQueue *event_entries = (EventQueue*)handle->data;
 
@@ -341,7 +324,7 @@ v8::Local<v8::Object> CommonMemReleaseEvent::ToJs()
     BleDriverCommonEvent::ToJs(obj);
 
     Utility::Set(obj, "type", ConversionUtility::toJsNumber(evt->type));
-    Utility::Set(obj, "mem_block", UserMemBlock(&evt->mem_block));
+    Utility::Set(obj, "mem_block", UserMemBlock(&evt->mem_block).ToJs());
 
     return scope.Escape(obj);
 }
@@ -939,14 +922,7 @@ NAN_METHOD(UserMemReply)
         conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
         argumentcount++;
 
-        if (info[argumentcount]->IsNumber())
-        {
-            hasMemoryBlock = false;
-        }
-        else
-        {
-            mem_block = ConversionUtility::getJsObject(info[argumentcount]);
-        }
+        mem_block = ConversionUtility::getJsObjectOrNull(info[argumentcount]);
         argumentcount++;
 
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
@@ -962,27 +938,18 @@ NAN_METHOD(UserMemReply)
     BleUserMemReplyBaton *baton = new BleUserMemReplyBaton(callback);
     baton->conn_handle = conn_handle;
 
-    if (hasMemoryBlock)
+    try
     {
-        try
-        {
-            baton->p_block = UserMemBlock(mem_block);
-        }
-        catch (char const *error)
-        {
-            v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("user mem reply", error);
-            Nan::ThrowTypeError(message);
-            return;
-        }
+        baton->p_block = UserMemBlock(mem_block);
     }
-    else
+    catch (char const *error)
     {
-        baton->p_block = 0;
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("user mem reply", error);
+        Nan::ThrowTypeError(message);
+        return;
     }
 
     uv_queue_work(uv_default_loop(), baton->req, UserMemReply, (uv_after_work_cb)AfterUserMemReply);
-
-    return;
 }
 
 void UserMemReply(uv_work_t *req)
@@ -1032,6 +999,11 @@ v8::Local<v8::Object> Version::ToJs()
 
 ble_version_t *Version::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_version_t *version = new ble_version_t();
     version->version_number = ConversionUtility::getNativeUint8(jsobj, "version_number");
     version->company_id = ConversionUtility::getNativeUint16(jsobj, "company_id");
@@ -1060,6 +1032,11 @@ v8::Local<v8::Object> UserMemBlock::ToJs()
 
 ble_user_mem_block_t *UserMemBlock::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_user_mem_block_t *uuid = new ble_user_mem_block_t();
 
     uuid->p_mem = ConversionUtility::getNativePointerToUint8(jsobj, "p_mem");
@@ -1090,6 +1067,11 @@ v8::Local<v8::Object> BleUUID::ToJs()
 
 ble_uuid_t *BleUUID::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_uuid_t *uuid = new ble_uuid_t();
 
     uuid->uuid = ConversionUtility::getNativeUint16(jsobj, "uuid");
@@ -1125,6 +1107,11 @@ v8::Local<v8::Object> BleUUID128::ToJs()
 
 ble_uuid128_t *BleUUID128::ToNative()
 {
+    if (jsobj->IsNull())
+    {
+        return 0;
+    }
+
     ble_uuid128_t *uuid = new ble_uuid128_t();
 
     uint32_t ptr[16];

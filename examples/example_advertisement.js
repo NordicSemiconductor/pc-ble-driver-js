@@ -101,7 +101,7 @@ function onBleEvent(event_array) {
         } else if (event.name === 'BLE_EVT_USER_MEM_REQUEST') {
             console.log('User Mem request received:');
             console.log(JSON.stringify(event));
-            driver.user_mem_reply(event.conn_handle, 0, function(err) {
+            driver.user_mem_reply(event.conn_handle, null, function(err) {
                 if (err)
                 {
                     console.log('Error when replying to user memory request');
@@ -164,14 +164,13 @@ function getAppearance()
     });
 }
 
-
 function setPPCP()
 {
     driver.gap_set_ppcp({
                             min_conn_interval: 0x0050,
                             max_conn_interval: 0x00A0,
                             slave_latency: 0,
-                            conn_sup_timeout: 0x03E8
+                            conn_sup_timeout: 0x03E8,
                         },
                         function(err) {
         if (err)
@@ -259,9 +258,9 @@ function addCharacteristic(handle) {
             char_ext_props: {reliable_wr: false, wr_aux: false},
             char_user_desc_max_size: 0,
             char_user_desc_size: 0,
-            p_char_pf: 0, // Presentation format (ble_gatts_char_pf_t) May be 0
-            p_user_desc_md: 0, // User Description descriptor (ble_gatts_attr_md_t) May be 0
-            p_cccd_md: // Client Characteristic Configuration Descriptor (ble_gatts_attr_md_t) May be 0
+            char_pf: null, // Presentation format (ble_gatts_char_pf_t) May be 0
+            user_desc_md: null, // User Description descriptor (ble_gatts_attr_md_t) May be 0
+            cccd_md: // Client Characteristic Configuration Descriptor (ble_gatts_attr_md_t) May be 0
             {
                 read_perm: {sm: 1, lv: 1},
                 write_perm: {sm: 1, lv: 1},
@@ -270,11 +269,11 @@ function addCharacteristic(handle) {
                 rd_auth: false,
                 wr_auth: false,
             },
-            p_sccd_md: 0, // Server Characteristic Configuration Descriptor (ble_gatts_attr_md_t) May be 0
+            sccd_md: null, // Server Characteristic Configuration Descriptor (ble_gatts_attr_md_t) May be 0
         },
         { // attributeStructure
-            p_uuid: {uuid: 0x2A37, type: addedVSUUIDType},
-            p_attr_md: {
+            uuid: {uuid: 0x2A37, type: addedVSUUIDType},
+            attr_md: {
                 read_perm: {sm: 1, lv: 1},
                 write_perm: {sm: 1, lv: 1},
                 vlen: false,
@@ -285,7 +284,7 @@ function addCharacteristic(handle) {
             init_len: 1,
             init_offs: 0,
             max_len: 1,
-            p_value: [43],
+            value: [43],
         },
         function(err, handles) {
             if (err) {
@@ -306,8 +305,8 @@ function addCharacteristic(handle) {
 function addDescriptor() {
     driver.gatts_add_descriptor(valueHandle,
         {
-            p_uuid: {uuid: 0x2A38, type: 2},
-            p_attr_md: {
+            uuid: {uuid: 0x2A38, type: 2},
+            attr_md: {
                 read_perm: {sm: 1, lv: 1},
                 write_perm: {sm: 1, lv: 1},
                 vlen: false,
@@ -318,7 +317,7 @@ function addDescriptor() {
             init_len: 1,
             init_offs: 0,
             max_len: 1,
-            p_value: [43],
+            value: [43],
         },
         function(err, handle) {
             if (err) {
