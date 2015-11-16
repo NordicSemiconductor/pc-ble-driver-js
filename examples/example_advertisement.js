@@ -72,8 +72,8 @@ function onBleEvent(event_array) {
                             handle: valueHandle,
                             type: driver.BLE_GATT_HVX_NOTIFICATION,
                             offset: 0,
-                            p_len: [1],
-                            p_data: [heartRate, 0],
+                            len: [1],
+                            data: [heartRate, 0],
                         };
                         driver.gatts_hvx(connectionHandle, hvxParams, function(err, hvx_length) {
                             if (err) {

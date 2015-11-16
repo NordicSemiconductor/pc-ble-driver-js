@@ -47,7 +47,7 @@ class Adapter extends EventEmitter {
 
         this._preparedWritesMap = {};
 
-        this._pendingIndicates = {};
+        this._pendingNotificationsAndIndications = {};
     }
 
     _getServiceType(service) {
@@ -517,7 +517,10 @@ class Adapter extends EventEmitter {
                 this._changeAdapterState({scanning: false});
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_CONN:
+                this._gapOperationsMap.connecting.callback('Failed to connect, timed out');
+                delete this._gapOperationsMap.connecting;
                 this._changeAdapterState({connecting: false});
+                this.emit('error', make_error('Failed to connect', 'Connection timed out'));
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_SECURITY_REQUEST:
                 this._changeAdapterState({securityRequestPending: false});
@@ -1168,11 +1171,16 @@ class Adapter extends EventEmitter {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const characteristic = this._getCharacteristicByHandle(device.instanceId, event.handle);
 
-        this.emit('deviceNotifiedOrIndicated'. device, characteristic);
-        this._pendingIndicates.deviceNotifiedOrIndicated(device, characteristic);
+        if (this._pendingNotificationsAndIndications.deviceNotifiedOrIndicated) {
+            this._pendingNotificationsAndIndications.deviceNotifiedOrIndicated(device, characteristic);
+        }
 
-        if (!--this._pendingIndicates.count) {
-            this._pendingIndicates.completeCallback(undefined, characteristic);
+        this.emit('deviceNotifiedOrIndicated'. device, characteristic);
+
+        this._pendingNotificationsAndIndications.remainingIndicationConfirmations--;
+        if (this._sendingNotificationsAndIndicationsComplete()) {
+            this._pendingNotificationsAndIndications.completeCallback(undefined, characteristic);
+            this._pendingNotificationsAndIndications = {};
         }
     }
 
@@ -2202,6 +2210,12 @@ class Adapter extends EventEmitter {
         });
     }
 
+    _sendingNotificationsAndIndicationsComplete() {
+        return this._pendingNotificationsAndIndications.sentAllNotificationsAndIndications &&
+               this._pendingNotificationsAndIndications.remainingNotificationCallbacks === 0 &&
+               this._pendingNotificationsAndIndications.remainingIndicationConfirmations === 0;
+    }
+
     _writeLocalValue(attribute, value, offset, completeCallback, deviceNotifiedOrIndicated) {
         const writeParameters = {
             len: value.length,
@@ -2220,10 +2234,12 @@ class Adapter extends EventEmitter {
 
         if (cccdDescriptor) {
             // TODO: This is probably way to simple, do we need a map of devices indication is sent to?
-            this._pendingIndicates = {
+            this._pendingNotificationsAndIndications = {
                 completeCallback: completeCallback,
                 deviceNotifiedOrIndicated: deviceNotifiedOrIndicated,
-                count: 0,
+                sentAllNotificationsAndIndications: false,
+                remainingNotificationCallbacks: 0,
+                remainingIndicationConfirmations: 0,
             };
 
             for (let deviceInstanceId in this._devices) {
@@ -2235,45 +2251,65 @@ class Adapter extends EventEmitter {
                         handle: attribute.valueHandle,
                         type: cccdValue,
                         offset: offset,
-                        p_len: value.length,
-                        p_data: value,
+                        len: value.length,
+                        data: value,
                     };
                     sentHvx = true;
 
-                    if (cccdValue === 2) {
-                        this._pendingIndicates.count++;
+                    if (cccdValue === 1) {
+                        this._pendingNotificationsAndIndications.remainingNotificationCallbacks++;
+                    } else if (cccdValue === 2) {
+                        this._pendingNotificationsAndIndications.remainingIndicationConfirmations++;
                     }
 
-                    console.log('sending hvx');
-
                     this._bleDriver.gatts_hvx(device.connectionHandle, hvxParams, err => {
-                        console.log('hvx callback');
                         if (err) {
+                            if (cccdValue === 1) {
+                                this._pendingNotificationsAndIndications.remainingNotificationCallbacks--;
+                            } else if (cccdValue === 2) {
+                                this._pendingNotificationsAndIndications.remainingIndicationConfirmations--;
+                            }
+
                             this.emit('error', make_error('Failed to send notification', err));
 
-                            if (cccdValue === 2) {
-                                this._pendingIndicates.count--;
+                            if (this._sendingNotificationsAndIndicationsComplete()) {
+                                completeCallback(make_error('Failed to send notification or indication', err));
+                                this._pendingNotificationsAndIndications = {};
                             }
 
                             return;
                         } else {
                             this._setAttributeValueWithOffset(attribute, value, offset);
 
-                            if (cccdValue === 2) {
-                                return;
-                            } else if (deviceNotifiedOrIndicated) {
-                                deviceNotifiedOrIndicated(device, attribute);
+                            if (cccdValue === 1) {
+                                if (deviceNotifiedOrIndicated) {
+                                    deviceNotifiedOrIndicated(device, attribute);
+                                }
+
                                 this.emit('deviceNotifiedOrIndicated', device, attribute);
+
+                                this._pendingNotificationsAndIndications.remainingNotificationCallbacks--;
+                                if (this._sendingNotificationsAndIndicationsComplete()) {
+                                    completeCallback(undefined);
+                                    this._pendingNotificationsAndIndications = {};
+                                }
+                            } else if (cccdValue === 2) {
+                                return;
                             }
                         }
                     });
-
-                    console.log('sent hvx');
                 }
             }
+
+            this._pendingNotificationsAndIndications.sentAllNotificationsAndIndications = true;
         }
 
         if (sentHvx) {
+            if (this._sendingNotificationsAndIndicationsComplete()) {
+                completeCallback(undefined);
+                this._pendingNotificationsAndIndications = {};
+            }
+
             return;
         }
 

@@ -228,7 +228,7 @@ class SoftDeviceConverter {
         retval.metadata.char_props = {};
         retval.metadata.char_ext_props = {};
         retval.attribute = {};
-        retval.attribute.p_attr_md = {};
+        retval.attribute.attr_md = {};
 
         var props = retval.metadata.char_props;
         props.broadcast = characteristic.properties.properties.broadcast || false;
