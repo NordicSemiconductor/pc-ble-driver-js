@@ -13,7 +13,7 @@ describe('Adapter Connect', function() {
         testLib.connectToPeripheral(process.env.testPeripheral)
             .then(device => {
                 assert(!errorSpy.calledOnce);
-                assert.equal(device.address.address, process.env.testPeripheral);
+                assert.equal(device.address, process.env.testPeripheral);
                 return device;
             })
             .then(device => {
@@ -22,7 +22,7 @@ describe('Adapter Connect', function() {
             })
             .then(device => {
                 assert(!errorSpy.calledOnce);
-                assert.equal(device.address.address, process.env.testPeripheral);
+                assert.equal(device.address, process.env.testPeripheral);
                 done();
             })
             .catch(done);
