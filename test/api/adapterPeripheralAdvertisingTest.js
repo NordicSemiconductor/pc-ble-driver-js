@@ -38,11 +38,11 @@ describe('adapter.startAdvertising', function() {
         this.clock.restore();
     });
 
-    it('with valid arguments should start advertising and emit adapterStateChange', function() {
+    it('with valid arguments should start advertising and emit stateChange', function() {
         let stateChangeCallback = sinon.spy();
         let startAdvertisingCallback = sinon.spy();
 
-        this.adapter.on('adapterStateChanged', stateChangeCallback);
+        this.adapter.on('stateChanged', stateChangeCallback);
 
         var advertisingData = {
             shortenedLocalName: 'MyCoolName',
@@ -101,11 +101,11 @@ describe('adapter.stopAdvertising', function() {
         this.clock.restore();
     });
 
-    it('should stop advertising and emit adapterStateChange', function() {
+    it('should stop advertising and emit stateChange', function() {
         let stateChangeCallback = sinon.spy();
         let stopAdvertisingCallback = sinon.spy();
 
-        this.adapter.on('adapterStateChanged', stateChangeCallback);
+        this.adapter.on('stateChanged', stateChangeCallback);
 
         var advertisingData = {
             shortenedLocalName: 'MyCoolName',

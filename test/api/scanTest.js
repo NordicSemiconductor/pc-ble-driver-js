@@ -25,25 +25,25 @@ describe('Adapter - Scanning', () => {
         });
     });
 
-    it('start and stop should provide callbacks with possible error and emit adapterStateChanged', (done) => {
-        let adapterStateChangedSpy = sinon.spy();
-        adapter.on('adapterStateChanged', adapterStateChangedSpy);
+    it('start and stop should provide callbacks with possible error and emit stateChanged', (done) => {
+        let stateChangedSpy = sinon.spy();
+        adapter.on('stateChanged', stateChangedSpy);
 
-        sinon.assert.notCalled(adapterStateChangedSpy);
+        sinon.assert.notCalled(stateChangedSpy);
 
         let scanOptions = {};
 
         adapter.startScan(scanOptions, err => {
             assert(!err);
 
-            sinon.assert.calledOnce(adapterStateChangedSpy);
-            assert.equal(true, adapterStateChangedSpy.lastCall.args[0].scanning);
+            sinon.assert.calledOnce(stateChangedSpy);
+            assert.equal(true, stateChangedSpy.lastCall.args[0].scanning);
 
             adapter.stopScan(err => {
                 assert(!err);
 
-                sinon.assert.calledTwice(adapterStateChangedSpy);
-                assert(!adapterStateChangedSpy.lastCall.args[0].scanning);
+                sinon.assert.calledTwice(stateChangedSpy);
+                assert(!stateChangedSpy.lastCall.args[0].scanning);
                 done();
             });
         });

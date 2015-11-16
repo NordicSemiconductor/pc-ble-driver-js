@@ -24,8 +24,8 @@ describe('Adapter Connect', function() {
 
     it('should change adapter state to "connecting" after connect', (done) => {
         adapter.connect('deviceAddress', {}, () => {});
-        adapter.getAdapterState((error, adapterState) => {
-            assert.equal(adapterState.connecting, true);
+        adapter.getState((error, state) => {
+            assert.equal(state.connecting, true);
             done();
         });
     });
@@ -74,32 +74,32 @@ describe('Adapter Cancel connect', () => {
     });
 
     it('should update adapter state after cancelling connect', (done) => {
-        adapter._adapterState.connecting = true;
+        adapter._state.connecting = true;
         adapter.cancelConnect((error)=> {
             assert(!error);
-            assert.equal(adapter._adapterState.connecting, false);
+            assert.equal(adapter._state.connecting, false);
             done();
         });
     });
 
-    it('should emit adapterStateChanged on cancelConnect', (done) => {
-        let adapterStateChangedWasCalled = false;
-        adapter.once('adapterStateChanged', (change) => {
+    it('should emit stateChanged on cancelConnect', (done) => {
+        let stateChangedWasCalled = false;
+        adapter.once('stateChanged', (change) => {
             assert.equal(change.scanning, false);
             assert.equal(change.connecting, true);
-            adapterStateChangedWasCalled = true;
+            stateChangedWasCalled = true;
         });
 
         adapter.connect('deviceAddress', {}, () => {});
-        assert(adapterStateChangedWasCalled);
-        adapterStateChangedWasCalled = false;
-        adapter.once('adapterStateChanged', (change) => {
+        assert(stateChangedWasCalled);
+        stateChangedWasCalled = false;
+        adapter.once('stateChanged', (change) => {
             assert.equal(change.connecting, false);
-            adapterStateChangedWasCalled = true;
+            stateChangedWasCalled = true;
         });
         adapter.cancelConnect((error) => {
             assert(!error);
-            assert(adapterStateChangedWasCalled);
+            assert(stateChangedWasCalled);
             done();
         });
     });

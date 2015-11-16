@@ -29,7 +29,7 @@ class Adapter extends EventEmitter {
 
         this._bleDriver = bleDriver;
         this._instanceId = instanceId;
-        this._adapterState = new AdapterState(instanceId, port);
+        this._state = new AdapterState(instanceId, port);
 
         this._devices = {};
         this._services = {};
@@ -74,8 +74,8 @@ class Adapter extends EventEmitter {
     }
 
     // get current adapter state. No calls to driver.
-    get adapterState() {
-        return this._adapterState;
+    get state() {
+        return this._state;
     }
 
     checkAndPropagateError(err, userMessage, callback) {
@@ -89,16 +89,16 @@ class Adapter extends EventEmitter {
         return false;
     }
 
-    _changeAdapterState(changingStates, swallowEmit) {
+    _changeState(changingStates, swallowEmit) {
         let changed = false;
 
         for (let state in changingStates) {
             const newValue = changingStates[state];
-            const previousValue = this._adapterState[state];
+            const previousValue = this._state[state];
 
             // Use isEqual to compare objects
             if (!_.isEqual(previousValue, newValue)) {
-                this._adapterState[state] = newValue;
+                this._state[state] = newValue;
                 changed = true;
             }
         }
@@ -108,7 +108,7 @@ class Adapter extends EventEmitter {
         }
 
         if (changed) {
-            this.emit('adapterStateChanged', this._adapterState);
+            this.emit('stateChanged', this._state);
         }
     }
 
@@ -163,18 +163,18 @@ class Adapter extends EventEmitter {
 
     // Callback signature function(err) {}
     open(options, callback) {
-        this._changeAdapterState({baudRate: options.baudRate, parity: options.parity, flowControl: options.flowControl});
+        this._changeState({baudRate: options.baudRate, parity: options.parity, flowControl: options.flowControl});
 
         if (!options.eventInterval) options.eventInterval = 0;
         options.logCallback = this._logCallback.bind(this);
         options.eventCallback = this._eventCallback.bind(this);
 
-        this._bleDriver.open(this._adapterState.port, options, err => {
+        this._bleDriver.open(this._state.port, options, err => {
             if (this.checkAndPropagateError(err, 'Error occurred opening serial port.', callback)) return;
 
-            this._changeAdapterState({available: true});
+            this._changeState({available: true});
             this.emit('opened', this);
-            this.getAdapterState((err, adapterState) => {
+            this.getState((err, state) => {
                 if (this.checkAndPropagateError(err, 'Error retrieving adapter state.', callback)) return;
                 if (callback) callback();
             });
@@ -184,7 +184,7 @@ class Adapter extends EventEmitter {
     // Callback signature function(err) {}
     close(callback) {
         this._bleDriver.close(callback);
-        this._changeAdapterState({available: false});
+        this._changeState({available: false});
         this.emit('closed', this);
     }
 
@@ -324,7 +324,7 @@ class Adapter extends EventEmitter {
         device.connected = true;
         this._devices[device.instanceId] = device;
 
-        this._changeAdapterState({connecting: false});
+        this._changeState({connecting: false});
 
         this.emit('deviceConnected', device);
 
@@ -456,7 +456,7 @@ class Adapter extends EventEmitter {
             (err, keyset) => {
                 if (err) {
                     this.emit('error', 'Failed to call security parameters reply');
-                    this._changeAdapterState({securityRequestPending: false});
+                    this._changeState({securityRequestPending: false});
                     return;
                 }
             }
@@ -475,7 +475,7 @@ class Adapter extends EventEmitter {
             this.emit('error', 'Pairing failed with error ' + event.auth_status);
         }
 
-        this._changeAdapterState({securityRequestPending: false});
+        this._changeState({securityRequestPending: false});
     }
 
     _parseGapConnectionParameterUpdateRequestEvent(event) {
@@ -511,19 +511,19 @@ class Adapter extends EventEmitter {
     _parseGapTimeoutEvent(event) {
         switch (event.src) {
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_ADVERTISING:
-                this._changeAdapterState({advertising: false});
+                this._changeState({advertising: false});
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_SCAN:
-                this._changeAdapterState({scanning: false});
+                this._changeState({scanning: false});
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_CONN:
                 this._gapOperationsMap.connecting.callback('Failed to connect, timed out');
                 delete this._gapOperationsMap.connecting;
-                this._changeAdapterState({connecting: false});
+                this._changeState({connecting: false});
                 this.emit('error', make_error('Failed to connect', 'Connection timed out'));
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_SECURITY_REQUEST:
-                this._changeAdapterState({securityRequestPending: false});
+                this._changeState({securityRequestPending: false});
                 this.emit('error', make_error('Security operation timeout.'));
                 break;
             default:
@@ -1189,8 +1189,8 @@ class Adapter extends EventEmitter {
     }
 
     // Callback signature function(err, state) {}
-    getAdapterState(callback) {
-        const changedAdapterStates = {};
+    getState(callback) {
+        const changedStates = {};
 
         this._bleDriver.get_version((version, err) => {
             if (this.checkAndPropagateError(
@@ -1198,7 +1198,7 @@ class Adapter extends EventEmitter {
                 'Failed to retrieve softdevice firmwareVersion.',
                 callback)) return;
 
-            changedAdapterStates.firmwareVersion = version;
+            changedStates.firmwareVersion = version;
 
             this._bleDriver.gap_get_device_name((name, err) => {
                 if (this.checkAndPropagateError(
@@ -1206,7 +1206,7 @@ class Adapter extends EventEmitter {
                     'Failed to retrieve driver version.',
                     callback)) return;
 
-                changedAdapterStates.name = name;
+                changedStates.name = name;
 
                 this._bleDriver.gap_get_address((address, err) => {
                     if (this.checkAndPropagateError(
@@ -1214,11 +1214,11 @@ class Adapter extends EventEmitter {
                         'Failed to retrieve device address.',
                         callback)) return;
 
-                    changedAdapterStates.address = address;
-                    changedAdapterStates.available = true;
+                    changedStates.address = address;
+                    changedStates.available = true;
 
-                    this._changeAdapterState(changedAdapterStates);
-                    if (callback) callback(undefined, this._adapterState);
+                    this._changeState(changedStates);
+                    if (callback) callback(undefined, this._state);
                 });
             });
         });
@@ -1229,10 +1229,10 @@ class Adapter extends EventEmitter {
         this._bleDriver.gap_set_device_name({sm: 0, lv: 0}, name, err => {
             if (err) {
                 this.emit('error', make_error('Failed to set name to adapter', err));
-            } else if (this._adapterState.name !== name) {
-                this._adapterState.name = name;
+            } else if (this._state.name !== name) {
+                this._state.name = name;
 
-                this._changeAdapterState({name: name});
+                this._changeState({name: name});
             }
 
             callback(err);
@@ -1252,29 +1252,13 @@ class Adapter extends EventEmitter {
         this._bleDriver.gap_set_address(cycleMode, addressStruct, err => {
             if (err) {
                 this.emit('error', make_error('Failed to set address', err));
-            } else if (this._adapterState.address !== address) {
-                // TODO: adapterState address include type?
-                this._changeAdapterState({address: address});
+            } else if (this._state.address !== address) {
+                this._changeState({address: address});
             }
 
             callback(err);
         });
     }
-
-    // eventName:
-    // 'error', 'adapterStateChange'
-    // 'deviceConnected', 'deviceDisconnected' // Role central
-    // 'serviceAdded', 'serviceRemoved', 'serviceChanged' // refresh service database. TODO: relevant for GATTS role ?
-    // 'characteristicValueChanged', 'descriptorValueChanged' // changed == value received, changed or not
-    // 'connParamUpdateRequest', 'connParamUpdate'
-    // 'insufficentPrivileges',
-    // 'deviceDiscovered' // Callback signature function(device) {}
-    // 'securityRequest', 'securityParameters'
-    /*
-    on(eventName, callback) {
-
-    }
-    */
 
     // Get connected device/devices
     // Callback signature function(devices : Device[]) {}
@@ -1308,7 +1292,7 @@ class Adapter extends EventEmitter {
             if (err) {
                 this.emit('error', make_error('Error occured when starting scan', err));
             } else {
-                this._changeAdapterState({scanning: true});
+                this._changeState({scanning: true});
             }
 
             callback(err);
@@ -1319,10 +1303,10 @@ class Adapter extends EventEmitter {
     stopScan(callback) {
         this._bleDriver.gap_stop_scan(err => {
             if (err) {
-                // TODO: probably is state already set to false, but should we make sure? if yes, emit adapterStateChanged?
+                // TODO: probably is state already set to false, but should we make sure? if yes, emit stateChanged?
                 this.emit('error', make_error('Error occured when stopping scanning', err));
             } else {
-                this._changeAdapterState({scanning: false});
+                this._changeState({scanning: false});
             }
 
             callback(err);
@@ -1351,7 +1335,7 @@ class Adapter extends EventEmitter {
                 this.emit('error', make_error(`Could not connect to ${deviceAddress}`, err));
                 callback(make_error('Failed to connect to ' + deviceAddress, err));
             } else {
-                this._changeAdapterState({scanning: false, connecting: true});
+                this._changeState({scanning: false, connecting: true});
                 this._gapOperationsMap.connecting = {callback: callback};
             }
         });
@@ -1367,7 +1351,7 @@ class Adapter extends EventEmitter {
                 callback(newError);
             } else {
                 delete this._gapOperationsMap.connecting;
-                this._changeAdapterState({connecting: false});
+                this._changeState({connecting: false});
                 callback(undefined);
             }
         });
@@ -1472,7 +1456,7 @@ class Adapter extends EventEmitter {
 
                 this._bleDriver.gap_start_advertising(advParams, err => {
                     if (this.checkAndPropagateError(err, 'Failed to start advertising.', callback)) return;
-                    this._changeAdapterState({advertising: true});
+                    this._changeState({advertising: true});
                     if (callback) callback();
                 });
             }
@@ -1483,7 +1467,7 @@ class Adapter extends EventEmitter {
     stopAdvertising(callback) {
         this._bleDriver.gap_stop_advertising(err => {
             if (this.checkAndPropagateError(err, 'Failed to stop advertising.', callback)) return;
-            this._changeAdapterState({advertising: false});
+            this._changeState({advertising: false});
             if (callback) callback();
         });
     }
@@ -1568,7 +1552,7 @@ class Adapter extends EventEmitter {
             return;
         }
 
-        if (this.adapterState.securityRequestPending) {
+        if (this.state.securityRequestPending) {
             const errorObject = make_error('Failed to pair, a security operation is already in progress', undefined);
             this.emit('error', errorObject);
             callback(errorObject);
@@ -1584,7 +1568,7 @@ class Adapter extends EventEmitter {
             return;
         }
 
-        this._changeAdapterState({securityRequestPending: true});
+        this._changeState({securityRequestPending: true});
 
         this._bleDriver.gap_authenticate(device.connectionHandle, {
             bond: false,
@@ -1611,7 +1595,7 @@ class Adapter extends EventEmitter {
                 this.emit('error', errorObject);
             }
 
-            this._changeAdapterState({securityRequestPending: false});
+            this._changeState({securityRequestPending: false});
             callback(errorObject);
         });
     }

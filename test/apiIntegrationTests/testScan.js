@@ -15,8 +15,8 @@ describe('Scan', function() {
             });
         });
 
-        testLib._adapter.once('adapterStateChanged', adapterState => {
-            assert.equal(adapterState.scanning, true);
+        testLib._adapter.once('stateChanged', state => {
+            assert.equal(state.scanning, true);
         });
 
         testLib.startScan()
@@ -26,8 +26,8 @@ describe('Scan', function() {
             .then(device => {
                 assert(device);
 
-                testLib._adapter.once('adapterStateChanged', adapterState => {
-                    assert.equal(adapterState.scanning, false);
+                testLib._adapter.once('stateChanged', state => {
+                    assert.equal(state.scanning, false);
                 });
 
                 return testLib.stopScan();

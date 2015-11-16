@@ -32,8 +32,8 @@ adapterFactory.getAdapters((err, adapters) => {
     let adapter = adapters[Object.keys(adapters)[0]];
     adapter.on('error', error => { console.log('adapter.onError: ' + JSON.stringify(error, null, 1)); });
     adapter.on(
-        'adapterStateChanged',
-        adapterState => { console.log('Adapter state changed: ' + JSON.stringify(adapterState));}
+        'stateChanged',
+        state => { console.log('Adapter state changed: ' + JSON.stringify(state));}
     );
     adapter.on('deviceDisconnected', device => { console.log('adapter.deviceDisconnected: ' + JSON.stringify(device)); });
 

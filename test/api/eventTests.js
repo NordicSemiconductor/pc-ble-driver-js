@@ -67,10 +67,10 @@ describe('BLE_GAP_EVT_CONNECTED', function() {
 
     it('should set driver version, device name and address on connect', (done) => {
         adapter.connect('deviceAddress', {}, () => {
-            adapter.getAdapterState((error, adapterState) => {
-                assert.equal(adapterState.firmwareVersion, '0.0.9');
-                assert.equal(adapterState.name, 'holy handgrenade');
-                assert.equal(adapterState.address, 'Bridge of death');
+            adapter.getState((error, state) => {
+                assert.equal(state.firmwareVersion, '0.0.9');
+                assert.equal(state.name, 'holy handgrenade');
+                assert.equal(state.address, 'Bridge of death');
                 done();
             });
         });
@@ -226,7 +226,7 @@ describe('BLE_GATTC_EVT_HVX', () => {
         adapter._characteristics['dummyId'] = {
             valueHandle: hvxEvent.handle,
         };
-        
+
         bleDriverEventCallback([hvxEvent]);
 
         assert(!errorSpy.calledOnce);
@@ -245,7 +245,7 @@ describe('BLE_GATTC_EVT_HVX', () => {
         adapter._characteristics['dummyId'] = {
             valueHandle: hvxEvent.handle,
         };
-        
+
         bleDriverEventCallback([hvxEvent]);
 
         assert(!errorSpy.calledOnce);

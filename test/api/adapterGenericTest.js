@@ -28,7 +28,7 @@ describe('adapter.open', function() {
         let stateChangeCallback = sinon.spy();
         let checkIfCalledStub = sinon.spy();
 
-        this.adapter.on('adapterStateChanged', stateChangeCallback);
+        this.adapter.on('stateChanged', stateChangeCallback);
 
         this.adapter.open({baudRate: 115211, parity: 'none', flowControl: 'uhh'}, (err) => {
             assert.ifError(err);
@@ -78,11 +78,11 @@ describe('adapter.close', function() {
     afterEach(function() {
     });
 
-    it('should close the driver and emit adapterStateChanged event', function() {
+    it('should close the driver and emit stateChanged event', function() {
         let checkIfCalledStub = sinon.spy();
         let stateChangeCallback = sinon.spy();
 
-        this.adapter.on('adapterStateChanged', stateChangeCallback);
+        this.adapter.on('stateChanged', stateChangeCallback);
 
         this.adapter.open({baudRate: 115211, parity: 'none', flowControl: 'uhh'}, (err) => {
             assert.ifError(err);
@@ -110,7 +110,7 @@ describe('adapter.close', function() {
 
         this.bleDriver.close.yields('ERROR!');
 
-        this.adapter.on('adapterStateChanged', stateChangeCallback);
+        this.adapter.on('stateChanged', stateChangeCallback);
         this.adapter.on('error', errorCallback);
 
         this.adapter.open({baudRate: 115211, parity: 'none', flowControl: 'uhh'}, (err) => {
@@ -132,7 +132,7 @@ describe('adapter.close', function() {
     });
 });
 
-describe('adapter.getAdapterState', function() {
+describe('adapter.getState', function() {
     beforeEach(function() {
         this.bleDriver = commonStubs.createBleDriver();
 
@@ -155,21 +155,21 @@ describe('adapter.getAdapterState', function() {
         this.adapter.open({baudRate: 115211, parity: 'none', flowControl: 'yes please'}, (err) => {
         });
 
-        this.adapter.getAdapterState(function(err, adapterState) {
+        this.adapter.getState(function(err, state) {
             checkIfCalledStub();
 
-            assert.equal(adapterState.baudRate, 115211);
-            assert.equal(adapterState.parity, 'none');
-            assert.equal(adapterState.flowControl, 'yes please');
-            assert.equal(adapterState.address, 'Bridge of death');
-            assert.equal(adapterState.firmwareVersion, '0.0.9');
-            assert.equal(adapterState.name, 'holy handgrenade');
-            assert.equal(adapterState.available, true);
-            assert.equal(adapterState.port, '6');
-            assert.equal(adapterState.available, true);
-            assert.equal(adapterState.scanning, false);
-            assert.equal(adapterState.advertising, false);
-            assert.equal(adapterState.connecting, false);
+            assert.equal(state.baudRate, 115211);
+            assert.equal(state.parity, 'none');
+            assert.equal(state.flowControl, 'yes please');
+            assert.equal(state.address, 'Bridge of death');
+            assert.equal(state.firmwareVersion, '0.0.9');
+            assert.equal(state.name, 'holy handgrenade');
+            assert.equal(state.available, true);
+            assert.equal(state.port, '6');
+            assert.equal(state.available, true);
+            assert.equal(state.scanning, false);
+            assert.equal(state.advertising, false);
+            assert.equal(state.connecting, false);
         });
 
         sinon.assert.calledOnce(checkIfCalledStub);
@@ -186,7 +186,7 @@ describe('adapter.getAdapterState', function() {
 
         this.adapter.on('error', errorCallback);
 
-        this.adapter.getAdapterState(function(err, adapterState) {
+        this.adapter.getState(function(err, state) {
             checkIfCalledStub();
             assert.equal(err.description, 'ONE ERROR!');
         });
