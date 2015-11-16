@@ -517,10 +517,12 @@ class Adapter extends EventEmitter {
                 this._changeState({scanning: false});
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_CONN:
-                this._gapOperationsMap.connecting.callback('Failed to connect, timed out');
-                delete this._gapOperationsMap.connecting;
+                const deviceAddress = this._gapOperationsMap.connecting.deviceAddress;
+                const error = make_error((`Failed to connect to ${deviceAddress.address}, timed out`, `Failed to connect. Timeout event: ${event}, address: ${deviceAddress}`));
+                this._gapOperationsMap.connecting.callback(error);
                 this._changeState({connecting: false});
-                this.emit('error', make_error('Failed to connect', 'Connection timed out'));
+                this.emit('error', error);
+                delete this._gapOperationsMap.connecting;
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_SECURITY_REQUEST:
                 this._changeState({securityRequestPending: false});
@@ -1332,10 +1334,10 @@ class Adapter extends EventEmitter {
         this._bleDriver.gap_connect(address, options.scanParams, options.connParams, err => {
             if (err) {
                 this.emit('error', make_error(`Could not connect to ${deviceAddress}`, err));
-                callback(make_error('Failed to connect to ' + deviceAddress, err));
+                callback(make_error('Failed to connect to ' + deviceAddress.address, err));
             } else {
                 this._changeState({scanning: false, connecting: true});
-                this._gapOperationsMap.connecting = {callback: callback};
+                this._gapOperationsMap.connecting = {deviceAddress: address, callback: callback};
             }
         });
     }
