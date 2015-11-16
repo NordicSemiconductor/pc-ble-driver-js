@@ -2247,8 +2247,8 @@ class Adapter extends EventEmitter {
                         handle: attribute.valueHandle,
                         type: cccdValue,
                         offset: offset,
-                        p_len: value.length,
-                        p_data: value,
+                        len: value.length,
+                        data: value,
                     };
                     sentHvx = true;
 
