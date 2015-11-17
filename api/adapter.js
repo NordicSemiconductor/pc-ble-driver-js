@@ -2236,8 +2236,10 @@ class Adapter extends EventEmitter {
 
             for (let deviceInstanceId in this._devices) {
                 const cccdValue = cccdDescriptor.value[deviceInstanceId][0];
+                const sendIndication = cccdValue & 2;
+                const sendNotification = !sendIndication && (cccdValue & 1);
 
-                if ((cccdValue === 1) || (cccdValue === 2)) {
+                if (sendNotification || sendIndication) {
                     const device = this._devices[deviceInstanceId];
                     const hvxParams = {
                         handle: attribute.valueHandle,
@@ -2248,17 +2250,17 @@ class Adapter extends EventEmitter {
                     };
                     sentHvx = true;
 
-                    if (cccdValue === 1) {
+                    if (sendNotification) {
                         this._pendingNotificationsAndIndications.remainingNotificationCallbacks++;
-                    } else if (cccdValue === 2) {
+                    } else if (sendIndication) {
                         this._pendingNotificationsAndIndications.remainingIndicationConfirmations++;
                     }
 
                     this._bleDriver.gatts_hvx(device.connectionHandle, hvxParams, err => {
                         if (err) {
-                            if (cccdValue === 1) {
+                            if (sendNotification) {
                                 this._pendingNotificationsAndIndications.remainingNotificationCallbacks--;
-                            } else if (cccdValue === 2) {
+                            } else if (sendIndication) {
                                 this._pendingNotificationsAndIndications.remainingIndicationConfirmations--;
                             }
 
@@ -2273,7 +2275,7 @@ class Adapter extends EventEmitter {
                         } else {
                             this._setAttributeValueWithOffset(attribute, value, offset);
 
-                            if (cccdValue === 1) {
+                            if (sendNotification) {
                                 if (deviceNotifiedOrIndicated) {
                                     deviceNotifiedOrIndicated(device, attribute);
                                 }
@@ -2285,7 +2287,7 @@ class Adapter extends EventEmitter {
                                     completeCallback(undefined);
                                     this._pendingNotificationsAndIndications = {};
                                 }
-                            } else if (cccdValue === 2) {
+                            } else if (sendIndication) {
                                 return;
                             }
                         }

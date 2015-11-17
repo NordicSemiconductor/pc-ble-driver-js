@@ -49,7 +49,6 @@ describe('Sending notification and indication', function() {
 
         const eventPromise = new Promise((resolve, reject) => {
             testLib._adapter.on('deviceNotifiedOrIndicated', (device, attribute) => {
-                console.log('deviceNotifiedOrIndicated event');
                 assert(_.isEqual(attribute.value, value));
                 resolve();
             });
@@ -68,12 +67,10 @@ describe('Sending notification and indication', function() {
             })
             .then(descriptor => {
                 return testLib.writeCharacteristicValue(characteristic.instanceId, value, false, (device, attribute) => {
-                    console.log('deviceNotifiedOrIndicated callback');
                     assert(_.isEqual(attribute.value, value));
                 });
             })
             .then(attribute => {
-                console.log('waiting for a train');
                 return eventPromise;
             })
             .then(() => {
