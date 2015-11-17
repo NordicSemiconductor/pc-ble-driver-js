@@ -45,7 +45,7 @@ v8::Local<v8::Object> GattcHandleRange::ToJs()
 
 ble_gattc_handle_range_t *GattcHandleRange::ToNative()
 {
-    if (jsobj->IsNull())
+    if (Utility::IsNull(jsobj))
     {
         return 0;
     }
@@ -143,7 +143,7 @@ v8::Local<v8::Object> GattcDescriptor::ToJs()
 
 ble_gattc_write_params_t *GattcWriteParameters::ToNative()
 {
-    if (jsobj->IsNull())
+    if (Utility::IsNull(jsobj))
     {
         return 0;
     }
@@ -155,7 +155,7 @@ ble_gattc_write_params_t *GattcWriteParameters::ToNative()
     writeparams->handle = ConversionUtility::getNativeUint16(jsobj, "handle");
     writeparams->offset = ConversionUtility::getNativeUint16(jsobj, "offset");
     writeparams->len = ConversionUtility::getNativeUint16(jsobj, "len");
-    writeparams->p_value = ConversionUtility::getNativePointerToUint8(jsobj, "p_value");
+    writeparams->p_value = ConversionUtility::getNativePointerToUint8(jsobj, "value");
 
     return writeparams;
 }
@@ -169,7 +169,7 @@ v8::Local<v8::Object> GattcWriteParameters::ToJs()
     Utility::Set(obj, "handle", native->handle);
     Utility::Set(obj, "offset", native->offset);
     Utility::Set(obj, "len", native->len);
-    Utility::Set(obj, "p_value", ConversionUtility::toJsValueArray(native->p_value, native->len));
+    Utility::Set(obj, "value", ConversionUtility::toJsValueArray(native->p_value, native->len));
 
     return scope.Escape(obj);
 }
@@ -263,7 +263,7 @@ v8::Local<v8::Object> GattcHandleValue::ToJs()
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     Utility::Set(obj, "handle", native->handle);
-    Utility::Set(obj, "p_value", ConversionUtility::toJsValueArray(native->p_value, valueLength));
+    Utility::Set(obj, "value", ConversionUtility::toJsValueArray(native->p_value, valueLength));
 
     return scope.Escape(obj);
 }
@@ -394,7 +394,7 @@ NAN_METHOD(PrimaryServicesDiscover)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_srvc_uuid", error);
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("srvc_uuid", error);
         Nan::ThrowTypeError(message);
         return;
     }
@@ -467,7 +467,7 @@ NAN_METHOD(RelationshipDiscover)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_handle_range", error);
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("handle_range", error);
         Nan::ThrowTypeError(message);
         return;
     }
@@ -540,7 +540,7 @@ NAN_METHOD(CharacteristicsDiscover)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_handle_range", error);
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("handle_range", error);
         Nan::ThrowTypeError(message);
         return;
     }
@@ -613,7 +613,7 @@ NAN_METHOD(DescriptorsDiscover)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_handle_range", error);
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("handle_range", error);
         Nan::ThrowTypeError(message);
         return;
     }
@@ -689,7 +689,7 @@ NAN_METHOD(CharacteristicValueByUUIDRead)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_uuid", error);
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("uuid", error);
         Nan::ThrowTypeError(message);
         return;
     }
@@ -700,7 +700,7 @@ NAN_METHOD(CharacteristicValueByUUIDRead)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_handle_range", error);
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("handle_range", error);
         Nan::ThrowTypeError(message);
         return;
     }
@@ -846,7 +846,7 @@ NAN_METHOD(CharacteristicValuesRead)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_handles", error);
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("handles", error);
         Nan::ThrowTypeError(message);
         return;
     }
@@ -926,7 +926,7 @@ NAN_METHOD(Write)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_write_params", error);
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("write_params", error);
         Nan::ThrowTypeError(message);
         return;
     }

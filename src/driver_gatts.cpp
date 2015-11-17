@@ -9,7 +9,7 @@
 
 ble_gatts_attr_md_t *GattsAttributeMetadata::ToNative()
 {
-    if (jsobj->IsNull())
+    if (Utility::IsNull(jsobj))
     {
         return 0;
     }
@@ -29,7 +29,7 @@ ble_gatts_attr_md_t *GattsAttributeMetadata::ToNative()
 
 ble_gatts_char_pf_t *GattsCharacteristicPresentationFormat::ToNative()
 {
-    if (jsobj->IsNull())
+    if (Utility::IsNull(jsobj))
     {
         return 0;
     }
@@ -47,7 +47,7 @@ ble_gatts_char_pf_t *GattsCharacteristicPresentationFormat::ToNative()
 
 ble_gatts_char_md_t *GattsCharacteristicMetadata::ToNative()
 {
-    if (jsobj->IsNull())
+    if (Utility::IsNull(jsobj))
     {
         return 0;
     }
@@ -71,7 +71,7 @@ ble_gatts_char_md_t *GattsCharacteristicMetadata::ToNative()
 
 ble_gatts_attr_t *GattsAttribute::ToNative()
 {
-    if (jsobj->IsNull())
+    if (Utility::IsNull(jsobj))
     {
         return 0;
     }
@@ -104,7 +104,7 @@ v8::Local<v8::Object> GattsCharacteristicDefinitionHandles::ToJs()
 
 ble_gatts_hvx_params_t *GattsHVXParams::ToNative()
 {
-    if (jsobj->IsNull())
+    if (Utility::IsNull(jsobj))
     {
         return 0;
     }
@@ -124,7 +124,7 @@ ble_gatts_hvx_params_t *GattsHVXParams::ToNative()
 
 ble_gatts_value_t *GattsValue::ToNative()
 {
-    if (jsobj->IsNull())
+    if (Utility::IsNull(jsobj))
     {
         return 0;
     }
@@ -181,7 +181,7 @@ v8::Local<v8::Object> GattsReadAuthorizeParameters::ToJs()
 
 ble_gatts_read_authorize_params_t *GattsReadAuthorizeParameters::ToNative()
 {
-    if (jsobj->IsNull())
+    if (Utility::IsNull(jsobj))
     {
         return 0;
     }
@@ -209,7 +209,7 @@ v8::Local<v8::Object> GattsWriteAuthorizeParameters::ToJs()
 
 ble_gatts_write_authorize_params_t *GattsWriteAuthorizeParameters::ToNative()
 {
-    if (jsobj->IsNull())
+    if (Utility::IsNull(jsobj))
     {
         return 0;
     }
@@ -223,7 +223,7 @@ ble_gatts_write_authorize_params_t *GattsWriteAuthorizeParameters::ToNative()
 
 ble_gatts_rw_authorize_reply_params_t *GattRWAuthorizeReplyParams::ToNative()
 {
-    if (jsobj->IsNull())
+    if (Utility::IsNull(jsobj))
     {
         return 0;
     }
@@ -454,7 +454,7 @@ NAN_METHOD(AddCharacteristic)
     }
     catch (char const *err)
     {
-        Nan::ThrowTypeError(ErrorMessage::getStructErrorMessage("p_char_md", err));
+        Nan::ThrowTypeError(ErrorMessage::getStructErrorMessage("char_md", err));
         return;
     }
 
@@ -464,7 +464,7 @@ NAN_METHOD(AddCharacteristic)
     }
     catch (char const *err)
     {
-        Nan::ThrowTypeError(ErrorMessage::getStructErrorMessage("p_attr_char_value", err));
+        Nan::ThrowTypeError(ErrorMessage::getStructErrorMessage("attr_char_value", err));
         return;
     }
 
@@ -541,7 +541,7 @@ NAN_METHOD(AddDescriptor)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_attr", error);
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("attr", error);
         Nan::ThrowTypeError(message);
         return;
     }
@@ -617,7 +617,7 @@ NAN_METHOD(HVX)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_hvx_params", error);
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("hvx_params", error);
         Nan::ThrowTypeError(message);
         return;
     }
@@ -790,7 +790,7 @@ NAN_METHOD(ValueSet)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_value", error);
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("value", error);
         Nan::ThrowTypeError(message);
         return;
     }
@@ -871,7 +871,7 @@ NAN_METHOD(ValueGet)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_value", error);
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("value", error);
         Nan::ThrowTypeError(message);
         return;
     }
@@ -947,7 +947,7 @@ NAN_METHOD(RWAuthorizeReply)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_rw_authorize_reply_params", error);
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("rw_authorize_reply_params", error);
         Nan::ThrowTypeError(message);
         return;
     }

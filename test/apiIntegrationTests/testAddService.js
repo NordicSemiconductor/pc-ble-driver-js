@@ -50,14 +50,7 @@ describe('Add service', function() {
 
         testLib.addService(services)
             .then(() => {
-                //TODO: Should be tested with a remote part reading the DB.
-                // Remove this and add that code when available to connect
-                // to more devices at once.
-                testLib.startAdvertising()
-                    .then(() => { done(); })
-                    .catch(error => {
-                        done(error);
-                    });
+                done();
             })
             .catch(error => {
                 done(error);

@@ -279,11 +279,14 @@ v8::Local<v8::Object> ConversionUtility::getJsObjectOrNull(v8::Local<v8::Value>j
 {
     if (js->IsNull())
     {
-        return js->ToObject();
+        Nan::EscapableHandleScope scope;
+        v8::Local<v8::Object> newobj = Nan::New<v8::Object>();
+        Utility::Set(newobj, "special_hack_null_object", true);
+        return scope.Escape(newobj);
     }
     else if (js->IsObject())
     {
-        return js->ToObject();
+        return ConversionUtility::getJsObject(js);
     }
 
     throw "object or null";
@@ -601,6 +604,11 @@ bool Utility::Set(v8::Handle<v8::Object> target, char *name, v8::Local<v8::Value
     return Nan::Set(target, Nan::New(name).ToLocalChecked(), value).FromMaybe(false);
 }
 
+bool Utility::Has(v8::Handle<v8::Object> target, char *name)
+{
+    return target->Has(Nan::New(name).ToLocalChecked());
+}
+
 void Utility::SetReturnValue(Nan::NAN_METHOD_ARGS_TYPE info, v8::Local<v8::Object> value)
 {
     info.GetReturnValue().Set(value);
@@ -614,6 +622,19 @@ bool Utility::IsObject(v8::Local<v8::Object> jsobj, char *name)
 bool Utility::IsNull(v8::Local<v8::Object> jsobj, char *name)
 {
     return Utility::Get(jsobj, name)->IsNull();
+}
+
+bool Utility::IsNull(v8::Local<v8::Object> jsobj)
+{
+    if (Utility::Has(jsobj, "special_hack_null_object"))
+    {
+        return true;
+    }
+    if (!jsobj->IsObject())
+    {
+        return true;
+    }
+    return jsobj->IsNull();
 }
 
 v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char const *customMessage)

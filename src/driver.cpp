@@ -999,7 +999,7 @@ v8::Local<v8::Object> Version::ToJs()
 
 ble_version_t *Version::ToNative()
 {
-    if (jsobj->IsNull())
+    if (Utility::IsNull(jsobj))
     {
         return 0;
     }
@@ -1024,7 +1024,7 @@ v8::Local<v8::Object> UserMemBlock::ToJs()
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
-    Utility::Set(obj, "p_mem", ConversionUtility::toJsValueArray(native->p_mem, native->len));
+    Utility::Set(obj, "mem", ConversionUtility::toJsValueArray(native->p_mem, native->len));
     Utility::Set(obj, "len", native->len);
     
     return scope.Escape(obj);
@@ -1032,14 +1032,14 @@ v8::Local<v8::Object> UserMemBlock::ToJs()
 
 ble_user_mem_block_t *UserMemBlock::ToNative()
 {
-    if (jsobj->IsNull())
+    if (Utility::IsNull(jsobj))
     {
         return 0;
     }
 
     ble_user_mem_block_t *uuid = new ble_user_mem_block_t();
 
-    uuid->p_mem = ConversionUtility::getNativePointerToUint8(jsobj, "p_mem");
+    uuid->p_mem = ConversionUtility::getNativePointerToUint8(jsobj, "mem");
     uuid->len = ConversionUtility::getNativeUint16(jsobj, "len");
 
     return uuid;
@@ -1067,7 +1067,7 @@ v8::Local<v8::Object> BleUUID::ToJs()
 
 ble_uuid_t *BleUUID::ToNative()
 {
-    if (jsobj->IsNull())
+    if (Utility::IsNull(jsobj))
     {
         return 0;
     }
@@ -1107,7 +1107,7 @@ v8::Local<v8::Object> BleUUID128::ToJs()
 
 ble_uuid128_t *BleUUID128::ToNative()
 {
-    if (jsobj->IsNull())
+    if (Utility::IsNull(jsobj))
     {
         return 0;
     }

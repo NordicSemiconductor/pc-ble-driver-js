@@ -56,7 +56,7 @@ v8::Local<v8::Object> GattCharProps::ToJs()
 
 ble_gatt_char_props_t *GattCharProps::ToNative()
 {
-    if (jsobj->IsNull())
+    if (Utility::IsNull(jsobj))
     {
         return 0;
     }
@@ -95,7 +95,7 @@ v8::Local<v8::Object> GattCharExtProps::ToJs()
 
 ble_gatt_char_ext_props_t *GattCharExtProps::ToNative()
 {
-    if (jsobj->IsNull())
+    if (Utility::IsNull(jsobj))
     {
         return 0;
     }

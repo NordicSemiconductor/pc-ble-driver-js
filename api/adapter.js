@@ -925,7 +925,7 @@ class Adapter extends EventEmitter {
                 handle: handle,
                 offset: 0,
                 len: 0,
-                p_value: [],
+                value: [],
             };
 
             if (gattOperation.bytesWritten < gattOperation.value.length) {
@@ -935,7 +935,7 @@ class Adapter extends EventEmitter {
                 writeParameters.handle = handle;
                 writeParameters.offset = gattOperation.bytesWritten;
                 writeParameters.len = value.length;
-                writeParameters.p_value = value;
+                writeParameters.value = value;
                 gattOperation.bytesWritten += value.length;
 
                 this._bleDriver.gattc_write(device.connectionHandle, writeParameters, err => {
@@ -1020,9 +1020,17 @@ class Adapter extends EventEmitter {
 
     _getDescriptorByHandle(deviceInstanceId, handle) {
         const characteristic = this._getCharacteristicByHandle(deviceInstanceId, handle);
-
+        /*
+        if (characteristic === null) {
+            console.log('FAILED');
+            //console.log(deviceInstanceId);
+        }
+        */
         for (let descriptorInstanceId in this._descriptors) {
             const descriptor = this._descriptors[descriptorInstanceId];
+
+            if (descriptor === null)
+                console.log('WTF');
 
             if (descriptor.characteristicInstanceId !== characteristic.instanceId) {
                 continue;
@@ -1677,7 +1685,6 @@ class Adapter extends EventEmitter {
                     if (err) {
                         reject(make_error('Error converting characteristic to driver.', err));
                     } else {
-                        console.log(characteristicForDriver);
                         this._bleDriver.gatts_add_characteristic(
                             data.serviceHandle,
                             characteristicForDriver.metadata,
@@ -2128,7 +2135,7 @@ class Adapter extends EventEmitter {
             handle: attribute.handle,
             offset: 0,
             len: value.length,
-            p_value: value,
+            value: value,
         };
 
         this._bleDriver.gattc_write(device.connectionHandle, writeParameters, err => {
@@ -2158,7 +2165,7 @@ class Adapter extends EventEmitter {
             handle: attribute.handle,
             offset: 0,
             len: this._maxLongWritePayloadSize,
-            p_value: value.slice(0, this._maxLongWritePayloadSize),
+            value: value.slice(0, this._maxLongWritePayloadSize),
         };
 
         this._bleDriver.gattc_write(device.connectionHandle, writeParameters, err => {
@@ -2180,7 +2187,7 @@ class Adapter extends EventEmitter {
             handle: attribute.handle,
             offset: 0,
             len: 0,
-            p_value: [],
+            value: [],
         };
 
         this._bleDriver.gattc_write(device.connectionHandle, writeParameters, err => {
@@ -2205,7 +2212,7 @@ class Adapter extends EventEmitter {
         const writeParameters = {
             len: value.length,
             offset: offset,
-            p_value: value,
+            value: value,
         };
 
         if (!this._instanceIdIsOnLocalDevice(attribute.instanceId)) {
@@ -2314,7 +2321,7 @@ class Adapter extends EventEmitter {
         const readParameters = {
             len: 512,
             offset: 0,
-            p_value: [],
+            value: [],
         };
 
         this._bleDriver.gatts_get_value(this._bleDriver.BLE_CONN_HANDLE_INVALID, attribute, readParameters, (err, readResults) => {
@@ -2324,7 +2331,7 @@ class Adapter extends EventEmitter {
                 return;
             }
 
-            attribute.value = readResults.p_value;
+            attribute.value = readResults.value;
             callback(undefined, attribute);
         });
     }
