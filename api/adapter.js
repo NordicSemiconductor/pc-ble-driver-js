@@ -1020,17 +1020,9 @@ class Adapter extends EventEmitter {
 
     _getDescriptorByHandle(deviceInstanceId, handle) {
         const characteristic = this._getCharacteristicByHandle(deviceInstanceId, handle);
-        /*
-        if (characteristic === null) {
-            console.log('FAILED');
-            //console.log(deviceInstanceId);
-        }
-        */
+        
         for (let descriptorInstanceId in this._descriptors) {
             const descriptor = this._descriptors[descriptorInstanceId];
-
-            if (descriptor === null)
-                console.log('WTF');
 
             if (descriptor.characteristicInstanceId !== characteristic.instanceId) {
                 continue;
