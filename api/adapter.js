@@ -523,7 +523,7 @@ class Adapter extends EventEmitter {
                 delete this._gapOperationsMap.connecting;
                 connectCallback(error);
                 this._changeState({connecting: false});
-                this.emit('error', error);
+                this.emit('connectTimedOut', deviceAddress);
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_SECURITY_REQUEST:
                 this._changeState({securityRequestPending: false});
@@ -1020,7 +1020,7 @@ class Adapter extends EventEmitter {
 
     _getDescriptorByHandle(deviceInstanceId, handle) {
         const characteristic = this._getCharacteristicByHandle(deviceInstanceId, handle);
-        
+
         for (let descriptorInstanceId in this._descriptors) {
             const descriptor = this._descriptors[descriptorInstanceId];
 
