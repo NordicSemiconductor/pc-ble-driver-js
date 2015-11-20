@@ -15,7 +15,8 @@ class AdapterState {
         this.connecting = false;
         this.securityRequestPending = false;
 
-        this.address = null;
+        this._address = null;
+        this._addressType = null;
         this.name = null;
         this.firmwareVersion = null;
     }
@@ -30,6 +31,24 @@ class AdapterState {
 
     get powered() {
         // TODO: ?
+    }
+
+    get address() {
+        return this._address;
+    }
+
+    set address(address) {
+        if (typeof address === 'string') {
+            this._address = address;
+            this._addressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
+        } else {
+            this._address = address.address;
+            this._addressType = address.type;
+        }
+    }
+
+    get addressType() {
+        return this._addressType;
     }
 }
 
