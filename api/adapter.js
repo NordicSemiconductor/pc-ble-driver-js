@@ -1329,12 +1329,14 @@ class Adapter extends EventEmitter {
             address = deviceAddress;
         }
 
+        this._changeState({scanning: false, connecting: true});
+
         this._bleDriver.gap_connect(address, options.scanParams, options.connParams, err => {
             if (err) {
+                this._changeState({connecting: false});
                 this.emit('error', make_error(`Could not connect to ${deviceAddress}`, err));
                 callback(make_error('Failed to connect to ' + deviceAddress.address, err));
             } else {
-                this._changeState({scanning: false, connecting: true});
                 this._gapOperationsMap.connecting = {deviceAddress: address, callback: callback};
             }
         });
