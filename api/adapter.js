@@ -1414,7 +1414,7 @@ class Adapter extends EventEmitter {
             throw new Error('You have to provide an interval.');
         }
 
-        if (params.timeout) {
+        if (params.timeout || params.timeout === 0) {
             retval.timeout = params.timeout;
         } else {
             throw new Error('You have to provide a timeout.');
