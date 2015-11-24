@@ -326,6 +326,10 @@ class Adapter extends EventEmitter {
 
         this._changeState({connecting: false});
 
+        if (deviceRole === 'central') {
+            this._changeState({advertising: false});
+        }
+
         this.emit('deviceConnected', device);
 
         this._addDeviceToAllPerConnectionValues(device.instanceId);
