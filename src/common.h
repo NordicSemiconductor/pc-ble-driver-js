@@ -59,27 +59,27 @@ public:
 class Utility
 {
 public:
-	static v8::Local<v8::Value> Get(v8::Local<v8::Object> jsobj, char *name);
-	static void SetMethod(v8::Handle<v8::Object> target, char *exportName, Nan::FunctionCallback function);
+	static v8::Local<v8::Value> Get(v8::Local<v8::Object> jsobj, const char *name);
+	static void SetMethod(v8::Handle<v8::Object> target, const char *exportName, Nan::FunctionCallback function);
 
-	static bool Set(v8::Handle<v8::Object> target, char *name, int32_t value);
-	static bool Set(v8::Handle<v8::Object> target, char *name, uint32_t value);
-	static bool Set(v8::Handle<v8::Object> target, char *name, int16_t value);
-	static bool Set(v8::Handle<v8::Object> target, char *name, uint16_t value);
-	static bool Set(v8::Handle<v8::Object> target, char *name, int8_t value);
-	static bool Set(v8::Handle<v8::Object> target, char *name, uint8_t value);
-	static bool Set(v8::Handle<v8::Object> target, char *name, bool value);
-	static bool Set(v8::Handle<v8::Object> target, char *name, double value);
-	static bool Set(v8::Handle<v8::Object> target, char *name, char *value);
-	static bool Set(v8::Handle<v8::Object> target, char *name, std::string value);
-	static bool Set(v8::Handle<v8::Object> target, char *name, v8::Local<v8::Value> value);
+	static bool Set(v8::Handle<v8::Object> target, const char *name, int32_t value);
+	static bool Set(v8::Handle<v8::Object> target, const char *name, uint32_t value);
+	static bool Set(v8::Handle<v8::Object> target, const char *name, int16_t value);
+	static bool Set(v8::Handle<v8::Object> target, const char *name, uint16_t value);
+	static bool Set(v8::Handle<v8::Object> target, const char *name, int8_t value);
+	static bool Set(v8::Handle<v8::Object> target, const char *name, uint8_t value);
+	static bool Set(v8::Handle<v8::Object> target, const char *name, bool value);
+	static bool Set(v8::Handle<v8::Object> target, const char *name, double value);
+	static bool Set(v8::Handle<v8::Object> target, const char *name, const char *value);
+	static bool Set(v8::Handle<v8::Object> target, const char *name, std::string value);
+	static bool Set(v8::Handle<v8::Object> target, const char *name, v8::Local<v8::Value> value);
 
-    static bool Has(v8::Handle<v8::Object> target, char *name);
+    static bool Has(v8::Handle<v8::Object> target, const char *name);
 
 	static void SetReturnValue(Nan::NAN_METHOD_ARGS_TYPE info, v8::Local<v8::Object> value);
 
-    static bool IsObject(v8::Local<v8::Object> jsobj, char *name);
-    static bool IsNull(v8::Local<v8::Object> jsobj, char *name);
+    static bool IsObject(v8::Local<v8::Object> jsobj, const char *name);
+    static bool IsNull(v8::Local<v8::Object> jsobj, const char *name);
     static bool IsNull(v8::Local<v8::Object> jsobj);
 };
 
@@ -115,7 +115,7 @@ public:
 
     virtual v8::Local<v8::Object> ToJs() = 0;
     virtual EventType *ToNative() = 0;
-    virtual char *getEventName() = 0;
+    virtual const char *getEventName() = 0;
 };
 
 struct Baton {
@@ -143,7 +143,7 @@ const std::string getCurrentTimeInMilliseconds();
 uint16_t uint16_decode(const uint8_t *p_encoded_data);
 uint32_t uint32_decode(const uint8_t *p_encoded_data);
 
-uint16_t fromNameToValue(name_map_t names, char *name);
+uint16_t fromNameToValue(name_map_t names, const char *name);
 
 template<typename NativeType>
 class ConvUtil
@@ -188,22 +188,22 @@ public:
         return (NativeType)js->ToBoolean()->BooleanValue() ? 1 : 0;
     }
 
-    static NativeType getNativeUnsigned(v8::Local<v8::Object> js, char *name)
+    static NativeType getNativeUnsigned(v8::Local<v8::Object> js, const char *name)
     {
         return getNativeUnsigned(js->Get(Nan::New(name).ToLocalChecked()));
     }
 
-    static NativeType getNativeSigned(v8::Local<v8::Object> js, char *name)
+    static NativeType getNativeSigned(v8::Local<v8::Object> js, const char *name)
     {
         return getNativeSigned(js->Get(Nan::New(name).ToLocalChecked()));
     }
 
-    static NativeType getNativeFloat(v8::Local<v8::Object> js, char *name)
+    static NativeType getNativeFloat(v8::Local<v8::Object> js, const char *name)
     {
         return getNativeFloat(js->Get(Nan::New(name).ToLocalChecked()));
     }
 
-    static NativeType getNativeBool(v8::Local<v8::Object> js, char *name)
+    static NativeType getNativeBool(v8::Local<v8::Object> js, const char *name)
     {
         return getNativeBool(js->Get(Nan::New(name).ToLocalChecked()));
     }
@@ -219,35 +219,35 @@ public:
         ConversionUnit10s = ConversionUnit10000ms
     };
 
-    static uint32_t     getNativeUint32(v8::Local<v8::Object>js, char *name);
+    static uint32_t     getNativeUint32(v8::Local<v8::Object>js, const char *name);
     static uint32_t     getNativeUint32(v8::Local<v8::Value> js);
-    static uint16_t     getNativeUint16(v8::Local<v8::Object>js, char *name);
+    static uint16_t     getNativeUint16(v8::Local<v8::Object>js, const char *name);
     static uint16_t     getNativeUint16(v8::Local<v8::Value> js);
-    static uint8_t      getNativeUint8(v8::Local<v8::Object>js, char *name);
+    static uint8_t      getNativeUint8(v8::Local<v8::Object>js, const char *name);
     static uint8_t      getNativeUint8(v8::Local<v8::Value> js);
-    static int32_t      getNativeInt32(v8::Local<v8::Object>js, char *name);
+    static int32_t      getNativeInt32(v8::Local<v8::Object>js, const char *name);
     static int32_t      getNativeInt32(v8::Local<v8::Value> js);
-    static int16_t      getNativeInt16(v8::Local<v8::Object>js, char *name);
+    static int16_t      getNativeInt16(v8::Local<v8::Object>js, const char *name);
     static int16_t      getNativeInt16(v8::Local<v8::Value> js);
-    static int8_t       getNativeInt8(v8::Local<v8::Object>js, char *name);
+    static int8_t       getNativeInt8(v8::Local<v8::Object>js, const char *name);
     static int8_t       getNativeInt8(v8::Local<v8::Value> js);
-    static double       getNativeDouble(v8::Local<v8::Object>js, char *name);
+    static double       getNativeDouble(v8::Local<v8::Object>js, const char *name);
     static double       getNativeDouble(v8::Local<v8::Value> js);
-    static uint8_t      getNativeBool(v8::Local<v8::Object>js, char *name);
+    static uint8_t      getNativeBool(v8::Local<v8::Object>js, const char *name);
     static uint8_t      getNativeBool(v8::Local<v8::Value>js);
-    static uint8_t *    getNativePointerToUint8(v8::Local<v8::Object>js, char *name);
+    static uint8_t *    getNativePointerToUint8(v8::Local<v8::Object>js, const char *name);
     static uint8_t *    getNativePointerToUint8(v8::Local<v8::Value>js);
-    static uint16_t *   getNativePointerToUint16(v8::Local<v8::Object>js, char *name);
+    static uint16_t *   getNativePointerToUint16(v8::Local<v8::Object>js, const char *name);
     static uint16_t *   getNativePointerToUint16(v8::Local<v8::Value>js);
-    static v8::Local<v8::Object> getJsObject(v8::Local<v8::Object>js, char *name);
+    static v8::Local<v8::Object> getJsObject(v8::Local<v8::Object>js, const char *name);
     static v8::Local<v8::Object> getJsObject(v8::Local<v8::Value>js);
-    static v8::Local<v8::Object> getJsObjectOrNull(v8::Local<v8::Object>js, char *name);
+    static v8::Local<v8::Object> getJsObjectOrNull(v8::Local<v8::Object>js, const char *name);
     static v8::Local<v8::Object> getJsObjectOrNull(v8::Local<v8::Value>js);
     static uint16_t     stringToValue(name_map_t name_map, v8::Local<v8::Object> string, uint16_t defaultValue = -1);
 
-    static uint16_t msecsToUnitsUint16(v8::Local<v8::Object>js, char *name, enum ConversionUnits unit);
+    static uint16_t msecsToUnitsUint16(v8::Local<v8::Object>js, const char *name, enum ConversionUnits unit);
     static uint16_t msecsToUnitsUint16(double msecs, enum ConversionUnits unit);
-    static uint8_t  msecsToUnitsUint8(v8::Local<v8::Object>js, char *name, enum ConversionUnits unit);
+    static uint8_t  msecsToUnitsUint8(v8::Local<v8::Object>js, const char *name, enum ConversionUnits unit);
     static uint8_t  msecsToUnitsUint8(double msecs, enum ConversionUnits unit);
     static v8::Handle<v8::Value> unitsToMsecs(uint16_t units, enum ConversionUnits unit);
 
@@ -258,19 +258,19 @@ public:
     static v8::Handle<v8::Value> toJsNumber(double nativeValue);
     static v8::Handle<v8::Value> toJsBool(uint8_t nativeValue);
     static v8::Handle<v8::Value> toJsValueArray(uint8_t *nativeValue, uint16_t length);
-    static v8::Handle<v8::Value> toJsString(char *cString);
-    static v8::Handle<v8::Value> toJsString(char *cString, uint16_t length);
+    static v8::Handle<v8::Value> toJsString(const char *cString);
+    static v8::Handle<v8::Value> toJsString(const char *cString, uint16_t length);
     static v8::Handle<v8::Value> toJsString(uint8_t *cString, uint16_t length);
     static v8::Handle<v8::Value> toJsString(std::string string);
-    static char *                valueToString(uint16_t value, name_map_t name_map, char *defaultValue = "Unknown value");
+    static const char *                valueToString(uint16_t value, name_map_t name_map, const char *defaultValue = "Unknown value");
     static v8::Handle<v8::Value> valueToJsString(uint16_t, name_map_t name_map, v8::Handle<v8::Value> defaultValue = Nan::New<v8::String>("Unknown value").ToLocalChecked());
 
-    static v8::Local<v8::Function> getCallbackFunction(v8::Local<v8::Object> js, char *name);
+    static v8::Local<v8::Function> getCallbackFunction(v8::Local<v8::Object> js, const char *name);
     static v8::Local<v8::Function> getCallbackFunction(v8::Local<v8::Value> js);
 
     static uint8_t extractHexHelper(char text);
     static uint8_t *extractHex(v8::Local<v8::Value> js);
-    static v8::Handle<v8::Value> encodeHex(char *text, int length);
+    static v8::Handle<v8::Value> encodeHex(const char *text, int length);
 };
 
 class ErrorMessage

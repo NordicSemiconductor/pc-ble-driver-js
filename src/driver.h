@@ -86,7 +86,7 @@ public:
     virtual v8::Local<v8::Object> ToJs() = 0;
     virtual EventType *ToNative() { return new EventType(); }
 
-    char *getEventName() { return common_event_name_map[this->evt_id]; }
+    const char *getEventName() { return ConversionUtility::valueToString(evt_id, common_event_name_map, "Unknown Common Event"); }
 };
 
 class CommonTXCompleteEvent : BleDriverCommonEvent<ble_evt_tx_complete_t>

@@ -45,7 +45,7 @@ public:
     virtual v8::Local<v8::Object> ToJs() = 0;
     virtual EventType *ToNative() { return new EventType(); }
 
-    char *getEventName() { return gap_event_name_map[this->evt_id]; }
+    const char *getEventName() { return ConversionUtility::valueToString(evt_id, gap_event_name_map, "Unknown Gap Event"); }
 };
 
 class GapAdvReport : public BleDriverGapEvent<ble_gap_evt_adv_report_t>

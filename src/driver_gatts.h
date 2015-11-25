@@ -124,7 +124,7 @@ public:
     virtual v8::Local<v8::Object> ToJs() = 0;
     virtual EventType *ToNative() { return new EventType(); }
 
-    char *getEventName() { return gatts_event_name_map[this->evt_id]; }
+    const char *getEventName() { return ConversionUtility::valueToString(evt_id, gatts_event_name_map, "Unknown Gatts Event"); }
 };
 
 class GattsWriteEvent : BleDriverGattsEvent<ble_gatts_evt_write_t>
