@@ -397,7 +397,6 @@ class TestLibrary {
     writeCharacteristicValue(characteristicId, value, ack, deviceNotifiedOrIndicated) {
         return new Promise((resolve, reject) => {
             this._adapter.writeCharacteristicValue(characteristicId, value, ack, (error, attribute) => {
-                console.log('testLibrary writeCharacteristicValue callback');
                 if (error) {
                     reject(error);
                 } else {

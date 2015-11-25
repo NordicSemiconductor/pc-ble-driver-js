@@ -2238,7 +2238,7 @@ class Adapter extends EventEmitter {
                     const device = this._devices[deviceInstanceId];
                     const hvxParams = {
                         handle: attribute.valueHandle,
-                        type: cccdValue,
+                        type: sendIndication || sendNotification,
                         offset: offset,
                         len: value.length,
                         data: value,
