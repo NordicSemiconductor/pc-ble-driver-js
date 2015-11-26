@@ -485,14 +485,14 @@ class Adapter extends EventEmitter {
     _parseGapConnectionParameterUpdateRequestEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
 
-        const connectionParameters = {deviceInstanceId: device.instanceId,
-                                    minConnectionInterval: event.conn_params.min_conn_interval,
-                                    maxConnectionInterval: event.conn_params.max_conn_interval,
-                                    slaveLatency: event.conn_params.slave_latency,
-                                    connectionSupervisionTimeout: event.conn_params.conn_sup_timeout,
-                                };
+        const connectionParameters = {
+            minConnectionInterval: event.conn_params.min_conn_interval,
+            maxConnectionInterval: event.conn_params.max_conn_interval,
+            slaveLatency: event.conn_params.slave_latency,
+            connectionSupervisionTimeout: event.conn_params.conn_sup_timeout,
+        };
 
-        this.emit('connParamUpdateRequest', connectionParameters);
+        this.emit('connParamUpdateRequest', device, connectionParameters);
     }
 
     _parseGapAdvertismentReportEvent(event) {
