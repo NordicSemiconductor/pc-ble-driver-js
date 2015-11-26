@@ -1,6 +1,6 @@
 #include "driver_gatt.h"
 
-extern name_map_t gatt_status_map = {
+name_map_t gatt_status_map = {
     NAME_MAP_ENTRY(BLE_GATT_STATUS_SUCCESS),
     NAME_MAP_ENTRY(BLE_GATT_STATUS_UNKNOWN),
     NAME_MAP_ENTRY(BLE_GATT_STATUS_ATTERR_INVALID),

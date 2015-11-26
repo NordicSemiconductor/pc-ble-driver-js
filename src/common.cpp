@@ -88,7 +88,7 @@ const std::string getCurrentTimeInMilliseconds()
     result.append(".");
 
     char millisecond_str[4];
-    sprintf(millisecond_str, "%03s", std::to_string(ms.count() % 1000).c_str());
+    sprintf(millisecond_str, "%03d", (int)(ms.count() % 1000));
     result.append(millisecond_str);
     result.append("Z");
 
