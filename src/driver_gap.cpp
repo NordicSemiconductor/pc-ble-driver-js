@@ -180,7 +180,7 @@ ble_gap_addr_t *GapAddr::ToNative()
 	assert(addr != NULL);
     addressString->WriteUtf8(addr, addr_len);
 
-    int scan_count = sscanf(addr, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &(ptr[5]), &(ptr[4]), &(ptr[3]), &(ptr[2]), &(ptr[1]), &(ptr[0]));
+    int scan_count = sscanf(addr, "%2x:%2x:%2x:%2x:%2x:%2x", &(ptr[5]), &(ptr[4]), &(ptr[3]), &(ptr[2]), &(ptr[1]), &(ptr[0]));
 	assert(scan_count == 6);
 
     free(addr);
