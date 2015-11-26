@@ -111,7 +111,7 @@ uint32_t uint32_decode(const uint8_t *p_encoded_data)
 
 uint16_t fromNameToValue(name_map_t names, const char *name)
 {
-    std::map<uint16_t, char*>::const_iterator it;
+    name_map_it_t it;
     uint16_t key = -1;
 
     for (it = names.begin(); it != names.end(); ++it)
@@ -301,7 +301,7 @@ v8::Local<v8::Object> ConversionUtility::getJsObjectOrNull(v8::Local<v8::Object>
 
 uint16_t ConversionUtility::stringToValue(name_map_t name_map, v8::Local<v8::Object> string, uint16_t defaultValue)
 {
-    std::map<uint16_t, char*>::const_iterator it;
+    name_map_it_t it;
     uint16_t key = defaultValue;
 
     const char *name = (const char *)ConversionUtility::getNativePointerToUint8(string);

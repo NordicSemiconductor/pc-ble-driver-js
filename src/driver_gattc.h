@@ -97,7 +97,7 @@ public:
     virtual v8::Local<v8::Object> ToJs() = 0;
     virtual EventType *ToNative() { return new EventType(); }
 
-    const char *getEventName() { return ConversionUtility::valueToString(evt_id, gattc_event_name_map, "Unknown Gattc Event"); }
+    const char *getEventName() { return ConversionUtility::valueToString(this->evt_id, gattc_event_name_map, "Unknown Gattc Event"); }
 };
 
 class GattcPrimaryServiceDiscoveryEvent : BleDriverGattcEvent<ble_gattc_evt_prim_srvc_disc_rsp_t>

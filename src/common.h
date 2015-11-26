@@ -19,8 +19,8 @@
     void After##MainName(uv_work_t *req);
 
 // Typedef of name to string with enum name, covers most cases
-typedef std::map<uint16_t, char*> name_map_t;
-typedef std::map<uint16_t, char*>::iterator name_map_it_t;
+typedef std::map<uint16_t, const char*> name_map_t;
+typedef std::map<uint16_t, const char*>::iterator name_map_it_t;
 
 // Mutex used to assure that only one call is done to the BLE Driver API at a time.
 // The BLE Driver API is not thread safe.

@@ -379,7 +379,7 @@ NAN_METHOD(Open)
         std::stringstream errormessage;
         errormessage << "A setup option was wrong. Option: ";
 
-        char *options[] = { "baudrate", "parity", "flowcontrol", "eventInterval", "logLevel" };
+        const char *options[] = { "baudrate", "parity", "flowcontrol", "eventInterval", "logLevel" };
 
         errormessage << options[parameter] << ". Reason: " << error;
 
