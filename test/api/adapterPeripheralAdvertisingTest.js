@@ -62,7 +62,11 @@ describe('adapter.startAdvertising', function() {
             scannable: false,
         };
 
-        this.adapter.startAdvertising(advertisingData, scanResponseData, options, function(err) {
+        this.adapter.setAdvertisingData(advertisingData, scanResponseData, err => {
+            assert.ifError(err);
+        });
+
+        this.adapter.startAdvertising(options, function(err) {
             assert.ifError(err);
             startAdvertisingCallback();
         });
@@ -124,6 +128,10 @@ describe('adapter.stopAdvertising', function() {
             connectable: true,
             scannable: false,
         };
+
+        this.adapter.setAdvertisingData(advertisingData, scanResponseData, err => {
+            assert.ifError(err);
+        });
 
         this.adapter.startAdvertising(advertisingData, scanResponseData, options, err => {
             assert.ifError(err);

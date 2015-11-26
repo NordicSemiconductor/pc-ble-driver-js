@@ -180,16 +180,25 @@ class TestLibrary {
             }
 
             const scanRespData = {};
-            const advOptions = {
-                interval: 100,
-                timeout: 10000,
-            };
-            this._adapter.startAdvertising(advData, scanRespData, advOptions, error => {
+
+            this._adapter.setAdvertisingData(advData, scanRespData, error => {
                 if (error) {
                     reject(error);
-                } else {
-                    resolve();
                 }
+
+                const advOptions = {
+                    interval: 100,
+                    timeout: 10000,
+                };
+
+                this._adapter.startAdvertising(advOptions, error => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve();
+                    }
+                });
+
             });
         });
     }

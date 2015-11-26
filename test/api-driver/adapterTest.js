@@ -154,7 +154,13 @@ adapterFactory.getAdapters((err, adapters) => {
                     scannable: false,
                 };
 
-                adapter.startAdvertising(advertisingData, scanResponseData, options, function(err) {
+                adapter.setAdvertisingData(advertisingData, scanResponseData, err => {
+                    if (err) {
+                        console.log(`Error setting advertising data. ${err}`);
+                    }
+                });
+
+                adapter.startAdvertising( options, function(err) {
                     if (err) {
                         console.log(`Error starting advertising. ${err}`);
                         process.exit();

@@ -1446,10 +1446,19 @@ class Adapter extends EventEmitter {
         return retval;
     }
 
-    // name given from setName. Callback function signature: function(err) {}
-    startAdvertising(advData, scanRespData, options, callback) {
+    // Callback function signature: function(err) {}
+    startAdvertising(options, callback) {
         const advParams = this._getAdvertisementParams(options);
 
+        this._bleDriver.gap_start_advertising(advParams, err => {
+            if (this.checkAndPropagateError(err, 'Failed to start advertising.', callback)) return;
+            this._changeState({advertising: true});
+            if (callback) callback();
+        });
+    }
+
+    // name given from setName. Callback function signature: function(err) {}
+    setAdvertisingData(advData, scanRespData, callback) {
         const advDataStruct = Array.from(AdType.convertToBuffer(advData));
         const scanRespDataStruct = Array.from(AdType.convertToBuffer(scanRespData));
 
@@ -1458,12 +1467,7 @@ class Adapter extends EventEmitter {
             scanRespDataStruct,
             err => {
                 if (this.checkAndPropagateError(err, 'Failed to set advertising data.', callback)) return;
-
-                this._bleDriver.gap_start_advertising(advParams, err => {
-                    if (this.checkAndPropagateError(err, 'Failed to start advertising.', callback)) return;
-                    this._changeState({advertising: true});
-                    if (callback) callback();
-                });
+                if (callback) callback();
             }
         );
     }
