@@ -1386,7 +1386,7 @@ NAN_METHOD(GapUpdateConnectionParameters)
         conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
         argumentcount++;
 
-        connParamsObject = ConversionUtility::getJsObject(info[argumentcount]);
+        connParamsObject = ConversionUtility::getJsObjectOrNull(info[argumentcount]);
         argumentcount++;
 
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
