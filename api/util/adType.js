@@ -2,8 +2,13 @@
 
 const AD_PACKET_MAX_SIZE = 20;
 
+// Remove hyphens and reverse byte ordering to little endian
 let cleanUpUuid = function(uuid) {
-    return uuid.replace(/-/g, '');
+    return uuid
+        .replace(/-/g, '')
+        .match(/.{2}/g)
+        .reverse()
+        .join('');
 };
 
 let flagsTypeMarshaller = function(buf, offset, flags) {
@@ -39,7 +44,7 @@ let serviceUuidsMarshaller = function(buf, offset, uuids) {
     var pos = offset;
 
     for (let uuid in uuids) {
-        var temp = new Buffer(cleanUpUuid(uuids[uuid]), 'hex');
+        const temp = new Buffer(cleanUpUuid(uuids[uuid]), 'hex');
         temp.copy(buf, pos, 0);
         pos += temp.length;
     }
@@ -52,8 +57,7 @@ let txPowerLevelMarshaller = function(buf, offset, powerLevel) {
         throw new Error('powerLevel is outside acceptable levels (-127 to +127 dBm)');
     }
 
-    var value = powerLevel + 127;
-    return buf.writeUInt8(value, offset);
+    return buf.writeInt8(powerLevel, offset);
 };
 
 const notImplemented = function(buf, offset, name) {
