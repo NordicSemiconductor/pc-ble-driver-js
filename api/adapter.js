@@ -748,10 +748,16 @@ class Adapter extends EventEmitter {
 
         // We should only receive descriptors under one characteristic.
         const characteristic = gattOperation.parent;
+        let foundNextServiceOrCharacteristic = false;
 
         descriptors.forEach(descriptor => {
+            if (foundNextServiceOrCharacteristic) {
+                return;
+            }
+
             const handle = descriptor.handle;
             let uuid = this._numberTo16BitUuid(descriptor.uuid.uuid);
+
 
             if (descriptor.uuid.type === this._bleDriver.BLE_UUID_TYPE_UNKNOWN) {
                 uuid = 'unknown-descriptor-uuid';
@@ -760,7 +766,7 @@ class Adapter extends EventEmitter {
             // TODO: Fix magic number? Primary Service and Characteristic Declaration uuids
             if (uuid === "2800" || uuid === "2803") {
                 // Found a service or characteristic declaration
-                finishDescriptorDiscovery();
+                foundNextServiceOrCharacteristic = true;
                 return;
             }
 
@@ -772,6 +778,11 @@ class Adapter extends EventEmitter {
 
             gattOperation.pendingHandleReads[handle] = newDescriptor;
         });
+
+        if (foundNextServiceOrCharacteristic) {
+            finishDescriptorDiscovery();
+            return;
+        }
 
         const service = this._services[gattOperation.parent.serviceInstanceId];
         const nextStartHandle = descriptors[descriptors.length - 1].handle + 1;
