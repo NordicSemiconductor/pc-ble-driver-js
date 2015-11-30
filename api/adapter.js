@@ -293,6 +293,9 @@ class Adapter extends EventEmitter {
                 case this._bleDriver.BLE_EVT_USER_MEM_REQUEST:
                     // TODO: Implement when user_mem_reply is supported in ble_driver.
                     break;
+                case this._bleDriver.BLE_EVT_TX_COMPLETE:
+                    // No need to handle tx_complete, for now.
+                    break;
                 default:
                     console.log(`Unsupported event received from SoftDevice: ${event.id} - ${event.name}`);
                     break;
@@ -1958,7 +1961,7 @@ class Adapter extends EventEmitter {
         });
     }
 
-    // Callback signature function(err) {}
+    // Callback signature function(err, readBytes) {}
     readCharacteristicValue(characteristicId, callback) {
         const characteristic = this.getCharacteristic(characteristicId);
         if (!characteristic) {
@@ -2020,7 +2023,7 @@ class Adapter extends EventEmitter {
             this._longWrite(device, characteristic, value, completeCallback);
         } else {
             this._gattOperationsMap[device.instanceId].bytesWritten = value.length;
-            this._shortWrite(device, characteristic, ack, value, completeCallback);
+            this._shortWrite(device, characteristic, value, ack, completeCallback);
         }
     }
 
