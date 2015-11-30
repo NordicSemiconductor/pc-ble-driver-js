@@ -403,7 +403,7 @@ NAN_METHOD(PrimaryServicesDiscover)
 }
 
 // This runs in a worker thread (not Main Thread)
-void PrimaryServicesDiscover(uv_work_t *req) 
+void PrimaryServicesDiscover(uv_work_t *req)
 {
     GattcPrimaryServicesDiscoverBaton *baton = static_cast<GattcPrimaryServicesDiscoverBaton *>(req->data);
 
@@ -412,7 +412,7 @@ void PrimaryServicesDiscover(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterPrimaryServicesDiscover(uv_work_t *req) 
+void AfterPrimaryServicesDiscover(uv_work_t *req)
 {
 	Nan::HandleScope scope;
 
@@ -460,7 +460,7 @@ NAN_METHOD(RelationshipDiscover)
 
     GattcRelationshipDiscoverBaton *baton = new GattcRelationshipDiscoverBaton(callback);
     baton->conn_handle = conn_handle;
-    
+
     try
     {
         baton->p_handle_range = GattcHandleRange(handle_range);
@@ -476,7 +476,7 @@ NAN_METHOD(RelationshipDiscover)
 }
 
 // This runs in a worker thread (not Main Thread)
-void RelationshipDiscover(uv_work_t *req) 
+void RelationshipDiscover(uv_work_t *req)
 {
     GattcRelationshipDiscoverBaton *baton = static_cast<GattcRelationshipDiscoverBaton *>(req->data);
 
@@ -485,7 +485,7 @@ void RelationshipDiscover(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterRelationshipDiscover(uv_work_t *req) 
+void AfterRelationshipDiscover(uv_work_t *req)
 {
 	Nan::HandleScope scope;
 
@@ -549,7 +549,7 @@ NAN_METHOD(CharacteristicsDiscover)
 }
 
 // This runs in a worker thread (not Main Thread)
-void CharacteristicsDiscover(uv_work_t *req) 
+void CharacteristicsDiscover(uv_work_t *req)
 {
     GattcCharacteristicsDiscoverBaton *baton = static_cast<GattcCharacteristicsDiscoverBaton *>(req->data);
 
@@ -558,7 +558,7 @@ void CharacteristicsDiscover(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterCharacteristicsDiscover(uv_work_t *req) 
+void AfterCharacteristicsDiscover(uv_work_t *req)
 {
 	Nan::HandleScope scope;
 
@@ -622,7 +622,7 @@ NAN_METHOD(DescriptorsDiscover)
 }
 
 // This runs in a worker thread (not Main Thread)
-void DescriptorsDiscover(uv_work_t *req) 
+void DescriptorsDiscover(uv_work_t *req)
 {
     GattcDescriptorsDiscoverBaton *baton = static_cast<GattcDescriptorsDiscoverBaton *>(req->data);
 
@@ -631,7 +631,7 @@ void DescriptorsDiscover(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterDescriptorsDiscover(uv_work_t *req) 
+void AfterDescriptorsDiscover(uv_work_t *req)
 {
 	Nan::HandleScope scope;
 
@@ -709,7 +709,7 @@ NAN_METHOD(CharacteristicValueByUUIDRead)
 }
 
 // This runs in a worker thread (not Main Thread)
-void CharacteristicValueByUUIDRead(uv_work_t *req) 
+void CharacteristicValueByUUIDRead(uv_work_t *req)
 {
     GattcCharacteristicByUUIDReadBaton *baton = static_cast<GattcCharacteristicByUUIDReadBaton *>(req->data);
 
@@ -718,7 +718,7 @@ void CharacteristicValueByUUIDRead(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterCharacteristicValueByUUIDRead(uv_work_t *req) 
+void AfterCharacteristicValueByUUIDRead(uv_work_t *req)
 {
 	Nan::HandleScope scope;
 
@@ -777,7 +777,7 @@ NAN_METHOD(Read)
 }
 
 // This runs in a worker thread (not Main Thread)
-void Read(uv_work_t *req) 
+void Read(uv_work_t *req)
 {
     GattcReadBaton *baton = static_cast<GattcReadBaton *>(req->data);
 
@@ -786,7 +786,7 @@ void Read(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterRead(uv_work_t *req) 
+void AfterRead(uv_work_t *req)
 {
 	Nan::HandleScope scope;
 
@@ -795,7 +795,7 @@ void AfterRead(uv_work_t *req)
 
     if (baton->result != NRF_SUCCESS)
     {
-        argv[0] = ErrorMessage::getErrorMessage(baton->result, "starting reading characteristics by UUID");
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "starting reading");
     }
     else
     {
@@ -860,7 +860,7 @@ NAN_METHOD(CharacteristicValuesRead)
 }
 
 // This runs in a worker thread (not Main Thread)
-void CharacteristicValuesRead(uv_work_t *req) 
+void CharacteristicValuesRead(uv_work_t *req)
 {
     GattcCharacteristicValuesReadBaton *baton = static_cast<GattcCharacteristicValuesReadBaton *>(req->data);
 
@@ -871,7 +871,7 @@ void CharacteristicValuesRead(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterCharacteristicValuesRead(uv_work_t *req) 
+void AfterCharacteristicValuesRead(uv_work_t *req)
 {
 	Nan::HandleScope scope;
 
@@ -935,7 +935,7 @@ NAN_METHOD(Write)
 }
 
 // This runs in a worker thread (not Main Thread)
-void Write(uv_work_t *req) 
+void Write(uv_work_t *req)
 {
     GattcWriteBaton *baton = static_cast<GattcWriteBaton *>(req->data);
 
@@ -944,7 +944,7 @@ void Write(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterWrite(uv_work_t *req) 
+void AfterWrite(uv_work_t *req)
 {
 	Nan::HandleScope scope;
 
@@ -998,7 +998,7 @@ NAN_METHOD(HandleValueConfirm)
 }
 
 // This runs in a worker thread (not Main Thread)
-void HandleValueConfirm(uv_work_t *req) 
+void HandleValueConfirm(uv_work_t *req)
 {
     GattcHandleValueConfirmBaton *baton = static_cast<GattcHandleValueConfirmBaton *>(req->data);
 
@@ -1007,7 +1007,7 @@ void HandleValueConfirm(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterHandleValueConfirm(uv_work_t *req) 
+void AfterHandleValueConfirm(uv_work_t *req)
 {
 	Nan::HandleScope scope;
 

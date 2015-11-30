@@ -753,12 +753,12 @@ class Adapter extends EventEmitter {
             const handle = descriptor.handle;
             let uuid = this._numberTo16BitUuid(descriptor.uuid.uuid);
 
-            if (characteristic.uuid.type === this._bleDriver.BLE_UUID_TYPE_UNKNOWN) {
+            if (descriptor.uuid.type === this._bleDriver.BLE_UUID_TYPE_UNKNOWN) {
                 uuid = 'unknown-descriptor-uuid';
             }
 
             // TODO: Fix magic number? Primary Service and Characteristic Declaration uuids
-            if (uuid === 0x2800 || uuid === 0x2803) {
+            if (uuid === "2800" || uuid === "2803") {
                 // Found a service or characteristic declaration
                 finishDescriptorDiscovery();
                 return;
@@ -797,13 +797,13 @@ class Adapter extends EventEmitter {
         const handle = event.handle;
         const data = event.data;
         const gattOperation = this._gattOperationsMap[device.instanceId];
-        const pendingHandleReads = gattOperation.pendingHandleReads;
         /*
         event.offset;
         event.len;
         */
 
-        if (pendingHandleReads && !_.isEmpty(pendingHandleReads)) {
+        if (gattOperation && gattOperation.pendingHandleReads && !_.isEmpty(gattOperation.pendingHandleReads)) {
+            const pendingHandleReads = gattOperation.pendingHandleReads;
             const attribute = pendingHandleReads[handle];
 
             if (!attribute) {
@@ -882,7 +882,7 @@ class Adapter extends EventEmitter {
                 break;
             }
         } else {
-            gattOperation.readBytes = gattOperation.readBytes.concat(event.data);
+            gattOperation.readBytes = gattOperation.readBytes ? gattOperation.readBytes.concat(event.data): event.data;
 
             if (event.data.length < this._maxReadPayloadSize) {
                 delete this._gattOperationsMap[device.instanceId];
