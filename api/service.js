@@ -18,8 +18,6 @@ class Service {
             throw new Error('uuid must be 128-bit or 16-bit.');
         }
 
-        this.name = null;
-
         if (type !== undefined) {
             assertValidType(type);
             this._type = type;
@@ -39,31 +37,6 @@ class Service {
     // device address of the remote peripheral that the GATT service belongs to. 'local' when local.
     get deviceInstanceId() {
         return this._deviceInstanceId;
-    }
-
-    get uuid() {
-        return this._uuid;
-    }
-
-    set uuid(uuid) {
-        if (uuid) {
-            this._uuid = uuid.replace(/-/g, '');
-        } else {
-            this._uuid = uuid;
-        }
-    }
-
-    get name() {
-        if (this._name) {
-            return this._name;
-        }
-
-        // TODO: return a name looked up in uuid_definitions
-        return this.uuid;
-    }
-
-    set name(name) {
-        this._name = name;
     }
 
     set type(type) {

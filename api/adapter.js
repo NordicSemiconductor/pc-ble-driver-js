@@ -129,21 +129,22 @@ class Adapter extends EventEmitter {
 */
 
     _numberTo16BitUuid(uuid16Bit) {
-        const base = '-0000-1000-8000-00805F9B34FB';
-        let string = '0000';
+        //const base = '00001000800000805F9B34FB';
+        //let string = '0000';
 
         let byteString = uuid16Bit.toString(16);
         byteString = ('000' + byteString).slice(-4);
-        string += byteString;
 
-        string += base;
-        return string.toUpperCase();
+        //string += byteString;
+        //string += base;
+        //return string.toUpperCase();
+        return byteString.toUpperCase();
     }
 
     _arrayTo128BitUuid(array) {
-        const insertHyphen = (string, index) => {
-            return string.substr(0, index) + '-' + string.substr(index);
-        };
+        //const insertHyphen = (string, index) => {
+        //    return string.substr(0, index) + '-' + string.substr(index);
+        //};
 
         let string = '';
 
@@ -153,10 +154,10 @@ class Adapter extends EventEmitter {
             string += byteString;
         }
 
-        string = insertHyphen(string, 20);
-        string = insertHyphen(string, 16);
-        string = insertHyphen(string, 12);
-        string = insertHyphen(string, 8);
+        //string = insertHyphen(string, 20);
+        //string = insertHyphen(string, 16);
+        //string = insertHyphen(string, 12);
+        //string = insertHyphen(string, 8);
 
         return string.toUpperCase();
     }
@@ -360,6 +361,12 @@ class Adapter extends EventEmitter {
             const callback = this._gapOperationsMap[device.instanceId].callback;
             delete this._gapOperationsMap[device.instanceId];
             callback(undefined, device);
+        }
+
+        if (this._gattOperationsMap[deviceInstanceId]) {
+            const callback = this._gattOperationsMap[device.instanceId].callback;
+            delete this._gattOperationsMap[device.instanceId];
+            callback(make_error('Device disconnected', 'Device with address ' + device.address + ' disconnected'));
         }
 
         delete this._devices[device.instanceId];
@@ -1812,6 +1819,7 @@ class Adapter extends EventEmitter {
             return;
         }
 
+        // TODO: Should we remove old services and do new discovery?
         const alreadyFoundServices = _.filter(this._services, service => {
             return deviceInstanceId === service.deviceInstanceId;
         });

@@ -11,13 +11,15 @@ class Characteristic {
         this._instanceId = serviceInstanceId + '.' + (i++).toString();
         this._serviceInstanceId = serviceInstanceId;
         this.uuid = uuid;
-        this.value = value;
-        this.properties = properties;
 
-        this.name = null;
+        if (this.uuid && !(this.uuid.length === 4 || this.uuid.length === 32)) {
+            throw new Error('uuid must be 128-bit or 16-bit.');
+        }
 
         this.declarationHandle = null;
         this.valueHandle = null;
+        this.value = value;
+        this.properties = properties;
     }
 
     get instanceId() {
@@ -27,31 +29,6 @@ class Characteristic {
     // The GATT service this characteristic belongs to
     get serviceInstanceId() {
         return this._serviceInstanceId;
-    }
-
-    get uuid() {
-        return this._uuid;
-    }
-
-    set uuid(uuid) {
-        if (uuid) {
-            this._uuid = uuid.replace(/-/g, '');
-        } else {
-            this._uuid = uuid;
-        }
-    }
-
-    get name() {
-        if (this._name) {
-            return this._name;
-        }
-
-        // TODO: return a name looked up in uuid_definitions
-        return this.uuid;
-    }
-
-    set name(name) {
-        this._name = name;
     }
 
     get handle() {

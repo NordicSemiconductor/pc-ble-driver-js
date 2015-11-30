@@ -11,11 +11,14 @@ class Descriptor {
 
         this._instanceId = characteristicInstanceId + '.' + (i++).toString();
         this._characteristicInstanceId = characteristicInstanceId;
-        this.uuid = uuid.replace(/-/g, '');
-        this.value = value;
+        this.uuid = uuid;
 
-        this.name = null;
+        if (this.uuid && !(this.uuid.length === 4 || this.uuid.length === 32)) {
+            throw new Error('uuid must be 128-bit or 16-bit.');
+        }
+
         this.handle = null;
+        this.value = value;
         this.properties = properties;
     }
 
@@ -25,31 +28,6 @@ class Descriptor {
 
     get characteristicInstanceId() {
         return this._characteristicInstanceId;
-    }
-
-    get uuid() {
-        return this._uuid;
-    }
-
-    set uuid(uuid) {
-        if (uuid) {
-            this._uuid = uuid.replace(/-/g, '');
-        } else {
-            this._uuid = uuid;
-        }
-    }
-
-    get name() {
-        if (this._name) {
-            return this._name;
-        }
-
-        // TODO: return a name looked up in uuid_definitions
-        return this.uuid;
-    }
-
-    set name(name) {
-        this._name = name;
     }
 }
 
