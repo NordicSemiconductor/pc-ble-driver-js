@@ -366,7 +366,7 @@ class Adapter extends EventEmitter {
             callback(undefined, device);
         }
 
-        if (this._gattOperationsMap[deviceInstanceId]) {
+        if (this._gattOperationsMap[device.instanceId]) {
             const callback = this._gattOperationsMap[device.instanceId].callback;
             delete this._gattOperationsMap[device.instanceId];
             callback(make_error('Device disconnected', 'Device with address ' + device.address + ' disconnected'));
