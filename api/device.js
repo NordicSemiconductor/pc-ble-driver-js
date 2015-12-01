@@ -1,8 +1,5 @@
 'use strict';
 
-// TODO: does it need an adapterInstanceId?
-const uuidDefinitions = require('./util/uuid_definitions');
-
 class Device {
     constructor(address, role) {
         this._instanceId = null;
