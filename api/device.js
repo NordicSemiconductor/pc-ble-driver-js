@@ -18,7 +18,6 @@ class Device {
 
         this.name = null;
         this._role = role;
-        this.uuids = [];
         this.services = [];
         this.flags = [];
         this.scanResponse = null;
@@ -95,7 +94,7 @@ class Device {
 
     _processFlagsFromAdvertisingData(advertisingData) {
         if (advertisingData && advertisingData.BLE_GAP_AD_TYPE_FLAGS) {
-            this.flags = advertisingData.BLE_GAP_AD_TYPE_FLAGS.map((flag) => {
+            this.flags = advertisingData.BLE_GAP_AD_TYPE_FLAGS.map(flag => {
                 return camelCaseFlag(flag);
             });
         }
@@ -132,10 +131,7 @@ class Device {
             uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_COMPLETE);
         }*/
 
-        this.uuids = uuids;
-        this.services = uuids.map((uuid) => {
-            return uuidToService(uuid);
-        });
+        this.services = uuids;
     }
 
     _setRssiLevel() {
@@ -152,8 +148,6 @@ class Device {
         this.rssi_level = mapRange(this.rssi, MIN_RSSI, MAX_RSSI, 4, 20);
     }
 }
-
-module.exports = Device;
 
 function camelCaseFlag(flag) {
     const advFlagsPrefix = 'BLE_GAP_ADV_FLAG';
@@ -177,21 +171,4 @@ function camelCaseFlag(flag) {
     }
 }
 
-// TODO: look into using a database for storing the services UUID's. Also look into importing them from the Bluetooth pages.
-// TODO: Also look into reusing code from the Android MCP project:
-// TODO: http://projecttools.nordicsemi.no/stash/projects/APPS-ANDROID/repos/nrf-master-control-panel/browse/app/src/main/java/no/nordicsemi/android/mcp/database/init
-// TODO: http://projecttools.nordicsemi.no/stash/projects/APPS-ANDROID/repos/nrf-master-control-panel/browse/app/src/main/java/no/nordicsemi/android/mcp/database/DatabaseHelper.java
-function uuidToService(uuid) {
-    var uuidName;
-    if (uuid.match('0000....-0000-1000-8000-00805F9B34FB')) {
-        uuidName = uuidDefinitions['0x' + uuid.slice(4, 8)];
-
-        if (uuidName === undefined) {
-            uuidName = uuid.slice(4, 8);
-        }
-    } else {
-        uuidName = uuid.slice(4, 8) + '*';
-    }
-
-    return uuidName;
-}
+module.exports = Device;
