@@ -937,9 +937,7 @@ class Adapter extends EventEmitter {
 
         // TODO: Check gatt error? event.gatt_status === BLE_GATT_STATUS_SUCCESS
 
-        if (event.write_op === this._bleDriver.BLE_GATT_OP_WRITE_CMD) {
-            gattOperation.attribute.value = gattOperation.value;
-        } else if (event.write_op === this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ) {
+        if (event.write_op === this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ) {
 
             const writeParameters = {
                 write_op: 0,
@@ -991,6 +989,10 @@ class Adapter extends EventEmitter {
         } else if (event.write_op === this._bleDriver.BLE_GATT_OP_WRITE_REQ) {
             gattOperation.attribute.value = gattOperation.value;
             delete this._gattOperationsMap[device.instanceId];
+            if (event.gatt_status !== this._bleDriver.BLE_GATT_STATUS_SUCCESS) {
+                gattOperation.callback(make_error('Write operation failed: ' + event.gatt_status_name));
+                return;
+            }
         }
 
         this._emitAttributeValueChanged(gattOperation.attribute);
