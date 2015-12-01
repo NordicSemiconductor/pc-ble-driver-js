@@ -1077,7 +1077,11 @@ class Adapter extends EventEmitter {
 
     _parseGattcHvxEvent(event) {
         if (event.type === this._bleDriver.BLE_GATT_HVX_INDICATION) {
-            this._bleDriver.gattc_confirm_handle_value(event.conn_handle, event.handle);
+            this._bleDriver.gattc_confirm_handle_value(event.conn_handle, event.handle, error => {
+                if (error) {
+                    this.emit('error', make_error('Failed to call gattc_confirm_handle_value', error));
+                }
+            });
         }
 
         const characteristic = this._getCharacteristicByValueHandle(event.handle);
