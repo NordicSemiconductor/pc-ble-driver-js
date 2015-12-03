@@ -478,13 +478,20 @@ class Adapter extends EventEmitter {
     }
 
     _parseConnSecUpdateEvent(event) {
-        //console.log('Received connSecUpdate event: ' + JSON.stringify(event));
     }
 
     _parseAuthStatusEvent(event) {
-        //console.log('Received authStatus event: ' + JSON.stringify(event));
         if (event.auth_status === this._bleDriver.BLE_GAP_SEC_STATUS_SUCCESS) {
-            this.emit('securityChanged', event);
+            this.emit('securityChanged', {
+                bonded: event.bonded,
+                sm1Levels: event.sm1_levels.lv3 ? 3
+                            : event.sm1_levels.lv2 ? 2
+                            : event.sm1_levels.lv1 ? 1
+                            : null,
+                sm2Levels: null, // TODO: Add when supported in api
+                keysDistPeriph: null, // TODO: Add when supported in api
+                keysDistCentral: null, // TODO: Add when supported in api
+            });
         } else {
             this.emit('error', 'Pairing failed with error ' + event.auth_status);
         }
@@ -937,7 +944,9 @@ class Adapter extends EventEmitter {
 
         // TODO: Check gatt error? event.gatt_status === BLE_GATT_STATUS_SUCCESS
 
-        if (event.write_op === this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ) {
+        if (event.write_op === this._bleDriver.BLE_GATT_OP_WRITE_CMD) {
+            gattOperation.attribute.value = gattOperation.value;
+        } else if (event.write_op === this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ) {
 
             const writeParameters = {
                 write_op: 0,
