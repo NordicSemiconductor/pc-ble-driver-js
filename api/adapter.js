@@ -481,8 +481,10 @@ class Adapter extends EventEmitter {
     }
 
     _parseAuthStatusEvent(event) {
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
+
         if (event.auth_status === this._bleDriver.BLE_GAP_SEC_STATUS_SUCCESS) {
-            this.emit('securityChanged', {
+            const authParamters = {
                 bonded: event.bonded,
                 sm1Levels: event.sm1_levels.lv3 ? 3
                             : event.sm1_levels.lv2 ? 2
@@ -491,7 +493,9 @@ class Adapter extends EventEmitter {
                 sm2Levels: null, // TODO: Add when supported in api
                 keysDistPeriph: null, // TODO: Add when supported in api
                 keysDistCentral: null, // TODO: Add when supported in api
-            });
+            };
+
+            this.emit('securityChanged', device, authParamters);
         } else {
             this.emit('error', 'Pairing failed with error ' + event.auth_status);
         }
