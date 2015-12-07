@@ -12,9 +12,6 @@ const Descriptor = require('./descriptor');
 const AdType = require('./util/adType');
 const Converter = require('./util/sdConv');
 
-// No caching of devices
-// Do cache service database
-
 var make_error = function(userMessage, description) {
     return { message: userMessage, description: description };
 };
@@ -68,7 +65,6 @@ class Adapter extends EventEmitter {
         return type;
     }
 
-    // Get the instance id
     get instanceId() {
         return this._instanceId;
     }
@@ -112,40 +108,14 @@ class Adapter extends EventEmitter {
         }
     }
 
-/*
-    _arrayToString(array) {
-        let string = '';
-
-        for (let i = array.length - 1; i >= 0; i--) {
-            let byteString = array[i].toString(16);
-            byteString = ('0' + byteString).slice(-2);
-            string += byteString;
-        }
-
-        string = '0x' + string.toUpperCase();
-
-        return string;
-    }
-*/
-
     _numberTo16BitUuid(uuid16Bit) {
-        //const base = '00001000800000805F9B34FB';
-        //let string = '0000';
-
         let byteString = uuid16Bit.toString(16);
         byteString = ('000' + byteString).slice(-4);
 
-        //string += byteString;
-        //string += base;
-        //return string.toUpperCase();
         return byteString.toUpperCase();
     }
 
     _arrayTo128BitUuid(array) {
-        //const insertHyphen = (string, index) => {
-        //    return string.substr(0, index) + '-' + string.substr(index);
-        //};
-
         let string = '';
 
         for (let i = array.length - 1; i >= 0; i--) {
@@ -153,11 +123,6 @@ class Adapter extends EventEmitter {
             byteString = ('0' + byteString).slice(-2);
             string += byteString;
         }
-
-        //string = insertHyphen(string, 20);
-        //string = insertHyphen(string, 16);
-        //string = insertHyphen(string, 12);
-        //string = insertHyphen(string, 8);
 
         return string.toUpperCase();
     }
@@ -189,14 +154,10 @@ class Adapter extends EventEmitter {
         this.emit('closed', this);
     }
 
-    // TODO: log callback function declared here or in open call?;
     _logCallback(severity, message) {
-        if (severity > 0) {
-            console.log('log: ' + severity + ', ' + message);
-        }
+        this.emit('logMessage', severity, message);
     }
 
-    // TODO: event callback function declared here or in open call?;
     _eventCallback(eventArray) {
         eventArray.forEach(event => {
             switch (event.id) {
@@ -219,11 +180,9 @@ class Adapter extends EventEmitter {
                     this._parseConnSecUpdateEvent(event);
                     break;
                 // TODO: Implement for security/bonding
-                /*
-                case this._bleDriver.BLE_GAP_EVT_SEC_INFO_REQUEST:
-                case this._bleDriver.BLE_GAP_EVT_PASSKEY_DISPLAY:
-                case this._bleDriver.BLE_GAP_EVT_AUTH_KEY_REQUEST:
-                */
+                // case this._bleDriver.BLE_GAP_EVT_SEC_INFO_REQUEST:
+                // case this._bleDriver.BLE_GAP_EVT_PASSKEY_DISPLAY:
+                // case this._bleDriver.BLE_GAP_EVT_AUTH_KEY_REQUEST:
                 case this._bleDriver.BLE_GAP_EVT_TIMEOUT:
                     this._parseGapTimeoutEvent(event);
                     break;
