@@ -8,7 +8,9 @@
 // stdout for debugging
 #include <iostream>
 
+#define UUID_16_BIT_STR_SIZE 4
 #define UUID_128_BIT_STR_SIZE 36
+#define UUID_16_BIT_SPRINTF "%04X"
 #define UUID_128_BIT_SPRINTF "%04X%04X-0000-1000-8000-00805F9B34FB"
 #define UUID_128_BIT_COMPLETE_SPRINTF "%04X%04X-%04X-%04X-%04X-%04X%04X%04X"
 
@@ -149,7 +151,7 @@ v8::Local<v8::Object> GapAddr::ToJs()
 
     size_t addr_len = BLE_GAP_ADDR_LEN * 3; // Each byte -> 2 chars, : separator _between_ each byte and a null termination byte
     char *addr = (char*)malloc(addr_len);
-	assert(addr != NULL);
+    assert(addr != NULL);
     uint8_t *ptr = native->addr;
 
     sprintf(addr, "%02X:%02X:%02X:%02X:%02X:%02X", ptr[5], ptr[4], ptr[3], ptr[2], ptr[1], ptr[0]);
@@ -177,11 +179,11 @@ ble_gap_addr_t *GapAddr::ToNative()
     v8::Local<v8::String> addressString = getAddress->ToString();
     size_t addr_len = addressString->Length() + 1;
     char *addr = (char*)malloc(addr_len);
-	assert(addr != NULL);
+    assert(addr != NULL);
     addressString->WriteUtf8(addr, addr_len);
 
     int scan_count = sscanf(addr, "%2x:%2x:%2x:%2x:%2x:%2x", &(ptr[5]), &(ptr[4]), &(ptr[3]), &(ptr[2]), &(ptr[1]), &(ptr[0]));
-	assert(scan_count == 6);
+    assert(scan_count == 6);
 
     free(addr);
 
@@ -356,9 +358,9 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 // Fetch 16 bit UUIDS and put them into the array
                 for (int i = 0; i < ad_len - 1; i += 2)
                 {
-                    char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
-					assert(uuid_as_text != NULL);
-                    sprintf(uuid_as_text, UUID_128_BIT_SPRINTF, 0, uint16_decode((uint8_t*)data + sub_pos + i));
+                    char *uuid_as_text = (char*)malloc(UUID_16_BIT_STR_SIZE + 1);
+                    assert(uuid_as_text != NULL);
+                    sprintf(uuid_as_text, UUID_16_BIT_SPRINTF, uint16_decode((uint8_t*)data + sub_pos + i));
                     Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
                     free(uuid_as_text);
                     array_pos++;
@@ -376,7 +378,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 for (int i = 0; i < ad_len - 1; i += 4)
                 {
                     char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
-					assert(uuid_as_text != NULL);
+                    assert(uuid_as_text != NULL);
 
                     sprintf(uuid_as_text, UUID_128_BIT_SPRINTF,
                             uint16_decode((uint8_t*)data + sub_pos + 2 + i),
@@ -1297,7 +1299,7 @@ void GapSetAddress(uv_work_t *req)
 // This runs in Main Thread
 void AfterGapSetAddress(uv_work_t *req)
 {
-	Nan::HandleScope scope;
+    Nan::HandleScope scope;
 
     GapAddressSetBaton *baton = static_cast<GapAddressSetBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
@@ -1354,7 +1356,7 @@ void GapGetAddress(uv_work_t *req)
 // This runs in Main Thread
 void AfterGapGetAddress(uv_work_t *req)
 {
-	Nan::HandleScope scope;
+    Nan::HandleScope scope;
 
     GapAddressGetBaton *baton = static_cast<GapAddressGetBaton *>(req->data);
     v8::Local<v8::Value> argv[2];
@@ -1429,7 +1431,7 @@ void GapUpdateConnectionParameters(uv_work_t *req)
 // This runs in Main Thread
 void AfterGapUpdateConnectionParameters(uv_work_t *req)
 {
-	Nan::HandleScope scope;
+    Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     GapUpdateConnectionParametersBaton *baton = static_cast<GapUpdateConnectionParametersBaton *>(req->data);
@@ -1492,7 +1494,7 @@ void GapDisconnect(uv_work_t *req)
 // This runs in Main Thread
 void AfterGapDisconnect(uv_work_t *req)
 {
-	Nan::HandleScope scope;
+    Nan::HandleScope scope;
 
     GapDisconnectBaton *baton = static_cast<GapDisconnectBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
@@ -1551,7 +1553,7 @@ void GapSetTXPower(uv_work_t *req)
 // This runs in Main Thread
 void AfterGapSetTXPower(uv_work_t *req)
 {
-	Nan::HandleScope scope;
+    Nan::HandleScope scope;
 
     TXPowerBaton *baton = static_cast<TXPowerBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
@@ -1626,7 +1628,7 @@ void GapSetDeviceName(uv_work_t *req)
 // This runs in Main Thread
 void AfterGapSetDeviceName(uv_work_t *req)
 {
-	Nan::HandleScope scope;
+    Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
     GapSetDeviceNameBaton *baton = static_cast<GapSetDeviceNameBaton *>(req->data);
@@ -1683,7 +1685,7 @@ void GapGetDeviceName(uv_work_t *req)
 // This runs in Main Thread
 void AfterGapGetDeviceName(uv_work_t *req)
 {
-	Nan::HandleScope scope;
+    Nan::HandleScope scope;
 
     GapGetDeviceNameBaton *baton = static_cast<GapGetDeviceNameBaton *>(req->data);
     v8::Local<v8::Value> argv[2];
@@ -1815,7 +1817,7 @@ void GapStopRSSI(uv_work_t *req)
 // This runs in Main Thread
 void AfterGapStopRSSI(uv_work_t *req)
 {
-	Nan::HandleScope scope;
+    Nan::HandleScope scope;
 
     GapStopRSSIBaton *baton = static_cast<GapStopRSSIBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
@@ -1873,7 +1875,7 @@ void StartScan(uv_work_t *req)
 // This runs in Main Thread
 void AfterStartScan(uv_work_t *req)
 {
-	Nan::HandleScope scope;
+    Nan::HandleScope scope;
 
     StartScanBaton *baton = static_cast<StartScanBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
@@ -1925,7 +1927,7 @@ void StopScan(uv_work_t *req)
 // This runs in Main Thread
 void AfterStopScan(uv_work_t *req)
 {
-	Nan::HandleScope scope;
+    Nan::HandleScope scope;
 
     StopScanBaton *baton = static_cast<StopScanBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
@@ -2022,7 +2024,7 @@ void GapConnect(uv_work_t *req)
 // This runs in Main Thread
 void AfterGapConnect(uv_work_t *req)
 {
-	Nan::HandleScope scope;
+    Nan::HandleScope scope;
 
     GapConnectBaton *baton = static_cast<GapConnectBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
@@ -2074,7 +2076,7 @@ void GapCancelConnect(uv_work_t *req)
 // This runs in Main Thread
 void AfterGapCancelConnect(uv_work_t *req)
 {
-	Nan::HandleScope scope;
+    Nan::HandleScope scope;
 
     GapConnectCancelBaton *baton = static_cast<GapConnectCancelBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
@@ -2139,7 +2141,7 @@ void GapGetRSSI(uv_work_t *req)
 // This runs in Main Thread
 void AfterGapGetRSSI(uv_work_t *req)
 {
-	Nan::HandleScope scope;
+    Nan::HandleScope scope;
 
     GapGetRSSIBaton *baton = static_cast<GapGetRSSIBaton *>(req->data);
     v8::Local<v8::Value> argv[2];

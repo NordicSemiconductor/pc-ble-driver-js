@@ -84,7 +84,9 @@ class Device {
             } else if (advertisingData.BLE_GAP_AD_TYPE_COMPLETE_LOCAL_NAME) {
                 this.name = advertisingData.BLE_GAP_AD_TYPE_COMPLETE_LOCAL_NAME;
             }
-        } else {
+        }
+
+        if (!this.name) {
             this.name = '';
         }
     }
