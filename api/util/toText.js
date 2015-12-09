@@ -63,7 +63,7 @@ const rewriter = function(value) {
 
     try {
         for (let rewrite_rule in rewrite_rules) {
-            let rule = rewrite_rules[rewrite_rule];
+            const rule = rewrite_rules[rewrite_rule];
 
             if (rule.expr.test(value)) {
                 return rule.on_match(rule.expr.exec(value));
@@ -101,10 +101,10 @@ class ToText {
     }
 
     eventToTextual() {
-        var evt = this.event.name.split('BLE_')[1];
+        const evt = this.event.name.split('BLE_')[1];
 
         if (this.event.adv_type !== undefined) {
-            var advEvt = this.event.adv_type.split('BLE_GAP_ADV_TYPE_')[1];
+            const advEvt = this.event.adv_type.split('BLE_GAP_ADV_TYPE_')[1];
             this.current_stack.push(`${evt}/${advEvt}`);
         } else {
             this.current_stack.push(evt);
@@ -112,37 +112,37 @@ class ToText {
     }
 
     genericToTextual() {
-        var evt = this.event;
+        const evt = this.event;
         this.current_stack.push(this._extractValues(evt).join(' '));
     }
 
     _extractValues(obj) {
-        let old_stack = this.current_stack;
-        let new_stack = [];
+        const old_stack = this.current_stack;
+        const new_stack = [];
         this.current_stack = new_stack;
 
-        let keys = Object.keys(obj);
+        const keys = Object.keys(obj);
 
         for (let _key in keys) {
-            var key = keys[_key];
+            let key = keys[_key];
 
             if (key == 'id') { continue; }
             if (key == 'data') { continue; }
             if (key == 'name') { continue; }
 
-            var value = eval(`obj.${key}`);
+            let value = eval(`obj.${key}`);
 
             key = rewriter(key);
 
             if (value.constructor === Array) {
                 const array_stack = [];
 
-                for (var entry in value) {
-                    var entry_data = this._extractValues(value[entry]);
+                for (let entry in value) {
+                    const entry_data = this._extractValues(value[entry]);
                     array_stack.push(`[${entry_data}]`);
                 }
 
-                let data = array_stack.join(',');
+                const data = array_stack.join(',');
                 this.current_stack.push(`${key}:[${data}]`);
             } else if (typeof value === 'object') {
                 let data = this._extractValues(value);
@@ -164,38 +164,38 @@ class ToText {
     }
 
     gapGeneric() {
-        let event = this.event;
+        const event = this.event;
         if (event === undefined) { return; }
 
-        let keys = Object.keys(event.data);
+        const keys = Object.keys(event.data);
 
         for (let _key in keys) {
-            let key = keys[_key];
+            const key = keys[_key];
 
             if (key.search('BLE_GAP_AD_TYPE_') != -1) {
                 // We process BLE_GAP_AD_TYPES_FLAGS somewhere else
                 if (key.search('BLE_GAP_AD_TYPE_FLAGS') != -1) { continue; }
 
-                let value = eval(`event.data.${key}`);
-                let name = rewriter(key);
+                const value = eval(`event.data.${key}`);
+                const name = rewriter(key);
                 this.current_stack.push(`${name}:${value}`);
             }
         }
     }
 
     gapToTextual() {
-        var event = this.event;
+        let event = this.event;
 
         if (event === undefined) { return; }
         if (event.data === undefined) { return; }
 
-        var gap = [];
-        var old_stack = this.current_stack;
+        const gap = [];
+        const old_stack = this.current_stack;
         this.current_stack = gap;
 
         // Process flags if they are present
         if (event.data.BLE_GAP_AD_TYPE_FLAGS !== undefined) {
-            var flags = [];
+            let flags = [];
 
             event.data.BLE_GAP_AD_TYPE_FLAGS.forEach(flag => {
                 flags.push(rewriter(flag));
@@ -213,12 +213,12 @@ class ToText {
         if (gap.length === 0) { return; }
 
         // Join all GAP information and add to stack
-        var text = gap.join(' ');
+        const text = gap.join(' ');
         this.current_stack.push(`gap:[${text}]`);
     }
 
     dataToTextual() {
-        var event = this.event;
+        const event = this.event;
 
         if (!event) { return; }
         if (!event.data) { return; }
@@ -233,7 +233,7 @@ class ToText {
     }
 
     static peerAddressToTextual(event) {
-        var role = '';
+        let role = '';
 
         if (event.peer_addr !== undefined) {
             if (event.role !== undefined) {
