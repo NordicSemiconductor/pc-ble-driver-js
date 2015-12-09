@@ -1266,6 +1266,28 @@ class Adapter extends EventEmitter {
         });
     }
 
+    setDeviceName(deviceName, security, callback) {
+        const convertedSecurity = Converter.securityModeToDriver(security);
+
+        this._bleDriver.gat_set_device_name(convertedSecurity, deviceName, err => {
+            if (err) {
+                this.emit('error', make_error('Failed to set device name', err));
+            }
+
+            callback(err);
+        });
+    }
+
+    setAppearance(appearance, callback) {
+        this._bleDriver.gap_set_appearance(appearance, err => {
+            if (err) {
+                this.emit('error', make_error('Failed to set appearance', err));
+            }
+
+            callback(err);
+        });
+    }
+
     // Get connected device/devices
     // Callback signature function(devices : Device[]) {}
     getDevices() {
@@ -1771,15 +1793,17 @@ class Adapter extends EventEmitter {
             p = addService.bind(undefined, service, this._getServiceType(service));
             promises.push(p);
 
-            for (let characteristic of service._factory_characteristics) {
-                p = addCharacteristic.bind(undefined, characteristic);
-                promises.push(p);
+            if (service._factory_characteristics) {
+                for (let characteristic of service._factory_characteristics) {
+                    p = addCharacteristic.bind(undefined, characteristic);
+                    promises.push(p);
 
-                if (characteristic._factory_descriptors) {
-                    for (let descriptor of characteristic._factory_descriptors) {
-                        if (!this._converter.isSpecialUUID(descriptor.uuid)) {
-                            p = addDescriptor.bind(undefined, descriptor);
-                            promises.push(p);
+                    if (characteristic._factory_descriptors) {
+                        for (let descriptor of characteristic._factory_descriptors) {
+                            if (!this._converter.isSpecialUUID(descriptor.uuid)) {
+                                p = addDescriptor.bind(undefined, descriptor);
+                                promises.push(p);
+                            }
                         }
                     }
                 }
