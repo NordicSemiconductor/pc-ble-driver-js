@@ -1,6 +1,5 @@
 'use strict';
 
-const util = require('util');
 const EventEmitter = require('events');
 const _ = require('underscore');
 
@@ -11,6 +10,8 @@ const Characteristic = require('./characteristic');
 const Descriptor = require('./descriptor');
 const AdType = require('./util/adType');
 const Converter = require('./util/sdConv');
+const ToText = require('./util/toText');
+const logLevel = require('./util/logLevel');
 
 var make_error = function(userMessage, description) {
     return { message: userMessage, description: description };
@@ -20,9 +21,9 @@ class Adapter extends EventEmitter {
     constructor(bleDriver, instanceId, port) {
         super();
 
-        if (bleDriver === undefined) throw new Error('Missing argument bleDriver.');
-        if (instanceId === undefined) throw new Error('Missing argument instanceId.');
-        if (port === undefined) throw new Error('Missing argument port.');
+        if (bleDriver === undefined) { throw new Error('Missing argument bleDriver.'); }
+        if (instanceId === undefined) { throw new Error('Missing argument instanceId.'); }
+        if (port === undefined) { throw new Error('Missing argument port.'); }
 
         this._bleDriver = bleDriver;
         this._instanceId = instanceId;
@@ -78,7 +79,7 @@ class Adapter extends EventEmitter {
         if (err) {
             var error = make_error(userMessage, err);
             this.emit('error', error);
-            if (callback) callback(error);
+            if (callback) { callback(error); }
             return true;
         }
 
@@ -131,18 +132,18 @@ class Adapter extends EventEmitter {
     open(options, callback) {
         this._changeState({baudRate: options.baudRate, parity: options.parity, flowControl: options.flowControl});
 
-        if (!options.eventInterval) options.eventInterval = 0;
         options.logCallback = this._logCallback.bind(this);
+        if (!options.eventInterval) { options.eventInterval = 0; }
         options.eventCallback = this._eventCallback.bind(this);
 
         this._bleDriver.open(this._state.port, options, err => {
-            if (this.checkAndPropagateError(err, 'Error occurred opening serial port.', callback)) return;
+            if (this.checkAndPropagateError(err, 'Error occurred opening serial port.', callback)) { return; }
 
             this._changeState({available: true});
             this.emit('opened', this);
             this.getState((err, state) => {
-                if (this.checkAndPropagateError(err, 'Error retrieving adapter state.', callback)) return;
-                if (callback) callback();
+                if (this.checkAndPropagateError(err, 'Error retrieving adapter state.', callback)) { return; }
+                if (callback) { callback(); }
             });
         });
     }
@@ -160,6 +161,9 @@ class Adapter extends EventEmitter {
 
     _eventCallback(eventArray) {
         eventArray.forEach(event => {
+            const text = new ToText(event);
+            this.emit('logMessage', logLevel.DEBUG, text.toString());
+
             switch (event.id) {
                 case this._bleDriver.BLE_GAP_EVT_CONNECTED:
                     this._parseConnectedEvent(event);
