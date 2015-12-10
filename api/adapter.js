@@ -1269,7 +1269,7 @@ class Adapter extends EventEmitter {
     setDeviceName(deviceName, security, callback) {
         const convertedSecurity = Converter.securityModeToDriver(security);
 
-        this._bleDriver.gat_set_device_name(convertedSecurity, deviceName, err => {
+        this._bleDriver.gap_set_device_name(convertedSecurity, deviceName, err => {
             if (err) {
                 this.emit('error', make_error('Failed to set device name', err));
             }
