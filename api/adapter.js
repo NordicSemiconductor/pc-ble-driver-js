@@ -1722,6 +1722,10 @@ class Adapter extends EventEmitter {
                                     this._characteristics[characteristic.instanceId] = characteristic; // TODO: what if we fail later on this ?
                                     resolve(data);
 
+                                    if (!characteristic._factory_descriptors) {
+                                        return;
+                                    }
+
                                     const findDescriptor = uuid => {
                                         return characteristic._factory_descriptors.find(descriptor => {
                                             return descriptor.uuid === uuid;
