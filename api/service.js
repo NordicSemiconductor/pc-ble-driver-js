@@ -34,7 +34,7 @@ class Service {
         return this._instanceId;
     }
 
-    // device address of the remote peripheral that the GATT service belongs to. 'local' when local.
+    // device address of the remote peripheral that the GATT service belongs to. 'local.server' when local.
     get deviceInstanceId() {
         return this._deviceInstanceId;
     }

@@ -37,7 +37,7 @@ class Device {
         return this._instanceId;
     }
 
-    // Get the BLE address. 'local': local/adapter, non-'local': other device
+    // Get the BLE address. 'local.server': local/adapter, non-'local.server': other device
     get address() {
         return this._address;
     }

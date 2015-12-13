@@ -1084,7 +1084,7 @@ class Adapter extends EventEmitter {
     _parseGattsWriteEvent(event) {
         // TODO: BLE_GATTS_OP_SIGN_WRITE_CMD not supported?
         const remoteDevice = this._getDeviceByConnectionHandle(event.conn_handle);
-        const attribute = this._getAttributeByHandle('local', event.handle);
+        const attribute = this._getAttributeByHandle('local.server', event.handle);
 
         if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ ||
             event.op === this._bleDriver.BLE_GATTS_OP_WRITE_CMD) {
@@ -1133,7 +1133,7 @@ class Adapter extends EventEmitter {
     _parseGattsRWAutorizeRequestEvent(event) {
         let authorizeReplyParams;
         if (event.type === this._bleDriver.BLE_GATTS_AUTHORIZE_TYPE_WRITE) {
-            const attribute = this._getAttributeByHandle('local', event.write.handle);
+            const attribute = this._getAttributeByHandle('local.server', event.write.handle);
             this._writeLocalValue(attribute, event.write.data, event.write.offset, error => {
                 if (error) {
                     this.emit('error', make_error('Failed to set local attribute value from rwAuthorizeRequest', error));
@@ -1175,7 +1175,7 @@ class Adapter extends EventEmitter {
 
     _parseGattsHvcEvent(event) {
         const remoteDevice = this._getDeviceByConnectionHandle(event.conn_handle);
-        const characteristic = this._getCharacteristicByHandle('local', event.handle);
+        const characteristic = this._getCharacteristicByHandle('local.server', event.handle);
 
         if (this._pendingNotificationsAndIndications.deviceNotifiedOrIndicated) {
             this._pendingNotificationsAndIndications.deviceNotifiedOrIndicated(remoteDevice, characteristic);
