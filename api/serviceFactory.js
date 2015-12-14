@@ -10,7 +10,7 @@ class ServiceFactory {
 
     createService(uuid, serviceType) {
         if (!serviceType) serviceType = 'primary';
-        return new Service('local.device', uuid, serviceType);
+        return new Service('local.server', uuid, serviceType);
     }
 
     // returns Characteristic
