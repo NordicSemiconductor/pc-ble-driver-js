@@ -1278,6 +1278,11 @@ class Adapter extends EventEmitter {
         });
     }
 
+    _setDeviceNameFromArray(valueArray, writePerm, callback) {
+        const nameArray = valueArray.concat(0);
+        this._setDeviceName(nameArray, writePerm, callback);
+    }
+
     _setAppearance(appearance, callback) {
         this._bleDriver.gap_set_appearance(appearance, err => {
             if (err) {
@@ -1288,6 +1293,11 @@ class Adapter extends EventEmitter {
         });
     }
 
+    _setAppearanceFromArray(valueArray, callback) {
+        const appearanceValue = valueArray[0] + (valueArray[1] << 8);
+        this._setAppearance(appearanceValue, callback);
+    }
+
     _setPPCP(ppcp, callback) {
         this._bleDriver.gap_set_ppcp(ppcp, err => {
             if (err) {
@@ -1296,6 +1306,18 @@ class Adapter extends EventEmitter {
 
             callback(err);
         });
+    }
+
+    _setPPCPFromArray(valueArray, callback) {
+        // TODO: Fix addon parameter check to also accept arrays? Atleast avoid converting twice
+        const ppcpParameter = {
+            min_conn_interval: (valueArray[0] + (valueArray[1] << 8)) * (1250 / 1000),
+            max_conn_interval: (valueArray[2] + (valueArray[3] << 8)) * (1250 / 1000),
+            slave_latency: (valueArray[4] + (valueArray[5] << 8)),
+            conn_sup_timeout: (valueArray[6] + (valueArray[7] << 8)) * (10000 / 1000),
+        };
+
+        this._setPPCP(ppcpParameter, callback);
     }
 
     // Get connected device/devices
@@ -1702,7 +1724,7 @@ class Adapter extends EventEmitter {
                             reject(make_error('Error occurred adding service.', err));
                         } else {
                             data.serviceHandle = serviceHandle;
-                            service.handle = serviceHandle;
+                            service.startHandle = serviceHandle;
                             this._services[service.instanceId] = service; // TODO: what if we fail later on this service ?
                             resolve(data);
                         }
@@ -1804,12 +1826,8 @@ class Adapter extends EventEmitter {
                 // TODO: Fix Device Name uuid magic number
                 if (characteristic.uuid === '2A00') {
                     // TODO: At some point addon should accept string.
-                    const nameArray = characteristic.value.concat(0);
-
-                    this._setDeviceName(nameArray, characteristic.properties.writePerm, err => {
-                        if (err) {
-                            this.emit('error', make_error('Failed to set device name.', err));
-                        } else {
+                    this._setDeviceNameFromArray(characteristic.value, characteristic.properties.writePerm, err => {
+                        if (!err) {
                             characteristic.declarationHandle = 2;
                             characteristic.valueHandle = 3;
                             this._characteristics[characteristic.instanceId] = characteristic;
@@ -1819,12 +1837,8 @@ class Adapter extends EventEmitter {
 
                 // TODO: Fix Appearance uuid magic number
                 if (characteristic.uuid === '2A01') {
-                    const appearanceValue = characteristic.value[0] + (characteristic.value[1] << 8);
-
-                    this._setAppearance(appearanceValue, err => {
-                        if (err) {
-                            this.emit('error', make_error('Failed to set Appearance.', err));
-                        } else {
+                    this._setAppearanceFromArray(characteristic.value, err => {
+                        if (!err) {
                             characteristic.declarationHandle = 4;
                             characteristic.valueHandle = 5;
                             this._characteristics[characteristic.instanceId] = characteristic;
@@ -1834,18 +1848,8 @@ class Adapter extends EventEmitter {
 
                 // TODO: Fix Peripheral Preferred Connection Parameters uuid magic number
                 if (characteristic.uuid === '2A04') {
-                    // TODO: Fix addon parameter check to also accept arrays? Atleast avoid converting twice
-                    const ppcpParameter = {
-                        min_conn_interval: (characteristic.value[0] + (characteristic.value[1] << 8)) * (1250 / 1000),
-                        max_conn_interval: (characteristic.value[2] + (characteristic.value[3] << 8)) * (1250 / 1000),
-                        slave_latency: (characteristic.value[4] + (characteristic.value[5] << 8)),
-                        conn_sup_timeout: (characteristic.value[6] + (characteristic.value[7] << 8)) * (10000 / 1000),
-                    };
-
-                    this._setPPCP(ppcpParameter, err => {
-                        if (err) {
-                            this.emit('error', make_error('Failed to set PPCP.', err));
-                        } else {
+                    this._setPPCPFromArray(characteristic.value, err => {
+                        if (!err) {
                             characteristic.declarationHandle = 6;
                             characteristic.valueHandle = 7;
                             this._characteristics[characteristic.instanceId] = characteristic;
@@ -1865,10 +1869,12 @@ class Adapter extends EventEmitter {
                 service.startHandle = 1;
                 service.endHandle = 7;
                 applyGapServiceCharacteristics(service);
+                this._services[service.instanceId] = service;
                 continue;
             } else if (service.uuid === '1801') {
                 service.startHandle = 8;
                 service.endHandle = 8;
+                this._services[service.instanceId] = service;
                 continue;
             }
 
@@ -2327,6 +2333,47 @@ class Adapter extends EventEmitter {
 
         if (!this._instanceIdIsOnLocalDevice(attribute.instanceId)) {
             this.emit('error', make_error('Attribute was not a local attribute'));
+            return;
+        }
+
+        // TODO: Do we know that the attributes are the correct attributes?
+        if (attribute.uuid === '2A00') {
+            // TODO: At some point addon should accept string.
+            // TODO: Fix write perm to be same as set at server setup.
+            this._setDeviceNameFromArray(value, ['open'], err => {
+                if (err) {
+                    completeCallback(err);
+                }
+
+                attribute.value = value;
+                completeCallback(undefined, attribute);
+            });
+            return;
+        }
+
+        // TODO: Fix Appearance uuid magic number
+        if (attribute.uuid === '2A01') {
+            this._setAppearanceFromArray(value, err => {
+                if (err) {
+                    completeCallback(err);
+                }
+
+                attribute.value = value;
+                completeCallback(undefined, attribute);
+            });
+            return;
+        }
+
+        // TODO: Fix Peripheral Preferred Connection Parameters uuid magic number
+        if (attribute.uuid === '2A04') {
+            this._setPPCPFromArray(value, err => {
+                if (err) {
+                    completeCallback(err);
+                }
+
+                attribute.value = value;
+                completeCallback(undefined, attribute);
+            });
             return;
         }
 
