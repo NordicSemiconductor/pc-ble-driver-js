@@ -1014,8 +1014,8 @@ class Adapter extends EventEmitter {
         return foundCharacteristic;
     }
 
-    _getCharacteristicByValueHandle(valueHandle) {
-        return _.find(this._characteristics, characteristic => characteristic.valueHandle === valueHandle);
+    _getCharacteristicByValueHandle(devinceInstanceId, valueHandle) {
+        return _.find(this._characteristics, characteristic => this._services[characteristic.serviceInstanceId].deviceInstanceId === devinceInstanceId && characteristic.valueHandle === valueHandle);
     }
 
     _getDescriptorByHandle(deviceInstanceId, handle) {
@@ -1060,7 +1060,8 @@ class Adapter extends EventEmitter {
             });
         }
 
-        const characteristic = this._getCharacteristicByValueHandle(event.handle);
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
+        const characteristic = this._getCharacteristicByValueHandle(device.instanceId, event.handle);
         if (!characteristic) {
             this.emit('error', make_error('Cannot handle HVX event', 'No characteristic has a value descriptor with handle: ' + event.handle));
             return;
@@ -1773,7 +1774,12 @@ class Adapter extends EventEmitter {
                                     if (handles.cccd_handle) {
                                         const cccdDescriptor = findDescriptor('2902');
                                         cccdDescriptor.handle = handles.cccd_handle;
+
                                         cccdDescriptor.value = {};
+                                        for (deviceInstanceId in this._devices) {
+                                            this._setDescriptorValue(cccdDescriptor, [0,0], deviceInstanceId);
+                                        }
+
                                         this._descriptors[cccdDescriptor.instanceId] = cccdDescriptor;
                                     }
 
@@ -2017,7 +2023,7 @@ class Adapter extends EventEmitter {
             const descriptor = this._descriptors[descriptorInstanceId];
             if (this._instanceIdIsOnLocalDevice(descriptorInstanceId) &&
                 this._isDescriptorPerConnectionBased(descriptor)) {
-                this._setDescriptorValue(descriptor, 0, deviceId);
+                this._setDescriptorValue(descriptor, [0, 0], deviceId);
                 this.emit('descriptorValueChanged', descriptor);
             }
         }
