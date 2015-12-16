@@ -1767,26 +1767,25 @@ class Adapter extends EventEmitter {
 
                                     if (handles.user_desc_handle) {
                                         const userDescriptionDescriptor = findDescriptor('2901');
-                                        userDescriptionDescriptor.handle = handles.user_desc_handle;
                                         this._descriptors[userDescriptionDescriptor.instanceId] = userDescriptionDescriptor;
+                                        userDescriptionDescriptor.handle = handles.user_desc_handle;
                                     }
 
                                     if (handles.cccd_handle) {
                                         const cccdDescriptor = findDescriptor('2902');
-                                        cccdDescriptor.handle = handles.cccd_handle;
-
-                                        cccdDescriptor.value = {};
-                                        for (deviceInstanceId in this._devices) {
-                                            this._setDescriptorValue(cccdDescriptor, [0,0], deviceInstanceId);
-                                        }
-
                                         this._descriptors[cccdDescriptor.instanceId] = cccdDescriptor;
+                                        cccdDescriptor.handle = handles.cccd_handle;
+                                        cccdDescriptor.value = {};
+
+                                        for (let deviceInstanceId in this._devices) {
+                                            this._setDescriptorValue(cccdDescriptor, [0, 0], deviceInstanceId);
+                                        }
                                     }
 
                                     if (handles.sccd_handle) {
                                         const sccdDescriptor = findDescriptor('2903');
-                                        sccdDescriptor.handle = handles.sccd_handle;
                                         this._descriptors[sccdDescriptor.instanceId] = sccdDescriptor;
+                                        sccdDescriptor.handle = handles.sccd_handle;
                                     }
                                 }
                             }
