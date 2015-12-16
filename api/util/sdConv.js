@@ -3,6 +3,8 @@
 class SoftDeviceConverter {
     constructor(bleDriver) {
         this._bleDriver = bleDriver;
+
+        this.vsUuidStore = [];
     }
 
     static securityModeToDriver(mode) {
@@ -83,15 +85,23 @@ class SoftDeviceConverter {
             callback(undefined, retval);
         } else if (uuid.length == 32) {
             // Register UUID with SoftDevice
-            // TODO: add UUID to a API register, if it does not exist in register, call function below
+            const uuidBase = uuid.slice(0, 4) + '0000' + uuid.slice(8);
+            const vsUuidIndex = this.vsUuidStore.indexOf(uuidBase);
+            if (vsUuidIndex >= 0) {
+                retval.type = vsUuidIndex + 2;
+                retval.uuid = parseInt(uuid.slice(4, 8), 16);
+                callback(undefined, retval);
+            }
+
             this._bleDriver.add_vs_uuid({ uuid128: uuid }, (err, type) => {
                 if (err) {
                     callback(err);
                     return;
                 }
 
+                this.vsUuidStore.push(uuidBase);
                 retval.type = type;
-                retval.uuid = uuid; // TODO: Use callback function to retrieve 16-bit version of UUID
+                retval.uuid = parseInt(uuid.slice(4, 8), 16);
                 callback(undefined, retval);
             });
         } else {

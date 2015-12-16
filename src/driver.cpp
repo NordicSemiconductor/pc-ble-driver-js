@@ -256,7 +256,7 @@ void on_rpc_event(uv_async_t *handle)
                 GATTC_EVT_CASE(HVX,                         HandleValueNotification,       hvx,                        array, array_idx, event_entry);
                 GATTC_EVT_CASE(TIMEOUT,                     Timeout,                       timeout,                    array, array_idx, event_entry);
 
-                GATTS_EVT_CASE(WRITE,                   Write,                  write,              array, array_idx, event_entry);               
+                GATTS_EVT_CASE(WRITE,                   Write,                  write,              array, array_idx, event_entry);
                 GATTS_EVT_CASE(RW_AUTHORIZE_REQUEST,    RWAuthorizeRequest,     authorize_request,  array, array_idx, event_entry);
                 GATTS_EVT_CASE(SYS_ATTR_MISSING,        SystemAttributeMissing, sys_attr_missing,   array, array_idx, event_entry);
                 GATTS_EVT_CASE(HVC,                     HVC,                    hvc,                array, array_idx, event_entry);
@@ -264,7 +264,7 @@ void on_rpc_event(uv_async_t *handle)
 
                 // Handled special as there is no parameter for this in the event struct.
                 GATTS_EVT_CASE(SC_CONFIRM, SCConfirm, timeout, array, array_idx, event_entry);
-                
+
             default:
                 std::cout << "Event " << event->header.evt_id << " unknown to me." << std::endl;
                 break;
@@ -282,7 +282,7 @@ void on_rpc_event(uv_async_t *handle)
     callback_value[0] = array;
 
     auto start = chrono::high_resolution_clock::now();
-    
+
     if (driver_event_callback != NULL)
     {
         driver_event_callback->Call(1, callback_value);
@@ -301,7 +301,7 @@ v8::Local<v8::Object> CommonTXCompleteEvent::ToJs()
     BleDriverCommonEvent::ToJs(obj);
 
     Utility::Set(obj, "count", ConversionUtility::toJsNumber(evt->count));
-    
+
     return scope.Escape(obj);
 }
 
@@ -330,14 +330,14 @@ v8::Local<v8::Object> CommonMemReleaseEvent::ToJs()
 }
 
 // This function runs in the Main Thread
-NAN_METHOD(Open) 
+NAN_METHOD(Open)
 {
     v8::Local<v8::Object> options;
     v8::Local<v8::Function> callback;
     int argumentcount = 0;
 
     // Path to device
-    if (!info[0]->IsString()) 
+    if (!info[0]->IsString())
     {
         Nan::ThrowTypeError("First argument must be a string");
         return;
@@ -413,7 +413,7 @@ NAN_METHOD(Open)
 }
 
 // This runs in a worker thread (not Main Thread)
-void Open(uv_work_t *req) 
+void Open(uv_work_t *req)
 {
     OpenBaton *baton = static_cast<OpenBaton *>(req->data);
 
@@ -454,7 +454,7 @@ void Open(uv_work_t *req)
     // Open RPC connection to device
     int err = sd_rpc_open();
 
-    if (err != NRF_SUCCESS) 
+    if (err != NRF_SUCCESS)
     {
         // Need to communicate back to Main Thread that this failed.
         baton->result = err;
@@ -470,7 +470,7 @@ void Open(uv_work_t *req)
 }
 
 // This runs in  Main Thread
-void AfterOpen(uv_work_t *req) 
+void AfterOpen(uv_work_t *req)
 {
     // TODO: handle if .Close is called before this function is called.
 	Nan::HandleScope scope;
@@ -505,7 +505,7 @@ void AfterOpen(uv_work_t *req)
     delete baton;
 }
 
-NAN_METHOD(Close) 
+NAN_METHOD(Close)
 {
     v8::Local<v8::Function> callback;
 
@@ -528,7 +528,7 @@ NAN_METHOD(Close)
     uv_queue_work(uv_default_loop(), baton->req, Close, (uv_after_work_cb)AfterClose);
 }
 
-void Close(uv_work_t *req) 
+void Close(uv_work_t *req)
 {
     CloseBaton *baton = static_cast<CloseBaton *>(req->data);
 
@@ -548,7 +548,7 @@ void Close(uv_work_t *req)
     }
 }
 
-void AfterClose(uv_work_t *req) 
+void AfterClose(uv_work_t *req)
 {
     Nan::HandleScope scope;
     CloseBaton *baton = static_cast<CloseBaton *>(req->data);
@@ -568,7 +568,7 @@ void AfterClose(uv_work_t *req)
     delete baton;
 }
 
-NAN_METHOD(AddVendorSpecificUUID) 
+NAN_METHOD(AddVendorSpecificUUID)
 {
     v8::Local<v8::Object> uuid;
     v8::Local<v8::Function> callback;
@@ -596,7 +596,7 @@ NAN_METHOD(AddVendorSpecificUUID)
     uv_queue_work(uv_default_loop(), baton->req, AddVendorSpecificUUID, (uv_after_work_cb)AfterAddVendorSpecificUUID);
 }
 
-void AddVendorSpecificUUID(uv_work_t *req) 
+void AddVendorSpecificUUID(uv_work_t *req)
 {
     BleAddVendorSpcificUUIDBaton *baton = static_cast<BleAddVendorSpcificUUIDBaton *>(req->data);
 
@@ -604,7 +604,7 @@ void AddVendorSpecificUUID(uv_work_t *req)
     baton->result = sd_ble_uuid_vs_add(baton->p_vs_uuid, &baton->p_uuid_type);
 }
 
-void AfterAddVendorSpecificUUID(uv_work_t *req) 
+void AfterAddVendorSpecificUUID(uv_work_t *req)
 {
     Nan::HandleScope scope;
     BleAddVendorSpcificUUIDBaton *baton = static_cast<BleAddVendorSpcificUUIDBaton *>(req->data);
@@ -626,7 +626,7 @@ void AfterAddVendorSpecificUUID(uv_work_t *req)
     delete baton;
 }
 
-NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& v8str) 
+NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& v8str)
 {
     sd_rpc_parity_t parity = SD_RPC_PARITY_NONE;
 
@@ -642,7 +642,7 @@ NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& v8str)
     return parity;
 }
 
-NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const v8::Handle<v8::String>& v8str) 
+NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const v8::Handle<v8::String>& v8str)
 {
     sd_rpc_flow_control_t flow_control = SD_RPC_FLOW_CONTROL_NONE;
 
@@ -658,7 +658,7 @@ NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const v8::Handle<v8::String>&
     return flow_control;
 }
 
-NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const v8::Handle<v8::String>& v8str) 
+NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const v8::Handle<v8::String>& v8str)
 {
     sd_rpc_log_severity_t log_severity = SD_RPC_LOG_DEBUG;
 
@@ -714,7 +714,7 @@ NAN_METHOD(GetVersion)
     return;
 }
 
-void GetVersion(uv_work_t *req) 
+void GetVersion(uv_work_t *req)
 {
     GetVersionBaton *baton = static_cast<GetVersionBaton *>(req->data);
 
@@ -723,7 +723,7 @@ void GetVersion(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterGetVersion(uv_work_t *req) 
+void AfterGetVersion(uv_work_t *req)
 {
 	Nan::HandleScope scope;
     GetVersionBaton *baton = static_cast<GetVersionBaton *>(req->data);
@@ -767,7 +767,7 @@ NAN_METHOD(UUIDEncode)
     }
 
     BleUUIDEncodeBaton *baton = new BleUUIDEncodeBaton(callback);
-    
+
     try
     {
         baton->p_uuid = BleUUID(uuid);
@@ -787,7 +787,7 @@ NAN_METHOD(UUIDEncode)
     return;
 }
 
-void UUIDEncode(uv_work_t *req) 
+void UUIDEncode(uv_work_t *req)
 {
     BleUUIDEncodeBaton *baton = static_cast<BleUUIDEncodeBaton *>(req->data);
 
@@ -796,7 +796,7 @@ void UUIDEncode(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterUUIDEncode(uv_work_t *req) 
+void AfterUUIDEncode(uv_work_t *req)
 {
     Nan::HandleScope scope;
     BleUUIDEncodeBaton *baton = static_cast<BleUUIDEncodeBaton *>(req->data);
@@ -857,7 +857,7 @@ NAN_METHOD(UUIDDecode)
     return;
 }
 
-void UUIDDecode(uv_work_t *req) 
+void UUIDDecode(uv_work_t *req)
 {
     BleUUIDDecodeBaton *baton = static_cast<BleUUIDDecodeBaton *>(req->data);
 
@@ -866,7 +866,7 @@ void UUIDDecode(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterUUIDDecode(uv_work_t *req) 
+void AfterUUIDDecode(uv_work_t *req)
 {
     Nan::HandleScope scope;
     BleUUIDDecodeBaton *baton = static_cast<BleUUIDDecodeBaton *>(req->data);
@@ -1026,7 +1026,7 @@ v8::Local<v8::Object> UserMemBlock::ToJs()
 
     Utility::Set(obj, "mem", ConversionUtility::toJsValueArray(native->p_mem, native->len));
     Utility::Set(obj, "len", native->len);
-    
+
     return scope.Escape(obj);
 }
 
@@ -1124,14 +1124,14 @@ ble_uuid128_t *BleUUID128::ToNative()
     uuidString->WriteUtf8(uuidPtr, uuid_len);
 
     int scan_count = sscanf(uuidPtr,
-        "%2x%2x%2x%2x-%2x%2x-%2x%2x-%2x%2x-%2x%2x%2x%2x%2x%2x",
+        "%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x",
         &(ptr[15]), &(ptr[14]),
         &(ptr[13]), &(ptr[12]),
         &(ptr[11]), &(ptr[10]),
         &(ptr[9]), &(ptr[8]),
         &(ptr[7]), &(ptr[6]),
-        &(ptr[5]), &(ptr[4]), 
-        &(ptr[3]), &(ptr[2]), 
+        &(ptr[5]), &(ptr[4]),
+        &(ptr[3]), &(ptr[2]),
         &(ptr[1]), &(ptr[0]));
     assert(scan_count == 16);
 
