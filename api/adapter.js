@@ -734,7 +734,7 @@ class Adapter extends EventEmitter {
 
 
             if (descriptor.uuid.type === this._bleDriver.BLE_UUID_TYPE_UNKNOWN) {
-                uuid = 'unknown-descriptor-uuid';
+                uuid = 'XXXX????XXXXXXXXXXXXXXXXXXXXXXXX';
             }
 
             // TODO: Fix magic number? Primary Service and Characteristic Declaration uuids
@@ -766,7 +766,7 @@ class Adapter extends EventEmitter {
             return;
         }
 
-        const handleRange = {startHandle: nextStartHandle, endHandle: service.endHandle};
+        const handleRange = {start_handle: nextStartHandle, end_handle: service.endHandle};
 
         this._bleDriver.gattc_descriptor_discover(device.connectionHandle, handleRange, err => {
             if (err) {

@@ -91,6 +91,7 @@ class SoftDeviceConverter {
                 retval.type = vsUuidIndex + 2;
                 retval.uuid = parseInt(uuid.slice(4, 8), 16);
                 callback(undefined, retval);
+                return;
             }
 
             this._bleDriver.add_vs_uuid({ uuid128: uuid }, (err, type) => {
