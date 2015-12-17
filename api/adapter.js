@@ -137,7 +137,7 @@ class Adapter extends EventEmitter {
         options.eventCallback = this._eventCallback.bind(this);
 
         this._bleDriver.open(this._state.port, options, err => {
-            if (this.checkAndPropagateError(err, 'Error occurred opening serial port. Please reset or powercycle the nRF dongle.', callback)) { return; }
+            if (this.checkAndPropagateError(err, 'Error occurred opening serial port. Please reset or powercycle the nRF device.', callback)) { return; }
 
             this._changeState({available: true});
             this.emit('opened', this);
