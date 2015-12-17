@@ -70,6 +70,10 @@ class SoftDeviceConverter {
         return retval;
     } */
 
+    _replace16bitUuidIn128bitUuid(uuid128, uuid16) {
+        return uuid128.slice(0, 4) + uuid16 + uuid128.slice(8);
+    }
+
     // Callback: function(err, uuid)
     uuidToDriver(uuid, callback) {
         var retval = {};
@@ -85,7 +89,7 @@ class SoftDeviceConverter {
             callback(undefined, retval);
         } else if (uuid.length == 32) {
             // Register UUID with SoftDevice
-            const uuidBase = uuid.slice(0, 4) + '0000' + uuid.slice(8);
+            const uuidBase = this._replace16bitUuidIn128bitUuid(uuid, '0000');
             const vsUuidIndex = this.vsUuidStore.indexOf(uuidBase);
             if (vsUuidIndex >= 0) {
                 retval.type = vsUuidIndex + 2;
@@ -108,6 +112,17 @@ class SoftDeviceConverter {
         } else {
             callback(`Unknown UUID ${uuid} received.`);
         }
+    }
+
+    lookupVsUuid(uuid) {
+        const uuidBase = this.vsUuidStore[uuid.type - 2];
+
+        if (!uuidBase) {
+            return 'Unknown 128 bit descriptor uuid ';
+        }
+
+        const uuid16bit = ('000' + uuid.uuid.toString(16)).slice(-4).toUpperCase();
+        return this._replace16bitUuidIn128bitUuid(uuidBase, uuid16bit);
     }
 
     attributeMetadataToDriver(properties) {

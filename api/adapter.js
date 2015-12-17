@@ -567,7 +567,9 @@ class Adapter extends EventEmitter {
             const handle = service.handle_range.start_handle;
             let uuid = this._numberTo16BitUuid(service.uuid.uuid);
 
-            if (service.uuid.type === this._bleDriver.BLE_UUID_TYPE_UNKNOWN) {
+            if (service.uuid.type >= this._bleDriver.BLE_UUID_TYPE_VENDOR_BEGIN) {
+                uuid = this._converter.lookupVsUuid(service.uuid);
+            } else if (service.uuid.type === this._bleDriver.BLE_UUID_TYPE_UNKNOWN) {
                 uuid = null;
             }
 
@@ -642,7 +644,11 @@ class Adapter extends EventEmitter {
             const valueHandle = characteristic.handle_value;
             let uuid = this._numberTo16BitUuid(characteristic.uuid.uuid);
 
-            if (characteristic.uuid.type === this._bleDriver.BLE_UUID_TYPE_UNKNOWN) {
+
+
+            if (characteristic.uuid.type >= this._bleDriver.BLE_UUID_TYPE_VENDOR_BEGIN) {
+                uuid = this._converter.lookupVsUuid(characteristic.uuid);
+            } else if (characteristic.uuid.type === this._bleDriver.BLE_UUID_TYPE_UNKNOWN) {
                 uuid = null;
             }
 
@@ -732,9 +738,10 @@ class Adapter extends EventEmitter {
             const handle = descriptor.handle;
             let uuid = this._numberTo16BitUuid(descriptor.uuid.uuid);
 
-
-            if (descriptor.uuid.type === this._bleDriver.BLE_UUID_TYPE_UNKNOWN) {
-                uuid = 'XXXX????XXXXXXXXXXXXXXXXXXXXXXXX';
+            if (descriptor.uuid.type >= this._bleDriver.BLE_UUID_TYPE_VENDOR_BEGIN) {
+                uuid = this._converter.lookupVsUuid(descriptor.uuid);
+            } else if (descriptor.uuid.type === this._bleDriver.BLE_UUID_TYPE_UNKNOWN) {
+                uuid = 'Unknown 128 bit descriptor uuid ';
             }
 
             // TODO: Fix magic number? Primary Service and Characteristic Declaration uuids
@@ -791,6 +798,19 @@ class Adapter extends EventEmitter {
             const pendingHandleReads = gattOperation.pendingHandleReads;
             const attribute = pendingHandleReads[handle];
 
+            const addVsUuidToDriver = uuid => {
+                return new Promise((resolve, reject) => {
+                    this._converter.uuidToDriver(uuid, (err, uuid) => {
+                        if (err) {
+                            reject(err);
+                            return;
+                        }
+
+                        resolve();
+                    });
+                });
+            };
+
             if (!attribute) {
                 console.log('something went wrong in bookkeeping of pending reads');
                 return;
@@ -801,6 +821,7 @@ class Adapter extends EventEmitter {
             if (attribute instanceof Service) {
                 // TODO: Translate from uuid to name?
                 attribute.uuid = this._arrayTo128BitUuid(data);
+                addVsUuidToDriver(attribute.uuid).then();
                 this.emit('serviceAdded', attribute);
 
                 if (_.isEmpty(pendingHandleReads)) {
@@ -817,7 +838,8 @@ class Adapter extends EventEmitter {
             } else if (attribute instanceof Characteristic) {
                 // TODO: Translate from uuid to name?
                 if (handle === attribute.declarationHandle) {
-                    attribute.uuid = this._arrayTo128BitUuid(data.slice(2));
+                    attribute.uuid = this._arrayTo128BitUuid(data.slice(3));
+                    addVsUuidToDriver(attribute.uuid).then();
                 } else if (handle === attribute.valueHandle) {
                     attribute.value = data;
                 }
