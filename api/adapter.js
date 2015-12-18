@@ -1701,15 +1701,8 @@ class Adapter extends EventEmitter {
                         // If the UUID is not found it is a 128-bit UUID
                         // so we have to add it to the SD and try again
                         if (err.errno === this._bleDriver.NRF_ERROR_NOT_FOUND && length === 16) {
-                            const base_uuid =
-                                uuid.substr(0, 4) + '0000-' +
-                                uuid.substr(8, 4) + '-' +
-                                uuid.substr(12, 4) + '-' +
-                                uuid.substr(16, 4) + '-' +
-                                uuid.substr(20);
-
                             this._bleDriver.add_vs_uuid(
-                                {uuid128: base_uuid},
+                                {uuid128: uuid},
                                 (err, type) => {
                                     if (err) {
                                         reject(make_error(`Unable to add UUID ${uuid} to SoftDevice`, err));
@@ -1853,35 +1846,47 @@ class Adapter extends EventEmitter {
                 // TODO: Fix Device Name uuid magic number
                 if (characteristic.uuid === '2A00') {
                     // TODO: At some point addon should accept string.
-                    this._setDeviceNameFromArray(characteristic.value, characteristic.properties.writePerm, err => {
-                        if (!err) {
-                            characteristic.declarationHandle = 2;
-                            characteristic.valueHandle = 3;
-                            this._characteristics[characteristic.instanceId] = characteristic;
-                        }
-                    });
+                    new Promise((resolve, reject) => {
+                        this._setDeviceNameFromArray(characteristic.value, characteristic.properties.writePerm, err => {
+                            if (!err) {
+                                characteristic.declarationHandle = 2;
+                                characteristic.valueHandle = 3;
+                                this._characteristics[characteristic.instanceId] = characteristic;
+                            }
+
+                            resolve();
+                        });
+                    }).then();
                 }
 
                 // TODO: Fix Appearance uuid magic number
                 if (characteristic.uuid === '2A01') {
-                    this._setAppearanceFromArray(characteristic.value, err => {
-                        if (!err) {
-                            characteristic.declarationHandle = 4;
-                            characteristic.valueHandle = 5;
-                            this._characteristics[characteristic.instanceId] = characteristic;
-                        }
-                    });
+                    new Promise((resolve, reject) => {
+                        this._setAppearanceFromArray(characteristic.value, err => {
+                            if (!err) {
+                                characteristic.declarationHandle = 4;
+                                characteristic.valueHandle = 5;
+                                this._characteristics[characteristic.instanceId] = characteristic;
+                            }
+
+                            resolve();
+                        });
+                    }).then();
                 }
 
                 // TODO: Fix Peripheral Preferred Connection Parameters uuid magic number
                 if (characteristic.uuid === '2A04') {
-                    this._setPPCPFromArray(characteristic.value, err => {
-                        if (!err) {
-                            characteristic.declarationHandle = 6;
-                            characteristic.valueHandle = 7;
-                            this._characteristics[characteristic.instanceId] = characteristic;
-                        }
-                    });
+                    new Promise((resolve, reject) => {
+                        this._setPPCPFromArray(characteristic.value, err => {
+                            if (!err) {
+                                characteristic.declarationHandle = 6;
+                                characteristic.valueHandle = 7;
+                                this._characteristics[characteristic.instanceId] = characteristic;
+                            }
+
+                            resolve();
+                        });
+                    }).then();
                 }
             }
         };
