@@ -86,6 +86,14 @@ class Adapter extends EventEmitter {
         return false;
     }
 
+    toHexString(value) {
+        if (typeof (value) !== 'number') {
+            return '';
+        }
+
+        return value.toString(16).toUpperCase();
+    }
+
     _changeState(changingStates, swallowEmit) {
         let changed = false;
 
@@ -889,6 +897,12 @@ class Adapter extends EventEmitter {
                 break;
             }
         } else {
+            if (event.gatt_status !== this._bleDriver.BLE_GATT_STATUS_SUCCESS) {
+                delete this._gattOperationsMap[device.instanceId];
+                gattOperation.callback(make_error(`Read operation failed: ${event.gatt_status_name} (0x${this.toHexString(event.gatt_status)})`));
+                return;
+            }
+
             gattOperation.readBytes = gattOperation.readBytes ? gattOperation.readBytes.concat(event.data): event.data;
 
             if (event.data.length < this._maxReadPayloadSize) {
@@ -930,8 +944,6 @@ class Adapter extends EventEmitter {
             gattOperation.callback(make_error('Failed to handle write event, no device with connection handle ' + event.conn_handle + 'found'));
             return;
         }
-
-        // TODO: Check gatt error? event.gatt_status === BLE_GATT_STATUS_SUCCESS
 
         if (event.write_op === this._bleDriver.BLE_GATT_OP_WRITE_CMD) {
             gattOperation.attribute.value = gattOperation.value;
@@ -988,7 +1000,7 @@ class Adapter extends EventEmitter {
             gattOperation.attribute.value = gattOperation.value;
             delete this._gattOperationsMap[device.instanceId];
             if (event.gatt_status !== this._bleDriver.BLE_GATT_STATUS_SUCCESS) {
-                gattOperation.callback(make_error('Write operation failed: ' + event.gatt_status_name));
+                gattOperation.callback(make_error(`Write operation failed: ${event.gatt_status_name} (0x${this.toHexString(event.gatt_status)})`));
                 return;
             }
         }
@@ -1701,8 +1713,15 @@ class Adapter extends EventEmitter {
                         // If the UUID is not found it is a 128-bit UUID
                         // so we have to add it to the SD and try again
                         if (err.errno === this._bleDriver.NRF_ERROR_NOT_FOUND && length === 16) {
+                            const base_uuid =
+                                uuid.substr(0, 4) + '0000-' +
+                                uuid.substr(8, 4) + '-' +
+                                uuid.substr(12, 4) + '-' +
+                                uuid.substr(16, 4) + '-' +
+                                uuid.substr(20);
+
                             this._bleDriver.add_vs_uuid(
-                                {uuid128: uuid},
+                                {uuid128: base_uuid},
                                 (err, type) => {
                                     if (err) {
                                         reject(make_error(`Unable to add UUID ${uuid} to SoftDevice`, err));
@@ -1846,47 +1865,35 @@ class Adapter extends EventEmitter {
                 // TODO: Fix Device Name uuid magic number
                 if (characteristic.uuid === '2A00') {
                     // TODO: At some point addon should accept string.
-                    new Promise((resolve, reject) => {
-                        this._setDeviceNameFromArray(characteristic.value, characteristic.properties.writePerm, err => {
-                            if (!err) {
-                                characteristic.declarationHandle = 2;
-                                characteristic.valueHandle = 3;
-                                this._characteristics[characteristic.instanceId] = characteristic;
-                            }
-
-                            resolve();
-                        });
-                    }).then();
+                    this._setDeviceNameFromArray(characteristic.value, characteristic.properties.writePerm, err => {
+                        if (!err) {
+                            characteristic.declarationHandle = 2;
+                            characteristic.valueHandle = 3;
+                            this._characteristics[characteristic.instanceId] = characteristic;
+                        }
+                    });
                 }
 
                 // TODO: Fix Appearance uuid magic number
                 if (characteristic.uuid === '2A01') {
-                    new Promise((resolve, reject) => {
-                        this._setAppearanceFromArray(characteristic.value, err => {
-                            if (!err) {
-                                characteristic.declarationHandle = 4;
-                                characteristic.valueHandle = 5;
-                                this._characteristics[characteristic.instanceId] = characteristic;
-                            }
-
-                            resolve();
-                        });
-                    }).then();
+                    this._setAppearanceFromArray(characteristic.value, err => {
+                        if (!err) {
+                            characteristic.declarationHandle = 4;
+                            characteristic.valueHandle = 5;
+                            this._characteristics[characteristic.instanceId] = characteristic;
+                        }
+                    });
                 }
 
                 // TODO: Fix Peripheral Preferred Connection Parameters uuid magic number
                 if (characteristic.uuid === '2A04') {
-                    new Promise((resolve, reject) => {
-                        this._setPPCPFromArray(characteristic.value, err => {
-                            if (!err) {
-                                characteristic.declarationHandle = 6;
-                                characteristic.valueHandle = 7;
-                                this._characteristics[characteristic.instanceId] = characteristic;
-                            }
-
-                            resolve();
-                        });
-                    }).then();
+                    this._setPPCPFromArray(characteristic.value, err => {
+                        if (!err) {
+                            characteristic.declarationHandle = 6;
+                            characteristic.valueHandle = 7;
+                            this._characteristics[characteristic.instanceId] = characteristic;
+                        }
+                    });
                 }
             }
         };
