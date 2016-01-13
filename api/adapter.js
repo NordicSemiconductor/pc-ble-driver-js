@@ -86,12 +86,13 @@ class Adapter extends EventEmitter {
         return false;
     }
 
-    toHexString(value) {
+    _toHexString(value) {
         if (typeof (value) !== 'number') {
             return '';
         }
 
-        return value.toString(16).toUpperCase();
+        const hexValue = value.toString(16);
+        return ('0' + hexValue).slice(-Math.ceil(hexValue.length / 2) * 2).toUpperCase();
     }
 
     _changeState(changingStates, swallowEmit) {
@@ -899,7 +900,7 @@ class Adapter extends EventEmitter {
         } else {
             if (event.gatt_status !== this._bleDriver.BLE_GATT_STATUS_SUCCESS) {
                 delete this._gattOperationsMap[device.instanceId];
-                gattOperation.callback(make_error(`Read operation failed: ${event.gatt_status_name} (0x${this.toHexString(event.gatt_status)})`));
+                gattOperation.callback(make_error(`Read operation failed: ${event.gatt_status_name} (0x${this._toHexString(event.gatt_status)})`));
                 return;
             }
 
@@ -1000,7 +1001,7 @@ class Adapter extends EventEmitter {
             gattOperation.attribute.value = gattOperation.value;
             delete this._gattOperationsMap[device.instanceId];
             if (event.gatt_status !== this._bleDriver.BLE_GATT_STATUS_SUCCESS) {
-                gattOperation.callback(make_error(`Write operation failed: ${event.gatt_status_name} (0x${this.toHexString(event.gatt_status)})`));
+                gattOperation.callback(make_error(`Write operation failed: ${event.gatt_status_name} (0x${this._toHexString(event.gatt_status)})`));
                 return;
             }
         }
