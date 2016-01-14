@@ -348,6 +348,7 @@ class Adapter extends EventEmitter {
         this.emit('deviceDisconnected', device);
 
         this._clearDeviceFromAllPerConnectionValues(device.instanceId);
+        this._clearDeviceFromDiscoveredServices(device.instanceId);
     }
 
     _parseConnectionParameterUpdateEvent(event) {
@@ -2073,6 +2074,24 @@ class Adapter extends EventEmitter {
                 this.emit('descriptorValueChanged', descriptor);
             }
         }
+    }
+
+    _clearDeviceFromDiscoveredServices(deviceId) {
+        this._services = this._filterObject(this._services, value => value.indexOf(deviceId) < 0);
+        this._characteristics = this._filterObject(this._characteristics, value => value.indexOf(deviceId) < 0);
+        this._descriptors = this._filterObject(this._descriptors, value => value.indexOf(deviceId) < 0);
+    }
+
+    _filterObject(collection, predicate) {
+        const newCollection = {};
+
+        for (let key in collection) {
+            if (predicate(key)) {
+                newCollection[key] = collection[key];
+            }
+        }
+
+        return newCollection;
     }
 
     // Callback signature function(err, descriptors) {}
