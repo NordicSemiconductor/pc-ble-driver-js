@@ -6,7 +6,9 @@
 #include <mutex>
 #include <string>
 #include "ble.h"
-#include "ble_hci.h"
+//#include "ble_hci.h"
+
+#include "sd_rpc.h"
 
 #define NAME_MAP_ENTRY(EXP) { EXP, ""#EXP"" }
 #define ERROR_STRING_SIZE 1024
@@ -25,6 +27,9 @@ typedef std::map<uint16_t, const char*>::iterator name_map_it_t;
 // Mutex used to assure that only one call is done to the BLE Driver API at a time.
 // The BLE Driver API is not thread safe.
 static std::mutex ble_driver_call_mutex;
+
+extern adapter_t *connectedAdapters[];
+extern int adapterCount;
 
 class ConversionUtility;
 
@@ -134,6 +139,7 @@ public:
     uv_work_t *req;
     Nan::Callback *callback;
 
+    uint8_t adapterID;
     int result;
     char errorString[ERROR_STRING_SIZE];
 };

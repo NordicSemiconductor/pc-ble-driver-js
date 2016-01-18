@@ -6,6 +6,9 @@
 
 #include "common.h"
 
+adapter_t *connectedAdapters[10];
+int adapterCount = 0;
+
 #define RETURN_VALUE_OR_THROW_EXCEPTION(method) \
 try { \
     return (method); \
@@ -42,7 +45,7 @@ static name_map_t error_message_name_map = {
 
 static name_map_t hci_status_map =
 {
-    NAME_MAP_ENTRY(BLE_HCI_STATUS_CODE_SUCCESS),
+/*    NAME_MAP_ENTRY(BLE_HCI_STATUS_CODE_SUCCESS),
     NAME_MAP_ENTRY(BLE_HCI_STATUS_CODE_UNKNOWN_BTLE_COMMAND),
     NAME_MAP_ENTRY(BLE_HCI_STATUS_CODE_UNKNOWN_CONNECTION_IDENTIFIER),
     NAME_MAP_ENTRY(BLE_HCI_AUTHENTICATION_FAILURE),
@@ -67,7 +70,7 @@ static name_map_t hci_status_map =
     NAME_MAP_ENTRY(BLE_HCI_CONN_INTERVAL_UNACCEPTABLE),
     NAME_MAP_ENTRY(BLE_HCI_DIRECTED_ADVERTISER_TIMEOUT),
     NAME_MAP_ENTRY(BLE_HCI_CONN_TERMINATED_DUE_TO_MIC_FAILURE),
-    NAME_MAP_ENTRY(BLE_HCI_CONN_FAILED_TO_BE_ESTABLISHED)
+    NAME_MAP_ENTRY(BLE_HCI_CONN_FAILED_TO_BE_ESTABLISHED)*/
 };
 
 const std::string getCurrentTimeInMilliseconds()

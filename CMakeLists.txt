@@ -32,9 +32,9 @@ file (GLOB SOURCE_FILES
     "src/common.cpp"
     "src/driver.cpp"
     "src/driver_gap.cpp"
-    "src/driver_gatt.cpp"
-    "src/driver_gattc.cpp"
-    "src/driver_gatts.cpp"
+#    "src/driver_gatt.cpp"
+#    "src/driver_gattc.cpp"
+#    "src/driver_gatts.cpp"
     "src/*.h"
 )
 

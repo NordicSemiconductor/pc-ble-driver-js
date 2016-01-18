@@ -4,14 +4,14 @@
 #include <chrono>
 #include <sstream>
 
-#include <ble.h>
+#include "sd_rpc.h"
 
 #include "adapter.h"
 #include "driver.h"
 #include "driver_gap.h"
-#include "driver_gatt.h"
-#include "driver_gattc.h"
-#include "driver_gatts.h"
+//#include "driver_gatt.h"
+//#include "driver_gattc.h"
+//#include "driver_gatts.h"
 
 #include "circular_fifo_unsafe.h"
 
@@ -21,6 +21,9 @@ using namespace memory_sequential_unsafe;
 
 typedef CircularFifo<EventEntry *, 64> EventQueue;
 typedef CircularFifo<LogEntry *, 64> LogQueue;
+
+extern adapter_t *connectedAdapters[];
+extern int adapterCount;
 
 // Macro for keeping sanity in event switch case below
 #define COMMON_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, event_entry) \
@@ -46,7 +49,7 @@ typedef CircularFifo<LogEntry *, 64> LogQueue;
         Nan::Set(event_array, event_array_idx, js_event);                                               \
         break;                                                                                                          \
     }
-
+/*
 // Macro for keeping sanity in event switch case below
 #define GATTC_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, event_entry) \
     case BLE_GATTC_EVT_##evt_enum:                                                                                        \
@@ -70,7 +73,7 @@ typedef CircularFifo<LogEntry *, 64> LogQueue;
         Nan::Set(event_array, event_array_idx, js_event);                                               \
         break;                                                                                                          \
     }
-
+*/
 static name_map_t uuid_type_name_map = {
     NAME_MAP_ENTRY(BLE_UUID_TYPE_UNKNOWN),
     NAME_MAP_ENTRY(BLE_UUID_TYPE_BLE),
@@ -99,7 +102,7 @@ Nan::Callback *driver_log_callback = NULL;
 Nan::Callback *driver_event_callback = NULL;
 
 // This function is ran by the thread that the SoftDevice Driver has initiated
-void sd_rpc_on_log_event(sd_rpc_log_severity_t severity, const char *log_message)
+void sd_rpc_on_log_event(adapter_t *adapter, sd_rpc_log_severity_t severity, const char *log_message)
 {
     int length = strlen(log_message);
 
@@ -159,7 +162,7 @@ size_t findSize(ble_evt_t *event)
     return max(static_cast<unsigned long>(event->header.evt_len), sizeof(ble_evt_t));
 }
 
-void sd_rpc_on_event(ble_evt_t *event)
+static void sd_rpc_on_event(adapter_t *adapter, ble_evt_t *event)
 {
     // TODO: Clarification:
     // The lifecycle for the event is controlled by the driver. We must not free any memory related to the incoming event.
@@ -244,7 +247,7 @@ void on_rpc_event(uv_async_t *handle)
                 GAP_EVT_CASE(CONN_SEC_UPDATE,           ConnSecUpdate,          conn_sec_update,            array, array_idx, event_entry);
                 GAP_EVT_CASE(SEC_INFO_REQUEST,          SecInfoRequest,         sec_info_request,           array, array_idx, event_entry);
                 GAP_EVT_CASE(SEC_REQUEST,               SecRequest,             sec_request,                array, array_idx, event_entry);
-
+                /*
                 GATTC_EVT_CASE(PRIM_SRVC_DISC_RSP,          PrimaryServiceDiscovery,       prim_srvc_disc_rsp,         array, array_idx, event_entry);
                 GATTC_EVT_CASE(REL_DISC_RSP,                RelationshipDiscovery,         rel_disc_rsp,               array, array_idx, event_entry);
                 GATTC_EVT_CASE(CHAR_DISC_RSP,               CharacteristicDiscovery,       char_disc_rsp,              array, array_idx, event_entry);
@@ -264,7 +267,7 @@ void on_rpc_event(uv_async_t *handle)
 
                 // Handled special as there is no parameter for this in the event struct.
                 GATTS_EVT_CASE(SC_CONFIRM, SCConfirm, timeout, array, array_idx, event_entry);
-
+                */
             default:
                 std::cout << "Event " << event->header.evt_id << " unknown to me." << std::endl;
                 break;
@@ -412,6 +415,11 @@ NAN_METHOD(Open)
     uv_queue_work(uv_default_loop(), baton->req, Open, (uv_after_work_cb)AfterOpen);
 }
 
+static void sd_rpc_on_error(adapter_t *adapter, const char * error, uint32_t code)
+{
+    //TODO: Implement
+}
+
 // This runs in a worker thread (not Main Thread)
 void Open(uv_work_t *req)
 {
@@ -425,6 +433,66 @@ void Open(uv_work_t *req)
     LogQueue *log_queue = new LogQueue();
     async_log.data = log_queue;
 
+    // Setup event related functionality
+    evt_interval = baton->evt_interval;
+    driver_event_callback = baton->event_callback;
+    uv_async_init(uv_default_loop(), &async_event, on_rpc_event);
+    EventQueue *event_queue = new EventQueue();
+    async_event.data = event_queue;
+
+    // Setup event interval functionality
+    if (evt_interval > 0)
+    {
+        uv_timer_init(uv_default_loop(), &evt_interval_timer);
+        uv_timer_start(&evt_interval_timer, event_interval_callback, evt_interval, evt_interval);
+    }
+
+    physical_layer_t *uart = sd_rpc_physical_layer_create_uart(baton->path, baton->baud_rate, baton->flow_control, baton->parity);
+    data_link_layer_t *h5 = sd_rpc_data_link_layer_create_bt_three_wire(uart, 100);
+    transport_layer_t *serialization = sd_rpc_transport_layer_create(h5, 750);
+    adapter_t *adapter = sd_rpc_adapter_create(serialization);
+
+    uint32_t error_code = sd_rpc_open(adapter, sd_rpc_on_error, sd_rpc_on_event, sd_rpc_on_log_event);
+
+    if (error_code != NRF_SUCCESS)
+    {
+        printf("Failed to open the nRF51 ble driver.\n"); fflush(stdout);
+        baton->result = error_code;
+        return;
+    }
+
+    connectedAdapters[adapterCount] = adapter;
+    baton->adapterID = adapterCount;
+    adapterCount++;
+
+    ble_enable_params_t ble_enable_params;
+
+    memset(&ble_enable_params, 0, sizeof(ble_enable_params));
+
+    ble_enable_params.gatts_enable_params.attr_tab_size = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
+    ble_enable_params.gatts_enable_params.service_changed = false;
+
+    error_code = sd_ble_enable(adapter, &ble_enable_params);
+
+    if (error_code == NRF_SUCCESS)
+    {
+        baton->result = error_code;
+        return;
+    }
+
+    if (error_code == NRF_ERROR_INVALID_STATE)
+    {
+        printf("BLE stack already enabled\n"); fflush(stdout);
+        return;
+    }
+
+    printf("Failed to enable BLE stack.\n"); fflush(stdout);
+
+    baton->result = error_code;
+
+    /*
+
+
     sd_rpc_log_handler_severity_filter_set(baton->log_level);
     sd_rpc_log_handler_set(sd_rpc_on_log_event);
 
@@ -434,22 +502,6 @@ void Open(uv_work_t *req)
     sd_rpc_serial_flow_control_set(baton->flow_control);
 
     sd_rpc_serial_parity_set(baton->parity);
-
-    // Setup event related functionality
-    evt_interval = baton->evt_interval;
-    driver_event_callback = baton->event_callback;
-    uv_async_init(uv_default_loop(), &async_event, on_rpc_event);
-    EventQueue *event_queue = new EventQueue();
-    async_event.data = event_queue;
-
-    sd_rpc_evt_handler_set(sd_rpc_on_event);
-
-    // Setup event interval functionality
-    if (evt_interval > 0)
-    {
-        uv_timer_init(uv_default_loop(), &evt_interval_timer);
-        uv_timer_start(&evt_interval_timer, event_interval_callback, evt_interval, evt_interval);
-    }
 
     // Open RPC connection to device
     int err = sd_rpc_open();
@@ -467,6 +519,7 @@ void Open(uv_work_t *req)
     ble_enable_params->gatts_enable_params.service_changed = false;
 
     baton->result = sd_ble_enable(ble_enable_params);
+    */
 }
 
 // This runs in  Main Thread
@@ -477,7 +530,7 @@ void AfterOpen(uv_work_t *req)
     OpenBaton *baton = static_cast<OpenBaton *>(req->data);
     delete req;
 
-    v8::Local<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -485,23 +538,26 @@ void AfterOpen(uv_work_t *req)
 
         argv[0] = ErrorMessage::getErrorMessage(baton->result, "opening port");
 
-        sd_rpc_log_handler_set(NULL); // Stop reciving events
+//        sd_rpc_log_handler_set(NULL); // Stop reciving events
 
         uv_close((uv_handle_t*)&async_log, NULL); // Close the async handlers for log events
         delete baton->log_callback; // Free the memory for the callback
 
         if (baton->event_callback != NULL)
         {
-            sd_rpc_evt_handler_set(NULL);
+//            sd_rpc_evt_handler_set(NULL);
             delete baton->event_callback;
         }
+
+        argv[1] = Nan::Undefined();
     }
     else
     {
         argv[0] = Nan::Undefined();
+        argv[1] = ConversionUtility::toJsNumber(baton->adapterID);
     }
 
-    baton->callback->Call(1, argv);
+    baton->callback->Call(2, argv);
     delete baton;
 }
 
@@ -510,9 +566,13 @@ NAN_METHOD(Close)
     v8::Local<v8::Function> callback;
 
     int argumentcount = 0;
+    uint8_t adapter = -1;
 
     try
     {
+        adapter = ConversionUtility::getNativeUint8(info[argumentcount]);
+        argumentcount++;
+
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
@@ -524,6 +584,7 @@ NAN_METHOD(Close)
     }
 
     CloseBaton *baton = new CloseBaton(callback);
+    baton->adapterID = adapter;
 
     uv_queue_work(uv_default_loop(), baton->req, Close, (uv_after_work_cb)AfterClose);
 }
@@ -533,7 +594,10 @@ void Close(uv_work_t *req)
     CloseBaton *baton = static_cast<CloseBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_rpc_close();
+
+    adapter_t* a = connectedAdapters[baton->adapterID];
+
+    baton->result = sd_rpc_close(a);
 
     if (driver_event_callback != NULL)
     {
@@ -574,9 +638,13 @@ NAN_METHOD(AddVendorSpecificUUID)
     v8::Local<v8::Function> callback;
 
     int argumentcount = 0;
+    uint8_t adapter = -1;
 
     try
     {
+        adapter = ConversionUtility::getNativeUint8(info[argumentcount]);
+        argumentcount++;
+
         uuid = ConversionUtility::getJsObject(info[argumentcount]);
         argumentcount++;
 
@@ -592,6 +660,7 @@ NAN_METHOD(AddVendorSpecificUUID)
 
     BleAddVendorSpcificUUIDBaton *baton = new BleAddVendorSpcificUUIDBaton(callback);
     baton->p_vs_uuid = BleUUID128(uuid);
+    baton->adapterID = adapter;
 
     uv_queue_work(uv_default_loop(), baton->req, AddVendorSpecificUUID, (uv_after_work_cb)AfterAddVendorSpecificUUID);
 }
@@ -601,7 +670,8 @@ void AddVendorSpecificUUID(uv_work_t *req)
     BleAddVendorSpcificUUIDBaton *baton = static_cast<BleAddVendorSpcificUUIDBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_uuid_vs_add(baton->p_vs_uuid, &baton->p_uuid_type);
+    adapter_t *a = connectedAdapters[baton->adapterID];
+    baton->result = sd_ble_uuid_vs_add(a, baton->p_vs_uuid, &baton->p_uuid_type);
 }
 
 void AfterAddVendorSpecificUUID(uv_work_t *req)
@@ -690,9 +760,13 @@ NAN_METHOD(GetVersion)
 {
     v8::Local<v8::Function> callback;
     int argumentcount = 0;
+    uint8_t adapter = -1;
 
     try
     {
+        adapter = ConversionUtility::getNativeUint8(info[argumentcount]);
+        argumentcount++;
+
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
@@ -708,6 +782,7 @@ NAN_METHOD(GetVersion)
 
     GetVersionBaton *baton = new GetVersionBaton(callback);
     baton->version = version;
+    baton->adapterID = adapter;
 
     uv_queue_work(uv_default_loop(), baton->req, GetVersion, (uv_after_work_cb)AfterGetVersion);
 
@@ -719,7 +794,8 @@ void GetVersion(uv_work_t *req)
     GetVersionBaton *baton = static_cast<GetVersionBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_version_get(baton->version);
+    adapter_t *a = connectedAdapters[baton->adapterID];
+    baton->result = sd_ble_version_get(a, baton->version);
 }
 
 // This runs in Main Thread
@@ -750,9 +826,13 @@ NAN_METHOD(UUIDEncode)
     v8::Local<v8::Object> uuid;
     v8::Local<v8::Function> callback;
     int argumentcount = 0;
+    uint8_t adapter = -1;
 
     try
     {
+        adapter = ConversionUtility::getNativeUint8(info[argumentcount]);
+        argumentcount++;
+
         uuid = ConversionUtility::getJsObject(info[argumentcount]);
         argumentcount++;
 
@@ -781,6 +861,7 @@ NAN_METHOD(UUIDEncode)
     }
 
     baton->uuid_le = new uint8_t[16];
+    baton->adapterID = adapter;
 
     uv_queue_work(uv_default_loop(), baton->req, UUIDEncode, (uv_after_work_cb)AfterUUIDEncode);
 
@@ -792,7 +873,8 @@ void UUIDEncode(uv_work_t *req)
     BleUUIDEncodeBaton *baton = static_cast<BleUUIDEncodeBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_uuid_encode(baton->p_uuid, &baton->uuid_le_len, baton->uuid_le);
+    adapter_t *a = connectedAdapters[baton->adapterID];
+    baton->result = sd_ble_uuid_encode(a, baton->p_uuid, &baton->uuid_le_len, baton->uuid_le);
 }
 
 // This runs in Main Thread
@@ -828,9 +910,13 @@ NAN_METHOD(UUIDDecode)
     v8::Local<v8::Value> uuid_le;
     v8::Local<v8::Function> callback;
     int argumentcount = 0;
+    uint8_t adapter = -1;
 
     try
     {
+        adapter = ConversionUtility::getNativeUint8(info[argumentcount]);
+        argumentcount++;
+
         le_len = ConversionUtility::getNativeUint8(info[argumentcount]);
         argumentcount++;
 
@@ -851,6 +937,7 @@ NAN_METHOD(UUIDDecode)
     baton->uuid_le_len = le_len;
     baton->uuid_le = ConversionUtility::extractHex(uuid_le);
     baton->p_uuid = new ble_uuid_t();
+    baton->adapterID = adapter;
 
     uv_queue_work(uv_default_loop(), baton->req, UUIDDecode, (uv_after_work_cb)AfterUUIDDecode);
 
@@ -862,7 +949,8 @@ void UUIDDecode(uv_work_t *req)
     BleUUIDDecodeBaton *baton = static_cast<BleUUIDDecodeBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_uuid_decode(baton->uuid_le_len, baton->uuid_le, baton->p_uuid);
+    adapter_t *a = connectedAdapters[baton->adapterID];
+    baton->result = sd_ble_uuid_decode(a, baton->uuid_le_len, baton->uuid_le, baton->p_uuid);
 }
 
 // This runs in Main Thread
@@ -957,7 +1045,7 @@ void UserMemReply(uv_work_t *req)
     BleUserMemReplyBaton *baton = static_cast<BleUserMemReplyBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_user_mem_reply(baton->conn_handle, baton->p_block);
+    //baton->result = sd_ble_user_mem_reply(baton->conn_handle, baton->p_block);
 }
 
 // This runs in Main Thread
@@ -1166,9 +1254,10 @@ extern "C" {
         init_hci(target);
         init_error(target);
         init_gap(target);
-        init_gatt(target);
+        /*init_gatt(target);
         init_gattc(target);
         init_gatts(target);
+        */
     }
 
     void init_adapter_list(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
@@ -1331,55 +1420,55 @@ extern "C" {
         // Constants from ble_hci.h
 
         /* BLE_HCI_STATUS_CODES Bluetooth status codes */
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_STATUS_CODE_SUCCESS); //Success.
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_STATUS_CODE_UNKNOWN_BTLE_COMMAND); //Unknown BLE Command.
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_STATUS_CODE_UNKNOWN_CONNECTION_IDENTIFIER); //Unknown Connection Identifier.
+//        NODE_DEFINE_CONSTANT(target, BLE_HCI_STATUS_CODE_SUCCESS); //Success.
+        //        NODE_DEFINE_CONSTANT(target, BLE_HCI_STATUS_CODE_UNKNOWN_BTLE_COMMAND); //Unknown BLE Command.
+        //        NODE_DEFINE_CONSTANT(target, BLE_HCI_STATUS_CODE_UNKNOWN_CONNECTION_IDENTIFIER); //Unknown Connection Identifier.
         /*0x03 Hardware Failure
         0x04 Page Timeout
         */
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_AUTHENTICATION_FAILURE); //Authentication Failure.
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_STATUS_CODE_PIN_OR_KEY_MISSING); //Pin or Key missing.
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_MEMORY_CAPACITY_EXCEEDED); //Memory Capacity Exceeded.
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_CONNECTION_TIMEOUT); //Connection Timeout.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_AUTHENTICATION_FAILURE); //Authentication Failure.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_STATUS_CODE_PIN_OR_KEY_MISSING); //Pin or Key missing.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_MEMORY_CAPACITY_EXCEEDED); //Memory Capacity Exceeded.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_CONNECTION_TIMEOUT); //Connection Timeout.
         /*0x09 Connection Limit Exceeded
         0x0A Synchronous Connection Limit To A Device Exceeded
         0x0B ACL Connection Already Exists*/
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_STATUS_CODE_COMMAND_DISALLOWED); //Command Disallowed.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_STATUS_CODE_COMMAND_DISALLOWED); //Command Disallowed.
         /*0x0D Connection Rejected due to Limited Resources
         0x0E Connection Rejected Due To Security Reasons
         0x0F Connection Rejected due to Unacceptable BD_ADDR
         0x10 Connection Accept Timeout Exceeded
         0x11 Unsupported Feature or Parameter Value*/
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_STATUS_CODE_INVALID_BTLE_COMMAND_PARAMETERS); //Invalid BLE Command Parameters.
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION); //Remote User Terminated Connection.
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_REMOTE_DEV_TERMINATION_DUE_TO_LOW_RESOURCES); //* Remote Device Terminated Connection due to low resources.
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_REMOTE_DEV_TERMINATION_DUE_TO_POWER_OFF); //Remote Device Terminated Connection due to power off.
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_LOCAL_HOST_TERMINATED_CONNECTION); //Local Host Terminated Connection.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_STATUS_CODE_INVALID_BTLE_COMMAND_PARAMETERS); //Invalid BLE Command Parameters.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION); //Remote User Terminated Connection.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_REMOTE_DEV_TERMINATION_DUE_TO_LOW_RESOURCES); //* Remote Device Terminated Connection due to low resources.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_REMOTE_DEV_TERMINATION_DUE_TO_POWER_OFF); //Remote Device Terminated Connection due to power off.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_LOCAL_HOST_TERMINATED_CONNECTION); //Local Host Terminated Connection.
         /*
         0x17 Repeated Attempts
         0x18 Pairing Not Allowed
         0x19 Unknown LMP PDU
         */
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_UNSUPPORTED_REMOTE_FEATURE); //Unsupported Remote Feature.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_UNSUPPORTED_REMOTE_FEATURE); //Unsupported Remote Feature.
         /*
         0x1B SCO Offset Rejected
         0x1C SCO Interval Rejected
         0x1D SCO Air Mode Rejected*/
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_STATUS_CODE_INVALID_LMP_PARAMETERS); //Invalid LMP Parameters.
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_STATUS_CODE_UNSPECIFIED_ERROR); //Unspecified Error.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_STATUS_CODE_INVALID_LMP_PARAMETERS); //Invalid LMP Parameters.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_STATUS_CODE_UNSPECIFIED_ERROR); //Unspecified Error.
         /*0x20 Unsupported LMP Parameter Value
         0x21 Role Change Not Allowed
         */
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_STATUS_CODE_LMP_RESPONSE_TIMEOUT); //LMP Response Timeout.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_STATUS_CODE_LMP_RESPONSE_TIMEOUT); //LMP Response Timeout.
         /*0x23 LMP Error Transaction Collision*/
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_STATUS_CODE_LMP_PDU_NOT_ALLOWED); //LMP PDU Not Allowed.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_STATUS_CODE_LMP_PDU_NOT_ALLOWED); //LMP PDU Not Allowed.
         /*0x25 Encryption Mode Not Acceptable
         0x26 Link Key Can Not be Changed
         0x27 Requested QoS Not Supported
         */
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_INSTANT_PASSED); //Instant Passed.
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_PAIRING_WITH_UNIT_KEY_UNSUPPORTED); //Pairing with Unit Key Unsupported.
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_DIFFERENT_TRANSACTION_COLLISION); //Different Transaction Collision.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_INSTANT_PASSED); //Instant Passed.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_PAIRING_WITH_UNIT_KEY_UNSUPPORTED); //Pairing with Unit Key Unsupported.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_DIFFERENT_TRANSACTION_COLLISION); //Different Transaction Collision.
         /*
         0x2B Reserved
         0x2C QoS Unacceptable Parameter
@@ -1396,11 +1485,11 @@ extern "C" {
         0x37 Secure Simple Pairing Not Supported By Host.
         0x38 Host Busy - Pairing
         0x39 Connection Rejected due to No Suitable Channel Found*/
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_CONTROLLER_BUSY); //Controller Busy.
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE); //Connection Interval Unacceptable.
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_DIRECTED_ADVERTISER_TIMEOUT); //Directed Adverisement Timeout.
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_CONN_TERMINATED_DUE_TO_MIC_FAILURE); //Connection Terminated due to MIC Failure.
-        NODE_DEFINE_CONSTANT(target, BLE_HCI_CONN_FAILED_TO_BE_ESTABLISHED); //Connection Failed to be Established.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_CONTROLLER_BUSY); //Controller Busy.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE); //Connection Interval Unacceptable.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_DIRECTED_ADVERTISER_TIMEOUT); //Directed Adverisement Timeout.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_CONN_TERMINATED_DUE_TO_MIC_FAILURE); //Connection Terminated due to MIC Failure.
+        //NODE_DEFINE_CONSTANT(target, BLE_HCI_CONN_FAILED_TO_BE_ESTABLISHED); //Connection Failed to be Established.
     }
 
     void init_error(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)

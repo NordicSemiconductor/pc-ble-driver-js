@@ -8,6 +8,9 @@
 #include <sd_rpc.h>
 #include "common.h"
 
+extern adapter_t *connectedAdapters[];
+extern int adapterCount;
+
 static name_map_t common_event_name_map = {
     NAME_MAP_ENTRY(BLE_EVT_TX_COMPLETE),
     NAME_MAP_ENTRY(BLE_EVT_USER_MEM_REQUEST),

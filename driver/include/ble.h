@@ -1,26 +1,26 @@
-/* 
+/*
  * Copyright (c) Nordic Semiconductor ASA
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * 
+ *
  *   1. Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
- * 
+ *
  *   2. Redistributions in binary form must reproduce the above copyright notice, this
  *   list of conditions and the following disclaimer in the documentation and/or
  *   other materials provided with the distribution.
- * 
+ *
  *   3. Neither the name of Nordic Semiconductor ASA nor the names of other
  *   contributors to this software may be used to endorse or promote products
  *   derived from this software without specific prior written permission.
- * 
+ *
  *   4. This software must only be used in a processor manufactured by Nordic
  *   Semiconductor ASA, or in a processor manufactured by a third party that
  *   is used in combination with a processor manufactured by Nordic Semiconductor.
- * 
- * 
+ *
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -31,7 +31,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
 /**
@@ -47,6 +47,7 @@
 #ifndef BLE_H__
 #define BLE_H__
 
+#include "config/platform.h"
 #include "ble_ranges.h"
 #include "ble_types.h"
 #include "ble_gap.h"
@@ -251,23 +252,23 @@ typedef struct
  *                                       The minimum acceptable size is defined by @ref BLE_GATTS_ATTR_TAB_SIZE_MIN.
  * @return @ref NRF_ERROR_NO_MEM         The Attribute Table size is too large. Decrease size in @ref ble_gatts_enable_params_t.
  */
-SVCALL(SD_BLE_ENABLE, uint32_t, sd_ble_enable(ble_enable_params_t * p_ble_enable_params));
+SD_RPC_API uint32_t sd_ble_enable(adapter_t *adapter, ble_enable_params_t * p_ble_enable_params);
 
 /**@brief Get an event from the pending events queue.
  *
  * @param[out] p_dest Pointer to buffer to be filled in with an event, or NULL to retrieve the event length. This buffer <b>must be 4-byte aligned in memory</b>.
  * @param[in, out] p_len Pointer the length of the buffer, on return it is filled with the event length.
  *
- * @details This call allows the application to pull a BLE event from the BLE stack. The application is signalled that an event is 
+ * @details This call allows the application to pull a BLE event from the BLE stack. The application is signalled that an event is
  * available from the BLE stack by the triggering of the SD_EVT_IRQn interrupt.
  * The application is free to choose whether to call this function from thread mode (main context) or directly from the Interrupt Service Routine
  * that maps to SD_EVT_IRQn. In any case however, and because the BLE stack runs at a higher priority than the application, this function should be called
- * in a loop (until @ref NRF_ERROR_NOT_FOUND is returned) every time SD_EVT_IRQn is raised to ensure that all available events are pulled from the BLE stack. 
+ * in a loop (until @ref NRF_ERROR_NOT_FOUND is returned) every time SD_EVT_IRQn is raised to ensure that all available events are pulled from the BLE stack.
  * Failure to do so could potentially leave events in the internal queue without the application being aware of this fact.
  * Sizing the p_dest buffer is equally important, since the application needs to provide all the memory necessary for the event to be copied into
  * application memory. If the buffer provided is not large enough to fit the entire contents of the event, @ref NRF_ERROR_DATA_SIZE will be returned
  * and the application can then call again with a larger buffer size.
- * Please note that because of the variable length nature of some events, sizeof(ble_evt_t) will not always be large enough to fit certain events, 
+ * Please note that because of the variable length nature of some events, sizeof(ble_evt_t) will not always be large enough to fit certain events,
  * and so it is the application's responsibility to provide an amount of memory large enough so that the relevant event is copied in full.
  * The application may "peek" the event length by providing p_dest as a NULL pointer and inspecting the value of *p_len upon return.
  *
@@ -278,7 +279,7 @@ SVCALL(SD_BLE_ENABLE, uint32_t, sd_ble_enable(ble_enable_params_t * p_ble_enable
  * @retval ::NRF_ERROR_NOT_FOUND No events ready to be pulled.
  * @retval ::NRF_ERROR_DATA_SIZE Event ready but could not fit into the supplied buffer.
  */
-SVCALL(SD_BLE_EVT_GET, uint32_t, sd_ble_evt_get(uint8_t *p_dest, uint16_t *p_len));
+SD_RPC_API uint32_t sd_ble_evt_get(adapter_t *adapter, uint8_t *p_dest, uint16_t *p_len);
 
 
 /**@brief Get the total number of available application transmission buffers per link in the BLE stack.
@@ -289,7 +290,7 @@ SVCALL(SD_BLE_EVT_GET, uint32_t, sd_ble_evt_get(uint8_t *p_dest, uint16_t *p_len
  *          The application has two options to handle its own application transmission buffers:
  *          - Use a simple arithmetic calculation: at boot time the application should use this function
  *          to find out the total amount of buffers available to it and store it in a variable.
- *          Every time a packet that consumes an application buffer is sent using any of the 
+ *          Every time a packet that consumes an application buffer is sent using any of the
  *          exposed functions in this BLE API, the application should decrement that variable.
  *          Conversely, whenever a @ref BLE_EVT_TX_COMPLETE event is received by the application
  *          it should retrieve the count field in such event and add that number to the same
@@ -298,11 +299,11 @@ SVCALL(SD_BLE_EVT_GET, uint32_t, sd_ble_evt_get(uint8_t *p_dest, uint16_t *p_len
  *          application packets available in the BLE stack's internal buffers, and therefore
  *          it can know with certainty whether it is possible to send more data or it has to
  *          wait for a @ref BLE_EVT_TX_COMPLETE event before it proceeds.
- *          - Choose to simply not keep track of available buffers at all, and instead handle the 
- *          @ref BLE_ERROR_NO_TX_BUFFERS error by queueing the packet to be transmitted and 
+ *          - Choose to simply not keep track of available buffers at all, and instead handle the
+ *          @ref BLE_ERROR_NO_TX_BUFFERS error by queueing the packet to be transmitted and
  *          try again as soon as a @ref BLE_EVT_TX_COMPLETE event arrives.
  *
- *          The API functions that <b>may</b> consume an application buffer depending on 
+ *          The API functions that <b>may</b> consume an application buffer depending on
  *          the parameters supplied to them can be found below:
  *
  *          - @ref sd_ble_gattc_write (write without response only)
@@ -315,7 +316,7 @@ SVCALL(SD_BLE_EVT_GET, uint32_t, sd_ble_evt_get(uint8_t *p_dest, uint16_t *p_len
  * @retval ::NRF_SUCCESS Number of application transmission buffers retrieved successfully.
  * @retval ::NRF_ERROR_INVALID_ADDR Invalid pointer supplied.
  */
-SVCALL(SD_BLE_TX_BUFFER_COUNT_GET, uint32_t, sd_ble_tx_buffer_count_get(uint8_t *p_count));
+SD_RPC_API uint32_t sd_ble_tx_buffer_count_get(adapter_t *adapter, uint8_t *p_count);
 
 
 /**@brief Add a Vendor Specific UUID.
@@ -323,15 +324,15 @@ SVCALL(SD_BLE_TX_BUFFER_COUNT_GET, uint32_t, sd_ble_tx_buffer_count_get(uint8_t 
  * @details This call enables the application to add a vendor specific UUID to the BLE stack's table,
  *          for later use all other modules and APIs. This then allows the application to use the shorter,
  *          24-bit @ref ble_uuid_t format when dealing with both 16-bit and 128-bit UUIDs without having to
- *          check for lengths and having split code paths. The way that this is accomplished is by extending the 
- *          grouping mechanism that the Bluetooth SIG standard base UUID uses for all other 128-bit UUIDs. The 
- *          type field in the @ref ble_uuid_t structure is an index (relative to @ref BLE_UUID_TYPE_VENDOR_BEGIN) 
- *          to the table populated by multiple calls to this function, and the uuid field in the same structure 
- *          contains the 2 bytes at indices 12 and 13. The number of possible 128-bit UUIDs available to the 
- *          application is therefore the number of Vendor Specific UUIDs added with the help of this function times 65536, 
+ *          check for lengths and having split code paths. The way that this is accomplished is by extending the
+ *          grouping mechanism that the Bluetooth SIG standard base UUID uses for all other 128-bit UUIDs. The
+ *          type field in the @ref ble_uuid_t structure is an index (relative to @ref BLE_UUID_TYPE_VENDOR_BEGIN)
+ *          to the table populated by multiple calls to this function, and the uuid field in the same structure
+ *          contains the 2 bytes at indices 12 and 13. The number of possible 128-bit UUIDs available to the
+ *          application is therefore the number of Vendor Specific UUIDs added with the help of this function times 65536,
  *          although restricted to modifying bytes 12 and 13 for each of the entries in the supplied array.
  *
- * @note Bytes 12 and 13 of the provided UUID will not be used internally, since those are always replaced by 
+ * @note Bytes 12 and 13 of the provided UUID will not be used internally, since those are always replaced by
  * the 16-bit uuid field in @ref ble_uuid_t.
  *
  *
@@ -344,15 +345,15 @@ SVCALL(SD_BLE_TX_BUFFER_COUNT_GET, uint32_t, sd_ble_tx_buffer_count_get(uint8_t 
  * @retval ::NRF_ERROR_NO_MEM If there are no more free slots for VS UUIDs.
  * @retval ::NRF_ERROR_FORBIDDEN If p_vs_uuid has already been added to the VS UUID table.
  */
-SVCALL(SD_BLE_UUID_VS_ADD, uint32_t, sd_ble_uuid_vs_add(ble_uuid128_t const *p_vs_uuid, uint8_t *p_uuid_type));
+SD_RPC_API uint32_t sd_ble_uuid_vs_add(adapter_t *adapter, ble_uuid128_t const *p_vs_uuid, uint8_t *p_uuid_type);
 
 
 /** @brief Decode little endian raw UUID bytes (16-bit or 128-bit) into a 24 bit @ref ble_uuid_t structure.
- * 
- * @details The raw UUID bytes excluding bytes 12 and 13 (i.e. bytes 0-11 and 14-15) of p_uuid_le are compared 
- * to the corresponding ones in each entry of the table of vendor specific UUIDs populated with @ref sd_ble_uuid_vs_add 
- * to look for a match. If there is such a match, bytes 12 and 13 are returned as p_uuid->uuid and the index 
- * relative to @ref BLE_UUID_TYPE_VENDOR_BEGIN as p_uuid->type. 
+ *
+ * @details The raw UUID bytes excluding bytes 12 and 13 (i.e. bytes 0-11 and 14-15) of p_uuid_le are compared
+ * to the corresponding ones in each entry of the table of vendor specific UUIDs populated with @ref sd_ble_uuid_vs_add
+ * to look for a match. If there is such a match, bytes 12 and 13 are returned as p_uuid->uuid and the index
+ * relative to @ref BLE_UUID_TYPE_VENDOR_BEGIN as p_uuid->type.
  *
  * @note If the UUID length supplied is 2, then the type set by this call will always be @ref BLE_UUID_TYPE_BLE.
  *
@@ -364,8 +365,8 @@ SVCALL(SD_BLE_UUID_VS_ADD, uint32_t, sd_ble_uuid_vs_add(ble_uuid128_t const *p_v
  * @retval ::NRF_ERROR_INVALID_ADDR Invalid pointer supplied.
  * @retval ::NRF_ERROR_INVALID_LENGTH Invalid UUID length.
  * @retval ::NRF_ERROR_NOT_FOUND For a 128-bit UUID, no match in the populated table of UUIDs.
- */                                                 
-SVCALL(SD_BLE_UUID_DECODE, uint32_t, sd_ble_uuid_decode(uint8_t uuid_le_len, uint8_t const *p_uuid_le, ble_uuid_t *p_uuid));
+ */
+SD_RPC_API uint32_t sd_ble_uuid_decode(adapter_t *adapter, uint8_t uuid_le_len, uint8_t const *p_uuid_le, ble_uuid_t *p_uuid);
 
 
 /** @brief Encode a @ref ble_uuid_t structure into little endian raw UUID bytes (16-bit or 128-bit).
@@ -380,7 +381,7 @@ SVCALL(SD_BLE_UUID_DECODE, uint32_t, sd_ble_uuid_decode(uint8_t uuid_le_len, uin
  * @retval ::NRF_ERROR_INVALID_ADDR Invalid pointer supplied.
  * @retval ::NRF_ERROR_INVALID_PARAM Invalid UUID type.
  */
-SVCALL(SD_BLE_UUID_ENCODE, uint32_t, sd_ble_uuid_encode(ble_uuid_t const *p_uuid, uint8_t *p_uuid_le_len, uint8_t *p_uuid_le));
+SD_RPC_API uint32_t sd_ble_uuid_encode(adapter_t *adapter, ble_uuid_t const *p_uuid, uint8_t *p_uuid_le_len, uint8_t *p_uuid_le);
 
 
 /**@brief Get Version Information.
@@ -393,7 +394,7 @@ SVCALL(SD_BLE_UUID_ENCODE, uint32_t, sd_ble_uuid_encode(ble_uuid_t const *p_uuid
  * @retval ::NRF_ERROR_INVALID_ADDR Invalid pointer supplied.
  * @retval ::NRF_ERROR_BUSY The BLE stack is busy (typically doing a locally-initiated disconnection procedure).
  */
-SVCALL(SD_BLE_VERSION_GET, uint32_t, sd_ble_version_get(ble_version_t *p_version));
+SD_RPC_API uint32_t sd_ble_version_get(adapter_t *adapter, ble_version_t *p_version);
 
 
 /**@brief Provide a user memory block.
@@ -408,7 +409,7 @@ SVCALL(SD_BLE_VERSION_GET, uint32_t, sd_ble_version_get(ble_version_t *p_version
  * @retval ::NRF_ERROR_INVALID_STATE Invalid Connection state or no execute write request pending.
  * @retval ::NRF_ERROR_BUSY The BLE stack is busy. Retry at later time.
  */
-SVCALL(SD_BLE_USER_MEM_REPLY, uint32_t, sd_ble_user_mem_reply(uint16_t conn_handle, ble_user_mem_block_t const *p_block));
+SD_RPC_API uint32_t sd_ble_user_mem_reply(adapter_t *adapter, uint16_t conn_handle, ble_user_mem_block_t const *p_block);
 
 /**@brief Set a BLE option.
  *
@@ -424,7 +425,7 @@ SVCALL(SD_BLE_USER_MEM_REPLY, uint32_t, sd_ble_user_mem_reply(uint16_t conn_hand
  * @retval ::NRF_ERROR_INVALID_STATE Unable to set the parameter at this time.
  * @retval ::NRF_ERROR_BUSY The BLE stack is busy or the previous procedure has not completed.
  */
-SVCALL(SD_BLE_OPT_SET, uint32_t, sd_ble_opt_set(uint32_t opt_id, ble_opt_t const *p_opt));
+SD_RPC_API uint32_t sd_ble_opt_set(adapter_t *adapter, uint32_t opt_id, ble_opt_t const *p_opt);
 
 
 /**@brief Get a BLE option.
@@ -443,7 +444,7 @@ SVCALL(SD_BLE_OPT_SET, uint32_t, sd_ble_opt_set(uint32_t opt_id, ble_opt_t const
  * @retval ::NRF_ERROR_NOT_SUPPORTED This option is not supported.
  *
  */
-SVCALL(SD_BLE_OPT_GET, uint32_t, sd_ble_opt_get(uint32_t opt_id, ble_opt_t *p_opt));
+SD_RPC_API uint32_t sd_ble_opt_get(adapter_t *adapter, uint32_t opt_id, ble_opt_t *p_opt);
 
 /** @} */
 
