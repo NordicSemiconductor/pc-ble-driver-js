@@ -27,7 +27,7 @@
  *
  */
 
-#include "adapter.h"
+#include "serialadapter.h"
 
 NAN_METHOD(GetAdapterList) {
     if(!info[0]->IsFunction())

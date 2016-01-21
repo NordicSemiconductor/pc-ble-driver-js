@@ -28,7 +28,7 @@
  */
 
 
-#include "adapter.h"
+#include "serialadapter.h"
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -84,9 +84,9 @@ static void FindModems(io_iterator_t *matchingServices)
 {
     kern_return_t     kernResult;
     CFMutableDictionaryRef  classesToMatch;
-    
+
     classesToMatch = IOServiceMatching(kIOSerialBSDServiceValue);
-    
+
     if (classesToMatch != NULL)
     {
         CFDictionarySetValue(classesToMatch,
@@ -164,9 +164,9 @@ static void ExtractUsbInformation(serial_device_t *serialDevice, IOUSBDeviceInte
 {
     kern_return_t kernResult;
     UInt32 locationID;
-    
+
     kernResult = (*deviceInterface)->GetLocationID(deviceInterface, &locationID);
-    
+
     if (KERN_SUCCESS == kernResult)
     {
         snprintf(serialDevice->locationId, MAXPATHLEN, "0x%08x", locationID);
@@ -174,7 +174,7 @@ static void ExtractUsbInformation(serial_device_t *serialDevice, IOUSBDeviceInte
 
     UInt16 vendorID;
     kernResult = (*deviceInterface)->GetDeviceVendor(deviceInterface, &vendorID);
-    
+
     if (KERN_SUCCESS == kernResult)
     {
         snprintf(serialDevice->vendorId, MAXPATHLEN, "0x%04x", vendorID);
@@ -182,7 +182,7 @@ static void ExtractUsbInformation(serial_device_t *serialDevice, IOUSBDeviceInte
 
     UInt16 productID;
     kernResult = (*deviceInterface)->GetDeviceProduct(deviceInterface, &productID);
-    
+
     if (KERN_SUCCESS == kernResult)
     {
         snprintf(serialDevice->productId, MAXPATHLEN, "0x%04x", productID);
@@ -199,7 +199,7 @@ static adapter_list_t* GetSeggerAdapters()
     char bsdPath[MAXPATHLEN];
 
     FindModems(&serialPortIterator);
-    
+
     io_service_t modemService;
     kernResult = KERN_FAILURE;
     Boolean modemFound = false;
@@ -312,7 +312,7 @@ static adapter_list_t* GetSeggerAdapters()
 
                 // Use the plugin interface to retrieve the device interface.
                 res = (*plugInInterface)->QueryInterface(
-                    plugInInterface, 
+                    plugInInterface,
                     CFUUIDGetUUIDBytes(kIOUSBDeviceInterfaceID),
                     (LPVOID*) &deviceInterface);
 
@@ -360,7 +360,7 @@ void GetAdapterList(uv_work_t* req) {
     AdapterListBaton* data = static_cast<AdapterListBaton*>(req->data);
     adapter_list_t* devices = GetSeggerAdapters();
 
-    for(auto device : *devices) 
+    for(auto device : *devices)
     {
         if(strcmp(device->manufacturer,"SEGGER") == 0  || EL_CAPITAN_ISSUE)
         {

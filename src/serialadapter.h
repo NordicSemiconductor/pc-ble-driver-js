@@ -27,8 +27,8 @@
  *
  */
 
-#ifndef ADAPTER_H
-#define ADAPTER_H
+#ifndef SERIALADAPTER_H
+#define SERIALADAPTER_H
 
 #include "common.h"
 

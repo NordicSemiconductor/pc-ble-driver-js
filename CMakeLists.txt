@@ -28,7 +28,7 @@ include_directories(${CMAKE_JS_INC} ${BLE_DRIVER_INCLUDE_DIR})
 
 # Specify source files
 file (GLOB SOURCE_FILES
-    "src/adapter.cpp"
+    "src/serialadapter.cpp"
     "src/common.cpp"
     "src/driver.cpp"
     "src/driver_gap.cpp"
@@ -39,12 +39,12 @@ file (GLOB SOURCE_FILES
 )
 
 if(WIN32)
-    file(GLOB PLATFORM_SOURCE_FILES "src/win/*.c" "src/win/*.cpp" "src/adapter_win.cpp")
+    file(GLOB PLATFORM_SOURCE_FILES "src/win/*.c" "src/win/*.cpp" "src/serialadapter_win.cpp")
 elseif(APPLE)
-    file(GLOB PLATFORM_SOURCE_FILES "src/adapter_osx.cpp")
+    file(GLOB PLATFORM_SOURCE_FILES "src/serialadapter_osx.cpp")
 else()
     # Assume Linux
-    file(GLOB PLATFORM_SOURCE_FILES "src/adapter_linux.cpp")
+    file(GLOB PLATFORM_SOURCE_FILES "src/serialadapter_linux.cpp")
 endif()
 
 # This line will tell CMake that we're building a shared library

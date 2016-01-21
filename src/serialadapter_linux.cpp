@@ -1,4 +1,4 @@
-#include "adapter.h"
+#include "serialadapter.h"
 
 #include <libudev.h>
 
@@ -37,7 +37,7 @@ static adapter_list_t* GetSeggerAdapters()
 
     udev_enumerate_add_match_subsystem(udev_enum, "tty");
     udev_enumerate_scan_devices(udev_enum);
-    
+
     struct udev_list_entry *udev_devices = udev_enumerate_get_list_entry(udev_enum);
     struct udev_list_entry *udev_entry;
     struct udev_device *udev_dev;
@@ -58,7 +58,7 @@ static adapter_list_t* GetSeggerAdapters()
         const char *idVendor = udev_device_get_sysattr_value(udev_dev, "idVendor");
 
         // Only add SEGGER devices to list
-        if(idVendor != NULL && strcmp(idVendor, SEGGER_VENDOR_ID) == 0) 
+        if(idVendor != NULL && strcmp(idVendor, SEGGER_VENDOR_ID) == 0)
         {
             serial_device_t *serial_device = (serial_device_t*)malloc(sizeof(serial_device_t));
             memset(serial_device, 0, sizeof(serial_device_t));
@@ -82,13 +82,13 @@ static adapter_list_t* GetSeggerAdapters()
     return devices;
 }
 
-void GetAdapterList(uv_work_t* req) 
+void GetAdapterList(uv_work_t* req)
 {
     AdapterListBaton* data = static_cast<AdapterListBaton*>(req->data);
 
     adapter_list_t* devices = GetSeggerAdapters();
 
-    for(auto device : *devices) 
+    for(auto device : *devices)
     {
         if(strcmp(device->manufacturer,"SEGGER") == 0)
         {

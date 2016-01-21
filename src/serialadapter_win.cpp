@@ -27,7 +27,7 @@
  *
  */
 
-#include "adapter.h"
+#include "serialadapter.h"
 
 #include <list>
 

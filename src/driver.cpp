@@ -6,7 +6,7 @@
 
 #include "sd_rpc.h"
 
-#include "adapter.h"
+#include "serialadapter.h"
 #include "driver.h"
 #include "driver_gap.h"
 //#include "driver_gatt.h"
