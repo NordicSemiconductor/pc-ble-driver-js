@@ -1,11 +1,11 @@
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef SD_COMMON_H
+#define SD_COMMON_H
 
 #include <nan.h>
 #include <map>
 #include <mutex>
 #include <string>
-#include "ble.h"
+//#include "ble.h"
 //#include "ble_hci.h"
 
 #include "sd_rpc.h"

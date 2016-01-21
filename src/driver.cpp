@@ -420,12 +420,15 @@ static void sd_rpc_on_error(adapter_t *adapter, const char * error, uint32_t cod
     //TODO: Implement
 }
 
+bool eventTimerInitialized = false;
+
 // This runs in a worker thread (not Main Thread)
 void Open(uv_work_t *req)
 {
     OpenBaton *baton = static_cast<OpenBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
+
 
     // Setup log related functionality
     driver_log_callback = baton->log_callback; // TODO: do not use a global variable for storing the callback
@@ -441,10 +444,11 @@ void Open(uv_work_t *req)
     async_event.data = event_queue;
 
     // Setup event interval functionality
-    if (evt_interval > 0)
+    if (evt_interval > 0 && !eventTimerInitialized)
     {
         uv_timer_init(uv_default_loop(), &evt_interval_timer);
         uv_timer_start(&evt_interval_timer, event_interval_callback, evt_interval, evt_interval);
+        eventTimerInitialized = true;
     }
 
     physical_layer_t *uart = sd_rpc_physical_layer_create_uart(baton->path, baton->baud_rate, baton->flow_control, baton->parity);
@@ -489,37 +493,6 @@ void Open(uv_work_t *req)
     printf("Failed to enable BLE stack.\n"); fflush(stdout);
 
     baton->result = error_code;
-
-    /*
-
-
-    sd_rpc_log_handler_severity_filter_set(baton->log_level);
-    sd_rpc_log_handler_set(sd_rpc_on_log_event);
-
-    // Setup serial port related settings
-    sd_rpc_serial_port_name_set(baton->path);
-    sd_rpc_serial_baud_rate_set(baton->baud_rate);
-    sd_rpc_serial_flow_control_set(baton->flow_control);
-
-    sd_rpc_serial_parity_set(baton->parity);
-
-    // Open RPC connection to device
-    int err = sd_rpc_open();
-
-    if (err != NRF_SUCCESS)
-    {
-        // Need to communicate back to Main Thread that this failed.
-        baton->result = err;
-        return;
-    }
-
-    ble_enable_params_t *ble_enable_params = new ble_enable_params_t();
-    memset(ble_enable_params, 0, sizeof(ble_enable_params_t));
-    ble_enable_params->gatts_enable_params.attr_tab_size = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
-    ble_enable_params->gatts_enable_params.service_changed = false;
-
-    baton->result = sd_ble_enable(ble_enable_params);
-    */
 }
 
 // This runs in  Main Thread
