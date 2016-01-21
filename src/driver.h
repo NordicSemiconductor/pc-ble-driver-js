@@ -194,6 +194,7 @@ struct EventEntry {
 public:
     ble_evt_t *event;
     std::string timestamp;
+    int adapterID;
 };
 
 #endif //BLE_DRIVER_JS_DRIVER_H

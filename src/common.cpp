@@ -9,6 +9,19 @@
 adapter_t *connectedAdapters[10];
 int adapterCount = 0;
 
+int findAdapterID(adapter_t *adapter)
+{
+    for (int i = 0; i < 10; ++i)
+    {
+        if (connectedAdapters[i]->internal == adapter->internal)
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
 #define RETURN_VALUE_OR_THROW_EXCEPTION(method) \
 try { \
     return (method); \

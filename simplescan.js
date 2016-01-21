@@ -24,7 +24,7 @@ function open(port, adapternr)
 
         eventCallback: eventArray => {
             eventArray.forEach(event => {
-                console.log(event.name);
+                console.log(event.adapterID + ' ' + event.name);
             });
         },
     };

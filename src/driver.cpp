@@ -39,13 +39,14 @@ extern int adapterCount;
 
 
 // Macro for keeping sanity in event switch case below
-#define GAP_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, event_entry) \
+#define GAP_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, event_entry, adapterID) \
     case BLE_GAP_EVT_##evt_enum:                                                                                        \
     {                                                                                                                   \
         ble_gap_evt_t gap_event = event_entry->event->evt.gap_evt;                                                      \
         std::string timestamp = event_entry->timestamp;                                                                 \
-        v8::Local<v8::Value> js_event =                                                                                 \
+        v8::Local<v8::Object> js_event =                                                                                 \
             Gap##evt_to_js(timestamp, gap_event.conn_handle, &(gap_event.params.params_name)).ToJs();                   \
+        Utility::Set(js_event, "adapterID", ConversionUtility::toJsNumber(adapterID));   \
         Nan::Set(event_array, event_array_idx, js_event);                                               \
         break;                                                                                                          \
     }
@@ -184,6 +185,7 @@ static void sd_rpc_on_event(adapter_t *adapter, ble_evt_t *event)
     memcpy(evt, event, size);
 
     EventEntry *event_entry = new EventEntry();
+    event_entry->adapterID = findAdapterID(adapter);
     event_entry->event = (ble_evt_t*)evt;
     event_entry->timestamp = getCurrentTimeInMilliseconds();
 
@@ -226,6 +228,8 @@ void on_rpc_event(uv_async_t *handle)
         ble_evt_t *event = event_entry->event;
         assert(event != NULL);
 
+        int adapterID = event_entry->adapterID;
+
         if (driver_event_callback != NULL)
         {
             switch (event->header.evt_id)
@@ -234,19 +238,18 @@ void on_rpc_event(uv_async_t *handle)
                 COMMON_EVT_CASE(USER_MEM_REQUEST, MemRequest, user_mem_request, array, array_idx, event_entry);
                 COMMON_EVT_CASE(USER_MEM_RELEASE, MemRelease, user_mem_release, array, array_idx, event_entry);
 
-                GAP_EVT_CASE(CONNECTED,                 Connected,              connected,                  array, array_idx, event_entry);
-                GAP_EVT_CASE(DISCONNECTED,              Disconnected,           disconnected,               array, array_idx, event_entry);
-                GAP_EVT_CASE(ADV_REPORT,                AdvReport,              adv_report,                 array, array_idx, event_entry);
-                GAP_EVT_CASE(SCAN_REQ_REPORT,           ScanReqReport,          scan_req_report,            array, array_idx, event_entry);
-                GAP_EVT_CASE(TIMEOUT,                   Timeout,                timeout,                    array, array_idx, event_entry);
-                GAP_EVT_CASE(RSSI_CHANGED,              RssiChanged,            rssi_changed,               array, array_idx, event_entry);
-                GAP_EVT_CASE(CONN_PARAM_UPDATE,         ConnParamUpdate,        conn_param_update,          array, array_idx, event_entry);
-                GAP_EVT_CASE(CONN_PARAM_UPDATE_REQUEST, ConnParamUpdateRequest, conn_param_update_request,  array, array_idx, event_entry);
-                GAP_EVT_CASE(SEC_PARAMS_REQUEST,        SecParamsRequest,       sec_params_request,         array, array_idx, event_entry);
-                GAP_EVT_CASE(AUTH_STATUS,               AuthStatus,             auth_status,                array, array_idx, event_entry);
-                GAP_EVT_CASE(CONN_SEC_UPDATE,           ConnSecUpdate,          conn_sec_update,            array, array_idx, event_entry);
-                GAP_EVT_CASE(SEC_INFO_REQUEST,          SecInfoRequest,         sec_info_request,           array, array_idx, event_entry);
-                GAP_EVT_CASE(SEC_REQUEST,               SecRequest,             sec_request,                array, array_idx, event_entry);
+                GAP_EVT_CASE(CONNECTED,                 Connected,              connected,                  array, array_idx, event_entry, adapterID);
+                GAP_EVT_CASE(DISCONNECTED,              Disconnected,           disconnected,               array, array_idx, event_entry, adapterID);
+                GAP_EVT_CASE(ADV_REPORT,                AdvReport,              adv_report,                 array, array_idx, event_entry, adapterID);
+                GAP_EVT_CASE(SCAN_REQ_REPORT,           ScanReqReport,          scan_req_report,            array, array_idx, event_entry, adapterID);
+                GAP_EVT_CASE(TIMEOUT,                   Timeout,                timeout,                    array, array_idx, event_entry, adapterID);
+                GAP_EVT_CASE(AUTH_STATUS,               AuthStatus,             auth_status,                array, array_idx, event_entry, adapterID);
+                GAP_EVT_CASE(CONN_PARAM_UPDATE,         ConnParamUpdate,        conn_param_update,          array, array_idx, event_entry, adapterID);
+                GAP_EVT_CASE(CONN_PARAM_UPDATE_REQUEST, ConnParamUpdateRequest, conn_param_update_request,  array, array_idx, event_entry, adapterID);
+                GAP_EVT_CASE(SEC_PARAMS_REQUEST,        SecParamsRequest,       sec_params_request,         array, array_idx, event_entry, adapterID);
+                GAP_EVT_CASE(CONN_SEC_UPDATE,           ConnSecUpdate,          conn_sec_update,            array, array_idx, event_entry, adapterID);
+                GAP_EVT_CASE(SEC_INFO_REQUEST,          SecInfoRequest,         sec_info_request,           array, array_idx, event_entry, adapterID);
+                GAP_EVT_CASE(SEC_REQUEST,               SecRequest,             sec_request,                array, array_idx, event_entry, adapterID);
                 /*
                 GATTC_EVT_CASE(PRIM_SRVC_DISC_RSP,          PrimaryServiceDiscovery,       prim_srvc_disc_rsp,         array, array_idx, event_entry);
                 GATTC_EVT_CASE(REL_DISC_RSP,                RelationshipDiscovery,         rel_disc_rsp,               array, array_idx, event_entry);

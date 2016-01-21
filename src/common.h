@@ -31,6 +31,8 @@ static std::mutex ble_driver_call_mutex;
 extern adapter_t *connectedAdapters[];
 extern int adapterCount;
 
+int findAdapterID(adapter_t *adapter);
+
 class ConversionUtility;
 
 
