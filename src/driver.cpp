@@ -1,10 +1,10 @@
 #include <iostream>
 #include <deque>
 #include <mutex>
-#include <chrono>
 #include <sstream>
 
 #include "sd_rpc.h"
+#include "adapter.h"
 
 #include "serialadapter.h"
 #include "driver.h"
@@ -13,19 +13,7 @@
 //#include "driver_gattc.h"
 //#include "driver_gatts.h"
 
-#include "circular_fifo_unsafe.h"
-
-#include "adapter.h"
-
 using namespace std;
-//using namespace memory_relaxed_aquire_release;
-using namespace memory_sequential_unsafe;
-
-typedef CircularFifo<EventEntry *, 64> EventQueue;
-typedef CircularFifo<LogEntry *, 64> LogQueue;
-
-extern adapter_t *connectedAdapters[];
-extern int adapterCount;
 
 // Macro for keeping sanity in event switch case below
 #define COMMON_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, event_entry) \
@@ -84,24 +72,8 @@ static name_map_t uuid_type_name_map = {
 
 uv_async_t async_log;
 
-// Interval to use for sending BLE driver events to JavaScript. If 0 events will be sent as soon as they are received from the BLE driver.
-uint32_t evt_interval;
-uv_timer_t evt_interval_timer;
-uv_async_t async_event;
-
-// Accumulated deltas for event callbacks done to the driver
-chrono::milliseconds evt_cb_duration;
-uint32_t evt_cb_count;
-
-// Max number of events in queue before sending it to JavaScript
-uint32_t evt_cb_max_count;
-uint32_t evt_cb_batch_evt_counter;
-uint32_t evt_cb_batch_evt_total_count;
-uint32_t evt_cb_batch_number;
-
 // This is just a hack for now. Just want to test the event-loop all the way up to JavaScript.
 Nan::Callback *driver_log_callback = NULL;
-Nan::Callback *driver_event_callback = NULL;
 
 // This function is ran by the thread that the SoftDevice Driver has initiated
 void sd_rpc_on_log_event(adapter_t *adapter, sd_rpc_log_severity_t severity, const char *log_message)
@@ -148,13 +120,13 @@ void on_log_event(uv_async_t *handle)
 }
 
 // Sends events upstream
-void send_events_upstream()
+void Adapter::send_events_upstream()
 {
     // Trigger callback in NodeJS thread to call NodeJS callbacks
-    uv_async_send(&async_event);
+    uv_async_send(&asyncEvent);
 }
 
-void event_interval_callback(uv_timer_t *handle)
+void Adapter::event_interval_callback(uv_timer_t *handle)
 {
     send_events_upstream();
 }
@@ -174,10 +146,27 @@ static void sd_rpc_on_event(adapter_t *adapter, ble_evt_t *event)
         return;
     }
 
-    evt_cb_count += 1;
-    evt_cb_batch_evt_counter += 1;
+    Adapter *jsAdapter = Adapter::getAdapter(adapter);
 
-    if (evt_cb_batch_evt_counter > evt_cb_max_count) evt_cb_max_count = evt_cb_batch_evt_counter;
+    if (jsAdapter != 0)
+    {
+        jsAdapter->appendEvent(event);
+    }
+    else
+    {
+        //TODO: Return error
+    }
+}
+
+void Adapter::appendEvent(ble_evt_t *event)
+{
+    eventCallbackCount += 1;
+    eventCallbackBatchEventCounter += 1;
+
+    if (eventCallbackBatchEventCounter > eventCallbackMaxCount)
+    {
+        eventCallbackMaxCount = eventCallbackBatchEventCounter;
+    }
 
     size_t size = findSize(event);
 
@@ -189,40 +178,32 @@ static void sd_rpc_on_event(adapter_t *adapter, ble_evt_t *event)
     event_entry->event = (ble_evt_t*)evt;
     event_entry->timestamp = getCurrentTimeInMilliseconds();
 
-    EventQueue *event_queue = (EventQueue*)async_event.data;
-    event_queue->push(event_entry);
+    events.push(event_entry);
 
     // If the event interval is not set, send the events to NodeJS as soon as possible.
-    if (evt_interval == 0)
+    if (eventInterval == 0)
     {
         send_events_upstream();
     }
 }
 
 // Now we are in the NodeJS thread. Call callbacks.
-void on_rpc_event(uv_async_t *handle)
+void Adapter::on_rpc_event(uv_async_t *handle)
 {
     Nan::HandleScope scope;
 
-    EventQueue *event_entries = (EventQueue*)handle->data;
-
-    if (event_entries->wasEmpty())
+    if (events.wasEmpty())
     {
         return;
     }
 
-    // Update statistics (evaluate if we shall lock the statistics counters to get more preceise data)
-    evt_cb_batch_evt_total_count += evt_cb_batch_evt_counter;
-    evt_cb_batch_evt_counter = 0;
-    evt_cb_batch_number += 1;
-
     v8::Local<v8::Array> array = Nan::New<v8::Array>();
     int array_idx = 0;
 
-    while (!event_entries->wasEmpty())
+    while (!events.wasEmpty())
     {
         EventEntry *event_entry = NULL;
-        event_entries->pop(event_entry);
+        events.pop(event_entry);
         assert(event_entry != NULL);
 
         ble_evt_t *event = event_entry->event;
@@ -230,7 +211,7 @@ void on_rpc_event(uv_async_t *handle)
 
         int adapterID = event_entry->adapterID;
 
-        if (driver_event_callback != NULL)
+        if (eventCallback != NULL)
         {
             switch (event->header.evt_id)
             {
@@ -289,15 +270,15 @@ void on_rpc_event(uv_async_t *handle)
 
     auto start = chrono::high_resolution_clock::now();
 
-    if (driver_event_callback != NULL)
+    if (eventCallback != NULL)
     {
-        driver_event_callback->Call(1, callback_value);
+        eventCallback->Call(1, callback_value);
     }
 
     auto end = chrono::high_resolution_clock::now();
 
     chrono::milliseconds duration = chrono::duration_cast<chrono::milliseconds>(end - start);
-    evt_cb_duration += duration;
+    addEventBatchStatistics(duration);
 }
 
 v8::Local<v8::Object> CommonTXCompleteEvent::ToJs()
@@ -435,20 +416,7 @@ void Adapter::Open(uv_work_t *req)
     LogQueue *log_queue = new LogQueue();
     async_log.data = log_queue;
 
-    // Setup event related functionality
-    evt_interval = baton->evt_interval;
-    driver_event_callback = baton->event_callback;
-    uv_async_init(uv_default_loop(), &async_event, on_rpc_event);
-    EventQueue *event_queue = new EventQueue();
-    async_event.data = event_queue;
-
-    // Setup event interval functionality
-    if (evt_interval > 0 && !eventTimerInitialized)
-    {
-        uv_timer_init(uv_default_loop(), &evt_interval_timer);
-        uv_timer_start(&evt_interval_timer, event_interval_callback, evt_interval, evt_interval);
-        eventTimerInitialized = true;
-    }
+    baton->mainObject->initEventHandling(baton->event_callback, baton->evt_interval);
 
     const char *path = baton->path.c_str();
 
@@ -555,6 +523,7 @@ NAN_METHOD(Adapter::Close)
 
     CloseBaton *baton = new CloseBaton(callback);
     baton->adapter = obj->adapter;
+    baton->mainObject = obj;
 
     uv_queue_work(uv_default_loop(), baton->req, Close, (uv_after_work_cb)AfterClose);
 }
@@ -562,16 +531,13 @@ NAN_METHOD(Adapter::Close)
 void Adapter::Close(uv_work_t *req)
 {
     CloseBaton *baton = static_cast<CloseBaton *>(req->data);
+    Adapter *obj = baton->mainObject;
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
 
     baton->result = sd_rpc_close(baton->adapter);
 
-    if (driver_event_callback != NULL)
-    {
-        delete driver_event_callback;
-        driver_event_callback = NULL;
-    }
+    obj->removeCallbacks();
 
     if (driver_log_callback != NULL)
     {
@@ -953,19 +919,11 @@ NAN_METHOD(Adapter::GetStats)
 {
     Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Object> stats = Nan::New<v8::Object>();
-    Utility::Set(stats, "event_callback_total_time", (int32_t)evt_cb_duration.count());
-    Utility::Set(stats, "event_callback_total_time", (int32_t)evt_cb_duration.count());
-    Utility::Set(stats, "event_callback_total_count", evt_cb_count);
-    Utility::Set(stats, "event_callback_batch_max_count", evt_cb_max_count);
-
-    double avg_cb_batch_count = 0.0;
-
-    if (evt_cb_batch_number != 0)
-    {
-        avg_cb_batch_count = evt_cb_batch_evt_total_count / evt_cb_batch_number;
-    }
-
-    Utility::Set(stats, "event_callback_batch_avg_count", avg_cb_batch_count);
+    
+    Utility::Set(stats, "eventCallbackTotalTime", obj->getEventCallbackTotalTime());
+    Utility::Set(stats, "eventCallbackTotalCount", obj->getEventCallbackCount());
+    Utility::Set(stats, "eventCallbackBatchMaxCount", obj->getEventCallbackMaxCount());
+    Utility::Set(stats, "eventCallbackBatchAvgCount", obj->getAverageCallbackBatchCount());
 
     Utility::SetReturnValue(info, stats);
 }

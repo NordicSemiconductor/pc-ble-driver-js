@@ -1,0 +1,139 @@
+#ifndef ADAPTER_H
+#define ADAPTER_H
+
+#include <nan.h>
+#include <chrono>
+
+#include "sd_rpc.h"
+
+#include "circular_fifo_unsafe.h"
+
+#define ADAPTER_METHOD_DEFINITIONS(MainName) \
+    static NAN_METHOD(MainName); \
+    static void MainName(uv_work_t *req); \
+    static void After##MainName(uv_work_t *req);
+
+struct LogEntry {
+public:
+    sd_rpc_log_severity_t severity;
+    std::string message;
+};
+
+struct EventEntry {
+public:
+    ble_evt_t *event;
+    std::string timestamp;
+    int adapterID;
+};
+
+//using namespace memory_relaxed_aquire_release;
+using namespace memory_sequential_unsafe;
+typedef CircularFifo<EventEntry *, 64> EventQueue;
+typedef CircularFifo<LogEntry *, 64> LogQueue;
+
+class Adapter : public Nan::ObjectWrap {
+public:
+    static NAN_MODULE_INIT(Init);
+
+    static Adapter *getAdapter(adapter_t *adapter);
+
+    adapter_t *getInternalAdapter() const;
+
+    void initEventHandling(Nan::Callback *callback, const uint32_t interval);
+    void appendEvent(ble_evt_t *event);
+
+    // Statistics:
+    int32_t getEventCallbackTotalTime() const;
+    uint32_t getEventCallbackCount() const;
+    uint32_t getEventCallbackMaxCount() const;
+    uint32_t getEventCallbackBatchNumber() const;
+    uint32_t getEventCallbackBatchEventTotalCount() const;
+
+    double getAverageCallbackBatchCount() const;
+
+    void addEventBatchStatistics(std::chrono::milliseconds duration);
+
+    void removeCallbacks();
+
+    void on_rpc_event(uv_async_t *handle);
+    void event_interval_callback(uv_timer_t *handle);
+
+private:
+    explicit Adapter();
+    ~Adapter();
+
+    static Nan::Persistent<v8::Function> constructor;
+
+    static NAN_METHOD(New);
+
+    // General async methods
+    ADAPTER_METHOD_DEFINITIONS(Open);
+    ADAPTER_METHOD_DEFINITIONS(Close);
+    ADAPTER_METHOD_DEFINITIONS(GetVersion);
+    ADAPTER_METHOD_DEFINITIONS(AddVendorSpecificUUID);
+    ADAPTER_METHOD_DEFINITIONS(UUIDEncode);
+    ADAPTER_METHOD_DEFINITIONS(UUIDDecode);
+    ADAPTER_METHOD_DEFINITIONS(UserMemReply);
+
+    // General synct methods
+    static NAN_METHOD(GetStats);
+
+    // Gap async mehtods
+    ADAPTER_METHOD_DEFINITIONS(GapSetAddress);
+    ADAPTER_METHOD_DEFINITIONS(GapGetAddress);
+    ADAPTER_METHOD_DEFINITIONS(GapUpdateConnectionParameters);
+    ADAPTER_METHOD_DEFINITIONS(GapDisconnect);
+    ADAPTER_METHOD_DEFINITIONS(GapSetTXPower);
+    ADAPTER_METHOD_DEFINITIONS(GapSetDeviceName);
+    ADAPTER_METHOD_DEFINITIONS(GapGetDeviceName);
+    ADAPTER_METHOD_DEFINITIONS(GapStartRSSI);
+    ADAPTER_METHOD_DEFINITIONS(GapStopRSSI);
+    ADAPTER_METHOD_DEFINITIONS(GapGetRSSI);
+    ADAPTER_METHOD_DEFINITIONS(GapStartScan);
+    ADAPTER_METHOD_DEFINITIONS(GapStopScan);
+    ADAPTER_METHOD_DEFINITIONS(GapConnect);
+    ADAPTER_METHOD_DEFINITIONS(GapCancelConnect);
+    ADAPTER_METHOD_DEFINITIONS(GapStartAdvertising);
+    ADAPTER_METHOD_DEFINITIONS(GapStopAdvertising);
+    ADAPTER_METHOD_DEFINITIONS(GapSetAdvertisingData);
+    ADAPTER_METHOD_DEFINITIONS(GapSecParamsReply);
+    ADAPTER_METHOD_DEFINITIONS(GapConnSecGet);
+    ADAPTER_METHOD_DEFINITIONS(GapEncrypt);
+    ADAPTER_METHOD_DEFINITIONS(GapSecInfoReply);
+    ADAPTER_METHOD_DEFINITIONS(GapAuthenticate);
+    ADAPTER_METHOD_DEFINITIONS(GapSetPPCP);
+    ADAPTER_METHOD_DEFINITIONS(GapGetPPCP);
+    ADAPTER_METHOD_DEFINITIONS(GapSetAppearance);
+    ADAPTER_METHOD_DEFINITIONS(GapGetAppearance);
+
+    static void Adapter::initGeneric(v8::Local<v8::FunctionTemplate> tpl);
+    static void Adapter::initGap(v8::Local<v8::FunctionTemplate> tpl);
+    static void Adapter::initGatt(v8::Local<v8::FunctionTemplate> tpl);
+    static void Adapter::initGattC(v8::Local<v8::FunctionTemplate> tpl);
+    static void Adapter::initGattS(v8::Local<v8::FunctionTemplate> tpl);
+
+    void send_events_upstream();
+
+    adapter_t *adapter;
+    EventQueue events;
+    LogQueue logs;
+
+    Nan::Callback *eventCallback;
+
+    // Interval to use for sending BLE driver events to JavaScript. If 0 events will be sent as soon as they are received from the BLE driver.
+    uint32_t eventInterval;
+    uv_timer_t eventIntervalTimer;
+    uv_async_t asyncEvent;
+
+    // Statistics:
+    // Accumulated deltas for event callbacks done to the driver
+    std::chrono::milliseconds eventCallbackDuration;
+    uint32_t eventCallbackCount;
+
+    // Max number of events in queue before sending it to JavaScript
+    uint32_t eventCallbackMaxCount;
+    uint32_t eventCallbackBatchEventCounter;
+    uint32_t eventCallbackBatchEventTotalCount;
+    uint32_t eventCallbackBatchNumber;
+};
+#endif

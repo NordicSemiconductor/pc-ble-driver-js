@@ -136,6 +136,7 @@ public:
 struct CloseBaton : public Baton {
 public:
     BATON_CONSTRUCTOR(CloseBaton)
+    Adapter *mainObject;
 };
 
 struct GetVersionBaton : public Baton {
@@ -177,17 +178,5 @@ public:
 
 ///// End Batons ////////////////////////////////////////
 
-struct LogEntry {
-public:
-    sd_rpc_log_severity_t severity;
-    std::string message;
-};
-
-struct EventEntry {
-public:
-    ble_evt_t *event;
-    std::string timestamp;
-    int adapterID;
-};
 
 #endif //BLE_DRIVER_JS_DRIVER_H
