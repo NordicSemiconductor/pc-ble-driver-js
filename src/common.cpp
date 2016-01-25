@@ -334,6 +334,23 @@ uint16_t ConversionUtility::stringToValue(name_map_t name_map, v8::Local<v8::Obj
     return key;
 }
 
+std::string ConversionUtility::getNativeString(v8::Local<v8::Object>js, const char *name)
+{
+    v8::Local<v8::Value> obj = Utility::Get(js, name);
+
+    RETURN_VALUE_OR_THROW_EXCEPTION(ConversionUtility::getNativeString(obj));
+}
+
+std::string ConversionUtility::getNativeString(v8::Local<v8::Value> js)
+{
+    if (!js->IsString())
+    {
+        throw "string";
+    }
+
+    return std::string(*Nan::Utf8String(js));
+}
+
 uint16_t ConversionUtility::msecsToUnitsUint16(v8::Local<v8::Object>js, const char *name, enum ConversionUtility::ConversionUnits unit)
 {
     double msecs = getNativeDouble(js, name);

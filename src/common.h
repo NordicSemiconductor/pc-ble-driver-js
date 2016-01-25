@@ -141,9 +141,9 @@ public:
     uv_work_t *req;
     Nan::Callback *callback;
 
-    uint8_t adapterID;
     int result;
     char errorString[ERROR_STRING_SIZE];
+    adapter_t *adapter;
 };
 
 const std::string getCurrentTimeInMilliseconds();
@@ -252,6 +252,8 @@ public:
     static v8::Local<v8::Object> getJsObjectOrNull(v8::Local<v8::Object>js, const char *name);
     static v8::Local<v8::Object> getJsObjectOrNull(v8::Local<v8::Value>js);
     static uint16_t     stringToValue(name_map_t name_map, v8::Local<v8::Object> string, uint16_t defaultValue = -1);
+    static std::string  getNativeString(v8::Local<v8::Object>js, const char *name);
+    static std::string  getNativeString(v8::Local<v8::Value> js);
 
     static uint16_t msecsToUnitsUint16(v8::Local<v8::Object>js, const char *name, enum ConversionUnits unit);
     static uint16_t msecsToUnitsUint16(double msecs, enum ConversionUnits unit);

@@ -15,6 +15,8 @@
 
 #include "circular_fifo_unsafe.h"
 
+#include "adapter.h"
+
 using namespace std;
 //using namespace memory_relaxed_aquire_release;
 using namespace memory_sequential_unsafe;
@@ -39,14 +41,13 @@ extern int adapterCount;
 
 
 // Macro for keeping sanity in event switch case below
-#define GAP_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, event_entry, adapterID) \
+#define GAP_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, event_entry) \
     case BLE_GAP_EVT_##evt_enum:                                                                                        \
     {                                                                                                                   \
         ble_gap_evt_t gap_event = event_entry->event->evt.gap_evt;                                                      \
         std::string timestamp = event_entry->timestamp;                                                                 \
         v8::Local<v8::Object> js_event =                                                                                 \
             Gap##evt_to_js(timestamp, gap_event.conn_handle, &(gap_event.params.params_name)).ToJs();                   \
-        Utility::Set(js_event, "adapterID", ConversionUtility::toJsNumber(adapterID));   \
         Nan::Set(event_array, event_array_idx, js_event);                                               \
         break;                                                                                                          \
     }
@@ -185,7 +186,6 @@ static void sd_rpc_on_event(adapter_t *adapter, ble_evt_t *event)
     memcpy(evt, event, size);
 
     EventEntry *event_entry = new EventEntry();
-    event_entry->adapterID = findAdapterID(adapter);
     event_entry->event = (ble_evt_t*)evt;
     event_entry->timestamp = getCurrentTimeInMilliseconds();
 
@@ -238,18 +238,18 @@ void on_rpc_event(uv_async_t *handle)
                 COMMON_EVT_CASE(USER_MEM_REQUEST, MemRequest, user_mem_request, array, array_idx, event_entry);
                 COMMON_EVT_CASE(USER_MEM_RELEASE, MemRelease, user_mem_release, array, array_idx, event_entry);
 
-                GAP_EVT_CASE(CONNECTED,                 Connected,              connected,                  array, array_idx, event_entry, adapterID);
-                GAP_EVT_CASE(DISCONNECTED,              Disconnected,           disconnected,               array, array_idx, event_entry, adapterID);
-                GAP_EVT_CASE(ADV_REPORT,                AdvReport,              adv_report,                 array, array_idx, event_entry, adapterID);
-                GAP_EVT_CASE(SCAN_REQ_REPORT,           ScanReqReport,          scan_req_report,            array, array_idx, event_entry, adapterID);
-                GAP_EVT_CASE(TIMEOUT,                   Timeout,                timeout,                    array, array_idx, event_entry, adapterID);
-                GAP_EVT_CASE(AUTH_STATUS,               AuthStatus,             auth_status,                array, array_idx, event_entry, adapterID);
-                GAP_EVT_CASE(CONN_PARAM_UPDATE,         ConnParamUpdate,        conn_param_update,          array, array_idx, event_entry, adapterID);
-                GAP_EVT_CASE(CONN_PARAM_UPDATE_REQUEST, ConnParamUpdateRequest, conn_param_update_request,  array, array_idx, event_entry, adapterID);
-                GAP_EVT_CASE(SEC_PARAMS_REQUEST,        SecParamsRequest,       sec_params_request,         array, array_idx, event_entry, adapterID);
-                GAP_EVT_CASE(CONN_SEC_UPDATE,           ConnSecUpdate,          conn_sec_update,            array, array_idx, event_entry, adapterID);
-                GAP_EVT_CASE(SEC_INFO_REQUEST,          SecInfoRequest,         sec_info_request,           array, array_idx, event_entry, adapterID);
-                GAP_EVT_CASE(SEC_REQUEST,               SecRequest,             sec_request,                array, array_idx, event_entry, adapterID);
+                GAP_EVT_CASE(CONNECTED,                 Connected,              connected,                  array, array_idx, event_entry);
+                GAP_EVT_CASE(DISCONNECTED,              Disconnected,           disconnected,               array, array_idx, event_entry);
+                GAP_EVT_CASE(ADV_REPORT,                AdvReport,              adv_report,                 array, array_idx, event_entry);
+                GAP_EVT_CASE(SCAN_REQ_REPORT,           ScanReqReport,          scan_req_report,            array, array_idx, event_entry);
+                GAP_EVT_CASE(TIMEOUT,                   Timeout,                timeout,                    array, array_idx, event_entry);
+                GAP_EVT_CASE(AUTH_STATUS,               AuthStatus,             auth_status,                array, array_idx, event_entry);
+                GAP_EVT_CASE(CONN_PARAM_UPDATE,         ConnParamUpdate,        conn_param_update,          array, array_idx, event_entry);
+                GAP_EVT_CASE(CONN_PARAM_UPDATE_REQUEST, ConnParamUpdateRequest, conn_param_update_request,  array, array_idx, event_entry);
+                GAP_EVT_CASE(SEC_PARAMS_REQUEST,        SecParamsRequest,       sec_params_request,         array, array_idx, event_entry);
+                GAP_EVT_CASE(CONN_SEC_UPDATE,           ConnSecUpdate,          conn_sec_update,            array, array_idx, event_entry);
+                GAP_EVT_CASE(SEC_INFO_REQUEST,          SecInfoRequest,         sec_info_request,           array, array_idx, event_entry);
+                GAP_EVT_CASE(SEC_REQUEST,               SecRequest,             sec_request,                array, array_idx, event_entry);
                 /*
                 GATTC_EVT_CASE(PRIM_SRVC_DISC_RSP,          PrimaryServiceDiscovery,       prim_srvc_disc_rsp,         array, array_idx, event_entry);
                 GATTC_EVT_CASE(REL_DISC_RSP,                RelationshipDiscovery,         rel_disc_rsp,               array, array_idx, event_entry);
@@ -336,23 +336,19 @@ v8::Local<v8::Object> CommonMemReleaseEvent::ToJs()
 }
 
 // This function runs in the Main Thread
-NAN_METHOD(Open)
+NAN_METHOD(Adapter::Open)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    std::string path;
     v8::Local<v8::Object> options;
     v8::Local<v8::Function> callback;
     int argumentcount = 0;
 
-    // Path to device
-    if (!info[0]->IsString())
-    {
-        Nan::ThrowTypeError("First argument must be a string");
-        return;
-    }
-    v8::String::Utf8Value path(info[0]->ToString());
-    argumentcount++;
-
     try
     {
+        path = ConversionUtility::getNativeString(info[argumentcount]);
+        argumentcount++;
+
         options = ConversionUtility::getJsObject(info[argumentcount]);
         argumentcount++;
 
@@ -367,8 +363,8 @@ NAN_METHOD(Open)
     }
 
     OpenBaton *baton = new OpenBaton(callback);
-
-    strncpy(baton->path, *path, PATH_STRING_SIZE);
+    baton->mainObject = obj;
+    baton->path = path;
 
     int parameter = 0;
 
@@ -423,15 +419,15 @@ static void sd_rpc_on_error(adapter_t *adapter, const char * error, uint32_t cod
     //TODO: Implement
 }
 
+//TODO: Find a better way to handle this
 bool eventTimerInitialized = false;
 
 // This runs in a worker thread (not Main Thread)
-void Open(uv_work_t *req)
+void Adapter::Open(uv_work_t *req)
 {
     OpenBaton *baton = static_cast<OpenBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
-
 
     // Setup log related functionality
     driver_log_callback = baton->log_callback; // TODO: do not use a global variable for storing the callback
@@ -454,7 +450,9 @@ void Open(uv_work_t *req)
         eventTimerInitialized = true;
     }
 
-    physical_layer_t *uart = sd_rpc_physical_layer_create_uart(baton->path, baton->baud_rate, baton->flow_control, baton->parity);
+    const char *path = baton->path.c_str();
+
+    physical_layer_t *uart = sd_rpc_physical_layer_create_uart(path, baton->baud_rate, baton->flow_control, baton->parity);
     data_link_layer_t *h5 = sd_rpc_data_link_layer_create_bt_three_wire(uart, 100);
     transport_layer_t *serialization = sd_rpc_transport_layer_create(h5, 750);
     adapter_t *adapter = sd_rpc_adapter_create(serialization);
@@ -468,9 +466,8 @@ void Open(uv_work_t *req)
         return;
     }
 
-    connectedAdapters[adapterCount] = adapter;
-    baton->adapterID = adapterCount;
-    adapterCount++;
+    baton->adapter = adapter;
+    baton->mainObject->adapter = adapter;
 
     ble_enable_params_t ble_enable_params;
 
@@ -499,14 +496,13 @@ void Open(uv_work_t *req)
 }
 
 // This runs in  Main Thread
-void AfterOpen(uv_work_t *req)
+void Adapter::AfterOpen(uv_work_t *req)
 {
-    // TODO: handle if .Close is called before this function is called.
 	Nan::HandleScope scope;
     OpenBaton *baton = static_cast<OpenBaton *>(req->data);
     delete req;
 
-    v8::Local<v8::Value> argv[2];
+    v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -524,21 +520,19 @@ void AfterOpen(uv_work_t *req)
 //            sd_rpc_evt_handler_set(NULL);
             delete baton->event_callback;
         }
-
-        argv[1] = Nan::Undefined();
     }
     else
     {
         argv[0] = Nan::Undefined();
-        argv[1] = ConversionUtility::toJsNumber(baton->adapterID);
     }
 
-    baton->callback->Call(2, argv);
+    baton->callback->Call(1, argv);
     delete baton;
 }
 
-NAN_METHOD(Close)
+NAN_METHOD(Adapter::Close)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Function> callback;
 
     int argumentcount = 0;
@@ -560,20 +554,18 @@ NAN_METHOD(Close)
     }
 
     CloseBaton *baton = new CloseBaton(callback);
-    baton->adapterID = adapter;
+    baton->adapter = obj->adapter;
 
     uv_queue_work(uv_default_loop(), baton->req, Close, (uv_after_work_cb)AfterClose);
 }
 
-void Close(uv_work_t *req)
+void Adapter::Close(uv_work_t *req)
 {
     CloseBaton *baton = static_cast<CloseBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
 
-    adapter_t* a = connectedAdapters[baton->adapterID];
-
-    baton->result = sd_rpc_close(a);
+    baton->result = sd_rpc_close(baton->adapter);
 
     if (driver_event_callback != NULL)
     {
@@ -588,7 +580,7 @@ void Close(uv_work_t *req)
     }
 }
 
-void AfterClose(uv_work_t *req)
+void Adapter::AfterClose(uv_work_t *req)
 {
     Nan::HandleScope scope;
     CloseBaton *baton = static_cast<CloseBaton *>(req->data);
@@ -608,8 +600,9 @@ void AfterClose(uv_work_t *req)
     delete baton;
 }
 
-NAN_METHOD(AddVendorSpecificUUID)
+NAN_METHOD(Adapter::AddVendorSpecificUUID)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Object> uuid;
     v8::Local<v8::Function> callback;
 
@@ -636,21 +629,21 @@ NAN_METHOD(AddVendorSpecificUUID)
 
     BleAddVendorSpcificUUIDBaton *baton = new BleAddVendorSpcificUUIDBaton(callback);
     baton->p_vs_uuid = BleUUID128(uuid);
-    baton->adapterID = adapter;
+    baton->adapter = obj->adapter;
 
     uv_queue_work(uv_default_loop(), baton->req, AddVendorSpecificUUID, (uv_after_work_cb)AfterAddVendorSpecificUUID);
 }
 
-void AddVendorSpecificUUID(uv_work_t *req)
+void Adapter::AddVendorSpecificUUID(uv_work_t *req)
 {
     BleAddVendorSpcificUUIDBaton *baton = static_cast<BleAddVendorSpcificUUIDBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = connectedAdapters[baton->adapterID];
-    baton->result = sd_ble_uuid_vs_add(a, baton->p_vs_uuid, &baton->p_uuid_type);
+    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
+    baton->result = sd_ble_uuid_vs_add(baton->adapter, baton->p_vs_uuid, &baton->p_uuid_type);
 }
 
-void AfterAddVendorSpecificUUID(uv_work_t *req)
+void Adapter::AfterAddVendorSpecificUUID(uv_work_t *req)
 {
     Nan::HandleScope scope;
     BleAddVendorSpcificUUIDBaton *baton = static_cast<BleAddVendorSpcificUUIDBaton *>(req->data);
@@ -732,8 +725,9 @@ NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const v8::Handle<v8::String>&
     return log_severity;
 }
 
-NAN_METHOD(GetVersion)
+NAN_METHOD(Adapter::GetVersion)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Function> callback;
     int argumentcount = 0;
     uint8_t adapter = -1;
@@ -758,24 +752,24 @@ NAN_METHOD(GetVersion)
 
     GetVersionBaton *baton = new GetVersionBaton(callback);
     baton->version = version;
-    baton->adapterID = adapter;
+    baton->adapter = obj->adapter;
 
     uv_queue_work(uv_default_loop(), baton->req, GetVersion, (uv_after_work_cb)AfterGetVersion);
 
     return;
 }
 
-void GetVersion(uv_work_t *req)
+void Adapter::GetVersion(uv_work_t *req)
 {
     GetVersionBaton *baton = static_cast<GetVersionBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = connectedAdapters[baton->adapterID];
-    baton->result = sd_ble_version_get(a, baton->version);
+    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
+    baton->result = sd_ble_version_get(baton->adapter, baton->version);
 }
 
 // This runs in Main Thread
-void AfterGetVersion(uv_work_t *req)
+void Adapter::AfterGetVersion(uv_work_t *req)
 {
 	Nan::HandleScope scope;
     GetVersionBaton *baton = static_cast<GetVersionBaton *>(req->data);
@@ -797,8 +791,9 @@ void AfterGetVersion(uv_work_t *req)
     delete baton;
 }
 
-NAN_METHOD(UUIDEncode)
+NAN_METHOD(Adapter::UUIDEncode)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Object> uuid;
     v8::Local<v8::Function> callback;
     int argumentcount = 0;
@@ -837,24 +832,24 @@ NAN_METHOD(UUIDEncode)
     }
 
     baton->uuid_le = new uint8_t[16];
-    baton->adapterID = adapter;
+    baton->adapter = obj->adapter;
 
     uv_queue_work(uv_default_loop(), baton->req, UUIDEncode, (uv_after_work_cb)AfterUUIDEncode);
 
     return;
 }
 
-void UUIDEncode(uv_work_t *req)
+void Adapter::UUIDEncode(uv_work_t *req)
 {
     BleUUIDEncodeBaton *baton = static_cast<BleUUIDEncodeBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = connectedAdapters[baton->adapterID];
-    baton->result = sd_ble_uuid_encode(a, baton->p_uuid, &baton->uuid_le_len, baton->uuid_le);
+    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
+    baton->result = sd_ble_uuid_encode(baton->adapter, baton->p_uuid, &baton->uuid_le_len, baton->uuid_le);
 }
 
 // This runs in Main Thread
-void AfterUUIDEncode(uv_work_t *req)
+void Adapter::AfterUUIDEncode(uv_work_t *req)
 {
     Nan::HandleScope scope;
     BleUUIDEncodeBaton *baton = static_cast<BleUUIDEncodeBaton *>(req->data);
@@ -880,8 +875,9 @@ void AfterUUIDEncode(uv_work_t *req)
     delete baton;
 }
 
-NAN_METHOD(UUIDDecode)
+NAN_METHOD(Adapter::UUIDDecode)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint8_t le_len;
     v8::Local<v8::Value> uuid_le;
     v8::Local<v8::Function> callback;
@@ -913,24 +909,24 @@ NAN_METHOD(UUIDDecode)
     baton->uuid_le_len = le_len;
     baton->uuid_le = ConversionUtility::extractHex(uuid_le);
     baton->p_uuid = new ble_uuid_t();
-    baton->adapterID = adapter;
+    baton->adapter = obj->adapter;
 
     uv_queue_work(uv_default_loop(), baton->req, UUIDDecode, (uv_after_work_cb)AfterUUIDDecode);
 
     return;
 }
 
-void UUIDDecode(uv_work_t *req)
+void Adapter::UUIDDecode(uv_work_t *req)
 {
     BleUUIDDecodeBaton *baton = static_cast<BleUUIDDecodeBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = connectedAdapters[baton->adapterID];
-    baton->result = sd_ble_uuid_decode(a, baton->uuid_le_len, baton->uuid_le, baton->p_uuid);
+    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
+    baton->result = sd_ble_uuid_decode(baton->adapter, baton->uuid_le_len, baton->uuid_le, baton->p_uuid);
 }
 
 // This runs in Main Thread
-void AfterUUIDDecode(uv_work_t *req)
+void Adapter::AfterUUIDDecode(uv_work_t *req)
 {
     Nan::HandleScope scope;
     BleUUIDDecodeBaton *baton = static_cast<BleUUIDDecodeBaton *>(req->data);
@@ -953,13 +949,14 @@ void AfterUUIDDecode(uv_work_t *req)
     delete baton;
 }
 
-NAN_METHOD(GetStats)
+NAN_METHOD(Adapter::GetStats)
 {
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    Utility::Set(obj, "event_callback_total_time", (int32_t)evt_cb_duration.count());
-    Utility::Set(obj, "event_callback_total_time", (int32_t)evt_cb_duration.count());
-    Utility::Set(obj, "event_callback_total_count", evt_cb_count);
-    Utility::Set(obj, "event_callback_batch_max_count", evt_cb_max_count);
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    v8::Local<v8::Object> stats = Nan::New<v8::Object>();
+    Utility::Set(stats, "event_callback_total_time", (int32_t)evt_cb_duration.count());
+    Utility::Set(stats, "event_callback_total_time", (int32_t)evt_cb_duration.count());
+    Utility::Set(stats, "event_callback_total_count", evt_cb_count);
+    Utility::Set(stats, "event_callback_batch_max_count", evt_cb_max_count);
 
     double avg_cb_batch_count = 0.0;
 
@@ -968,13 +965,14 @@ NAN_METHOD(GetStats)
         avg_cb_batch_count = evt_cb_batch_evt_total_count / evt_cb_batch_number;
     }
 
-    Utility::Set(obj, "event_callback_batch_avg_count", avg_cb_batch_count);
+    Utility::Set(stats, "event_callback_batch_avg_count", avg_cb_batch_count);
 
-    Utility::SetReturnValue(info, obj);
+    Utility::SetReturnValue(info, stats);
 }
 
-NAN_METHOD(UserMemReply)
+NAN_METHOD(Adapter::UserMemReply)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     bool hasMemoryBlock = true;
     v8::Local<v8::Object> mem_block;
@@ -1016,7 +1014,7 @@ NAN_METHOD(UserMemReply)
     uv_queue_work(uv_default_loop(), baton->req, UserMemReply, (uv_after_work_cb)AfterUserMemReply);
 }
 
-void UserMemReply(uv_work_t *req)
+void Adapter::UserMemReply(uv_work_t *req)
 {
     BleUserMemReplyBaton *baton = static_cast<BleUserMemReplyBaton *>(req->data);
 
@@ -1025,7 +1023,7 @@ void UserMemReply(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void AfterUserMemReply(uv_work_t *req)
+void Adapter::AfterUserMemReply(uv_work_t *req)
 {
     Nan::HandleScope scope;
     BleUserMemReplyBaton *baton = static_cast<BleUserMemReplyBaton *>(req->data);
@@ -1234,6 +1232,8 @@ extern "C" {
         init_gattc(target);
         init_gatts(target);
         */
+
+        Adapter::Init(target);
     }
 
     void init_adapter_list(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
@@ -1243,16 +1243,6 @@ extern "C" {
 
     void init_driver(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
-        Utility::SetMethod(target, "open", Open);
-        Utility::SetMethod(target, "close", Close);
-        Utility::SetMethod(target, "get_version", GetVersion);
-        Utility::SetMethod(target, "add_vs_uuid", AddVendorSpecificUUID);
-        Utility::SetMethod(target, "encode_uuid", UUIDEncode);
-        Utility::SetMethod(target, "decode_uuid", UUIDDecode);
-        Utility::SetMethod(target, "user_mem_reply", UserMemReply);
-
-        Utility::SetMethod(target, "get_stats", GetStats);
-
         // Constants used for log events
         NODE_DEFINE_CONSTANT(target, SD_RPC_LOG_TRACE);
         NODE_DEFINE_CONSTANT(target, SD_RPC_LOG_DEBUG);

@@ -518,33 +518,6 @@ public:
 
 ///// End GAP Batons //////////////////////////////////////////////////////////////////////////////////
 
-METHOD_DEFINITIONS(GapSetAddress);
-METHOD_DEFINITIONS(GapGetAddress);
-METHOD_DEFINITIONS(GapUpdateConnectionParameters);
-METHOD_DEFINITIONS(GapDisconnect);
-METHOD_DEFINITIONS(GapSetTXPower);
-METHOD_DEFINITIONS(GapSetDeviceName);
-METHOD_DEFINITIONS(GapGetDeviceName);
-METHOD_DEFINITIONS(GapStartRSSI);
-METHOD_DEFINITIONS(GapStopRSSI);
-METHOD_DEFINITIONS(StartScan);
-METHOD_DEFINITIONS(StopScan);
-METHOD_DEFINITIONS(GapConnect);
-METHOD_DEFINITIONS(GapCancelConnect);
-METHOD_DEFINITIONS(GapGetRSSI);
-METHOD_DEFINITIONS(GapStartAdvertising);
-METHOD_DEFINITIONS(GapStopAdvertising);
-METHOD_DEFINITIONS(GapSecParamsReply);
-METHOD_DEFINITIONS(GapConnSecGet);
-METHOD_DEFINITIONS(GapEncrypt);
-METHOD_DEFINITIONS(GapSecInfoReply);
-METHOD_DEFINITIONS(GapAuthenticate);
-METHOD_DEFINITIONS(GapSetAdvertisingData);
-METHOD_DEFINITIONS(GapSetPPCP);
-METHOD_DEFINITIONS(GapGetPPCP);
-METHOD_DEFINITIONS(GapSetAppearance);
-METHOD_DEFINITIONS(GapGetAppearance);
-
 extern "C" {
     void init_gap(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 }

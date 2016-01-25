@@ -2,15 +2,15 @@
 
 var driver = require('bindings')('ble_driver_js');
 
-var adapterID1 = -1;
-var adapterID2 = -1;
+var adapter1 = new driver.Adapter();
+var adapter2 = new driver.Adapter();
 
 var connected = false;
 
-open('COM18', 1);
+open('COM18', adapter1, 1);
 console.log('Started first connection');
 
-function open(port, adapternr)
+function open(port, adapter, adapternr)
 {
     const options = {
         baudRate: 115200,
@@ -30,7 +30,7 @@ function open(port, adapternr)
     };
 
     console.log('About to open. Adapternr: ' + adapternr);
-    driver.open(port, options, (err, id) => {
+    adapter.open(port, options, (err, id) => {
         console.log('Callback called. Adapternr ' + adapternr + ' ID ' + id);
         if (err)
         {
@@ -38,19 +38,13 @@ function open(port, adapternr)
             return;
         }
 
-        if (adapternr == 1) {
-            adapterID1 = id;
-        } else {
-            adapterID2 = id;
-        }
-
-        console.log('Connected to adapter# ' + adapternr + ' with ID: ' + id);
+        console.log('Connected to adapter# ' + adapternr);
 
         if (adapternr === 1) {
             console.log('Starting second connection');
-            open('COM27', 2);
+            open('COM27', adapter2, 2);
         } else {
-            startAdvertising(adapterID1);
+            startAdvertising(adapter1, 1);
         }
     });
 }
@@ -263,20 +257,19 @@ function _getAdvertisementParams(params) {
     return retval;
 }
 
-function start_Advertising(adapterID, options, callback) {
+function start_Advertising(adapter, options, callback) {
     const advParams = _getAdvertisementParams(options);
 
-    driver.gap_start_advertising(adapterID, advParams, err => {
+    adapter.gapStartAdvertising(advParams, err => {
         if (callback) callback();
     });
 }
 
-function setAdvertisingData(adapterID, advData, scanRespData, callback) {
+function setAdvertisingData(adapter, advData, scanRespData, callback) {
     const advDataStruct = Array.from(AdType.convertToBuffer(advData));
     const scanRespDataStruct = Array.from(AdType.convertToBuffer(scanRespData));
 
-    driver.gap_set_advertising_data(
-        adapterID,
+    adapter.gapSetAdvertisingData(
         advDataStruct,
         scanRespDataStruct,
         err => {
@@ -285,16 +278,16 @@ function setAdvertisingData(adapterID, advData, scanRespData, callback) {
     );
 }
 
-function startAdvertising(adapterID)
+function startAdvertising(adapter, adapternr)
 {
     var advData = {};
-    advData.completeLocalName = 'Wayland' + adapterID;
+    advData.completeLocalName = 'Wayland' + adapternr;
     advData.txPowerLevel = 20;
 
-    console.log('Setting advertisement data. adapterID: ' + adapterID);
-    setAdvertisingData(adapterID, advData, {}, error => {
+    console.log('Setting advertisement data. adapterID: ' + adapternr);
+    setAdvertisingData(adapter, advData, {}, error => {
         if (error) {
-            console.log('Failed setting advertisement data ' + adapterID);
+            console.log('Failed setting advertisement data ' + adapternr);
             return;
         }
 
@@ -303,17 +296,17 @@ function startAdvertising(adapterID)
             timeout: 10000,
         };
 
-        console.log('Starting advertisement. adapterID' + adapterID);
-        start_Advertising(adapterID, advOptions, error => {
+        console.log('Starting advertisement. adapterID' + adapternr);
+        start_Advertising(adapter, advOptions, error => {
             if (error) {
-                console.log('Failed starting advertisement ' + adapterID);
+                console.log('Failed starting advertisement ' + adapternr);
             } else {
-                console.log('Started advertisement ' + adapterID);
+                console.log('Started advertisement ' + adapternr);
             }
 
-            if (adapterID === adapterID1) {
+            if (adapternr === 1) {
                 console.log('About to start second adapter.');
-                startAdvertising(adapterID2);
+                startAdvertising(adapter2, 2);
             } else {
                 console.log('Advertising on both devices.');
             }

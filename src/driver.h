@@ -8,6 +8,8 @@
 #include <sd_rpc.h>
 #include "common.h"
 
+#include "adapter.h"
+
 extern adapter_t *connectedAdapters[];
 extern int adapterCount;
 
@@ -16,18 +18,6 @@ static name_map_t common_event_name_map = {
     NAME_MAP_ENTRY(BLE_EVT_USER_MEM_REQUEST),
     NAME_MAP_ENTRY(BLE_EVT_USER_MEM_RELEASE),
 };
-
-// Async methods
-METHOD_DEFINITIONS(Open);
-METHOD_DEFINITIONS(Close);
-METHOD_DEFINITIONS(GetVersion);
-METHOD_DEFINITIONS(AddVendorSpecificUUID);
-METHOD_DEFINITIONS(UUIDEncode);
-METHOD_DEFINITIONS(UUIDDecode);
-METHOD_DEFINITIONS(UserMemReply);
-
-// Synchronous methods
-NAN_METHOD(GetStats);
 
 NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& str);
 NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const v8::Handle<v8::String>& str);
@@ -125,7 +115,8 @@ public:
 struct OpenBaton : public Baton {
 public:
     BATON_CONSTRUCTOR(OpenBaton)
-    char path[PATH_STRING_SIZE];
+    //char path[PATH_STRING_SIZE];
+    std::string path;
     Nan::Callback *event_callback; // Callback that is called for every event that is received from the SoftDevice
     Nan::Callback *log_callback;   // Callback that is called for every log entry that is received from the SoftDevice
 
@@ -138,6 +129,8 @@ public:
     sd_rpc_parity_t parity;
 
     uint32_t evt_interval; // The interval in ms that the event queue is sent to NodeJS
+
+    Adapter *mainObject;
 };
 
 struct CloseBaton : public Baton {
