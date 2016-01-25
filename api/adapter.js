@@ -490,7 +490,6 @@ class Adapter extends EventEmitter {
     }
 
     _parseGapAdvertismentReportEvent(event) {
-        // TODO: Check address type?
         const address = event.peer_addr;
         const discoveredDevice = new Device(address, 'peripheral');
         discoveredDevice.processEventData(event);

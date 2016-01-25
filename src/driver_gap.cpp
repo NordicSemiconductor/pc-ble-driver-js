@@ -293,7 +293,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
     Utility::Set(obj, "peer_addr", GapAddr(&(this->evt->peer_addr)).ToJs());
     Utility::Set(obj, "scan_rsp", ConversionUtility::toJsBool(evt->scan_rsp));
 
-    if (this->evt->scan_rsp == 1)
+    if (this->evt->scan_rsp != 1)
     {
         Utility::Set(obj, "adv_type", gap_adv_type_map[this->evt->type]); // TODO: add support for non defined adv types
     }
