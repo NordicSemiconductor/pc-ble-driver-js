@@ -15,6 +15,9 @@
 
 using namespace std;
 
+// Variable to use to handle callbacks while device is opened and the corresponding callbacks is not fully operational
+Adapter *adapterBeingOpened = 0;
+
 // Macro for keeping sanity in event switch case below
 #define COMMON_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, eventEntry) \
     case BLE_EVT_##evt_enum:                                                                                        \
@@ -70,52 +73,52 @@ static name_map_t uuid_type_name_map = {
     NAME_MAP_ENTRY(BLE_UUID_TYPE_VENDOR_BEGIN)
 };
 
-uv_async_t async_log;
-
-// This is just a hack for now. Just want to test the event-loop all the way up to JavaScript.
-Nan::Callback *driver_log_callback = NULL;
-
 // This function is ran by the thread that the SoftDevice Driver has initiated
 void sd_rpc_on_log_event(adapter_t *adapter, sd_rpc_log_severity_t severity, const char *log_message)
 {
-    int length = strlen(log_message);
+    LogEntry *logEntry = new LogEntry();
+    logEntry->message = std::string(log_message);
+    logEntry->severity = severity;
 
-    void *message = malloc((size_t) (length + 1));
-    memset(message, 0, (size_t) (length + 1));
-    memcpy(message, log_message, (size_t) length);
+    Adapter *jsAdapter = Adapter::getAdapter(adapter, adapterBeingOpened);
 
-    LogEntry *log_entry = new LogEntry();
-    log_entry->message = (char *)message;
-    log_entry->severity = severity;
+    if (jsAdapter != 0)
+    {
+        jsAdapter->appendLog(logEntry);
+    }
+    else
+    {
+        //TODO: Return error
+    }
+}
 
-    LogQueue *log_queue = ((LogQueue*)async_log.data);
-    log_queue->push(log_entry);
+void Adapter::appendLog(LogEntry *log)
+{
+    logs.push(log);
 
-    uv_async_send(&async_log);
+    uv_async_send(&asyncLog);
 }
 
 // Now we are in the NodeJS thread. Call callbacks.
-void on_log_event(uv_async_t *handle)
+void Adapter::onLogEvent(uv_async_t *handle)
 {
     Nan::HandleScope scope;
 
-    LogQueue *log_entries_buffer = (LogQueue*)handle->data;
-
-    while (!log_entries_buffer->wasEmpty())
+    while (!logs.wasEmpty())
     {
-        LogEntry *log_entry;
-        log_entries_buffer->pop(log_entry);
+        LogEntry *logEntry;
+        logs.pop(logEntry);
 
-        if (driver_log_callback != NULL)
+        if (logCallback != NULL)
         {
             v8::Local<v8::Value> argv[2];
-            argv[0] = ConversionUtility::toJsNumber((int)log_entry->severity);
-            argv[1] = ConversionUtility::toJsString(log_entry->message);
-            driver_log_callback->Call(2, argv);
+            argv[0] = ConversionUtility::toJsNumber((int)logEntry->severity);
+            argv[1] = ConversionUtility::toJsString(logEntry->message);
+            logCallback->Call(2, argv);
         }
 
         // Free memory for current entry, we remove the element from the deque when the iteration is done
-        delete log_entry;
+        delete logEntry;
     }
 }
 
@@ -146,7 +149,7 @@ static void sd_rpc_on_event(adapter_t *adapter, ble_evt_t *event)
         return;
     }
 
-    Adapter *jsAdapter = Adapter::getAdapter(adapter);
+    Adapter *jsAdapter = Adapter::getAdapter(adapter, adapterBeingOpened);
 
     if (jsAdapter != 0)
     {
@@ -281,6 +284,54 @@ void Adapter::onRpcEvent(uv_async_t *handle)
     addEventBatchStatistics(duration);
 }
 
+static void sd_rpc_on_error(adapter_t *adapter, const char * error, uint32_t code)
+{
+    ErrorEntry *errorEntry = new ErrorEntry();
+    errorEntry->errorCode = code;
+    errorEntry->message = std::string(error);
+
+    Adapter *jsAdapter = Adapter::getAdapter(adapter, adapterBeingOpened);
+
+    if (jsAdapter != 0)
+    {
+        jsAdapter->appendError(errorEntry);
+    }
+    else
+    {
+        //TODO: Return error
+    }
+}
+
+void Adapter::appendError(ErrorEntry *error)
+{
+    errors.push(error);
+
+    uv_async_send(&asyncError);
+}
+
+// Now we are in the NodeJS thread. Call callbacks.
+void Adapter::onErrorEvent(uv_async_t *handle)
+{
+    Nan::HandleScope scope;
+
+    while (!errors.wasEmpty())
+    {
+        ErrorEntry *errorEntry;
+        errors.pop(errorEntry);
+
+        if (errorCallback != NULL)
+        {
+            v8::Local<v8::Value> argv[2];
+            argv[0] = ConversionUtility::toJsNumber((int)errorEntry->errorCode);
+            argv[1] = ConversionUtility::toJsString(errorEntry->message);
+            errorCallback->Call(2, argv);
+        }
+
+        // Free memory for current entry, we remove the element from the deque when the iteration is done
+        delete errorEntry;
+    }
+}
+
 v8::Local<v8::Object> CommonTXCompleteEvent::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -392,16 +443,19 @@ NAN_METHOD(Adapter::Open)
         return;
     }
 
+    try
+    {
+        baton->error_callback = new Nan::Callback(ConversionUtility::getCallbackFunction(options, "errorCallback"));
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("error_callback", error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
     uv_queue_work(uv_default_loop(), baton->req, Open, (uv_after_work_cb)AfterOpen);
 }
-
-static void sd_rpc_on_error(adapter_t *adapter, const char * error, uint32_t code)
-{
-    //TODO: Implement
-}
-
-//TODO: Find a better way to handle this
-bool eventTimerInitialized = false;
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::Open(uv_work_t *req)
@@ -410,13 +464,13 @@ void Adapter::Open(uv_work_t *req)
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
 
-    // Setup log related functionality
-    driver_log_callback = baton->log_callback; // TODO: do not use a global variable for storing the callback
-    uv_async_init(uv_default_loop(), &async_log, on_log_event);
-    LogQueue *log_queue = new LogQueue();
-    async_log.data = log_queue;
-
     baton->mainObject->initEventHandling(baton->event_callback, baton->evt_interval);
+    baton->mainObject->initLogHandling(baton->log_callback);
+    baton->mainObject->initErrorHandling(baton->error_callback);
+
+    // Ensure that the correct adapter gets the callbacks as long as we have no reference to
+    // the driver adapter until after sd_rpc_open is called
+    adapterBeingOpened = baton->mainObject;
 
     const char *path = baton->path.c_str();
 
@@ -426,6 +480,9 @@ void Adapter::Open(uv_work_t *req)
     adapter_t *adapter = sd_rpc_adapter_create(serialization);
 
     uint32_t error_code = sd_rpc_open(adapter, sd_rpc_on_error, sd_rpc_on_event, sd_rpc_on_log_event);
+
+    // Let the normal log handling handle the rest of the log calls
+    adapterBeingOpened = 0;
 
     if (error_code != NRF_SUCCESS)
     {
@@ -478,16 +535,7 @@ void Adapter::AfterOpen(uv_work_t *req)
 
         argv[0] = ErrorMessage::getErrorMessage(baton->result, "opening port");
 
-//        sd_rpc_log_handler_set(NULL); // Stop reciving events
-
-        uv_close((uv_handle_t*)&async_log, NULL); // Close the async handlers for log events
-        delete baton->log_callback; // Free the memory for the callback
-
-        if (baton->event_callback != NULL)
-        {
-//            sd_rpc_evt_handler_set(NULL);
-            delete baton->event_callback;
-        }
+        baton->mainObject->removeCallbacks();
     }
     else
     {
@@ -538,12 +586,6 @@ void Adapter::Close(uv_work_t *req)
     baton->result = sd_rpc_close(baton->adapter);
 
     obj->removeCallbacks();
-
-    if (driver_log_callback != NULL)
-    {
-        delete driver_log_callback;
-        driver_log_callback = NULL;
-    }
 }
 
 void Adapter::AfterClose(uv_work_t *req)
@@ -919,7 +961,7 @@ NAN_METHOD(Adapter::GetStats)
 {
     Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Object> stats = Nan::New<v8::Object>();
-    
+
     Utility::Set(stats, "eventCallbackTotalTime", obj->getEventCallbackTotalTime());
     Utility::Set(stats, "eventCallbackTotalCount", obj->getEventCallbackCount());
     Utility::Set(stats, "eventCallbackBatchMaxCount", obj->getEventCallbackMaxCount());

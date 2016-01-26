@@ -17,17 +17,27 @@ NAN_MODULE_INIT(Adapter::Init) {
     Nan::Set(target, Nan::New("Adapter").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
-Adapter *Adapter::getAdapter(adapter_t *adapter)
+Adapter *Adapter::getAdapter(adapter_t *adapter, Adapter *defaultAdapter)
 {
+    if (adapter == 0)
+    {
+        return defaultAdapter;
+    }
+
     for (Adapter *value : adapterVector)
     {
-        if (value->getInternalAdapter()->internal == adapter->internal)
+        adapter_t *deviceAdapter = value->getInternalAdapter();
+
+        if (deviceAdapter != 0)
         {
-            return value;
+            if (value->getInternalAdapter()->internal == adapter->internal)
+            {
+                return value;
+            }
         }
     }
 
-    return 0;
+    return defaultAdapter;
 }
 
 adapter_t *Adapter::getInternalAdapter() const
@@ -83,6 +93,54 @@ void Adapter::initEventHandling(Nan::Callback *callback, uint32_t interval)
     }
 }
 
+extern "C" {
+    void on_rpc_log_hack(uv_async_t *handle)
+    {
+        Adapter *adapter = (Adapter *)handle->data;
+
+        if (adapter != 0)
+        {
+            adapter->onLogEvent(handle);
+        }
+        else
+        {
+            //TODO: Errormessage
+        }
+    }
+}
+
+void Adapter::initLogHandling(Nan::Callback *callback)
+{
+    // Setup event related functionality
+    logCallback = callback;
+    asyncLog.data = (void *)this;
+    uv_async_init(uv_default_loop(), &asyncLog, on_rpc_log_hack);
+}
+
+extern "C" {
+    void on_rpc_error_hack(uv_async_t *handle)
+    {
+        Adapter *adapter = (Adapter *)handle->data;
+
+        if (adapter != 0)
+        {
+            adapter->onErrorEvent(handle);
+        }
+        else
+        {
+            //TODO: Errormessage
+        }
+    }
+}
+
+void Adapter::initErrorHandling(Nan::Callback *callback)
+{
+    // Setup event related functionality
+    errorCallback = callback;
+    asyncError.data = (void *)this;
+    uv_async_init(uv_default_loop(), &asyncError, on_rpc_error_hack);
+}
+
 void Adapter::removeCallbacks()
 {
     if (eventCallback != NULL)
@@ -90,6 +148,22 @@ void Adapter::removeCallbacks()
         delete eventCallback;
         eventCallback = NULL;
     }
+
+    if (logCallback != NULL)
+    {
+        delete logCallback;
+        logCallback = NULL;
+    }
+
+    if (errorCallback != NULL)
+    {
+        delete errorCallback;
+        errorCallback = NULL;
+    }
+
+    uv_close((uv_handle_t *)&asyncLog, NULL);
+    uv_close((uv_handle_t *)&asyncEvent, NULL);
+    uv_close((uv_handle_t *)&asyncError, NULL);
 }
 
 void Adapter::initGeneric(v8::Local<v8::FunctionTemplate> tpl)

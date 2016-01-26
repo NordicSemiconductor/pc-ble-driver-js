@@ -27,6 +27,10 @@ function open(port, adapter, adapternr)
                 console.log(event.name);
             });
         },
+
+        errorCallback: (code, message) => {
+            console.log('Error: Code: ' + code + ' ' + message);
+        },
     };
 
     console.log('About to open. Adapternr: ' + adapternr);

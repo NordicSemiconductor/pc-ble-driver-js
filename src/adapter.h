@@ -26,21 +26,44 @@ public:
     int adapterID;
 };
 
+struct ErrorEntry
+{
+public:
+    uint32_t errorCode;
+    std::string message;
+};
+
 //using namespace memory_relaxed_aquire_release;
 using namespace memory_sequential_unsafe;
 typedef CircularFifo<EventEntry *, 64> EventQueue;
 typedef CircularFifo<LogEntry *, 64> LogQueue;
+typedef CircularFifo<ErrorEntry *, 64> ErrorQueue;
 
 class Adapter : public Nan::ObjectWrap {
 public:
     static NAN_MODULE_INIT(Init);
 
-    static Adapter *getAdapter(adapter_t *adapter);
+    static Adapter *getAdapter(adapter_t *adapter, Adapter *defaultAdapter = 0);
 
     adapter_t *getInternalAdapter() const;
 
     void initEventHandling(Nan::Callback *callback, const uint32_t interval);
     void appendEvent(ble_evt_t *event);
+
+    void onRpcEvent(uv_async_t *handle);
+    void eventIntervalCallback(uv_timer_t *handle);
+
+    void initLogHandling(Nan::Callback *callback);
+    void appendLog(LogEntry *log);
+
+    void onLogEvent(uv_async_t *handle);
+
+    void initErrorHandling(Nan::Callback *callback);
+    void appendError(ErrorEntry *log);
+
+    void onErrorEvent(uv_async_t *handle);
+
+    void removeCallbacks();
 
     // Statistics:
     int32_t getEventCallbackTotalTime() const;
@@ -52,11 +75,6 @@ public:
     double getAverageCallbackBatchCount() const;
 
     void addEventBatchStatistics(std::chrono::milliseconds duration);
-
-    void removeCallbacks();
-
-    void onRpcEvent(uv_async_t *handle);
-    void eventIntervalCallback(uv_timer_t *handle);
 
 private:
     explicit Adapter();
@@ -75,7 +93,7 @@ private:
     ADAPTER_METHOD_DEFINITIONS(UUIDDecode);
     ADAPTER_METHOD_DEFINITIONS(UserMemReply);
 
-    // General synct methods
+    // General sync methods
     static NAN_METHOD(GetStats);
 
     // Gap async mehtods
@@ -117,13 +135,20 @@ private:
     adapter_t *adapter;
     EventQueue events;
     LogQueue logs;
+    ErrorQueue errors;
 
     Nan::Callback *eventCallback;
+    Nan::Callback *logCallback;
+    Nan::Callback *errorCallback;
 
     // Interval to use for sending BLE driver events to JavaScript. If 0 events will be sent as soon as they are received from the BLE driver.
     uint32_t eventInterval;
     uv_timer_t eventIntervalTimer;
     uv_async_t asyncEvent;
+
+    uv_async_t asyncLog;
+
+    uv_async_t asyncError;
 
     // Statistics:
     // Accumulated deltas for event callbacks done to the driver
