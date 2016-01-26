@@ -16,11 +16,11 @@
 using namespace std;
 
 // Macro for keeping sanity in event switch case below
-#define COMMON_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, event_entry) \
+#define COMMON_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, eventEntry) \
     case BLE_EVT_##evt_enum:                                                                                        \
     {                                                                                                                   \
-        ble_common_evt_t common_event = event_entry->event->evt.common_evt;                                                      \
-        std::string timestamp = event_entry->timestamp;                                                                 \
+        ble_common_evt_t common_event = eventEntry->event->evt.common_evt;                                                      \
+        std::string timestamp = eventEntry->timestamp;                                                                 \
         v8::Local<v8::Value> js_event =                                                                                 \
             Common##evt_to_js##Event(timestamp, common_event.conn_handle, &(common_event.params.params_name)).ToJs();                   \
         Nan::Set(event_array, event_array_idx, js_event);                                               \
@@ -29,11 +29,11 @@ using namespace std;
 
 
 // Macro for keeping sanity in event switch case below
-#define GAP_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, event_entry) \
+#define GAP_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, eventEntry) \
     case BLE_GAP_EVT_##evt_enum:                                                                                        \
     {                                                                                                                   \
-        ble_gap_evt_t gap_event = event_entry->event->evt.gap_evt;                                                      \
-        std::string timestamp = event_entry->timestamp;                                                                 \
+        ble_gap_evt_t gap_event = eventEntry->event->evt.gap_evt;                                                      \
+        std::string timestamp = eventEntry->timestamp;                                                                 \
         v8::Local<v8::Object> js_event =                                                                                 \
             Gap##evt_to_js(timestamp, gap_event.conn_handle, &(gap_event.params.params_name)).ToJs();                   \
         Nan::Set(event_array, event_array_idx, js_event);                                               \
@@ -41,11 +41,11 @@ using namespace std;
     }
 /*
 // Macro for keeping sanity in event switch case below
-#define GATTC_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, event_entry) \
+#define GATTC_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, eventEntry) \
     case BLE_GATTC_EVT_##evt_enum:                                                                                        \
     {                                                                                                                   \
-        ble_gattc_evt_t *gattc_event = &(event_entry->event->evt.gattc_evt);                                                      \
-        std::string timestamp = event_entry->timestamp;                                                                 \
+        ble_gattc_evt_t *gattc_event = &(eventEntry->event->evt.gattc_evt);                                                      \
+        std::string timestamp = eventEntry->timestamp;                                                                 \
         v8::Local<v8::Value> js_event =                                                                                 \
             Gattc##evt_to_js##Event(timestamp, gattc_event->conn_handle, gattc_event->gatt_status, gattc_event->error_handle, &(gattc_event->params.params_name)).ToJs();                   \
         Nan::Set(event_array, event_array_idx, js_event);                                               \
@@ -53,11 +53,11 @@ using namespace std;
     }
 
 // Macro for keeping sanity in event switch case below
-#define GATTS_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, event_entry) \
+#define GATTS_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, eventEntry) \
     case BLE_GATTS_EVT_##evt_enum:                                                                                        \
     {                                                                                                                   \
-        ble_gatts_evt_t *gatts_event = &(event_entry->event->evt.gatts_evt);                                                      \
-        std::string timestamp = event_entry->timestamp;                                                                 \
+        ble_gatts_evt_t *gatts_event = &(eventEntry->event->evt.gatts_evt);                                                      \
+        std::string timestamp = eventEntry->timestamp;                                                                 \
         v8::Local<v8::Value> js_event =                                                                                 \
             Gatts##evt_to_js##Event(timestamp, gatts_event->conn_handle, &(gatts_event->params.params_name)).ToJs();                   \
         Nan::Set(event_array, event_array_idx, js_event);                                               \
@@ -120,15 +120,15 @@ void on_log_event(uv_async_t *handle)
 }
 
 // Sends events upstream
-void Adapter::send_events_upstream()
+void Adapter::sendEventsUpstream()
 {
     // Trigger callback in NodeJS thread to call NodeJS callbacks
     uv_async_send(&asyncEvent);
 }
 
-void Adapter::event_interval_callback(uv_timer_t *handle)
+void Adapter::eventIntervalCallback(uv_timer_t *handle)
 {
-    send_events_upstream();
+    sendEventsUpstream();
 }
 
 size_t findSize(ble_evt_t *event)
@@ -174,21 +174,21 @@ void Adapter::appendEvent(ble_evt_t *event)
     memset(evt, 0, size);
     memcpy(evt, event, size);
 
-    EventEntry *event_entry = new EventEntry();
-    event_entry->event = (ble_evt_t*)evt;
-    event_entry->timestamp = getCurrentTimeInMilliseconds();
+    EventEntry *eventEntry = new EventEntry();
+    eventEntry->event = (ble_evt_t*)evt;
+    eventEntry->timestamp = getCurrentTimeInMilliseconds();
 
-    events.push(event_entry);
+    events.push(eventEntry);
 
     // If the event interval is not set, send the events to NodeJS as soon as possible.
     if (eventInterval == 0)
     {
-        send_events_upstream();
+        sendEventsUpstream();
     }
 }
 
 // Now we are in the NodeJS thread. Call callbacks.
-void Adapter::on_rpc_event(uv_async_t *handle)
+void Adapter::onRpcEvent(uv_async_t *handle)
 {
     Nan::HandleScope scope;
 
@@ -198,59 +198,59 @@ void Adapter::on_rpc_event(uv_async_t *handle)
     }
 
     v8::Local<v8::Array> array = Nan::New<v8::Array>();
-    int array_idx = 0;
+    int arrayIndex = 0;
 
     while (!events.wasEmpty())
     {
-        EventEntry *event_entry = NULL;
-        events.pop(event_entry);
-        assert(event_entry != NULL);
+        EventEntry *eventEntry = NULL;
+        events.pop(eventEntry);
+        assert(eventEntry != NULL);
 
-        ble_evt_t *event = event_entry->event;
+        ble_evt_t *event = eventEntry->event;
         assert(event != NULL);
 
-        int adapterID = event_entry->adapterID;
+        int adapterID = eventEntry->adapterID;
 
         if (eventCallback != NULL)
         {
             switch (event->header.evt_id)
             {
-                COMMON_EVT_CASE(TX_COMPLETE,      TXComplete, tx_complete,      array, array_idx, event_entry);
-                COMMON_EVT_CASE(USER_MEM_REQUEST, MemRequest, user_mem_request, array, array_idx, event_entry);
-                COMMON_EVT_CASE(USER_MEM_RELEASE, MemRelease, user_mem_release, array, array_idx, event_entry);
+                COMMON_EVT_CASE(TX_COMPLETE,      TXComplete, tx_complete,      array, arrayIndex, eventEntry);
+                COMMON_EVT_CASE(USER_MEM_REQUEST, MemRequest, user_mem_request, array, arrayIndex, eventEntry);
+                COMMON_EVT_CASE(USER_MEM_RELEASE, MemRelease, user_mem_release, array, arrayIndex, eventEntry);
 
-                GAP_EVT_CASE(CONNECTED,                 Connected,              connected,                  array, array_idx, event_entry);
-                GAP_EVT_CASE(DISCONNECTED,              Disconnected,           disconnected,               array, array_idx, event_entry);
-                GAP_EVT_CASE(ADV_REPORT,                AdvReport,              adv_report,                 array, array_idx, event_entry);
-                GAP_EVT_CASE(SCAN_REQ_REPORT,           ScanReqReport,          scan_req_report,            array, array_idx, event_entry);
-                GAP_EVT_CASE(TIMEOUT,                   Timeout,                timeout,                    array, array_idx, event_entry);
-                GAP_EVT_CASE(AUTH_STATUS,               AuthStatus,             auth_status,                array, array_idx, event_entry);
-                GAP_EVT_CASE(CONN_PARAM_UPDATE,         ConnParamUpdate,        conn_param_update,          array, array_idx, event_entry);
-                GAP_EVT_CASE(CONN_PARAM_UPDATE_REQUEST, ConnParamUpdateRequest, conn_param_update_request,  array, array_idx, event_entry);
-                GAP_EVT_CASE(SEC_PARAMS_REQUEST,        SecParamsRequest,       sec_params_request,         array, array_idx, event_entry);
-                GAP_EVT_CASE(CONN_SEC_UPDATE,           ConnSecUpdate,          conn_sec_update,            array, array_idx, event_entry);
-                GAP_EVT_CASE(SEC_INFO_REQUEST,          SecInfoRequest,         sec_info_request,           array, array_idx, event_entry);
-                GAP_EVT_CASE(SEC_REQUEST,               SecRequest,             sec_request,                array, array_idx, event_entry);
+                GAP_EVT_CASE(CONNECTED,                 Connected,              connected,                  array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(DISCONNECTED,              Disconnected,           disconnected,               array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(ADV_REPORT,                AdvReport,              adv_report,                 array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(SCAN_REQ_REPORT,           ScanReqReport,          scan_req_report,            array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(TIMEOUT,                   Timeout,                timeout,                    array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(AUTH_STATUS,               AuthStatus,             auth_status,                array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(CONN_PARAM_UPDATE,         ConnParamUpdate,        conn_param_update,          array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(CONN_PARAM_UPDATE_REQUEST, ConnParamUpdateRequest, conn_param_update_request,  array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(SEC_PARAMS_REQUEST,        SecParamsRequest,       sec_params_request,         array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(CONN_SEC_UPDATE,           ConnSecUpdate,          conn_sec_update,            array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(SEC_INFO_REQUEST,          SecInfoRequest,         sec_info_request,           array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(SEC_REQUEST,               SecRequest,             sec_request,                array, arrayIndex, eventEntry);
                 /*
-                GATTC_EVT_CASE(PRIM_SRVC_DISC_RSP,          PrimaryServiceDiscovery,       prim_srvc_disc_rsp,         array, array_idx, event_entry);
-                GATTC_EVT_CASE(REL_DISC_RSP,                RelationshipDiscovery,         rel_disc_rsp,               array, array_idx, event_entry);
-                GATTC_EVT_CASE(CHAR_DISC_RSP,               CharacteristicDiscovery,       char_disc_rsp,              array, array_idx, event_entry);
-                GATTC_EVT_CASE(DESC_DISC_RSP,               DescriptorDiscovery,           desc_disc_rsp,              array, array_idx, event_entry);
-                GATTC_EVT_CASE(CHAR_VAL_BY_UUID_READ_RSP,   CharacteristicValueReadByUUID, char_val_by_uuid_read_rsp,  array, array_idx, event_entry);
-                GATTC_EVT_CASE(READ_RSP,                    Read,                          read_rsp,                   array, array_idx, event_entry);
-                GATTC_EVT_CASE(CHAR_VALS_READ_RSP,          CharacteristicValueRead,       char_vals_read_rsp,         array, array_idx, event_entry);
-                GATTC_EVT_CASE(WRITE_RSP,                   Write,                         write_rsp,                  array, array_idx, event_entry);
-                GATTC_EVT_CASE(HVX,                         HandleValueNotification,       hvx,                        array, array_idx, event_entry);
-                GATTC_EVT_CASE(TIMEOUT,                     Timeout,                       timeout,                    array, array_idx, event_entry);
+                GATTC_EVT_CASE(PRIM_SRVC_DISC_RSP,          PrimaryServiceDiscovery,       prim_srvc_disc_rsp,         array, arrayIndex, eventEntry);
+                GATTC_EVT_CASE(REL_DISC_RSP,                RelationshipDiscovery,         rel_disc_rsp,               array, arrayIndex, eventEntry);
+                GATTC_EVT_CASE(CHAR_DISC_RSP,               CharacteristicDiscovery,       char_disc_rsp,              array, arrayIndex, eventEntry);
+                GATTC_EVT_CASE(DESC_DISC_RSP,               DescriptorDiscovery,           desc_disc_rsp,              array, arrayIndex, eventEntry);
+                GATTC_EVT_CASE(CHAR_VAL_BY_UUID_READ_RSP,   CharacteristicValueReadByUUID, char_val_by_uuid_read_rsp,  array, arrayIndex, eventEntry);
+                GATTC_EVT_CASE(READ_RSP,                    Read,                          read_rsp,                   array, arrayIndex, eventEntry);
+                GATTC_EVT_CASE(CHAR_VALS_READ_RSP,          CharacteristicValueRead,       char_vals_read_rsp,         array, arrayIndex, eventEntry);
+                GATTC_EVT_CASE(WRITE_RSP,                   Write,                         write_rsp,                  array, arrayIndex, eventEntry);
+                GATTC_EVT_CASE(HVX,                         HandleValueNotification,       hvx,                        array, arrayIndex, eventEntry);
+                GATTC_EVT_CASE(TIMEOUT,                     Timeout,                       timeout,                    array, arrayIndex, eventEntry);
 
-                GATTS_EVT_CASE(WRITE,                   Write,                  write,              array, array_idx, event_entry);
-                GATTS_EVT_CASE(RW_AUTHORIZE_REQUEST,    RWAuthorizeRequest,     authorize_request,  array, array_idx, event_entry);
-                GATTS_EVT_CASE(SYS_ATTR_MISSING,        SystemAttributeMissing, sys_attr_missing,   array, array_idx, event_entry);
-                GATTS_EVT_CASE(HVC,                     HVC,                    hvc,                array, array_idx, event_entry);
-                GATTS_EVT_CASE(TIMEOUT,                 Timeout,                timeout,            array, array_idx, event_entry);
+                GATTS_EVT_CASE(WRITE,                   Write,                  write,              array, arrayIndex, eventEntry);
+                GATTS_EVT_CASE(RW_AUTHORIZE_REQUEST,    RWAuthorizeRequest,     authorize_request,  array, arrayIndex, eventEntry);
+                GATTS_EVT_CASE(SYS_ATTR_MISSING,        SystemAttributeMissing, sys_attr_missing,   array, arrayIndex, eventEntry);
+                GATTS_EVT_CASE(HVC,                     HVC,                    hvc,                array, arrayIndex, eventEntry);
+                GATTS_EVT_CASE(TIMEOUT,                 Timeout,                timeout,            array, arrayIndex, eventEntry);
 
                 // Handled special as there is no parameter for this in the event struct.
-                GATTS_EVT_CASE(SC_CONFIRM, SCConfirm, timeout, array, array_idx, event_entry);
+                GATTS_EVT_CASE(SC_CONFIRM, SCConfirm, timeout, array, arrayIndex, eventEntry);
                 */
             default:
                 std::cout << "Event " << event->header.evt_id << " unknown to me." << std::endl;
@@ -258,11 +258,11 @@ void Adapter::on_rpc_event(uv_async_t *handle)
             }
         }
 
-        array_idx++;
+        arrayIndex++;
 
         // Free memory for current entry
-        free(event_entry->event);
-        delete event_entry;
+        free(eventEntry->event);
+        delete eventEntry;
     }
 
     v8::Local<v8::Value> callback_value[1];

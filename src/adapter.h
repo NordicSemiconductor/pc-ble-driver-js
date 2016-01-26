@@ -55,8 +55,8 @@ public:
 
     void removeCallbacks();
 
-    void on_rpc_event(uv_async_t *handle);
-    void event_interval_callback(uv_timer_t *handle);
+    void onRpcEvent(uv_async_t *handle);
+    void eventIntervalCallback(uv_timer_t *handle);
 
 private:
     explicit Adapter();
@@ -112,7 +112,7 @@ private:
     static void Adapter::initGattC(v8::Local<v8::FunctionTemplate> tpl);
     static void Adapter::initGattS(v8::Local<v8::FunctionTemplate> tpl);
 
-    void send_events_upstream();
+    void sendEventsUpstream();
 
     adapter_t *adapter;
     EventQueue events;

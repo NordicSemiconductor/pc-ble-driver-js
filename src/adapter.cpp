@@ -42,7 +42,7 @@ extern "C" {
 
         if (adapter != 0)
         {
-            adapter->on_rpc_event(handle);
+            adapter->onRpcEvent(handle);
         }
         else
         {
@@ -56,7 +56,7 @@ extern "C" {
 
         if (adapter != 0)
         {
-            adapter->event_interval_callback(handle);
+            adapter->eventIntervalCallback(handle);
         }
         else
         {
