@@ -39,13 +39,29 @@ extern "C" {
     void on_rpc_event_hack(uv_async_t *handle)
     {
         Adapter *adapter = (Adapter *)handle->data;
-        adapter->on_rpc_event(handle);
+
+        if (adapter != 0)
+        {
+            adapter->on_rpc_event(handle);
+        }
+        else
+        {
+            //TODO: Errormessage
+        }
     }
 
     void event_interval_callback_hack(uv_timer_t *handle)
     {
         Adapter *adapter = (Adapter *)handle->data;
-        adapter->event_interval_callback(handle);
+
+        if (adapter != 0)
+        {
+            adapter->event_interval_callback(handle);
+        }
+        else
+        {
+            //TODO: Errormessage
+        }
     }
 }
 
@@ -61,6 +77,7 @@ void Adapter::initEventHandling(Nan::Callback *callback, uint32_t interval)
     // Setup event interval functionality
     if (eventInterval > 0)
     {
+        eventIntervalTimer.data = (void *)this;
         uv_timer_init(uv_default_loop(), &eventIntervalTimer);
         uv_timer_start(&eventIntervalTimer, event_interval_callback_hack, eventInterval, eventInterval);
     }
@@ -119,7 +136,7 @@ void Adapter::initGap(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "gapGetAppearance", GapGetAppearance);
 }
 
-Adapter::Adapter() 
+Adapter::Adapter()
 {
     adapterVector.push_back(this);
     adapter = 0;
@@ -132,11 +149,11 @@ Adapter::Adapter()
     eventCallback = 0;
 }
 
-Adapter::~Adapter() 
+Adapter::~Adapter()
 {
 }
 
-NAN_METHOD(Adapter::New) 
+NAN_METHOD(Adapter::New)
 {
     if (info.IsConstructCall()) {
         Adapter *obj = new Adapter();
