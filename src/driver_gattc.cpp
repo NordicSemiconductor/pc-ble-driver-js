@@ -355,8 +355,9 @@ v8::Local<v8::Object> GattcTimeoutEvent::ToJs()
     return scope.Escape(obj);
 }
 
-NAN_METHOD(PrimaryServicesDiscover)
+NAN_METHOD(Adapter::GattcDiscoverPrimaryServices)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     uint16_t start_handle;
     v8::Local<v8::Object> service_uuid;
@@ -384,7 +385,7 @@ NAN_METHOD(PrimaryServicesDiscover)
         return;
     }
 
-    GattcPrimaryServicesDiscoverBaton *baton = new GattcPrimaryServicesDiscoverBaton(callback);
+    GattcDiscoverPrimaryServicesBaton *baton = new GattcDiscoverPrimaryServicesBaton(callback);
     baton->conn_handle = conn_handle;
     baton->start_handle = start_handle;
 
@@ -399,24 +400,24 @@ NAN_METHOD(PrimaryServicesDiscover)
         return;
     }
 
-    uv_queue_work(uv_default_loop(), baton->req, PrimaryServicesDiscover, (uv_after_work_cb)AfterPrimaryServicesDiscover);
+    uv_queue_work(uv_default_loop(), baton->req, GattcDiscoverPrimaryServices, (uv_after_work_cb)AfterGattcDiscoverPrimaryServices);
 }
 
 // This runs in a worker thread (not Main Thread)
-void PrimaryServicesDiscover(uv_work_t *req)
+void Adapter::GattcDiscoverPrimaryServices(uv_work_t *req)
 {
-    GattcPrimaryServicesDiscoverBaton *baton = static_cast<GattcPrimaryServicesDiscoverBaton *>(req->data);
+    GattcDiscoverPrimaryServicesBaton *baton = static_cast<GattcDiscoverPrimaryServicesBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_gattc_primary_services_discover(baton->conn_handle, baton->start_handle, baton->p_srvc_uuid);
+    baton->result = sd_ble_gattc_primary_services_discover(baton->adapter, baton->conn_handle, baton->start_handle, baton->p_srvc_uuid);
 }
 
 // This runs in Main Thread
-void AfterPrimaryServicesDiscover(uv_work_t *req)
+void Adapter::AfterGattcDiscoverPrimaryServices(uv_work_t *req)
 {
 	Nan::HandleScope scope;
 
-    GattcPrimaryServicesDiscoverBaton *baton = static_cast<GattcPrimaryServicesDiscoverBaton *>(req->data);
+    GattcDiscoverPrimaryServicesBaton *baton = static_cast<GattcDiscoverPrimaryServicesBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -433,8 +434,9 @@ void AfterPrimaryServicesDiscover(uv_work_t *req)
 }
 
 
-NAN_METHOD(RelationshipDiscover)
+NAN_METHOD(Adapter::GattcDiscoverRelationship)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     v8::Local<v8::Object> handle_range;
     v8::Local<v8::Function> callback;
@@ -458,7 +460,7 @@ NAN_METHOD(RelationshipDiscover)
         return;
     }
 
-    GattcRelationshipDiscoverBaton *baton = new GattcRelationshipDiscoverBaton(callback);
+    GattcDiscoverRelationshipBaton *baton = new GattcDiscoverRelationshipBaton(callback);
     baton->conn_handle = conn_handle;
 
     try
@@ -472,24 +474,24 @@ NAN_METHOD(RelationshipDiscover)
         return;
     }
 
-    uv_queue_work(uv_default_loop(), baton->req, RelationshipDiscover, (uv_after_work_cb)AfterRelationshipDiscover);
+    uv_queue_work(uv_default_loop(), baton->req, GattcDiscoverRelationship, (uv_after_work_cb)AfterGattcDiscoverRelationship);
 }
 
 // This runs in a worker thread (not Main Thread)
-void RelationshipDiscover(uv_work_t *req)
+void Adapter::GattcDiscoverRelationship(uv_work_t *req)
 {
-    GattcRelationshipDiscoverBaton *baton = static_cast<GattcRelationshipDiscoverBaton *>(req->data);
+    GattcDiscoverRelationshipBaton *baton = static_cast<GattcDiscoverRelationshipBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_gattc_relationships_discover(baton->conn_handle, baton->p_handle_range);
+    baton->result = sd_ble_gattc_relationships_discover(baton->adapter, baton->conn_handle, baton->p_handle_range);
 }
 
 // This runs in Main Thread
-void AfterRelationshipDiscover(uv_work_t *req)
+void Adapter::AfterGattcDiscoverRelationship(uv_work_t *req)
 {
 	Nan::HandleScope scope;
 
-    GattcRelationshipDiscoverBaton *baton = static_cast<GattcRelationshipDiscoverBaton *>(req->data);
+    GattcDiscoverRelationshipBaton *baton = static_cast<GattcDiscoverRelationshipBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -506,8 +508,9 @@ void AfterRelationshipDiscover(uv_work_t *req)
 }
 
 
-NAN_METHOD(CharacteristicsDiscover)
+NAN_METHOD(Adapter::GattcDiscoverCharacteristics)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     v8::Local<v8::Object> handle_range;
     v8::Local<v8::Function> callback;
@@ -531,7 +534,7 @@ NAN_METHOD(CharacteristicsDiscover)
         return;
     }
 
-    GattcCharacteristicsDiscoverBaton *baton = new GattcCharacteristicsDiscoverBaton(callback);
+    GattcDiscoverCharacteristicsBaton *baton = new GattcDiscoverCharacteristicsBaton(callback);
     baton->conn_handle = conn_handle;
 
     try
@@ -545,24 +548,24 @@ NAN_METHOD(CharacteristicsDiscover)
         return;
     }
 
-    uv_queue_work(uv_default_loop(), baton->req, CharacteristicsDiscover, (uv_after_work_cb)AfterCharacteristicsDiscover);
+    uv_queue_work(uv_default_loop(), baton->req, GattcDiscoverCharacteristics, (uv_after_work_cb)AfterGattcDiscoverCharacteristics);
 }
 
 // This runs in a worker thread (not Main Thread)
-void CharacteristicsDiscover(uv_work_t *req)
+void Adapter::GattcDiscoverCharacteristics(uv_work_t *req)
 {
-    GattcCharacteristicsDiscoverBaton *baton = static_cast<GattcCharacteristicsDiscoverBaton *>(req->data);
+    GattcDiscoverCharacteristicsBaton *baton = static_cast<GattcDiscoverCharacteristicsBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_gattc_characteristics_discover(baton->conn_handle, baton->p_handle_range);
+    baton->result = sd_ble_gattc_characteristics_discover(baton->adapter, baton->conn_handle, baton->p_handle_range);
 }
 
 // This runs in Main Thread
-void AfterCharacteristicsDiscover(uv_work_t *req)
+void Adapter::AfterGattcDiscoverCharacteristics(uv_work_t *req)
 {
 	Nan::HandleScope scope;
 
-    GattcCharacteristicsDiscoverBaton *baton = static_cast<GattcCharacteristicsDiscoverBaton *>(req->data);
+    GattcDiscoverCharacteristicsBaton *baton = static_cast<GattcDiscoverCharacteristicsBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -579,8 +582,9 @@ void AfterCharacteristicsDiscover(uv_work_t *req)
 }
 
 
-NAN_METHOD(DescriptorsDiscover)
+NAN_METHOD(Adapter::GattcDiscoverDescriptors)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     v8::Local<v8::Object> handle_range;
     v8::Local<v8::Function> callback;
@@ -604,7 +608,7 @@ NAN_METHOD(DescriptorsDiscover)
         return;
     }
 
-    GattcDescriptorsDiscoverBaton *baton = new GattcDescriptorsDiscoverBaton(callback);
+    GattcDiscoverDescriptorsBaton *baton = new GattcDiscoverDescriptorsBaton(callback);
     baton->conn_handle = conn_handle;
 
     try
@@ -618,24 +622,24 @@ NAN_METHOD(DescriptorsDiscover)
         return;
     }
 
-    uv_queue_work(uv_default_loop(), baton->req, DescriptorsDiscover, (uv_after_work_cb)AfterDescriptorsDiscover);
+    uv_queue_work(uv_default_loop(), baton->req, GattcDiscoverDescriptors, (uv_after_work_cb)AfterGattcDiscoverDescriptors);
 }
 
 // This runs in a worker thread (not Main Thread)
-void DescriptorsDiscover(uv_work_t *req)
+void Adapter::GattcDiscoverDescriptors(uv_work_t *req)
 {
-    GattcDescriptorsDiscoverBaton *baton = static_cast<GattcDescriptorsDiscoverBaton *>(req->data);
+    GattcDiscoverDescriptorsBaton *baton = static_cast<GattcDiscoverDescriptorsBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_gattc_descriptors_discover(baton->conn_handle, baton->p_handle_range);
+    baton->result = sd_ble_gattc_descriptors_discover(baton->adapter, baton->conn_handle, baton->p_handle_range);
 }
 
 // This runs in Main Thread
-void AfterDescriptorsDiscover(uv_work_t *req)
+void Adapter::AfterGattcDiscoverDescriptors(uv_work_t *req)
 {
 	Nan::HandleScope scope;
 
-    GattcDescriptorsDiscoverBaton *baton = static_cast<GattcDescriptorsDiscoverBaton *>(req->data);
+    GattcDiscoverDescriptorsBaton *baton = static_cast<GattcDiscoverDescriptorsBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -652,8 +656,9 @@ void AfterDescriptorsDiscover(uv_work_t *req)
 }
 
 
-NAN_METHOD(CharacteristicValueByUUIDRead)
+NAN_METHOD(Adapter::GattcReadCharacteristicValueByUUID)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     v8::Local<v8::Object> uuid;
     v8::Local<v8::Object> handle_range;
@@ -705,20 +710,20 @@ NAN_METHOD(CharacteristicValueByUUIDRead)
         return;
     }
 
-    uv_queue_work(uv_default_loop(), baton->req, CharacteristicValueByUUIDRead, (uv_after_work_cb)AfterCharacteristicValueByUUIDRead);
+    uv_queue_work(uv_default_loop(), baton->req, GattcReadCharacteristicValueByUUID, (uv_after_work_cb)AfterGattcReadCharacteristicValueByUUID);
 }
 
 // This runs in a worker thread (not Main Thread)
-void CharacteristicValueByUUIDRead(uv_work_t *req)
+void Adapter::GattcReadCharacteristicValueByUUID(uv_work_t *req)
 {
     GattcCharacteristicByUUIDReadBaton *baton = static_cast<GattcCharacteristicByUUIDReadBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_gattc_char_value_by_uuid_read(baton->conn_handle, baton->p_uuid, baton->p_handle_range);
+    baton->result = sd_ble_gattc_char_value_by_uuid_read(baton->adapter, baton->conn_handle, baton->p_uuid, baton->p_handle_range);
 }
 
 // This runs in Main Thread
-void AfterCharacteristicValueByUUIDRead(uv_work_t *req)
+void Adapter::AfterGattcReadCharacteristicValueByUUID(uv_work_t *req)
 {
 	Nan::HandleScope scope;
 
@@ -739,8 +744,9 @@ void AfterCharacteristicValueByUUIDRead(uv_work_t *req)
 }
 
 
-NAN_METHOD(Read)
+NAN_METHOD(Adapter::GattcRead)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     uint16_t handle;
     uint16_t offset;
@@ -773,20 +779,20 @@ NAN_METHOD(Read)
     baton->handle = handle;
     baton->offset = offset;
 
-    uv_queue_work(uv_default_loop(), baton->req, Read, (uv_after_work_cb)AfterRead);
+    uv_queue_work(uv_default_loop(), baton->req, GattcRead, (uv_after_work_cb)AfterGattcRead);
 }
 
 // This runs in a worker thread (not Main Thread)
-void Read(uv_work_t *req)
+void Adapter::GattcRead(uv_work_t *req)
 {
     GattcReadBaton *baton = static_cast<GattcReadBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_gattc_read(baton->conn_handle, baton->handle, baton->offset);
+    baton->result = sd_ble_gattc_read(baton->adapter, baton->conn_handle, baton->handle, baton->offset);
 }
 
 // This runs in Main Thread
-void AfterRead(uv_work_t *req)
+void Adapter::AfterGattcRead(uv_work_t *req)
 {
 	Nan::HandleScope scope;
 
@@ -806,8 +812,9 @@ void AfterRead(uv_work_t *req)
     delete baton;
 }
 
-NAN_METHOD(CharacteristicValuesRead)
+NAN_METHOD(Adapter::GattcReadCharacteristicValues)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     v8::Local<v8::Object> handles;
     uint16_t handle_count;
@@ -851,31 +858,31 @@ NAN_METHOD(CharacteristicValuesRead)
         return;
     }
 
-    GattcCharacteristicValuesReadBaton *baton = new GattcCharacteristicValuesReadBaton(callback);
+    GattcReadCharacteristicValuesBaton *baton = new GattcReadCharacteristicValuesBaton(callback);
     baton->conn_handle = conn_handle;
     baton->p_handles = p_handles;
     baton->handle_count = handle_count;
 
-    uv_queue_work(uv_default_loop(), baton->req, CharacteristicValuesRead, (uv_after_work_cb)AfterCharacteristicValuesRead);
+    uv_queue_work(uv_default_loop(), baton->req, GattcReadCharacteristicValues, (uv_after_work_cb)AfterGattcReadCharacteristicValues);
 }
 
 // This runs in a worker thread (not Main Thread)
-void CharacteristicValuesRead(uv_work_t *req)
+void Adapter::GattcReadCharacteristicValues(uv_work_t *req)
 {
-    GattcCharacteristicValuesReadBaton *baton = static_cast<GattcCharacteristicValuesReadBaton *>(req->data);
+    GattcReadCharacteristicValuesBaton *baton = static_cast<GattcReadCharacteristicValuesBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_gattc_char_values_read(baton->conn_handle, baton->p_handles, baton->handle_count);
+    baton->result = sd_ble_gattc_char_values_read(baton->adapter, baton->conn_handle, baton->p_handles, baton->handle_count);
 
     free(baton->p_handles);
 }
 
 // This runs in Main Thread
-void AfterCharacteristicValuesRead(uv_work_t *req)
+void Adapter::AfterGattcReadCharacteristicValues(uv_work_t *req)
 {
 	Nan::HandleScope scope;
 
-    GattcCharacteristicValuesReadBaton *baton = static_cast<GattcCharacteristicValuesReadBaton *>(req->data);
+    GattcReadCharacteristicValuesBaton *baton = static_cast<GattcReadCharacteristicValuesBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -892,8 +899,9 @@ void AfterCharacteristicValuesRead(uv_work_t *req)
 }
 
 
-NAN_METHOD(Write)
+NAN_METHOD(Adapter::GattcWrite)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     v8::Local<v8::Object> p_write_params;
     v8::Local<v8::Function> callback;
@@ -931,20 +939,20 @@ NAN_METHOD(Write)
         return;
     }
 
-    uv_queue_work(uv_default_loop(), baton->req, Write, (uv_after_work_cb)AfterWrite);
+    uv_queue_work(uv_default_loop(), baton->req, GattcWrite, (uv_after_work_cb)AfterGattcWrite);
 }
 
 // This runs in a worker thread (not Main Thread)
-void Write(uv_work_t *req)
+void Adapter::GattcWrite(uv_work_t *req)
 {
     GattcWriteBaton *baton = static_cast<GattcWriteBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_gattc_write(baton->conn_handle, baton->p_write_params);
+    baton->result = sd_ble_gattc_write(baton->adapter, baton->conn_handle, baton->p_write_params);
 }
 
 // This runs in Main Thread
-void AfterWrite(uv_work_t *req)
+void Adapter::AfterGattcWrite(uv_work_t *req)
 {
 	Nan::HandleScope scope;
 
@@ -964,9 +972,9 @@ void AfterWrite(uv_work_t *req)
     delete baton;
 }
 
-
-NAN_METHOD(HandleValueConfirm)
+NAN_METHOD(Adapter::GattcConfirmHandleValue)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     uint16_t handle;
     v8::Local<v8::Function> callback;
@@ -990,28 +998,28 @@ NAN_METHOD(HandleValueConfirm)
         return;
     }
 
-    GattcHandleValueConfirmBaton *baton = new GattcHandleValueConfirmBaton(callback);
+    GattcConfirmHandleValueBaton *baton = new GattcConfirmHandleValueBaton(callback);
     baton->conn_handle = conn_handle;
     baton->handle = handle;
 
-    uv_queue_work(uv_default_loop(), baton->req, HandleValueConfirm, (uv_after_work_cb)AfterHandleValueConfirm);
+    uv_queue_work(uv_default_loop(), baton->req, GattcConfirmHandleValue, (uv_after_work_cb)AfterGattcConfirmHandleValue);
 }
 
 // This runs in a worker thread (not Main Thread)
-void HandleValueConfirm(uv_work_t *req)
+void Adapter::GattcConfirmHandleValue(uv_work_t *req)
 {
-    GattcHandleValueConfirmBaton *baton = static_cast<GattcHandleValueConfirmBaton *>(req->data);
+    GattcConfirmHandleValueBaton *baton = static_cast<GattcConfirmHandleValueBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_gattc_hv_confirm(baton->conn_handle, baton->handle);
+    baton->result = sd_ble_gattc_hv_confirm(baton->adapter, baton->conn_handle, baton->handle);
 }
 
 // This runs in Main Thread
-void AfterHandleValueConfirm(uv_work_t *req)
+void Adapter::AfterGattcConfirmHandleValue(uv_work_t *req)
 {
 	Nan::HandleScope scope;
 
-    GattcHandleValueConfirmBaton *baton = static_cast<GattcHandleValueConfirmBaton *>(req->data);
+    GattcConfirmHandleValueBaton *baton = static_cast<GattcConfirmHandleValueBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -1030,16 +1038,6 @@ void AfterHandleValueConfirm(uv_work_t *req)
 extern "C" {
     void init_gattc(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
-        Utility::SetMethod(target, "gattc_primary_services_discover", PrimaryServicesDiscover);
-        Utility::SetMethod(target, "gattc_releationships_discover", RelationshipDiscover);
-        Utility::SetMethod(target, "gattc_characteristic_discover", CharacteristicsDiscover);
-        Utility::SetMethod(target, "gattc_descriptor_discover", DescriptorsDiscover);
-        Utility::SetMethod(target, "gattc_read_characteriscicvalue_by_uuid", CharacteristicValueByUUIDRead);
-        Utility::SetMethod(target, "gattc_read", Read);
-        Utility::SetMethod(target, "gattc_read_characteriscicvalue", CharacteristicValuesRead);
-        Utility::SetMethod(target, "gattc_write", Write);
-        Utility::SetMethod(target, "gattc_confirm_handle_value", HandleValueConfirm);
-
         /* BLE_ERRORS_GATTC SVC return values specific to GATTC */
         NODE_DEFINE_CONSTANT(target, BLE_ERROR_GATTC_PROC_NOT_PERMITTED);
 

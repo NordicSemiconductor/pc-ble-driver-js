@@ -28,13 +28,14 @@ include_directories(${CMAKE_JS_INC} ${BLE_DRIVER_INCLUDE_DIR})
 
 # Specify source files
 file (GLOB SOURCE_FILES
+    "src/adapter.cpp"
     "src/serialadapter.cpp"
     "src/common.cpp"
     "src/driver.cpp"
     "src/driver_gap.cpp"
-#    "src/driver_gatt.cpp"
-#    "src/driver_gattc.cpp"
-#    "src/driver_gatts.cpp"
+    "src/driver_gatt.cpp"
+    "src/driver_gattc.cpp"
+    "src/driver_gatts.cpp"
     "src/*.h"
 )
 

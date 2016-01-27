@@ -5,7 +5,8 @@ Nan::Persistent<v8::Function> Adapter::constructor;
 
 std::vector<Adapter *> adapterVector;
 
-NAN_MODULE_INIT(Adapter::Init) {
+NAN_MODULE_INIT(Adapter::Init)
+{
     v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
     tpl->SetClassName(Nan::New("Adapter").ToLocalChecked());
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -143,6 +144,8 @@ void Adapter::initErrorHandling(Nan::Callback *callback)
 
 void Adapter::removeCallbacks()
 {
+    closing = true;
+
     if (eventCallback != NULL)
     {
         delete eventCallback;
@@ -177,7 +180,6 @@ void Adapter::initGeneric(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "userMemoryReply", UserMemReply);
 
     Nan::SetPrototypeMethod(tpl, "getStats", GetStats);
-
 }
 
 void Adapter::initGap(v8::Local<v8::FunctionTemplate> tpl)
@@ -210,6 +212,31 @@ void Adapter::initGap(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "gapGetAppearance", GapGetAppearance);
 }
 
+void Adapter::initGattC(v8::Local<v8::FunctionTemplate> tpl)
+{
+    Nan::SetPrototypeMethod(tpl, "gattcDiscoverPrimaryServices", GattcDiscoverPrimaryServices);
+    Nan::SetPrototypeMethod(tpl, "gattcDiscoverRelationship", GattcDiscoverRelationship);
+    Nan::SetPrototypeMethod(tpl, "gattcDiscoverCharacteristics", GattcDiscoverCharacteristics);
+    Nan::SetPrototypeMethod(tpl, "gattcDiscoverDescriptors", GattcDiscoverDescriptors);
+    Nan::SetPrototypeMethod(tpl, "gattcReadCharacteristicValueByUUID", GattcReadCharacteristicValueByUUID);
+    Nan::SetPrototypeMethod(tpl, "gattcRead", GattcRead);
+    Nan::SetPrototypeMethod(tpl, "gattcReadCharacteristicValues", GattcReadCharacteristicValues);
+    Nan::SetPrototypeMethod(tpl, "gattcWrite", GattcWrite);
+    Nan::SetPrototypeMethod(tpl, "gattcConfirmHandleValue", GattcConfirmHandleValue);
+}
+
+void Adapter::initGattS(v8::Local<v8::FunctionTemplate> tpl)
+{
+    Nan::SetPrototypeMethod(tpl, "gattsAddService", GattsAddService);
+    Nan::SetPrototypeMethod(tpl, "gattsAddCharacteristic", GattsAddCharacteristic);
+    Nan::SetPrototypeMethod(tpl, "gattsAddDescriptor", GattsAddDescriptor);
+    Nan::SetPrototypeMethod(tpl, "gattsHVX", GattsHVX);
+    Nan::SetPrototypeMethod(tpl, "gattsSystemAttributeSet", GattsSystemAttributeSet);
+    Nan::SetPrototypeMethod(tpl, "gattsSetValue", GattsSetValue);
+    Nan::SetPrototypeMethod(tpl, "gattsGetValue", GattsGetValue);
+    Nan::SetPrototypeMethod(tpl, "gattsReplyReadWriteAuthorize", GattsReplyReadWriteAuthorize);
+}
+
 Adapter::Adapter()
 {
     adapterVector.push_back(this);
@@ -221,6 +248,8 @@ Adapter::Adapter()
     eventCallbackBatchNumber = 0;
 
     eventCallback = 0;
+
+    closing = false;
 }
 
 Adapter::~Adapter()

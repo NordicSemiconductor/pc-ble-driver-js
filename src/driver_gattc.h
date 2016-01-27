@@ -89,7 +89,7 @@ public:
     virtual void ToJs(v8::Local<v8::Object> obj)
     {
         BleDriverEvent<EventType>::ToJs(obj);
-        Utility::Set(obj, "gatt_status", gatt_status);        
+        Utility::Set(obj, "gatt_status", gatt_status);
         Utility::Set(obj, "gatt_status_name", ConversionUtility::valueToJsString(gatt_status, gatt_status_map, ConversionUtility::toJsString("Unknown GATT status")));
         Utility::Set(obj, "error_handle", error_handle);
     }
@@ -202,31 +202,31 @@ public:
 
 ///// Start GATTC Batons //////////////////////////////////////////////////////////////////////////////////
 
-struct GattcPrimaryServicesDiscoverBaton : public Baton {
+struct GattcDiscoverPrimaryServicesBaton : public Baton {
 public:
-    BATON_CONSTRUCTOR(GattcPrimaryServicesDiscoverBaton);
+    BATON_CONSTRUCTOR(GattcDiscoverPrimaryServicesBaton);
     uint16_t conn_handle;
     uint16_t start_handle;
     ble_uuid_t *p_srvc_uuid;
 };
 
-struct GattcRelationshipDiscoverBaton : public Baton {
+struct GattcDiscoverRelationshipBaton : public Baton {
 public:
-    BATON_CONSTRUCTOR(GattcRelationshipDiscoverBaton);
+    BATON_CONSTRUCTOR(GattcDiscoverRelationshipBaton);
     uint16_t conn_handle;
     ble_gattc_handle_range_t *p_handle_range;
 };
 
-struct GattcCharacteristicsDiscoverBaton : public Baton {
+struct GattcDiscoverCharacteristicsBaton : public Baton {
 public:
-    BATON_CONSTRUCTOR(GattcCharacteristicsDiscoverBaton);
+    BATON_CONSTRUCTOR(GattcDiscoverCharacteristicsBaton);
     uint16_t conn_handle;
     ble_gattc_handle_range_t *p_handle_range;
 };
 
-struct GattcDescriptorsDiscoverBaton : public Baton {
+struct GattcDiscoverDescriptorsBaton : public Baton {
 public:
-    BATON_CONSTRUCTOR(GattcDescriptorsDiscoverBaton);
+    BATON_CONSTRUCTOR(GattcDiscoverDescriptorsBaton);
     uint16_t conn_handle;
     ble_gattc_handle_range_t *p_handle_range;
 };
@@ -247,9 +247,9 @@ public:
     uint16_t offset;
 };
 
-struct GattcCharacteristicValuesReadBaton : public Baton {
+struct GattcReadCharacteristicValuesBaton : public Baton {
 public:
-    BATON_CONSTRUCTOR(GattcCharacteristicValuesReadBaton);
+    BATON_CONSTRUCTOR(GattcReadCharacteristicValuesBaton);
     uint16_t conn_handle;
     uint16_t *p_handles;
     uint16_t handle_count;
@@ -262,24 +262,14 @@ public:
     ble_gattc_write_params_t *p_write_params;
 };
 
-struct GattcHandleValueConfirmBaton : public Baton {
+struct GattcConfirmHandleValueBaton : public Baton {
 public:
-    BATON_CONSTRUCTOR(GattcHandleValueConfirmBaton);
+    BATON_CONSTRUCTOR(GattcConfirmHandleValueBaton);
     uint16_t conn_handle;
     uint16_t handle;
 };
 
 ///// End GATTC Batons //////////////////////////////////////////////////////////////////////////////////
-
-METHOD_DEFINITIONS(PrimaryServicesDiscover);
-METHOD_DEFINITIONS(RelationshipDiscover);
-METHOD_DEFINITIONS(CharacteristicsDiscover);
-METHOD_DEFINITIONS(DescriptorsDiscover);
-METHOD_DEFINITIONS(CharacteristicValueByUUIDRead);
-METHOD_DEFINITIONS(Read);
-METHOD_DEFINITIONS(CharacteristicValuesRead);
-METHOD_DEFINITIONS(Write);
-METHOD_DEFINITIONS(HandleValueConfirm);
 
 extern "C" {
     void init_gattc(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);

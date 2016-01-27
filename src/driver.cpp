@@ -9,9 +9,9 @@
 #include "serialadapter.h"
 #include "driver.h"
 #include "driver_gap.h"
-//#include "driver_gatt.h"
-//#include "driver_gattc.h"
-//#include "driver_gatts.h"
+#include "driver_gatt.h"
+#include "driver_gattc.h"
+#include "driver_gatts.h"
 
 using namespace std;
 
@@ -42,7 +42,7 @@ Adapter *adapterBeingOpened = 0;
         Nan::Set(event_array, event_array_idx, js_event);                                               \
         break;                                                                                                          \
     }
-/*
+
 // Macro for keeping sanity in event switch case below
 #define GATTC_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, eventEntry) \
     case BLE_GATTC_EVT_##evt_enum:                                                                                        \
@@ -66,7 +66,7 @@ Adapter *adapterBeingOpened = 0;
         Nan::Set(event_array, event_array_idx, js_event);                                               \
         break;                                                                                                          \
     }
-*/
+
 static name_map_t uuid_type_name_map = {
     NAME_MAP_ENTRY(BLE_UUID_TYPE_UNKNOWN),
     NAME_MAP_ENTRY(BLE_UUID_TYPE_BLE),
@@ -96,7 +96,10 @@ void Adapter::appendLog(LogEntry *log)
 {
     logs.push(log);
 
-    uv_async_send(&asyncLog);
+    if (!closing)
+    {
+        uv_async_send(&asyncLog);
+    }
 }
 
 // Now we are in the NodeJS thread. Call callbacks.
@@ -126,7 +129,10 @@ void Adapter::onLogEvent(uv_async_t *handle)
 void Adapter::sendEventsUpstream()
 {
     // Trigger callback in NodeJS thread to call NodeJS callbacks
-    uv_async_send(&asyncEvent);
+    if (!closing)
+    {
+        uv_async_send(&asyncEvent);
+    }
 }
 
 void Adapter::eventIntervalCallback(uv_timer_t *handle)
@@ -234,7 +240,7 @@ void Adapter::onRpcEvent(uv_async_t *handle)
                 GAP_EVT_CASE(CONN_SEC_UPDATE,           ConnSecUpdate,          conn_sec_update,            array, arrayIndex, eventEntry);
                 GAP_EVT_CASE(SEC_INFO_REQUEST,          SecInfoRequest,         sec_info_request,           array, arrayIndex, eventEntry);
                 GAP_EVT_CASE(SEC_REQUEST,               SecRequest,             sec_request,                array, arrayIndex, eventEntry);
-                /*
+                
                 GATTC_EVT_CASE(PRIM_SRVC_DISC_RSP,          PrimaryServiceDiscovery,       prim_srvc_disc_rsp,         array, arrayIndex, eventEntry);
                 GATTC_EVT_CASE(REL_DISC_RSP,                RelationshipDiscovery,         rel_disc_rsp,               array, arrayIndex, eventEntry);
                 GATTC_EVT_CASE(CHAR_DISC_RSP,               CharacteristicDiscovery,       char_disc_rsp,              array, arrayIndex, eventEntry);
@@ -254,7 +260,7 @@ void Adapter::onRpcEvent(uv_async_t *handle)
 
                 // Handled special as there is no parameter for this in the event struct.
                 GATTS_EVT_CASE(SC_CONFIRM, SCConfirm, timeout, array, arrayIndex, eventEntry);
-                */
+                
             default:
                 std::cout << "Event " << event->header.evt_id << " unknown to me." << std::endl;
                 break;
@@ -284,7 +290,7 @@ void Adapter::onRpcEvent(uv_async_t *handle)
     addEventBatchStatistics(duration);
 }
 
-static void sd_rpc_on_error(adapter_t *adapter, const char * error, uint32_t code)
+static void sd_rpc_on_error(adapter_t *adapter, uint32_t code, const char * error)
 {
     ErrorEntry *errorEntry = new ErrorEntry();
     errorEntry->errorCode = code;
@@ -306,7 +312,10 @@ void Adapter::appendError(ErrorEntry *error)
 {
     errors.push(error);
 
-    uv_async_send(&asyncError);
+    if (!closing)
+    {
+        uv_async_send(&asyncError);
+    }
 }
 
 // Now we are in the NodeJS thread. Call callbacks.

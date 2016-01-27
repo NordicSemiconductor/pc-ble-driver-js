@@ -1300,7 +1300,6 @@ void Adapter::GapSetAddress(uv_work_t *req)
 {
     GapAddressSetBaton *baton = static_cast<GapAddressSetBaton *>(req->data);
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
     baton->result = sd_ble_gap_address_set(baton->adapter, baton->addr_cycle_mode, baton->address);
 }
 
@@ -1360,7 +1359,6 @@ void Adapter::GapGetAddress(uv_work_t *req)
 {
     GapAddressGetBaton *baton = static_cast<GapAddressGetBaton *>(req->data);
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
     baton->result = sd_ble_gap_address_get(baton->adapter, baton->address);
 }
 
@@ -1438,7 +1436,6 @@ void Adapter::GapUpdateConnectionParameters(uv_work_t *req)
     GapUpdateConnectionParametersBaton *baton = static_cast<GapUpdateConnectionParametersBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
     baton->result = sd_ble_gap_conn_param_update(baton->adapter, baton->conn_handle, baton->connectionParameters);
 }
 
@@ -1504,7 +1501,6 @@ void Adapter::GapDisconnect(uv_work_t *req)
     GapDisconnectBaton *baton = static_cast<GapDisconnectBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
     baton->result = sd_ble_gap_disconnect(baton->adapter, baton->conn_handle, baton->hci_status_code);
 }
 
@@ -1566,7 +1562,6 @@ void Adapter::GapSetTXPower(uv_work_t *req)
     TXPowerBaton *baton = static_cast<TXPowerBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
     baton->result = sd_ble_gap_tx_power_set(baton->adapter, baton->tx_power);
 }
 
@@ -1644,7 +1639,6 @@ void Adapter::GapSetDeviceName(uv_work_t *req)
     GapSetDeviceNameBaton *baton = static_cast<GapSetDeviceNameBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
     baton->result = sd_ble_gap_device_name_set(baton->adapter, baton->conn_sec_mode, baton->dev_name, baton->length);
 }
 
@@ -1704,7 +1698,6 @@ void Adapter::GapGetDeviceName(uv_work_t *req)
     GapGetDeviceNameBaton *baton = static_cast<GapGetDeviceNameBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
     baton->result = sd_ble_gap_device_name_get(baton->adapter, baton->dev_name, &(baton->length));
 }
 
@@ -1782,7 +1775,6 @@ void Adapter::GapStartRSSI(uv_work_t *req)
     GapStartRSSIBaton *baton = static_cast<GapStartRSSIBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
     baton->result = sd_ble_gap_rssi_start(baton->adapter, baton->conn_handle, baton->treshold_dbm, baton->skip_count);
 }
 
@@ -1842,7 +1834,6 @@ void Adapter::GapStopRSSI(uv_work_t *req)
     GapStopRSSIBaton *baton = static_cast<GapStopRSSIBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
     baton->result = sd_ble_gap_rssi_stop(baton->adapter, baton->conn_handle);
 }
 
@@ -1957,8 +1948,7 @@ void Adapter::GapStopScan(uv_work_t *req)
     StopScanBaton *baton = static_cast<StopScanBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
-    baton->result = sd_ble_gap_scan_stop(a);
+    baton->result = sd_ble_gap_scan_stop(baton->adapter);
 }
 
 // This runs in Main Thread
@@ -2013,7 +2003,9 @@ NAN_METHOD(Adapter::GapConnect)
     }
 
     GapConnectBaton *baton = new GapConnectBaton(callback);
+    baton->adapter = obj->adapter;
     baton->req->data = (void *)baton;
+
     try
     {
         baton->address = GapAddr(address);
@@ -2046,7 +2038,6 @@ NAN_METHOD(Adapter::GapConnect)
         Nan::ThrowTypeError(message);
         return;
     }
-    baton->adapter = obj->adapter;
 
     uv_queue_work(uv_default_loop(), baton->req, GapConnect, (uv_after_work_cb)AfterGapConnect);
 }
@@ -2057,7 +2048,6 @@ void Adapter::GapConnect(uv_work_t *req)
     GapConnectBaton *baton = static_cast<GapConnectBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
     baton->result = sd_ble_gap_connect(baton->adapter, baton->address, baton->scan_params, baton->conn_params);
 }
 
@@ -2112,8 +2102,7 @@ void Adapter::GapCancelConnect(uv_work_t *req)
     GapConnectCancelBaton *baton = static_cast<GapConnectCancelBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
-    baton->result = sd_ble_gap_connect_cancel(a);
+    baton->result = sd_ble_gap_connect_cancel(baton->adapter);
 }
 
 // This runs in Main Thread
@@ -2178,7 +2167,6 @@ void Adapter::GapGetRSSI(uv_work_t *req)
 
     std::cout << "GapGetRSSI After Lock" << baton->conn_handle << std::endl;
     //TODO: Does not return. Unsure if it is the serialization, my code, or SD which does not behave.
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
     baton->result = sd_ble_gap_rssi_get(baton->adapter, baton->conn_handle, &(baton->rssi));
 
     std::cout << "GapGetRSSI After Call" << std::endl;
@@ -2307,8 +2295,7 @@ void Adapter::GapStopAdvertising(uv_work_t *req)
     GapStopAdvertisingBaton *baton = static_cast<GapStopAdvertisingBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
-    baton->result = sd_ble_gap_adv_stop(a);
+    baton->result = sd_ble_gap_adv_stop(baton->adapter);
 }
 
 // This runs in Main Thread
@@ -2368,7 +2355,6 @@ void Adapter::GapConnSecGet(uv_work_t *req)
     GapConnSecGetBaton *baton = static_cast<GapConnSecGetBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
     baton->result = sd_ble_gap_conn_sec_get(baton->adapter, baton->conn_handle, baton->conn_sec);
 }
 
@@ -2460,7 +2446,6 @@ void Adapter::GapEncrypt(uv_work_t *req)
     GapEncryptBaton *baton = static_cast<GapEncryptBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
     baton->result = sd_ble_gap_encrypt(baton->adapter, baton->conn_handle, baton->master_id, baton->enc_info);
 }
 
@@ -2561,8 +2546,7 @@ void Adapter::GapSecParamsReply(uv_work_t *req)
     GapSecParamsReplyBaton *baton = static_cast<GapSecParamsReplyBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
-    /*baton->result = sd_ble_gap_sec_params_reply(baton->adapter,
+        /*baton->result = sd_ble_gap_sec_params_reply(baton->adapter,
                                                 baton->conn_handle,
                                                 baton->sec_status,
                                                 baton->sec_params,
@@ -2672,7 +2656,6 @@ void Adapter::GapSecInfoReply(uv_work_t *req)
     GapSecInfoReplyBaton *baton = static_cast<GapSecInfoReplyBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
     baton->result = sd_ble_gap_sec_info_reply(baton->adapter, baton->conn_handle, baton->enc_info, baton->id_info, baton->sign_info);
 }
 
@@ -2746,7 +2729,6 @@ void Adapter::GapAuthenticate(uv_work_t *req)
     GapAuthenticateBaton *baton = static_cast<GapAuthenticateBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
 
     baton->result = sd_ble_gap_authenticate(baton->adapter, baton->conn_handle, baton->p_sec_params);
 }
@@ -2909,7 +2891,6 @@ void Adapter::GapSetPPCP(uv_work_t *req)
     GapSetPPCPBaton *baton = static_cast<GapSetPPCPBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
 
     baton->result = sd_ble_gap_ppcp_set(baton->adapter, baton->p_conn_params);
 }
@@ -2968,7 +2949,6 @@ void Adapter::GapGetPPCP(uv_work_t *req)
     GapGetPPCPBaton *baton = static_cast<GapGetPPCPBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
 
     baton->result = sd_ble_gap_ppcp_get(baton->adapter, baton->p_conn_params);
 }
@@ -3032,7 +3012,6 @@ void Adapter::GapSetAppearance(uv_work_t *req)
     GapSetAppearanceBaton *baton = static_cast<GapSetAppearanceBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
 
     baton->result = sd_ble_gap_appearance_set(baton->adapter, baton->appearance);
 }
@@ -3089,7 +3068,6 @@ void Adapter::GapGetAppearance(uv_work_t *req)
     GapGetAppearanceBaton *baton = static_cast<GapGetAppearanceBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
 
     baton->result = sd_ble_gap_appearance_get(baton->adapter, &baton->appearance);
 }

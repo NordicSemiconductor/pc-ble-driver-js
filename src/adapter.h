@@ -124,6 +124,27 @@ private:
     ADAPTER_METHOD_DEFINITIONS(GapSetAppearance);
     ADAPTER_METHOD_DEFINITIONS(GapGetAppearance);
 
+    // Gattc async mehtods
+    ADAPTER_METHOD_DEFINITIONS(GattcDiscoverPrimaryServices);
+    ADAPTER_METHOD_DEFINITIONS(GattcDiscoverRelationship);
+    ADAPTER_METHOD_DEFINITIONS(GattcDiscoverCharacteristics);
+    ADAPTER_METHOD_DEFINITIONS(GattcDiscoverDescriptors);
+    ADAPTER_METHOD_DEFINITIONS(GattcReadCharacteristicValueByUUID);
+    ADAPTER_METHOD_DEFINITIONS(GattcRead);
+    ADAPTER_METHOD_DEFINITIONS(GattcReadCharacteristicValues);
+    ADAPTER_METHOD_DEFINITIONS(GattcWrite);
+    ADAPTER_METHOD_DEFINITIONS(GattcConfirmHandleValue);
+
+    // Gatts async mehtods
+    ADAPTER_METHOD_DEFINITIONS(GattsAddService);
+    ADAPTER_METHOD_DEFINITIONS(GattsAddCharacteristic);
+    ADAPTER_METHOD_DEFINITIONS(GattsAddDescriptor);
+    ADAPTER_METHOD_DEFINITIONS(GattsHVX);
+    ADAPTER_METHOD_DEFINITIONS(GattsSystemAttributeSet);
+    ADAPTER_METHOD_DEFINITIONS(GattsSetValue);
+    ADAPTER_METHOD_DEFINITIONS(GattsGetValue);
+    ADAPTER_METHOD_DEFINITIONS(GattsReplyReadWriteAuthorize);
+
     static void Adapter::initGeneric(v8::Local<v8::FunctionTemplate> tpl);
     static void Adapter::initGap(v8::Local<v8::FunctionTemplate> tpl);
     static void Adapter::initGatt(v8::Local<v8::FunctionTemplate> tpl);
@@ -160,5 +181,7 @@ private:
     uint32_t eventCallbackBatchEventCounter;
     uint32_t eventCallbackBatchEventTotalCount;
     uint32_t eventCallbackBatchNumber;
+
+    bool closing;
 };
 #endif

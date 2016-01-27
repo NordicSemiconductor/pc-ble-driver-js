@@ -78,11 +78,11 @@ public:
     v8::Local<v8::Object> ToJs();
 };
 
-class GattRWAuthorizeReplyParams : public BleToJs<ble_gatts_rw_authorize_reply_params_t>
+class GattGattsReplyReadWriteAuthorizeParams : public BleToJs<ble_gatts_rw_authorize_reply_params_t>
 {
 public:
-    GattRWAuthorizeReplyParams(ble_gatts_rw_authorize_reply_params_t *hvx_params) : BleToJs<ble_gatts_rw_authorize_reply_params_t>(hvx_params) {}
-    GattRWAuthorizeReplyParams(v8::Local<v8::Object> js) : BleToJs<ble_gatts_rw_authorize_reply_params_t>(js) {}
+    GattGattsReplyReadWriteAuthorizeParams(ble_gatts_rw_authorize_reply_params_t *hvx_params) : BleToJs<ble_gatts_rw_authorize_reply_params_t>(hvx_params) {}
+    GattGattsReplyReadWriteAuthorizeParams(v8::Local<v8::Object> js) : BleToJs<ble_gatts_rw_authorize_reply_params_t>(js) {}
     ble_gatts_rw_authorize_reply_params_t *ToNative();
 };
 
@@ -230,37 +230,28 @@ public:
     uint32_t flags;
 };
 
-struct GattsValueSetBaton : public Baton {
+struct GattsSetValueBaton : public Baton {
 public:
-    BATON_CONSTRUCTOR(GattsValueSetBaton);
+    BATON_CONSTRUCTOR(GattsSetValueBaton);
     uint16_t conn_handle;
     uint16_t handle;
     ble_gatts_value_t *p_value;
 };
 
-struct GattsValueGetBaton : public Baton {
+struct GattsGetValueBaton : public Baton {
 public:
-    BATON_CONSTRUCTOR(GattsValueGetBaton);
+    BATON_CONSTRUCTOR(GattsGetValueBaton);
     uint16_t conn_handle;
     uint16_t handle;
     ble_gatts_value_t *p_value;
 };
 
-struct GattsRWAuthorizeReplyBaton : public Baton {
+struct GattsReplyReadWriteAuthorizeBaton : public Baton {
 public:
-    BATON_CONSTRUCTOR(GattsRWAuthorizeReplyBaton);
+    BATON_CONSTRUCTOR(GattsReplyReadWriteAuthorizeBaton);
     uint16_t conn_handle;
     ble_gatts_rw_authorize_reply_params_t *p_rw_authorize_reply_params;
 };
-
-METHOD_DEFINITIONS(AddService)
-METHOD_DEFINITIONS(AddCharacteristic)
-METHOD_DEFINITIONS(AddDescriptor)
-METHOD_DEFINITIONS(HVX)
-METHOD_DEFINITIONS(SystemAttributeSet)
-METHOD_DEFINITIONS(ValueSet)
-METHOD_DEFINITIONS(ValueGet)
-METHOD_DEFINITIONS(RWAuthorizeReply)
 
 extern "C" {
     void init_gatts(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);

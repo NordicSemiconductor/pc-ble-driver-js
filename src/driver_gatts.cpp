@@ -221,7 +221,7 @@ ble_gatts_write_authorize_params_t *GattsWriteAuthorizeParameters::ToNative()
     return params;
 }
 
-ble_gatts_rw_authorize_reply_params_t *GattRWAuthorizeReplyParams::ToNative()
+ble_gatts_rw_authorize_reply_params_t *GattGattsReplyReadWriteAuthorizeParams::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
@@ -341,8 +341,9 @@ v8::Local<v8::Object> GattsTimeoutEvent::ToJs()
     return scope.Escape(obj);
 }
 
-NAN_METHOD(AddService)
+NAN_METHOD(Adapter::GattsAddService)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint8_t type;
     v8::Local<v8::Object> uuid;
     v8::Local<v8::Function> callback;
@@ -368,6 +369,7 @@ NAN_METHOD(AddService)
     }
 
     GattsAddServiceBaton *baton = new GattsAddServiceBaton(callback);
+    baton->adapter = obj->adapter;
     baton->type = type;
 
     try
@@ -381,20 +383,20 @@ NAN_METHOD(AddService)
         return;
     }
 
-    uv_queue_work(uv_default_loop(), baton->req, AddService, (uv_after_work_cb)AfterAddService);
+    uv_queue_work(uv_default_loop(), baton->req, GattsAddService, (uv_after_work_cb)AfterGattsAddService);
 }
 
 // This runs in a worker thread (not Main Thread)
-void AddService(uv_work_t *req)
+void Adapter::GattsAddService(uv_work_t *req)
 {
     GattsAddServiceBaton *baton = static_cast<GattsAddServiceBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_gatts_service_add(baton->type, baton->p_uuid, &baton->p_handle);
+    baton->result = sd_ble_gatts_service_add(baton->adapter, baton->type, baton->p_uuid, &baton->p_handle);
 }
 
 // This runs in Main Thread
-void AfterAddService(uv_work_t *req)
+void Adapter::AfterGattsAddService(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
@@ -416,8 +418,9 @@ void AfterAddService(uv_work_t *req)
     delete baton;
 }
 
-NAN_METHOD(AddCharacteristic)
+NAN_METHOD(Adapter::GattsAddCharacteristic)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t serviceHandle;
     v8::Local<v8::Object> metadata;
     v8::Local<v8::Object> attributeStructure;
@@ -446,6 +449,7 @@ NAN_METHOD(AddCharacteristic)
     }
 
     GattsAddCharacteristicBaton *baton = new GattsAddCharacteristicBaton(callback);
+    baton->adapter = obj->adapter;
     baton->service_handle = serviceHandle;
 
     try
@@ -470,20 +474,20 @@ NAN_METHOD(AddCharacteristic)
 
     baton->p_handles = new ble_gatts_char_handles_t();
 
-    uv_queue_work(uv_default_loop(), baton->req, AddCharacteristic, (uv_after_work_cb)AfterAddCharacteristic);
+    uv_queue_work(uv_default_loop(), baton->req, GattsAddCharacteristic, (uv_after_work_cb)AfterGattsAddCharacteristic);
 }
 
 // This runs in a worker thread (not Main Thread)
-void AddCharacteristic(uv_work_t *req)
+void Adapter::GattsAddCharacteristic(uv_work_t *req)
 {
     GattsAddCharacteristicBaton *baton = static_cast<GattsAddCharacteristicBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_gatts_characteristic_add(baton->service_handle, baton->p_char_md, baton->p_attr_char_value, baton->p_handles);
+    baton->result = sd_ble_gatts_characteristic_add(baton->adapter, baton->service_handle, baton->p_char_md, baton->p_attr_char_value, baton->p_handles);
 }
 
 // This runs in Main Thread
-void AfterAddCharacteristic(uv_work_t *req)
+void Adapter::AfterGattsAddCharacteristic(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
@@ -507,8 +511,9 @@ void AfterAddCharacteristic(uv_work_t *req)
     delete baton;
 }
 
-NAN_METHOD(AddDescriptor)
+NAN_METHOD(Adapter::GattsAddDescriptor)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t characteristicHandle;
     v8::Local<v8::Object> attributeStructure;
     v8::Local<v8::Function> callback;
@@ -533,6 +538,7 @@ NAN_METHOD(AddDescriptor)
     }
 
     GattsAddDescriptorBaton *baton = new GattsAddDescriptorBaton(callback);
+    baton->adapter = obj->adapter;
     baton->char_handle = characteristicHandle;
 
     try
@@ -546,20 +552,20 @@ NAN_METHOD(AddDescriptor)
         return;
     }
 
-    uv_queue_work(uv_default_loop(), baton->req, AddDescriptor, (uv_after_work_cb)AfterAddDescriptor);
+    uv_queue_work(uv_default_loop(), baton->req, GattsAddDescriptor, (uv_after_work_cb)AfterGattsAddDescriptor);
 }
 
 // This runs in a worker thread (not Main Thread)
-void AddDescriptor(uv_work_t *req)
+void Adapter::GattsAddDescriptor(uv_work_t *req)
 {
     GattsAddDescriptorBaton *baton = static_cast<GattsAddDescriptorBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_gatts_descriptor_add(baton->char_handle, baton->p_attr, &baton->p_handle);
+    baton->result = sd_ble_gatts_descriptor_add(baton->adapter, baton->char_handle, baton->p_attr, &baton->p_handle);
 }
 
 // This runs in Main Thread
-void AfterAddDescriptor(uv_work_t *req)
+void Adapter::AfterGattsAddDescriptor(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
@@ -583,8 +589,9 @@ void AfterAddDescriptor(uv_work_t *req)
     delete baton;
 }
 
-NAN_METHOD(HVX)
+NAN_METHOD(Adapter::GattsHVX)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     v8::Local<v8::Object> hvx_params;
     v8::Local<v8::Function> callback;
@@ -609,6 +616,7 @@ NAN_METHOD(HVX)
     }
 
     GattsHVXBaton *baton = new GattsHVXBaton(callback);
+    baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
 
     try
@@ -622,20 +630,20 @@ NAN_METHOD(HVX)
         return;
     }
 
-    uv_queue_work(uv_default_loop(), baton->req, HVX, (uv_after_work_cb)AfterHVX);
+    uv_queue_work(uv_default_loop(), baton->req, GattsHVX, (uv_after_work_cb)AfterGattsHVX);
 }
 
 // This runs in a worker thread (not Main Thread)
-void HVX(uv_work_t *req)
+void Adapter::GattsHVX(uv_work_t *req)
 {
     GattsHVXBaton *baton = static_cast<GattsHVXBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_gatts_hvx(baton->conn_handle, baton->p_hvx_params);
+    baton->result = sd_ble_gatts_hvx(baton->adapter, baton->conn_handle, baton->p_hvx_params);
 }
 
 // This runs in Main Thread
-void AfterHVX(uv_work_t *req)
+void Adapter::AfterGattsHVX(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
@@ -660,8 +668,9 @@ void AfterHVX(uv_work_t *req)
     delete baton;
 }
 
-NAN_METHOD(SystemAttributeSet)
+NAN_METHOD(Adapter::GattsSystemAttributeSet)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     v8::Local<v8::Object> sys_attr_data;
     bool sys_attr_data_isNullPointer = false;
@@ -702,6 +711,7 @@ NAN_METHOD(SystemAttributeSet)
     }
 
     GattsSystemAttributeSetBaton *baton = new GattsSystemAttributeSetBaton(callback);
+    baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
 
     if (!sys_attr_data_isNullPointer)
@@ -716,20 +726,20 @@ NAN_METHOD(SystemAttributeSet)
     baton->len = len;
     baton->flags = flags;
 
-    uv_queue_work(uv_default_loop(), baton->req, SystemAttributeSet, (uv_after_work_cb)AfterSystemAttributeSet);
+    uv_queue_work(uv_default_loop(), baton->req, GattsSystemAttributeSet, (uv_after_work_cb)AfterGattsSystemAttributeSet);
 }
 
 // This runs in a worker thread (not Main Thread)
-void SystemAttributeSet(uv_work_t *req)
+void Adapter::GattsSystemAttributeSet(uv_work_t *req)
 {
     GattsSystemAttributeSetBaton *baton = static_cast<GattsSystemAttributeSetBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_gatts_sys_attr_set(baton->conn_handle, baton->p_sys_attr_data, baton->len, baton->flags);
+    baton->result = sd_ble_gatts_sys_attr_set(baton->adapter, baton->conn_handle, baton->p_sys_attr_data, baton->len, baton->flags);
 }
 
 // This runs in Main Thread
-void AfterSystemAttributeSet(uv_work_t *req)
+void Adapter::AfterGattsSystemAttributeSet(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
@@ -751,8 +761,9 @@ void AfterSystemAttributeSet(uv_work_t *req)
     delete baton;
 }
 
-NAN_METHOD(ValueSet)
+NAN_METHOD(Adapter::GattsSetValue)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     uint16_t handle;
     v8::Local<v8::Object> value;
@@ -780,7 +791,8 @@ NAN_METHOD(ValueSet)
         return;
     }
 
-    GattsValueSetBaton *baton = new GattsValueSetBaton(callback);
+    GattsSetValueBaton *baton = new GattsSetValueBaton(callback);
+    baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
     baton->handle = handle;
 
@@ -795,24 +807,24 @@ NAN_METHOD(ValueSet)
         return;
     }
 
-    uv_queue_work(uv_default_loop(), baton->req, ValueSet, (uv_after_work_cb)AfterValueSet);
+    uv_queue_work(uv_default_loop(), baton->req, GattsSetValue, (uv_after_work_cb)AfterGattsSetValue);
 }
 
 // This runs in a worker thread (not Main Thread)
-void ValueSet(uv_work_t *req)
+void Adapter::GattsSetValue(uv_work_t *req)
 {
-    GattsValueSetBaton *baton = static_cast<GattsValueSetBaton *>(req->data);
+    GattsSetValueBaton *baton = static_cast<GattsSetValueBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_gatts_value_set(baton->conn_handle, baton->handle, baton->p_value);
+    baton->result = sd_ble_gatts_value_set(baton->adapter, baton->conn_handle, baton->handle, baton->p_value);
 }
 
 // This runs in Main Thread
-void AfterValueSet(uv_work_t *req)
+void Adapter::AfterGattsSetValue(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GattsValueSetBaton *baton = static_cast<GattsValueSetBaton *>(req->data);
+    GattsSetValueBaton *baton = static_cast<GattsSetValueBaton *>(req->data);
     v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)
@@ -832,8 +844,9 @@ void AfterValueSet(uv_work_t *req)
     delete baton;
 }
 
-NAN_METHOD(ValueGet)
+NAN_METHOD(Adapter::GattsGetValue)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     uint16_t handle;
     v8::Local<v8::Object> value;
@@ -861,7 +874,8 @@ NAN_METHOD(ValueGet)
         return;
     }
 
-    GattsValueSetBaton *baton = new GattsValueSetBaton(callback);
+    GattsSetValueBaton *baton = new GattsSetValueBaton(callback);
+    baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
     baton->handle = handle;
 
@@ -876,24 +890,24 @@ NAN_METHOD(ValueGet)
         return;
     }
 
-    uv_queue_work(uv_default_loop(), baton->req, ValueGet, (uv_after_work_cb)AfterValueGet);
+    uv_queue_work(uv_default_loop(), baton->req, GattsGetValue, (uv_after_work_cb)AfterGattsGetValue);
 }
 
 // This runs in a worker thread (not Main Thread)
-void ValueGet(uv_work_t *req)
+void Adapter::GattsGetValue(uv_work_t *req)
 {
-    GattsValueGetBaton *baton = static_cast<GattsValueGetBaton *>(req->data);
+    GattsGetValueBaton *baton = static_cast<GattsGetValueBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_gatts_value_get(baton->conn_handle, baton->handle, baton->p_value);
+    baton->result = sd_ble_gatts_value_get(baton->adapter, baton->conn_handle, baton->handle, baton->p_value);
 }
 
 // This runs in Main Thread
-void AfterValueGet(uv_work_t *req)
+void Adapter::AfterGattsGetValue(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GattsValueGetBaton *baton = static_cast<GattsValueGetBaton *>(req->data);
+    GattsGetValueBaton *baton = static_cast<GattsGetValueBaton *>(req->data);
     v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)
@@ -913,8 +927,9 @@ void AfterValueGet(uv_work_t *req)
     delete baton;
 }
 
-NAN_METHOD(RWAuthorizeReply)
+NAN_METHOD(Adapter::GattsReplyReadWriteAuthorize)
 {
+    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     v8::Local<v8::Object> params;
     v8::Local<v8::Function> callback;
@@ -938,12 +953,13 @@ NAN_METHOD(RWAuthorizeReply)
         return;
     }
 
-    GattsRWAuthorizeReplyBaton *baton = new GattsRWAuthorizeReplyBaton(callback);
+    GattsReplyReadWriteAuthorizeBaton *baton = new GattsReplyReadWriteAuthorizeBaton(callback);
+    baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
 
     try
     {
-        baton->p_rw_authorize_reply_params = GattRWAuthorizeReplyParams(params);
+        baton->p_rw_authorize_reply_params = GattGattsReplyReadWriteAuthorizeParams(params);
     }
     catch (char const *error)
     {
@@ -952,24 +968,24 @@ NAN_METHOD(RWAuthorizeReply)
         return;
     }
 
-    uv_queue_work(uv_default_loop(), baton->req, RWAuthorizeReply, (uv_after_work_cb)AfterRWAuthorizeReply);
+    uv_queue_work(uv_default_loop(), baton->req, GattsReplyReadWriteAuthorize, (uv_after_work_cb)AfterGattsReplyReadWriteAuthorize);
 }
 
 // This runs in a worker thread (not Main Thread)
-void RWAuthorizeReply(uv_work_t *req)
+void Adapter::GattsReplyReadWriteAuthorize(uv_work_t *req)
 {
-    GattsRWAuthorizeReplyBaton *baton = static_cast<GattsRWAuthorizeReplyBaton *>(req->data);
+    GattsReplyReadWriteAuthorizeBaton *baton = static_cast<GattsReplyReadWriteAuthorizeBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    baton->result = sd_ble_gatts_rw_authorize_reply(baton->conn_handle, baton->p_rw_authorize_reply_params);
+    baton->result = sd_ble_gatts_rw_authorize_reply(baton->adapter, baton->conn_handle, baton->p_rw_authorize_reply_params);
 }
 
 // This runs in Main Thread
-void AfterRWAuthorizeReply(uv_work_t *req)
+void Adapter::AfterGattsReplyReadWriteAuthorize(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GattsRWAuthorizeReplyBaton *baton = static_cast<GattsRWAuthorizeReplyBaton *>(req->data);
+    GattsReplyReadWriteAuthorizeBaton *baton = static_cast<GattsReplyReadWriteAuthorizeBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -990,16 +1006,6 @@ void AfterRWAuthorizeReply(uv_work_t *req)
 extern "C" {
     void init_gatts(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
-        Utility::SetMethod(target, "gatts_add_service", AddService);
-        Utility::SetMethod(target, "gatts_add_characteristic", AddCharacteristic);
-        Utility::SetMethod(target, "gatts_add_descriptor", AddDescriptor);
-        Utility::SetMethod(target, "gatts_hvx", HVX);
-        Utility::SetMethod(target, "gatts_set_system_attribute", SystemAttributeSet);
-        Utility::SetMethod(target, "gatts_set_value", ValueSet);
-        Utility::SetMethod(target, "gatts_get_value", ValueGet);
-        Utility::SetMethod(target, "gatts_rw_authorize_reply", RWAuthorizeReply);
-
-
         /* BLE_ERRORS_GATTS SVC return values specific to GATTS */
         NODE_DEFINE_CONSTANT(target, BLE_ERROR_GATTS_INVALID_ATTR_TYPE); /* Invalid attribute type. */
         NODE_DEFINE_CONSTANT(target, BLE_ERROR_GATTS_SYS_ATTR_MISSING); /* System Attributes missing. */
