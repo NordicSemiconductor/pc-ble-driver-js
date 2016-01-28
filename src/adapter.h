@@ -29,7 +29,7 @@ public:
 struct ErrorEntry
 {
 public:
-    uint32_t errorCode;
+    sd_rpc_app_err_t errorCode;
     std::string message;
 };
 
@@ -145,11 +145,11 @@ private:
     ADAPTER_METHOD_DEFINITIONS(GattsGetValue);
     ADAPTER_METHOD_DEFINITIONS(GattsReplyReadWriteAuthorize);
 
-    static void Adapter::initGeneric(v8::Local<v8::FunctionTemplate> tpl);
-    static void Adapter::initGap(v8::Local<v8::FunctionTemplate> tpl);
-    static void Adapter::initGatt(v8::Local<v8::FunctionTemplate> tpl);
-    static void Adapter::initGattC(v8::Local<v8::FunctionTemplate> tpl);
-    static void Adapter::initGattS(v8::Local<v8::FunctionTemplate> tpl);
+    static void initGeneric(v8::Local<v8::FunctionTemplate> tpl);
+    static void initGap(v8::Local<v8::FunctionTemplate> tpl);
+    static void initGatt(v8::Local<v8::FunctionTemplate> tpl);
+    static void initGattC(v8::Local<v8::FunctionTemplate> tpl);
+    static void initGattS(v8::Local<v8::FunctionTemplate> tpl);
 
     void sendEventsUpstream();
 

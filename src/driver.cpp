@@ -290,7 +290,7 @@ void Adapter::onRpcEvent(uv_async_t *handle)
     addEventBatchStatistics(duration);
 }
 
-static void sd_rpc_on_error(adapter_t *adapter, uint32_t code, const char * error)
+static void sd_rpc_on_error(adapter_t *adapter, sd_rpc_app_err_t code, const char * error)
 {
     ErrorEntry *errorEntry = new ErrorEntry();
     errorEntry->errorCode = code;
