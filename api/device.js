@@ -68,7 +68,7 @@ class Device {
         this.time = new Date(event.time);
         this.scanResponse = event.scan_rsp;
         this.rssi = event.rssi;
-        this.advType = event.type;
+        this.advType = event.adv_type;
         this.txPower = event.data ? event.data.BLE_GAP_AD_TYPE_TX_POWER_LEVEL : undefined;
         this._findAndSetNameFromAdvertisingData(event.data);
         this._processAndSetServiceUuidsFromAdvertisingData(event.data);
