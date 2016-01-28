@@ -9,18 +9,29 @@ if(APPLE)
     set(CMAKE_INSTALL_RPATH "@loader_path/../../driver/lib")
 endif()
 
-if("$ENV{PC_BLE_DRIVER_DIR}" STREQUAL "")
-    message(WARNING "Environment variable PC_BLE_DRIVER_DIR not set. The environment variable can point at a custom pc-ble-driver.")
-    set(_PC_BLE_DRIVER_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-else()
-    message("AddOn build uses build directory $ENV{PC_BLE_DRIVER_DIR}.")
-    file(TO_CMAKE_PATH $ENV{PC_BLE_DRIVER_DIR} _PC_BLE_DRIVER_DIR)
-endif()
-
+#if("$ENV{PC_BLE_DRIVER_DIR}" STREQUAL "")
+#    message(WARNING "Environment variable PC_BLE_DRIVER_DIR not set. The environment variable can point at a custom pc-ble-driver.")
+set(_PC_BLE_DRIVER_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+#else()
+#    message("AddOn build uses build directory $ENV{PC_BLE_DRIVER_DIR}.")
+#    file(TO_CMAKE_PATH $ENV{PC_BLE_DRIVER_DIR} _PC_BLE_DRIVER_DIR)
+#endif()
+#
 set(BLE_DRIVER_INCLUDE_DIR ${_PC_BLE_DRIVER_DIR}/driver/include)
-set(BLE_DRIVER_LIBRARY_DIR ${_PC_BLE_DRIVER_DIR}/driver/lib)
+#set(BLE_DRIVER_LIBRARY_DIR ${_PC_BLE_DRIVER_DIR}/driver/lib)
 
 message("Searching for pc-ble-driver library in ${BLE_DRIVER_LIBRARY_DIR}")
+
+# Platform specific
+if(MSVC)
+    include(cmake/msvc.cmake)
+elseif(APPLE)
+    include(cmake/apple.cmake)
+else()
+    include(cmake/gcc.cmake)
+endif()
+
+add_subdirectory(driver)
 
 # Essential include files to build a node addon,
 # you should add this line in every CMake.js based project.
@@ -73,8 +84,8 @@ else()
 endif()
 
 # Find BLE driver library
-find_library(BLE_DRIVER_LIBRARY s130_nrf51_ble_driver HINTS ${BLE_DRIVER_LIBRARY_DIR})
+#find_library(BLE_DRIVER_LIBRARY s130_nrf51_ble_driver HINTS ${BLE_DRIVER_LIBRARY_DIR})
 
 # Essential library files to link to a node addon,
 # you should add this line in every CMake.js based project.
-target_link_libraries(${PROJECT_NAME} ${CMAKE_JS_LIB} ${BLE_DRIVER_LIBRARY})
+target_link_libraries(${PROJECT_NAME} ${CMAKE_JS_LIB} s130_nrf51_ble_driver)
