@@ -2,6 +2,7 @@
 #include <deque>
 #include <mutex>
 #include <sstream>
+#include <algorithm>
 
 #include "sd_rpc.h"
 #include "adapter.h"
@@ -142,7 +143,7 @@ void Adapter::eventIntervalCallback(uv_timer_t *handle)
 
 size_t findSize(ble_evt_t *event)
 {
-    return max(static_cast<unsigned long>(event->header.evt_len), sizeof(ble_evt_t));
+    return std::max(static_cast<std::size_t>(event->header.evt_len), static_cast<std::size_t>(sizeof(ble_evt_t)));
 }
 
 static void sd_rpc_on_event(adapter_t *adapter, ble_evt_t *event)
