@@ -23,11 +23,22 @@ uint32_t encode_decode(adapter_t *adapter, encode_function_t encode_function, de
         return NRF_ERROR_INTERNAL;
     }
 
-    err_code = _adapter->transport->send(
-        tx_buffer.get(),
-        tx_buffer_length,
-        rx_buffer.get(),
-        &rx_buffer_length);
+    if (decode_function != nullptr)
+    {
+        err_code = _adapter->transport->send(
+            tx_buffer.get(),
+            tx_buffer_length,
+            rx_buffer.get(),
+            &rx_buffer_length);
+    }
+    else
+    {
+        err_code = _adapter->transport->send(
+            tx_buffer.get(),
+            tx_buffer_length,
+            nullptr,
+            &rx_buffer_length);
+    }
 
     // TODO: implement error callback
     if (_adapter->isInternalError(err_code))
@@ -35,9 +46,12 @@ uint32_t encode_decode(adapter_t *adapter, encode_function_t encode_function, de
         return NRF_ERROR_INTERNAL;
     }
 
-    uint32_t result_code;
+    uint32_t result_code = NRF_SUCCESS;
 
-    err_code = decode_function(rx_buffer.get(), rx_buffer_length, &result_code);
+    if (decode_function != nullptr)
+    {
+        err_code = decode_function(rx_buffer.get(), rx_buffer_length, &result_code);
+    }
 
     // TODO: implement error callback
 
