@@ -146,27 +146,27 @@ void Adapter::removeCallbacks()
 {
     closing = true;
 
-    if (eventCallback != NULL)
+    if (eventCallback != 0)
     {
         delete eventCallback;
-        eventCallback = NULL;
+        eventCallback = 0;
     }
 
-    if (logCallback != NULL)
+    if (logCallback != 0)
     {
         delete logCallback;
-        logCallback = NULL;
+        logCallback = 0;
     }
 
-    if (errorCallback != NULL)
+    if (errorCallback != 0)
     {
         delete errorCallback;
-        errorCallback = NULL;
+        errorCallback = 0;
     }
 
-    uv_close((uv_handle_t *)&asyncLog, NULL);
-    uv_close((uv_handle_t *)&asyncEvent, NULL);
-    uv_close((uv_handle_t *)&asyncError, NULL);
+    uv_close((uv_handle_t *)&asyncLog, 0);
+    uv_close((uv_handle_t *)&asyncEvent, 0);
+    uv_close((uv_handle_t *)&asyncError, 0);
 }
 
 void Adapter::initGeneric(v8::Local<v8::FunctionTemplate> tpl)

@@ -113,7 +113,7 @@ void Adapter::onLogEvent(uv_async_t *handle)
         LogEntry *logEntry;
         logs.pop(logEntry);
 
-        if (logCallback != NULL)
+        if (logCallback != 0)
         {
             v8::Local<v8::Value> argv[2];
             argv[0] = ConversionUtility::toJsNumber((int)logEntry->severity);
@@ -151,7 +151,7 @@ static void sd_rpc_on_event(adapter_t *adapter, ble_evt_t *event)
     // TODO: Clarification:
     // The lifecycle for the event is controlled by the driver. We must not free any memory related to the incoming event.
 
-    if (event == NULL)
+    if (event == 0)
     {
         return;
     }
@@ -212,16 +212,16 @@ void Adapter::onRpcEvent(uv_async_t *handle)
 
     while (!events.wasEmpty())
     {
-        EventEntry *eventEntry = NULL;
+        EventEntry *eventEntry = 0;
         events.pop(eventEntry);
-        assert(eventEntry != NULL);
+        assert(eventEntry != 0);
 
         ble_evt_t *event = eventEntry->event;
-        assert(event != NULL);
+        assert(event != 0);
 
         int adapterID = eventEntry->adapterID;
 
-        if (eventCallback != NULL)
+        if (eventCallback != 0)
         {
             switch (event->header.evt_id)
             {
@@ -280,7 +280,7 @@ void Adapter::onRpcEvent(uv_async_t *handle)
 
     auto start = chrono::high_resolution_clock::now();
 
-    if (eventCallback != NULL)
+    if (eventCallback != 0)
     {
         eventCallback->Call(1, callback_value);
     }
@@ -329,7 +329,7 @@ void Adapter::onErrorEvent(uv_async_t *handle)
         ErrorEntry *errorEntry;
         errors.pop(errorEntry);
 
-        if (errorCallback != NULL)
+        if (errorCallback != 0)
         {
             v8::Local<v8::Value> argv[2];
             argv[0] = ConversionUtility::toJsNumber((int)errorEntry->errorCode);
@@ -1167,7 +1167,7 @@ v8::Local<v8::Object> BleUUID128::ToJs()
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     size_t uuid_len = 16 * 2 + 4 + 1; // Each byte -> 2 chars, 4 - separator _between_ some bytes and 1 byte null termination character
     char *uuid128string = (char*)malloc(uuid_len);
-    assert(uuid128string != NULL);
+    assert(uuid128string != 0);
     uint8_t *ptr = native->uuid128;
 
     sprintf(uuid128string, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x", ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], ptr[6], ptr[7], ptr[8], ptr[9], ptr[10], ptr[11], ptr[12], ptr[13], ptr[14], ptr[15]);
@@ -1192,7 +1192,7 @@ ble_uuid128_t *BleUUID128::ToNative()
     v8::Local<v8::String> uuidString = uuidObject->ToString();
     size_t uuid_len = uuidString->Length() + 1;
     char *uuidPtr = (char*)malloc(uuid_len);
-    assert(uuidPtr != NULL);
+    assert(uuidPtr != 0);
     uuidString->WriteUtf8(uuidPtr, uuid_len);
 
     int scan_count = sscanf(uuidPtr,
