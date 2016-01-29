@@ -13,6 +13,8 @@ class Device {
             this._addressType = address.type;
         }
 
+        this.adData = {};
+
         this.name = null;
         this._role = role;
         this.services = [];
@@ -65,6 +67,7 @@ class Device {
     }
 
     processEventData(event) {
+        this.adData = event.data;
         this.time = new Date(event.time);
         this.scanResponse = event.scan_rsp;
         this.rssi = event.rssi;
