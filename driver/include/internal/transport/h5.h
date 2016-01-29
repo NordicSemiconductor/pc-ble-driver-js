@@ -30,6 +30,16 @@ typedef enum
     LINK_CONTROL_PACKET = 15
 } h5_pkt_type_t;
 
+typedef enum
+{
+    CONTROL_PKT_RESET,
+    CONTROL_PKT_ACK,
+    CONTROL_PKT_SYNC,
+    CONTROL_PKT_SYNC_RESPONSE,
+    CONTROL_PKT_SYNC_CONFIG,
+    CONTROL_PKT_SYNC_CONFIG_RESPONSE,
+} control_pkt_type;
+
 void h5_encode(std::vector<uint8_t> &in_packet,
                std::vector<uint8_t> &out_packet,
                uint8_t seq_num,

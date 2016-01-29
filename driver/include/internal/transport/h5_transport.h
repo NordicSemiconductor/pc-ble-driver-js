@@ -188,29 +188,27 @@ private:
     void errorHandler(sd_rpc_app_err_t code, const char * error);
     void processPacket(std::vector<uint8_t>& packet);
 
-    void sendAck();
-    void sendSync();
-    void sendSyncResponse();
-    void sendSyncConfig();
-    void sendSyncConfigResponse();
-    void sendReset();
+    void sendControlPacket(control_pkt_type type);
 
     void incrementSeqNum();
     void incrementAckNum();
 
     Transport *nextTransportLayer;
     std::vector<uint8_t> lastPacket;
-    uint8_t remainingRetransmissions;
+    
+    // Variables used for reliable packets
     uint8_t seqNum;
     uint8_t ackNum;
 
     bool c0Found;
     std::vector<uint8_t> unprocessedData;
 
+    // Variables used in state RESET/UNINITIALIZED/INITIALIZED
     std::mutex syncMutex; // TODO: evaluate a new name for syncMutex
     std::condition_variable syncWaitCondition; // TODO: evaluate a new name for syncWaitCondition
 
-    uint32_t retransmissionTimeout;
+    // Variables used in state ACTIVE
+    std::chrono::milliseconds retransmissionTimeout;
     std::mutex ackMutex;
     std::condition_variable ackWaitCondition;
 
@@ -244,7 +242,7 @@ private:
     bool runStateMachine;
 
     std::mutex stateMutex; // Mutex that allows threads to wait for a given state in the state machine
-    bool waitForState(h5_state_t state, uint32_t timeoutInMillis);
+    bool waitForState(h5_state_t state, std::chrono::milliseconds timeout);
     std::condition_variable stateWaitCondition;
 };
 

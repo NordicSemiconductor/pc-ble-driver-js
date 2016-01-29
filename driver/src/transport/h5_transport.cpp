@@ -42,20 +42,26 @@
 
 #include <exception>
 
-const uint8_t SYNC_RETRANSMISSION = 4;
-const uint32_t OPEN_WAIT_TIMEOUT = 2000;
-const uint32_t SYNC_TIMEOUT = 250; // Synchronization timeout in ms.
+// Constants use for state machine states UNINITIALIZED and INITIALIZED
+const auto NON_ACTIVE_STATE_TIMEOUT = std::chrono::milliseconds(250);  // Duration to wait until resending a packet
+
+
+const uint8_t PACKET_RETRANSMISSIONS = 4;                            // Number of times to send packets before giving in
+
+// Other constants
+const auto OPEN_WAIT_TIMEOUT = std::chrono::milliseconds(2000);   // Duration to wait for state ACTIVE after open is called
+const auto RESET_WAIT_DURATION = std::chrono::milliseconds(300);  // Duration to wait before continuing UART communication after reset is sent to target
+
 
 #pragma region Public methods
 H5Transport::H5Transport(Transport *_nextTransportLayer, uint32_t retransmission_timeout)
     : Transport(),
-    remainingRetransmissions(0),
     seqNum(0), ackNum(0), c0Found(false),
     unprocessedData(), incomingPacketCount(0), outgoingPacketCount(0),
     errorPacketCount(0), currentState(STATE_START), stateMachineThread(nullptr)
 {
     this->nextTransportLayer = _nextTransportLayer;
-    retransmissionTimeout = retransmission_timeout;
+    retransmissionTimeout = std::chrono::milliseconds(retransmission_timeout);
 
     setupStateMachine();
 }
@@ -148,7 +154,7 @@ uint32_t H5Transport::send(std::vector<uint8_t> &data)
     std::vector<uint8_t> encodedPacket;
     slip_encode(h5EncodedPacket, encodedPacket);
 
-    remainingRetransmissions = SYNC_RETRANSMISSION;
+    auto remainingRetransmissions = PACKET_RETRANSMISSIONS;
 
     lastPacket.clear();
     lastPacket = encodedPacket;
@@ -160,10 +166,7 @@ uint32_t H5Transport::send(std::vector<uint8_t> &data)
         logPacket(true, h5EncodedPacket);
         nextTransportLayer->send(lastPacket);
 
-        std::chrono::milliseconds timeout(retransmissionTimeout);
-        std::chrono::system_clock::time_point wakeupTime = std::chrono::system_clock::now() + timeout;
-
-        std::cv_status status = ackWaitCondition.wait_until(ackGuard, wakeupTime);
+        auto status = ackWaitCondition.wait_for(ackGuard, std::chrono::milliseconds(retransmissionTimeout));
 
         if (status == std::cv_status::no_timeout)
         {
@@ -174,8 +177,6 @@ uint32_t H5Transport::send(std::vector<uint8_t> &data)
 
     lastPacket.clear();
 
-    // TODO: log error
-    //errorCallback()
     return NRF_ERROR_TIMEOUT;
 }
 #pragma endregion Public methods
@@ -236,7 +237,7 @@ void H5Transport::processPacket(std::vector<uint8_t> &packet)
             }
 
             if (isSyncPacket) {
-                sendSyncResponse();
+                sendControlPacket(CONTROL_PKT_SYNC_RESPONSE);
             }
         }
         else if (currentState == STATE_INITIALIZED)
@@ -250,13 +251,13 @@ void H5Transport::processPacket(std::vector<uint8_t> &packet)
 
             if (isSyncConfigPacket)
             {
-                sendSyncConfigResponse();
+                sendControlPacket(CONTROL_PKT_SYNC_CONFIG_RESPONSE);
                 exit->syncConfigReceived = true;
                 syncWaitCondition.notify_all();
             }
 
             if (isSyncPacket) {
-                sendSyncResponse();
+                sendControlPacket(CONTROL_PKT_SYNC_RESPONSE);
             }
         }
         else if (currentState == STATE_ACTIVE)
@@ -279,7 +280,7 @@ void H5Transport::processPacket(std::vector<uint8_t> &packet)
                 if (seq_num == ackNum)
                 {
                     incrementAckNum();
-                    sendAck();
+                    sendControlPacket(CONTROL_PKT_ACK);
                     dataCallback(h5Payload.data(), h5Payload.size());
                 }
                 else
@@ -423,16 +424,13 @@ void H5Transport::setupStateMachine()
         exit->reset();
 
         std::unique_lock<std::mutex> syncGuard(syncMutex);
-        auto syncTimeout = SYNC_TIMEOUT;
 
         while (!exit->isFullfilled())
         {
-            std::chrono::milliseconds timeout(syncTimeout);
-            auto wakeupTime = std::chrono::system_clock::now() + timeout;
-            sendReset();
+            sendControlPacket(CONTROL_PKT_RESET);
             errorCallback(RESET_PERFORMED, "Target Reset performed");
             exit->resetSent = true;
-            syncWaitCondition.wait_until(syncGuard, wakeupTime);
+            syncWaitCondition.wait_for(syncGuard, RESET_WAIT_DURATION);
         }
 
         if (!exit->isFullfilled())
@@ -450,17 +448,14 @@ void H5Transport::setupStateMachine()
         auto exit = dynamic_cast<UninitializedExitCriterias*>(exitCriterias[STATE_UNINITIALIZED]);
         exit->reset();
 
-        uint8_t syncRetransmission = SYNC_RETRANSMISSION;
-        uint32_t syncTimeout = SYNC_TIMEOUT;
+        uint8_t syncRetransmission = PACKET_RETRANSMISSIONS;
         std::unique_lock<std::mutex> syncGuard(syncMutex);
 
         while (!exit->isFullfilled() && syncRetransmission--)
         {
-            std::chrono::milliseconds timeout(syncTimeout);
-            auto wakeupTime = std::chrono::system_clock::now() + timeout;
-            sendSync();
+            sendControlPacket(CONTROL_PKT_SYNC);
             exit->syncSent = true;
-            syncWaitCondition.wait_until(syncGuard, wakeupTime);
+            syncWaitCondition.wait_for(syncGuard, NON_ACTIVE_STATE_TIMEOUT);
         }
 
         if (exit->isFullfilled())
@@ -478,29 +473,26 @@ void H5Transport::setupStateMachine()
         auto exit = dynamic_cast<InitializedExitCriterias*>(exitCriterias[STATE_INITIALIZED]);
         exit->reset();
 
-        uint8_t syncRetransmission = SYNC_RETRANSMISSION;
-        uint32_t syncTimeout = SYNC_TIMEOUT;
+        uint8_t syncRetransmission = PACKET_RETRANSMISSIONS;
         std::unique_lock<std::mutex> syncGuard(syncMutex);
 
         // Send a package immediately
-        sendSyncConfig();
+        sendControlPacket(CONTROL_PKT_SYNC_CONFIG);
         exit->syncConfigSent = true;
 
         while (!exit->isFullfilled() && syncRetransmission > 0)
         {
-            std::chrono::milliseconds timeout(syncTimeout);
-            auto wakeupTime = std::chrono::system_clock::now() + timeout;
-
-            auto status = syncWaitCondition.wait_until(syncGuard, wakeupTime);
+            auto status = syncWaitCondition.wait_for(syncGuard, NON_ACTIVE_STATE_TIMEOUT);
 
             if (status == std::cv_status::timeout)
             {
-                sendSyncConfig();
+                sendControlPacket(CONTROL_PKT_SYNC_CONFIG);
                 syncRetransmission--;
             }
         }
 
-        if (exit->syncConfigSent && exit->syncConfigReceived && exit->syncConfigReceived && exit->syncConfigRspReceived)
+        if (exit->syncConfigSent && exit->syncConfigRspReceived 
+            && exit->syncConfigReceived && exit->syncConfigRspSent)
         {
             return STATE_ACTIVE;
         }
@@ -604,10 +596,10 @@ void H5Transport::stateMachineWorker()
     }
 }
 
-bool H5Transport::waitForState(h5_state_t state, uint32_t timeoutInMillis)
+bool H5Transport::waitForState(h5_state_t state, std::chrono::milliseconds timeout)
 {
     std::unique_lock<std::mutex> lock(stateMutex);
-    stateWaitCondition.wait_for(lock, std::chrono::milliseconds(timeoutInMillis), [&] { return currentState == state; });
+    stateWaitCondition.wait_for(lock, timeout, [&] { return currentState == state; });
 
     if (currentState != state)
     {
@@ -622,125 +614,47 @@ bool H5Transport::waitForState(h5_state_t state, uint32_t timeoutInMillis)
 #pragma endregion State machine related methods
 
 #pragma region Sending packet types
-void H5Transport::sendAck()
+
+void H5Transport::sendControlPacket(control_pkt_type type)
 {
-    std::vector<uint8_t> emptyPacket;
-    std::vector<uint8_t> h5Packet;
-    std::vector<uint8_t> slipPacket;
+    static std::map<control_pkt_type, std::vector<uint8_t>> pkt_pattern = {
+        { CONTROL_PKT_RESET, {} },
+        { CONTROL_PKT_SYNC, { 0x01, 0x7E } },
+        { CONTROL_PKT_SYNC_RESPONSE, { 0x02, 0x7D } },
+        { CONTROL_PKT_SYNC_CONFIG, { 0x03, 0xFC, 0x11 } },
+        { CONTROL_PKT_SYNC_CONFIG_RESPONSE, { 0x04, 0x7B, 0x11 } }
+    };
 
-    h5_encode(emptyPacket,
-              h5Packet,
-              0,
-              ackNum,
-              false,
-              false,
-              ACK_PACKET);
+    h5_pkt_type_t h5_packet;
 
-    slip_encode(h5Packet, slipPacket);
-    logPacket(true, h5Packet);
-    nextTransportLayer->send(slipPacket);
-}
+    switch (type)
+    {
+    case CONTROL_PKT_RESET:
+        h5_packet = RESET_PACKET;
+        break;
+    case CONTROL_PKT_SYNC:
+    case CONTROL_PKT_SYNC_RESPONSE:
+    case CONTROL_PKT_SYNC_CONFIG:
+    case CONTROL_PKT_SYNC_CONFIG_RESPONSE:
+        h5_packet = LINK_CONTROL_PACKET;
+        break;
+    case CONTROL_PKT_ACK:
+        h5_packet = ACK_PACKET;
+        break;
+    default:
+        h5_packet = LINK_CONTROL_PACKET;
+    }
 
-// For sync documentation see BLUETOOTH SPECIFICATION Version 4.2 [Vol 4, Part D] 8 LINK ESTABLISHMENT
-void H5Transport::sendSync()
-{
-    //send sync packet
-    std::vector<uint8_t> payload {0x01, 0x7E};
-    std::vector<uint8_t> h5Packet;
-
-    h5_encode(payload,
-              h5Packet,
-              0,
-              0,
-              false,
-              false,
-              LINK_CONTROL_PACKET);
-
-    std::vector<uint8_t> slipPacket;
-    slip_encode(h5Packet, slipPacket);
-
-    logPacket(true, h5Packet);
-    nextTransportLayer->send(slipPacket);
-}
-
-void H5Transport::sendSyncResponse()
-{
-    //send sync response packet
-    std::vector<uint8_t> syncPayload{ 0x02, 0x7D };
-    std::vector<uint8_t> h5Packet;
-
-    h5_encode(syncPayload,
-        h5Packet,
-        0,
-        0,
-        false,
-        false,
-        LINK_CONTROL_PACKET);
-
-    std::vector<uint8_t> slipPacket;
-    slip_encode(h5Packet, slipPacket);
-
-    logPacket(true, h5Packet);
-
-    nextTransportLayer->send(slipPacket);
-}
-
-void H5Transport::sendSyncConfig()
-{
-    //send sync config packet
-    std::vector<uint8_t> syncPayload { 0x03, 0xFC, 0x11 };
-    std::vector<uint8_t> h5Packet;
-
-    h5_encode(syncPayload,
-        h5Packet,
-        0,
-        0,
-        false,
-        false,
-        LINK_CONTROL_PACKET);
-
-    std::vector<uint8_t> slipPacket;
-    slip_encode(h5Packet, slipPacket);
-
-    logPacket(true, h5Packet);
-
-    nextTransportLayer->send(slipPacket);
-}
-
-void H5Transport::sendSyncConfigResponse()
-{
-    //send sync config response packet
-    std::vector<uint8_t> syncPayload { 0x04, 0x7B, 0x11 };
-    std::vector<uint8_t> h5Packet;
-
-    h5_encode(syncPayload,
-        h5Packet,
-        0,
-        0,
-        false,
-        false,
-        LINK_CONTROL_PACKET);
-
-    std::vector<uint8_t> slipPacket;
-    slip_encode(h5Packet, slipPacket);
-
-    logPacket(true, h5Packet);
-
-    nextTransportLayer->send(slipPacket);
-}
-
-void H5Transport::sendReset()
-{
-    std::vector<uint8_t> payload;
+    auto payload = pkt_pattern[type];
     std::vector<uint8_t> h5Packet;
 
     h5_encode(payload,
         h5Packet,
         0,
-        0,
+        type == CONTROL_PKT_ACK ? ackNum : 0,
         false,
         false,
-        RESET_PACKET);
+        h5_packet);
 
     std::vector<uint8_t> slipPacket;
     slip_encode(h5Packet, slipPacket);
@@ -924,7 +838,7 @@ void H5Transport::log(char const *logLine) const
 void H5Transport::logStateTransition(h5_state_t from, h5_state_t to) const
 {
     std::stringstream logLine;
-    logLine << "[" << stateToString(from) << " to state " << stateToString(to) << "]" << std::endl;
+    logLine << "State change: " << stateToString(from) << " -> " << stateToString(to) << std::endl;
 
     if (this->logCallback != nullptr)
     {
