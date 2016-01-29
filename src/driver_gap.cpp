@@ -437,7 +437,8 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
             }
             else
             {
-                // std::cout << "Not processed: " << gap_ad_type_map[ad_type] << std::endl;
+                // For other AD types, pass data as array without parsing
+                Utility::Set(data_obj, gap_ad_type_map[ad_type], ConversionUtility::toJsValueArray(data, ad_len - 1));
             }
 
             pos += ad_len; // Jump to the next AD Type
