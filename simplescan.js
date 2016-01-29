@@ -2,15 +2,15 @@
 
 var driver = require('bindings')('ble_driver_js');
 
-var adapterID1 = -1;
-var adapterID2 = -1;
+var adapter1 = new driver.Adapter();
+var adapter2 = new driver.Adapter();
 
 var connected = false;
 
-open('COM18', 1);
+open('COM18', adapter1, 1);
 console.log('Started first connection');
 
-function open(port, adapternr)
+function open(port, adapter, adapternr)
 {
     const options = {
         baudRate: 115200,
@@ -19,22 +19,22 @@ function open(port, adapternr)
         eventInterval: 1,
         logLevel: 'trace',
         logCallback: (severity, message) => {
-            console.log('logMessage ' + severity + ' ' + message);
+            console.log('logMessage adapternr: ' + adapternr + ' ' + severity + ' ' + message);
         },
 
         eventCallback: eventArray => {
             eventArray.forEach(event => {
-                console.log(event.adapterID + ' ' + event.name);
+                console.log('adapternr: ' + adapternr + ' ' + event.name);
             });
         },
 
-        errorCallback: error => {
-            console.error(error);
+        errorCallback: (code, message) => {
+            console.log('Error: adapternr: ' + adapternr + ' Code: ' + code + ' ' + message);
         },
     };
 
     console.log('About to open. Adapternr: ' + adapternr);
-    driver.open(port, options, (err, id) => {
+    adapter.open(port, options, (err, id) => {
         console.log('Callback called. Adapternr ' + adapternr + ' ID ' + id);
         if (err)
         {
@@ -42,24 +42,18 @@ function open(port, adapternr)
             return;
         }
 
-        if (adapternr == 1) {
-            adapterID1 = id;
-        } else {
-            adapterID2 = id;
-        }
-
-        console.log('Connected to adapter# ' + adapternr + ' with ID: ' + id);
+        console.log('Connected to adapter# ' + adapternr);
 
         if (adapternr === 1) {
             console.log('Starting second connection');
-            open('COM27', 2);
+            open('COM27', adapter2, 2);
         } else {
-            startScan(adapterID1);
+            startScan(adapter1, 1);
         }
     });
 }
 
-function startScan(adapterID)
+function startScan(adapter, adapternr)
 {
     const scanParameters = {
         active: true,
@@ -68,16 +62,16 @@ function startScan(adapterID)
         timeout: 20,
     };
 
-    driver.gap_start_scan(adapterID, scanParameters, err => {
+    adapter.gapStartScan(scanParameters, err => {
         if (err) {
             console.log(err);
             return;
         }
 
-        console.log('Started scanning on adapterID: ' + adapterID);
+        console.log('Started scanning on adapterID: ' + adapternr);
 
-        if (adapterID === adapterID1) {
-            startScan(adapterID2);
+        if (adapternr === 1) {
+            startScan(adapter2, 2);
         } else {
             console.log('Scanning on both devices.');
         }
