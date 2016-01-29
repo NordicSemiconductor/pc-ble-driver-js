@@ -47,7 +47,7 @@ adapter_t *Adapter::getInternalAdapter() const
 }
 
 extern "C" {
-    void on_rpc_event_hack(uv_async_t *handle)
+    void event_handler(uv_async_t *handle)
     {
         Adapter *adapter = (Adapter *)handle->data;
 
@@ -61,7 +61,7 @@ extern "C" {
         }
     }
 
-    void event_interval_callback_hack(uv_timer_t *handle)
+    void event_interval_handler(uv_timer_t *handle)
     {
         Adapter *adapter = (Adapter *)handle->data;
 
@@ -83,19 +83,19 @@ void Adapter::initEventHandling(Nan::Callback *callback, uint32_t interval)
     // Setup event related functionality
     eventCallback = callback;
     asyncEvent.data = (void *)this;
-    uv_async_init(uv_default_loop(), &asyncEvent, on_rpc_event_hack);
+    uv_async_init(uv_default_loop(), &asyncEvent, event_handler);
 
     // Setup event interval functionality
     if (eventInterval > 0)
     {
         eventIntervalTimer.data = (void *)this;
         uv_timer_init(uv_default_loop(), &eventIntervalTimer);
-        uv_timer_start(&eventIntervalTimer, event_interval_callback_hack, eventInterval, eventInterval);
+        uv_timer_start(&eventIntervalTimer, event_interval_handler, eventInterval, eventInterval);
     }
 }
 
 extern "C" {
-    void on_rpc_log_hack(uv_async_t *handle)
+    void log_handler(uv_async_t *handle)
     {
         Adapter *adapter = (Adapter *)handle->data;
 
@@ -115,11 +115,11 @@ void Adapter::initLogHandling(Nan::Callback *callback)
     // Setup event related functionality
     logCallback = callback;
     asyncLog.data = (void *)this;
-    uv_async_init(uv_default_loop(), &asyncLog, on_rpc_log_hack);
+    uv_async_init(uv_default_loop(), &asyncLog, log_handler);
 }
 
 extern "C" {
-    void on_rpc_error_hack(uv_async_t *handle)
+    void error_handler(uv_async_t *handle)
     {
         Adapter *adapter = (Adapter *)handle->data;
 
@@ -139,7 +139,7 @@ void Adapter::initErrorHandling(Nan::Callback *callback)
     // Setup event related functionality
     errorCallback = callback;
     asyncError.data = (void *)this;
-    uv_async_init(uv_default_loop(), &asyncError, on_rpc_error_hack);
+    uv_async_init(uv_default_loop(), &asyncError, error_handler);
 }
 
 void Adapter::removeCallbacks()
