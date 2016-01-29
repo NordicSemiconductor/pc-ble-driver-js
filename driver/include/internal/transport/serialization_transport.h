@@ -50,7 +50,7 @@ public:
 
 private:
     SerializationTransport();
-    void readHandler(uint8_t *data, uint16_t length);
+    void readHandler(uint8_t *data, uint32_t length);
     void eventHandlingRunner();
 
     error_cb_t errorCallback;

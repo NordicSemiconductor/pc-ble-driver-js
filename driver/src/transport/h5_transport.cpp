@@ -322,7 +322,7 @@ void H5Transport::errorHandler(sd_rpc_app_err_t code, const char * error)
     errorCallback(code, error);
 }
 
-void H5Transport::dataHandler(uint8_t *data, uint32_t length)
+void H5Transport::dataHandler(uint8_t *data, size_t length)
 {
     std::vector<uint8_t> packet;
 
@@ -333,7 +333,7 @@ void H5Transport::dataHandler(uint8_t *data, uint32_t length)
         packet.insert(packet.begin(), unprocessedData.begin(), unprocessedData.end());
     }
 
-    for (uint32_t i = 0; i < length; i++)
+    for (size_t i = 0; i < length; i++)
     {
         packet.push_back(data[i]);
 
@@ -411,7 +411,7 @@ void H5Transport::setupStateMachine()
         else if (exit->isOpened)
         {
             return STATE_RESET;
-        } 
+        }
         else
         {
             return STATE_FAILED;
@@ -560,7 +560,7 @@ void H5Transport::startStateMachine()
 {
     runStateMachine = true;
     currentState = STATE_START;
-    
+
     if (stateMachineThread == nullptr)
     {
         stateMachineThread = new std::thread(std::bind(&H5Transport::stateMachineWorker, this));

@@ -34,7 +34,7 @@ uint16_t calculate_crc16_checksum(std::vector<uint8_t>::iterator start, std::vec
 {
     uint16_t crc = 0xffff;
 
-    std::for_each(start, end, [&crc](uint8_t data) { 
+    std::for_each(start, end, [&crc](uint8_t data) {
         crc = static_cast<uint8_t>(crc >> 8) | (crc << 8);
         crc ^= data;
         crc ^= static_cast<uint8_t>(crc & 0xff) >> 4;
@@ -84,16 +84,16 @@ void h5_encode(std::vector<uint8_t> &in_packet,
                    h5_pkt_type_t packet_type)
 {
     add_h5_header(
-        out_packet, 
-        seq_num, 
-        ack_num, 
-        crc_present, 
-        reliable_packet, 
-        packet_type, 
-        in_packet.size());
+        out_packet,
+        seq_num,
+        ack_num,
+        crc_present,
+        reliable_packet,
+        packet_type,
+        static_cast<uint16_t>(in_packet.size()));
 
     out_packet.insert(out_packet.end(), in_packet.begin(), in_packet.end());
-    
+
     // Add CRC
     if (crc_present)
     {
@@ -102,13 +102,13 @@ void h5_encode(std::vector<uint8_t> &in_packet,
 }
 
 uint32_t h5_decode(std::vector<uint8_t> &slipPayload,
-				   std::vector<uint8_t> &h5Payload,
+                   std::vector<uint8_t> &h5Payload,
                    uint8_t *seq_num,
                    uint8_t *ack_num,
                    bool *reliable_packet,
                    h5_pkt_type_t *packet_type)
 {
-	uint16_t payload_length;
+    uint16_t payload_length;
 
     if (slipPayload.size() < 4)
     {

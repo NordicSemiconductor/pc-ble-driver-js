@@ -17,7 +17,7 @@
 #include "nrf_error.h"
 
 #include <iostream>
-#include <cstring> // Do not remove! Required by gcc. 
+#include <cstring> // Do not remove! Required by gcc.
 
 SerializationTransport::SerializationTransport(Transport *dataLinkLayer, uint32_t response_timeout)
     : errorCallback(nullptr), eventCallback(nullptr),
@@ -57,7 +57,7 @@ uint32_t SerializationTransport::open(error_cb_t error_callback, evt_cb_t event_
     }
 
     runEventThread = true;
-    
+
     if (eventThread == nullptr)
     {
         eventThread = new std::thread(std::bind(&SerializationTransport::eventHandlingRunner, this));
@@ -112,7 +112,7 @@ uint32_t SerializationTransport::send(uint8_t *cmdBuffer, uint32_t cmdLength, ui
     }
 
     std::unique_lock<std::mutex> responseGuard(responseMutex);
-    
+
     if (!rspReceived)
     {
         std::chrono::milliseconds timeout(responseTimeout);
@@ -167,7 +167,7 @@ void SerializationTransport::eventHandlingRunner()
 }
 
 // Read Thread
-void SerializationTransport::readHandler(uint8_t *data, uint16_t length)
+void SerializationTransport::readHandler(uint8_t *data, size_t length)
 {
     auto eventType = static_cast<serialization_pkt_type_t>(data[0]);
     data += 1;
@@ -191,7 +191,7 @@ void SerializationTransport::readHandler(uint8_t *data, uint16_t length)
         std::lock_guard<std::mutex> eventLock(eventMutex);
         eventQueue.push(eventData);
         eventWaitCondition.notify_one();
-    } 
+    }
     else
     {
         std::clog << "Unknown Nordic Semiconductor vendor specific packet received! Type: " << eventType << std::endl;

@@ -10,23 +10,15 @@
 *
 */
 
-#include <stdint.h>
-
 // C++ code
 #include "adapter.h"
-#include "adapter_internal.h"
-#include "transport.h"
-
+#include "ble_common.h"
 
 // C code
 #include "ble_gap.h"
 #include "ble_gap_app.h" // Encoder/decoder functions
 
-#include "app_ble_gap_sec_keys.h"
-
-#include "ble_common.h"
-
-extern ser_ble_gap_app_keyset_t m_app_keys_table[SER_MAX_CONNECTIONS];
+#include <stdint.h>
 
 uint32_t sd_ble_gap_adv_start(adapter_t *adapter, ble_gap_adv_params_t const * const p_adv_params)
 {

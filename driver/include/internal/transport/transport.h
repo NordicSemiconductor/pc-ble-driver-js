@@ -22,7 +22,7 @@
 #include <stdint.h>
 
 typedef std::function<void(sd_rpc_app_err_t code, const char *error)> error_cb_t;
-typedef std::function<void(uint8_t *, size_t)> data_cb_t;
+typedef std::function<void(uint8_t *data, size_t length)> data_cb_t;
 typedef std::function<void(sd_rpc_log_severity_t severity, std::string message)> log_cb_t;
 
 class Transport {
