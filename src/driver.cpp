@@ -127,7 +127,7 @@ void Adapter::onLogEvent(uv_async_t *handle)
 }
 
 // Sends events upstream
-void Adapter::sendEventsUpstream()
+void Adapter::dispatchEvents()
 {
     // Trigger callback in NodeJS thread to call NodeJS callbacks
     if (!closing)
@@ -138,7 +138,7 @@ void Adapter::sendEventsUpstream()
 
 void Adapter::eventIntervalCallback(uv_timer_t *handle)
 {
-    sendEventsUpstream();
+    dispatchEvents();
 }
 
 size_t findSize(ble_evt_t *event)
@@ -193,7 +193,7 @@ void Adapter::appendEvent(ble_evt_t *event)
     // If the event interval is not set, send the events to NodeJS as soon as possible.
     if (eventInterval == 0)
     {
-        sendEventsUpstream();
+        dispatchEvents();
     }
 }
 

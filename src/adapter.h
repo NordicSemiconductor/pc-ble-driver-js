@@ -151,7 +151,7 @@ private:
     static void initGattC(v8::Local<v8::FunctionTemplate> tpl);
     static void initGattS(v8::Local<v8::FunctionTemplate> tpl);
 
-    void sendEventsUpstream();
+    void dispatchEvents();
 
     adapter_t *adapter;
     EventQueue events;
