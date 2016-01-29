@@ -1,6 +1,8 @@
 #include "ble_common.h"
 
 #include <memory>
+#include <cstdlib>
+
 #include "adapter_internal.h"
 #include "nrf_error.h"
 #include "ser_config.h"
@@ -10,8 +12,8 @@ uint32_t encode_decode(adapter_t *adapter, encode_function_t encode_function, de
 	uint32_t tx_buffer_length = SER_HAL_TRANSPORT_MAX_PKT_SIZE;
 	uint32_t rx_buffer_length = 0;
 
-	std::unique_ptr<uint8_t> tx_buffer(static_cast<uint8_t*>(malloc(SER_HAL_TRANSPORT_MAX_PKT_SIZE)));
-	std::unique_ptr<uint8_t> rx_buffer(static_cast<uint8_t*>(malloc(SER_HAL_TRANSPORT_MAX_PKT_SIZE)));
+	std::unique_ptr<uint8_t> tx_buffer(static_cast<uint8_t*>(std::malloc(SER_HAL_TRANSPORT_MAX_PKT_SIZE)));
+	std::unique_ptr<uint8_t> rx_buffer(static_cast<uint8_t*>(std::malloc(SER_HAL_TRANSPORT_MAX_PKT_SIZE)));
 
 	auto _adapter = static_cast<Adapter*>(adapter->internal);
 
