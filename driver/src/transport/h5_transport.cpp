@@ -44,9 +44,7 @@
 
 // Constants use for state machine states UNINITIALIZED and INITIALIZED
 const auto NON_ACTIVE_STATE_TIMEOUT = std::chrono::milliseconds(250);  // Duration to wait until resending a packet
-
-
-const uint8_t PACKET_RETRANSMISSIONS = 4;                            // Number of times to send packets before giving in
+const uint8_t PACKET_RETRANSMISSIONS = 4;                              // Number of times to send reliable packets before giving in
 
 // Other constants
 const auto OPEN_WAIT_TIMEOUT = std::chrono::milliseconds(2000);   // Duration to wait for state ACTIVE after open is called
@@ -491,8 +489,9 @@ void H5Transport::setupStateMachine()
             }
         }
 
-        if (exit->syncConfigSent && exit->syncConfigRspReceived 
-            && exit->syncConfigReceived && exit->syncConfigRspSent)
+/*        if (exit->syncConfigSent && exit->syncConfigRspReceived 
+            && exit->syncConfigReceived && exit->syncConfigRspSent)*/
+        if (exit->syncConfigSent && exit->syncConfigReceived && exit->syncConfigReceived && exit->syncConfigRspReceived)
         {
             return STATE_ACTIVE;
         }
