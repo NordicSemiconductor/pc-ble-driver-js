@@ -809,7 +809,7 @@ void Adapter::AfterGetVersion(uv_work_t *req)
     delete baton;
 }
 
-NAN_METHOD(Adapter::UUIDEncode)
+NAN_METHOD(Adapter::EncodeUUID)
 {
     Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Object> uuid;
@@ -852,12 +852,12 @@ NAN_METHOD(Adapter::UUIDEncode)
     baton->uuid_le = new uint8_t[16];
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, UUIDEncode, (uv_after_work_cb)AfterUUIDEncode);
+    uv_queue_work(uv_default_loop(), baton->req, EncodeUUID, (uv_after_work_cb)AfterEncodeUUID);
 
     return;
 }
 
-void Adapter::UUIDEncode(uv_work_t *req)
+void Adapter::EncodeUUID(uv_work_t *req)
 {
     BleUUIDEncodeBaton *baton = static_cast<BleUUIDEncodeBaton *>(req->data);
 
@@ -867,7 +867,7 @@ void Adapter::UUIDEncode(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void Adapter::AfterUUIDEncode(uv_work_t *req)
+void Adapter::AfterEncodeUUID(uv_work_t *req)
 {
     Nan::HandleScope scope;
     BleUUIDEncodeBaton *baton = static_cast<BleUUIDEncodeBaton *>(req->data);
@@ -893,7 +893,7 @@ void Adapter::AfterUUIDEncode(uv_work_t *req)
     delete baton;
 }
 
-NAN_METHOD(Adapter::UUIDDecode)
+NAN_METHOD(Adapter::DecodeUUID)
 {
     Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint8_t le_len;
@@ -929,12 +929,12 @@ NAN_METHOD(Adapter::UUIDDecode)
     baton->p_uuid = new ble_uuid_t();
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, UUIDDecode, (uv_after_work_cb)AfterUUIDDecode);
+    uv_queue_work(uv_default_loop(), baton->req, DecodeUUID, (uv_after_work_cb)AfterDecodeUUID);
 
     return;
 }
 
-void Adapter::UUIDDecode(uv_work_t *req)
+void Adapter::DecodeUUID(uv_work_t *req)
 {
     BleUUIDDecodeBaton *baton = static_cast<BleUUIDDecodeBaton *>(req->data);
 
@@ -944,7 +944,7 @@ void Adapter::UUIDDecode(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void Adapter::AfterUUIDDecode(uv_work_t *req)
+void Adapter::AfterDecodeUUID(uv_work_t *req)
 {
     Nan::HandleScope scope;
     BleUUIDDecodeBaton *baton = static_cast<BleUUIDDecodeBaton *>(req->data);
@@ -980,7 +980,7 @@ NAN_METHOD(Adapter::GetStats)
     Utility::SetReturnValue(info, stats);
 }
 
-NAN_METHOD(Adapter::UserMemReply)
+NAN_METHOD(Adapter::ReplyUserMemory)
 {
     Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
@@ -1021,10 +1021,10 @@ NAN_METHOD(Adapter::UserMemReply)
         return;
     }
 
-    uv_queue_work(uv_default_loop(), baton->req, UserMemReply, (uv_after_work_cb)AfterUserMemReply);
+    uv_queue_work(uv_default_loop(), baton->req, ReplyUserMemory, (uv_after_work_cb)AfterReplyUserMemory);
 }
 
-void Adapter::UserMemReply(uv_work_t *req)
+void Adapter::ReplyUserMemory(uv_work_t *req)
 {
     BleUserMemReplyBaton *baton = static_cast<BleUserMemReplyBaton *>(req->data);
 
@@ -1033,7 +1033,7 @@ void Adapter::UserMemReply(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void Adapter::AfterUserMemReply(uv_work_t *req)
+void Adapter::AfterReplyUserMemory(uv_work_t *req)
 {
     Nan::HandleScope scope;
     BleUserMemReplyBaton *baton = static_cast<BleUserMemReplyBaton *>(req->data);

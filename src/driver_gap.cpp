@@ -2319,7 +2319,7 @@ void Adapter::AfterGapStopAdvertising(uv_work_t *req)
     delete baton;
 }
 
-NAN_METHOD(Adapter::GapConnSecGet)
+NAN_METHOD(Adapter::GapGetConnectionSecurity)
 {
     Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
@@ -2346,11 +2346,11 @@ NAN_METHOD(Adapter::GapConnSecGet)
     baton->conn_sec = new ble_gap_conn_sec_t();
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapConnSecGet, (uv_after_work_cb)AfterGapConnSecGet);
+    uv_queue_work(uv_default_loop(), baton->req, GapGetConnectionSecurity, (uv_after_work_cb)AfterGapGetConnectionSecurity);
 }
 
 // This runs in a worker thread (not Main Thread)
-void Adapter::GapConnSecGet(uv_work_t *req)
+void Adapter::GapGetConnectionSecurity(uv_work_t *req)
 {
     GapConnSecGetBaton *baton = static_cast<GapConnSecGetBaton *>(req->data);
 
@@ -2359,7 +2359,7 @@ void Adapter::GapConnSecGet(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void Adapter::AfterGapConnSecGet(uv_work_t *req)
+void Adapter::AfterGapGetConnectionSecurity(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
@@ -2469,7 +2469,7 @@ void Adapter::AfterGapEncrypt(uv_work_t *req)
     delete baton;
 }
 
-NAN_METHOD(Adapter::GapSecParamsReply)
+NAN_METHOD(Adapter::GapReplySecurityParameters)
 {
     Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
@@ -2537,11 +2537,11 @@ NAN_METHOD(Adapter::GapSecParamsReply)
 //    baton->sec_keyset->keys_periph.p_sign_key = new ble_gap_sign_info_t();
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapSecParamsReply, (uv_after_work_cb)AfterGapSecParamsReply);
+    uv_queue_work(uv_default_loop(), baton->req, GapReplySecurityParameters, (uv_after_work_cb)AfterGapReplySecurityParameters);
 }
 
 // This runs in a worker thread (not Main Thread)
-void Adapter::GapSecParamsReply(uv_work_t *req)
+void Adapter::GapReplySecurityParameters(uv_work_t *req)
 {
     GapSecParamsReplyBaton *baton = static_cast<GapSecParamsReplyBaton *>(req->data);
 
@@ -2554,7 +2554,7 @@ void Adapter::GapSecParamsReply(uv_work_t *req)
 }
 
 // This runs in Main Thread
-void Adapter::AfterGapSecParamsReply(uv_work_t *req)
+void Adapter::AfterGapReplySecurityParameters(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
@@ -2576,7 +2576,7 @@ void Adapter::AfterGapSecParamsReply(uv_work_t *req)
     delete baton;
 }
 
-NAN_METHOD(Adapter::GapSecInfoReply)
+NAN_METHOD(Adapter::GapReplySecurityInfo)
 {
     Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
@@ -2648,10 +2648,10 @@ NAN_METHOD(Adapter::GapSecInfoReply)
     }
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapSecInfoReply, (uv_after_work_cb)AfterGapSecInfoReply);
+    uv_queue_work(uv_default_loop(), baton->req, GapReplySecurityInfo, (uv_after_work_cb)AfterGapReplySecurityInfo);
 }
 
-void Adapter::GapSecInfoReply(uv_work_t *req)
+void Adapter::GapReplySecurityInfo(uv_work_t *req)
 {
     GapSecInfoReplyBaton *baton = static_cast<GapSecInfoReplyBaton *>(req->data);
 
@@ -2659,7 +2659,7 @@ void Adapter::GapSecInfoReply(uv_work_t *req)
     baton->result = sd_ble_gap_sec_info_reply(baton->adapter, baton->conn_handle, baton->enc_info, baton->id_info, baton->sign_info);
 }
 
-void Adapter::AfterGapSecInfoReply(uv_work_t *req)
+void Adapter::AfterGapReplySecurityInfo(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
