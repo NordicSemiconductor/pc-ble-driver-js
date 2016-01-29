@@ -49,7 +49,7 @@ adapter_t *Adapter::getInternalAdapter() const
 extern "C" {
     void event_handler(uv_async_t *handle)
     {
-        Adapter *adapter = (Adapter *)handle->data;
+        Adapter *adapter = static_cast<Adapter *>(handle->data);
 
         if (adapter != 0)
         {
@@ -63,7 +63,7 @@ extern "C" {
 
     void event_interval_handler(uv_timer_t *handle)
     {
-        Adapter *adapter = (Adapter *)handle->data;
+        Adapter *adapter = static_cast<Adapter *>(handle->data);
 
         if (adapter != 0)
         {
@@ -82,13 +82,13 @@ void Adapter::initEventHandling(Nan::Callback *callback, uint32_t interval)
 
     // Setup event related functionality
     eventCallback = callback;
-    asyncEvent.data = (void *)this;
+    asyncEvent.data = static_cast<void *>(this);
     uv_async_init(uv_default_loop(), &asyncEvent, event_handler);
 
     // Setup event interval functionality
     if (eventInterval > 0)
     {
-        eventIntervalTimer.data = (void *)this;
+        eventIntervalTimer.data = static_cast<void *>(this);
         uv_timer_init(uv_default_loop(), &eventIntervalTimer);
         uv_timer_start(&eventIntervalTimer, event_interval_handler, eventInterval, eventInterval);
     }
@@ -97,7 +97,7 @@ void Adapter::initEventHandling(Nan::Callback *callback, uint32_t interval)
 extern "C" {
     void log_handler(uv_async_t *handle)
     {
-        Adapter *adapter = (Adapter *)handle->data;
+        Adapter *adapter = static_cast<Adapter *>(handle->data);
 
         if (adapter != 0)
         {
@@ -114,14 +114,14 @@ void Adapter::initLogHandling(Nan::Callback *callback)
 {
     // Setup event related functionality
     logCallback = callback;
-    asyncLog.data = (void *)this;
+    asyncLog.data = static_cast<void *>(this);
     uv_async_init(uv_default_loop(), &asyncLog, log_handler);
 }
 
 extern "C" {
     void error_handler(uv_async_t *handle)
     {
-        Adapter *adapter = (Adapter *)handle->data;
+        Adapter *adapter = static_cast<Adapter *>(handle->data);
 
         if (adapter != 0)
         {
@@ -138,7 +138,7 @@ void Adapter::initErrorHandling(Nan::Callback *callback)
 {
     // Setup event related functionality
     errorCallback = callback;
-    asyncError.data = (void *)this;
+    asyncError.data = static_cast<void *>(this);
     uv_async_init(uv_default_loop(), &asyncError, error_handler);
 }
 
