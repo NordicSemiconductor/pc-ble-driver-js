@@ -1238,11 +1238,10 @@ extern "C" {
         init_hci(target);
         init_error(target);
         init_gap(target);
-        /*init_gatt(target);
+        init_gatt(target);
         init_gattc(target);
         init_gatts(target);
-        */
-
+        
         Adapter::Init(target);
     }
 

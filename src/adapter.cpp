@@ -177,7 +177,7 @@ void Adapter::initGeneric(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "addVendorspecificUUID", AddVendorSpecificUUID);
     Nan::SetPrototypeMethod(tpl, "encodeUUID", EncodeUUID);
     Nan::SetPrototypeMethod(tpl, "decodeUUID", DecodeUUID);
-    Nan::SetPrototypeMethod(tpl, "userMemoryReply", ReplyUserMemory);
+    Nan::SetPrototypeMethod(tpl, "replyUserMemory", ReplyUserMemory);
 
     Nan::SetPrototypeMethod(tpl, "getStats", GetStats);
 }
@@ -201,10 +201,10 @@ void Adapter::initGap(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "gapStartAdvertising", GapStartAdvertising);
     Nan::SetPrototypeMethod(tpl, "gapStopAdvertising", GapStopAdvertising);
     Nan::SetPrototypeMethod(tpl, "gapSetAdvertisingData", GapSetAdvertisingData);
-    Nan::SetPrototypeMethod(tpl, "gapSecParamsReply", GapReplySecurityParameters);
-    Nan::SetPrototypeMethod(tpl, "gapConnSecGet", GapGetConnectionSecurity);
+    Nan::SetPrototypeMethod(tpl, "gapReplySecurityParameters", GapReplySecurityParameters);
+    Nan::SetPrototypeMethod(tpl, "gapGetConnectionSecurity", GapGetConnectionSecurity);
     Nan::SetPrototypeMethod(tpl, "gapEncrypt", GapEncrypt);
-    Nan::SetPrototypeMethod(tpl, "gapSecInfoReply", GapReplySecurityInfo);
+    Nan::SetPrototypeMethod(tpl, "gapReplySecurityInfo", GapReplySecurityInfo);
     Nan::SetPrototypeMethod(tpl, "gapAuthenticate", GapAuthenticate);
     Nan::SetPrototypeMethod(tpl, "gapSetPPCP", GapSetPPCP);
     Nan::SetPrototypeMethod(tpl, "gapGetPPCP", GapGetPPCP);
