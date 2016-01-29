@@ -309,7 +309,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
         uint8_t *data = evt->data;
 
         // TODO: Evaluate if buffer is the correct datatype for advertisement data
-        Utility::Set(data_obj, "raw", ConversionUtility::toJsValueArray(data, dlen));
+        //Utility::Set(data_obj, "raw", ConversionUtility::toJsValueArray(data, dlen));
 
         uint8_t pos = 0;  // Position in packet
         uint8_t ad_len;   // AD Type length
