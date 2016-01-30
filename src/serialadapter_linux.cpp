@@ -33,7 +33,7 @@ static adapter_list_t* GetSeggerAdapters()
     assert(udev_ctx != NULL);
 
     struct udev_enumerate *udev_enum = udev_enumerate_new(udev_ctx);
-    assert(udev_enu != NULL);
+    assert(udev_enum != NULL);
 
     udev_enumerate_add_match_subsystem(udev_enum, "tty");
     udev_enumerate_scan_devices(udev_enum);
