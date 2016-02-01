@@ -5,8 +5,6 @@
 #include <map>
 #include <mutex>
 #include <string>
-//#include "ble.h"
-//#include "ble_hci.h"
 
 #include "sd_rpc.h"
 
@@ -40,6 +38,10 @@ template<typename NativeType>
 class BleToJs
 {
 protected:
+    ~BleToJs()
+    {
+    }
+
     v8::Local<v8::Object> jsobj;
     NativeType *native;
 public:
@@ -97,6 +99,10 @@ private:
     BleDriverEvent() {}
 
 protected:
+    ~BleDriverEvent()
+    {
+    }
+
     uint16_t evt_id;
     std::string timestamp;
     uint16_t conn_handle;
@@ -120,17 +126,17 @@ public:
         Utility::Set(obj, "conn_handle", conn_handle);
     }
 
-    virtual v8::Local<v8::Object> ToJs() = 0;
-    virtual EventType *ToNative() = 0;
+    virtual v8::Local<v8::Object> ToJs() override = 0;
+    virtual EventType *ToNative() override = 0;
     virtual const char *getEventName() = 0;
 };
 
 struct Baton {
 public:
-    Baton(v8::Local<v8::Function> cb) {
+    explicit Baton(v8::Local<v8::Function> cb) {
         req = new uv_work_t();
         callback = new Nan::Callback(cb);
-        req->data = (void*)this;
+        req->data = static_cast<void*>(this);
     }
 
     ~Baton()
@@ -142,7 +148,6 @@ public:
     Nan::Callback *callback;
 
     int result;
-    char errorString[ERROR_STRING_SIZE];
     adapter_t *adapter;
 };
 
@@ -164,7 +169,7 @@ public:
             throw "number";
         }
 
-        return (NativeType)js->ToUint32()->Uint32Value();
+        return static_cast<NativeType>(js->ToUint32()->Uint32Value());
     }
 
     static NativeType getNativeSigned(v8::Local<v8::Value> js)
@@ -174,7 +179,7 @@ public:
             throw "number";
         }
 
-        return (NativeType)js->ToInt32()->Int32Value();
+        return static_cast<NativeType>(js->ToInt32()->Int32Value());
     }
 
     static NativeType getNativeFloat(v8::Local<v8::Value> js)
@@ -184,7 +189,7 @@ public:
             throw "number";
         }
 
-        return (NativeType)js->ToNumber()->NumberValue();
+        return static_cast<NativeType>(js->ToNumber()->NumberValue());
     }
 
     static NativeType getNativeBool(v8::Local<v8::Value> js)
@@ -193,7 +198,7 @@ public:
         {
             throw "bool";
         }
-        return (NativeType)js->ToBoolean()->BooleanValue() ? 1 : 0;
+        return static_cast<NativeType>(js->ToBoolean()->BooleanValue()) ? 1 : 0;
     }
 
     static NativeType getNativeUnsigned(v8::Local<v8::Object> js, const char *name)

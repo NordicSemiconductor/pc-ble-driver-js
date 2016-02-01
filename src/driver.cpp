@@ -1,5 +1,4 @@
 #include <iostream>
-#include <deque>
 #include <mutex>
 #include <sstream>
 #include <algorithm>
@@ -17,7 +16,7 @@
 using namespace std;
 
 // Variable to use to handle callbacks while device is opened and the corresponding callbacks is not fully operational
-Adapter *adapterBeingOpened = 0;
+Adapter *adapterBeingOpened = nullptr;
 
 // Macro for keeping sanity in event switch case below
 #define COMMON_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, eventEntry) \
@@ -77,18 +76,19 @@ static name_map_t uuid_type_name_map = {
 // This function is ran by the thread that the SoftDevice Driver has initiated
 void sd_rpc_on_log_event(adapter_t *adapter, sd_rpc_log_severity_t severity, const char *log_message)
 {
-    LogEntry *logEntry = new LogEntry();
+    auto logEntry = new LogEntry();
     logEntry->message = std::string(log_message);
     logEntry->severity = severity;
 
-    Adapter *jsAdapter = Adapter::getAdapter(adapter, adapterBeingOpened);
+    auto jsAdapter = Adapter::getAdapter(adapter, adapterBeingOpened);
 
-    if (jsAdapter != 0)
+    if (jsAdapter != nullptr)
     {
         jsAdapter->appendLog(logEntry);
     }
     else
     {
+        std::terminate();
         //TODO: Return error
     }
 }
@@ -113,10 +113,10 @@ void Adapter::onLogEvent(uv_async_t *handle)
         LogEntry *logEntry;
         logs.pop(logEntry);
 
-        if (logCallback != 0)
+        if (logCallback != nullptr)
         {
             v8::Local<v8::Value> argv[2];
-            argv[0] = ConversionUtility::toJsNumber((int)logEntry->severity);
+            argv[0] = ConversionUtility::toJsNumber(static_cast<int>(logEntry->severity));
             argv[1] = ConversionUtility::toJsString(logEntry->message);
             logCallback->Call(2, argv);
         }
@@ -151,19 +151,20 @@ static void sd_rpc_on_event(adapter_t *adapter, ble_evt_t *event)
     // TODO: Clarification:
     // The lifecycle for the event is controlled by the driver. We must not free any memory related to the incoming event.
 
-    if (event == 0)
+    if (event == nullptr)
     {
         return;
     }
 
-    Adapter *jsAdapter = Adapter::getAdapter(adapter, adapterBeingOpened);
+    auto jsAdapter = Adapter::getAdapter(adapter, adapterBeingOpened);
 
-    if (jsAdapter != 0)
+    if (jsAdapter != nullptr)
     {
         jsAdapter->appendEvent(event);
     }
     else
     {
+        std::terminate();
         //TODO: Return error
     }
 }
@@ -178,14 +179,14 @@ void Adapter::appendEvent(ble_evt_t *event)
         eventCallbackMaxCount = eventCallbackBatchEventCounter;
     }
 
-    size_t size = findSize(event);
+    auto size = findSize(event);
 
-    void *evt = malloc(size);
+    auto evt = malloc(size);
     memset(evt, 0, size);
     memcpy(evt, event, size);
 
-    EventEntry *eventEntry = new EventEntry();
-    eventEntry->event = (ble_evt_t*)evt;
+    auto eventEntry = new EventEntry();
+    eventEntry->event = static_cast<ble_evt_t*>(evt);
     eventEntry->timestamp = getCurrentTimeInMilliseconds();
 
     events.push(eventEntry);
@@ -207,21 +208,19 @@ void Adapter::onRpcEvent(uv_async_t *handle)
         return;
     }
 
-    v8::Local<v8::Array> array = Nan::New<v8::Array>();
-    int arrayIndex = 0;
+    auto array = Nan::New<v8::Array>();
+    auto arrayIndex = 0;
 
     while (!events.wasEmpty())
     {
-        EventEntry *eventEntry = 0;
+        EventEntry *eventEntry = nullptr;
         events.pop(eventEntry);
-        assert(eventEntry != 0);
+        assert(eventEntry != nullptr);
 
-        ble_evt_t *event = eventEntry->event;
-        assert(event != 0);
+        auto event = eventEntry->event;
+        assert(event != nullptr);
 
-        int adapterID = eventEntry->adapterID;
-
-        if (eventCallback != 0)
+        if (eventCallback != nullptr)
         {
             switch (event->header.evt_id)
             {
@@ -280,31 +279,32 @@ void Adapter::onRpcEvent(uv_async_t *handle)
 
     auto start = chrono::high_resolution_clock::now();
 
-    if (eventCallback != 0)
+    if (eventCallback != nullptr)
     {
         eventCallback->Call(1, callback_value);
     }
 
     auto end = chrono::high_resolution_clock::now();
 
-    chrono::milliseconds duration = chrono::duration_cast<chrono::milliseconds>(end - start);
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
     addEventBatchStatistics(duration);
 }
 
 static void sd_rpc_on_error(adapter_t *adapter, sd_rpc_app_err_t code, const char * error)
 {
-    ErrorEntry *errorEntry = new ErrorEntry();
+    auto errorEntry = new ErrorEntry();
     errorEntry->errorCode = code;
     errorEntry->message = std::string(error);
 
-    Adapter *jsAdapter = Adapter::getAdapter(adapter, adapterBeingOpened);
+    auto jsAdapter = Adapter::getAdapter(adapter, adapterBeingOpened);
 
-    if (jsAdapter != 0)
+    if (jsAdapter != nullptr)
     {
         jsAdapter->appendError(errorEntry);
     }
     else
     {
+        std::terminate();
         //TODO: Return error
     }
 }
@@ -329,10 +329,10 @@ void Adapter::onErrorEvent(uv_async_t *handle)
         ErrorEntry *errorEntry;
         errors.pop(errorEntry);
 
-        if (errorCallback != 0)
+        if (errorCallback != nullptr)
         {
             v8::Local<v8::Value> argv[2];
-            argv[0] = ConversionUtility::toJsNumber((int)errorEntry->errorCode);
+            argv[0] = ConversionUtility::toJsNumber(static_cast<int>(errorEntry->errorCode));
             argv[1] = ConversionUtility::toJsString(errorEntry->message);
             errorCallback->Call(2, argv);
         }
@@ -345,7 +345,7 @@ void Adapter::onErrorEvent(uv_async_t *handle)
 v8::Local<v8::Object> CommonTXCompleteEvent::ToJs()
 {
     Nan::EscapableHandleScope scope;
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    auto obj = Nan::New<v8::Object>();
     BleDriverCommonEvent::ToJs(obj);
 
     Utility::Set(obj, "count", ConversionUtility::toJsNumber(evt->count));
@@ -356,7 +356,7 @@ v8::Local<v8::Object> CommonTXCompleteEvent::ToJs()
 v8::Local<v8::Object> CommonMemRequestEvent::ToJs()
 {
     Nan::EscapableHandleScope scope;
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    auto obj = Nan::New<v8::Object>();
     BleDriverCommonEvent::ToJs(obj);
 
     Utility::Set(obj, "type", ConversionUtility::toJsNumber(evt->type));
@@ -380,11 +380,11 @@ v8::Local<v8::Object> CommonMemReleaseEvent::ToJs()
 // This function runs in the Main Thread
 NAN_METHOD(Adapter::Open)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     std::string path;
     v8::Local<v8::Object> options;
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -404,11 +404,11 @@ NAN_METHOD(Adapter::Open)
         return;
     }
 
-    OpenBaton *baton = new OpenBaton(callback);
+    auto baton = new OpenBaton(callback);
     baton->mainObject = obj;
     baton->path = path;
 
-    int parameter = 0;
+    auto parameter = 0;
 
     try
     {
@@ -423,9 +423,9 @@ NAN_METHOD(Adapter::Open)
         std::stringstream errormessage;
         errormessage << "A setup option was wrong. Option: ";
 
-        const char *options[] = { "baudrate", "parity", "flowcontrol", "eventInterval", "logLevel" };
+        const char *_options[] = { "baudrate", "parity", "flowcontrol", "eventInterval", "logLevel" };
 
-        errormessage << options[parameter] << ". Reason: " << error;
+        errormessage << _options[parameter] << ". Reason: " << error;
 
         Nan::ThrowTypeError(errormessage.str().c_str());
         return;
@@ -437,7 +437,7 @@ NAN_METHOD(Adapter::Open)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("log_callback", error);
+        auto message = ErrorMessage::getStructErrorMessage("log_callback", error);
         Nan::ThrowTypeError(message);
         return;
     }
@@ -448,7 +448,7 @@ NAN_METHOD(Adapter::Open)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("event_callback", error);
+        auto message = ErrorMessage::getStructErrorMessage("event_callback", error);
         Nan::ThrowTypeError(message);
         return;
     }
@@ -459,18 +459,18 @@ NAN_METHOD(Adapter::Open)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("error_callback", error);
+        auto message = ErrorMessage::getStructErrorMessage("error_callback", error);
         Nan::ThrowTypeError(message);
         return;
     }
 
-    uv_queue_work(uv_default_loop(), baton->req, Open, (uv_after_work_cb)AfterOpen);
+    uv_queue_work(uv_default_loop(), baton->req, Open, reinterpret_cast<uv_after_work_cb>(AfterOpen));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::Open(uv_work_t *req)
 {
-    OpenBaton *baton = static_cast<OpenBaton *>(req->data);
+    auto baton = static_cast<OpenBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
 
@@ -482,17 +482,17 @@ void Adapter::Open(uv_work_t *req)
     // the driver adapter until after sd_rpc_open is called
     adapterBeingOpened = baton->mainObject;
 
-    const char *path = baton->path.c_str();
+    auto path = baton->path.c_str();
 
-    physical_layer_t *uart = sd_rpc_physical_layer_create_uart(path, baton->baud_rate, baton->flow_control, baton->parity);
-    data_link_layer_t *h5 = sd_rpc_data_link_layer_create_bt_three_wire(uart, 100);
-    transport_layer_t *serialization = sd_rpc_transport_layer_create(h5, 750);
-    adapter_t *adapter = sd_rpc_adapter_create(serialization);
+    auto uart = sd_rpc_physical_layer_create_uart(path, baton->baud_rate, baton->flow_control, baton->parity);
+    auto h5 = sd_rpc_data_link_layer_create_bt_three_wire(uart, 100);
+    auto serialization = sd_rpc_transport_layer_create(h5, 750);
+    auto adapter = sd_rpc_adapter_create(serialization);
 
-    uint32_t error_code = sd_rpc_open(adapter, sd_rpc_on_error, sd_rpc_on_event, sd_rpc_on_log_event);
+    auto error_code = sd_rpc_open(adapter, sd_rpc_on_error, sd_rpc_on_event, sd_rpc_on_log_event);
 
     // Let the normal log handling handle the rest of the log calls
-    adapterBeingOpened = 0;
+    adapterBeingOpened = nullptr;
 
     if (error_code != NRF_SUCCESS)
     {
@@ -534,7 +534,7 @@ void Adapter::Open(uv_work_t *req)
 void Adapter::AfterOpen(uv_work_t *req)
 {
 	Nan::HandleScope scope;
-    OpenBaton *baton = static_cast<OpenBaton *>(req->data);
+    auto baton = static_cast<OpenBaton *>(req->data);
     delete req;
 
     v8::Local<v8::Value> argv[1];
@@ -558,38 +558,31 @@ void Adapter::AfterOpen(uv_work_t *req)
 
 NAN_METHOD(Adapter::Close)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Function> callback;
-
-    int argumentcount = 0;
-    uint8_t adapter = -1;
 
     try
     {
-        adapter = ConversionUtility::getNativeUint8(info[argumentcount]);
-        argumentcount++;
-
-        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
-        argumentcount++;
+        callback = ConversionUtility::getCallbackFunction(info[0]);
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        auto message = ErrorMessage::getTypeErrorMessage(0, error);
         Nan::ThrowTypeError(message);
         return;
     }
 
-    CloseBaton *baton = new CloseBaton(callback);
+    auto baton = new CloseBaton(callback);
     baton->adapter = obj->adapter;
     baton->mainObject = obj;
 
-    uv_queue_work(uv_default_loop(), baton->req, Close, (uv_after_work_cb)AfterClose);
+    uv_queue_work(uv_default_loop(), baton->req, Close, reinterpret_cast<uv_after_work_cb>(AfterClose));
 }
 
 void Adapter::Close(uv_work_t *req)
 {
-    CloseBaton *baton = static_cast<CloseBaton *>(req->data);
-    Adapter *obj = baton->mainObject;
+    auto baton = static_cast<CloseBaton *>(req->data);
+    auto obj = baton->mainObject;
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
 
@@ -601,7 +594,7 @@ void Adapter::Close(uv_work_t *req)
 void Adapter::AfterClose(uv_work_t *req)
 {
     Nan::HandleScope scope;
-    CloseBaton *baton = static_cast<CloseBaton *>(req->data);
+    auto baton = static_cast<CloseBaton *>(req->data);
 
     v8::Local<v8::Value> argv[1];
 
@@ -620,18 +613,14 @@ void Adapter::AfterClose(uv_work_t *req)
 
 NAN_METHOD(Adapter::AddVendorSpecificUUID)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Object> uuid;
     v8::Local<v8::Function> callback;
 
-    int argumentcount = 0;
-    uint8_t adapter = -1;
+    auto argumentcount = 0;
 
     try
     {
-        adapter = ConversionUtility::getNativeUint8(info[argumentcount]);
-        argumentcount++;
-
         uuid = ConversionUtility::getJsObject(info[argumentcount]);
         argumentcount++;
 
@@ -640,31 +629,30 @@ NAN_METHOD(Adapter::AddVendorSpecificUUID)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        auto message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
         return;
     }
 
-    BleAddVendorSpcificUUIDBaton *baton = new BleAddVendorSpcificUUIDBaton(callback);
+    auto baton = new BleAddVendorSpcificUUIDBaton(callback);
     baton->p_vs_uuid = BleUUID128(uuid);
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, AddVendorSpecificUUID, (uv_after_work_cb)AfterAddVendorSpecificUUID);
+    uv_queue_work(uv_default_loop(), baton->req, AddVendorSpecificUUID, reinterpret_cast<uv_after_work_cb>(AfterAddVendorSpecificUUID));
 }
 
 void Adapter::AddVendorSpecificUUID(uv_work_t *req)
 {
-    BleAddVendorSpcificUUIDBaton *baton = static_cast<BleAddVendorSpcificUUIDBaton *>(req->data);
+    auto baton = static_cast<BleAddVendorSpcificUUIDBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
     baton->result = sd_ble_uuid_vs_add(baton->adapter, baton->p_vs_uuid, &baton->p_uuid_type);
 }
 
 void Adapter::AfterAddVendorSpecificUUID(uv_work_t *req)
 {
     Nan::HandleScope scope;
-    BleAddVendorSpcificUUIDBaton *baton = static_cast<BleAddVendorSpcificUUIDBaton *>(req->data);
+    auto baton = static_cast<BleAddVendorSpcificUUIDBaton *>(req->data);
 
     v8::Local<v8::Value> argv[2];
 
@@ -745,44 +733,37 @@ NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const v8::Handle<v8::String>&
 
 NAN_METHOD(Adapter::GetVersion)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
-    uint8_t adapter = -1;
 
     try
     {
-        adapter = ConversionUtility::getNativeUint8(info[argumentcount]);
-        argumentcount++;
-
-        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
-        argumentcount++;
+        callback = ConversionUtility::getCallbackFunction(info[0]);
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        auto message = ErrorMessage::getTypeErrorMessage(0, error);
         Nan::ThrowTypeError(message);
         return;
     }
 
-    ble_version_t *version = new ble_version_t();
+    auto version = new ble_version_t();
     memset(version, 0, sizeof(ble_version_t));
 
-    GetVersionBaton *baton = new GetVersionBaton(callback);
+    auto baton = new GetVersionBaton(callback);
     baton->version = version;
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GetVersion, (uv_after_work_cb)AfterGetVersion);
+    uv_queue_work(uv_default_loop(), baton->req, GetVersion, reinterpret_cast<uv_after_work_cb>(AfterGetVersion));
 
     return;
 }
 
 void Adapter::GetVersion(uv_work_t *req)
 {
-    GetVersionBaton *baton = static_cast<GetVersionBaton *>(req->data);
+    auto baton = static_cast<GetVersionBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
     baton->result = sd_ble_version_get(baton->adapter, baton->version);
 }
 
@@ -790,7 +771,7 @@ void Adapter::GetVersion(uv_work_t *req)
 void Adapter::AfterGetVersion(uv_work_t *req)
 {
 	Nan::HandleScope scope;
-    GetVersionBaton *baton = static_cast<GetVersionBaton *>(req->data);
+    auto baton = static_cast<GetVersionBaton *>(req->data);
     v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)
@@ -811,17 +792,13 @@ void Adapter::AfterGetVersion(uv_work_t *req)
 
 NAN_METHOD(Adapter::EncodeUUID)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Object> uuid;
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
-    uint8_t adapter = -1;
+    auto argumentcount = 0;
 
     try
     {
-        adapter = ConversionUtility::getNativeUint8(info[argumentcount]);
-        argumentcount++;
-
         uuid = ConversionUtility::getJsObject(info[argumentcount]);
         argumentcount++;
 
@@ -830,12 +807,12 @@ NAN_METHOD(Adapter::EncodeUUID)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        auto message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
         return;
     }
 
-    BleUUIDEncodeBaton *baton = new BleUUIDEncodeBaton(callback);
+    auto baton = new BleUUIDEncodeBaton(callback);
 
     try
     {
@@ -852,17 +829,16 @@ NAN_METHOD(Adapter::EncodeUUID)
     baton->uuid_le = new uint8_t[16];
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, EncodeUUID, (uv_after_work_cb)AfterEncodeUUID);
+    uv_queue_work(uv_default_loop(), baton->req, EncodeUUID, reinterpret_cast<uv_after_work_cb>(AfterEncodeUUID));
 
     return;
 }
 
 void Adapter::EncodeUUID(uv_work_t *req)
 {
-    BleUUIDEncodeBaton *baton = static_cast<BleUUIDEncodeBaton *>(req->data);
+    auto baton = static_cast<BleUUIDEncodeBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
     baton->result = sd_ble_uuid_encode(baton->adapter, baton->p_uuid, &baton->uuid_le_len, baton->uuid_le);
 }
 
@@ -870,7 +846,7 @@ void Adapter::EncodeUUID(uv_work_t *req)
 void Adapter::AfterEncodeUUID(uv_work_t *req)
 {
     Nan::HandleScope scope;
-    BleUUIDEncodeBaton *baton = static_cast<BleUUIDEncodeBaton *>(req->data);
+    auto baton = static_cast<BleUUIDEncodeBaton *>(req->data);
     v8::Local<v8::Value> argv[4];
 
     if (baton->result != NRF_SUCCESS)
@@ -885,7 +861,7 @@ void Adapter::AfterEncodeUUID(uv_work_t *req)
         argv[0] = Nan::Undefined();
         argv[1] = ConversionUtility::toJsNumber(baton->uuid_le_len);
         argv[2] = ConversionUtility::toJsValueArray(baton->uuid_le, baton->uuid_le_len);
-        argv[3] = ConversionUtility::encodeHex((char *)baton->uuid_le, baton->uuid_le_len);
+        argv[3] = ConversionUtility::encodeHex(reinterpret_cast<char *>(baton->uuid_le), baton->uuid_le_len);
     }
 
     baton->callback->Call(4, argv);
@@ -895,18 +871,14 @@ void Adapter::AfterEncodeUUID(uv_work_t *req)
 
 NAN_METHOD(Adapter::DecodeUUID)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint8_t le_len;
     v8::Local<v8::Value> uuid_le;
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
-    uint8_t adapter = -1;
+    auto argumentcount = 0;
 
     try
     {
-        adapter = ConversionUtility::getNativeUint8(info[argumentcount]);
-        argumentcount++;
-
         le_len = ConversionUtility::getNativeUint8(info[argumentcount]);
         argumentcount++;
 
@@ -918,28 +890,27 @@ NAN_METHOD(Adapter::DecodeUUID)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        auto message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
         return;
     }
 
-    BleUUIDDecodeBaton *baton = new BleUUIDDecodeBaton(callback);
+    auto baton = new BleUUIDDecodeBaton(callback);
     baton->uuid_le_len = le_len;
     baton->uuid_le = ConversionUtility::extractHex(uuid_le);
     baton->p_uuid = new ble_uuid_t();
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, DecodeUUID, (uv_after_work_cb)AfterDecodeUUID);
+    uv_queue_work(uv_default_loop(), baton->req, DecodeUUID, reinterpret_cast<uv_after_work_cb>(AfterDecodeUUID));
 
     return;
 }
 
 void Adapter::DecodeUUID(uv_work_t *req)
 {
-    BleUUIDDecodeBaton *baton = static_cast<BleUUIDDecodeBaton *>(req->data);
+    auto baton = static_cast<BleUUIDDecodeBaton *>(req->data);
 
     lock_guard<mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = 0;//connectedAdapters[baton->adapterID];
     baton->result = sd_ble_uuid_decode(baton->adapter, baton->uuid_le_len, baton->uuid_le, baton->p_uuid);
 }
 
@@ -947,7 +918,7 @@ void Adapter::DecodeUUID(uv_work_t *req)
 void Adapter::AfterDecodeUUID(uv_work_t *req)
 {
     Nan::HandleScope scope;
-    BleUUIDDecodeBaton *baton = static_cast<BleUUIDDecodeBaton *>(req->data);
+    auto baton = static_cast<BleUUIDDecodeBaton *>(req->data);
     v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)
@@ -969,8 +940,8 @@ void Adapter::AfterDecodeUUID(uv_work_t *req)
 
 NAN_METHOD(Adapter::GetStats)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
-    v8::Local<v8::Object> stats = Nan::New<v8::Object>();
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto stats = Nan::New<v8::Object>();
 
     Utility::Set(stats, "eventCallbackTotalTime", obj->getEventCallbackTotalTime());
     Utility::Set(stats, "eventCallbackTotalCount", obj->getEventCallbackCount());
@@ -982,12 +953,10 @@ NAN_METHOD(Adapter::GetStats)
 
 NAN_METHOD(Adapter::ReplyUserMemory)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
-    bool hasMemoryBlock = true;
     v8::Local<v8::Object> mem_block;
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -1002,12 +971,12 @@ NAN_METHOD(Adapter::ReplyUserMemory)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        auto message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
         return;
     }
 
-    BleUserMemReplyBaton *baton = new BleUserMemReplyBaton(callback);
+    auto baton = new BleUserMemReplyBaton(callback);
     baton->conn_handle = conn_handle;
 
     try
@@ -1016,19 +985,18 @@ NAN_METHOD(Adapter::ReplyUserMemory)
     }
     catch (char const *error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("user mem reply", error);
+        auto message = ErrorMessage::getStructErrorMessage("user mem reply", error);
         Nan::ThrowTypeError(message);
         return;
     }
 
-    uv_queue_work(uv_default_loop(), baton->req, ReplyUserMemory, (uv_after_work_cb)AfterReplyUserMemory);
+    uv_queue_work(uv_default_loop(), baton->req, ReplyUserMemory, reinterpret_cast<uv_after_work_cb>(AfterReplyUserMemory));
 }
 
 void Adapter::ReplyUserMemory(uv_work_t *req)
 {
-    BleUserMemReplyBaton *baton = static_cast<BleUserMemReplyBaton *>(req->data);
-
-    lock_guard<mutex> lock(ble_driver_call_mutex);
+    //auto baton = static_cast<BleUserMemReplyBaton *>(req->data);
+    //lock_guard<mutex> lock(ble_driver_call_mutex);
     //baton->result = sd_ble_user_mem_reply(baton->conn_handle, baton->p_block);
 }
 
@@ -1036,7 +1004,7 @@ void Adapter::ReplyUserMemory(uv_work_t *req)
 void Adapter::AfterReplyUserMemory(uv_work_t *req)
 {
     Nan::HandleScope scope;
-    BleUserMemReplyBaton *baton = static_cast<BleUserMemReplyBaton *>(req->data);
+    auto baton = static_cast<BleUserMemReplyBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -1060,7 +1028,7 @@ void Adapter::AfterReplyUserMemory(uv_work_t *req)
 v8::Local<v8::Object> Version::ToJs()
 {
     Nan::EscapableHandleScope scope;
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    auto obj = Nan::New<v8::Object>();
 
     Utility::Set(obj, "version_number", native->version_number);
     Utility::Set(obj, "company_id", native->company_id);
@@ -1073,10 +1041,10 @@ ble_version_t *Version::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_version_t *version = new ble_version_t();
+    auto version = new ble_version_t();
     version->version_number = ConversionUtility::getNativeUint8(jsobj, "version_number");
     version->company_id = ConversionUtility::getNativeUint16(jsobj, "company_id");
     version->subversion_number = ConversionUtility::getNativeUint16(jsobj, "subversion_number");
@@ -1094,7 +1062,7 @@ ble_version_t *Version::ToNative()
 v8::Local<v8::Object> UserMemBlock::ToJs()
 {
     Nan::EscapableHandleScope scope;
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    auto obj = Nan::New<v8::Object>();
 
     Utility::Set(obj, "mem", ConversionUtility::toJsValueArray(native->p_mem, native->len));
     Utility::Set(obj, "len", native->len);
@@ -1106,10 +1074,10 @@ ble_user_mem_block_t *UserMemBlock::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_user_mem_block_t *uuid = new ble_user_mem_block_t();
+    auto uuid = new ble_user_mem_block_t();
 
     uuid->p_mem = ConversionUtility::getNativePointerToUint8(jsobj, "mem");
     uuid->len = ConversionUtility::getNativeUint16(jsobj, "len");
@@ -1141,10 +1109,10 @@ ble_uuid_t *BleUUID::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_uuid_t *uuid = new ble_uuid_t();
+    auto uuid = new ble_uuid_t();
 
     uuid->uuid = ConversionUtility::getNativeUint16(jsobj, "uuid");
     uuid->type = ConversionUtility::getNativeUint8(jsobj, "type");
@@ -1166,8 +1134,8 @@ v8::Local<v8::Object> BleUUID128::ToJs()
 
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     size_t uuid_len = 16 * 2 + 4 + 1; // Each byte -> 2 chars, 4 - separator _between_ some bytes and 1 byte null termination character
-    char *uuid128string = (char*)malloc(uuid_len);
-    assert(uuid128string != 0);
+    auto uuid128string = static_cast<char*>(malloc(uuid_len));
+    assert(uuid128string != nullptr);
     uint8_t *ptr = native->uuid128;
 
     sprintf(uuid128string, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x", ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], ptr[6], ptr[7], ptr[8], ptr[9], ptr[10], ptr[11], ptr[12], ptr[13], ptr[14], ptr[15]);
@@ -1181,21 +1149,21 @@ ble_uuid128_t *BleUUID128::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_uuid128_t *uuid = new ble_uuid128_t();
+    auto uuid = new ble_uuid128_t();
 
     uint32_t ptr[16];
 
     v8::Local<v8::Value> uuidObject = Utility::Get(jsobj, "uuid128");
     v8::Local<v8::String> uuidString = uuidObject->ToString();
     size_t uuid_len = uuidString->Length() + 1;
-    char *uuidPtr = (char*)malloc(uuid_len);
-    assert(uuidPtr != 0);
+    auto uuidPtr = static_cast<char*>(malloc(uuid_len));
+    assert(uuidPtr != nullptr);
     uuidString->WriteUtf8(uuidPtr, uuid_len);
 
-    int scan_count = sscanf(uuidPtr,
+    auto scan_count = sscanf(uuidPtr,
         "%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x",
         &(ptr[15]), &(ptr[14]),
         &(ptr[13]), &(ptr[12]),
@@ -1209,9 +1177,9 @@ ble_uuid128_t *BleUUID128::ToNative()
 
     free(uuidPtr);
 
-    for (int i = 0; i < scan_count; ++i)
+    for (auto i = 0; i < scan_count; ++i)
     {
-        uuid->uuid128[i] = (uint8_t)ptr[i];
+        uuid->uuid128[i] = static_cast<uint8_t>(ptr[i]);
     }
 
     return uuid;

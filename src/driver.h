@@ -1,10 +1,8 @@
 #ifndef BLE_DRIVER_JS_DRIVER_H
 #define BLE_DRIVER_JS_DRIVER_H
 
-#define LOG_ENTRY_STRING_SIZE 1024
-#define PATH_STRING_SIZE 1024
-
 #include <string>
+
 #include <sd_rpc.h>
 #include "common.h"
 
@@ -26,37 +24,45 @@ NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const v8::Handle<v8::String>&
 class Version : public BleToJs<ble_version_t>
 {
 public:
-    Version(ble_version_t *version) : BleToJs<ble_version_t>(version) {}
-    Version(v8::Local<v8::Object> js) : BleToJs<ble_version_t>(js) {}
-    v8::Local<v8::Object> ToJs();
-    ble_version_t *ToNative();
+    explicit Version(ble_version_t *version) : BleToJs<ble_version_t>(version) {}
+    explicit Version(v8::Local<v8::Object> js) : BleToJs<ble_version_t>(js) {}
+    virtual ~Version() {}
+
+    v8::Local<v8::Object> ToJs() override;
+    ble_version_t *ToNative() override;
 };
 
 class UserMemBlock : public BleToJs<ble_user_mem_block_t>
 {
 public:
-    UserMemBlock(ble_user_mem_block_t *user_mem_block) : BleToJs<ble_user_mem_block_t>(user_mem_block) {}
-    UserMemBlock(v8::Local<v8::Object> js) : BleToJs<ble_user_mem_block_t>(js) {}
-    v8::Local<v8::Object> ToJs();
-    ble_user_mem_block_t *ToNative();
+    explicit UserMemBlock(ble_user_mem_block_t *user_mem_block) : BleToJs<ble_user_mem_block_t>(user_mem_block) {}
+    explicit UserMemBlock(v8::Local<v8::Object> js) : BleToJs<ble_user_mem_block_t>(js) {}
+    virtual ~UserMemBlock() {}
+
+    v8::Local<v8::Object> ToJs() override;
+    ble_user_mem_block_t *ToNative() override;
 };
 
 class BleUUID : public BleToJs<ble_uuid_t>
 {
 public:
-    BleUUID(ble_uuid_t *uuid) : BleToJs<ble_uuid_t>(uuid) {}
-    BleUUID(v8::Local<v8::Object> js) : BleToJs<ble_uuid_t>(js) {}
-    v8::Local<v8::Object> ToJs();
-    ble_uuid_t *ToNative();
+    explicit BleUUID(ble_uuid_t *uuid) : BleToJs<ble_uuid_t>(uuid) {}
+    explicit BleUUID(v8::Local<v8::Object> js) : BleToJs<ble_uuid_t>(js) {}
+    virtual ~BleUUID() {}
+
+    v8::Local<v8::Object> ToJs() override;
+    ble_uuid_t *ToNative() override;
 };
 
 class BleUUID128 : public BleToJs<ble_uuid128_t>
 {
 public:
-    BleUUID128(ble_uuid128_t *uuid) : BleToJs<ble_uuid128_t>(uuid) {}
-    BleUUID128(v8::Local<v8::Object> js) : BleToJs<ble_uuid128_t>(js) {}
-    v8::Local<v8::Object> ToJs();
-    ble_uuid128_t *ToNative();
+    explicit BleUUID128(ble_uuid128_t *uuid) : BleToJs<ble_uuid128_t>(uuid) {}
+    explicit BleUUID128(v8::Local<v8::Object> js) : BleToJs<ble_uuid128_t>(js) {}
+    virtual ~BleUUID128() {}
+
+    v8::Local<v8::Object> ToJs() override;
+    ble_uuid128_t *ToNative() override;
 };
 
 template<typename EventType>
@@ -71,15 +77,17 @@ public:
     {
     }
 
-    virtual void ToJs(v8::Local<v8::Object> obj)
+    virtual ~BleDriverCommonEvent() {};
+
+    virtual void ToJs(v8::Local<v8::Object> obj) override
     {
         BleDriverEvent<EventType>::ToJs(obj);
     }
 
-    virtual v8::Local<v8::Object> ToJs() = 0;
-    virtual EventType *ToNative() { return new EventType(); }
+    virtual v8::Local<v8::Object> ToJs() override = 0;
+    virtual EventType *ToNative() override { return new EventType(); }
 
-    const char *getEventName() { return ConversionUtility::valueToString(this->evt_id, common_event_name_map, "Unknown Common Event"); }
+    const char *getEventName() override { return ConversionUtility::valueToString(this->evt_id, common_event_name_map, "Unknown Common Event"); }
 };
 
 class CommonTXCompleteEvent : BleDriverCommonEvent<ble_evt_tx_complete_t>
@@ -88,7 +96,7 @@ public:
     CommonTXCompleteEvent(std::string timestamp, uint16_t conn_handle, ble_evt_tx_complete_t *evt)
         : BleDriverCommonEvent<ble_evt_tx_complete_t>(BLE_EVT_TX_COMPLETE, timestamp, conn_handle, evt) {}
 
-    v8::Local<v8::Object> ToJs();
+    v8::Local<v8::Object> ToJs() override;
 };
 
 class CommonMemRequestEvent : BleDriverCommonEvent<ble_evt_user_mem_request_t>

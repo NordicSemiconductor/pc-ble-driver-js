@@ -37,18 +37,17 @@ NAN_METHOD(GetAdapterList) {
     }
   
     v8::Local<v8::Function> callback = info[0].As<v8::Function>();
-
-    AdapterListBaton* baton = new AdapterListBaton(callback);
+    auto baton = new AdapterListBaton(callback);
     strcpy(baton->errorString, "");
 
-    uv_work_t* req = new uv_work_t();
+    auto req = new uv_work_t();
     req->data = baton;
-    uv_queue_work(uv_default_loop(), req, GetAdapterList, (uv_after_work_cb)AfterGetAdapterList);
+    uv_queue_work(uv_default_loop(), req, GetAdapterList, reinterpret_cast<uv_after_work_cb>(AfterGetAdapterList));
 }
 
 void AfterGetAdapterList(uv_work_t* req) {
 	Nan::HandleScope scope;
-    AdapterListBaton* baton = static_cast<AdapterListBaton*>(req->data);
+    auto baton = static_cast<AdapterListBaton*>(req->data);
 
     v8::Local<v8::Value> argv[2];
   
@@ -60,19 +59,19 @@ void AfterGetAdapterList(uv_work_t* req) {
     else 
     {
         v8::Local<v8::Array> results = Nan::New<v8::Array>();
-        int i = 0;
+        auto i = 0;
 
-        for(auto it = baton->results.begin(); it != baton->results.end(); ++it, i++) 
+        for(auto adapterItem : baton->results) 
         {
             v8::Local<v8::Object> item = Nan::New<v8::Object>();
-            Utility::Set(item, "comName", (*it)->comName);
-            Utility::Set(item, "manufacturer", (*it)->manufacturer);
-            Utility::Set(item, "serialNumber", (*it)->serialNumber);
-            Utility::Set(item, "pnpId", (*it)->pnpId);
-            Utility::Set(item, "locationId", (*it)->locationId);
-            Utility::Set(item, "vendorId", (*it)->vendorId);
-            Utility::Set(item, "productId", (*it)->productId);
-            results->Set(i, item);
+            Utility::Set(item, "comName", adapterItem->comName);
+            Utility::Set(item, "manufacturer", adapterItem->manufacturer);
+            Utility::Set(item, "serialNumber", adapterItem->serialNumber);
+            Utility::Set(item, "pnpId", adapterItem->pnpId);
+            Utility::Set(item, "locationId", adapterItem->locationId);
+            Utility::Set(item, "vendorId", adapterItem->vendorId);
+            Utility::Set(item, "productId", adapterItem->productId);
+            results->Set(i++, item);
         }
 
         argv[0] = Nan::Undefined();

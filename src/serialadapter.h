@@ -54,7 +54,7 @@ struct AdapterListBaton : Baton {
 public:
     BATON_CONSTRUCTOR(AdapterListBaton)
     std::list<AdapterListResultItem*> results;
-    char errorString[ERROR_STRING_SIZE];
+    char errorString[ERROR_STRING_SIZE]; // TODO: change this to std::string
 };
 
 #endif // ADAPTER_H

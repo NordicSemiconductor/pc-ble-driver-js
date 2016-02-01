@@ -20,16 +20,16 @@ NAN_MODULE_INIT(Adapter::Init)
 
 Adapter *Adapter::getAdapter(adapter_t *adapter, Adapter *defaultAdapter)
 {
-    if (adapter == 0)
+    if (adapter == nullptr)
     {
         return defaultAdapter;
     }
 
-    for (Adapter *value : adapterVector)
+    for (auto value : adapterVector)
     {
-        adapter_t *deviceAdapter = value->getInternalAdapter();
+        auto deviceAdapter = value->getInternalAdapter();
 
-        if (deviceAdapter != 0)
+        if (deviceAdapter != nullptr)
         {
             if (value->getInternalAdapter()->internal == adapter->internal)
             {
@@ -49,28 +49,30 @@ adapter_t *Adapter::getInternalAdapter() const
 extern "C" {
     void event_handler(uv_async_t *handle)
     {
-        Adapter *adapter = static_cast<Adapter *>(handle->data);
+        auto adapter = static_cast<Adapter *>(handle->data);
 
-        if (adapter != 0)
+        if (adapter != nullptr)
         {
             adapter->onRpcEvent(handle);
         }
         else
         {
+            std::terminate();
             //TODO: Errormessage
         }
     }
 
     void event_interval_handler(uv_timer_t *handle)
     {
-        Adapter *adapter = static_cast<Adapter *>(handle->data);
+        auto adapter = static_cast<Adapter *>(handle->data);
 
-        if (adapter != 0)
+        if (adapter != nullptr)
         {
             adapter->eventIntervalCallback(handle);
         }
         else
         {
+            std::terminate();
             //TODO: Errormessage
         }
     }
@@ -97,14 +99,15 @@ void Adapter::initEventHandling(Nan::Callback *callback, uint32_t interval)
 extern "C" {
     void log_handler(uv_async_t *handle)
     {
-        Adapter *adapter = static_cast<Adapter *>(handle->data);
+        auto adapter = static_cast<Adapter *>(handle->data);
 
-        if (adapter != 0)
+        if (adapter != nullptr)
         {
             adapter->onLogEvent(handle);
         }
         else
         {
+            std::terminate();
             //TODO: Errormessage
         }
     }
@@ -121,14 +124,15 @@ void Adapter::initLogHandling(Nan::Callback *callback)
 extern "C" {
     void error_handler(uv_async_t *handle)
     {
-        Adapter *adapter = static_cast<Adapter *>(handle->data);
+        auto adapter = static_cast<Adapter *>(handle->data);
 
-        if (adapter != 0)
+        if (adapter != nullptr)
         {
             adapter->onErrorEvent(handle);
         }
         else
         {
+            std::terminate();
             //TODO: Errormessage
         }
     }
@@ -146,27 +150,27 @@ void Adapter::removeCallbacks()
 {
     closing = true;
 
-    if (eventCallback != 0)
+    if (eventCallback != nullptr)
     {
         delete eventCallback;
-        eventCallback = 0;
+        eventCallback = nullptr;
     }
 
-    if (logCallback != 0)
+    if (logCallback != nullptr)
     {
         delete logCallback;
-        logCallback = 0;
+        logCallback = nullptr;
     }
 
-    if (errorCallback != 0)
+    if (errorCallback != nullptr)
     {
         delete errorCallback;
-        errorCallback = 0;
+        errorCallback = nullptr;
     }
 
-    uv_close((uv_handle_t *)&asyncLog, 0);
-    uv_close((uv_handle_t *)&asyncEvent, 0);
-    uv_close((uv_handle_t *)&asyncError, 0);
+    uv_close(reinterpret_cast<uv_handle_t *>(&asyncLog), nullptr);
+    uv_close(reinterpret_cast<uv_handle_t *>(&asyncEvent), nullptr);
+    uv_close(reinterpret_cast<uv_handle_t *>(&asyncError), nullptr);
 }
 
 void Adapter::initGeneric(v8::Local<v8::FunctionTemplate> tpl)
@@ -240,14 +244,14 @@ void Adapter::initGattS(v8::Local<v8::FunctionTemplate> tpl)
 Adapter::Adapter()
 {
     adapterVector.push_back(this);
-    adapter = 0;
+    adapter = nullptr;
 
     eventCallbackMaxCount = 0;
     eventCallbackBatchEventCounter = 0;
     eventCallbackBatchEventTotalCount = 0;
     eventCallbackBatchNumber = 0;
 
-    eventCallback = 0;
+    eventCallback = nullptr;
 
     closing = false;
 }
@@ -259,7 +263,7 @@ Adapter::~Adapter()
 NAN_METHOD(Adapter::New)
 {
     if (info.IsConstructCall()) {
-        Adapter *obj = new Adapter();
+        auto obj = new Adapter();
         obj->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
     } else {
@@ -270,7 +274,7 @@ NAN_METHOD(Adapter::New)
 
 int32_t Adapter::getEventCallbackTotalTime() const
 {
-    return (int32_t)eventCallbackDuration.count();
+    return static_cast<int32_t>(eventCallbackDuration.count());
 }
 
 uint32_t Adapter::getEventCallbackCount() const
@@ -295,7 +299,7 @@ uint32_t Adapter::getEventCallbackBatchEventTotalCount() const
 
 double Adapter::getAverageCallbackBatchCount() const
 {
-    double averageCallbackBatchCount = 0.0;
+    auto averageCallbackBatchCount = 0.0;
 
     if (getEventCallbackBatchNumber() != 0)
     {

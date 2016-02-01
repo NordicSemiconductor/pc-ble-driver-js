@@ -58,10 +58,10 @@ ble_gatt_char_props_t *GattCharProps::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_gatt_char_props_t *char_props = new ble_gatt_char_props_t();
+    auto char_props = new ble_gatt_char_props_t();
 
     char_props->broadcast = ConversionUtility::getNativeBool(jsobj, "broadcast");
     char_props->read = ConversionUtility::getNativeBool(jsobj, "read");
@@ -97,10 +97,10 @@ ble_gatt_char_ext_props_t *GattCharExtProps::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_gatt_char_ext_props_t *char_ext_props = new ble_gatt_char_ext_props_t();
+    auto char_ext_props = new ble_gatt_char_ext_props_t();
 
     char_ext_props->reliable_wr = ConversionUtility::getNativeBool(jsobj, "reliable_wr");
     char_ext_props->wr_aux = ConversionUtility::getNativeBool(jsobj, "wr_aux");

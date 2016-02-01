@@ -8,6 +8,10 @@
 
 #include "circular_fifo_unsafe.h"
 
+const auto EVENT_QUEUE_SIZE = 64;
+const auto LOG_QUEUE_SIZE = 64;
+const auto ERROR_QUEUE_SIZE = 64;
+
 #define ADAPTER_METHOD_DEFINITIONS(MainName) \
     static NAN_METHOD(MainName); \
     static void MainName(uv_work_t *req); \
@@ -35,15 +39,16 @@ public:
 
 //using namespace memory_relaxed_aquire_release;
 using namespace memory_sequential_unsafe;
-typedef CircularFifo<EventEntry *, 64> EventQueue;
-typedef CircularFifo<LogEntry *, 64> LogQueue;
-typedef CircularFifo<ErrorEntry *, 64> ErrorQueue;
+
+typedef CircularFifo<EventEntry *, EVENT_QUEUE_SIZE> EventQueue;
+typedef CircularFifo<LogEntry *, LOG_QUEUE_SIZE> LogQueue;
+typedef CircularFifo<ErrorEntry *, ERROR_QUEUE_SIZE> ErrorQueue;
 
 class Adapter : public Nan::ObjectWrap {
 public:
     static NAN_MODULE_INIT(Init);
 
-    static Adapter *getAdapter(adapter_t *adapter, Adapter *defaultAdapter = 0);
+    static Adapter *getAdapter(adapter_t *adapter, Adapter *defaultAdapter = nullptr);
 
     adapter_t *getInternalAdapter() const;
 
@@ -147,7 +152,6 @@ private:
 
     static void initGeneric(v8::Local<v8::FunctionTemplate> tpl);
     static void initGap(v8::Local<v8::FunctionTemplate> tpl);
-    static void initGatt(v8::Local<v8::FunctionTemplate> tpl);
     static void initGattC(v8::Local<v8::FunctionTemplate> tpl);
     static void initGattS(v8::Local<v8::FunctionTemplate> tpl);
 

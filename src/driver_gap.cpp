@@ -155,7 +155,7 @@ v8::Local<v8::Object> GapAddr::ToJs()
     // its scope, the underlaying string is freed.
 
     size_t addr_len = BLE_GAP_ADDR_LEN * 3; // Each byte -> 2 chars, : separator _between_ each byte and a null termination byte
-    char *addr = (char*)malloc(addr_len);
+    auto addr = static_cast<char*>(malloc(addr_len));
     assert(addr != NULL);
     uint8_t *ptr = native->addr;
 
@@ -173,36 +173,36 @@ ble_gap_addr_t *GapAddr::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_gap_addr_t *address = new ble_gap_addr_t();
+    auto address = new ble_gap_addr_t();
 
     uint32_t ptr[BLE_GAP_ADDR_LEN];
 
     v8::Local<v8::Value> getAddress = Utility::Get(jsobj, "address");
     v8::Local<v8::String> addressString = getAddress->ToString();
     size_t addr_len = addressString->Length() + 1;
-    char *addr = (char*)malloc(addr_len);
+    auto addr = static_cast<char*>(malloc(addr_len));
     assert(addr != NULL);
     addressString->WriteUtf8(addr, addr_len);
 
-    int scan_count = sscanf(addr, "%2x:%2x:%2x:%2x:%2x:%2x", &(ptr[5]), &(ptr[4]), &(ptr[3]), &(ptr[2]), &(ptr[1]), &(ptr[0]));
+    auto scan_count = sscanf(addr, "%2x:%2x:%2x:%2x:%2x:%2x", &(ptr[5]), &(ptr[4]), &(ptr[3]), &(ptr[2]), &(ptr[1]), &(ptr[0]));
     assert(scan_count == 6);
 
     free(addr);
 
-    for (int i = 0; i < BLE_GAP_ADDR_LEN; i++)
+    for (auto i = 0; i < BLE_GAP_ADDR_LEN; i++)
     {
-        address->addr[i] = (uint8_t)ptr[i];
+        address->addr[i] = static_cast<uint8_t>(ptr[i]);
     }
 
     v8::Local<v8::Value> getAddressType = Utility::Get(jsobj, "type");
     v8::Local<v8::String> addressTypeString = getAddressType->ToString();
     size_t type_len = addressTypeString->Length() + 1;
-    char *typeString = (char *)malloc(type_len);
+    auto typeString = static_cast<char *>(malloc(type_len));
     addressTypeString->WriteUtf8(typeString, type_len);
-    address->addr_type = (uint8_t)fromNameToValue(gap_addr_type_map, typeString);
+    address->addr_type = static_cast<uint8_t>(fromNameToValue(gap_addr_type_map, typeString));
 
     free(typeString);
 
@@ -234,10 +234,10 @@ ble_gap_conn_params_t *GapConnParams::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_gap_conn_params_t *conn_params = new ble_gap_conn_params_t();
+    auto conn_params = new ble_gap_conn_params_t();
     memset(conn_params, 0, sizeof(ble_gap_conn_params_t));
 
     conn_params->min_conn_interval = ConversionUtility::msecsToUnitsUint16(jsobj, "min_conn_interval", ConversionUtility::ConversionUnit1250ms);
@@ -271,10 +271,10 @@ ble_gap_conn_sec_mode_t *GapConnSecMode::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_gap_conn_sec_mode_t *conn_sec_mode = new ble_gap_conn_sec_mode_t();
+    auto conn_sec_mode = new ble_gap_conn_sec_mode_t();
 
     conn_sec_mode->sm = ConversionUtility::getNativeUint8(jsobj, "sm");
     conn_sec_mode->lv = ConversionUtility::getNativeUint8(jsobj, "lv");
@@ -311,7 +311,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
         v8::Local<v8::Object> data_obj = Nan::New<v8::Object>();
         Utility::Set(obj, "data", data_obj);
 
-        uint8_t *data = evt->data;
+        auto data = evt->data;
 
         // TODO: Evaluate if buffer is the correct datatype for advertisement data
         Utility::Set(data_obj, "raw", ConversionUtility::toJsValueArray(data, dlen));
@@ -334,10 +334,10 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
             if (ad_type == BLE_GAP_AD_TYPE_FLAGS)
             {
                 v8::Local<v8::Array> flags_array = Nan::New<v8::Array>();
-                int flags_array_idx = 0;
-                uint8_t flags = data[pos + 1];
+                auto flags_array_idx = 0;
+                auto flags = data[pos + 1];
 
-                for (name_map_it_t iterator = gap_adv_flags_map.begin(); iterator != gap_adv_flags_map.end(); iterator++)
+                for (auto iterator = gap_adv_flags_map.begin(); iterator != gap_adv_flags_map.end(); iterator++)
                 {
                     if ((flags & iterator->first) != 0)
                     {
@@ -352,7 +352,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
             {
                 uint8_t name_len = ad_len - 1;
                 uint8_t offset = pos + 1;
-                Utility::Set(data_obj, gap_ad_type_map[ad_type], ConversionUtility::toJsString((char *)&data[offset], name_len));
+                Utility::Set(data_obj, gap_ad_type_map[ad_type], ConversionUtility::toJsString(reinterpret_cast<char *>(&data[offset]), name_len));
             }
             else if (ad_type == BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_MORE_AVAILABLE || ad_type == BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE)
             {
@@ -361,11 +361,11 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 uint8_t sub_pos = pos + 1;
 
                 // Fetch 16 bit UUIDS and put them into the array
-                for (int i = 0; i < ad_len - 1; i += 2)
+                for (auto i = 0; i < ad_len - 1; i += 2)
                 {
-                    char *uuid_as_text = (char*)malloc(UUID_16_BIT_STR_SIZE + 1);
-                    assert(uuid_as_text != NULL);
-                    sprintf(uuid_as_text, UUID_16_BIT_SPRINTF, uint16_decode((uint8_t*)data + sub_pos + i));
+                    auto uuid_as_text = static_cast<char*>(malloc(UUID_16_BIT_STR_SIZE + 1));
+                    assert(uuid_as_text != nullptr);
+                    sprintf(uuid_as_text, UUID_16_BIT_SPRINTF, uint16_decode(static_cast<uint8_t*>(data) + sub_pos + i));
                     Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
                     free(uuid_as_text);
                     array_pos++;
@@ -380,14 +380,14 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 uint8_t sub_pos = pos + 1;
 
                 // Fetch 32 bit UUIDS and put them into the array
-                for (int i = 0; i < ad_len - 1; i += 4)
+                for (auto i = 0; i < ad_len - 1; i += 4)
                 {
-                    char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
-                    assert(uuid_as_text != NULL);
+                    auto uuid_as_text = static_cast<char*>(malloc(UUID_128_BIT_STR_SIZE + 1));
+                    assert(uuid_as_text != nullptr);
 
                     sprintf(uuid_as_text, UUID_128_BIT_SPRINTF,
-                            uint16_decode((uint8_t*)data + sub_pos + 2 + i),
-                            uint16_decode((uint8_t*)data + sub_pos + 0 + i));
+                            uint16_decode(static_cast<uint8_t*>(data) + sub_pos + 2 + i),
+                            uint16_decode(static_cast<uint8_t*>(data) + sub_pos + 0 + i));
                     Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
                     free(uuid_as_text);
                     array_pos++;
@@ -402,22 +402,22 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 uint8_t sub_pos = pos + 1;
 
                 // Fetch 128 bit UUIDS and put them into the array
-                for (int i = 0; i < ad_len - 1; i += 16)
+                for (auto i = 0; i < ad_len - 1; i += 16)
                 {
-                    char *uuid_as_text = (char*)malloc(UUID_128_BIT_STR_SIZE + 1);
+                    auto uuid_as_text = static_cast<char*>(malloc(UUID_128_BIT_STR_SIZE + 1));
                     assert(uuid_as_text != NULL);
 
                     sprintf(
                         uuid_as_text,
                         UUID_128_BIT_COMPLETE_SPRINTF,
-                        uint16_decode((uint8_t*)data + (sub_pos + i + 14)),
-                        uint16_decode((uint8_t*)data + (sub_pos + i + 12)),
-                        uint16_decode((uint8_t*)data + (sub_pos + i + 10)),
-                        uint16_decode((uint8_t*)data + (sub_pos + i + 8)),
-                        uint16_decode((uint8_t*)data + (sub_pos + i + 6)),
-                        uint16_decode((uint8_t*)data + (sub_pos + i + 4)),
-                        uint16_decode((uint8_t*)data + (sub_pos + i + 2)),
-                        uint16_decode((uint8_t*)data + (sub_pos + i + 0))
+                        uint16_decode(static_cast<uint8_t*>(data) + (sub_pos + i + 14)),
+                        uint16_decode(static_cast<uint8_t*>(data) + (sub_pos + i + 12)),
+                        uint16_decode(static_cast<uint8_t*>(data) + (sub_pos + i + 10)),
+                        uint16_decode(static_cast<uint8_t*>(data) + (sub_pos + i + 8)),
+                        uint16_decode(static_cast<uint8_t*>(data) + (sub_pos + i + 6)),
+                        uint16_decode(static_cast<uint8_t*>(data) + (sub_pos + i + 4)),
+                        uint16_decode(static_cast<uint8_t*>(data) + (sub_pos + i + 2)),
+                        uint16_decode(static_cast<uint8_t*>(data) + (sub_pos + i + 0))
                         );
                     Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
                     free(uuid_as_text);
@@ -703,10 +703,10 @@ ble_gap_sec_params_t *GapSecParams::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_gap_sec_params_t *params = new ble_gap_sec_params_t();
+    auto params = new ble_gap_sec_params_t();
     memset(params, 0, sizeof(ble_gap_sec_params_t));
 
     params->bond = ConversionUtility::getNativeBool(jsobj, "bond");
@@ -746,10 +746,10 @@ ble_gap_sec_kdist_t *GapSecKdist::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_gap_sec_kdist_t *kdist = new ble_gap_sec_kdist_t();
+    auto kdist = new ble_gap_sec_kdist_t();
     memset(kdist, 0, sizeof(ble_gap_sec_kdist_t));
 
     kdist->enc = ConversionUtility::getNativeBool(jsobj, "enc");
@@ -781,10 +781,10 @@ ble_gap_sec_keyset_t *GapSecKeyset::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_gap_sec_keyset_t *keyset = new ble_gap_sec_keyset_t();
+    auto keyset = new ble_gap_sec_keyset_t();
     memset(keyset, 0, sizeof(ble_gap_sec_keyset_t));
 
     keyset->keys_periph = GapSecKeys(ConversionUtility::getJsObject(jsobj, "keys_periph"));
@@ -805,7 +805,7 @@ v8::Local<v8::Object> GapSecKeys::ToJs()
 {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    if (native->p_enc_key == 0)
+    if (native->p_enc_key == nullptr)
     {
         Utility::Set(obj, "enc_key", Nan::Null());
     }
@@ -814,7 +814,7 @@ v8::Local<v8::Object> GapSecKeys::ToJs()
        Utility::Set(obj, "enc_key", GapEncKey(native->p_enc_key).ToJs());
     }
 
-    if (native->p_id_key == 0)
+    if (native->p_id_key == nullptr)
     {
         Utility::Set(obj, "id_key", Nan::Null());
     }
@@ -823,7 +823,7 @@ v8::Local<v8::Object> GapSecKeys::ToJs()
         Utility::Set(obj, "id_key", GapIdKey(native->p_id_key).ToJs());
     }
 
-    if (native->p_sign_key == 0)
+    if (native->p_sign_key == nullptr)
     {
         Utility::Set(obj, "sign_key", Nan::Null());
     }
@@ -839,10 +839,10 @@ ble_gap_sec_keys_t *GapSecKeys::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_gap_sec_keys_t *keys = new ble_gap_sec_keys_t();
+    auto keys = new ble_gap_sec_keys_t();
     memset(keys, 0, sizeof(ble_gap_sec_keys_t));
 
     keys->p_enc_key = GapEncKey(ConversionUtility::getJsObjectOrNull(jsobj, "enc_key"));
@@ -874,10 +874,10 @@ ble_gap_enc_key_t *GapEncKey::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_gap_enc_key_t* enc_key = new ble_gap_enc_key_t();
+    auto enc_key = new ble_gap_enc_key_t();
     memset(enc_key, 0, sizeof(ble_gap_enc_key_t));
 
     enc_key->enc_info = GapEncInfo(ConversionUtility::getJsObject(jsobj, "enc_info"));
@@ -908,10 +908,10 @@ ble_gap_id_key_t *GapIdKey::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_gap_id_key_t* id_key = new ble_gap_id_key_t();
+    auto id_key = new ble_gap_id_key_t();
     memset(id_key, 0, sizeof(ble_gap_id_key_t));
 
     id_key->id_info = GapIrk(ConversionUtility::getJsObject(jsobj, "id_info"));
@@ -941,15 +941,15 @@ ble_gap_sign_info_t *GapSignInfo::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_gap_sign_info_t *sign_info = new ble_gap_sign_info_t();
+    auto sign_info = new ble_gap_sign_info_t();
     memset(sign_info, 0, sizeof(ble_gap_sign_info_t));
 
-    uint8_t *p_csrk = ConversionUtility::getNativePointerToUint8(jsobj, "csrk");
+    auto p_csrk = ConversionUtility::getNativePointerToUint8(jsobj, "csrk");
 
-    for (int i = 0; i < BLE_GAP_SEC_KEY_LEN; i++)
+    for (auto i = 0; i < BLE_GAP_SEC_KEY_LEN; i++)
     {
         sign_info->csrk[i] = p_csrk[i];
     }
@@ -977,15 +977,15 @@ ble_gap_irk_t *GapIrk::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_gap_irk_t *irk = new ble_gap_irk_t();
+    auto irk = new ble_gap_irk_t();
     memset(irk, 0, sizeof(ble_gap_irk_t));
 
-    uint8_t *p_irk = ConversionUtility::getNativePointerToUint8(jsobj, "irk");
+    auto p_irk = ConversionUtility::getNativePointerToUint8(jsobj, "irk");
 
-    for (int i = 0; i < BLE_GAP_SEC_KEY_LEN; i++)
+    for (auto i = 0; i < BLE_GAP_SEC_KEY_LEN; i++)
     {
         irk->irk[i] = p_irk[i];
     }
@@ -1015,15 +1015,15 @@ ble_gap_enc_info_t *GapEncInfo::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_gap_enc_info_t* enc_info = new ble_gap_enc_info_t();
+    auto enc_info = new ble_gap_enc_info_t();
     memset(enc_info, 0, sizeof(ble_gap_enc_info_t));
 
-    uint8_t *p_ltk = ConversionUtility::getNativePointerToUint8(jsobj, "ltk");
+    auto p_ltk = ConversionUtility::getNativePointerToUint8(jsobj, "ltk");
 
-    for (int i = 0; i < BLE_GAP_SEC_KEY_LEN; i++)
+    for (auto i = 0; i < BLE_GAP_SEC_KEY_LEN; i++)
     {
         enc_info->ltk[i] = p_ltk[i];
     }
@@ -1055,18 +1055,18 @@ ble_gap_master_id_t *GapMasterId::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_gap_master_id_t *master_id = new ble_gap_master_id_t();
+    auto master_id = new ble_gap_master_id_t();
     memset(master_id, 0, sizeof(ble_gap_master_id_t));
 
     master_id->ediv = ConversionUtility::getNativeUint16(jsobj, "ediv");
 
 
-    uint8_t *p_rand = ConversionUtility::getNativePointerToUint8(jsobj, "rand");
+    auto p_rand = ConversionUtility::getNativePointerToUint8(jsobj, "rand");
 
-    for (int i = 0; i < BLE_GAP_SEC_RAND_LEN; i++)
+    for (auto i = 0; i < BLE_GAP_SEC_RAND_LEN; i++)
     {
         master_id->rand[i] = p_rand[i];
     }
@@ -1096,10 +1096,10 @@ ble_gap_sec_levels_t *GapSecLevels::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_gap_sec_levels_t *sec_levels = new ble_gap_sec_levels_t();
+    auto sec_levels = new ble_gap_sec_levels_t();
     memset(sec_levels, 0, sizeof(ble_gap_sec_levels_t));
 
     sec_levels->lv1 = ConversionUtility::getNativeBool(jsobj, "lv1");
@@ -1130,10 +1130,10 @@ ble_gap_conn_sec_t *GapConnSec::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_gap_conn_sec_t *conn_sec = new ble_gap_conn_sec_t();
+    auto conn_sec = new ble_gap_conn_sec_t();
     memset(conn_sec, 0, sizeof(ble_gap_conn_sec_t));
 
     conn_sec->sec_mode = GapConnSecMode(ConversionUtility::getJsObject(jsobj, "sec_mode"));
@@ -1162,10 +1162,10 @@ ble_gap_scan_params_t *GapScanParams::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_gap_scan_params_t *params = new ble_gap_scan_params_t();
+    auto params = new ble_gap_scan_params_t();
     memset(params, 0, sizeof(ble_gap_scan_params_t));
 
     params->active = ConversionUtility::getNativeBool(jsobj, "active");
@@ -1198,10 +1198,10 @@ ble_gap_adv_params_t *GapAdvParams::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_gap_adv_params_t *params = new ble_gap_adv_params_t();
+    auto params = new ble_gap_adv_params_t();
     memset(params, 0, sizeof(ble_gap_adv_params_t));
 
     params->type = ConversionUtility::getNativeUint8(jsobj, "type");
@@ -1236,10 +1236,10 @@ ble_gap_adv_ch_mask_t *GapAdvChannelMask::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
-        return 0;
+        return nullptr;
     }
 
-    ble_gap_adv_ch_mask_t *mask = new ble_gap_adv_ch_mask_t();
+    auto mask = new ble_gap_adv_ch_mask_t();
     memset(mask, 0, sizeof(ble_gap_adv_ch_mask_t));
 
     mask->ch_37_off = ConversionUtility::getNativeBool(jsobj, "ch_37_off");
@@ -1255,11 +1255,11 @@ ble_gap_adv_ch_mask_t *GapAdvChannelMask::ToNative()
 
 NAN_METHOD(Adapter::GapSetAddress)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint8_t address_cycle_mode;
     v8::Local<v8::Object> addressObject;
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -1279,7 +1279,7 @@ NAN_METHOD(Adapter::GapSetAddress)
         return;
     }
 
-    GapAddressSetBaton *baton = new GapAddressSetBaton(callback);
+    auto baton = new GapAddressSetBaton(callback);
     baton->addr_cycle_mode = address_cycle_mode;
 
     try
@@ -1294,12 +1294,12 @@ NAN_METHOD(Adapter::GapSetAddress)
     }
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapSetAddress, (uv_after_work_cb)AfterGapSetAddress);
+    uv_queue_work(uv_default_loop(), baton->req, GapSetAddress, reinterpret_cast<uv_after_work_cb>(AfterGapSetAddress));
 }
 
 void Adapter::GapSetAddress(uv_work_t *req)
 {
-    GapAddressSetBaton *baton = static_cast<GapAddressSetBaton *>(req->data);
+    auto baton = static_cast<GapAddressSetBaton *>(req->data);
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gap_address_set(baton->adapter, baton->addr_cycle_mode, baton->address);
 }
@@ -1309,7 +1309,7 @@ void Adapter::AfterGapSetAddress(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapAddressSetBaton *baton = static_cast<GapAddressSetBaton *>(req->data);
+    auto baton = static_cast<GapAddressSetBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -1328,9 +1328,9 @@ void Adapter::AfterGapSetAddress(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapGetAddress)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -1344,13 +1344,13 @@ NAN_METHOD(Adapter::GapGetAddress)
         return;
     }
 
-    ble_gap_addr_t *address = new ble_gap_addr_t();
+    auto address = new ble_gap_addr_t();
 
-    GapAddressGetBaton *baton = new GapAddressGetBaton(callback);
+    auto baton = new GapAddressGetBaton(callback);
     baton->address = address;
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapGetAddress, (uv_after_work_cb)AfterGapGetAddress);
+    uv_queue_work(uv_default_loop(), baton->req, GapGetAddress, reinterpret_cast<uv_after_work_cb>(AfterGapGetAddress));
 
     return;
 }
@@ -1358,7 +1358,7 @@ NAN_METHOD(Adapter::GapGetAddress)
 
 void Adapter::GapGetAddress(uv_work_t *req)
 {
-    GapAddressGetBaton *baton = static_cast<GapAddressGetBaton *>(req->data);
+    auto baton = static_cast<GapAddressGetBaton *>(req->data);
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gap_address_get(baton->adapter, baton->address);
 }
@@ -1368,7 +1368,7 @@ void Adapter::AfterGapGetAddress(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapAddressGetBaton *baton = static_cast<GapAddressGetBaton *>(req->data);
+    auto baton = static_cast<GapAddressGetBaton *>(req->data);
     v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)
@@ -1388,11 +1388,11 @@ void Adapter::AfterGapGetAddress(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapUpdateConnectionParameters)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     v8::Local<v8::Object> connParamsObject;
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -1412,7 +1412,7 @@ NAN_METHOD(Adapter::GapUpdateConnectionParameters)
         return;
     }
 
-    GapUpdateConnectionParametersBaton *baton = new GapUpdateConnectionParametersBaton(callback);
+    auto baton = new GapUpdateConnectionParametersBaton(callback);
     baton->conn_handle = conn_handle;
 
     try
@@ -1427,14 +1427,14 @@ NAN_METHOD(Adapter::GapUpdateConnectionParameters)
     }
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapUpdateConnectionParameters, (uv_after_work_cb)AfterGapUpdateConnectionParameters);
+    uv_queue_work(uv_default_loop(), baton->req, GapUpdateConnectionParameters, reinterpret_cast<uv_after_work_cb>(AfterGapUpdateConnectionParameters));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapUpdateConnectionParameters(uv_work_t *req)
 {
     // TODO: handle if .Close is called before this function is called.
-    GapUpdateConnectionParametersBaton *baton = static_cast<GapUpdateConnectionParametersBaton *>(req->data);
+    auto baton = static_cast<GapUpdateConnectionParametersBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gap_conn_param_update(baton->adapter, baton->conn_handle, baton->connectionParameters);
@@ -1446,7 +1446,7 @@ void Adapter::AfterGapUpdateConnectionParameters(uv_work_t *req)
     Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
-    GapUpdateConnectionParametersBaton *baton = static_cast<GapUpdateConnectionParametersBaton *>(req->data);
+    auto baton = static_cast<GapUpdateConnectionParametersBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -1464,11 +1464,11 @@ void Adapter::AfterGapUpdateConnectionParameters(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapDisconnect)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     uint8_t hci_status_code;
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -1488,18 +1488,18 @@ NAN_METHOD(Adapter::GapDisconnect)
         return;
     }
 
-    GapDisconnectBaton *baton = new GapDisconnectBaton(callback);
+    auto baton = new GapDisconnectBaton(callback);
     baton->conn_handle = conn_handle;
     baton->hci_status_code = hci_status_code;
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapDisconnect, (uv_after_work_cb)AfterGapDisconnect);
+    uv_queue_work(uv_default_loop(), baton->req, GapDisconnect, reinterpret_cast<uv_after_work_cb>(AfterGapDisconnect));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapDisconnect(uv_work_t *req)
 {
-    GapDisconnectBaton *baton = static_cast<GapDisconnectBaton *>(req->data);
+    auto baton = static_cast<GapDisconnectBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gap_disconnect(baton->adapter, baton->conn_handle, baton->hci_status_code);
@@ -1510,7 +1510,7 @@ void Adapter::AfterGapDisconnect(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapDisconnectBaton *baton = static_cast<GapDisconnectBaton *>(req->data);
+    auto baton = static_cast<GapDisconnectBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -1528,10 +1528,10 @@ void Adapter::AfterGapDisconnect(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapSetTXPower)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     int8_t tx_power;
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -1548,19 +1548,19 @@ NAN_METHOD(Adapter::GapSetTXPower)
         return;
     }
 
-    TXPowerBaton *baton = new TXPowerBaton(callback);
+    auto baton = new TXPowerBaton(callback);
 
     baton->tx_power = tx_power;
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapSetTXPower, (uv_after_work_cb)AfterGapSetTXPower);
+    uv_queue_work(uv_default_loop(), baton->req, GapSetTXPower, reinterpret_cast<uv_after_work_cb>(AfterGapSetTXPower));
 
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapSetTXPower(uv_work_t *req)
 {
-    TXPowerBaton *baton = static_cast<TXPowerBaton *>(req->data);
+    auto baton = static_cast<TXPowerBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gap_tx_power_set(baton->adapter, baton->tx_power);
@@ -1571,7 +1571,7 @@ void Adapter::AfterGapSetTXPower(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    TXPowerBaton *baton = static_cast<TXPowerBaton *>(req->data);
+    auto baton = static_cast<TXPowerBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -1589,11 +1589,11 @@ void Adapter::AfterGapSetTXPower(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapSetDeviceName)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Object> conn_sec_mode;
     uint8_t *dev_name;
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -1613,9 +1613,10 @@ NAN_METHOD(Adapter::GapSetDeviceName)
         return;
     }
 
-    size_t length = strlen((char *)dev_name);
+    auto length = strlen(reinterpret_cast<char *>(dev_name));
 
-    GapSetDeviceNameBaton *baton = new GapSetDeviceNameBaton(callback);
+    auto baton = new GapSetDeviceNameBaton(callback);
+
     try
     {
         baton->conn_sec_mode = GapConnSecMode(conn_sec_mode);
@@ -1631,13 +1632,13 @@ NAN_METHOD(Adapter::GapSetDeviceName)
     baton->length = length;
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapSetDeviceName, (uv_after_work_cb)AfterGapSetDeviceName);
+    uv_queue_work(uv_default_loop(), baton->req, GapSetDeviceName, reinterpret_cast<uv_after_work_cb>(AfterGapSetDeviceName));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapSetDeviceName(uv_work_t *req)
 {
-    GapSetDeviceNameBaton *baton = static_cast<GapSetDeviceNameBaton *>(req->data);
+    auto baton = static_cast<GapSetDeviceNameBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gap_device_name_set(baton->adapter, baton->conn_sec_mode, baton->dev_name, baton->length);
@@ -1649,7 +1650,7 @@ void Adapter::AfterGapSetDeviceName(uv_work_t *req)
     Nan::HandleScope scope;
 
     // TODO: handle if .Close is called before this function is called.
-    GapSetDeviceNameBaton *baton = static_cast<GapSetDeviceNameBaton *>(req->data);
+    auto baton = static_cast<GapSetDeviceNameBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -1668,9 +1669,9 @@ void Adapter::AfterGapSetDeviceName(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapGetDeviceName)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -1684,19 +1685,19 @@ NAN_METHOD(Adapter::GapGetDeviceName)
         return;
     }
 
-    GapGetDeviceNameBaton *baton = new GapGetDeviceNameBaton(callback);
+    auto baton = new GapGetDeviceNameBaton(callback);
 
     baton->length = 248; // Max length of Device name characteristic
-    baton->dev_name = (uint8_t*)malloc(baton->length);
+    baton->dev_name = static_cast<uint8_t*>(malloc(baton->length));
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapGetDeviceName, (uv_after_work_cb)AfterGapGetDeviceName);
+    uv_queue_work(uv_default_loop(), baton->req, GapGetDeviceName, reinterpret_cast<uv_after_work_cb>(AfterGapGetDeviceName));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapGetDeviceName(uv_work_t *req)
 {
-    GapGetDeviceNameBaton *baton = static_cast<GapGetDeviceNameBaton *>(req->data);
+    auto baton = static_cast<GapGetDeviceNameBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gap_device_name_get(baton->adapter, baton->dev_name, &(baton->length));
@@ -1707,7 +1708,7 @@ void Adapter::AfterGapGetDeviceName(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapGetDeviceNameBaton *baton = static_cast<GapGetDeviceNameBaton *>(req->data);
+    auto baton = static_cast<GapGetDeviceNameBaton *>(req->data);
     v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)
@@ -1720,7 +1721,7 @@ void Adapter::AfterGapGetDeviceName(uv_work_t *req)
         size_t length = baton->length;
         baton->dev_name[length] = 0;
 
-        v8::Local<v8::Value> dev_name = ConversionUtility::toJsString((char *)baton->dev_name);
+        v8::Local<v8::Value> dev_name = ConversionUtility::toJsString(reinterpret_cast<char *>(baton->dev_name));
 
         argv[0] = dev_name;
         argv[1] = Nan::Undefined();
@@ -1733,12 +1734,12 @@ void Adapter::AfterGapGetDeviceName(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapStartRSSI)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     uint8_t treshold_dbm;
     uint8_t skip_count;
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -1761,19 +1762,19 @@ NAN_METHOD(Adapter::GapStartRSSI)
         return;
     }
 
-    GapStartRSSIBaton *baton = new GapStartRSSIBaton(callback);
+    auto baton = new GapStartRSSIBaton(callback);
     baton->conn_handle = conn_handle;
     baton->treshold_dbm = treshold_dbm;
     baton->skip_count = skip_count;
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapStartRSSI, (uv_after_work_cb)AfterGapStartRSSI);
+    uv_queue_work(uv_default_loop(), baton->req, GapStartRSSI, reinterpret_cast<uv_after_work_cb>(AfterGapStartRSSI));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapStartRSSI(uv_work_t *req)
 {
-    GapStartRSSIBaton *baton = static_cast<GapStartRSSIBaton *>(req->data);
+    auto baton = static_cast<GapStartRSSIBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gap_rssi_start(baton->adapter, baton->conn_handle, baton->treshold_dbm, baton->skip_count);
@@ -1784,7 +1785,7 @@ void Adapter::AfterGapStartRSSI(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapStartRSSIBaton *baton = static_cast<GapStartRSSIBaton *>(req->data);
+    auto baton = static_cast<GapStartRSSIBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -1802,10 +1803,10 @@ void Adapter::AfterGapStartRSSI(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapStopRSSI)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -1822,17 +1823,17 @@ NAN_METHOD(Adapter::GapStopRSSI)
         return;
     }
 
-    GapStopRSSIBaton *baton = new GapStopRSSIBaton(callback);
+    auto baton = new GapStopRSSIBaton(callback);
     baton->conn_handle = conn_handle;
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapStopRSSI, (uv_after_work_cb)AfterGapStopRSSI);
+    uv_queue_work(uv_default_loop(), baton->req, GapStopRSSI, reinterpret_cast<uv_after_work_cb>(AfterGapStopRSSI));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapStopRSSI(uv_work_t *req)
 {
-    GapStopRSSIBaton *baton = static_cast<GapStopRSSIBaton *>(req->data);
+    auto baton = static_cast<GapStopRSSIBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gap_rssi_stop(baton->adapter, baton->conn_handle);
@@ -1843,7 +1844,7 @@ void Adapter::AfterGapStopRSSI(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapStopRSSIBaton *baton = static_cast<GapStopRSSIBaton *>(req->data);
+    auto baton = static_cast<GapStopRSSIBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -1861,10 +1862,10 @@ void Adapter::AfterGapStopRSSI(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapStartScan)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Object> options;
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -1883,17 +1884,17 @@ NAN_METHOD(Adapter::GapStartScan)
 
     ble_gap_scan_params_t *params = GapScanParams(options);
 
-    StartScanBaton *baton = new StartScanBaton(callback);
+    auto baton = new StartScanBaton(callback);
     baton->scan_params = params;
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapStartScan, (uv_after_work_cb)AfterGapStartScan);
+    uv_queue_work(uv_default_loop(), baton->req, GapStartScan, reinterpret_cast<uv_after_work_cb>(AfterGapStartScan));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapStartScan(uv_work_t *req)
 {
-    StartScanBaton *baton = static_cast<StartScanBaton *>(req->data);
+    auto baton = static_cast<StartScanBaton *>(req->data);
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gap_scan_start(baton->adapter, baton->scan_params);
 }
@@ -1903,7 +1904,7 @@ void Adapter::AfterGapStartScan(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    StartScanBaton *baton = static_cast<StartScanBaton *>(req->data);
+    auto baton = static_cast<StartScanBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -1921,9 +1922,9 @@ void Adapter::AfterGapStartScan(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapStopScan)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -1937,16 +1938,16 @@ NAN_METHOD(Adapter::GapStopScan)
         return;
     }
 
-    StopScanBaton *baton = new StopScanBaton(callback);
+    auto baton = new StopScanBaton(callback);
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapStopScan, (uv_after_work_cb)AfterGapStopScan);
+    uv_queue_work(uv_default_loop(), baton->req, GapStopScan, reinterpret_cast<uv_after_work_cb>(AfterGapStopScan));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapStopScan(uv_work_t *req)
 {
-    StopScanBaton *baton = static_cast<StopScanBaton *>(req->data);
+    auto baton = static_cast<StopScanBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gap_scan_stop(baton->adapter);
@@ -1957,7 +1958,7 @@ void Adapter::AfterGapStopScan(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    StopScanBaton *baton = static_cast<StopScanBaton *>(req->data);
+    auto baton = static_cast<StopScanBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -1975,12 +1976,12 @@ void Adapter::AfterGapStopScan(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapConnect)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Object> address;
     v8::Local<v8::Object> scan_params;
     v8::Local<v8::Object> conn_params;
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -2003,9 +2004,9 @@ NAN_METHOD(Adapter::GapConnect)
         return;
     }
 
-    GapConnectBaton *baton = new GapConnectBaton(callback);
+    auto baton = new GapConnectBaton(callback);
     baton->adapter = obj->adapter;
-    baton->req->data = (void *)baton;
+    baton->req->data = static_cast<void *>(baton);
 
     try
     {
@@ -2040,13 +2041,13 @@ NAN_METHOD(Adapter::GapConnect)
         return;
     }
 
-    uv_queue_work(uv_default_loop(), baton->req, GapConnect, (uv_after_work_cb)AfterGapConnect);
+    uv_queue_work(uv_default_loop(), baton->req, GapConnect, reinterpret_cast<uv_after_work_cb>(AfterGapConnect));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapConnect(uv_work_t *req)
 {
-    GapConnectBaton *baton = static_cast<GapConnectBaton *>(req->data);
+    auto baton = static_cast<GapConnectBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gap_connect(baton->adapter, baton->address, baton->scan_params, baton->conn_params);
@@ -2057,7 +2058,7 @@ void Adapter::AfterGapConnect(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapConnectBaton *baton = static_cast<GapConnectBaton *>(req->data);
+    auto baton = static_cast<GapConnectBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -2075,9 +2076,9 @@ void Adapter::AfterGapConnect(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapCancelConnect)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -2091,16 +2092,16 @@ NAN_METHOD(Adapter::GapCancelConnect)
         return;
     }
 
-    GapConnectCancelBaton *baton = new GapConnectCancelBaton(callback);
+    auto baton = new GapConnectCancelBaton(callback);
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapCancelConnect, (uv_after_work_cb)AfterGapCancelConnect);
+    uv_queue_work(uv_default_loop(), baton->req, GapCancelConnect, reinterpret_cast<uv_after_work_cb>(AfterGapCancelConnect));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapCancelConnect(uv_work_t *req)
 {
-    GapConnectCancelBaton *baton = static_cast<GapConnectCancelBaton *>(req->data);
+    auto baton = static_cast<GapConnectCancelBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gap_connect_cancel(baton->adapter);
@@ -2111,7 +2112,7 @@ void Adapter::AfterGapCancelConnect(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapConnectCancelBaton *baton = static_cast<GapConnectCancelBaton *>(req->data);
+    auto baton = static_cast<GapConnectCancelBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -2129,10 +2130,10 @@ void Adapter::AfterGapCancelConnect(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapGetRSSI)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -2149,18 +2150,18 @@ NAN_METHOD(Adapter::GapGetRSSI)
         return;
     }
 
-    GapGetRSSIBaton *baton = new GapGetRSSIBaton(callback);
+    auto baton = new GapGetRSSIBaton(callback);
     baton->conn_handle = conn_handle;
     baton->rssi = 0;
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapGetRSSI, (uv_after_work_cb)AfterGapGetRSSI);
+    uv_queue_work(uv_default_loop(), baton->req, GapGetRSSI, reinterpret_cast<uv_after_work_cb>(AfterGapGetRSSI));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapGetRSSI(uv_work_t *req)
 {
-    GapGetRSSIBaton *baton = static_cast<GapGetRSSIBaton *>(req->data);
+    auto baton = static_cast<GapGetRSSIBaton *>(req->data);
 
     std::cout << "GapGetRSSI Call" << std::endl;
 
@@ -2178,7 +2179,7 @@ void Adapter::AfterGapGetRSSI(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapGetRSSIBaton *baton = static_cast<GapGetRSSIBaton *>(req->data);
+    auto baton = static_cast<GapGetRSSIBaton *>(req->data);
     v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)
@@ -2198,10 +2199,10 @@ void Adapter::AfterGapGetRSSI(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapStartAdvertising)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Object> adv_params;
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -2218,7 +2219,7 @@ NAN_METHOD(Adapter::GapStartAdvertising)
         return;
     }
 
-    GapStartAdvertisingBaton *baton = new GapStartAdvertisingBaton(callback);
+    auto baton = new GapStartAdvertisingBaton(callback);
     try
     {
         baton->p_adv_params = GapAdvParams(adv_params);
@@ -2231,13 +2232,13 @@ NAN_METHOD(Adapter::GapStartAdvertising)
     }
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapStartAdvertising, (uv_after_work_cb)AfterGapStartAdvertising);
+    uv_queue_work(uv_default_loop(), baton->req, GapStartAdvertising, reinterpret_cast<uv_after_work_cb>(AfterGapStartAdvertising));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapStartAdvertising(uv_work_t *req)
 {
-    GapStartAdvertisingBaton *baton = static_cast<GapStartAdvertisingBaton *>(req->data);
+    auto baton = static_cast<GapStartAdvertisingBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
 
@@ -2250,7 +2251,7 @@ void Adapter::AfterGapStartAdvertising(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapStartAdvertisingBaton *baton = static_cast<GapStartAdvertisingBaton *>(req->data);
+    auto baton = static_cast<GapStartAdvertisingBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -2268,9 +2269,9 @@ void Adapter::AfterGapStartAdvertising(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapStopAdvertising)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -2284,16 +2285,16 @@ NAN_METHOD(Adapter::GapStopAdvertising)
         return;
     }
 
-    GapStopAdvertisingBaton *baton = new GapStopAdvertisingBaton(callback);
+    auto baton = new GapStopAdvertisingBaton(callback);
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapStopAdvertising, (uv_after_work_cb)AfterGapStopAdvertising);
+    uv_queue_work(uv_default_loop(), baton->req, GapStopAdvertising, reinterpret_cast<uv_after_work_cb>(AfterGapStopAdvertising));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapStopAdvertising(uv_work_t *req)
 {
-    GapStopAdvertisingBaton *baton = static_cast<GapStopAdvertisingBaton *>(req->data);
+    auto baton = static_cast<GapStopAdvertisingBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gap_adv_stop(baton->adapter);
@@ -2304,7 +2305,7 @@ void Adapter::AfterGapStopAdvertising(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapStopAdvertisingBaton *baton = static_cast<GapStopAdvertisingBaton *>(req->data);
+    auto baton = static_cast<GapStopAdvertisingBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -2322,10 +2323,10 @@ void Adapter::AfterGapStopAdvertising(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapGetConnectionSecurity)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -2342,18 +2343,18 @@ NAN_METHOD(Adapter::GapGetConnectionSecurity)
         return;
     }
 
-    GapConnSecGetBaton *baton = new GapConnSecGetBaton(callback);
+    auto baton = new GapConnSecGetBaton(callback);
     baton->conn_handle = conn_handle;
     baton->conn_sec = new ble_gap_conn_sec_t();
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapGetConnectionSecurity, (uv_after_work_cb)AfterGapGetConnectionSecurity);
+    uv_queue_work(uv_default_loop(), baton->req, GapGetConnectionSecurity, reinterpret_cast<uv_after_work_cb>(AfterGapGetConnectionSecurity));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapGetConnectionSecurity(uv_work_t *req)
 {
-    GapConnSecGetBaton *baton = static_cast<GapConnSecGetBaton *>(req->data);
+    auto baton = static_cast<GapConnSecGetBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gap_conn_sec_get(baton->adapter, baton->conn_handle, baton->conn_sec);
@@ -2364,7 +2365,7 @@ void Adapter::AfterGapGetConnectionSecurity(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapConnSecGetBaton *baton = static_cast<GapConnSecGetBaton *>(req->data);
+    auto baton = static_cast<GapConnSecGetBaton *>(req->data);
     v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)
@@ -2385,12 +2386,12 @@ void Adapter::AfterGapGetConnectionSecurity(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapEncrypt)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     v8::Local<v8::Object> master_id_object;
     v8::Local<v8::Object> enc_info_object;
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -2413,7 +2414,7 @@ NAN_METHOD(Adapter::GapEncrypt)
         return;
     }
 
-    GapEncryptBaton *baton = new GapEncryptBaton(callback);
+    auto baton = new GapEncryptBaton(callback);
     baton->conn_handle = conn_handle;
 
     try
@@ -2439,12 +2440,12 @@ NAN_METHOD(Adapter::GapEncrypt)
     }
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapEncrypt, (uv_after_work_cb)AfterGapEncrypt);
+    uv_queue_work(uv_default_loop(), baton->req, GapEncrypt, reinterpret_cast<uv_after_work_cb>(AfterGapEncrypt));
 }
 
 void Adapter::GapEncrypt(uv_work_t *req)
 {
-    GapEncryptBaton *baton = static_cast<GapEncryptBaton *>(req->data);
+    auto baton = static_cast<GapEncryptBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gap_encrypt(baton->adapter, baton->conn_handle, baton->master_id, baton->enc_info);
@@ -2454,7 +2455,7 @@ void Adapter::AfterGapEncrypt(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapEncryptBaton *baton = static_cast<GapEncryptBaton *>(req->data);
+    auto baton = static_cast<GapEncryptBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -2472,13 +2473,13 @@ void Adapter::AfterGapEncrypt(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapReplySecurityParameters)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     uint8_t sec_status;
     v8::Local<v8::Object> sec_params_object;
     v8::Local<v8::Object> sec_keyset_object;
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -2504,7 +2505,7 @@ NAN_METHOD(Adapter::GapReplySecurityParameters)
         return;
     }
 
-    GapSecParamsReplyBaton *baton = new GapSecParamsReplyBaton(callback);
+    auto baton = new GapSecParamsReplyBaton(callback);
     baton->conn_handle = conn_handle;
     baton->sec_status = sec_status;
     try
@@ -2538,13 +2539,13 @@ NAN_METHOD(Adapter::GapReplySecurityParameters)
 //    baton->sec_keyset->keys_periph.p_sign_key = new ble_gap_sign_info_t();
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapReplySecurityParameters, (uv_after_work_cb)AfterGapReplySecurityParameters);
+    uv_queue_work(uv_default_loop(), baton->req, GapReplySecurityParameters, reinterpret_cast<uv_after_work_cb>(AfterGapReplySecurityParameters));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapReplySecurityParameters(uv_work_t *req)
 {
-    GapSecParamsReplyBaton *baton = static_cast<GapSecParamsReplyBaton *>(req->data);
+    auto baton = static_cast<GapSecParamsReplyBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
         /*baton->result = sd_ble_gap_sec_params_reply(baton->adapter,
@@ -2559,7 +2560,7 @@ void Adapter::AfterGapReplySecurityParameters(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapSecParamsReplyBaton *baton = static_cast<GapSecParamsReplyBaton *>(req->data);
+    auto baton = static_cast<GapSecParamsReplyBaton *>(req->data);
     v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)
@@ -2579,13 +2580,13 @@ void Adapter::AfterGapReplySecurityParameters(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapReplySecurityInfo)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     v8::Local<v8::Object> enc_info_object;
     v8::Local<v8::Object> id_info_object;
     v8::Local<v8::Object> sign_info_object;
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -2611,7 +2612,7 @@ NAN_METHOD(Adapter::GapReplySecurityInfo)
         return;
     }
 
-    GapSecInfoReplyBaton *baton = new GapSecInfoReplyBaton(callback);
+    auto baton = new GapSecInfoReplyBaton(callback);
 
     baton->conn_handle = conn_handle;
 
@@ -2649,12 +2650,12 @@ NAN_METHOD(Adapter::GapReplySecurityInfo)
     }
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapReplySecurityInfo, (uv_after_work_cb)AfterGapReplySecurityInfo);
+    uv_queue_work(uv_default_loop(), baton->req, GapReplySecurityInfo, reinterpret_cast<uv_after_work_cb>(AfterGapReplySecurityInfo));
 }
 
 void Adapter::GapReplySecurityInfo(uv_work_t *req)
 {
-    GapSecInfoReplyBaton *baton = static_cast<GapSecInfoReplyBaton *>(req->data);
+    auto baton = static_cast<GapSecInfoReplyBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gap_sec_info_reply(baton->adapter, baton->conn_handle, baton->enc_info, baton->id_info, baton->sign_info);
@@ -2664,7 +2665,7 @@ void Adapter::AfterGapReplySecurityInfo(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapSecInfoReplyBaton *baton = static_cast<GapSecInfoReplyBaton *>(req->data);
+    auto baton = static_cast<GapSecInfoReplyBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -2682,11 +2683,11 @@ void Adapter::AfterGapReplySecurityInfo(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapAuthenticate)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     v8::Local<v8::Object> sec_params;
     v8::Local<v8::Function> callback;
-    int argumentcount = 0;
+    auto argumentcount = 0;
 
     try
     {
@@ -2706,7 +2707,7 @@ NAN_METHOD(Adapter::GapAuthenticate)
         return;
     }
 
-    GapAuthenticateBaton *baton = new GapAuthenticateBaton(callback);
+    auto baton = new GapAuthenticateBaton(callback);
     baton->conn_handle = conn_handle;
 
     try
@@ -2721,13 +2722,13 @@ NAN_METHOD(Adapter::GapAuthenticate)
     }
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapAuthenticate, (uv_after_work_cb)AfterGapAuthenticate);
+    uv_queue_work(uv_default_loop(), baton->req, GapAuthenticate, reinterpret_cast<uv_after_work_cb>(AfterGapAuthenticate));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapAuthenticate(uv_work_t *req)
 {
-    GapAuthenticateBaton *baton = static_cast<GapAuthenticateBaton *>(req->data);
+    auto baton = static_cast<GapAuthenticateBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
 
@@ -2739,7 +2740,7 @@ void Adapter::AfterGapAuthenticate(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapAuthenticateBaton *baton = static_cast<GapAuthenticateBaton *>(req->data);
+    auto baton = static_cast<GapAuthenticateBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -2757,7 +2758,7 @@ void Adapter::AfterGapAuthenticate(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapSetAdvertisingData)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint8_t *adv_data;
     uint8_t adv_data_length;
     uint8_t *scan_response;
@@ -2769,7 +2770,7 @@ NAN_METHOD(Adapter::GapSetAdvertisingData)
     {
         if (info[argumentcount]->IsNull())
         {
-            adv_data = 0;
+            adv_data = nullptr;
             adv_data_length = 0;
         }
         else
@@ -2777,13 +2778,13 @@ NAN_METHOD(Adapter::GapSetAdvertisingData)
             adv_data = ConversionUtility::getNativePointerToUint8(info[argumentcount]);
 
             v8::Local<v8::Array> js_advdata_array = v8::Local<v8::Array>::Cast(info[argumentcount]);
-            adv_data_length = (uint8_t)js_advdata_array->Length();
+            adv_data_length = static_cast<uint8_t>(js_advdata_array->Length());
         }
         argumentcount++;
 
         if (info[argumentcount]->IsNull())
         {
-            scan_response = 0;
+            scan_response = nullptr;
             scan_response_length = 0;
         }
         else
@@ -2791,7 +2792,7 @@ NAN_METHOD(Adapter::GapSetAdvertisingData)
             scan_response = ConversionUtility::getNativePointerToUint8(info[argumentcount]);
 
             v8::Local<v8::Array> js_scanresponse_array = v8::Local<v8::Array>::Cast(info[argumentcount]);
-            scan_response_length = (uint8_t)js_scanresponse_array->Length();
+            scan_response_length = static_cast<uint8_t>(js_scanresponse_array->Length());
         }
         argumentcount++;
 
@@ -2805,24 +2806,21 @@ NAN_METHOD(Adapter::GapSetAdvertisingData)
         return;
     }
 
-    GapSetAdvertisingDataBaton *baton = new GapSetAdvertisingDataBaton(callback);
+    auto baton = new GapSetAdvertisingDataBaton(callback);
     baton->data = adv_data;
     baton->dlen = adv_data_length;
     baton->sr_data = scan_response;
     baton->srdlen = scan_response_length;
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapSetAdvertisingData, (uv_after_work_cb)AfterGapSetAdvertisingData);
+    uv_queue_work(uv_default_loop(), baton->req, GapSetAdvertisingData, reinterpret_cast<uv_after_work_cb>(AfterGapSetAdvertisingData));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapSetAdvertisingData(uv_work_t *req)
 {
-    GapSetAdvertisingDataBaton *baton = static_cast<GapSetAdvertisingDataBaton *>(req->data);
-
+    auto baton = static_cast<GapSetAdvertisingDataBaton *>(req->data);
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
-    adapter_t *a = baton->adapter;//connectedAdapters[baton->adapterID];
-
     baton->result = sd_ble_gap_adv_data_set(baton->adapter, baton->data, baton->dlen, baton->sr_data, baton->srdlen);
 }
 
@@ -2831,7 +2829,7 @@ void Adapter::AfterGapSetAdvertisingData(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapSetAdvertisingDataBaton *baton = static_cast<GapSetAdvertisingDataBaton *>(req->data);
+    auto baton = static_cast<GapSetAdvertisingDataBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -2849,7 +2847,7 @@ void Adapter::AfterGapSetAdvertisingData(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapSetPPCP)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Object> connectionParameters;
     v8::Local<v8::Function> callback;
     uint8_t argumentcount = 0;
@@ -2869,7 +2867,7 @@ NAN_METHOD(Adapter::GapSetPPCP)
         return;
     }
 
-    GapSetPPCPBaton *baton = new GapSetPPCPBaton(callback);
+    auto baton = new GapSetPPCPBaton(callback);
 
     try
     {
@@ -2883,13 +2881,13 @@ NAN_METHOD(Adapter::GapSetPPCP)
     }
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapSetPPCP, (uv_after_work_cb)AfterGapSetPPCP);
+    uv_queue_work(uv_default_loop(), baton->req, GapSetPPCP, reinterpret_cast<uv_after_work_cb>(AfterGapSetPPCP));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapSetPPCP(uv_work_t *req)
 {
-    GapSetPPCPBaton *baton = static_cast<GapSetPPCPBaton *>(req->data);
+    auto baton = static_cast<GapSetPPCPBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
 
@@ -2901,7 +2899,7 @@ void Adapter::AfterGapSetPPCP(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapSetPPCPBaton *baton = static_cast<GapSetPPCPBaton *>(req->data);
+    auto baton = static_cast<GapSetPPCPBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -2921,7 +2919,7 @@ void Adapter::AfterGapSetPPCP(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapGetPPCP)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Function> callback;
     uint8_t argumentcount = 0;
 
@@ -2937,17 +2935,17 @@ NAN_METHOD(Adapter::GapGetPPCP)
         return;
     }
 
-    GapGetPPCPBaton *baton = new GapGetPPCPBaton(callback);
+    auto baton = new GapGetPPCPBaton(callback);
     baton->p_conn_params = new ble_gap_conn_params_t();
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapGetPPCP, (uv_after_work_cb)AfterGapGetPPCP);
+    uv_queue_work(uv_default_loop(), baton->req, GapGetPPCP, reinterpret_cast<uv_after_work_cb>(AfterGapGetPPCP));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapGetPPCP(uv_work_t *req)
 {
-    GapGetPPCPBaton *baton = static_cast<GapGetPPCPBaton *>(req->data);
+    auto baton = static_cast<GapGetPPCPBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
 
@@ -2959,7 +2957,7 @@ void Adapter::AfterGapGetPPCP(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapGetPPCPBaton *baton = static_cast<GapGetPPCPBaton *>(req->data);
+    auto baton = static_cast<GapGetPPCPBaton *>(req->data);
     v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)
@@ -2980,7 +2978,7 @@ void Adapter::AfterGapGetPPCP(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapSetAppearance)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t appearance;
     v8::Local<v8::Function> callback;
     uint8_t argumentcount = 0;
@@ -3000,17 +2998,17 @@ NAN_METHOD(Adapter::GapSetAppearance)
         return;
     }
 
-    GapSetAppearanceBaton *baton = new GapSetAppearanceBaton(callback);
+    auto baton = new GapSetAppearanceBaton(callback);
     baton->appearance = appearance;
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapSetAppearance, (uv_after_work_cb)AfterGapSetAppearance);
+    uv_queue_work(uv_default_loop(), baton->req, GapSetAppearance, reinterpret_cast<uv_after_work_cb>(AfterGapSetAppearance));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapSetAppearance(uv_work_t *req)
 {
-    GapSetAppearanceBaton *baton = static_cast<GapSetAppearanceBaton *>(req->data);
+    auto baton = static_cast<GapSetAppearanceBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
 
@@ -3022,7 +3020,7 @@ void Adapter::AfterGapSetAppearance(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapSetAppearanceBaton *baton = static_cast<GapSetAppearanceBaton *>(req->data);
+    auto baton = static_cast<GapSetAppearanceBaton *>(req->data);
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -3041,7 +3039,7 @@ void Adapter::AfterGapSetAppearance(uv_work_t *req)
 
 NAN_METHOD(Adapter::GapGetAppearance)
 {
-    Adapter* obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Function> callback;
     uint8_t argumentcount = 0;
 
@@ -3057,16 +3055,16 @@ NAN_METHOD(Adapter::GapGetAppearance)
         return;
     }
 
-    GapGetAppearanceBaton *baton = new GapGetAppearanceBaton(callback);
+    auto baton = new GapGetAppearanceBaton(callback);
     baton->adapter = obj->adapter;
 
-    uv_queue_work(uv_default_loop(), baton->req, GapGetAppearance, (uv_after_work_cb)AfterGapGetAppearance);
+    uv_queue_work(uv_default_loop(), baton->req, GapGetAppearance, reinterpret_cast<uv_after_work_cb>(AfterGapGetAppearance));
 }
 
 // This runs in a worker thread (not Main Thread)
 void Adapter::GapGetAppearance(uv_work_t *req)
 {
-    GapGetAppearanceBaton *baton = static_cast<GapGetAppearanceBaton *>(req->data);
+    auto baton = static_cast<GapGetAppearanceBaton *>(req->data);
 
     std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
 
@@ -3078,7 +3076,7 @@ void Adapter::AfterGapGetAppearance(uv_work_t *req)
 {
     Nan::HandleScope scope;
 
-    GapGetAppearanceBaton *baton = static_cast<GapGetAppearanceBaton *>(req->data);
+    auto baton = static_cast<GapGetAppearanceBaton *>(req->data);
     v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)

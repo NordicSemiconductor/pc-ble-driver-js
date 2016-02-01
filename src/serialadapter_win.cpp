@@ -56,7 +56,7 @@
  *
  */
 void GetAdapterList(uv_work_t* req) {
-    AdapterListBaton* data = static_cast<AdapterListBaton*>(req->data);
+    auto data = static_cast<AdapterListBaton*>(req->data);
 
     {
         DISPATCH_OBJ(wmiSvc);
@@ -65,26 +65,26 @@ void GetAdapterList(uv_work_t* req) {
         dhInitialize(TRUE);
         dhToggleExceptions(FALSE);
 
-        dhGetObject(L"winmgmts:{impersonationLevel=impersonate}!\\\\.\\root\\cimv2", NULL, &wmiSvc);
+        dhGetObject(L"winmgmts:{impersonationLevel=impersonate}!\\\\.\\root\\cimv2", nullptr, &wmiSvc);
         dhGetValue(L"%o", &colDevices, wmiSvc, L".ExecQuery(%S)", L"Select * from Win32_PnPEntity");
 
         FOR_EACH(objDevice, colDevices, NULL) {
-            char* name = NULL;
-            char* pnpid = NULL;
-            char* manu = NULL;
+            char* name = nullptr;
+            char* pnpid = nullptr;
+            char* manu = nullptr;
             char* match;
 
             dhGetValue(L"%s", &name,  objDevice, L".Name");
             dhGetValue(L"%s", &pnpid, objDevice, L".PnPDeviceID");
 
-            if( name != NULL && ((match = strstr( name, "(COM" )) != NULL) ) { // look for "(COM23)"
+            if( name != nullptr && ((match = strstr( name, "(COM" )) != nullptr) ) { // look for "(COM23)"
                 // 'Manufacturuer' can be null, so only get it if we need it
                 dhGetValue(L"%s", &manu, objDevice,  L".Manufacturer");
 
                 if(strcmp("SEGGER", manu) == 0)
                 {
-                    char* comname = strtok( match, "()");
-                    AdapterListResultItem* resultItem = new AdapterListResultItem();
+                    auto comname = strtok( match, "()");
+                    auto resultItem = new AdapterListResultItem();
                     resultItem->comName = comname;
                     resultItem->manufacturer = manu;
                     resultItem->pnpId = pnpid;

@@ -6,22 +6,7 @@
 
 #include "common.h"
 
-adapter_t *connectedAdapters[10];
-int adapterCount = 0;
-
-int findAdapterID(adapter_t *adapter)
-{
-    for (int i = 0; i < 10; ++i)
-    {
-        if (connectedAdapters[i]->internal == adapter->internal)
-        {
-            return i;
-        }
-    }
-
-    return -1;
-}
-
+// TODO: Change exceptionTExt to use stringstream/string instead of std::strcpy
 #define RETURN_VALUE_OR_THROW_EXCEPTION(method) \
 try { \
     return (method); \
@@ -88,14 +73,13 @@ static name_map_t hci_status_map =
 
 const std::string getCurrentTimeInMilliseconds()
 {
-    std::chrono::system_clock::time_point current_time = std::chrono::system_clock::now();
-    time_t time = std::chrono::system_clock::to_time_t(current_time);
-    std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(current_time.time_since_epoch());
+    auto current_time = std::chrono::system_clock::now();
+    auto time = std::chrono::system_clock::to_time_t(current_time);
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(current_time.time_since_epoch());
 
-    std::tm *ttm = gmtime(&time);
+    auto ttm = gmtime(&time);
 
     char date_time_format[] = "%Y-%m-%dT%H:%M:%S";
-
     char time_str[20] = "";
 
     strftime(time_str, 20, date_time_format, ttm);
@@ -104,7 +88,7 @@ const std::string getCurrentTimeInMilliseconds()
     result.append(".");
 
     char millisecond_str[4];
-    sprintf(millisecond_str, "%03d", (int)(ms.count() % 1000));
+    sprintf(millisecond_str, "%03d", static_cast<int>(ms.count() % 1000));
     result.append(millisecond_str);
     result.append("Z");
 
@@ -113,16 +97,16 @@ const std::string getCurrentTimeInMilliseconds()
 
 uint16_t uint16_decode(const uint8_t *p_encoded_data)
 {
-        return ( (((uint16_t)((uint8_t *)p_encoded_data)[0])) |
-                 (((uint16_t)((uint8_t *)p_encoded_data)[1]) << 8 ));
+        return ( (static_cast<uint16_t>(const_cast<uint8_t *>(p_encoded_data)[0])) |
+                 (static_cast<uint16_t>(const_cast<uint8_t *>(p_encoded_data)[1]) << 8 ));
 }
 
 uint32_t uint32_decode(const uint8_t *p_encoded_data)
 {
-    return ((((uint32_t)((uint8_t *)p_encoded_data)[0]) << 0)  |
-            (((uint32_t)((uint8_t *)p_encoded_data)[1]) << 8)  |
-            (((uint32_t)((uint8_t *)p_encoded_data)[2]) << 16) |
-            (((uint32_t)((uint8_t *)p_encoded_data)[3]) << 24));
+    return ((static_cast<uint32_t>(const_cast<uint8_t *>(p_encoded_data)[0]) << 0)  |
+            (static_cast<uint32_t>(const_cast<uint8_t *>(p_encoded_data)[1]) << 8)  |
+            (static_cast<uint32_t>(const_cast<uint8_t *>(p_encoded_data)[2]) << 16) |
+            (static_cast<uint32_t>(const_cast<uint8_t *>(p_encoded_data)[3]) << 24));
 }
 
 uint16_t fromNameToValue(name_map_t names, const char *name)
@@ -238,14 +222,14 @@ uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Value> js)
     }
 
     v8::Local<v8::Array> jsarray = v8::Local<v8::Array>::Cast(js);
-    uint32_t length = jsarray->Length();
-    uint8_t *string = (uint8_t *)malloc(sizeof(uint8_t) * length);
+    auto length = jsarray->Length();
+    auto string = static_cast<uint8_t *>(malloc(sizeof(uint8_t) * length));
 
-    assert(string != 0);
+    assert(string != nullptr);
 
     for (uint32_t i = 0; i < length; ++i)
     {
-        string[i] = (uint8_t)jsarray->Get(Nan::New(i))->Uint32Value();
+        string[i] = static_cast<uint8_t>(jsarray->Get(Nan::New(i))->Uint32Value());
     }
 
     return string;
@@ -261,14 +245,14 @@ uint16_t *ConversionUtility::getNativePointerToUint16(v8::Local<v8::Object>js, c
 uint16_t *ConversionUtility::getNativePointerToUint16(v8::Local<v8::Value>js)
 {
     v8::Local<v8::Array> jsarray = v8::Local<v8::Array>::Cast(js);
-    uint32_t length = jsarray->Length();
-    uint16_t *string = (uint16_t *)malloc(sizeof(uint16_t) * length);
+    auto length = jsarray->Length();
+    auto string = static_cast<uint16_t *>(malloc(sizeof(uint16_t) * length));
 
-    assert(string != 0);
+    assert(string != nullptr);
 
-    for (uint32_t i = 0; i < length; ++i)
+    for (auto i = 0; i < length; ++i)
     {
-        string[i] = (uint16_t)jsarray->Get(Nan::New(i))->Uint32Value();
+        string[i] = static_cast<uint16_t>(jsarray->Get(Nan::New(i))->Uint32Value());
     }
 
     return string;
@@ -318,9 +302,9 @@ v8::Local<v8::Object> ConversionUtility::getJsObjectOrNull(v8::Local<v8::Object>
 uint16_t ConversionUtility::stringToValue(name_map_t name_map, v8::Local<v8::Object> string, uint16_t defaultValue)
 {
     name_map_it_t it;
-    uint16_t key = defaultValue;
+    auto key = defaultValue;
 
-    const char *name = (const char *)ConversionUtility::getNativePointerToUint8(string);
+    auto name = reinterpret_cast<const char *>(ConversionUtility::getNativePointerToUint8(string));
 
     for (it = name_map.begin(); it != name_map.end(); ++it)
     {
@@ -353,29 +337,29 @@ std::string ConversionUtility::getNativeString(v8::Local<v8::Value> js)
 
 uint16_t ConversionUtility::msecsToUnitsUint16(v8::Local<v8::Object>js, const char *name, enum ConversionUtility::ConversionUnits unit)
 {
-    double msecs = getNativeDouble(js, name);
+    auto msecs = getNativeDouble(js, name);
     return msecsToUnitsUint16(msecs, unit);
 }
 
 uint16_t ConversionUtility::msecsToUnitsUint16(double msecs, enum ConversionUtility::ConversionUnits unit)
 {
-    return (uint16_t)(msecs * 1000 / unit);
+    return static_cast<uint16_t>(msecs * 1000 / unit);
 }
 
 uint8_t ConversionUtility::msecsToUnitsUint8(v8::Local<v8::Object>js, const char *name, enum ConversionUtility::ConversionUnits unit)
 {
-    double msecs = getNativeDouble(js, name);
+    auto msecs = getNativeDouble(js, name);
     return msecsToUnitsUint8(msecs, unit);
 }
 
 uint8_t ConversionUtility::msecsToUnitsUint8(double msecs, enum ConversionUtility::ConversionUnits unit)
 {
-    return (uint8_t)(msecs * 1000 / unit);
+    return static_cast<uint8_t>(msecs * 1000 / unit);
 }
 
 v8::Handle<v8::Value> ConversionUtility::unitsToMsecs(uint16_t units, enum ConversionUtility::ConversionUnits unit)
 {
-    double _unit = units * unit / 1000.0;
+    auto _unit = units * unit / 1000.0;
     return toJsNumber(_unit);
 }
 
@@ -437,8 +421,8 @@ v8::Handle<v8::Value> ConversionUtility::toJsString(const char *cString)
 v8::Handle<v8::Value> ConversionUtility::toJsString(const char *cString, uint16_t length)
 {
     Nan::EscapableHandleScope scope;
-    char *name = (char*)malloc(length + 1);
-	assert(name != 0);
+    auto name = static_cast<char*>(malloc(length + 1));
+	assert(name != nullptr);
 
     memset(name, 0, length + 1); // Zero terminate the name
     memcpy(name, cString, length);
@@ -452,7 +436,7 @@ v8::Handle<v8::Value> ConversionUtility::toJsString(const char *cString, uint16_
 
 v8::Handle<v8::Value> ConversionUtility::toJsString(uint8_t *cString, uint16_t length)
 {
-    return ConversionUtility::toJsString((const char *)cString, length);
+    return ConversionUtility::toJsString(reinterpret_cast<const char *>(cString), length);
 }
 
 
@@ -527,21 +511,21 @@ uint8_t ConversionUtility::extractHexHelper(char text)
 uint8_t *ConversionUtility::extractHex(v8::Local<v8::Value> js)
 {
     v8::Local<v8::String> jsString = v8::Local<v8::String>::Cast(js);
-    int length = jsString->Length();
-    char *cString = (char *)malloc(sizeof(char) * (length + 1));
+    auto length = jsString->Length();
+    auto cString = static_cast<char *>(malloc(sizeof(char) * (length + 1)));
     memset(cString, 0, length + 1);
 
     jsString->WriteUtf8(cString, length);
 
-    int size = (length / 2);
+    auto size = (length / 2);
 
-    uint8_t *retArray = (uint8_t *)malloc(sizeof(uint8_t) * size);
+    auto retArray = static_cast<uint8_t *>(malloc(sizeof(uint8_t) * size));
     memset(retArray, 0, size);
 
-    for (int i = 0, j = size - 1; i < length; i += 2, j--)
+    for (auto i = 0, j = size - 1; i < length; i += 2, j--)
     {
-        uint8_t first = extractHexHelper(cString[i]);
-        uint8_t second = extractHexHelper(cString[i + 1]);
+        auto first = extractHexHelper(cString[i]);
+        auto second = extractHexHelper(cString[i + 1]);
 
         if (first == 0xFF || second == 0xFF)
         {
@@ -561,9 +545,9 @@ v8::Handle<v8::Value> ConversionUtility::encodeHex(const char *text, int length)
     encoded.width(2);
     encoded.fill('0');
 
-    for (int i = length - 1; i >= 0; --i)
+    for (auto i = length - 1; i >= 0; --i)
     {
-        encoded << std::hex << (((int)text[i]) & 0xFF);
+        encoded << std::hex << (static_cast<int>(text[i]) & 0xFF);
     }
 
     return ConversionUtility::toJsString(encoded.str());
@@ -754,7 +738,7 @@ v8::Local<v8::String> ErrorMessage::getTypeErrorMessage(int argumentNumber, char
 
 v8::Local<v8::String> ErrorMessage::getStructErrorMessage(char const *name, char const *message)
 {
-    std::string errormessage = "Property: " + std::string(name) + " Message: " + std::string(message);
+    auto errormessage = "Property: " + std::string(name) + " Message: " + std::string(message);
     return ConversionUtility::toJsString(errormessage)->ToString();
 }
 
