@@ -55,7 +55,7 @@ typedef enum
 
 /**@brief Function pointer type for event callbacks.
 */
-typedef void(*sd_rpc_status_handler_t)(adapter_t *adapter, sd_rpc_app_status_t code, const char * error);
+typedef void(*sd_rpc_status_handler_t)(adapter_t *adapter, sd_rpc_app_status_t code, const char * message);
 typedef void(*sd_rpc_evt_handler_t)(adapter_t *adapter, ble_evt_t * p_ble_evt);
 typedef void(*sd_rpc_log_handler_t)(adapter_t *adapter, sd_rpc_log_severity_t severity, const char * log_message);
 

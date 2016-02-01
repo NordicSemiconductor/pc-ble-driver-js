@@ -1215,7 +1215,7 @@ extern "C" {
 
     void init_adapter_list(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
-        Utility::SetMethod(target, "get_adapters", GetAdapterList);
+        Utility::SetMethod(target, "getAdapters", GetAdapterList);
     }
 
     void init_driver(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)

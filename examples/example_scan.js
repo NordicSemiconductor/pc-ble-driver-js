@@ -2,7 +2,7 @@ const driver = require('../index').driver;
 
 var evt_count = 0;
 
-driver.get_adapters((err, adapters) => {
+driver.getAdapters((err, adapters) => {
     if (err) {
         console.log('Error trying to fetch adapters! ' + err);
         return;

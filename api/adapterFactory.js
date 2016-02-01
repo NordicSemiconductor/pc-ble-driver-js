@@ -66,7 +66,7 @@ class AdapterFactory extends EventEmitter {
     }
 
     _updateAdapterList(callback) {
-        this._bleDriver.get_adapters((err, adapters) => {
+        this._bleDriver.getAdapters((err, adapters) => {
             if (err) {
                 this.emit('error', err);
                 if (callback && (typeof callback === 'function')) {

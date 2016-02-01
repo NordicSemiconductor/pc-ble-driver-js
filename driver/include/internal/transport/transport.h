@@ -21,7 +21,7 @@
 
 #include <stdint.h>
 
-typedef std::function<void(sd_rpc_app_status_t code, const char *error)> status_cb_t;
+typedef std::function<void(sd_rpc_app_status_t code, const char *message)> status_cb_t;
 typedef std::function<void(uint8_t *data, size_t length)> data_cb_t;
 typedef std::function<void(sd_rpc_log_severity_t severity, std::string message)> log_cb_t;
 
