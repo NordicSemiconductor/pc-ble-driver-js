@@ -421,11 +421,10 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
 
                 Utility::Set(data_obj, gap_ad_type_map[ad_type], uuid_array);
             }
-            else if (ad_type == BLE_GAP_AD_TYPE_SERVICE_DATA)
-            {
-                //std::cout << "Not processed: " << gap_ad_type_map[ad_type] << std::endl;
-                // data_obj->Set(Nan::New(gap_ad_type_map[ad_type]), Nan::New((data[pos + 1] << 8) + data[pos + 2]));
-            }
+            // else if (ad_type == BLE_GAP_AD_TYPE_SERVICE_DATA)
+            // {
+            //     Utility::Set(data_obj, gap_ad_type_map[ad_type], Nan::New<v8::Integer>((data[pos + 1] << 8) + data[pos + 2]));
+            // }
             else if (ad_type == BLE_GAP_AD_TYPE_TX_POWER_LEVEL)
             {
                 if(ad_len - 1 == 1)
