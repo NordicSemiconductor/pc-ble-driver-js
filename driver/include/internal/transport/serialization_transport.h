@@ -44,7 +44,7 @@ class SerializationTransport {
 public:
     SerializationTransport(Transport *dataLinkLayer, uint32_t response_timeout);
     ~SerializationTransport();
-    uint32_t open(error_cb_t error_callback, evt_cb_t event_callback, log_cb_t log_callback);
+    uint32_t open(status_cb_t status_callback, evt_cb_t event_callback, log_cb_t log_callback);
     uint32_t close();
     uint32_t send(uint8_t *cmdBuffer, uint32_t cmdLength, uint8_t *rspBuffer, uint32_t *rspLength);
 
@@ -53,7 +53,7 @@ private:
     void readHandler(uint8_t *data, size_t length);
     void eventHandlingRunner();
 
-    error_cb_t errorCallback;
+    status_cb_t statusCallback;
     evt_cb_t eventCallback;
     log_cb_t logCallback;
 

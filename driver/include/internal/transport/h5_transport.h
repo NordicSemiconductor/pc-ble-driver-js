@@ -179,13 +179,13 @@ class H5Transport : public Transport {
 public:
     H5Transport(Transport *nextTransportLayer, uint32_t retransmission_timeout);
     ~H5Transport();
-    uint32_t open(error_cb_t error_callback, data_cb_t data_callback, log_cb_t log_callback) override;
+    uint32_t open(status_cb_t status_callback, data_cb_t data_callback, log_cb_t log_callback) override;
     uint32_t close() override;
     uint32_t send(std::vector<uint8_t> &data) override;
 
 private:
     void dataHandler(uint8_t *data, size_t length);
-    void errorHandler(sd_rpc_app_err_t code, const char * error);
+    void statusHandler(sd_rpc_app_status_t code, const char * error);
     void processPacket(std::vector<uint8_t>& packet);
 
     void sendControlPacket(control_pkt_type type);

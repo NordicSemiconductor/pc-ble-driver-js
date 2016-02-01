@@ -22,9 +22,11 @@ typedef enum
     PKT_UNEXPECTED,
     PKT_ENCODE_ERROR,
     PKT_DECODE_ERROR,
+    PKT_SEND_ERROR,
     IO_RESOURCES_UNAVAILABLE,
-    RESET_PERFORMED
-} sd_rpc_app_err_t;
+    RESET_PERFORMED,
+    CONNECTION_ACTIVE
+} sd_rpc_app_status_t;
 
 /**@brief Levels of severity that a log message can be associated with. */
 typedef enum
@@ -53,7 +55,7 @@ typedef enum
 
 /**@brief Function pointer type for event callbacks.
 */
-typedef void(*sd_rpc_error_handler_t)(adapter_t *adapter, sd_rpc_app_err_t code, const char * error);
+typedef void(*sd_rpc_status_handler_t)(adapter_t *adapter, sd_rpc_app_status_t code, const char * error);
 typedef void(*sd_rpc_evt_handler_t)(adapter_t *adapter, ble_evt_t * p_ble_evt);
 typedef void(*sd_rpc_log_handler_t)(adapter_t *adapter, sd_rpc_log_severity_t severity, const char * log_message);
 

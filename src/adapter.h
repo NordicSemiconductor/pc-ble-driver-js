@@ -10,7 +10,7 @@
 
 const auto EVENT_QUEUE_SIZE = 64;
 const auto LOG_QUEUE_SIZE = 64;
-const auto ERROR_QUEUE_SIZE = 64;
+const auto STATUS_QUEUE_SIZE = 64;
 
 #define ADAPTER_METHOD_DEFINITIONS(MainName) \
     static NAN_METHOD(MainName); \
@@ -30,10 +30,10 @@ public:
     int adapterID;
 };
 
-struct ErrorEntry
+struct StatusEntry
 {
 public:
-    sd_rpc_app_err_t errorCode;
+    sd_rpc_app_status_t statusCode;
     std::string message;
 };
 
@@ -42,7 +42,7 @@ using namespace memory_sequential_unsafe;
 
 typedef CircularFifo<EventEntry *, EVENT_QUEUE_SIZE> EventQueue;
 typedef CircularFifo<LogEntry *, LOG_QUEUE_SIZE> LogQueue;
-typedef CircularFifo<ErrorEntry *, ERROR_QUEUE_SIZE> ErrorQueue;
+typedef CircularFifo<StatusEntry *, STATUS_QUEUE_SIZE> StatusQueue;
 
 class Adapter : public Nan::ObjectWrap {
 public:
@@ -63,10 +63,10 @@ public:
 
     void onLogEvent(uv_async_t *handle);
 
-    void initErrorHandling(Nan::Callback *callback);
-    void appendError(ErrorEntry *log);
+    void initStatusHandling(Nan::Callback *callback);
+    void appendStatus(StatusEntry *log);
 
-    void onErrorEvent(uv_async_t *handle);
+    void onStatusEvent(uv_async_t *handle);
 
     void removeCallbacks();
 
@@ -158,13 +158,13 @@ private:
     void dispatchEvents();
 
     adapter_t *adapter;
-    EventQueue events;
-    LogQueue logs;
-    ErrorQueue errors;
+    EventQueue eventQueue;
+    LogQueue logQueue;
+    StatusQueue statusQueue;
 
     Nan::Callback *eventCallback;
     Nan::Callback *logCallback;
-    Nan::Callback *errorCallback;
+    Nan::Callback *statusCallback;
 
     // Interval to use for sending BLE driver events to JavaScript. If 0 events will be sent as soon as they are received from the BLE driver.
     uint32_t eventInterval;
@@ -173,7 +173,7 @@ private:
 
     uv_async_t asyncLog;
 
-    uv_async_t asyncError;
+    uv_async_t asyncStatus;
 
     // Statistics:
     // Accumulated deltas for event callbacks done to the driver

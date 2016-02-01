@@ -40,7 +40,7 @@ public:
 
     /**@brief Setup of serial port service with parameter data.
      */
-    uint32_t open(error_cb_t error_callback, data_cb_t data_callback, log_cb_t log_callback);
+    uint32_t open(status_cb_t status_callback, data_cb_t data_callback, log_cb_t log_callback);
 
     /**@brief Closes the serial port service.
      */

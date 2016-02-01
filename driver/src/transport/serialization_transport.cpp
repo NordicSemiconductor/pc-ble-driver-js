@@ -20,7 +20,7 @@
 #include <cstring> // Do not remove! Required by gcc.
 
 SerializationTransport::SerializationTransport(Transport *dataLinkLayer, uint32_t response_timeout)
-    : errorCallback(nullptr), eventCallback(nullptr),
+    : statusCallback(nullptr), eventCallback(nullptr),
     logCallback(nullptr), rspReceived(false),
     responseBuffer(nullptr), responseLength(nullptr),
     runEventThread(false)
@@ -39,17 +39,15 @@ SerializationTransport::~SerializationTransport()
     delete nextTransportLayer;
 }
 
-uint32_t SerializationTransport::open(error_cb_t error_callback, evt_cb_t event_callback, log_cb_t log_callback)
+uint32_t SerializationTransport::open(status_cb_t status_callback, evt_cb_t event_callback, log_cb_t log_callback)
 {
-    // bound functions are difficult to use for callbacks i guess.
-    auto test = error_callback;
-    errorCallback = error_callback;
+    statusCallback = status_callback;
     eventCallback = event_callback;
     logCallback = log_callback;
 
     data_cb_t dataCallback = std::bind(&SerializationTransport::readHandler, this, std::placeholders::_1, std::placeholders::_2);
 
-    uint32_t errorCode = nextTransportLayer->open(error_callback, dataCallback, log_callback);
+    uint32_t errorCode = nextTransportLayer->open(status_callback, dataCallback, log_callback);
 
     if (errorCode != NRF_SUCCESS)
     {

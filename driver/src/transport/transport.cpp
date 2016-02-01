@@ -28,9 +28,9 @@ Transport::~Transport()
     /* Intentional empty */
 }
 
-uint32_t Transport::open(error_cb_t error_callback, data_cb_t data_callback, log_cb_t log_callback)
+uint32_t Transport::open(status_cb_t status_callback, data_cb_t data_callback, log_cb_t log_callback)
 {
-    errorCallback = error_callback;
+    statusCallback = status_callback;
     dataCallback = data_callback;
     logCallback = log_callback;
 

@@ -34,7 +34,6 @@ set_source_files_properties(
     LANGUAGE CXX
 )
 
-# TODO: evaluate if we shall change target name to ble_driver since we shall be SD version/nRF5X independant
 add_library(pc-ble-driver SHARED ${LIB_C_SOURCES} ${LIB_CPP_SOURCES})
 
 # Specify libraries to link serialization library with

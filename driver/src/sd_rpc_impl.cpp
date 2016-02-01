@@ -72,25 +72,25 @@ adapter_t *sd_rpc_adapter_create(transport_layer_t* transport_layer)
 {
     auto adapterLayer = static_cast<adapter_t *>(malloc(sizeof(adapter_t)));
     auto transportLayer = static_cast<SerializationTransport *>(transport_layer->internal);
-    auto adapter = new Adapter(transportLayer);
+    auto adapter = new AdapterInternal(transportLayer);
     adapterLayer->internal = static_cast<void *>(adapter);
     return adapterLayer;
 }
 
 void sd_rpc_adapter_delete(adapter_t *adapter)
 {
-    auto adapterLayer= static_cast<Adapter *>(adapter->internal);
+    auto adapterLayer= static_cast<AdapterInternal *>(adapter->internal);
     delete adapterLayer;
 }
 
-uint32_t sd_rpc_open(adapter_t *adapter, sd_rpc_error_handler_t error_handler, sd_rpc_evt_handler_t event_handler, sd_rpc_log_handler_t log_handler)
+uint32_t sd_rpc_open(adapter_t *adapter, sd_rpc_status_handler_t status_handler, sd_rpc_evt_handler_t event_handler, sd_rpc_log_handler_t log_handler)
 {
-    auto adapterLayer = static_cast<Adapter *>(adapter->internal);
-    return adapterLayer->open(error_handler, event_handler, log_handler);
+    auto adapterLayer = static_cast<AdapterInternal *>(adapter->internal);
+    return adapterLayer->open(status_handler, event_handler, log_handler);
 }
 
 uint32_t sd_rpc_close(adapter_t *adapter)
 {
-    auto adapterLayer = static_cast<Adapter*>(adapter->internal);
+    auto adapterLayer = static_cast<AdapterInternal*>(adapter->internal);
     return adapterLayer->close();
 }

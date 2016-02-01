@@ -190,7 +190,7 @@ uint32_t sd_ble_enable(adapter_t *adapter, ble_enable_params_t * p_params)
 
 uint32_t sd_ble_user_mem_reply(adapter_t *adapter, uint16_t conn_handle, ble_user_mem_block_t const *p_block)
 {
-    if (p_block != NULL)
+    if (p_block != nullptr)
     {
         return NRF_ERROR_INVALID_PARAM;
     }

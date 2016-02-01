@@ -95,7 +95,7 @@ void sd_rpc_on_log_event(adapter_t *adapter, sd_rpc_log_severity_t severity, con
 
 void Adapter::appendLog(LogEntry *log)
 {
-    logs.push(log);
+    logQueue.push(log);
 
     if (!closing)
     {
@@ -108,10 +108,10 @@ void Adapter::onLogEvent(uv_async_t *handle)
 {
     Nan::HandleScope scope;
 
-    while (!logs.wasEmpty())
+    while (!logQueue.wasEmpty())
     {
         LogEntry *logEntry;
-        logs.pop(logEntry);
+        logQueue.pop(logEntry);
 
         if (logCallback != nullptr)
         {
@@ -189,7 +189,7 @@ void Adapter::appendEvent(ble_evt_t *event)
     eventEntry->event = static_cast<ble_evt_t*>(evt);
     eventEntry->timestamp = getCurrentTimeInMilliseconds();
 
-    events.push(eventEntry);
+    eventQueue.push(eventEntry);
 
     // If the event interval is not set, send the events to NodeJS as soon as possible.
     if (eventInterval == 0)
@@ -203,7 +203,7 @@ void Adapter::onRpcEvent(uv_async_t *handle)
 {
     Nan::HandleScope scope;
 
-    if (events.wasEmpty())
+    if (eventQueue.wasEmpty())
     {
         return;
     }
@@ -211,10 +211,10 @@ void Adapter::onRpcEvent(uv_async_t *handle)
     auto array = Nan::New<v8::Array>();
     auto arrayIndex = 0;
 
-    while (!events.wasEmpty())
+    while (!eventQueue.wasEmpty())
     {
         EventEntry *eventEntry = nullptr;
-        events.pop(eventEntry);
+        eventQueue.pop(eventEntry);
         assert(eventEntry != nullptr);
 
         auto event = eventEntry->event;
@@ -290,17 +290,17 @@ void Adapter::onRpcEvent(uv_async_t *handle)
     addEventBatchStatistics(duration);
 }
 
-static void sd_rpc_on_error(adapter_t *adapter, sd_rpc_app_err_t code, const char * error)
+static void sd_rpc_on_status(adapter_t *adapter, sd_rpc_app_status_t code, const char * message)
 {
-    auto errorEntry = new ErrorEntry();
-    errorEntry->errorCode = code;
-    errorEntry->message = std::string(error);
+    auto statusEntry = new StatusEntry();
+    statusEntry->statusCode = code;
+    statusEntry->message = std::string(message);
 
     auto jsAdapter = Adapter::getAdapter(adapter, adapterBeingOpened);
 
     if (jsAdapter != nullptr)
     {
-        jsAdapter->appendError(errorEntry);
+        jsAdapter->appendStatus(statusEntry);
     }
     else
     {
@@ -309,36 +309,36 @@ static void sd_rpc_on_error(adapter_t *adapter, sd_rpc_app_err_t code, const cha
     }
 }
 
-void Adapter::appendError(ErrorEntry *error)
+void Adapter::appendStatus(StatusEntry *status)
 {
-    errors.push(error);
+    statusQueue.push(status);
 
     if (!closing)
     {
-        uv_async_send(&asyncError);
+        uv_async_send(&asyncStatus);
     }
 }
 
 // Now we are in the NodeJS thread. Call callbacks.
-void Adapter::onErrorEvent(uv_async_t *handle)
+void Adapter::onStatusEvent(uv_async_t *handle)
 {
     Nan::HandleScope scope;
 
-    while (!errors.wasEmpty())
+    while (!statusQueue.wasEmpty())
     {
-        ErrorEntry *errorEntry;
-        errors.pop(errorEntry);
+        StatusEntry *statusEntry;
+        statusQueue.pop(statusEntry);
 
-        if (errorCallback != nullptr)
+        if (statusCallback != nullptr)
         {
             v8::Local<v8::Value> argv[2];
-            argv[0] = ConversionUtility::toJsNumber(static_cast<int>(errorEntry->errorCode));
-            argv[1] = ConversionUtility::toJsString(errorEntry->message);
-            errorCallback->Call(2, argv);
+            argv[0] = ConversionUtility::toJsNumber(static_cast<int>(statusEntry->statusCode));
+            argv[1] = ConversionUtility::toJsString(statusEntry->message);
+            statusCallback->Call(2, argv);
         }
 
         // Free memory for current entry, we remove the element from the deque when the iteration is done
-        delete errorEntry;
+        delete statusEntry;
     }
 }
 
@@ -455,7 +455,7 @@ NAN_METHOD(Adapter::Open)
 
     try
     {
-        baton->error_callback = new Nan::Callback(ConversionUtility::getCallbackFunction(options, "errorCallback"));
+        baton->status_callback = new Nan::Callback(ConversionUtility::getCallbackFunction(options, "statusCallback"));
     }
     catch (char const *error)
     {
@@ -476,7 +476,7 @@ void Adapter::Open(uv_work_t *req)
 
     baton->mainObject->initEventHandling(baton->event_callback, baton->evt_interval);
     baton->mainObject->initLogHandling(baton->log_callback);
-    baton->mainObject->initErrorHandling(baton->error_callback);
+    baton->mainObject->initStatusHandling(baton->status_callback);
 
     // Ensure that the correct adapter gets the callbacks as long as we have no reference to
     // the driver adapter until after sd_rpc_open is called
@@ -489,7 +489,7 @@ void Adapter::Open(uv_work_t *req)
     auto serialization = sd_rpc_transport_layer_create(h5, 750);
     auto adapter = sd_rpc_adapter_create(serialization);
 
-    auto error_code = sd_rpc_open(adapter, sd_rpc_on_error, sd_rpc_on_event, sd_rpc_on_log_event);
+    auto error_code = sd_rpc_open(adapter, sd_rpc_on_status, sd_rpc_on_event, sd_rpc_on_log_event);
 
     // Let the normal log handling handle the rest of the log calls
     adapterBeingOpened = nullptr;

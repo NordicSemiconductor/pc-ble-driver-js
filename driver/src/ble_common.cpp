@@ -13,13 +13,13 @@ uint32_t encode_decode(adapter_t *adapter, encode_function_t encode_function, de
     std::unique_ptr<uint8_t> tx_buffer(static_cast<uint8_t*>(std::malloc(SER_HAL_TRANSPORT_MAX_PKT_SIZE)));
     std::unique_ptr<uint8_t> rx_buffer(static_cast<uint8_t*>(std::malloc(SER_HAL_TRANSPORT_MAX_PKT_SIZE)));
 
-    auto _adapter = static_cast<Adapter*>(adapter->internal);
+    auto _adapter = static_cast<AdapterInternal*>(adapter->internal);
 
     uint32_t err_code = encode_function(tx_buffer.get(), &tx_buffer_length);
 
-    // TODO: implement error callback
     if (_adapter->isInternalError(err_code))
     {
+        _adapter->statusHandler(PKT_DECODE_ERROR, "Not able to decode packet received from target.");
         return NRF_ERROR_INTERNAL;
     }
 
@@ -40,9 +40,9 @@ uint32_t encode_decode(adapter_t *adapter, encode_function_t encode_function, de
             &rx_buffer_length);
     }
 
-    // TODO: implement error callback
     if (_adapter->isInternalError(err_code))
     {
+        _adapter->statusHandler(PKT_SEND_ERROR, "Error sending packet to target. Error code is: " + err_code);
         return NRF_ERROR_INTERNAL;
     }
 
@@ -53,10 +53,9 @@ uint32_t encode_decode(adapter_t *adapter, encode_function_t encode_function, de
         err_code = decode_function(rx_buffer.get(), rx_buffer_length, &result_code);
     }
 
-    // TODO: implement error callback
-
     if (_adapter->isInternalError(err_code))
     {
+        _adapter->statusHandler(PKT_DECODE_ERROR, "Not able to decode packet. Error code is: " + err_code);
         return NRF_ERROR_INTERNAL;
     }
 

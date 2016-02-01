@@ -69,7 +69,7 @@ H5Transport::~H5Transport()
     delete nextTransportLayer;
 }
 
-uint32_t H5Transport::open(error_cb_t error_callback, data_cb_t data_callback, log_cb_t log_callback)
+uint32_t H5Transport::open(status_cb_t status_callback, data_cb_t data_callback, log_cb_t log_callback)
 {
     if (currentState != STATE_START)
     {
@@ -80,7 +80,7 @@ uint32_t H5Transport::open(error_cb_t error_callback, data_cb_t data_callback, l
     startStateMachine();
     auto _exitCriterias = dynamic_cast<StartExitCriterias*>(exitCriterias[STATE_START]);
 
-    auto errorCode = Transport::open(error_callback, data_callback, log_callback);
+    auto errorCode = Transport::open(status_callback, data_callback, log_callback);
     lastPacket.clear();
 
     if (errorCode != NRF_SUCCESS)
@@ -90,9 +90,9 @@ uint32_t H5Transport::open(error_cb_t error_callback, data_cb_t data_callback, l
         return errorCode;
     }
 
-    error_callback = std::bind(&H5Transport::errorHandler, this, std::placeholders::_1, std::placeholders::_2);
+    status_callback = std::bind(&H5Transport::statusHandler, this, std::placeholders::_1, std::placeholders::_2);
     data_callback = std::bind(&H5Transport::dataHandler, this, std::placeholders::_1, std::placeholders::_2);
-    errorCode = nextTransportLayer->open(error_callback, data_callback, log_callback);
+    errorCode = nextTransportLayer->open(status_callback, data_callback, log_callback);
 
     if (errorCode != NRF_SUCCESS)
     {
@@ -310,7 +310,7 @@ void H5Transport::processPacket(std::vector<uint8_t> &packet)
     }
 }
 
-void H5Transport::errorHandler(sd_rpc_app_err_t code, const char * error)
+void H5Transport::statusHandler(sd_rpc_app_status_t code, const char * error)
 {
     if (code == IO_RESOURCES_UNAVAILABLE)
     {
@@ -318,7 +318,7 @@ void H5Transport::errorHandler(sd_rpc_app_err_t code, const char * error)
         syncWaitCondition.notify_all();
     }
 
-    errorCallback(code, error);
+    statusCallback(code, error);
 }
 
 void H5Transport::dataHandler(uint8_t *data, size_t length)
@@ -426,7 +426,7 @@ void H5Transport::setupStateMachine()
         while (!exit->isFullfilled())
         {
             sendControlPacket(CONTROL_PKT_RESET);
-            errorCallback(RESET_PERFORMED, "Target Reset performed");
+            statusCallback(RESET_PERFORMED, "Target Reset performed");
             exit->resetSent = true;
             syncWaitCondition.wait_for(syncGuard, RESET_WAIT_DURATION);
         }
@@ -509,6 +509,8 @@ void H5Transport::setupStateMachine()
         std::unique_lock<std::mutex> syncGuard(syncMutex);
         auto exit = dynamic_cast<ActiveExitCriterias*>(exitCriterias[STATE_ACTIVE]);
         exit->reset();
+
+        statusHandler(CONNECTION_ACTIVE, "Connection active");
 
         while (!exit->isFullfilled())
         {

@@ -122,13 +122,13 @@ void Adapter::initLogHandling(Nan::Callback *callback)
 }
 
 extern "C" {
-    void error_handler(uv_async_t *handle)
+    void status_handler(uv_async_t *handle)
     {
         auto adapter = static_cast<Adapter *>(handle->data);
 
         if (adapter != nullptr)
         {
-            adapter->onErrorEvent(handle);
+            adapter->onStatusEvent(handle);
         }
         else
         {
@@ -138,12 +138,12 @@ extern "C" {
     }
 }
 
-void Adapter::initErrorHandling(Nan::Callback *callback)
+void Adapter::initStatusHandling(Nan::Callback *callback)
 {
     // Setup event related functionality
-    errorCallback = callback;
-    asyncError.data = static_cast<void *>(this);
-    uv_async_init(uv_default_loop(), &asyncError, error_handler);
+    statusCallback = callback;
+    asyncStatus.data = static_cast<void *>(this);
+    uv_async_init(uv_default_loop(), &asyncStatus, status_handler);
 }
 
 void Adapter::removeCallbacks()
@@ -162,15 +162,15 @@ void Adapter::removeCallbacks()
         logCallback = nullptr;
     }
 
-    if (errorCallback != nullptr)
+    if (statusCallback != nullptr)
     {
-        delete errorCallback;
-        errorCallback = nullptr;
+        delete statusCallback;
+        statusCallback = nullptr;
     }
 
     uv_close(reinterpret_cast<uv_handle_t *>(&asyncLog), nullptr);
     uv_close(reinterpret_cast<uv_handle_t *>(&asyncEvent), nullptr);
-    uv_close(reinterpret_cast<uv_handle_t *>(&asyncError), nullptr);
+    uv_close(reinterpret_cast<uv_handle_t *>(&asyncStatus), nullptr);
 }
 
 void Adapter::initGeneric(v8::Local<v8::FunctionTemplate> tpl)

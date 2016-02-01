@@ -21,21 +21,21 @@
 
 #include <stdint.h>
 
-typedef std::function<void(sd_rpc_app_err_t code, const char *error)> error_cb_t;
+typedef std::function<void(sd_rpc_app_status_t code, const char *error)> status_cb_t;
 typedef std::function<void(uint8_t *data, size_t length)> data_cb_t;
 typedef std::function<void(sd_rpc_log_severity_t severity, std::string message)> log_cb_t;
 
 class Transport {
 public:
     virtual ~Transport();
-    virtual uint32_t open(error_cb_t error_callback, data_cb_t data_callback, log_cb_t log_callback);
+    virtual uint32_t open(status_cb_t status_callback, data_cb_t data_callback, log_cb_t log_callback);
     virtual uint32_t close();
     virtual uint32_t send(std::vector<uint8_t> &data) = 0;
 
 protected:
     Transport();
 
-    error_cb_t errorCallback;
+    status_cb_t statusCallback;
     data_cb_t dataCallback;
     log_cb_t logCallback;
 };

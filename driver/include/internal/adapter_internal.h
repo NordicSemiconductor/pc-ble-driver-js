@@ -17,15 +17,15 @@
 
 #include <string>
 
-class Adapter {
+class AdapterInternal {
     public:
-        explicit Adapter(SerializationTransport *transport);
-        ~Adapter();
-        uint32_t open(const sd_rpc_error_handler_t error_callback, const sd_rpc_evt_handler_t event_callback, const sd_rpc_log_handler_t log_callback);
+        explicit AdapterInternal(SerializationTransport *transport);
+        ~AdapterInternal();
+        uint32_t open(const sd_rpc_status_handler_t status_callback, const sd_rpc_evt_handler_t event_callback, const sd_rpc_log_handler_t log_callback);
         uint32_t close() const;
         static bool isInternalError(const uint32_t error_code);
 
-        void errorHandler(sd_rpc_app_err_t code, const char * error);
+        void statusHandler(sd_rpc_app_status_t code, const char * error);
         void eventHandler(ble_evt_t *event);
         void logHandler(sd_rpc_log_severity_t severity, std::string log_message);
 
@@ -33,7 +33,7 @@ class Adapter {
 
     private:
         sd_rpc_evt_handler_t eventCallback;
-        sd_rpc_error_handler_t errorCallback;
+        sd_rpc_status_handler_t statusCallback;
         sd_rpc_log_handler_t logCallback;
 };
 

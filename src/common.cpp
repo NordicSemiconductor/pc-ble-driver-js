@@ -6,7 +6,6 @@
 
 #include "common.h"
 
-// TODO: Change exceptionTExt to use stringstream/string instead of std::strcpy
 #define RETURN_VALUE_OR_THROW_EXCEPTION(method) \
 try { \
     return (method); \
@@ -14,10 +13,9 @@ try { \
 catch(char const *error) \
 { \
     std::cout << "Exception: " << name << ":" << error << std::endl; \
-    std::string ex = std::string("Failed to get property ") + std::string(name) + ": " + std::string(error); \
-    char *exceptionText = new char[ex.length() + 1]; \
-    std::strcpy (exceptionText, ex.c_str()); \
-    throw exceptionText; \
+    std::stringstream ex; \
+    ex << "Failed to get property " << name << ": " << error; \
+    throw ex.str().c_str(); \
 }
 
 static name_map_t error_message_name_map = {
@@ -250,7 +248,7 @@ uint16_t *ConversionUtility::getNativePointerToUint16(v8::Local<v8::Value>js)
 
     assert(string != nullptr);
 
-    for (auto i = 0; i < length; ++i)
+    for (uint32_t i = 0; i < length; ++i)
     {
         string[i] = static_cast<uint16_t>(jsarray->Get(Nan::New(i))->Uint32Value());
     }
