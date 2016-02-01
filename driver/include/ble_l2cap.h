@@ -43,12 +43,13 @@
 #ifndef BLE_L2CAP_H__
 #define BLE_L2CAP_H__
 
+#include "adapter.h"
+
 #include "config/platform.h"
 
 #include "ble_types.h"
 #include "ble_ranges.h"
 #include "ble_err.h"
-#include "nrf_svc.h"
 
 /**@addtogroup BLE_L2CAP_ENUMERATIONS Enumerations
  * @{ */

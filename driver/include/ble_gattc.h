@@ -43,12 +43,13 @@
 #ifndef BLE_GATTC_H__
 #define BLE_GATTC_H__
 
+#include "adapter.h"
+
 #include "config/platform.h"
 
 #include "ble_gatt.h"
 #include "ble_types.h"
 #include "ble_ranges.h"
-#include "nrf_svc.h"
 
 /** @addtogroup BLE_GATTC_ENUMERATIONS Enumerations
  * @{ */

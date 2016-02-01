@@ -94,10 +94,3 @@ uint32_t sd_rpc_close(adapter_t *adapter)
     auto adapterLayer = static_cast<Adapter*>(adapter->internal);
     return adapterLayer->close();
 }
-
-// TODO: remove this function
-uint32_t sd_rpc_log_handler_severity_filter_set(adapter_t *adapter, sd_rpc_log_severity_t severity_filter)
-{
-    // TODO: Does adapters need to remember severity filter?
-    return NRF_SUCCESS;
-}

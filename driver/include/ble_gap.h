@@ -43,11 +43,12 @@
 #ifndef BLE_GAP_H__
 #define BLE_GAP_H__
 
+#include "adapter.h"
+
 #include "config/platform.h"
 
 #include "ble_types.h"
 #include "ble_ranges.h"
-#include "nrf_svc.h"
 
 /**@addtogroup BLE_GAP_ENUMERATIONS Enumerations
  * @{ */

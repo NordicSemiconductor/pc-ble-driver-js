@@ -489,7 +489,7 @@ void H5Transport::setupStateMachine()
             }
         }
 
-/*        if (exit->syncConfigSent && exit->syncConfigRspReceived 
+/*        if (exit->syncConfigSent && exit->syncConfigRspReceived
             && exit->syncConfigReceived && exit->syncConfigRspSent)*/
         if (exit->syncConfigSent && exit->syncConfigReceived && exit->syncConfigReceived && exit->syncConfigRspReceived)
         {
@@ -775,7 +775,7 @@ std::string H5Transport::h5PktToString(bool out, std::vector<uint8_t> &h5Packet)
     }
 
     std::stringstream retval;
-    retval 
+    retval
         << count.str()
         << " [" << asHex(payload) << "]" << std::endl
         << std::setw(20) << "type:" << std::setw(20) << pktTypeToString(packet_type)
@@ -791,8 +791,6 @@ std::string H5Transport::h5PktToString(bool out, std::vector<uint8_t> &h5Packet)
     return retval.str();
 }
 
-
-
 void H5Transport::logPacket(bool outgoing, std::vector<uint8_t> &packet)
 {
     if (outgoing)
@@ -803,7 +801,7 @@ void H5Transport::logPacket(bool outgoing, std::vector<uint8_t> &packet)
     {
         incomingPacketCount++;
     }
-    
+
     std::string logLine = h5PktToString(outgoing, packet).c_str();
 
     if (this->logCallback != nullptr)

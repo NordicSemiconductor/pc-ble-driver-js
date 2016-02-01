@@ -43,6 +43,8 @@
 #ifndef BLE_GATTS_H__
 #define BLE_GATTS_H__
 
+#include "adapter.h"
+
 #include "config/platform.h"
 
 #include "ble_types.h"
@@ -50,7 +52,6 @@
 #include "ble_l2cap.h"
 #include "ble_gap.h"
 #include "ble_gatt.h"
-#include "nrf_svc.h"
 
 /** @addtogroup BLE_GATTS_ENUMERATIONS Enumerations
  * @{ */

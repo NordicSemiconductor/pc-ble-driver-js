@@ -22,7 +22,6 @@ file(GLOB_RECURSE LIB_CPP_SOURCES src/*.cpp)
 add_definitions(
     -DSD_RPC_EXPORTS
     -DNRF51
-    -DSVCALL_AS_NORMAL_FUNCTION
     -DBLE_STACK_SUPPORT_REQD
     -DHCI_LINK_CONTROL # Adds support for Link Control packets according to the HCI standard
     -DS130
