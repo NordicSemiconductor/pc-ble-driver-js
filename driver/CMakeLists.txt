@@ -36,9 +36,9 @@ set_source_files_properties(
 )
 
 # TODO: evaluate if we shall change target name to ble_driver since we shall be SD version/nRF5X independant
-add_library(s130_nrf51_ble_driver SHARED ${LIB_C_SOURCES} ${LIB_CPP_SOURCES})
+add_library(pc-ble-driver SHARED ${LIB_C_SOURCES} ${LIB_CPP_SOURCES})
 
 # Specify libraries to link serialization library with
-target_link_libraries (s130_nrf51_ble_driver PRIVATE ${Boost_LIBRARIES})
+target_link_libraries (pc-ble-driver PRIVATE ${Boost_LIBRARIES})
 
 

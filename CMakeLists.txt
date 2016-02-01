@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 # Name of the project (will be the name of the plugin)
-project (ble_driver_js)
+project (pc-ble-driver-js)
 
 if(APPLE)
     set(CMAKE_SKIP_BUILD_RPATH TRUE)
@@ -88,4 +88,4 @@ endif()
 
 # Essential library files to link to a node addon,
 # you should add this line in every CMake.js based project.
-target_link_libraries(${PROJECT_NAME} ${CMAKE_JS_LIB} s130_nrf51_ble_driver)
+target_link_libraries(${PROJECT_NAME} ${CMAKE_JS_LIB} pc-ble-driver)
