@@ -50,7 +50,7 @@ public:
 
 private:
     SerializationTransport();
-    void readHandler(uint8_t *data, uint32_t length);
+    void readHandler(uint8_t *data, size_t length);
     void eventHandlingRunner();
 
     error_cb_t errorCallback;
@@ -67,7 +67,7 @@ private:
 	std::mutex responseMutex;
     std::condition_variable responseWaitCondition;
 
-    
+
     bool runEventThread; // Variable to control if thread shall run, used in thread to exit/keep running inthread
 	std::mutex eventMutex;
     std::condition_variable eventWaitCondition;

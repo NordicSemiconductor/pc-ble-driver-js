@@ -184,7 +184,7 @@ public:
     uint32_t send(std::vector<uint8_t> &data) override;
 
 private:
-    void dataHandler(uint8_t *data, uint32_t length);
+    void dataHandler(uint8_t *data, size_t length);
     void errorHandler(sd_rpc_app_err_t code, const char * error);
     void processPacket(std::vector<uint8_t>& packet);
 
@@ -195,7 +195,7 @@ private:
 
     Transport *nextTransportLayer;
     std::vector<uint8_t> lastPacket;
-    
+
     // Variables used for reliable packets
     uint8_t seqNum;
     uint8_t ackNum;
