@@ -117,6 +117,7 @@ class Device {
         if (advertisingData.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE) {
             uuids = uuids.concat(advertisingData.BLE_GAP_AD_TYPE_16BIT_SERVICE_UUID_COMPLETE);
         }
+
         /*
         if (event.data.BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_MORE_AVAILABLE) {
             uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_MORE_AVAILABLE);
@@ -125,14 +126,15 @@ class Device {
         if (event.data.BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_COMPLETE) {
             uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_32BIT_SERVICE_UUID_COMPLETE);
         }
+        */
 
-        if (event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_MORE_AVAILABLE) {
-            uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_MORE_AVAILABLE);
+        if (advertisingData.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_MORE_AVAILABLE) {
+            uuids = uuids.concat(advertisingData.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_MORE_AVAILABLE);
         }
 
-        if (event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_COMPLETE) {
-            uuids = uuids.concat(event.data.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_COMPLETE);
-        }*/
+        if (advertisingData.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_COMPLETE) {
+            uuids = uuids.concat(advertisingData.BLE_GAP_AD_TYPE_128BIT_SERVICE_UUID_COMPLETE);
+        }
 
         this.services = uuids;
     }
