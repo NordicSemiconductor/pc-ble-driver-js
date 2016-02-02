@@ -8,7 +8,7 @@ var Device = require('./api/device');
 var Service = require('./api/service');
 var ServiceFactory = require('./api/serviceFactory');
 
-module.exports.driver = require('bindings')('pc-ble-driver-js');
+module.exports.driver = driver;
 module.exports.api = {
     Adapter,
     AdapterFactory,

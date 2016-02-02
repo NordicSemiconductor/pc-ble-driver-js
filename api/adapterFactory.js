@@ -1,5 +1,7 @@
 'use strict';
 
+const _bleDriver = require('bindings')('pc-ble-driver-js');
+
 var  Adapter = require('./adapter');
 const EventEmitter = require('events');
 
@@ -32,12 +34,10 @@ class AdapterFactory extends EventEmitter {
         this.updateInterval = setInterval(this._updateAdapterList.bind(this), UPDATE_INTERVAL);
     }
 
-    clearForNextUnitTest(bleDriver) {
-        this._bleDriver = bleDriver;
-        this._adapters = {};
-    }
-
     static getInstance(bleDriver) {
+        if (bleDriver === undefined)
+            bleDriver = _bleDriver;
+
         if (!this[_singleton])
             this[_singleton] = new AdapterFactory(_singleton, bleDriver);
 
@@ -60,7 +60,10 @@ class AdapterFactory extends EventEmitter {
     _parseAndCreateAdapter(adapter) {
         // How about moving id generation and equality check within adapter class?
         const instanceId = this._getInstanceId(adapter);
-        const parsedAdapter = new Adapter(this._bleDriver, instanceId, adapter.comName);
+        const addOnAdapter = new this._bleDriver.Adapter();
+
+        if (addOnAdapter === undefined) { throw new Error('Missing argument adapter.'); }
+        const parsedAdapter = new Adapter(this._bleDriver, addOnAdapter, instanceId, adapter.comName);
 
         return parsedAdapter;
     }
