@@ -138,6 +138,8 @@ public:
     sd_rpc_parity_t parity;
 
     uint32_t evt_interval; // The interval in ms that the event queue is sent to NodeJS
+    uint32_t retransmission_interval; // The interval between each retransmission of packet to target
+    uint32_t response_timeout; // Duration to wait for reply on reliable packet sent to target
 
     Adapter *mainObject;
 };

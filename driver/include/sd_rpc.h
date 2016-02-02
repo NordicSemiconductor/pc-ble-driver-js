@@ -25,7 +25,7 @@ extern "C" {
 #endif // __cplusplus
 
 SD_RPC_API physical_layer_t *sd_rpc_physical_layer_create_uart(const char * port_name, uint32_t baud_rate, sd_rpc_flow_control_t flow_control, sd_rpc_parity_t parity);
-SD_RPC_API data_link_layer_t *sd_rpc_data_link_layer_create_bt_three_wire(physical_layer_t *physical_layer, uint32_t retransmission_timeout);
+SD_RPC_API data_link_layer_t *sd_rpc_data_link_layer_create_bt_three_wire(physical_layer_t *physical_layer, uint32_t retransmission_interval);
 SD_RPC_API transport_layer_t *sd_rpc_transport_layer_create(data_link_layer_t *data_link_layer, uint32_t response_timeout);
 SD_RPC_API adapter_t *sd_rpc_adapter_create(transport_layer_t* transport_layer);
 SD_RPC_API void sd_rpc_adapter_delete(adapter_t *adapter);

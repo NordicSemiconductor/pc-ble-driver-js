@@ -177,7 +177,7 @@ public:
 
 class H5Transport : public Transport {
 public:
-    H5Transport(Transport *nextTransportLayer, uint32_t retransmission_timeout);
+    H5Transport(Transport *nextTransportLayer, uint32_t retransmission_interval);
     ~H5Transport();
     uint32_t open(status_cb_t status_callback, data_cb_t data_callback, log_cb_t log_callback) override;
     uint32_t close() override;
@@ -208,7 +208,7 @@ private:
     std::condition_variable syncWaitCondition; // TODO: evaluate a new name for syncWaitCondition
 
     // Variables used in state ACTIVE
-    std::chrono::milliseconds retransmissionTimeout;
+    std::chrono::milliseconds retransmissionInterval;
     std::mutex ackMutex;
     std::condition_variable ackWaitCondition;
 

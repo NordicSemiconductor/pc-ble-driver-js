@@ -417,16 +417,15 @@ NAN_METHOD(Adapter::Open)
         baton->flow_control = ToFlowControlEnum(Utility::Get(options, "flowControl")->ToString()); parameter++;
         baton->evt_interval = ConversionUtility::getNativeUint32(options, "eventInterval"); parameter++;
         baton->log_level = ToLogSeverityEnum(Utility::Get(options, "logLevel")->ToString()); parameter++;
+        baton->retransmission_interval = ConversionUtility::getNativeUint32(options, "retransmissionInterval"); parameter++;
+        baton->response_timeout = ConversionUtility::getNativeUint32(options, "responseTimeout"); parameter++;
     }
     catch (char const *error)
     {
         std::stringstream errormessage;
         errormessage << "A setup option was wrong. Option: ";
-
         const char *_options[] = { "baudrate", "parity", "flowcontrol", "eventInterval", "logLevel" };
-
         errormessage << _options[parameter] << ". Reason: " << error;
-
         Nan::ThrowTypeError(errormessage.str().c_str());
         return;
     }
@@ -485,8 +484,8 @@ void Adapter::Open(uv_work_t *req)
     auto path = baton->path.c_str();
 
     auto uart = sd_rpc_physical_layer_create_uart(path, baton->baud_rate, baton->flow_control, baton->parity);
-    auto h5 = sd_rpc_data_link_layer_create_bt_three_wire(uart, 100);
-    auto serialization = sd_rpc_transport_layer_create(h5, 750);
+    auto h5 = sd_rpc_data_link_layer_create_bt_three_wire(uart, baton->retransmission_interval);
+    auto serialization = sd_rpc_transport_layer_create(h5, baton->response_timeout);
     auto adapter = sd_rpc_adapter_create(serialization);
 
     auto error_code = sd_rpc_open(adapter, sd_rpc_on_status, sd_rpc_on_event, sd_rpc_on_log_event);

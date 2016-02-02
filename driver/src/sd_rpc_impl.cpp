@@ -50,11 +50,11 @@ physical_layer_t *sd_rpc_physical_layer_create_uart(const char * port_name, uint
     return physicalLayer;
 }
 
-data_link_layer_t *sd_rpc_data_link_layer_create_bt_three_wire(physical_layer_t *physical_layer, uint32_t retransmission_timeout)
+data_link_layer_t *sd_rpc_data_link_layer_create_bt_three_wire(physical_layer_t *physical_layer, uint32_t retransmission_interval)
 {
     auto dataLinkLayer = static_cast<data_link_layer_t *>(malloc(sizeof(data_link_layer_t)));
     auto physicalLayer = static_cast<Transport *>(physical_layer->internal);
-    auto h5 = new H5Transport(physicalLayer, retransmission_timeout);
+    auto h5 = new H5Transport(physicalLayer, retransmission_interval);
     dataLinkLayer->internal = static_cast<void *>(h5);
     return dataLinkLayer;
 }

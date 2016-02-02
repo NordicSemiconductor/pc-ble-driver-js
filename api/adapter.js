@@ -138,6 +138,8 @@ class Adapter extends EventEmitter {
         if (!options.eventInterval) { options.eventInterval = 0; }
         options.eventCallback = this._eventCallback.bind(this);
         options.statusCallback = this._statusCallback.bind(this);
+        if (!options.retransmissionInterval) { options.retransmissionInterval = 100; }
+        if (!options.responseTimeout) { options.responseTimeout = 750; }
 
         this._adapter.open(this._state.port, options, err => {
             if (this.checkAndPropagateError(err, 'Error occurred opening serial port.', callback)) { return; }

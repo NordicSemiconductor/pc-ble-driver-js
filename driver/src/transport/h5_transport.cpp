@@ -52,14 +52,14 @@ const auto RESET_WAIT_DURATION = std::chrono::milliseconds(300);  // Duration to
 
 
 #pragma region Public methods
-H5Transport::H5Transport(Transport *_nextTransportLayer, uint32_t retransmission_timeout)
+H5Transport::H5Transport(Transport *_nextTransportLayer, uint32_t retransmission_interval)
     : Transport(),
     seqNum(0), ackNum(0), c0Found(false),
     unprocessedData(), incomingPacketCount(0), outgoingPacketCount(0),
     errorPacketCount(0), currentState(STATE_START), stateMachineThread(nullptr)
 {
     this->nextTransportLayer = _nextTransportLayer;
-    retransmissionTimeout = std::chrono::milliseconds(retransmission_timeout);
+    retransmissionInterval = std::chrono::milliseconds(retransmission_interval);
 
     setupStateMachine();
 }
@@ -164,7 +164,7 @@ uint32_t H5Transport::send(std::vector<uint8_t> &data)
         logPacket(true, h5EncodedPacket);
         nextTransportLayer->send(lastPacket);
 
-        auto status = ackWaitCondition.wait_for(ackGuard, std::chrono::milliseconds(retransmissionTimeout));
+        auto status = ackWaitCondition.wait_for(ackGuard, std::chrono::milliseconds(retransmissionInterval));
 
         if (status == std::cv_status::no_timeout)
         {
