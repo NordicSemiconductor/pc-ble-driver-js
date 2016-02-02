@@ -24,7 +24,6 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "compiler_abstraction.h"
 
 enum
 {
