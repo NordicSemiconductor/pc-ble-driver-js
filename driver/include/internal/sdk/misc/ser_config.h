@@ -15,12 +15,6 @@
 
 #include <stdint.h>
 
-#if 0
-// TODO: Hopefully we do not need to include the files below
-#include "nrf51.h"
-#include "nrf51_bitfields.h"
-#endif
-
 /***********************************************************************************************//**
  * General parameters configuration.
  **************************************************************************************************/

@@ -105,7 +105,7 @@ typedef struct
     uint16_t  size;                 /**< Number of array entries. */
     uint8_t * p_data;               /**< Pointer to array entries. */
 } uint8_array_t;
-    
+
 /**@brief Perform rounded integer division (as opposed to truncating the result).
  *
  * @param[in]   A   Numerator.
@@ -153,13 +153,13 @@ typedef struct
  *
  * @return      Number of bytes written.
  */
-static __INLINE uint8_t uint16_encode(uint16_t value, uint8_t * p_encoded_data)
+static inline uint8_t uint16_encode(uint16_t value, uint8_t * p_encoded_data)
 {
     p_encoded_data[0] = (uint8_t) ((value & 0x00FF) >> 0);
     p_encoded_data[1] = (uint8_t) ((value & 0xFF00) >> 8);
     return sizeof(uint16_t);
 }
-    
+
 /**@brief Function for encoding a uint32 value.
  *
  * @param[in]   value            Value to be encoded.
@@ -167,7 +167,7 @@ static __INLINE uint8_t uint16_encode(uint16_t value, uint8_t * p_encoded_data)
  *
  * @return      Number of bytes written.
  */
-static __INLINE uint8_t uint32_encode(uint32_t value, uint8_t * p_encoded_data)
+static inline uint8_t uint32_encode(uint32_t value, uint8_t * p_encoded_data)
 {
     p_encoded_data[0] = (uint8_t) ((value & 0x000000FF) >> 0);
     p_encoded_data[1] = (uint8_t) ((value & 0x0000FF00) >> 8);
@@ -182,9 +182,9 @@ static __INLINE uint8_t uint32_encode(uint32_t value, uint8_t * p_encoded_data)
  *
  * @return      Decoded value.
  */
-static __INLINE uint16_t uint16_decode(const uint8_t * p_encoded_data)
+static inline uint16_t uint16_decode(const uint8_t * p_encoded_data)
 {
-        return ( (((uint16_t)((uint8_t *)p_encoded_data)[0])) | 
+        return ( (((uint16_t)((uint8_t *)p_encoded_data)[0])) |
                  (((uint16_t)((uint8_t *)p_encoded_data)[1]) << 8 ));
 }
 
@@ -194,14 +194,14 @@ static __INLINE uint16_t uint16_decode(const uint8_t * p_encoded_data)
  *
  * @return      Decoded value.
  */
-static __INLINE uint32_t uint32_decode(const uint8_t * p_encoded_data)
+static inline uint32_t uint32_decode(const uint8_t * p_encoded_data)
 {
     return ( (((uint32_t)((uint8_t *)p_encoded_data)[0]) << 0)  |
              (((uint32_t)((uint8_t *)p_encoded_data)[1]) << 8)  |
              (((uint32_t)((uint8_t *)p_encoded_data)[2]) << 16) |
              (((uint32_t)((uint8_t *)p_encoded_data)[3]) << 24 ));
 }
-    
+
 /** @brief Function for converting the input voltage (in milli volts) into percentage of 3.0 Volts.
  *
  *  @details The calculation is based on a linearized version of the battery's discharge
@@ -222,7 +222,7 @@ static __INLINE uint32_t uint32_decode(const uint8_t * p_encoded_data)
  *
  *  @return    Battery level in percent.
 */
-static __INLINE uint8_t battery_level_in_percent(const uint16_t mvolts)
+static inline uint8_t battery_level_in_percent(const uint16_t mvolts)
 {
     uint8_t battery_level;
 
@@ -260,7 +260,7 @@ static __INLINE uint8_t battery_level_in_percent(const uint16_t mvolts)
  *
  * @return      TRUE if pointer is aligned to a 4 byte boundary, FALSE otherwise.
  */
-static __INLINE bool is_word_aligned(void * p)
+static inline bool is_word_aligned(void * p)
 {
     return (((uintptr_t)p & 0x03) == 0);
 }

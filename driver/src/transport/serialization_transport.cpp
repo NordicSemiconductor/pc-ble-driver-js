@@ -105,7 +105,6 @@ uint32_t SerializationTransport::send(uint8_t *cmdBuffer, uint32_t cmdLength, ui
     }
     else if (rspBuffer == nullptr)
     {
-        // TODO: What about the h5 transport layer waiting for ACKs?
         return NRF_SUCCESS;
     }
 

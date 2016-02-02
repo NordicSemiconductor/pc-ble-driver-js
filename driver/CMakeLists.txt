@@ -18,11 +18,8 @@ file(GLOB_RECURSE LIB_C_SOURCES src/*.c)
 file(GLOB_RECURSE LIB_CPP_SOURCES src/*.cpp)
 
 # Add definitions used by compiler when compiling source files
-# TODO: evaluate if we need all these defines
 add_definitions(
     -DSD_RPC_EXPORTS
-    -DNRF51
-    -DBLE_STACK_SUPPORT_REQD
     -DHCI_LINK_CONTROL # Adds support for Link Control packets according to the HCI standard
     -DS130
 )

@@ -15,7 +15,18 @@
 #include <vector>
 #include <algorithm>
 
-// TODO: Provide proper constants in this file, too many magic values
+const uint8_t seqNumMask = 0x07;
+const uint8_t ackNumMask = 0x07;
+const uint8_t ackNumPos = 3;
+const uint8_t crcPresentMask = 0x01;
+const uint8_t crcPresentPos = 6;
+const uint8_t reliablePacketMask = 0x01;
+const uint8_t reliablePacketPos = 7;
+
+const uint8_t packetTypeMask = 0x0F;
+const uint16_t payloadLengthFirstNibbleMask = 0x000F;
+const uint16_t payloadLengthSecondNibbleMask = 0x0FF0;
+const uint8_t payloadLengthOffset = 4;
 
 uint8_t calculate_header_checksum(std::vector<uint8_t> &header)
 {
@@ -32,14 +43,14 @@ uint8_t calculate_header_checksum(std::vector<uint8_t> &header)
 
 uint16_t calculate_crc16_checksum(std::vector<uint8_t>::iterator start, std::vector<uint8_t>::iterator end)
 {
-    uint16_t crc = 0xffff;
+    uint16_t crc = 0xFFFF;
 
     std::for_each(start, end, [&crc](uint8_t data) {
-        crc = static_cast<uint8_t>(crc >> 8) | (crc << 8);
+        crc = (crc >> 8) | (crc << 8);
         crc ^= data;
-        crc ^= static_cast<uint8_t>(crc & 0xff) >> 4;
-        crc ^= (crc << 8) << 4;
-        crc ^= ((crc & 0xff) << 4) << 1;
+        crc ^= (crc & 0xFF) >> 4;
+        crc ^= crc << 12;
+        crc ^= (crc & 0xFF) << 5;
     });
 
     return crc;
@@ -55,16 +66,16 @@ void add_h5_header(std::vector<uint8_t> &out_packet,
 {
     // TODO: Convert magic numbers to constants
     out_packet.push_back(
-        (seq_num & 0x07)
-        | ((ack_num << 3) & 0x38)
-        | ((crc_present << 6) & 0x40)
-        | ((reliable_packet << 7) & 0x80));
+        (seq_num & seqNumMask)
+        | ((ack_num & ackNumMask) << ackNumPos)
+        | ((crc_present & crcPresentMask) << crcPresentPos)
+        | ((reliable_packet & reliablePacketMask) << reliablePacketPos));
 
     out_packet.push_back(
-        (packet_type & 0x0F)
-        | ((payload_length << 4) & 0xF0));
+        (packet_type & packetTypeMask)
+        | ((payload_length & payloadLengthFirstNibbleMask) << payloadLengthOffset));
 
-    out_packet.push_back((payload_length >> 4) & 0xFF);
+    out_packet.push_back((payload_length & payloadLengthSecondNibbleMask) >> payloadLengthOffset);
     out_packet.push_back(calculate_header_checksum(out_packet));
 }
 
@@ -115,12 +126,12 @@ uint32_t h5_decode(std::vector<uint8_t> &slipPayload,
         return NRF_ERROR_INVALID_LENGTH;
     }
 
-    *seq_num = slipPayload[0] & 0x07;
-    *ack_num = (slipPayload[0] >> 3) & 0x07;
-    auto crc_present = static_cast<bool>((slipPayload[0] & 0x40) != 0);
-    *reliable_packet = static_cast<bool>((slipPayload[0] & 0x80) != 0);
-    *packet_type = static_cast<h5_pkt_type_t>(slipPayload[1] & 0x0F);
-    payload_length = ((slipPayload[1] & 0xF0) >> 4) + (slipPayload[2] << 4);
+    *seq_num = slipPayload[0] & seqNumMask;
+    *ack_num = (slipPayload[0] >> ackNumPos) & ackNumMask;
+    auto crc_present = static_cast<bool>(((slipPayload[0] >> crcPresentPos) & crcPresentMask) != 0);
+    *reliable_packet = static_cast<bool>(((slipPayload[0] >> reliablePacketPos) & reliablePacketMask) != 0);
+    *packet_type = static_cast<h5_pkt_type_t>(slipPayload[1] & packetTypeMask);
+    payload_length = ((slipPayload[1] >> payloadLengthOffset) & payloadLengthFirstNibbleMask) + (static_cast<uint16_t>(slipPayload[2]) << payloadLengthOffset);
     auto header_checksum = slipPayload[3];
 
     // Check if received packet size matches the packet size stated in header

@@ -221,11 +221,10 @@ void H5Transport::processPacket(std::vector<uint8_t> &packet)
 
     if (packet_type == LINK_CONTROL_PACKET)
     {
-        // TODO: Create constants of magic numbers
-        auto isSyncPacket = h5Payload[0] == 0x01 && h5Payload[1] == 0x7E;
-        auto isSyncResponsePacket = h5Payload[0] == 0x02 && h5Payload[1] == 0x7D;
-        auto isSyncConfigPacket = h5Payload[0] == 0x03 && h5Payload[1] == 0xFC;
-        auto isSyncConfigResponsePacket = h5Payload[0] == 0x04 && h5Payload[1] == 0x7B;
+        auto isSyncPacket = h5Payload[0] == syncFirstByte && h5Payload[1] == syncSecondByte;
+        auto isSyncResponsePacket = h5Payload[0] == syncRspFirstByte && h5Payload[1] == syncRspSecondByte;
+        auto isSyncConfigPacket = h5Payload[0] == syncConfigFirstByte && h5Payload[1] == syncConfigSecondByte;
+        auto isSyncConfigResponsePacket = h5Payload[0] == syncConfigRspFirstByte && h5Payload[1] == syncConfigRspSecondByte;
 
         if (currentState == STATE_UNINITIALIZED)
         {
@@ -619,11 +618,11 @@ bool H5Transport::waitForState(h5_state_t state, std::chrono::milliseconds timeo
 void H5Transport::sendControlPacket(control_pkt_type type)
 {
     static std::map<control_pkt_type, std::vector<uint8_t>> pkt_pattern = {
-        { CONTROL_PKT_RESET, {} },
-        { CONTROL_PKT_SYNC, { 0x01, 0x7E } },
-        { CONTROL_PKT_SYNC_RESPONSE, { 0x02, 0x7D } },
-        { CONTROL_PKT_SYNC_CONFIG, { 0x03, 0xFC, 0x11 } },
-        { CONTROL_PKT_SYNC_CONFIG_RESPONSE, { 0x04, 0x7B, 0x11 } }
+        {CONTROL_PKT_RESET, {}},
+        {CONTROL_PKT_SYNC, {syncFirstByte, syncSecondByte}},
+        {CONTROL_PKT_SYNC_RESPONSE, {syncRspFirstByte, syncRspSecondByte}},
+        {CONTROL_PKT_SYNC_CONFIG, {syncConfigFirstByte, syncConfigSecondByte, syncConfigField}},
+        {CONTROL_PKT_SYNC_CONFIG_RESPONSE, {syncConfigRspFirstByte, syncConfigRspSecondByte, syncConfigField}}
     };
 
     h5_pkt_type_t h5_packet;
@@ -728,14 +727,14 @@ std::string H5Transport::hciPacketLinkControlToString(std::vector<uint8_t> paylo
     {
         retval << "[";
 
-        if (payload[0] == 0x01 && payload[1] == 0x7e) retval << "SYNC";
-        if (payload[0] == 0x02 && payload[1] == 0x7d) retval << "SYNC_RESP";
+        if (payload[0] == syncFirstByte && payload[1] == syncSecondByte) retval << "SYNC";
+        if (payload[0] == syncRspFirstByte && payload[1] == syncRspSecondByte) retval << "SYNC_RESP";
 
-        if (payload[0] == 0x03 && payload[1] == 0xfc && payload.size() == 3)
+        if (payload[0] == syncConfigFirstByte && payload[1] == syncConfigSecondByte && payload.size() == 3)
         {
             retval << "CONFIG [" << configToString(payload[2]) << "]";
         }
-        if (payload[0] == 0x04 && payload[1] == 0x7b)
+        if (payload[0] == syncConfigRspFirstByte && payload[1] == syncConfigRspSecondByte)
         {
             retval << "CONFIG_RESP [" << configToString(payload[2]) << "]";
         }
