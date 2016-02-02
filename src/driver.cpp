@@ -240,7 +240,7 @@ void Adapter::onRpcEvent(uv_async_t *handle)
                 GAP_EVT_CASE(CONN_SEC_UPDATE,           ConnSecUpdate,          conn_sec_update,            array, arrayIndex, eventEntry);
                 GAP_EVT_CASE(SEC_INFO_REQUEST,          SecInfoRequest,         sec_info_request,           array, arrayIndex, eventEntry);
                 GAP_EVT_CASE(SEC_REQUEST,               SecRequest,             sec_request,                array, arrayIndex, eventEntry);
-                
+
                 GATTC_EVT_CASE(PRIM_SRVC_DISC_RSP,          PrimaryServiceDiscovery,       prim_srvc_disc_rsp,         array, arrayIndex, eventEntry);
                 GATTC_EVT_CASE(REL_DISC_RSP,                RelationshipDiscovery,         rel_disc_rsp,               array, arrayIndex, eventEntry);
                 GATTC_EVT_CASE(CHAR_DISC_RSP,               CharacteristicDiscovery,       char_disc_rsp,              array, arrayIndex, eventEntry);
@@ -260,7 +260,7 @@ void Adapter::onRpcEvent(uv_async_t *handle)
 
                 // Handled special as there is no parameter for this in the event struct.
                 GATTS_EVT_CASE(SC_CONFIRM, SCConfirm, timeout, array, arrayIndex, eventEntry);
-                
+
             default:
                 std::cout << "Event " << event->header.evt_id << " unknown to me." << std::endl;
                 break;
@@ -437,7 +437,7 @@ NAN_METHOD(Adapter::Open)
     }
     catch (char const *error)
     {
-        auto message = ErrorMessage::getStructErrorMessage("log_callback", error);
+        auto message = ErrorMessage::getStructErrorMessage("logCallback", error);
         Nan::ThrowTypeError(message);
         return;
     }
@@ -448,7 +448,7 @@ NAN_METHOD(Adapter::Open)
     }
     catch (char const *error)
     {
-        auto message = ErrorMessage::getStructErrorMessage("event_callback", error);
+        auto message = ErrorMessage::getStructErrorMessage("eventCallback", error);
         Nan::ThrowTypeError(message);
         return;
     }
@@ -459,7 +459,7 @@ NAN_METHOD(Adapter::Open)
     }
     catch (char const *error)
     {
-        auto message = ErrorMessage::getStructErrorMessage("error_callback", error);
+        auto message = ErrorMessage::getStructErrorMessage("statusCallback", error);
         Nan::ThrowTypeError(message);
         return;
     }
@@ -1209,7 +1209,7 @@ extern "C" {
         init_gatt(target);
         init_gattc(target);
         init_gatts(target);
-        
+
         Adapter::Init(target);
     }
 

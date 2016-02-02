@@ -137,6 +137,7 @@ class Adapter extends EventEmitter {
         options.logCallback = this._logCallback.bind(this);
         if (!options.eventInterval) { options.eventInterval = 0; }
         options.eventCallback = this._eventCallback.bind(this);
+        options.statusCallback = this._statusCallback.bind(this);
 
         this._adapter.open(this._state.port, options, err => {
             if (this.checkAndPropagateError(err, 'Error occurred opening serial port.', callback)) { return; }
@@ -155,6 +156,10 @@ class Adapter extends EventEmitter {
         this._adapter.close(callback);
         this._changeState({available: false});
         this.emit('closed', this);
+    }
+
+    _statusCallback(code, message) {
+        this.emit('status', code, message);
     }
 
     _logCallback(severity, message) {
