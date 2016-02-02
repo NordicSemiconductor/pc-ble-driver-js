@@ -104,15 +104,6 @@
 #define CONN_CHIP_RESET_TIME            50      /**< The time to keep the reset line to the nRF51822 low (in milliseconds). */
 #define CONN_CHIP_WAKEUP_TIME           500     /**< The time for nRF51822 to reset and become ready to receive serialized commands (in milliseconds). */
 
-#ifdef S110
-    #define SER_MAX_CONNECTIONS 1
-#else
-    #ifdef S120
-        #define SER_MAX_CONNECTIONS 8
-    #endif
-    #ifdef S130
-        #define SER_MAX_CONNECTIONS 1
-    #endif
-#endif
+#define SER_MAX_CONNECTIONS 1
 
 #endif /* SER_CONFIG_H__ */

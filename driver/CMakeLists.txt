@@ -21,7 +21,6 @@ file(GLOB_RECURSE LIB_CPP_SOURCES src/*.cpp)
 add_definitions(
     -DSD_RPC_EXPORTS
     -DHCI_LINK_CONTROL # Adds support for Link Control packets according to the HCI standard
-    -DS130
 )
 
 # Force .c files to be compiled with the C++ compiler

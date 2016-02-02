@@ -64,7 +64,6 @@ void add_h5_header(std::vector<uint8_t> &out_packet,
                  uint8_t packet_type,
                  uint16_t payload_length)
 {
-    // TODO: Convert magic numbers to constants
     out_packet.push_back(
         (seq_num & seqNumMask)
         | ((ack_num & ackNumMask) << ackNumPos)
