@@ -249,8 +249,9 @@ void H5Transport::processPacket(std::vector<uint8_t> &packet)
 
             if (isSyncConfigPacket)
             {
-                sendControlPacket(CONTROL_PKT_SYNC_CONFIG_RESPONSE);
                 exit->syncConfigReceived = true;
+                sendControlPacket(CONTROL_PKT_SYNC_CONFIG_RESPONSE);
+                exit->syncConfigRspSent = true;
                 syncWaitCondition.notify_all();
             }
 
@@ -489,9 +490,8 @@ void H5Transport::setupStateMachine()
             }
         }
 
-/*        if (exit->syncConfigSent && exit->syncConfigRspReceived
-            && exit->syncConfigReceived && exit->syncConfigRspSent)*/
-        if (exit->syncConfigSent && exit->syncConfigReceived && exit->syncConfigReceived && exit->syncConfigRspReceived)
+        if (exit->syncConfigSent && exit->syncConfigRspReceived
+            && exit->syncConfigReceived && exit->syncConfigRspSent)
         {
             return STATE_ACTIVE;
         }
