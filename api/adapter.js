@@ -263,7 +263,7 @@ class Adapter extends EventEmitter {
                     this._parseGattTimeoutEvent(event);
                     break;
                 case this._bleDriver.BLE_EVT_USER_MEM_REQUEST:
-                    // TODO: Implement when user_mem_reply is supported in ble_driver.
+                    this._parseMemoryRequest(event);
                     break;
                 case this._bleDriver.BLE_EVT_TX_COMPLETE:
                     // No need to handle tx_complete, for now.
@@ -1219,6 +1219,12 @@ class Adapter extends EventEmitter {
         if (this._sendingNotificationsAndIndicationsComplete()) {
             this._pendingNotificationsAndIndications.completeCallback(undefined, characteristic);
             this._pendingNotificationsAndIndications = {};
+        }
+    }
+
+    _parseMemoryRequest(event) {
+        if (event.type === this._bleDriver.BLE_USER_MEM_TYPE_GATTS_QUEUED_WRITES) {
+            this._bleDriver(sd_ble_user_mem_reply(null));
         }
     }
 
