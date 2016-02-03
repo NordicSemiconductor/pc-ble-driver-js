@@ -291,7 +291,7 @@ void H5Transport::processPacket(std::vector<uint8_t> &packet)
     }
     else if (packet_type == ACK_PACKET)
     {
-        if (ack_num == seqNum + 1)
+        if (ack_num == ((seqNum + 1) & 0x07))
         {
             // Received a packet with valid ack_num, inform threads that wait the command is received on the other end
             std::lock_guard<std::mutex> ackGuard(ackMutex);
