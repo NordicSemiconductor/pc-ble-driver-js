@@ -79,7 +79,7 @@ adapter_t *sd_rpc_adapter_create(transport_layer_t* transport_layer)
 
 void sd_rpc_adapter_delete(adapter_t *adapter)
 {
-    auto adapterLayer= static_cast<AdapterInternal *>(adapter->internal);
+    auto adapterLayer = static_cast<AdapterInternal *>(adapter->internal);
     delete adapterLayer;
 }
 

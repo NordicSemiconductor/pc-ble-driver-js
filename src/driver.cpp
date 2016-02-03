@@ -89,7 +89,6 @@ void sd_rpc_on_log_event(adapter_t *adapter, sd_rpc_log_severity_t severity, con
     else
     {
         std::terminate();
-        //TODO: Return error
     }
 }
 
@@ -488,6 +487,9 @@ void Adapter::Open(uv_work_t *req)
     auto serialization = sd_rpc_transport_layer_create(h5, baton->response_timeout);
     auto adapter = sd_rpc_adapter_create(serialization);
 
+    baton->adapter = adapter;
+    baton->mainObject->adapter = adapter;
+
     auto error_code = sd_rpc_open(adapter, sd_rpc_on_status, sd_rpc_on_event, sd_rpc_on_log_event);
 
     // Let the normal log handling handle the rest of the log calls
@@ -499,9 +501,6 @@ void Adapter::Open(uv_work_t *req)
         baton->result = error_code;
         return;
     }
-
-    baton->adapter = adapter;
-    baton->mainObject->adapter = adapter;
 
     ble_enable_params_t ble_enable_params;
 

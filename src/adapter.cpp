@@ -3,7 +3,7 @@
 
 Nan::Persistent<v8::Function> Adapter::constructor;
 
-std::vector<Adapter *> adapterVector;
+std::vector<Adapter *> adapters;
 
 NAN_MODULE_INIT(Adapter::Init)
 {
@@ -25,7 +25,7 @@ Adapter *Adapter::getAdapter(adapter_t *adapter, Adapter *defaultAdapter)
         return defaultAdapter;
     }
 
-    for (auto value : adapterVector)
+    for (auto value : adapters)
     {
         auto deviceAdapter = value->getInternalAdapter();
 
@@ -108,7 +108,6 @@ extern "C" {
         else
         {
             std::terminate();
-            //TODO: Errormessage
         }
     }
 }
@@ -243,7 +242,7 @@ void Adapter::initGattS(v8::Local<v8::FunctionTemplate> tpl)
 
 Adapter::Adapter()
 {
-    adapterVector.push_back(this);
+    adapters.push_back(this);
     adapter = nullptr;
 
     eventCallbackMaxCount = 0;
