@@ -13,6 +13,8 @@ NAN_MODULE_INIT(Adapter::Init)
 
     initGeneric(tpl);
     initGap(tpl);
+    initGattC(tpl);
+    initGattS(tpl);
 
     constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
     Nan::Set(target, Nan::New("Adapter").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
