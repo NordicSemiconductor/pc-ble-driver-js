@@ -48,7 +48,6 @@ UartBoost::~UartBoost()
 uint32_t UartBoost::open(status_cb_t status_callback, data_cb_t data_callback, log_cb_t log_callback)
 {
     Transport::open(status_callback, data_callback, log_callback);
-    // TODO: USE MORE CALLBACKS!
 
     const auto portName = uartSettingsBoost.getPortName();
 
@@ -58,8 +57,7 @@ uint32_t UartBoost::open(status_cb_t status_callback, data_cb_t data_callback, l
     }
     catch (std::exception)
     {
-        logCallback(SD_RPC_LOG_FATAL, "Exception thrown when opening serial port");
-        statusCallback(IO_RESOURCES_UNAVAILABLE, "Failed to open serial port");
+        statusCallback(IO_RESOURCES_UNAVAILABLE, "Exception thrown when opening serial port");
         return NRF_ERROR_INTERNAL;
     }
 
@@ -92,8 +90,7 @@ uint32_t UartBoost::open(status_cb_t status_callback, data_cb_t data_callback, l
     }
     catch (std::exception)
     {
-        logCallback(SD_RPC_LOG_FATAL, "Exception thrown when starting uart work thread");
-        statusCallback(IO_RESOURCES_UNAVAILABLE, "Failed to start uart work thread");
+        statusCallback(IO_RESOURCES_UNAVAILABLE, "Exception thrown when starting uart work thread");
         return NRF_ERROR_INTERNAL;
     }
 
@@ -149,16 +146,14 @@ uint32_t UartBoost::close()
     try
     {
         serialPort.close();
+        logCallback(SD_RPC_LOG_INFO, "Serial port closed");
     }
     catch (std::exception)
     {
-        logCallback(SD_RPC_LOG_FATAL, "Exception thrown when closing serial port");
-        statusCallback(IO_RESOURCES_UNAVAILABLE, "Failed to close serial port");
+        statusCallback(IO_RESOURCES_UNAVAILABLE, "Exception thrown when closing serial port");
     }
 
     asyncWriteInProgress = false;
-
-    logCallback(SD_RPC_LOG_INFO, "Serial port closed");
 
     Transport::close();
     return NRF_SUCCESS;

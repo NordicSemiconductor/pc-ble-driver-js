@@ -118,7 +118,7 @@ uint32_t SerializationTransport::send(uint8_t *cmdBuffer, uint32_t cmdLength, ui
 
         if (status == std::cv_status::timeout)
         {
-            // TODO: log timeout error
+            logCallback(SD_RPC_LOG_WARNING, "Failed to receive response for command");
             return NRF_ERROR_INTERNAL;
         }
     }
@@ -191,7 +191,6 @@ void SerializationTransport::readHandler(uint8_t *data, size_t length)
     }
     else
     {
-        std::clog << "Unknown Nordic Semiconductor vendor specific packet received! Type: " << eventType << std::endl;
-        std::terminate();
+        logCallback(SD_RPC_LOG_WARNING, "Unknown Nordic Semiconductor vendor specific packet received");
     }
 }
