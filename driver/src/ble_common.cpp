@@ -1,6 +1,8 @@
 #include "ble_common.h"
 
 #include <memory>
+#include <sstream>
+
 #include "adapter_internal.h"
 #include "nrf_error.h"
 #include "ser_config.h"
@@ -13,13 +15,16 @@ uint32_t encode_decode(adapter_t *adapter, encode_function_t encode_function, de
     std::unique_ptr<uint8_t> tx_buffer(static_cast<uint8_t*>(std::malloc(SER_HAL_TRANSPORT_MAX_PKT_SIZE)));
     std::unique_ptr<uint8_t> rx_buffer(static_cast<uint8_t*>(std::malloc(SER_HAL_TRANSPORT_MAX_PKT_SIZE)));
 
+    std::stringstream error_message;
+
     auto _adapter = static_cast<AdapterInternal*>(adapter->internal);
 
     uint32_t err_code = encode_function(tx_buffer.get(), &tx_buffer_length);
 
     if (_adapter->isInternalError(err_code))
     {
-        _adapter->statusHandler(PKT_DECODE_ERROR, "Not able to decode packet received from target.");
+        error_message << "Not able to decode packet received from target. Code #" << err_code;
+        _adapter->statusHandler(PKT_DECODE_ERROR, error_message.str().c_str());
         return NRF_ERROR_INTERNAL;
     }
 
@@ -42,7 +47,8 @@ uint32_t encode_decode(adapter_t *adapter, encode_function_t encode_function, de
 
     if (_adapter->isInternalError(err_code))
     {
-        _adapter->statusHandler(PKT_SEND_ERROR, "Error sending packet to target. Error code is: " + err_code);
+        error_message << "Error sending packet to target. Code #" << err_code;
+        _adapter->statusHandler(PKT_SEND_ERROR, error_message.str().c_str());
         return NRF_ERROR_INTERNAL;
     }
 
@@ -55,7 +61,8 @@ uint32_t encode_decode(adapter_t *adapter, encode_function_t encode_function, de
 
     if (_adapter->isInternalError(err_code))
     {
-        _adapter->statusHandler(PKT_DECODE_ERROR, "Not able to decode packet. Error code is: " + err_code);
+        error_message << "Not able to decode packet. Code #" << err_code;
+        _adapter->statusHandler(PKT_DECODE_ERROR, error_message.str().c_str());
         return NRF_ERROR_INTERNAL;
     }
 
