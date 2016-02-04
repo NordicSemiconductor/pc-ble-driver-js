@@ -298,7 +298,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
     Utility::Set(obj, "peer_addr", GapAddr(&(this->evt->peer_addr)).ToJs());
     Utility::Set(obj, "scan_rsp", ConversionUtility::toJsBool(evt->scan_rsp));
 
-    if (this->evt->scan_rsp == 1)
+    if (this->evt->scan_rsp != 1)
     {
         Utility::Set(obj, "adv_type", gap_adv_type_map[this->evt->type]); // TODO: add support for non defined adv types
     }
@@ -314,7 +314,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
         auto data = evt->data;
 
         // TODO: Evaluate if buffer is the correct datatype for advertisement data
-        Utility::Set(data_obj, "raw", ConversionUtility::toJsValueArray(data, dlen));
+        //Utility::Set(data_obj, "raw", ConversionUtility::toJsValueArray(data, dlen));
 
         uint8_t pos = 0;  // Position in packet
         uint8_t ad_len;   // AD Type length
@@ -426,11 +426,10 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
 
                 Utility::Set(data_obj, gap_ad_type_map[ad_type], uuid_array);
             }
-            else if (ad_type == BLE_GAP_AD_TYPE_SERVICE_DATA)
-            {
-                //std::cout << "Not processed: " << gap_ad_type_map[ad_type] << std::endl;
-                // data_obj->Set(Nan::New(gap_ad_type_map[ad_type]), Nan::New((data[pos + 1] << 8) + data[pos + 2]));
-            }
+            // else if (ad_type == BLE_GAP_AD_TYPE_SERVICE_DATA)
+            // {
+            //     Utility::Set(data_obj, gap_ad_type_map[ad_type], Nan::New<v8::Integer>((data[pos + 1] << 8) + data[pos + 2]));
+            // }
             else if (ad_type == BLE_GAP_AD_TYPE_TX_POWER_LEVEL)
             {
                 if(ad_len - 1 == 1)
