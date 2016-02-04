@@ -2,7 +2,7 @@
 #define DRIVER_GAP_H
 
 #include "ble.h"
-//#include "ble_hci.h"
+#include "ble_hci.h"
 #include "common.h"
 
 #include <string>
