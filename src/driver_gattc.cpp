@@ -361,7 +361,6 @@ NAN_METHOD(Adapter::GattcDiscoverPrimaryServices)
     uint16_t start_handle;
     v8::Local<v8::Object> service_uuid;
     v8::Local<v8::Function> callback;
-    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     auto argumentcount = 0;
 
     try
@@ -385,10 +384,11 @@ NAN_METHOD(Adapter::GattcDiscoverPrimaryServices)
         return;
     }
 
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     auto baton = new GattcDiscoverPrimaryServicesBaton(callback);
+    baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
     baton->start_handle = start_handle;
-    baton->adapter = obj->adapter;
 
     try
     {
@@ -460,7 +460,9 @@ NAN_METHOD(Adapter::GattcDiscoverRelationship)
         return;
     }
 
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     auto baton = new GattcDiscoverRelationshipBaton(callback);
+    baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
 
     try
@@ -533,7 +535,9 @@ NAN_METHOD(Adapter::GattcDiscoverCharacteristics)
         return;
     }
 
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     auto baton = new GattcDiscoverCharacteristicsBaton(callback);
+    baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
 
     try
@@ -606,7 +610,9 @@ NAN_METHOD(Adapter::GattcDiscoverDescriptors)
         return;
     }
 
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     auto baton = new GattcDiscoverDescriptorsBaton(callback);
+    baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
 
     try
@@ -682,8 +688,11 @@ NAN_METHOD(Adapter::GattcReadCharacteristicValueByUUID)
         return;
     }
 
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     auto baton = new GattcCharacteristicByUUIDReadBaton(callback);
+    baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
+
     try
     {
         baton->p_uuid = BleUUID(uuid);
@@ -768,7 +777,9 @@ NAN_METHOD(Adapter::GattcRead)
         return;
     }
 
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     auto baton = new GattcReadBaton(callback);
+    baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
     baton->handle = handle;
     baton->offset = offset;
@@ -851,7 +862,9 @@ NAN_METHOD(Adapter::GattcReadCharacteristicValues)
         return;
     }
 
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     auto baton = new GattcReadCharacteristicValuesBaton(callback);
+    baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
     baton->p_handles = p_handles;
     baton->handle_count = handle_count;
@@ -917,7 +930,9 @@ NAN_METHOD(Adapter::GattcWrite)
         return;
     }
 
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     auto baton = new GattcWriteBaton(callback);
+    baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
 
     try
@@ -989,7 +1004,9 @@ NAN_METHOD(Adapter::GattcConfirmHandleValue)
         return;
     }
 
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     auto baton = new GattcConfirmHandleValueBaton(callback);
+    baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
     baton->handle = handle;
 
