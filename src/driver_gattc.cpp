@@ -361,6 +361,7 @@ NAN_METHOD(Adapter::GattcDiscoverPrimaryServices)
     uint16_t start_handle;
     v8::Local<v8::Object> service_uuid;
     v8::Local<v8::Function> callback;
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     auto argumentcount = 0;
 
     try
@@ -387,6 +388,7 @@ NAN_METHOD(Adapter::GattcDiscoverPrimaryServices)
     auto baton = new GattcDiscoverPrimaryServicesBaton(callback);
     baton->conn_handle = conn_handle;
     baton->start_handle = start_handle;
+    baton->adapter = obj->adapter;
 
     try
     {
@@ -428,6 +430,7 @@ void Adapter::AfterGattcDiscoverPrimaryServices(uv_work_t *req)
     }
 
     baton->callback->Call(1, argv);
+    
     delete baton;
 }
 
