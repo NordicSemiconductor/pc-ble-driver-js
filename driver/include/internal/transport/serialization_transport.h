@@ -64,14 +64,15 @@ private:
     uint8_t *responseBuffer;
     uint32_t *responseLength;
 
-	std::mutex responseMutex;
+    std::mutex sendMutex;
+
+    std::mutex responseMutex;
     std::condition_variable responseWaitCondition;
 
-
     bool runEventThread; // Variable to control if thread shall run, used in thread to exit/keep running inthread
-	std::mutex eventMutex;
+    std::mutex eventMutex;
     std::condition_variable eventWaitCondition;
-	std::thread * eventThread;
+    std::thread * eventThread;
     std::queue<eventData_t> eventQueue;
 };
 
