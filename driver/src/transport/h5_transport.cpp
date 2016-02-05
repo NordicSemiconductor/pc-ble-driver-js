@@ -200,9 +200,14 @@ void H5Transport::processPacket(std::vector<uint8_t> &packet)
 
     std::vector<uint8_t> h5Payload;
 
-    err_code = h5_decode(slipPayload, h5Payload,
+    err_code = h5_decode(
+        slipPayload, 
+        h5Payload,
         &seq_num,
         &ack_num,
+        nullptr,
+        nullptr,
+        nullptr,
         &reliable_packet,
         &packet_type);
 
@@ -757,10 +762,18 @@ std::string H5Transport::h5PktToString(bool out, std::vector<uint8_t> &h5Packet)
     uint8_t ack_num;
     bool reliable_packet;
     h5_pkt_type_t packet_type;
+    bool data_integrity;
+    uint16_t payload_length;
+    uint8_t header_checksum;
 
-    auto err_code = h5_decode(h5Packet, payload,
+    auto err_code = h5_decode(
+        h5Packet, 
+        payload,
         &seq_num,
         &ack_num,
+        &data_integrity,
+        &payload_length,
+        &header_checksum,
         &reliable_packet,
         &packet_type);
 
@@ -782,7 +795,15 @@ std::string H5Transport::h5PktToString(bool out, std::vector<uint8_t> &h5Packet)
         << std::setw(20) << "type:" << std::setw(20) << pktTypeToString(packet_type)
         << " reliable:" << std::setw(3) << (reliable_packet ? "yes" : "no")
         << " seq#:" << std::hex << +seq_num << " ack#:" << std::hex << +ack_num
-        << " status:" << err_code;
+        << " payload_length:" << payload_length
+        << " data_integrity:" << data_integrity;
+
+    if (data_integrity)
+    {
+        retval << " header_checksum:" << std::hex << +header_checksum;
+    }
+
+    retval << " err_code:" << err_code;
 
     if (packet_type == LINK_CONTROL_PACKET)
     {

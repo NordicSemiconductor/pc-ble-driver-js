@@ -115,6 +115,9 @@ uint32_t h5_decode(std::vector<uint8_t> &slipPayload,
                    std::vector<uint8_t> &h5Payload,
                    uint8_t *seq_num,
                    uint8_t *ack_num,
+                   bool *_data_integrity,
+                   uint16_t *_payload_length,
+                   uint8_t *_header_checksum,
                    bool *reliable_packet,
                    h5_pkt_type_t *packet_type)
 {
@@ -140,6 +143,10 @@ uint32_t h5_decode(std::vector<uint8_t> &slipPayload,
     {
         return NRF_ERROR_INVALID_DATA;
     }
+
+    if (_payload_length != nullptr) *_payload_length = payload_length;
+    if (_data_integrity != nullptr) *_data_integrity = crc_present;
+    if (_header_checksum != nullptr) *_header_checksum = header_checksum;
 
     auto calculated_header_checksum = calculate_header_checksum(slipPayload);
 

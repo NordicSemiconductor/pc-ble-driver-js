@@ -52,6 +52,9 @@ uint32_t h5_decode(std::vector<uint8_t> &slip_dec_packet,
 	std::vector<uint8_t> &h5_dec_packet,
 	uint8_t *seq_num,
 	uint8_t *ack_num,
+    bool *_data_integrity,
+    uint16_t *_payload_length,
+    uint8_t *_header_checksum,
 	bool *reliable_packet,
 	h5_pkt_type_t *packet_type);
 
