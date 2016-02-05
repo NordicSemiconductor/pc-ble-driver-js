@@ -1789,7 +1789,7 @@ class Adapter extends EventEmitter {
                     if (err) {
                         reject(make_error('Error converting characteristic to driver.', err));
                     } else {
-                        this._bleDriver.gatts_add_characteristic(
+                        this._bleDriver.gattsAddCharacteristic(
                             data.serviceHandle,
                             characteristicForDriver.metadata,
                             characteristicForDriver.attribute,
