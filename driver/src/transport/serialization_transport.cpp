@@ -135,9 +135,11 @@ void SerializationTransport::eventHandlingRunner()
         {
             eventData_t eventData = eventQueue.front();
             eventQueue.pop();
-            ble_evt_t event;
+            // Find event length and allocate said length then decode event
             uint32_t eventLength;
-            uint32_t errCode = ble_event_dec(eventData.data, eventData.dataLength, &event, &eventLength);
+            ble_event_dec(eventData.data, eventData.dataLength, nullptr, &eventLength);
+            ble_evt_t *event = static_cast<ble_evt_t *>(malloc(eventLength));
+            uint32_t errCode = ble_event_dec(eventData.data, eventData.dataLength, event, &eventLength);
 
             if (eventCallback != nullptr && errCode == NRF_SUCCESS)
             {
