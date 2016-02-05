@@ -86,7 +86,7 @@ uint32_t SerializationTransport::close()
         eventThread = nullptr;
     }
 
-    return NRF_SUCCESS;
+    return nextTransportLayer->close();
 }
 
 uint32_t SerializationTransport::send(uint8_t *cmdBuffer, uint32_t cmdLength, uint8_t *rspBuffer, uint32_t *rspLength)
