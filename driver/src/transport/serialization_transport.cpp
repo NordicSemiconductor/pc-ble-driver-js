@@ -16,6 +16,7 @@
 #include "ble_app.h"
 #include "nrf_error.h"
 
+#include <memory>
 #include <iostream>
 #include <cstring> // Do not remove! Required by gcc.
 
@@ -138,12 +139,12 @@ void SerializationTransport::eventHandlingRunner()
             // Find event length and allocate said length then decode event
             uint32_t eventLength;
             ble_event_dec(eventData.data, eventData.dataLength, nullptr, &eventLength);
-            ble_evt_t *event = static_cast<ble_evt_t *>(malloc(eventLength));
-            uint32_t errCode = ble_event_dec(eventData.data, eventData.dataLength, event, &eventLength);
+            std::unique_ptr<ble_evt_t> event(static_cast<ble_evt_t*>(std::malloc(eventLength)));
+            uint32_t errCode = ble_event_dec(eventData.data, eventData.dataLength, event.get(), &eventLength);
 
             if (eventCallback != nullptr && errCode == NRF_SUCCESS)
             {
-                eventCallback(event);
+                eventCallback(event.get());
             }
 
             free(eventData.data);
