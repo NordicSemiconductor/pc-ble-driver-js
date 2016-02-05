@@ -92,7 +92,7 @@ uint32_t SerializationTransport::close()
 uint32_t SerializationTransport::send(uint8_t *cmdBuffer, uint32_t cmdLength, uint8_t *rspBuffer, uint32_t *rspLength)
 {
     // Mutex to avoid multiple threads sending commands at the same time.
-    std::unique_lock<std::mutex> responseGuard(responseMutex);
+    std::unique_lock<std::mutex> sendGuard(sendMutex);
     rspReceived = false;
     responseBuffer = rspBuffer;
     responseLength = rspLength;
