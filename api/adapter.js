@@ -322,7 +322,7 @@ class Adapter extends EventEmitter {
         if (deviceRole === 'peripheral') {
             const callback = this._gapOperationsMap.connecting.callback;
             delete this._gapOperationsMap.connecting;
-            callback(undefined, device);
+            if (callback) { callback(undefined, device); }
         }
     }
 
@@ -344,13 +344,16 @@ class Adapter extends EventEmitter {
             // TODO: How do we know what the callback expects? Check disconnected event reason?
             const callback = this._gapOperationsMap[device.instanceId].callback;
             delete this._gapOperationsMap[device.instanceId];
-            callback(undefined, device);
+            if (callback) { callback(undefined, device); }
         }
 
         if (this._gattOperationsMap[device.instanceId]) {
             const callback = this._gattOperationsMap[device.instanceId].callback;
             delete this._gattOperationsMap[device.instanceId];
-            callback(make_error('Device disconnected', 'Device with address ' + device.address + ' disconnected'));
+
+            if (callback) {
+                callback(make_error('Device disconnected', 'Device with address ' + device.address + ' disconnected'));
+            }
         }
 
         delete this._devices[device.instanceId];
@@ -374,7 +377,7 @@ class Adapter extends EventEmitter {
         if (this._gapOperationsMap[device.instanceId]) {
             const callback = this._gapOperationsMap[device.instanceId].callback;
             delete this._gapOperationsMap[device.instanceId];
-            callback(undefined, device);
+            if (callback) { callback(undefined, device); }
         }
 
         this.emit('connParamUpdate', device);
@@ -1275,7 +1278,7 @@ class Adapter extends EventEmitter {
                     changedStates.available = true;
 
                     this._changeState(changedStates);
-                    if (callback) callback(undefined, this._state);
+                    if (callback) { callback(undefined, this._state); }
                 });
             });
         });
@@ -1283,7 +1286,8 @@ class Adapter extends EventEmitter {
 
     // Set GAP related information
     setName(name, callback) {
-        this._adapter.gapSetDeviceName({sm: 0, lv: 0}, name, err => {
+        let _name = name.split();
+        this._adapter.gapSetDeviceName({sm: 0, lv: 0}, _name, err => {
             if (err) {
                 this.emit('error', make_error('Failed to set name to adapter', err));
             } else if (this._state.name !== name) {
@@ -1292,7 +1296,7 @@ class Adapter extends EventEmitter {
                 this._changeState({name: name});
             }
 
-            callback(err);
+            if (callback) { callback(err); }
         });
     }
 
@@ -1313,7 +1317,7 @@ class Adapter extends EventEmitter {
                 this._changeState({address: address});
             }
 
-            callback(err);
+            if (callback) { callback(err); }
         });
     }
 
@@ -1325,7 +1329,7 @@ class Adapter extends EventEmitter {
                 this.emit('error', make_error('Failed to set device name', err));
             }
 
-            callback(err);
+            if (callback) { callback(err); }
         });
     }
 
@@ -1340,7 +1344,7 @@ class Adapter extends EventEmitter {
                 this.emit('error', make_error('Failed to set appearance', err));
             }
 
-            callback(err);
+            if (callback) { callback(err); }
         });
     }
 
@@ -1355,7 +1359,7 @@ class Adapter extends EventEmitter {
                 this.emit('error', make_error('Failed to set PPCP', err));
             }
 
-            callback(err);
+            if (callback) { callback(err); }
         });
     }
 
@@ -1406,7 +1410,7 @@ class Adapter extends EventEmitter {
                 this._changeState({scanning: true});
             }
 
-            callback(err);
+            if (callback) { callback(err); }
         });
     }
 
@@ -1420,7 +1424,7 @@ class Adapter extends EventEmitter {
                 this._changeState({scanning: false});
             }
 
-            callback(err);
+            if (callback) { callback(err); }
         });
     }
 
@@ -1429,7 +1433,7 @@ class Adapter extends EventEmitter {
         if (!_.isEmpty(this._gapOperationsMap)) {
             const errorObject = make_error('Could not connect. Another connect is in progress.');
             this.emit('error', errorObject);
-            callback(errorObject);
+            if (callback) { callback(errorObject); }
         }
 
         var address = {};
@@ -1447,7 +1451,7 @@ class Adapter extends EventEmitter {
             if (err) {
                 this._changeState({connecting: false});
                 this.emit('error', make_error(`Could not connect to ${deviceAddress}`, err));
-                callback(make_error('Failed to connect to ' + deviceAddress.address, err));
+                if (callback) { callback(make_error('Failed to connect to ' + deviceAddress.address, err)); }
             } else {
                 this._gapOperationsMap.connecting = {deviceAddress: address, callback: callback};
             }
@@ -1461,11 +1465,11 @@ class Adapter extends EventEmitter {
                 // TODO: log more
                 const newError = make_error('Error occured when canceling connection', err);
                 this.emit('error', newError);
-                callback(newError);
+                if (callback) { callback(newError); }
             } else {
                 delete this._gapOperationsMap.connecting;
                 this._changeState({connecting: false});
-                callback(undefined);
+                if (callback) { callback(undefined); }
             }
         });
     }
@@ -1561,7 +1565,7 @@ class Adapter extends EventEmitter {
         this._adapter.gapStartAdvertising(advParams, err => {
             if (this.checkAndPropagateError(err, 'Failed to start advertising.', callback)) return;
             this._changeState({advertising: true});
-            if (callback) callback();
+            if (callback) { callback(); }
         });
     }
 
@@ -1575,7 +1579,7 @@ class Adapter extends EventEmitter {
             scanRespDataStruct,
             err => {
                 if (this.checkAndPropagateError(err, 'Failed to set advertising data.', callback)) return;
-                if (callback) callback();
+                if (callback) { callback(); }
             }
         );
     }
@@ -1585,7 +1589,7 @@ class Adapter extends EventEmitter {
         this._adapter.gapStopAdvertising(err => {
             if (this.checkAndPropagateError(err, 'Failed to stop advertising.', callback)) return;
             this._changeState({advertising: false});
-            if (callback) callback();
+            if (callback) { callback(); }
         });
     }
 
@@ -1596,7 +1600,7 @@ class Adapter extends EventEmitter {
         if (!device) {
             const errorObject = make_error('Failed to disconnect', 'Failed to find device with id ' + deviceInstanceId);
             this.emit('error', errorObject);
-            callback(errorObject);
+            if (callback) { callback(errorObject); }
         }
 
         const hciStatusCode = this._bleDriver.BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION;
@@ -1604,7 +1608,7 @@ class Adapter extends EventEmitter {
             if (err) {
                 const errorObject = make_error('Failed to disconnect', err);
                 this.emit('error', errorObject);
-                callback(errorObject);
+                if (callback) { callback(errorObject); }
             } else {
                 // Expect a disconnect event down the road
                 this._gapOperationsMap[deviceInstanceId] = {
@@ -1635,7 +1639,7 @@ class Adapter extends EventEmitter {
             if (err) {
                 const errorObject = make_error('Failed to update connection parameters', err);
                 this.emit('error', errorObject);
-                callback(errorObject);
+                if (callback) { callback(errorObject); }
             } else {
                 this._gapOperationsMap[deviceInstanceId] = {
                     callback,
@@ -1656,7 +1660,7 @@ class Adapter extends EventEmitter {
                 this.emit('error', make_error('Failed to reject connection parameters', err));
             }
 
-            callback(err);
+            if (callback) { callback(err); }
         });
     }
 
@@ -1665,14 +1669,14 @@ class Adapter extends EventEmitter {
         if (bond) {
             const errorObject = make_error('Bonding is not (yet) supported', undefined);
             this.emit('error', errorObject);
-            callback(errorObject);
+            if (callback) { callback(errorObject); }
             return;
         }
 
         if (this.state.securityRequestPending) {
             const errorObject = make_error('Failed to pair, a security operation is already in progress', undefined);
             this.emit('error', errorObject);
-            callback(errorObject);
+            if (callback) { callback(errorObject); }
             return;
         }
 
@@ -1681,7 +1685,7 @@ class Adapter extends EventEmitter {
         if (!device) {
             const errorObject = make_error('Failed to pair, Could not find device with id ' + JSON.stringify(deviceInstanceId));
             this.emit('error', errorObject);
-            callback(errorObject);
+            if (callback) { callback(errorObject); }
             return;
         }
 
@@ -1713,7 +1717,7 @@ class Adapter extends EventEmitter {
             }
 
             this._changeState({securityRequestPending: false});
-            callback(errorObject);
+            if (callback) { callback(errorObject); }
         });
     }
 
@@ -1950,10 +1954,10 @@ class Adapter extends EventEmitter {
         // is propagated to all promises.
         promiseSequencer(promises, {}).then(data => {
             // TODO: Ierate over all servicses, descriptors, characterstics from parameter services
-            callback();
+            if (callback) { callback(); }
         }).catch(err => {
             this.emit('error', err);
-            callback(err);
+            if (callback) { callback(err); }
         });
     }
 
@@ -1981,7 +1985,7 @@ class Adapter extends EventEmitter {
         });
 
         if (!_.isEmpty(alreadyFoundServices)) {
-            callback(undefined, alreadyFoundServices);
+            if (callback) { callback(undefined, alreadyFoundServices); }
             return;
         }
 
@@ -1989,7 +1993,7 @@ class Adapter extends EventEmitter {
         this._adapter.gattcDiscoverPrimaryServices(device.connectionHandle, 1, null, (err, services) => {
             if (err) {
                 this.emit('error', make_error('Failed to get services', err));
-                callback(err);
+                if (callback) { callback(err); }
                 return;
             }
         });
@@ -2020,7 +2024,7 @@ class Adapter extends EventEmitter {
         });
 
         if (!_.isEmpty(alreadyFoundCharacteristics)) {
-            callback(undefined, alreadyFoundCharacteristics);
+            if (callback) { callback(undefined, alreadyFoundCharacteristics); }
             return;
         }
 
@@ -2030,7 +2034,7 @@ class Adapter extends EventEmitter {
         this._adapter.gattcDiscoverCharacteristics(device.connectionHandle, handleRange, err => {
             if (err) {
                 this.emit('error', make_error('Failed to get Characteristics', err));
-                callback(err);
+                if (callback) { callback(err); }
                 return;
             }
         });
@@ -2117,7 +2121,7 @@ class Adapter extends EventEmitter {
         });
 
         if (!_.isEmpty(alreadyFoundDescriptor)) {
-            callback(undefined, alreadyFoundDescriptor);
+            if (callback) { callback(undefined, alreadyFoundDescriptor); }
             return;
         }
 
@@ -2126,7 +2130,7 @@ class Adapter extends EventEmitter {
         this._adapter.gattcDiscoverDescriptors(device.connectionHandle, handleRange, err => {
             if (err) {
                 this.emit('error', make_error('Failed to get Descriptors', err));
-                callback(err);
+                if (callback) { callback(err); }
                 return;
             }
         });
@@ -2324,14 +2328,14 @@ class Adapter extends EventEmitter {
             if (err) {
                 delete this._gattOperationsMap[device.instanceId];
                 this.emit('error', 'Failed to write to attribute with handle: ' + attribute.handle);
-                callback(err);
+                if (callback) { callback(err); }
                 return;
             }
 
             if (!ack) {
                 delete this._gattOperationsMap[device.instanceId];
                 attribute.value = value;
-                callback(undefined, attribute);
+                if (callback) { callback(undefined, attribute); }
             }
         });
     }
@@ -2552,12 +2556,12 @@ class Adapter extends EventEmitter {
         this._adapter.gattsGetValue(this._bleDriver.BLE_CONN_HANDLE_INVALID, attribute, readParameters, (err, readResults) => {
             if (err) {
                 this.emit('error', make_error('Failed to write local value', err));
-                callback(err, undefined);
+                if (callback) { callback(err, undefined); }
                 return;
             }
 
             attribute.value = readResults.value;
-            callback(undefined, attribute);
+            if (callback) { callback(undefined, attribute); }
         });
     }
 
@@ -2582,7 +2586,7 @@ class Adapter extends EventEmitter {
                 this.emit('error', 'Failed to start characteristics notifications');
             }
 
-            callback(err);
+            if (callback) { callback(err); }
         });
     }
 
@@ -2605,7 +2609,7 @@ class Adapter extends EventEmitter {
                 this.emit('error', 'Failed to stop characteristics notifications');
             }
 
-            callback(err);
+            if (callback) { callback(err); }
         });
     }
 }
