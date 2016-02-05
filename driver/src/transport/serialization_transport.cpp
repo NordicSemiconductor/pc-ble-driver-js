@@ -143,7 +143,7 @@ void SerializationTransport::eventHandlingRunner()
 
             if (eventCallback != nullptr && errCode == NRF_SUCCESS)
             {
-                eventCallback(&event);
+                eventCallback(event);
             }
 
             free(eventData.data);
