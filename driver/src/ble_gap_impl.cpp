@@ -550,3 +550,31 @@ uint32_t sd_ble_gap_rssi_get(adapter_t *adapter, uint16_t  conn_handle,
 
     return encode_decode(adapter, encode_function, decode_function);
 }
+
+
+uint32_t sd_ble_gap_sec_params_reply(adapter_t *adapter,
+                                     uint16_t conn_handle,
+                                     uint8_t sec_status,
+                                     ble_gap_sec_params_t const *p_sec_params,
+                                     ble_gap_sec_keyset_t const *p_sec_keyset)
+{
+    encode_function_t encode_function = [&](uint8_t *buffer, uint32_t *length) -> uint32_t {
+        return ble_gap_sec_params_reply_enc(
+            conn_handle,
+            sec_status,
+            p_sec_params,
+            p_sec_keyset,
+            buffer,
+            length);
+    }
+
+    decode_function_t decode_function = [&](uint8_t *buffer, uint32_t length, uint32_t *result) -> uint32_t {
+        return ble_gap_sec_params_reply_dec(
+            buffer,
+            length,
+            p_sec_keyset,
+            result);
+    }
+
+    return encode_decode(adapter, encode_function, decode_function);
+}
