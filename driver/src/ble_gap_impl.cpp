@@ -559,7 +559,7 @@ uint32_t sd_ble_gap_sec_params_reply(adapter_t *adapter,
                                      ble_gap_sec_keyset_t const *p_sec_keyset)
 {
     encode_function_t encode_function = [&](uint8_t *buffer, uint32_t *length) -> uint32_t {
-        return ble_gap_sec_params_reply_enc(
+        return ble_gap_sec_params_reply_req_enc(
             conn_handle,
             sec_status,
             p_sec_params,
@@ -569,7 +569,7 @@ uint32_t sd_ble_gap_sec_params_reply(adapter_t *adapter,
     }
 
     decode_function_t decode_function = [&](uint8_t *buffer, uint32_t length, uint32_t *result) -> uint32_t {
-        return ble_gap_sec_params_reply_dec(
+        return ble_gap_sec_params_reply_rsp_dec(
             buffer,
             length,
             p_sec_keyset,
