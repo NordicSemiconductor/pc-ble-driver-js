@@ -22,10 +22,6 @@
 typedef std::map<uint16_t, const char*> name_map_t;
 typedef std::map<uint16_t, const char*>::iterator name_map_it_t;
 
-// Mutex used to assure that only one call is done to the BLE Driver API at a time.
-// The BLE Driver API is not thread safe.
-static std::mutex ble_driver_call_mutex;
-
 extern adapter_t *connectedAdapters[];
 extern int adapterCount;
 

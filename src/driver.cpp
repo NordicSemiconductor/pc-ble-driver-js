@@ -465,8 +465,6 @@ void Adapter::Open(uv_work_t *req)
 {
     auto baton = static_cast<OpenBaton *>(req->data);
 
-    lock_guard<mutex> lock(ble_driver_call_mutex);
-
     baton->mainObject->initEventHandling(baton->event_callback, baton->evt_interval);
     baton->mainObject->initLogHandling(baton->log_callback);
     baton->mainObject->initStatusHandling(baton->status_callback);
@@ -543,8 +541,6 @@ void Adapter::AfterOpen(uv_work_t *req)
 
     if (baton->result != NRF_SUCCESS)
     {
-        lock_guard<mutex> lock(ble_driver_call_mutex);
-
         argv[0] = ErrorMessage::getErrorMessage(baton->result, "opening port");
 
         baton->mainObject->removeCallbacks();
@@ -584,7 +580,6 @@ NAN_METHOD(Adapter::Close)
 void Adapter::Close(uv_work_t *req)
 {
     auto baton = static_cast<CloseBaton *>(req->data);
-    lock_guard<mutex> lock(ble_driver_call_mutex);
     baton->result = sd_rpc_close(baton->adapter);
 }
 
@@ -644,8 +639,6 @@ NAN_METHOD(Adapter::AddVendorSpecificUUID)
 void Adapter::AddVendorSpecificUUID(uv_work_t *req)
 {
     auto baton = static_cast<BleAddVendorSpcificUUIDBaton *>(req->data);
-
-    lock_guard<mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_uuid_vs_add(baton->adapter, baton->p_vs_uuid, &baton->p_uuid_type);
 }
 
@@ -762,8 +755,6 @@ NAN_METHOD(Adapter::GetVersion)
 void Adapter::GetVersion(uv_work_t *req)
 {
     auto baton = static_cast<GetVersionBaton *>(req->data);
-
-    lock_guard<mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_version_get(baton->adapter, baton->version);
 }
 
@@ -837,8 +828,6 @@ NAN_METHOD(Adapter::EncodeUUID)
 void Adapter::EncodeUUID(uv_work_t *req)
 {
     auto baton = static_cast<BleUUIDEncodeBaton *>(req->data);
-
-    lock_guard<mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_uuid_encode(baton->adapter, baton->p_uuid, &baton->uuid_le_len, baton->uuid_le);
 }
 
@@ -909,8 +898,6 @@ NAN_METHOD(Adapter::DecodeUUID)
 void Adapter::DecodeUUID(uv_work_t *req)
 {
     auto baton = static_cast<BleUUIDDecodeBaton *>(req->data);
-
-    lock_guard<mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_uuid_decode(baton->adapter, baton->uuid_le_len, baton->uuid_le, baton->p_uuid);
 }
 

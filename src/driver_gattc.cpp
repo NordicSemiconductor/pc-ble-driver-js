@@ -408,7 +408,6 @@ NAN_METHOD(Adapter::GattcDiscoverPrimaryServices)
 void Adapter::GattcDiscoverPrimaryServices(uv_work_t *req)
 {
     auto baton = static_cast<GattcDiscoverPrimaryServicesBaton *>(req->data);
-    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gattc_primary_services_discover(baton->adapter, baton->conn_handle, baton->start_handle, baton->p_srvc_uuid);
 }
 
@@ -483,8 +482,6 @@ NAN_METHOD(Adapter::GattcDiscoverRelationship)
 void Adapter::GattcDiscoverRelationship(uv_work_t *req)
 {
     auto baton = static_cast<GattcDiscoverRelationshipBaton *>(req->data);
-
-    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gattc_relationships_discover(baton->adapter, baton->conn_handle, baton->p_handle_range);
 }
 
@@ -558,8 +555,6 @@ NAN_METHOD(Adapter::GattcDiscoverCharacteristics)
 void Adapter::GattcDiscoverCharacteristics(uv_work_t *req)
 {
     auto baton = static_cast<GattcDiscoverCharacteristicsBaton *>(req->data);
-
-    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gattc_characteristics_discover(baton->adapter, baton->conn_handle, baton->p_handle_range);
 }
 
@@ -633,7 +628,6 @@ NAN_METHOD(Adapter::GattcDiscoverDescriptors)
 void Adapter::GattcDiscoverDescriptors(uv_work_t *req)
 {
     auto baton = static_cast<GattcDiscoverDescriptorsBaton *>(req->data);
-    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gattc_descriptors_discover(baton->adapter, baton->conn_handle, baton->p_handle_range);
 }
 
@@ -722,7 +716,6 @@ NAN_METHOD(Adapter::GattcReadCharacteristicValueByUUID)
 void Adapter::GattcReadCharacteristicValueByUUID(uv_work_t *req)
 {
     auto baton = static_cast<GattcCharacteristicByUUIDReadBaton *>(req->data);
-    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gattc_char_value_by_uuid_read(baton->adapter, baton->conn_handle, baton->p_uuid, baton->p_handle_range);
 }
 
@@ -791,8 +784,6 @@ NAN_METHOD(Adapter::GattcRead)
 void Adapter::GattcRead(uv_work_t *req)
 {
     auto baton = static_cast<GattcReadBaton *>(req->data);
-
-    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gattc_read(baton->adapter, baton->conn_handle, baton->handle, baton->offset);
 }
 
@@ -876,10 +867,7 @@ NAN_METHOD(Adapter::GattcReadCharacteristicValues)
 void Adapter::GattcReadCharacteristicValues(uv_work_t *req)
 {
     auto baton = static_cast<GattcReadCharacteristicValuesBaton *>(req->data);
-
-    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gattc_char_values_read(baton->adapter, baton->conn_handle, baton->p_handles, baton->handle_count);
-
     free(baton->p_handles);
 }
 
@@ -953,8 +941,6 @@ NAN_METHOD(Adapter::GattcWrite)
 void Adapter::GattcWrite(uv_work_t *req)
 {
     auto baton = static_cast<GattcWriteBaton *>(req->data);
-
-    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gattc_write(baton->adapter, baton->conn_handle, baton->p_write_params);
 }
 
@@ -1017,8 +1003,6 @@ NAN_METHOD(Adapter::GattcConfirmHandleValue)
 void Adapter::GattcConfirmHandleValue(uv_work_t *req)
 {
     auto baton = static_cast<GattcConfirmHandleValueBaton *>(req->data);
-
-    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gattc_hv_confirm(baton->adapter, baton->conn_handle, baton->handle);
 }
 

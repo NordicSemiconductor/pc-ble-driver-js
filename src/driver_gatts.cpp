@@ -390,8 +390,6 @@ NAN_METHOD(Adapter::GattsAddService)
 void Adapter::GattsAddService(uv_work_t *req)
 {
     auto baton = static_cast<GattsAddServiceBaton *>(req->data);
-
-    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gatts_service_add(baton->adapter, baton->type, baton->p_uuid, &baton->p_handle);
 }
 
@@ -481,8 +479,6 @@ NAN_METHOD(Adapter::GattsAddCharacteristic)
 void Adapter::GattsAddCharacteristic(uv_work_t *req)
 {
     auto baton = static_cast<GattsAddCharacteristicBaton *>(req->data);
-
-    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gatts_characteristic_add(baton->adapter, baton->service_handle, baton->p_char_md, baton->p_attr_char_value, baton->p_handles);
 }
 
@@ -559,8 +555,6 @@ NAN_METHOD(Adapter::GattsAddDescriptor)
 void Adapter::GattsAddDescriptor(uv_work_t *req)
 {
     auto baton = static_cast<GattsAddDescriptorBaton *>(req->data);
-
-    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gatts_descriptor_add(baton->adapter, baton->char_handle, baton->p_attr, &baton->p_handle);
 }
 
@@ -637,8 +631,6 @@ NAN_METHOD(Adapter::GattsHVX)
 void Adapter::GattsHVX(uv_work_t *req)
 {
     auto baton = static_cast<GattsHVXBaton *>(req->data);
-
-    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gatts_hvx(baton->adapter, baton->conn_handle, baton->p_hvx_params);
 }
 
@@ -733,8 +725,6 @@ NAN_METHOD(Adapter::GattsSystemAttributeSet)
 void Adapter::GattsSystemAttributeSet(uv_work_t *req)
 {
     auto baton = static_cast<GattsSystemAttributeSetBaton *>(req->data);
-
-    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gatts_sys_attr_set(baton->adapter, baton->conn_handle, baton->p_sys_attr_data, baton->len, baton->flags);
 }
 
@@ -814,8 +804,6 @@ NAN_METHOD(Adapter::GattsSetValue)
 void Adapter::GattsSetValue(uv_work_t *req)
 {
     auto baton = static_cast<GattsSetValueBaton *>(req->data);
-
-    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gatts_value_set(baton->adapter, baton->conn_handle, baton->handle, baton->p_value);
 }
 
@@ -897,8 +885,6 @@ NAN_METHOD(Adapter::GattsGetValue)
 void Adapter::GattsGetValue(uv_work_t *req)
 {
     auto baton = static_cast<GattsGetValueBaton *>(req->data);
-
-    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gatts_value_get(baton->adapter, baton->conn_handle, baton->handle, baton->p_value);
 }
 
@@ -975,8 +961,6 @@ NAN_METHOD(Adapter::GattsReplyReadWriteAuthorize)
 void Adapter::GattsReplyReadWriteAuthorize(uv_work_t *req)
 {
     auto baton = static_cast<GattsReplyReadWriteAuthorizeBaton *>(req->data);
-
-    std::lock_guard<std::mutex> lock(ble_driver_call_mutex);
     baton->result = sd_ble_gatts_rw_authorize_reply(baton->adapter, baton->conn_handle, baton->p_rw_authorize_reply_params);
 }
 
