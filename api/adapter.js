@@ -56,16 +56,20 @@ class Adapter extends EventEmitter {
         this._instanceId = instanceId;
         this._state = new AdapterState(instanceId, port);
 
+        this._maxReadPayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 1;
+        this._maxShortWritePayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 3;
+        this._maxLongWritePayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 5;
+
+        this._init();
+    }
+
+    _init() {
         this._devices = {};
         this._services = {};
         this._characteristics = {};
         this._descriptors = {};
 
-        this._converter = new Converter(this._bleDriver, this._adapter);
-
-        this._maxReadPayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 1;
-        this._maxShortWritePayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 3;
-        this._maxLongWritePayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 5;
+        this._converter = new Converter(this._bleDriver);
 
         this._gapOperationsMap = {};
         this._gattOperationsMap = {};
@@ -221,6 +225,7 @@ class Adapter extends EventEmitter {
     }
 
     _statusCallback(code, message) {
+        if (code == 6) this._init();
         this.emit('status', code, message);
     }
 
@@ -624,7 +629,7 @@ class Adapter extends EventEmitter {
                 for (let handle in gattOperation.pendingHandleReads) {
                     // Just take the first found handle and start the read process.
                     const handleAsNumber = parseInt(handle, 10);
-                    this._adapter.gattcRead(device.connectionHandle, handleAsNumber, 0, err => {
+                    this._bleDriver.gattc_read(device.connectionHandle, handleAsNumber, 0, err => {
                         if (err) {
                             this.emit('error', err);
                             // Call getServices callback??
@@ -1293,7 +1298,7 @@ class Adapter extends EventEmitter {
 
     _parseMemoryRequest(event) {
         if (event.type === this._bleDriver.BLE_USER_MEM_TYPE_GATTS_QUEUED_WRITES) {
-            this._adapter.replyUserMemory(null);
+            this._bleDriver(sd_ble_user_mem_reply(null));
         }
     }
 
