@@ -140,11 +140,6 @@ void Adapter::eventIntervalCallback(uv_timer_t *handle)
     dispatchEvents();
 }
 
-size_t findSize(ble_evt_t *event)
-{
-    return std::max(static_cast<std::size_t>(event->header.evt_len), static_cast<std::size_t>(sizeof(ble_evt_t)));
-}
-
 static void sd_rpc_on_event(adapter_t *adapter, ble_evt_t *event)
 {
     // TODO: Clarification:
@@ -178,7 +173,7 @@ void Adapter::appendEvent(ble_evt_t *event)
         eventCallbackMaxCount = eventCallbackBatchEventCounter;
     }
 
-    auto size = findSize(event);
+    auto size = static_cast<std::size_t>(event->header.evt_len);
 
     auto evt = malloc(size);
     memset(evt, 0, size);
@@ -490,6 +485,15 @@ void Adapter::Open(uv_work_t *req)
     baton->adapter = adapter;
     baton->mainObject->adapter = adapter;
 
+    // Clear the statiscits
+    baton->mainObject->eventCallbackCount = 0;
+
+    // Max number of events in queue before sending it to JavaScript
+    baton->mainObject->eventCallbackMaxCount = 0;
+    baton->mainObject->eventCallbackBatchEventCounter = 0;
+    baton->mainObject->eventCallbackBatchEventTotalCount = 0;
+    baton->mainObject->eventCallbackBatchNumber = 0;
+
     auto error_code = sd_rpc_open(adapter, sd_rpc_on_status, sd_rpc_on_event, sd_rpc_on_log_event);
 
     // Let the normal log handling handle the rest of the log calls
@@ -580,19 +584,17 @@ NAN_METHOD(Adapter::Close)
 void Adapter::Close(uv_work_t *req)
 {
     auto baton = static_cast<CloseBaton *>(req->data);
-    auto obj = baton->mainObject;
-
     lock_guard<mutex> lock(ble_driver_call_mutex);
-
     baton->result = sd_rpc_close(baton->adapter);
-
-    obj->removeCallbacks();
 }
 
 void Adapter::AfterClose(uv_work_t *req)
 {
     Nan::HandleScope scope;
     auto baton = static_cast<CloseBaton *>(req->data);
+
+    baton->mainObject->removeCallbacks();
+    baton->mainObject->closing = false;
 
     v8::Local<v8::Value> argv[1];
 

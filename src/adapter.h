@@ -172,7 +172,6 @@ private:
     uv_async_t asyncEvent;
 
     uv_async_t asyncLog;
-
     uv_async_t asyncStatus;
 
     // Statistics:

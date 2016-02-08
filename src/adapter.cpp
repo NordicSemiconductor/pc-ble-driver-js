@@ -87,14 +87,19 @@ void Adapter::initEventHandling(Nan::Callback *callback, uint32_t interval)
     // Setup event related functionality
     eventCallback = callback;
     asyncEvent.data = static_cast<void *>(this);
-    uv_async_init(uv_default_loop(), &asyncEvent, event_handler);
+
+    // If we already have an async handle we do not create a new one
+    if (!uv_is_active(reinterpret_cast<uv_handle_t *>(&asyncEvent)))
+    {
+        assert(uv_async_init(uv_default_loop(), &asyncEvent, event_handler) == 0);
+    }
 
     // Setup event interval functionality
     if (eventInterval > 0)
     {
         eventIntervalTimer.data = static_cast<void *>(this);
-        uv_timer_init(uv_default_loop(), &eventIntervalTimer);
-        uv_timer_start(&eventIntervalTimer, event_interval_handler, eventInterval, eventInterval);
+        assert(uv_timer_init(uv_default_loop(), &eventIntervalTimer) == 0);
+        assert(uv_timer_start(&eventIntervalTimer, event_interval_handler, eventInterval, eventInterval) == 0);
     }
 }
 
@@ -119,7 +124,12 @@ void Adapter::initLogHandling(Nan::Callback *callback)
     // Setup event related functionality
     logCallback = callback;
     asyncLog.data = static_cast<void *>(this);
-    uv_async_init(uv_default_loop(), &asyncLog, log_handler);
+
+    // If we already have an async handle we do not create a new one
+    if (!uv_is_active(reinterpret_cast<uv_handle_t *>(&asyncLog)))
+    {
+        assert(uv_async_init(uv_default_loop(), &asyncLog, log_handler) == 0);
+    }
 }
 
 extern "C" {
@@ -144,7 +154,12 @@ void Adapter::initStatusHandling(Nan::Callback *callback)
     // Setup event related functionality
     statusCallback = callback;
     asyncStatus.data = static_cast<void *>(this);
-    uv_async_init(uv_default_loop(), &asyncStatus, status_handler);
+
+    // If we already have an async handle we do not create a new one
+    if (!uv_is_active(reinterpret_cast<uv_handle_t *>(&asyncStatus)))
+    {
+        assert(uv_async_init(uv_default_loop(), &asyncStatus, status_handler) == 0);
+    }
 }
 
 void Adapter::removeCallbacks()
