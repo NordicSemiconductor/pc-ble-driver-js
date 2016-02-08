@@ -566,7 +566,7 @@ uint32_t sd_ble_gap_sec_params_reply(adapter_t *adapter,
             p_sec_keyset,
             buffer,
             length);
-    }
+    };
 
     decode_function_t decode_function = [&](uint8_t *buffer, uint32_t length, uint32_t *result) -> uint32_t {
         return ble_gap_sec_params_reply_rsp_dec(
@@ -574,7 +574,7 @@ uint32_t sd_ble_gap_sec_params_reply(adapter_t *adapter,
             length,
             p_sec_keyset,
             result);
-    }
+    };
 
     return encode_decode(adapter, encode_function, decode_function);
 }
