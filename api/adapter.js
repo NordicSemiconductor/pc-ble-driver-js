@@ -624,7 +624,7 @@ class Adapter extends EventEmitter {
                 for (let handle in gattOperation.pendingHandleReads) {
                     // Just take the first found handle and start the read process.
                     const handleAsNumber = parseInt(handle, 10);
-                    this._bleDriver.gattc_read(device.connectionHandle, handleAsNumber, 0, err => {
+                    this._adapter.gattcRead(device.connectionHandle, handleAsNumber, 0, err => {
                         if (err) {
                             this.emit('error', err);
                             // Call getServices callback??
@@ -1293,7 +1293,7 @@ class Adapter extends EventEmitter {
 
     _parseMemoryRequest(event) {
         if (event.type === this._bleDriver.BLE_USER_MEM_TYPE_GATTS_QUEUED_WRITES) {
-            this._bleDriver(sd_ble_user_mem_reply(null));
+            this._adapter.replyUserMemory(null);
         }
     }
 
