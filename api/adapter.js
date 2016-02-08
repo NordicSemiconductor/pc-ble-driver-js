@@ -61,7 +61,7 @@ class Adapter extends EventEmitter {
         this._characteristics = {};
         this._descriptors = {};
 
-        this._converter = new Converter(this._bleDriver);
+        this._converter = new Converter(this._bleDriver, this._adapter);
 
         this._maxReadPayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 1;
         this._maxShortWritePayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 3;

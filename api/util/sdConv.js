@@ -1,8 +1,9 @@
 'use strict';
 
 class SoftDeviceConverter {
-    constructor(bleDriver) {
+    constructor(bleDriver, adapter) {
         this._bleDriver = bleDriver;
+        this._adapter = adapter;
 
         this.vsUuidStore = [];
     }
@@ -98,7 +99,7 @@ class SoftDeviceConverter {
                 return;
             }
 
-            this._bleDriver.add_vs_uuid({ uuid128: uuid }, (err, type) => {
+            this._adapter.add_vs_uuid({ uuid128: uuid }, (err, type) => {
                 if (err) {
                     callback(err);
                     return;
