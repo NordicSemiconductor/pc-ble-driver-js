@@ -99,7 +99,7 @@ class SoftDeviceConverter {
                 return;
             }
 
-            this._adapter.addVsUuid({ uuid128: uuid }, (err, type) => {
+            this._adapter.addVendorspecificUUID({ uuid128: uuid }, (err, type) => {
                 if (err) {
                     callback(err);
                     return;
