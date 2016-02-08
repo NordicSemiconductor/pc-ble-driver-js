@@ -5,24 +5,21 @@ const _bleDriver = require('bindings')('pc-ble-driver-js');
 var  Adapter = require('./adapter');
 const EventEmitter = require('events');
 
-/**
- * @brief A factory that instantiates new Adapters.
- *
- * @event added - A new adapter was connected
- * @event removed - A connected adapter was disconnected
- * @event adapterOpened - One of the connected adapters was opened.
- * @event adapterClosed - One of the connected adapters was closed
- *
- * @param err undefined if not error
- * @param callback callback
- * @class AdapterFactory
- */
-
 let _singleton = Symbol();
 
+/** Constants that decides how often the PC shall be checked for new adapters */
 const UPDATE_INTERVAL = 2000; // Update interval in seconds
 
+/**
+ * Class that provides Adapters through the use of pc-ble-driver AddOn
+ * @class
+ */
+
 class AdapterFactory extends EventEmitter {
+    /**
+    * Constructor that shall not be used by developer.
+    * @private
+    */
     constructor(singletonToken, bleDriver) {
         if (_singleton !== singletonToken)
             throw new Error('Cannot instantiate directly.');
@@ -34,6 +31,11 @@ class AdapterFactory extends EventEmitter {
         this.updateInterval = setInterval(this._updateAdapterList.bind(this), UPDATE_INTERVAL);
     }
 
+    /**
+     * Get the AdapterFactory instance.
+     *
+     * This is a singleton class that uses the pc-ble-driver-js AddOn to get devices.
+     */
     static getInstance(bleDriver) {
         if (bleDriver === undefined)
             bleDriver = _bleDriver;
@@ -44,6 +46,9 @@ class AdapterFactory extends EventEmitter {
         return this[_singleton];
     }
 
+    /**
+     * @private
+     */
     _getInstanceId(adapter) {
         // TODO: Better idea?
         if (adapter.serialNumber) {
@@ -110,7 +115,6 @@ class AdapterFactory extends EventEmitter {
         });
     }
 
-    // It is convenient to get events when an adapter is 'available'
     _setUpListenersForAdapterOpenAndClose(adapter) {
         adapter.on('opened', (adapter) => {
             this.emit('adapterOpened', adapter);
