@@ -641,7 +641,7 @@ class Adapter extends EventEmitter {
         };
 
         if (event.count === 0) {
-            finishCharacteristicDiscovery();
+            finishServiceDiscovery();
             return;
         }
 
