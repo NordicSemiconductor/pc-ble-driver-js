@@ -195,6 +195,7 @@ class Adapter extends EventEmitter {
             if (!options.logLevel) options.logLevel = 'info';
             if (!options.retransmissionInterval) options.retransmissionInterval = 100;
             if (!options.responseTimeout) options.responseTimeout = 750;
+            if (!options.enableBLE) options.enableBLE = true;
         }
 
         this._changeState({baudRate: options.baudRate, parity: options.parity, flowControl: options.flowControl});
@@ -222,6 +223,10 @@ class Adapter extends EventEmitter {
         this._adapter.close(callback);
         this._changeState({available: false});
         this.emit('closed', this);
+    }
+
+    enableBLE(callback) {
+        this._adapter.enableBLE(callback);
     }
 
     _statusCallback(status) {

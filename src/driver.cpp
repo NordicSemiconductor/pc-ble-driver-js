@@ -373,6 +373,80 @@ v8::Local<v8::Object> CommonMemReleaseEvent::ToJs()
     return scope.Escape(obj);
 }
 
+// Class private method that is only used by the class to activate the SoftDevice in the Adapter
+uint32_t Adapter::enableBLE(adapter_t *adapter)
+{
+    // If the this->adapter have not been set yet it is because the Adapter::Open call has not set 
+    // an adapter_t instance. The SoftDevice is started in Adapter::Open call and we do not have to take care of it 
+    // here.
+
+    if (adapter == nullptr)
+    {
+        return NRF_ERROR_INVALID_PARAM;
+    }
+
+    ble_enable_params_t ble_enable_params;
+
+    memset(&ble_enable_params, 0, sizeof(ble_enable_params));
+
+    ble_enable_params.gatts_enable_params.attr_tab_size = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
+    ble_enable_params.gatts_enable_params.service_changed = false;
+    
+    return sd_ble_enable(adapter, &ble_enable_params);
+}
+
+// This function runs in the Main Thread
+NAN_METHOD(Adapter::EnableBLE)
+{
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    v8::Local<v8::Function> callback;
+
+    try
+    {
+        callback = ConversionUtility::getCallbackFunction(info[0]);
+    }
+    catch (char const *error)
+    {
+        auto message = ErrorMessage::getTypeErrorMessage(0, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    auto baton = new EnableBLEBaton(callback);
+    baton->mainObject = obj;
+
+    uv_queue_work(uv_default_loop(), baton->req, EnableBLE, reinterpret_cast<uv_after_work_cb>(AfterEnableBLE));
+}
+
+// This runs in a worker thread (not Main Thread)
+void Adapter::EnableBLE(uv_work_t *req)
+{
+    auto baton = static_cast<EnableBLEBaton *>(req->data);
+    baton->result = baton->mainObject->enableBLE(baton->mainObject->adapter);
+}
+
+// This runs in  Main Thread
+void Adapter::AfterEnableBLE(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+    auto baton = static_cast<EnableBLEBaton *>(req->data);
+
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "enabling SoftDevice");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+    delete baton;
+}
+
+
 // This function runs in the Main Thread
 NAN_METHOD(Adapter::Open)
 {
@@ -415,6 +489,7 @@ NAN_METHOD(Adapter::Open)
         baton->log_level = ToLogSeverityEnum(Utility::Get(options, "logLevel")->ToString()); parameter++;
         baton->retransmission_interval = ConversionUtility::getNativeUint32(options, "retransmissionInterval"); parameter++;
         baton->response_timeout = ConversionUtility::getNativeUint32(options, "responseTimeout"); parameter++;
+        baton->enable_ble = ConversionUtility::getNativeBool(options, "enableBLE") != 0; parameter++;
     }
     catch (char const *error)
     {
@@ -506,28 +581,23 @@ void Adapter::Open(uv_work_t *req)
         return;
     }
 
-    ble_enable_params_t ble_enable_params;
+    if (baton->enable_ble) {
+        error_code = Adapter::enableBLE(adapter);
 
-    memset(&ble_enable_params, 0, sizeof(ble_enable_params));
+        if (error_code == NRF_SUCCESS)
+        {
+            baton->result = error_code;
+            return;
+        }
 
-    ble_enable_params.gatts_enable_params.attr_tab_size = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
-    ble_enable_params.gatts_enable_params.service_changed = false;
+        if (error_code == NRF_ERROR_INVALID_STATE)
+        {
+            printf("BLE stack already enabled\n"); fflush(stdout);
+            return;
+        }
 
-    error_code = sd_ble_enable(adapter, &ble_enable_params);
-
-    if (error_code == NRF_SUCCESS)
-    {
-        baton->result = error_code;
-        return;
+        printf("Failed to enable BLE stack.\n"); fflush(stdout);
     }
-
-    if (error_code == NRF_ERROR_INVALID_STATE)
-    {
-        printf("BLE stack already enabled\n"); fflush(stdout);
-        return;
-    }
-
-    printf("Failed to enable BLE stack.\n"); fflush(stdout);
 
     baton->result = error_code;
 }

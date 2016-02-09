@@ -93,6 +93,7 @@ private:
     // General async methods
     ADAPTER_METHOD_DEFINITIONS(Open);
     ADAPTER_METHOD_DEFINITIONS(Close);
+    ADAPTER_METHOD_DEFINITIONS(EnableBLE);
     ADAPTER_METHOD_DEFINITIONS(GetVersion);
     ADAPTER_METHOD_DEFINITIONS(AddVendorSpecificUUID);
     ADAPTER_METHOD_DEFINITIONS(EncodeUUID);
@@ -157,6 +158,7 @@ private:
     static void initGattS(v8::Local<v8::FunctionTemplate> tpl);
 
     void dispatchEvents();
+    static uint32_t enableBLE(adapter_t *adapter);
 
     adapter_t *adapter;
     EventQueue eventQueue;

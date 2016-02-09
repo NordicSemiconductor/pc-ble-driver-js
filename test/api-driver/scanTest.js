@@ -34,6 +34,7 @@ const openOptions = {
             baudRate: 115200,
             parity: 'none',
             flowControl: 'none',
+            enableBLE: false
 };
 
 function runTests(adapterOne, adapterTwo) {
@@ -42,13 +43,41 @@ function runTests(adapterOne, adapterTwo) {
     adapterOne.on('logMessage', (severity, message) => { console.log(`#1 logMessage: ${message}`)});
     adapterTwo.on('logMessage', (severity, message) => { console.log(`#2 logMessage: ${message}`)});
 
-    adapterOne.on('status', (status) => { console.log(`#1 status: ${JSON.stringify(status)}`); });
-    adapterTwo.on('status', (status) => { console.log(`#2 status: ${JSON.stringify(status)}`); });
+    adapterOne.on('status', (status) => {
+        console.log(`#1 status: ${JSON.stringify(status)}`);
+
+        if(status.id == 7) {
+            console.log("#1 Trying to enable BLE again.");
+            adapterOne.enableBLE((err) => {
+                if(err) {
+                    console.log('#1 Tried to enable adapter after reset, but failed it failed:' + err);
+                    return;
+                }
+                console.log('#1 ----------------------- Adapter enabled after reset -----------------------------');
+            });
+        }
+    });
+    adapterTwo.on('status', (status) => {
+        console.log(`#2 status: ${JSON.stringify(status)}`);
+        if(status.id == 7) {
+            console.log("#2 Trying to enable BLE again.");
+            adapterTwo.enableBLE((err) => {
+                if(err) {
+                    console.log('#2 Tried to enable adapter after reset, but failed it failed:' + err);
+                    return;
+                }
+                console.log('#2 ----------------------- Adapter enabled after reset -----------------------------');
+            });
+        }
+    });
 
     adapterOne.on('error', error => { console.log('#1 error: ' + JSON.stringify(error, null, 1)); });
     adapterTwo.on('error', error => { console.log('#2 error: ' + JSON.stringify(error, null, 1)); });
 
-    adapterOne.on('stateChanged', state => { console.log('#1 stateChanged: ' + JSON.stringify(state));});
+    adapterOne.on('stateChanged', state => {
+        console.log('#1 stateChanged: ' + JSON.stringify(state));
+    });
+
     adapterTwo.on('stateChanged', state => { console.log('#2 stateChanged: ' + JSON.stringify(state));});
 
     adapterOne.on('deviceDisconnected', device => { console.log('#1 deviceDisconnected: ' + JSON.stringify(device)); });

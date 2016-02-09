@@ -194,6 +194,7 @@ void Adapter::initGeneric(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "open", Open);
     Nan::SetPrototypeMethod(tpl, "close", Close);
     Nan::SetPrototypeMethod(tpl, "getVersion", GetVersion);
+    Nan::SetPrototypeMethod(tpl, "enableBLE", EnableBLE);
     Nan::SetPrototypeMethod(tpl, "addVendorspecificUUID", AddVendorSpecificUUID);
     Nan::SetPrototypeMethod(tpl, "encodeUUID", EncodeUUID);
     Nan::SetPrototypeMethod(tpl, "decodeUUID", DecodeUUID);
