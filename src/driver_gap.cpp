@@ -2509,11 +2509,11 @@ void Adapter::GapReplySecurityParameters(uv_work_t *req)
 {
     auto baton = static_cast<GapSecParamsReplyBaton *>(req->data);
 
-        /*baton->result = sd_ble_gap_sec_params_reply(baton->adapter,
-                                                baton->conn_handle,
-                                                baton->sec_status,
-                                                baton->sec_params,
-                                                baton->sec_keyset);*/
+    baton->result = sd_ble_gap_sec_params_reply(baton->adapter,
+                                            baton->conn_handle,
+                                            baton->sec_status,
+                                            baton->sec_params,
+                                            baton->sec_keyset);
 }
 
 // This runs in Main Thread
