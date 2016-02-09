@@ -18,7 +18,12 @@
 #include "ble_gap.h"
 #include "ble_gap_app.h" // Encoder/decoder functions
 
+//TODO: Find a way to support multiple adapters
+#include "app_ble_gap_sec_keys.h" // m_app_keys_table and app_ble_gap_sec_context_create 
+
 #include <stdint.h>
+
+extern ser_ble_gap_app_keyset_t m_app_keys_table[SER_MAX_CONNECTIONS];
 
 uint32_t sd_ble_gap_adv_start(adapter_t *adapter, ble_gap_adv_params_t const * const p_adv_params)
 {
@@ -575,6 +580,22 @@ uint32_t sd_ble_gap_sec_params_reply(adapter_t *adapter,
             p_sec_keyset,
             result);
     };
+
+    uint32_t err_code = NRF_SUCCESS;
+    uint32_t sec_tab_index = 0;
+
+    // First allocate security context for serialization
+    if (p_sec_keyset)
+    {
+        err_code = app_ble_gap_sec_context_create(conn_handle, &sec_tab_index);
+
+        if (err_code != NRF_SUCCESS)
+        {
+            return err_code;
+        }
+
+        memcpy(&(m_app_keys_table[sec_tab_index].keyset), p_sec_keyset, sizeof(ble_gap_sec_keyset_t));
+    }
 
     return encode_decode(adapter, encode_function, decode_function);
 }
