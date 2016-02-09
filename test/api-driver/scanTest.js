@@ -42,8 +42,8 @@ function runTests(adapterOne, adapterTwo) {
     adapterOne.on('logMessage', (severity, message) => { console.log(`#1 logMessage: ${message}`)});
     adapterTwo.on('logMessage', (severity, message) => { console.log(`#2 logMessage: ${message}`)});
 
-    adapterOne.on('status', (code, message) => { console.log(`#1 status: code:${code} status:${message}`); });
-    adapterTwo.on('status', (code, message) => { console.log(`#2 status: code:${code} status:${message}`); });
+    adapterOne.on('status', (status) => { console.log(`#1 status: ${JSON.stringify(status)}`); });
+    adapterTwo.on('status', (status) => { console.log(`#2 status: ${JSON.stringify(status)}`); });
 
     adapterOne.on('error', error => { console.log('#1 error: ' + JSON.stringify(error, null, 1)); });
     adapterTwo.on('error', error => { console.log('#2 error: ' + JSON.stringify(error, null, 1)); });

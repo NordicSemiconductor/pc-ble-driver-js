@@ -224,9 +224,9 @@ class Adapter extends EventEmitter {
         this.emit('closed', this);
     }
 
-    _statusCallback(code, message) {
-        if (code == 6) this._init();
-        this.emit('status', code, message);
+    _statusCallback(status) {
+        if (status.id === this._bleDriver.RESET_PERFORMED) this._init();
+        this.emit('status', status);
     }
 
     _logCallback(severity, message) {

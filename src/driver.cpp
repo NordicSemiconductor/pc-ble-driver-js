@@ -286,10 +286,11 @@ void Adapter::onRpcEvent(uv_async_t *handle)
     addEventBatchStatistics(duration);
 }
 
-static void sd_rpc_on_status(adapter_t *adapter, sd_rpc_app_status_t code, const char * message)
+static void sd_rpc_on_status(adapter_t *adapter, sd_rpc_app_status_t id, const char * message)
 {
     auto statusEntry = new StatusEntry();
-    statusEntry->statusCode = code;
+    statusEntry->timestamp = getCurrentTimeInMilliseconds();
+    statusEntry->id = id;
     statusEntry->message = std::string(message);
 
     auto jsAdapter = Adapter::getAdapter(adapter, adapterBeingOpened);
@@ -327,10 +328,9 @@ void Adapter::onStatusEvent(uv_async_t *handle)
 
         if (statusCallback != nullptr)
         {
-            v8::Local<v8::Value> argv[2];
-            argv[0] = ConversionUtility::toJsNumber(static_cast<int>(statusEntry->statusCode));
-            argv[1] = ConversionUtility::toJsString(statusEntry->message);
-            statusCallback->Call(2, argv);
+            v8::Local<v8::Value> argv[1];
+            argv[0] = StatusMessage::getStatus(statusEntry->id, statusEntry->message.c_str(), statusEntry->timestamp.c_str());
+            statusCallback->Call(1, argv);
         }
 
         // Free memory for current entry, we remove the element from the deque when the iteration is done
@@ -1185,6 +1185,7 @@ extern "C" {
     void init_ranges(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
     void init_hci(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
     void init_error(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+    void init_app_status(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 
     NAN_MODULE_INIT(init)
     {
@@ -1449,6 +1450,18 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, NRF_ERROR_FORBIDDEN);                   ///< Forbidden Operation
         NODE_DEFINE_CONSTANT(target, NRF_ERROR_INVALID_ADDR);                ///< Bad Memory Address
         NODE_DEFINE_CONSTANT(target, NRF_ERROR_BUSY);                        ///< Busy
+    }
+
+    void init_app_status(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
+    {
+        NODE_DEFINE_CONSTANT(target, PKT_SEND_MAX_RETRIES_REACHED);
+        NODE_DEFINE_CONSTANT(target, PKT_UNEXPECTED);
+        NODE_DEFINE_CONSTANT(target, PKT_ENCODE_ERROR);
+        NODE_DEFINE_CONSTANT(target, PKT_DECODE_ERROR);
+        NODE_DEFINE_CONSTANT(target, PKT_SEND_ERROR);
+        NODE_DEFINE_CONSTANT(target, IO_RESOURCES_UNAVAILABLE);
+        NODE_DEFINE_CONSTANT(target, RESET_PERFORMED);
+        NODE_DEFINE_CONSTANT(target, CONNECTION_ACTIVE);
     }
 }
 

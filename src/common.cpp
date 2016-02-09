@@ -36,7 +36,17 @@ static name_map_t error_message_name_map = {
     NAME_MAP_ENTRY(NRF_ERROR_NULL),
     NAME_MAP_ENTRY(NRF_ERROR_FORBIDDEN),
     NAME_MAP_ENTRY(NRF_ERROR_INVALID_ADDR),
-    NAME_MAP_ENTRY(NRF_ERROR_BUSY),
+    NAME_MAP_ENTRY(NRF_ERROR_BUSY)
+};
+
+static name_map_t sd_rpc_app_status_map = {
+    NAME_MAP_ENTRY(PKT_SEND_MAX_RETRIES_REACHED),
+    NAME_MAP_ENTRY(PKT_UNEXPECTED),
+    NAME_MAP_ENTRY(PKT_ENCODE_ERROR),
+    NAME_MAP_ENTRY(PKT_DECODE_ERROR),
+    NAME_MAP_ENTRY(IO_RESOURCES_UNAVAILABLE),
+    NAME_MAP_ENTRY(RESET_PERFORMED),
+    NAME_MAP_ENTRY(CONNECTION_ACTIVE)
 };
 
 static name_map_t hci_status_map =
@@ -266,7 +276,7 @@ v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Value>js)
     return js->ToObject();
 }
 
-v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Object>js, const char *name)
+v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Object> js, const char *name)
 {
     v8::Local<v8::Value> obj = Utility::Get(js, name);
 
@@ -695,6 +705,21 @@ v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char const *cu
             return scope.Escape(error);
         }
     }
+}
+
+
+v8::Local<v8::Value> StatusMessage::getStatus(int status, char const *message, char const *timestamp)
+{
+    Nan::EscapableHandleScope scope;
+
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+
+    Utility::Set(obj, "id", ConversionUtility::toJsNumber(status));
+    Utility::Set(obj, "name", ConversionUtility::valueToJsString(status, sd_rpc_app_status_map));
+    Utility::Set(obj, "message", ConversionUtility::toJsString(message));
+    Utility::Set(obj, "time", ConversionUtility::toJsString(timestamp));
+
+    return scope.Escape(obj);
 }
 
 v8::Local<v8::String> ErrorMessage::getTypeErrorMessage(int argumentNumber, char const *message)

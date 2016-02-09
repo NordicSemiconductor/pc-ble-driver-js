@@ -33,8 +33,9 @@ public:
 struct StatusEntry
 {
 public:
-    sd_rpc_app_status_t statusCode;
+    sd_rpc_app_status_t id;
     std::string message;
+    std::string timestamp;
 };
 
 //using namespace memory_relaxed_aquire_release;
