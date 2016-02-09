@@ -173,7 +173,9 @@ void Adapter::appendEvent(ble_evt_t *event)
         eventCallbackMaxCount = eventCallbackBatchEventCounter;
     }
 
-    auto size = static_cast<std::size_t>(event->header.evt_len);
+    auto eventSize = static_cast<std::size_t>(event->header.evt_len);
+    const int headerSize = 4;
+    const int size = headerSize + eventSize;
 
     auto evt = malloc(size);
     memset(evt, 0, size);
