@@ -249,8 +249,7 @@ class Adapter extends EventEmitter {
                         available: true,
                     }
                 );
-            default:
-                return;
+                break;
         }
 
         this.emit('status', status);
