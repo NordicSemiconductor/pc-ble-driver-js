@@ -130,8 +130,8 @@ uint32_t UartBoost::open(status_cb_t status_callback, data_cb_t data_callback, l
     }
 
     std::stringstream message;
-    message << "Successfully opened uart. "
-        << "Port name: " << uartSettingsBoost.getPortName().c_str() << ". "
+    message << "Successfully opened "
+        << uartSettingsBoost.getPortName().c_str() << ". "
         << "Baud rate: " << uartSettingsBoost.getBaudRate() << ". "
         << "Flow control: " << flow_control_string.str() << ". "
         << "Parity: " << parity_string.str() << "." << std::endl;
@@ -145,8 +145,10 @@ uint32_t UartBoost::close()
 {
     try
     {
+        std::stringstream message;
         serialPort.close();
-        logCallback(SD_RPC_LOG_INFO, "Serial port closed");
+        message << "Serial port " << uartSettingsBoost.getPortName().c_str() << " closed.";
+        logCallback(SD_RPC_LOG_INFO, message.str());
     }
     catch (std::exception)
     {
