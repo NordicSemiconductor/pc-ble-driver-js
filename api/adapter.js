@@ -243,6 +243,12 @@ class Adapter extends EventEmitter {
                     }
                 );
                 break;
+            case this._bleDriver.CONNECTION_ACTIVE:
+                this._changeState(
+                    {
+                        available: true,
+                    }
+                );
             default:
                 return;
         }
