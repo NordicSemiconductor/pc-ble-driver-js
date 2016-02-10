@@ -138,11 +138,11 @@ void SerializationTransport::eventHandlingRunner()
         {
             eventData_t eventData = eventQueue.front();
             eventQueue.pop();
-            // Find event length and allocate said length then decode event
-            uint32_t eventLength;
-            ble_event_dec(eventData.data, eventData.dataLength, nullptr, &eventLength);
-            std::unique_ptr<ble_evt_t> event(static_cast<ble_evt_t*>(std::malloc(eventLength)));
-            uint32_t errCode = ble_event_dec(eventData.data, eventData.dataLength, event.get(), &eventLength);
+            // Allocate memory to store decoded event including an unkown quantity of padding
+            uint32_t possibleEventLength = 512;
+            ble_event_dec(eventData.data, eventData.dataLength, nullptr, &possibleEventLength);
+            std::unique_ptr<ble_evt_t> event(static_cast<ble_evt_t*>(std::malloc(possibleEventLength)));
+            uint32_t errCode = ble_event_dec(eventData.data, eventData.dataLength, event.get(), &possibleEventLength);
 
             if (eventCallback != nullptr && errCode == NRF_SUCCESS)
             {

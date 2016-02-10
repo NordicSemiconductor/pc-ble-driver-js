@@ -173,9 +173,8 @@ void Adapter::appendEvent(ble_evt_t *event)
         eventCallbackMaxCount = eventCallbackBatchEventCounter;
     }
 
-    auto eventSize = static_cast<std::size_t>(event->header.evt_len);
-    const int headerSize = 4;
-    const int size = headerSize + eventSize;
+    // Allocate memory to store decoded event including an unkown quantity of padding, use the same size as serialization_transport.cpp
+    const int size = 512;
 
     auto evt = malloc(size);
     memset(evt, 0, size);
@@ -376,8 +375,8 @@ v8::Local<v8::Object> CommonMemReleaseEvent::ToJs()
 // Class private method that is only used by the class to activate the SoftDevice in the Adapter
 uint32_t Adapter::enableBLE(adapter_t *adapter)
 {
-    // If the this->adapter have not been set yet it is because the Adapter::Open call has not set 
-    // an adapter_t instance. The SoftDevice is started in Adapter::Open call and we do not have to take care of it 
+    // If the this->adapter have not been set yet it is because the Adapter::Open call has not set
+    // an adapter_t instance. The SoftDevice is started in Adapter::Open call and we do not have to take care of it
     // here.
 
     if (adapter == nullptr)
@@ -391,7 +390,7 @@ uint32_t Adapter::enableBLE(adapter_t *adapter)
 
     ble_enable_params.gatts_enable_params.attr_tab_size = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
     ble_enable_params.gatts_enable_params.service_changed = false;
-    
+
     return sd_ble_enable(adapter, &ble_enable_params);
 }
 
