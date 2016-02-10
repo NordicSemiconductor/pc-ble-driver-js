@@ -1265,6 +1265,7 @@ extern "C" {
         init_ranges(target);
         init_hci(target);
         init_error(target);
+        init_app_status(target);
         init_gap(target);
         init_gatt(target);
         init_gattc(target);

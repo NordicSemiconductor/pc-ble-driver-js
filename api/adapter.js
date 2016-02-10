@@ -230,7 +230,23 @@ class Adapter extends EventEmitter {
     }
 
     _statusCallback(status) {
-        if (status.id === this._bleDriver.RESET_PERFORMED) this._init();
+        switch(status.id) {
+            case this._bleDriver.RESET_PERFORMED:
+                this._init();
+                this._changeState(
+                    {
+                        available: false,
+                        connecting: false,
+                        scanning: false,
+                        advertising: false,
+                        securityRequestPending: false,
+                    }
+                );
+                break;
+            default:
+                return;
+        }
+
         this.emit('status', status);
     }
 
