@@ -14,6 +14,8 @@
 #include "adapter.h"
 #include "ble_common.h"
 
+#include <cstring>
+
 // C code
 #include "ble_gap.h"
 #include "ble_gap_app.h" // Encoder/decoder functions
@@ -594,7 +596,7 @@ uint32_t sd_ble_gap_sec_params_reply(adapter_t *adapter,
             return err_code;
         }
 
-        memcpy(&(m_app_keys_table[sec_tab_index].keyset), p_sec_keyset, sizeof(ble_gap_sec_keyset_t));
+        std::memcpy(&(m_app_keys_table[sec_tab_index].keyset), p_sec_keyset, sizeof(ble_gap_sec_keyset_t));
     }
 
     return encode_decode(adapter, encode_function, decode_function);
