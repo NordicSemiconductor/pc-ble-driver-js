@@ -141,16 +141,6 @@ uint32_t ble_gap_sec_params_t_dec(uint8_t const * const p_buf,
                                   uint32_t              buf_len,
                                   uint32_t * const      p_index,
                                   void * const          p_void_struct);
-                                  
-uint32_t ble_gap_enable_params_t_enc(void const * const p_void_struct,
-                                     uint8_t * const    p_buf,
-                                     uint32_t           buf_len,
-                                     uint32_t * const   p_index);
-                                     
-uint32_t ble_gap_enable_params_t_dec(uint8_t const * const p_buf,
-                                     uint32_t              buf_len,
-                                     uint32_t * const      p_index,
-                                     void * const          p_void_struct);
 
 uint32_t ble_gap_evt_sec_params_request_t_enc(void const * const p_void_struct,
                                               uint8_t * const    p_buf,
@@ -351,3 +341,13 @@ uint32_t ble_gap_adv_ch_mask_t_dec(uint8_t const * const p_buf,
                                    uint32_t              buf_len,
                                    uint32_t * const      p_index,
                                    void * const          p_void_ch_mask);
+
+uint32_t ble_gap_enable_params_t_enc(void const * const p_void_enable_params,
+                                     uint8_t * const    p_buf,
+                                     uint32_t           buf_len,
+                                     uint32_t * const   p_index);
+
+uint32_t ble_gap_enable_params_t_dec(uint8_t const * const p_buf,
+                                     uint32_t              buf_len,
+                                     uint32_t * const      p_index,
+                                     void * const          p_void_enable_params);

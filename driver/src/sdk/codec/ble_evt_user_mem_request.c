@@ -21,7 +21,6 @@ uint32_t ble_evt_user_mem_request_dec(uint8_t const * const p_buf,
                                       uint32_t * const      p_event_len)
 {
     SER_ASSERT_NOT_NULL(p_buf);
-    SER_ASSERT_NOT_NULL(p_event);
     SER_ASSERT_NOT_NULL(p_event_len);
 
     uint32_t index        = 0;

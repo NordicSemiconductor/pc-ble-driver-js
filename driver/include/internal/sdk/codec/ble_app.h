@@ -32,32 +32,34 @@
  */
 #include "ble.h"
 /**
- * @brief Encodes @ref sd_ble_tx_buffer_count_get command request.
+ * @brief Encodes @ref sd_ble_tx_packet_count_get command request.
  *
- * @sa @ref nrf51_tx_buffer_count_get_encoding for packet format,
- *     @ref ble_tx_buffer_count_get_rsp_dec for command response decoder.
+ * @sa @ref nrf51_tx_packet_count_get_encoding for packet format,
+ *     @ref ble_tx_packet_count_get_rsp_dec for command response decoder.
  *
+ * @param[in] conn_handle    Connection handle.
  * @param[in] p_count        Pointer to count value to be filled.
  * @param[in] p_buf          Pointer to buffer where encoded data command will be returned.
  * @param[in,out] p_buf_len  \c in: Size of \p p_buf buffer.
  *                           \c out: Length of encoded command packet.
  *
  * @note  \p p_count  will not be updated by the command
- *        request encoder. Updated values are set by @ref ble_tx_buffer_count_get_rsp_dec.
+ *        request encoder. Updated values are set by @ref ble_tx_packet_count_get_rsp_dec.
  *
  * @retval NRF_SUCCESS                Encoding success.
  * @retval NRF_ERROR_NULL             Encoding failure. NULL pointer supplied.
  * @retval NRF_ERROR_INVALID_LENGTH   Encoding failure. Incorrect buffer length.
  */
-uint32_t ble_tx_buffer_count_get_req_enc(uint8_t const * const p_count,
+uint32_t ble_tx_packet_count_get_req_enc(uint16_t              conn_handle,
+                                         uint8_t const * const p_count,
                                          uint8_t * const       p_buf,
                                          uint32_t * const      p_buf_len);
 
 /**
- * @brief Decodes response to @ref sd_ble_tx_buffer_count_get command.
+ * @brief Decodes response to @ref sd_ble_tx_packet_count_get command.
  *
- * @sa @ref nrf51_tx_buffer_count_get_encoding for packet format,
- *     @ref ble_tx_buffer_count_get_req_enc for command request encoder.
+ * @sa @ref nrf51_tx_packet_count_get_encoding for packet format,
+ *     @ref ble_tx_packet_count_get_req_enc for command request encoder.
  *
  * @param[in] p_buf           Pointer to beginning of command response packet.
  * @param[in] packet_len      Length (in bytes) of response packet.
@@ -70,7 +72,7 @@ uint32_t ble_tx_buffer_count_get_req_enc(uint8_t const * const p_count,
  * @retval NRF_ERROR_INVALID_DATA    Decoding failure. Decoded operation code does not match
  *                                   expected operation code.
  */
-uint32_t ble_tx_buffer_count_get_rsp_dec(uint8_t const * const p_buf,
+uint32_t ble_tx_packet_count_get_rsp_dec(uint8_t const * const p_buf,
                                          uint32_t              packet_len,
                                          uint8_t * * const     pp_count,
                                          uint32_t * const      p_result_code);

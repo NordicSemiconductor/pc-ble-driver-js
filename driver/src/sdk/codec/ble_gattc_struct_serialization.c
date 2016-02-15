@@ -71,7 +71,7 @@ uint32_t ble_gattc_evt_char_val_by_uuid_read_rsp_t_dec(uint8_t const * const p_b
 
     //calculate the size of the struct
     *p_struct_size  = offsetof(ble_gattc_evt_char_val_by_uuid_read_rsp_t, handle_value[0]);
-    *p_struct_size += sizeof(((ble_gattc_evt_char_val_by_uuid_read_rsp_t *)0)->handle_value) * count;
+    *p_struct_size += sizeof(((ble_gattc_evt_char_val_by_uuid_read_rsp_t *)0)->handle_value[0]) * count;
     *p_struct_size += value_len * count;
 
     if (p_read)
@@ -359,5 +359,165 @@ uint32_t ble_gattc_write_params_t_dec(uint8_t const * const p_buf,
     err_code = len16data_dec(p_buf, buf_len, p_index, &(p_write->p_value), &(p_write->len));
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
+    return err_code;
+}
+
+uint32_t ble_gattc_attr_info_t_16_enc(void const * const p_void_struct,
+                                      uint8_t * const    p_buf,
+                                      uint32_t           buf_len,
+                                      uint32_t * const   p_index)
+{
+    SER_ASSERT_NOT_NULL(p_void_struct);
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+
+    uint32_t err_code = NRF_SUCCESS;
+
+    ble_gattc_attr_info_t * p_attr_info = (ble_gattc_attr_info_t *)p_void_struct;
+
+    err_code = uint16_t_enc(&(p_attr_info->handle), p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = ble_uuid_t_enc(&(p_attr_info->info.uuid16), p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    return err_code;
+}
+
+uint32_t ble_gattc_attr_info_t_16_dec(uint8_t const * const p_buf,
+                                      uint32_t              buf_len,
+                                      uint32_t * const      p_index,
+                                      void * const          p_void_struct)
+{
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+    SER_ASSERT_NOT_NULL(p_void_struct);
+
+    uint32_t err_code = NRF_SUCCESS;
+
+    ble_gattc_attr_info_t * p_attr_info = (ble_gattc_attr_info_t *)p_void_struct;
+
+    err_code = uint16_t_dec(p_buf, buf_len, p_index, &(p_attr_info->handle));
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = ble_uuid_t_dec(p_buf, buf_len, p_index, &(p_attr_info->info.uuid16));
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    return err_code;
+}
+
+uint32_t ble_gattc_attr_info_t_128_enc(void const * const p_void_struct,
+                                       uint8_t * const    p_buf,
+                                       uint32_t           buf_len,
+                                       uint32_t * const   p_index)
+{
+    SER_ASSERT_NOT_NULL(p_void_struct);
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+
+    uint32_t err_code = NRF_SUCCESS;
+
+    ble_gattc_attr_info_t * p_attr_info = (ble_gattc_attr_info_t *)p_void_struct;
+
+    err_code = uint16_t_enc(&(p_attr_info->handle), p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = ble_uuid128_t_enc(&(p_attr_info->info.uuid128), p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    return err_code;
+}
+
+uint32_t ble_gattc_attr_info_t_128_dec(uint8_t const * const p_buf,
+                                       uint32_t              buf_len,
+                                       uint32_t * const      p_index,
+                                       void * const          p_void_struct)
+{
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+    SER_ASSERT_NOT_NULL(p_void_struct);
+
+    uint32_t err_code = NRF_SUCCESS;
+
+    ble_gattc_attr_info_t * p_attr_info = (ble_gattc_attr_info_t *)p_void_struct;
+
+    err_code = uint16_t_dec(p_buf, buf_len, p_index, &(p_attr_info->handle));
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = ble_uuid128_t_dec(p_buf, buf_len, p_index, &(p_attr_info->info.uuid128));
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    return err_code;
+}
+
+uint32_t ble_gattc_evt_attr_info_disc_rsp_t_enc(void const * const p_void_struct,
+                                                uint8_t * const    p_buf,
+                                                uint32_t           buf_len,
+                                                uint32_t * const   p_index)
+{
+    SER_ASSERT_NOT_NULL(p_void_struct);
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+
+    uint32_t err_code = NRF_SUCCESS;
+
+    ble_gattc_evt_attr_info_disc_rsp_t * p_rsp = (ble_gattc_evt_attr_info_disc_rsp_t *)p_void_struct;
+
+    err_code = uint16_t_enc(&(p_rsp->count), p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = uint8_t_enc(&(p_rsp->format), p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    uint32_t i;
+    field_encoder_handler_t uuid_enc = (p_rsp->format == BLE_GATTC_ATTR_INFO_FORMAT_16BIT) ?
+            ble_gattc_attr_info_t_16_enc : ble_gattc_attr_info_t_128_enc;
+
+    for (i = 0; i < p_rsp->count; i++)
+    {
+        err_code = uuid_enc(&(p_rsp->attr_info[i]), p_buf, buf_len, p_index);
+        SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+    }
+
+    return err_code;
+}
+
+uint32_t ble_gattc_evt_attr_info_disc_rsp_t_dec(uint8_t const * const p_buf,
+                                                uint32_t              buf_len,
+                                                uint32_t * const      p_index,
+                                                void * const          p_void_struct)
+{
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+
+    uint32_t err_code = NRF_SUCCESS;
+
+    ble_gattc_evt_attr_info_disc_rsp_t * p_rsp = (ble_gattc_evt_attr_info_disc_rsp_t *)p_void_struct;
+
+    uint16_t count;
+
+    err_code = uint16_t_dec(p_buf, buf_len, p_index, &count);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    if (p_rsp)
+    {
+        p_rsp->count = count;
+        err_code = uint8_t_dec(p_buf, buf_len, p_index, &p_rsp->format);
+        SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+        uint32_t i;
+        field_decoder_handler_t uuid_dec = (p_rsp->format == BLE_GATTC_ATTR_INFO_FORMAT_16BIT) ?
+                ble_gattc_attr_info_t_16_dec : ble_gattc_attr_info_t_128_dec;
+
+        for (i = 0; i < p_rsp->count; i++)
+        {
+            err_code = uuid_dec(p_buf, buf_len, p_index, &(p_rsp->attr_info[i]));
+            SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+        }
+    }
+    else
+    {
+        *p_index =  offsetof(ble_gattc_evt_attr_info_disc_rsp_t, attr_info) + count*sizeof(ble_gattc_attr_info_t);
+    }
     return err_code;
 }

@@ -64,12 +64,52 @@ uint32_t ble_enable_params_t_dec(uint8_t const * const p_buf,
                                  uint32_t * const      p_index,
                                  void * const          p_void_enable_params);
 
-uint32_t ble_common_opt_radio_cpu_mutex_t_enc(void const * const p_void_opt_mutex,
-                                              uint8_t * const    p_buf,
-                                              uint32_t           buf_len,
-                                              uint32_t * const   p_index);
+uint32_t ble_conn_bw_t_enc(void const * const p_void_conn_bw,
+                           uint8_t * const    p_buf,
+                           uint32_t           buf_len,
+                           uint32_t * const   p_index);
 
-uint32_t ble_common_opt_radio_cpu_mutex_t_dec(uint8_t const * const p_buf,
-                                              uint32_t              buf_len,
-                                              uint32_t * const      p_index,
-                                              void * const          p_void_opt_mutex);
+uint32_t ble_conn_bw_t_dec(uint8_t const * const p_buf,
+                           uint32_t              buf_len,
+                           uint32_t * const      p_index,
+                           void * const          p_void_conn_bw);
+
+uint32_t ble_common_opt_conn_bw_t_enc(void const * const p_void_opt_conn_bw,
+                                      uint8_t * const    p_buf,
+                                      uint32_t           buf_len,
+                                      uint32_t * const   p_index);
+
+uint32_t ble_common_opt_conn_bw_t_dec(uint8_t const * const p_buf,
+                                      uint32_t              buf_len,
+                                      uint32_t * const      p_index,
+                                      void * const          p_void_opt_conn_bw);
+
+uint32_t ble_conn_bw_count_t_enc(void const * const p_void_conn_bw_count,
+                                 uint8_t * const    p_buf,
+                                 uint32_t           buf_len,
+                                 uint32_t * const   p_index);
+
+uint32_t ble_conn_bw_count_t_dec(uint8_t const * const p_buf,
+                                 uint32_t              buf_len,
+                                 uint32_t * const      p_index,
+                                 void * const          p_void_conn_bw_count);
+
+uint32_t ble_conn_bw_counts_t_enc(void const * const p_void_conn_bw_count,
+                                  uint8_t * const    p_buf,
+                                  uint32_t           buf_len,
+                                  uint32_t * const   p_index);
+
+uint32_t ble_conn_bw_counts_t_dec(uint8_t const * const p_buf,
+                                  uint32_t              buf_len,
+                                  uint32_t * const      p_index,
+                                  void * const          p_void_conn_bw_count);
+
+uint32_t ble_common_enable_params_t_enc(void const * const p_void_common_enable_params,
+                                        uint8_t * const    p_buf,
+                                        uint32_t           buf_len,
+                                        uint32_t * const   p_index);
+
+uint32_t ble_common_enable_params_t_dec(uint8_t const * const p_buf,
+                                        uint32_t              buf_len,
+                                        uint32_t * const      p_index,
+                                        void * const          p_void_common_enable_params);

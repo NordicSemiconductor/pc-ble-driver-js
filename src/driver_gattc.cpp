@@ -1034,7 +1034,7 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_ERROR_GATTC_PROC_NOT_PERMITTED);
 
         /* Last Attribute Handle. */
-        NODE_DEFINE_CONSTANT(target, BLE_GATTC_HANDLE_END);
+        NODE_DEFINE_CONSTANT(target, BLE_GATT_HANDLE_END);
 
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTC_PRIMARY_SERVICES_DISCOVER);                      /**< Primary Service Discovery. */
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTC_RELATIONSHIPS_DISCOVER);                         /**< Relationship Discovery. */

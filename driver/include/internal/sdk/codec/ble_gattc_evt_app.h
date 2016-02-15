@@ -282,5 +282,30 @@ uint32_t ble_gattc_evt_write_rsp_dec(uint8_t const * const p_buf,
                                      ble_evt_t * const     p_event,
                                      uint32_t * const      p_event_len);
 
+/**
+ * @brief Decodes ble_gattc_evt_attr_info_disc_rsp event.
+ *
+ * @sa @ref nrf51_gattc_evt_attr_info_disc_rsp_encoding for packet format.
+ *
+ * If \p p_event is null, the required length of \p p_event is returned in \p p_event_len.
+ *
+ * @param[in] p_buf            Pointer to the beginning of an event packet.
+ * @param[in] packet_len       Length (in bytes) of the event packet.
+ * @param[in,out] p_event      Pointer to a \ref ble_evt_t buffer where the decoded event will be
+ *                             stored. If NULL, required length will be returned in \p p_event_len.
+ * @param[in,out] p_event_len  \c in: Size (in bytes) of \p p_event buffer.
+ *                             \c out: Length of decoded contents of \p p_event.
+ *
+ * @retval NRF_SUCCESS               Decoding success.
+ * @retval NRF_ERROR_NULL            Decoding failure. NULL pointer supplied.
+ * @retval NRF_ERROR_INVALID_LENGTH  Decoding failure. Incorrect buffer length.
+ * @retval NRF_ERROR_DATA_SIZE       Decoding failure. Length of \p p_event is too small to
+ *                                   hold decoded event.
+ */
+uint32_t ble_gattc_evt_attr_info_disc_rsp_dec(uint8_t const * const p_buf,
+                                              uint32_t              packet_len,
+                                              ble_evt_t * const     p_event,
+                                              uint32_t * const      p_event_len);
+
 /** @} */
 #endif

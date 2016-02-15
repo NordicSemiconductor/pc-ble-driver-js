@@ -388,10 +388,23 @@ uint32_t Adapter::enableBLE(adapter_t *adapter)
 
     memset(&ble_enable_params, 0, sizeof(ble_enable_params));
 
+    /* set the number of Vendor Specific UUIDs to 5 */
+    ble_enable_params.common_enable_params.vs_uuid_count = 5;
+    /* this application requires 1 connection as a peripheral */
+    ble_enable_params.gap_enable_params.periph_conn_count = 1;
+    /* this application requires 3 connections as a central */
+    ble_enable_params.gap_enable_params.central_conn_count = 3;
+    /* this application only needs to be able to pair in one central link at a time */
+    ble_enable_params.gap_enable_params.central_sec_count = 1;
+    /* we require the Service Changed characteristic */
+    ble_enable_params.gatts_enable_params.service_changed = false;
+    /* the default Attribute Table size is appropriate for our application */
+    ble_enable_params.gatts_enable_params.attr_tab_size = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
+
     ble_enable_params.gatts_enable_params.attr_tab_size = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
     ble_enable_params.gatts_enable_params.service_changed = false;
 
-    return sd_ble_enable(adapter, &ble_enable_params);
+    return sd_ble_enable(adapter, &ble_enable_params, 0);
 }
 
 // This function runs in the Main Thread

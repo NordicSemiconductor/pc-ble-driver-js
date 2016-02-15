@@ -184,6 +184,13 @@ uint32_t ble_event_dec(uint8_t const * const p_buf,
                                                       p_event_len);
             break;
 
+        case BLE_GATTC_EVT_ATTR_INFO_DISC_RSP:
+                    err_code = ble_gattc_evt_attr_info_disc_rsp_dec(p_sub_buffer,
+                                                                    sub_packet_len,
+                                                                    p_event,
+                                                                    p_event_len);
+                    break;
+
         case BLE_GATTS_EVT_WRITE:
             err_code = ble_gatts_evt_write_dec(p_sub_buffer, sub_packet_len, p_event, p_event_len);
             break;

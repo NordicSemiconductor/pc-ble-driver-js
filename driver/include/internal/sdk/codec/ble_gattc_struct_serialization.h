@@ -85,4 +85,33 @@ uint32_t ble_gattc_write_params_t_dec(uint8_t const * const p_buf,
                                       uint32_t * const      p_index,
                                       void * const          p_void_write);
 
+uint32_t ble_gattc_attr_info_t_16_enc(void const * const p_void_struct,
+                                      uint8_t * const    p_buf,
+                                      uint32_t           buf_len,
+                                      uint32_t * const   p_index);
+
+uint32_t ble_gattc_attr_info_t_16_dec(uint8_t const * const p_buf,
+                                      uint32_t              buf_len,
+                                      uint32_t * const      p_index,
+                                      void * const          p_void_struct);
+
+uint32_t ble_gattc_attr_info_t_128_enc(void const * const p_void_struct,
+                                       uint8_t * const    p_buf,
+                                       uint32_t           buf_len,
+                                       uint32_t * const   p_index);
+
+uint32_t ble_gattc_attr_info_t_128_dec(uint8_t const * const p_buf,
+                                       uint32_t              buf_len,
+                                       uint32_t * const      p_index,
+                                       void * const          p_void_struct);
+
+uint32_t ble_gattc_evt_attr_info_disc_rsp_t_enc(void const * const p_void_struct,
+                                                uint8_t * const    p_buf,
+                                                uint32_t           buf_len,
+                                                uint32_t * const   p_index);
+
+uint32_t ble_gattc_evt_attr_info_disc_rsp_t_dec(uint8_t const * const p_buf,
+                                                uint32_t              buf_len,
+                                                uint32_t * const      p_index,
+                                                void * const          p_void_struct);
 #endif /*BLE_GATTC_STRUCT_SERIALIZATION_H*/

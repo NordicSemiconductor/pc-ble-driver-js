@@ -18,7 +18,7 @@ class GattsAttributeMetadata : public BleToJs<ble_gatts_attr_md_t>
 public:
     GattsAttributeMetadata(ble_gatts_attr_md_t *attributeMetadata) : BleToJs<ble_gatts_attr_md_t>(attributeMetadata) {}
     GattsAttributeMetadata(v8::Local<v8::Object> js) : BleToJs<ble_gatts_attr_md_t>(js) {}
-    ble_gatts_attr_md_t *ToNative();
+    ble_gatts_attr_md_t *ToNative() override;
 };
 
 class GattsCharacteristicPresentationFormat : public BleToJs<ble_gatts_char_pf_t>
@@ -26,7 +26,7 @@ class GattsCharacteristicPresentationFormat : public BleToJs<ble_gatts_char_pf_t
 public:
     GattsCharacteristicPresentationFormat(ble_gatts_char_pf_t *presentationformat) : BleToJs<ble_gatts_char_pf_t>(presentationformat) {}
     GattsCharacteristicPresentationFormat(v8::Local<v8::Object> js) : BleToJs<ble_gatts_char_pf_t>(js) {}
-    ble_gatts_char_pf_t *ToNative();
+    ble_gatts_char_pf_t *ToNative() override;
 };
 
 class GattsCharacteristicMetadata : public BleToJs<ble_gatts_char_md_t>
@@ -34,7 +34,7 @@ class GattsCharacteristicMetadata : public BleToJs<ble_gatts_char_md_t>
 public:
     GattsCharacteristicMetadata(ble_gatts_char_md_t *metadata) : BleToJs<ble_gatts_char_md_t>(metadata) {}
     GattsCharacteristicMetadata(v8::Local<v8::Object> js) : BleToJs<ble_gatts_char_md_t>(js) {}
-    ble_gatts_char_md_t *ToNative();
+    ble_gatts_char_md_t *ToNative() override;
 };
 
 class GattsAttribute : public BleToJs<ble_gatts_attr_t>
@@ -42,7 +42,7 @@ class GattsAttribute : public BleToJs<ble_gatts_attr_t>
 public:
     GattsAttribute(ble_gatts_attr_t *attribute) : BleToJs<ble_gatts_attr_t>(attribute) {}
     GattsAttribute(v8::Local<v8::Object> js) : BleToJs<ble_gatts_attr_t>(js) {}
-    ble_gatts_attr_t *ToNative();
+    ble_gatts_attr_t *ToNative() override ;
 };
 
 class GattsCharacteristicDefinitionHandles : public BleToJs<ble_gatts_char_handles_t>
@@ -50,7 +50,7 @@ class GattsCharacteristicDefinitionHandles : public BleToJs<ble_gatts_char_handl
 public:
     GattsCharacteristicDefinitionHandles(ble_gatts_char_handles_t *attribute) : BleToJs<ble_gatts_char_handles_t>(attribute) {}
     GattsCharacteristicDefinitionHandles(v8::Local<v8::Object> js) : BleToJs<ble_gatts_char_handles_t>(js) {}
-    v8::Local<v8::Object> ToJs();
+    v8::Local<v8::Object> ToJs() override;
 };
 
 class GattsHVXParams : public BleToJs<ble_gatts_hvx_params_t>
@@ -58,7 +58,7 @@ class GattsHVXParams : public BleToJs<ble_gatts_hvx_params_t>
 public:
     GattsHVXParams(ble_gatts_hvx_params_t *hvx_params) : BleToJs<ble_gatts_hvx_params_t>(hvx_params) {}
     GattsHVXParams(v8::Local<v8::Object> js) : BleToJs<ble_gatts_hvx_params_t>(js) {}
-    ble_gatts_hvx_params_t *ToNative();
+    ble_gatts_hvx_params_t *ToNative() override;
 };
 
 class GattsValue : public BleToJs<ble_gatts_value_t>
@@ -66,8 +66,8 @@ class GattsValue : public BleToJs<ble_gatts_value_t>
 public:
     GattsValue(ble_gatts_value_t *value) : BleToJs<ble_gatts_value_t>(value) {}
     GattsValue(v8::Local<v8::Object> js) : BleToJs<ble_gatts_value_t>(js) {}
-    v8::Local<v8::Object> ToJs();
-    ble_gatts_value_t *ToNative();
+    v8::Local<v8::Object> ToJs() override;
+    ble_gatts_value_t *ToNative() override;
 };
 
 class GattsAttributeContext : public BleToJs<ble_gatts_attr_context_t>
@@ -75,15 +75,16 @@ class GattsAttributeContext : public BleToJs<ble_gatts_attr_context_t>
 public:
     GattsAttributeContext(ble_gatts_attr_context_t *attributeContext) : BleToJs<ble_gatts_attr_context_t>(attributeContext) {}
     GattsAttributeContext(v8::Local<v8::Object> js) : BleToJs<ble_gatts_attr_context_t>(js) {}
-    v8::Local<v8::Object> ToJs();
+    v8::Local<v8::Object> ToJs() override;
 };
 
+#if 0
 class GattGattsReplyReadWriteAuthorizeParams : public BleToJs<ble_gatts_rw_authorize_reply_params_t>
 {
 public:
     GattGattsReplyReadWriteAuthorizeParams(ble_gatts_rw_authorize_reply_params_t *hvx_params) : BleToJs<ble_gatts_rw_authorize_reply_params_t>(hvx_params) {}
     GattGattsReplyReadWriteAuthorizeParams(v8::Local<v8::Object> js) : BleToJs<ble_gatts_rw_authorize_reply_params_t>(js) {}
-    ble_gatts_rw_authorize_reply_params_t *ToNative();
+    ble_gatts_rw_authorize_reply_params_t *ToNative() override;
 };
 
 class GattsReadAuthorizeParameters : public BleToJs<ble_gatts_read_authorize_params_t>
@@ -91,8 +92,8 @@ class GattsReadAuthorizeParameters : public BleToJs<ble_gatts_read_authorize_par
 public:
     GattsReadAuthorizeParameters(ble_gatts_read_authorize_params_t *readAuthorizeParams) : BleToJs<ble_gatts_read_authorize_params_t>(readAuthorizeParams) {}
     GattsReadAuthorizeParameters(v8::Local<v8::Object> js) : BleToJs<ble_gatts_read_authorize_params_t>(js) {}
-    v8::Local<v8::Object> ToJs();
-    ble_gatts_read_authorize_params_t *ToNative();
+    v8::Local<v8::Object> ToJs() override;
+    ble_gatts_read_authorize_params_t *ToNative() override;
 };
 
 class GattsWriteAuthorizeParameters : public BleToJs<ble_gatts_write_authorize_params_t>
@@ -103,6 +104,7 @@ public:
     v8::Local<v8::Object> ToJs();
     ble_gatts_write_authorize_params_t *ToNative();
 };
+#endif
 
 template<typename EventType>
 class BleDriverGattsEvent : public BleDriverEvent<EventType>
@@ -116,7 +118,7 @@ public:
     {
     }
 
-    virtual void ToJs(v8::Local<v8::Object> obj)
+    virtual void ToJs(v8::Local<v8::Object> obj) override
     {
         BleDriverEvent<EventType>::ToJs(obj);
     }

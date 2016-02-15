@@ -25,6 +25,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifndef __INLINE
+#define __INLINE inline
+#endif
+
 enum
 {
     UNIT_0_625_MS = 625,                                /**< Number of microseconds in 0.625 milliseconds. */
@@ -104,7 +108,7 @@ typedef struct
     uint16_t  size;                 /**< Number of array entries. */
     uint8_t * p_data;               /**< Pointer to array entries. */
 } uint8_array_t;
-
+    
 /**@brief Perform rounded integer division (as opposed to truncating the result).
  *
  * @param[in]   A   Numerator.
@@ -129,7 +133,6 @@ typedef struct
  */
 #define MSEC_TO_UNITS(TIME, RESOLUTION) (((TIME) * 1000) / (RESOLUTION))
 
-
 /**@brief Perform integer division, making sure the result is rounded up.
  *
  * @details One typical use for this is to compute the number of objects with size B is needed to
@@ -141,9 +144,27 @@ typedef struct
  * @return      Integer result of dividing A by B, rounded up.
  */
 #define CEIL_DIV(A, B)      \
-    /*lint -save -e573 */   \
-    ((((A) - 1) / (B)) + 1) \
-    /*lint -restore */
+    (((A) + (B) - 1) / (B))
+
+/**@brief Function for creating a buffer aligned to 4 bytes.
+ *
+ * @param[in]   NAME        Name of the buffor.
+ * @param[in]   MIN_SIZE    Size of this buffor (it will be rounded up to multiples of 4 bytes).
+ */
+#define WORD_ALIGNED_MEM_BUFF(NAME, MIN_SIZE) static uint32_t NAME[CEIL_DIV(MIN_SIZE, sizeof(uint32_t))]
+
+/**@brief Function for changing the value unit.
+ *
+ * @param[in]   value               Value to be rescaled.
+ * @param[in]   old_unit_reversal   Reversal of the incoming unit.
+ * @param[in]   new_unit_reversal   Reversal of the desired unit.
+ *
+ * @return      Number of bytes written.
+ */
+static __INLINE uint64_t value_rescale(uint32_t value, uint32_t old_unit_reversal, uint16_t new_unit_reversal)
+{
+    return (uint64_t)ROUNDED_DIV((uint64_t)value * new_unit_reversal, old_unit_reversal);
+}
 
 /**@brief Function for encoding a uint16 value.
  *
@@ -152,11 +173,26 @@ typedef struct
  *
  * @return      Number of bytes written.
  */
-static inline uint8_t uint16_encode(uint16_t value, uint8_t * p_encoded_data)
+static __INLINE uint8_t uint16_encode(uint16_t value, uint8_t * p_encoded_data)
 {
     p_encoded_data[0] = (uint8_t) ((value & 0x00FF) >> 0);
     p_encoded_data[1] = (uint8_t) ((value & 0xFF00) >> 8);
     return sizeof(uint16_t);
+}
+
+/**@brief Function for encoding a three-byte value.
+ *
+ * @param[in]   value            Value to be encoded.
+ * @param[out]  p_encoded_data   Buffer where the encoded data is to be written.
+ *
+ * @return      Number of bytes written.
+ */
+static __INLINE uint8_t uint24_encode(uint32_t value, uint8_t * p_encoded_data)
+{
+    p_encoded_data[0] = (uint8_t) ((value & 0x000000FF) >> 0);
+    p_encoded_data[1] = (uint8_t) ((value & 0x0000FF00) >> 8);
+    p_encoded_data[2] = (uint8_t) ((value & 0x00FF0000) >> 16);
+    return 3;
 }
 
 /**@brief Function for encoding a uint32 value.
@@ -166,7 +202,7 @@ static inline uint8_t uint16_encode(uint16_t value, uint8_t * p_encoded_data)
  *
  * @return      Number of bytes written.
  */
-static inline uint8_t uint32_encode(uint32_t value, uint8_t * p_encoded_data)
+static __INLINE uint8_t uint32_encode(uint32_t value, uint8_t * p_encoded_data)
 {
     p_encoded_data[0] = (uint8_t) ((value & 0x000000FF) >> 0);
     p_encoded_data[1] = (uint8_t) ((value & 0x0000FF00) >> 8);
@@ -175,16 +211,59 @@ static inline uint8_t uint32_encode(uint32_t value, uint8_t * p_encoded_data)
     return sizeof(uint32_t);
 }
 
+/**@brief Function for encoding a uint48 value.
+ *
+ * @param[in]   value            Value to be encoded.
+ * @param[out]  p_encoded_data   Buffer where the encoded data is to be written.
+ *
+ * @return      Number of bytes written.
+ */
+static __INLINE uint8_t uint48_encode(uint64_t value, uint8_t * p_encoded_data)
+{
+    p_encoded_data[0] = (uint8_t) ((value & 0x0000000000FF) >> 0);
+    p_encoded_data[1] = (uint8_t) ((value & 0x00000000FF00) >> 8);
+    p_encoded_data[2] = (uint8_t) ((value & 0x000000FF0000) >> 16);
+    p_encoded_data[3] = (uint8_t) ((value & 0x0000FF000000) >> 24);
+    p_encoded_data[4] = (uint8_t) ((value & 0x00FF00000000) >> 32);
+    p_encoded_data[5] = (uint8_t) ((value & 0xFF0000000000) >> 40);
+    return 6;
+}
+
 /**@brief Function for decoding a uint16 value.
  *
  * @param[in]   p_encoded_data   Buffer where the encoded data is stored.
  *
  * @return      Decoded value.
  */
-static inline uint16_t uint16_decode(const uint8_t * p_encoded_data)
+static __INLINE uint16_t uint16_decode(const uint8_t * p_encoded_data)
 {
-        return ( (((uint16_t)((uint8_t *)p_encoded_data)[0])) |
+        return ( (((uint16_t)((uint8_t *)p_encoded_data)[0])) | 
                  (((uint16_t)((uint8_t *)p_encoded_data)[1]) << 8 ));
+}
+
+/**@brief Function for decoding a uint16 value in big-endian format.
+ *
+ * @param[in]   p_encoded_data   Buffer where the encoded data is stored.
+ *
+ * @return      Decoded value.
+ */
+static __INLINE uint16_t uint16_big_decode(const uint8_t * p_encoded_data)
+{
+        return ( (((uint16_t)((uint8_t *)p_encoded_data)[0]) << 8 ) |
+                 (((uint16_t)((uint8_t *)p_encoded_data)[1])) );
+}
+
+/**@brief Function for decoding a three-byte value.
+ *
+ * @param[in]   p_encoded_data   Buffer where the encoded data is stored.
+ *
+ * @return      Decoded value (uint32_t).
+ */
+static __INLINE uint32_t uint24_decode(const uint8_t * p_encoded_data)
+{
+    return ( (((uint32_t)((uint8_t *)p_encoded_data)[0]) << 0)  |
+             (((uint32_t)((uint8_t *)p_encoded_data)[1]) << 8)  |
+             (((uint32_t)((uint8_t *)p_encoded_data)[2]) << 16));
 }
 
 /**@brief Function for decoding a uint32 value.
@@ -193,12 +272,62 @@ static inline uint16_t uint16_decode(const uint8_t * p_encoded_data)
  *
  * @return      Decoded value.
  */
-static inline uint32_t uint32_decode(const uint8_t * p_encoded_data)
+static __INLINE uint32_t uint32_decode(const uint8_t * p_encoded_data)
 {
     return ( (((uint32_t)((uint8_t *)p_encoded_data)[0]) << 0)  |
              (((uint32_t)((uint8_t *)p_encoded_data)[1]) << 8)  |
              (((uint32_t)((uint8_t *)p_encoded_data)[2]) << 16) |
              (((uint32_t)((uint8_t *)p_encoded_data)[3]) << 24 ));
+}
+
+/**@brief Function for decoding a uint32 value in big-endian format.
+ *
+ * @param[in]   p_encoded_data   Buffer where the encoded data is stored.
+ *
+ * @return      Decoded value.
+ */
+static __INLINE uint32_t uint32_big_decode(const uint8_t * p_encoded_data)
+{
+    return ( (((uint32_t)((uint8_t *)p_encoded_data)[0]) << 24) |
+             (((uint32_t)((uint8_t *)p_encoded_data)[1]) << 16) |
+             (((uint32_t)((uint8_t *)p_encoded_data)[2]) << 8)  |
+             (((uint32_t)((uint8_t *)p_encoded_data)[3]) << 0) );
+}
+
+/**@brief Function for encoding a uint32 value in big-endian format.
+ *
+ * @param[in]   value            Value to be encoded.
+ * @param[out]  p_encoded_data   Buffer where the encoded data will be written.
+ *
+ * @return      Number of bytes written.
+ */
+static __INLINE uint8_t uint32_big_encode(uint32_t value, uint8_t * p_encoded_data)
+{
+#ifdef NRF51
+    p_encoded_data[0] = (uint8_t) ((value & 0xFF000000) >> 24);
+    p_encoded_data[1] = (uint8_t) ((value & 0x00FF0000) >> 16);
+    p_encoded_data[2] = (uint8_t) ((value & 0x0000FF00) >> 8);
+    p_encoded_data[3] = (uint8_t) ((value & 0x000000FF) >> 0);
+#elif NRF52
+    *(uint32_t *)p_encoded_data = __REV(value);
+#endif    
+    return sizeof(uint32_t);
+}
+
+/**@brief Function for decoding a uint48 value.
+ *
+ * @param[in]   p_encoded_data   Buffer where the encoded data is stored.
+ *
+ * @return      Decoded value. (uint64_t)
+ */
+static __INLINE uint64_t uint48_decode(const uint8_t * p_encoded_data)
+{
+    return ( (((uint64_t)((uint8_t *)p_encoded_data)[0]) << 0)  |
+             (((uint64_t)((uint8_t *)p_encoded_data)[1]) << 8)  |
+             (((uint64_t)((uint8_t *)p_encoded_data)[2]) << 16) |
+             (((uint64_t)((uint8_t *)p_encoded_data)[3]) << 24) |
+             (((uint64_t)((uint8_t *)p_encoded_data)[4]) << 32) |
+             (((uint64_t)((uint8_t *)p_encoded_data)[5]) << 40 ));
 }
 
 /** @brief Function for converting the input voltage (in milli volts) into percentage of 3.0 Volts.
@@ -221,7 +350,7 @@ static inline uint32_t uint32_decode(const uint8_t * p_encoded_data)
  *
  *  @return    Battery level in percent.
 */
-static inline uint8_t battery_level_in_percent(const uint16_t mvolts)
+static __INLINE uint8_t battery_level_in_percent(const uint16_t mvolts)
 {
     uint8_t battery_level;
 
@@ -239,7 +368,7 @@ static inline uint8_t battery_level_in_percent(const uint16_t mvolts)
     }
     else if (mvolts > 2440)
     {
-        battery_level = 18 - (2740 - mvolts) / 25;
+        battery_level = 18 - ((2740 - mvolts) * 12) / 300;
     }
     else if (mvolts > 2100)
     {
@@ -259,7 +388,7 @@ static inline uint8_t battery_level_in_percent(const uint16_t mvolts)
  *
  * @return      TRUE if pointer is aligned to a 4 byte boundary, FALSE otherwise.
  */
-static inline bool is_word_aligned(void * p)
+static __INLINE bool is_word_aligned(void const* p)
 {
     return (((uintptr_t)p & 0x03) == 0);
 }

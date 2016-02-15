@@ -28,7 +28,7 @@ uint32_t ble_opt_get_req_enc(uint32_t                opt_id,
     SER_ASSERT_NOT_NULL(p_buf);
     SER_ASSERT_NOT_NULL(p_buf_len);
     SER_ASSERT_LENGTH_LEQ(1+4+1, *p_buf_len);                       // [OPCODE][OP_ID][PRESENT]
-    SER_ASSERT(((opt_id == BLE_COMMON_OPT_RADIO_CPU_MUTEX) ||
+    SER_ASSERT(((opt_id == BLE_COMMON_OPT_CONN_BW)         ||
                 (opt_id == BLE_GAP_OPT_CH_MAP)             ||
                 (opt_id == BLE_GAP_OPT_LOCAL_CONN_LATENCY) ||
                 (opt_id == BLE_GAP_OPT_PASSKEY)            ||
@@ -80,7 +80,7 @@ uint32_t ble_opt_get_rsp_dec(uint8_t const * const p_buf,
     }
 
     (void) uint32_t_dec(p_buf, packet_len, &index, p_opt_id);
-    SER_ASSERT(((*p_opt_id == BLE_COMMON_OPT_RADIO_CPU_MUTEX) ||
+    SER_ASSERT(((*p_opt_id == BLE_COMMON_OPT_CONN_BW)         ||
                 (*p_opt_id == BLE_GAP_OPT_CH_MAP)             ||
                 (*p_opt_id == BLE_GAP_OPT_LOCAL_CONN_LATENCY) ||
                 (*p_opt_id == BLE_GAP_OPT_PASSKEY)            ||
@@ -90,8 +90,8 @@ uint32_t ble_opt_get_rsp_dec(uint8_t const * const p_buf,
 
     switch (*p_opt_id)
     {
-      case BLE_COMMON_OPT_RADIO_CPU_MUTEX:
-          err_code = ble_common_opt_radio_cpu_mutex_t_dec( p_buf, packet_len, &index, (void *)&(p_opt->common_opt.radio_cpu_mutex));
+      case BLE_COMMON_OPT_CONN_BW:
+          err_code = ble_common_opt_conn_bw_t_dec( p_buf, packet_len, &index, (void *)&(p_opt->common_opt.conn_bw));
       break;
       case BLE_GAP_OPT_CH_MAP:
           err_code = ble_gap_opt_ch_map_t_dec( p_buf, packet_len, &index, (void *)&(p_opt->gap_opt.ch_map));

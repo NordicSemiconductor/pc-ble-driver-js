@@ -150,7 +150,7 @@ private:
     ADAPTER_METHOD_DEFINITIONS(GattsSystemAttributeSet);
     ADAPTER_METHOD_DEFINITIONS(GattsSetValue);
     ADAPTER_METHOD_DEFINITIONS(GattsGetValue);
-    ADAPTER_METHOD_DEFINITIONS(GattsReplyReadWriteAuthorize);
+    // ADAPTER_METHOD_DEFINITIONS(GattsReplyReadWriteAuthorize);
 
     static void initGeneric(v8::Local<v8::FunctionTemplate> tpl);
     static void initGap(v8::Local<v8::FunctionTemplate> tpl);

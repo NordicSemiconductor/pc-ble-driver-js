@@ -15,7 +15,8 @@
 #include "app_util.h"
 #include "cond_field_serialization.h"
 
-uint32_t ble_tx_buffer_count_get_req_enc(uint8_t const * const p_count,
+uint32_t ble_tx_packet_count_get_req_enc(uint16_t              conn_handle,
+                                         uint8_t const * const p_count,
                                          uint8_t * const       p_buf,
                                          uint32_t * const      p_buf_len)
 {
@@ -23,11 +24,14 @@ uint32_t ble_tx_buffer_count_get_req_enc(uint8_t const * const p_count,
     SER_ASSERT_NOT_NULL(p_buf_len);
 
     uint32_t index  = 0;
-    uint8_t  opcode = SD_BLE_TX_BUFFER_COUNT_GET;
+    uint8_t  opcode = SD_BLE_TX_PACKET_COUNT_GET;
     uint32_t err_code;
     uint32_t total_len = *p_buf_len;
 
     err_code = uint8_t_enc(&opcode, p_buf, total_len, &index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = uint16_t_enc(&conn_handle, p_buf, total_len, &index);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
     err_code = cond_field_enc(p_count, p_buf, total_len, &index, NULL);
@@ -39,7 +43,7 @@ uint32_t ble_tx_buffer_count_get_req_enc(uint8_t const * const p_count,
 }
 
 
-uint32_t ble_tx_buffer_count_get_rsp_dec(uint8_t const * const p_buf,
+uint32_t ble_tx_packet_count_get_rsp_dec(uint8_t const * const p_buf,
                                          uint32_t              packet_len,
                                          uint8_t * * const     pp_count,
                                          uint32_t * const      p_result_code)
@@ -49,7 +53,7 @@ uint32_t ble_tx_buffer_count_get_rsp_dec(uint8_t const * const p_buf,
 
     uint32_t index    = 0;
     uint32_t err_code = ser_ble_cmd_rsp_result_code_dec(p_buf, &index, packet_len,
-                                                        SD_BLE_TX_BUFFER_COUNT_GET, p_result_code);
+                                                        SD_BLE_TX_PACKET_COUNT_GET, p_result_code);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
     if (*p_result_code != NRF_SUCCESS)

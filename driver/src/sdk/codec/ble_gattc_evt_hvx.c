@@ -32,7 +32,7 @@ uint32_t ble_gattc_evt_hvx_dec(uint8_t const * const p_buf,
     tmp_attr_len = uint16_decode(&(p_buf[9]));
 
     uint32_t event_len = offsetof(ble_evt_t, evt.gattc_evt.params.hvx) +
-                         sizeof (ble_gattc_evt_hvx_t) - 1 + tmp_attr_len;
+                         sizeof (ble_gattc_evt_hvx_t) + tmp_attr_len;
 
     if (p_event == NULL)
     {
