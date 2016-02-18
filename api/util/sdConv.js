@@ -126,15 +126,17 @@ class SoftDeviceConverter {
         return this._replace16bitUuidIn128bitUuid(uuidBase, uuid16bit);
     }
 
-    attributeMetadataToDriver(properties) {
+    attributeMetadataToDriver(attribute) {
         var retval = {};
 
-        retval.read_perm = SoftDeviceConverter.securityModeToDriver(properties.readPerm);
-        retval.write_perm = SoftDeviceConverter.securityModeToDriver(properties.writePerm);
+        retval.read_perm = SoftDeviceConverter.securityModeToDriver(attribute.readPerm);
+        retval.write_perm = SoftDeviceConverter.securityModeToDriver(attribute.writePerm);
         retval.vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
-        retval.vlen = properties.variableLength || false; // TODO: validate purpose of this varible
-        retval.rd_auth = properties.readAuth || false;
-        retval.wr_auth = properties.writeAuth || false;
+        retval.vlen = attribute.variableLength || false; // TODO: validate purpose of this varible
+
+        //TODO: Do these exists at any point?
+        retval.rd_auth = attribute.readAuth || false;
+        retval.wr_auth = attribute.writeAuth || false;
 
         return retval;
     }
@@ -158,7 +160,7 @@ class SoftDeviceConverter {
         if (!descriptor.uuid) err = 'UUID must be provided. ';
         if (!descriptor.value) err += 'value must be provided. ';
         if (!descriptor.properties) err += 'properties must be provided. ';
-        if (!descriptor.properties.maxLength) err += 'maxLength must be provided. ';
+        if (!descriptor.maxLength) err += 'maxLength must be provided. ';
 
         if (err.length !== 0) {
             callback(err);
@@ -178,11 +180,11 @@ class SoftDeviceConverter {
 
             retval.uuid = uuid;
 
-            retval.attr_md = this.attributeMetadataToDriver(descriptor.properties);
+            retval.attr_md = this.attributeMetadataToDriver(descriptor);
 
             retval.init_len = descriptor.value.length;
             retval.init_offs = 0;
-            retval.max_len = descriptor.properties.maxLength || retval.init_len;
+            retval.max_len = descriptor.maxLength || retval.init_len;
             retval.value = descriptor.value;
 
             callback(undefined, retval);
@@ -199,7 +201,7 @@ class SoftDeviceConverter {
         for (var i = 0; i < descriptorsLength; i++) {
             var descriptor = characteristic._factory_descriptors[i];
             if (descriptor.uuid === uuid) {
-                return this.attributeMetadataToDriver(descriptor.properties);
+                return this.attributeMetadataToDriver(descriptor);
             }
         }
 
@@ -240,7 +242,7 @@ class SoftDeviceConverter {
         if (!characteristic.uuid) err = 'UUID must be provided. ';
         if (!characteristic.value) err += 'value must be provided. ';
         if (!characteristic.properties) err += 'properties must be provided. ';
-        if (!characteristic.properties.maxLength) err += 'maxLength must be provided. ';
+        if (!characteristic.maxLength) err += 'maxLength must be provided. ';
 
         if (err.length !== 0) {
             callback(err);
@@ -256,15 +258,15 @@ class SoftDeviceConverter {
         retval.attribute.attr_md = {};
 
         var props = retval.metadata.char_props;
-        props.broadcast = characteristic.properties.properties.broadcast || false;
-        props.read = characteristic.properties.properties.read || false;
-        props.write_wo_resp = characteristic.properties.properties.writeWoResp || false;
-        props.write = characteristic.properties.properties.write || false;
-        props.notify = characteristic.properties.properties.notify || false;
-        props.indicate = characteristic.properties.properties.indicate || false;
-        props.auth_signed_wr = characteristic.properties.properties.authSignedWr || false;
+        props.broadcast = characteristic.properties.broadcast || false;
+        props.read = characteristic.properties.read || false;
+        props.write_wo_resp = characteristic.properties.writeWoResp || false;
+        props.write = characteristic.properties.write || false;
+        props.notify = characteristic.properties.notify || false;
+        props.indicate = characteristic.properties.indicate || false;
+        props.auth_signed_wr = characteristic.properties.authSignedWr || false;
 
-        retval.metadata.char_ext_props.reliable_wr = characteristic.properties.properties.reliableWrite || false;
+        retval.metadata.char_ext_props.reliable_wr = characteristic.properties.reliableWrite || false;
         retval.metadata.char_ext_props.wr_aux = false;
 
         retval.metadata.char_user_desc_max_size = 0; // TODO: check what this is used for
@@ -284,10 +286,10 @@ class SoftDeviceConverter {
             retval.attribute.uuid = uuid;
 
             retval.attribute.value = characteristic.value;
-            retval.attribute.attr_md = this.attributeMetadataToDriver(characteristic.properties);
+            retval.attribute.attr_md = this.attributeMetadataToDriver(characteristic);
             retval.attribute.init_len = characteristic.value.length;
             retval.attribute.init_offs = 0;
-            retval.attribute.max_len = characteristic.properties.maxLength || retval.attribute.init_len;
+            retval.attribute.max_len = characteristic.maxLength || retval.attribute.init_len;
 
             callback(undefined, retval);
         });

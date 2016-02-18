@@ -1951,7 +1951,7 @@ class Adapter extends EventEmitter {
                 // TODO: Fix Device Name uuid magic number
                 if (characteristic.uuid === '2A00') {
                     // TODO: At some point addon should accept string.
-                    this._setDeviceNameFromArray(characteristic.value, characteristic.properties.writePerm, err => {
+                    this._setDeviceNameFromArray(characteristic.value, characteristic.writePerm, err => {
                         if (!err) {
                             characteristic.declarationHandle = 2;
                             characteristic.valueHandle = 3;
