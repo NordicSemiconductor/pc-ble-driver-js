@@ -26,7 +26,7 @@ class ServiceFactory {
     }
 
     // returns Characteristic
-    createCharacteristic(service, uuid, value, properties) {
+    createCharacteristic(service, uuid, value, properties, options) {
         if (!service) throw new Error('Service to add characteritics to must be provided.');
 
         if (service._factory_characteristics === undefined) {
@@ -37,20 +37,21 @@ class ServiceFactory {
             service.instanceId,
             uuid,
             value,
-            properties);
+            properties,
+            options);
 
         service._factory_characteristics.push(characteristic);
         return characteristic;
     }
 
-    createDescriptor(characteristic, uuid, value, properties) {
+    createDescriptor(characteristic, uuid, value, options) {
         if (!characteristic) throw new Error('Characteristic to add descriptor to must be provided.');
 
         if (characteristic._factory_descriptors === undefined) {
             characteristic._factory_descriptors = [];
         }
 
-        const descriptor = new Descriptor(characteristic.instanceId, uuid, value, properties);
+        const descriptor = new Descriptor(characteristic.instanceId, uuid, value, options);
 
         characteristic._factory_descriptors.push(descriptor);
         return descriptor;

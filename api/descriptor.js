@@ -15,7 +15,7 @@
 var i = 1;
 
 class Descriptor {
-    constructor(characteristicInstanceId, uuid, value, properties) {
+    constructor(characteristicInstanceId, uuid, value, options) {
         if (!characteristicInstanceId) throw new Error('serviceInstanceId must be provided.');
         if (!uuid) throw new Error('uuid must be provided.');
 
@@ -31,7 +31,18 @@ class Descriptor {
 
         this.handle = null;
         this.value = value;
-        this.properties = properties;
+
+        for (let option in options) {
+            if (option === 'readPerm') {
+                this.readPerm = options.readPerm;
+            } else if (option === 'writePerm') {
+                this.writePerm = options.writePerm;
+            } else if (option === 'variableLength') {
+                this.variableLength = options.variableLength;
+            } else if (option === 'maxLength') {
+                this.maxLength = options.maxLength;
+            }
+        }
     }
 
     get instanceId() {
