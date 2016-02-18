@@ -45,7 +45,7 @@ function build(debug)
 var times = 0;
 
 function begin(args) {
-    var debug = true;
+    var debug = false;
 
     var length = args.length >>> 0;
 
