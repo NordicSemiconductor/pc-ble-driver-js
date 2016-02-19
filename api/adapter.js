@@ -81,7 +81,7 @@ class Adapter extends EventEmitter {
         this._characteristics = {};
         this._descriptors = {};
 
-        this._converter = new Converter(this._bleDriver);
+        this._converter = new Converter(this._bleDriver, this._adapter);
 
         this._gapOperationsMap = {};
         this._gattOperationsMap = {};
