@@ -80,7 +80,6 @@ uint32_t ble_uuid_encode_rsp_dec(uint8_t const * const p_buf,
         if (p_uuid_le != NULL)
         {
             SER_ASSERT_LENGTH_LEQ(index + uuid_le_len, packet_len);
-            SER_ASSERT(uuid_le_len <= *p_uuid_le_len, NRF_ERROR_DATA_SIZE);
             memcpy(p_uuid_le, &(p_buf[index]), uuid_le_len);
             index += uuid_le_len;
         }

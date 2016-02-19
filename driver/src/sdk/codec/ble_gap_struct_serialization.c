@@ -72,9 +72,12 @@ uint32_t ble_gap_addr_dec(uint8_t const * const p_buf,
 {
     ble_gap_addr_t * p_address = (ble_gap_addr_t *) p_addr;
 
-    SER_ASSERT_LENGTH_LEQ(sizeof (ble_gap_addr_t), buf_len - *p_index);
-    memcpy(p_address, &p_buf[*p_index], sizeof (ble_gap_addr_t));
-    *p_index += sizeof (ble_gap_addr_t);
+    SER_ASSERT_LENGTH_LEQ(1 + BLE_GAP_ADDR_LEN, (int32_t)buf_len - *p_index);
+
+    p_address->addr_type = p_buf[*p_index];
+    (*p_index)++;
+    memcpy(p_address->addr, &p_buf[*p_index], BLE_GAP_ADDR_LEN);
+    *p_index += BLE_GAP_ADDR_LEN;
 
     return NRF_SUCCESS;
 }
@@ -541,39 +544,6 @@ uint32_t ble_gap_sec_params_t_dec(uint8_t const * const p_buf,
 
     err_code = ble_gap_sec_kdist_t_dec(p_buf, buf_len, p_index, (void *) &(p_sec_params->kdist_central));
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
-
-    return err_code;
-}
-
-uint32_t ble_gap_enable_params_t_enc(void const * const p_void_struct,
-                                     uint8_t * const    p_buf,
-                                     uint32_t           buf_len,
-                                     uint32_t * const   p_index)
-{
-//    ble_gap_enable_params_t * p_enable_params = (ble_gap_enable_params_t *)p_void_struct;
-    uint32_t                  err_code        = NRF_SUCCESS;
-    uint8_t                   temp8           = 0;
-
-//    temp8 = (p_enable_params->role & 0x03);
-
-    err_code = uint8_t_enc((void *) &temp8, p_buf, buf_len, p_index);
-    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
-
-    return err_code;
-}
-
-uint32_t ble_gap_enable_params_t_dec(uint8_t const * const p_buf,
-                                     uint32_t              buf_len,
-                                     uint32_t * const      p_index,
-                                     void * const          p_void_struct)
-{
-//    ble_gap_enable_params_t * p_enable_params = (ble_gap_enable_params_t *)p_void_struct;
-    uint32_t                  err_code     = NRF_SUCCESS;
-    uint8_t                   temp8        = 0;
-
-    err_code = uint8_t_dec(p_buf, buf_len, p_index, (void *) &temp8);
-    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
-//    p_enable_params->role = temp8 & 0x03;
 
     return err_code;
 }
@@ -1355,6 +1325,52 @@ uint32_t ble_gap_adv_ch_mask_t_dec(uint8_t const * const p_buf,
     p_ch_mask->ch_37_off = byte & 0x01;
     p_ch_mask->ch_38_off = (byte >> 1) & 0x01;
     p_ch_mask->ch_39_off = (byte >> 2) & 0x01;
+
+    return err_code;
+}
+
+uint32_t ble_gap_enable_params_t_enc(void const * const p_void_enable_params,
+                                     uint8_t * const    p_buf,
+                                     uint32_t           buf_len,
+                                     uint32_t * const   p_index)
+{
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+
+    ble_gap_enable_params_t * p_enable_params = (ble_gap_enable_params_t *)p_void_enable_params;
+    uint32_t                err_code  = NRF_SUCCESS;
+
+    err_code = uint8_t_enc(&p_enable_params->periph_conn_count, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = uint8_t_enc(&p_enable_params->central_conn_count, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = uint8_t_enc(&p_enable_params->central_sec_count, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    return err_code;
+}
+
+uint32_t ble_gap_enable_params_t_dec(uint8_t const * const p_buf,
+                                     uint32_t              buf_len,
+                                     uint32_t * const      p_index,
+                                     void * const          p_void_enable_params)
+{
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+
+    ble_gap_enable_params_t * p_enable_params = (ble_gap_enable_params_t *)p_void_enable_params;
+    uint32_t                err_code  = NRF_SUCCESS;
+
+    err_code = uint8_t_dec(p_buf, buf_len, p_index, &p_enable_params->periph_conn_count);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = uint8_t_dec(p_buf, buf_len, p_index, &p_enable_params->central_conn_count);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = uint8_t_dec(p_buf, buf_len, p_index, &p_enable_params->central_sec_count);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
     return err_code;
 }

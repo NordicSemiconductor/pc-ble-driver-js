@@ -2,12 +2,12 @@
  *
  * The information contained herein is property of Nordic Semiconductor ASA.
  * Terms and conditions of usage are described in detail in NORDIC
- * SEMICONDUCTOR STANDARD SOFTWARE LICENSE AGREEMENT. 
+ * SEMICONDUCTOR STANDARD SOFTWARE LICENSE AGREEMENT.
  *
  * Licensees are granted free, non-transferable use of the information. NO
  * WARRANTY of ANY KIND is provided. This heading must NOT be removed from
  * the file.
- */ 
+ */
 
 /** @file
  * @brief Common defines and macros for firmware developed by Nordic Semiconductor.
@@ -16,22 +16,57 @@
 #ifndef NORDIC_COMMON_H__
 #define NORDIC_COMMON_H__
 
-/** Swaps the upper byte with the lower byte in a 16 bit variable */
-//lint -emacro((572),SWAP) // Suppress warning 572 "Excessive shift value"
-#define SWAP(x) ((((x)&0xFF)<<8)|(((x)>>8)&0xFF))
+/** The upper 8 bits of a 32 bit value */
+//lint -emacro(572,MSB) // Suppress warning 572 "Excessive shift value"
+#define MSB(a) (((a) & 0xFF000000) >> 24)
+/** The lower 8 bits (of a 32 bit value) */
+#define LSB(a) ((a) & 0x000000FF)
 
 /** The upper 8 bits of a 16 bit value */
-//lint -emacro(572,MSB) // Suppress warning 572 "Excessive shift value"
-#define MSB(a) (((a) & 0xFF00) >> 8)
+//lint -emacro(572,MSB_16) // Suppress warning 572 "Excessive shift value"
+#define MSB_16(a) (((a) & 0xFF00) >> 8)
 /** The lower 8 bits (of a 16 bit value) */
-#define LSB(a) ((a) & 0xFF)
+#define LSB_16(a) ((a) & 0x00FF)
 
-/** Leaves the minimum of the two arguments */
-/*lint -emacro(506, MIN) */ /* Suppress "Constant value Boolean */ 
+/** Leaves the minimum of the two 32-bit arguments */
+/*lint -emacro(506, MIN) */ /* Suppress "Constant value Boolean */
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
-/** Leaves the maximum of the two arguments */
-/*lint -emacro(506, MAX) */ /* Suppress "Constant value Boolean */ 
+/** Leaves the maximum of the two 32-bit arguments */
+/*lint -emacro(506, MAX) */ /* Suppress "Constant value Boolean */
 #define MAX(a, b) ((a) < (b) ? (b) : (a))
+
+/** Concatenates two parameters. Useful as a second level of indirection,
+ *  when a parameter can be macro itself. */
+#define CONCAT_2(p1, p2)      p1##p2
+/** Concatenates three parameters. Useful as a second level of indirection,
+ *  when a parameter can be macro itself. */
+#define CONCAT_3(p1, p2, p3)  p1##p2##p3
+
+/**@brief Set a bit in the uint32 word.
+ *
+ * @param[in] W  Word whose bit is being set.
+ * @param[in] B  Bit number in the word to be set.
+ */
+#define SET_BIT(W,B)  ((W) |= (uint32_t)(1U << (B)))
+
+
+/**@brief Clears a bit in the uint32 word.
+ *
+ * @param[in] W   Word whose bit is to be cleared.
+ * @param[in] B   Bit number in the word to be cleared.
+ */
+#define CLR_BIT(W, B) ((W) &= (~((uint32_t)1 << (B))))
+
+
+/**@brief Checks if a bit is set.
+ *
+ * @param[in] W   Word whose bit is to be checked.
+ * @param[in] B   Bit number in the word to be checked.
+ *
+ * @retval 1 if bit is set.
+ * @retval 0 if bit is not set.
+ */
+#define IS_SET(W,B) (((W) >> (B)) & 1)
 
 #define BIT_0 0x01 /**< The value of bit 0 */
 #define BIT_1 0x02 /**< The value of bit 1 */
@@ -68,5 +103,6 @@
 
 #define UNUSED_VARIABLE(X)  ((void)(X))
 #define UNUSED_PARAMETER(X) UNUSED_VARIABLE(X)
+#define UNUSED_RETURN_VALUE(X) UNUSED_VARIABLE(X)
 
 #endif // NORDIC_COMMON_H__

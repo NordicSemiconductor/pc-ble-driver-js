@@ -177,6 +177,7 @@ v8::Local<v8::Object> GattsAttributeContext::ToJs()
     return scope.Escape(obj);
 }
 
+#if 0
 v8::Local<v8::Object> GattsReadAuthorizeParameters::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -255,6 +256,7 @@ ble_gatts_rw_authorize_reply_params_t *GattGattsReplyReadWriteAuthorizeParams::T
 
     return params;
 }
+#endif
 
 v8::Local<v8::Object> GattsWriteEvent::ToJs()
 {
@@ -925,6 +927,7 @@ void Adapter::AfterGattsGetValue(uv_work_t *req)
     delete baton;
 }
 
+#if 0
 NAN_METHOD(Adapter::GattsReplyReadWriteAuthorize)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
@@ -998,6 +1001,8 @@ void Adapter::AfterGattsReplyReadWriteAuthorize(uv_work_t *req)
     delete baton->p_rw_authorize_reply_params;
     delete baton;
 }
+
+#endif
 
 extern "C" {
     void init_gatts(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)

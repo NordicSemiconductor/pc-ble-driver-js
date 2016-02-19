@@ -29,12 +29,10 @@
  * @ingroup  ser_app_s130_codecs
  *
  * @brief    GAP Application command request encoders and command response decoders.
- *
  */
 #include "ble.h"
 #include "ble_gap.h"
 
-extern "C" {
 /**
  * @brief Encodes @ref sd_ble_gap_address_get command request.
  *
@@ -696,7 +694,7 @@ uint32_t ble_gap_auth_key_reply_rsp_dec(uint8_t const * const p_buf,
  */
 uint32_t ble_gap_sec_info_reply_req_enc(uint16_t                    conn_handle,
                                         ble_gap_enc_info_t  const * p_enc_info,
-                                        ble_gap_irk_t       const * p_id_info,
+                                        ble_gap_irk_t       const * p_id_info, 
                                         ble_gap_sign_info_t const * p_sign_info,
                                         uint8_t * const             p_buf,
                                         uint32_t * const            p_buf_len);
@@ -1158,6 +1156,4 @@ uint32_t ble_gap_rssi_get_rsp_dec(uint8_t const * const p_buf,
                                   uint32_t      * const p_result_code);
 
 /** @} */
-}
-
 #endif

@@ -739,13 +739,13 @@ uint32_t ble_gatts_evt_rw_authorize_request_t_dec(uint8_t const * const p_buf,
     return err_code;
 }
 
-uint32_t ble_gatts_read_authorize_params_t_enc(void const * const p_void_struct,
-                                               uint8_t * const    p_buf,
-                                               uint32_t           buf_len,
-                                               uint32_t * const   p_index)
+uint32_t ble_gatts_authorize_params_t_enc(void const * const p_void_struct,
+                                          uint8_t * const    p_buf,
+                                          uint32_t           buf_len,
+                                          uint32_t * const   p_index)
 {
-    ble_gatts_read_authorize_params_t * p_params =
-        (ble_gatts_read_authorize_params_t *) p_void_struct;
+    ble_gatts_authorize_params_t * p_params =
+        (ble_gatts_authorize_params_t *) p_void_struct;
     uint32_t error_code = NRF_SUCCESS;
 
     error_code = uint16_t_enc(&(p_params->gatt_status), p_buf, buf_len, p_index);
@@ -764,13 +764,13 @@ uint32_t ble_gatts_read_authorize_params_t_enc(void const * const p_void_struct,
     return error_code;
 }
 
-uint32_t ble_gatts_read_authorize_params_t_dec(uint8_t const * const p_buf,
-                                               uint32_t              buf_len,
-                                               uint32_t * const      p_index,
-                                               void * const          p_void_struct)
+uint32_t ble_gatts_authorize_params_t_dec(uint8_t const * const p_buf,
+                                          uint32_t              buf_len,
+                                          uint32_t * const      p_index,
+                                          void * const          p_void_struct)
 {
-    ble_gatts_read_authorize_params_t * p_params =
-        (ble_gatts_read_authorize_params_t *) p_void_struct;
+    ble_gatts_authorize_params_t * p_params =
+        (ble_gatts_authorize_params_t *) p_void_struct;
     uint32_t error_code = NRF_SUCCESS;
 
     SER_ASSERT_LENGTH_LEQ(2, buf_len - *p_index);
@@ -784,38 +784,8 @@ uint32_t ble_gatts_read_authorize_params_t_dec(uint8_t const * const p_buf,
     SER_ASSERT_LENGTH_LEQ(2, buf_len - *p_index);
     uint16_dec(p_buf, buf_len, p_index, &p_params->offset);
 
-    error_code = len16data_dec(p_buf, buf_len, p_index, &p_params->p_data, &p_params->len);
+    error_code = len16data_dec(p_buf, buf_len, p_index, (uint8_t **)&p_params->p_data, &p_params->len);
     SER_ASSERT(error_code == NRF_SUCCESS, error_code);
-
-    return error_code;
-}
-
-uint32_t ble_gatts_write_authorize_params_t_enc(void const * const p_void_struct,
-                                                uint8_t * const    p_buf,
-                                                uint32_t           buf_len,
-                                                uint32_t * const   p_index)
-{
-    ble_gatts_write_authorize_params_t * p_params =
-        (ble_gatts_write_authorize_params_t *) p_void_struct;
-    uint32_t error_code = NRF_SUCCESS;
-
-    error_code = uint16_t_enc(&(p_params->gatt_status), p_buf, buf_len, p_index);
-    SER_ASSERT(error_code == NRF_SUCCESS, error_code);
-
-    return error_code;
-}
-
-uint32_t ble_gatts_write_authorize_params_t_dec(uint8_t const * const p_buf,
-                                                uint32_t              buf_len,
-                                                uint32_t * const      p_index,
-                                                void * const          p_void_struct)
-{
-    ble_gatts_write_authorize_params_t * p_params =
-        (ble_gatts_write_authorize_params_t *) p_void_struct;
-    uint32_t error_code = NRF_SUCCESS;
-
-    SER_ASSERT_LENGTH_LEQ(2, buf_len - *p_index);
-    uint16_dec(p_buf, buf_len, p_index, &p_params->gatt_status);
 
     return error_code;
 }
@@ -834,14 +804,14 @@ uint32_t ble_gatts_rw_authorize_reply_params_t_enc(void const * const p_void_str
 
     if (p_params->type == BLE_GATTS_AUTHORIZE_TYPE_READ)
     {
-        error_code = ble_gatts_read_authorize_params_t_enc(&p_params->params.read,
-                                                           p_buf, buf_len, p_index);
+        error_code = ble_gatts_authorize_params_t_enc(&p_params->params.read,
+                                                      p_buf, buf_len, p_index);
         SER_ASSERT(error_code == NRF_SUCCESS, error_code);
     }
     else if (p_params->type == BLE_GATTS_AUTHORIZE_TYPE_WRITE)
     {
-        error_code = ble_gatts_write_authorize_params_t_enc(&p_params->params.write,
-                                                            p_buf, buf_len, p_index);
+        error_code = ble_gatts_authorize_params_t_enc(&p_params->params.write,
+                                                      p_buf, buf_len, p_index);
         SER_ASSERT(error_code == NRF_SUCCESS, error_code);
     }
     else
@@ -866,13 +836,13 @@ uint32_t ble_gatts_rw_authorize_reply_params_t_dec(uint8_t const * const p_buf,
 
     if (p_params->type == BLE_GATTS_AUTHORIZE_TYPE_READ)
     {
-        error_code = ble_gatts_read_authorize_params_t_dec(p_buf, buf_len, p_index,
+        error_code = ble_gatts_authorize_params_t_dec(p_buf, buf_len, p_index,
                                                            &p_params->params.read);
         SER_ASSERT(error_code == NRF_SUCCESS, error_code);
     }
     else if (p_params->type == BLE_GATTS_AUTHORIZE_TYPE_WRITE)
     {
-        error_code = ble_gatts_write_authorize_params_t_dec(p_buf, buf_len, p_index,
+        error_code = ble_gatts_authorize_params_t_dec(p_buf, buf_len, p_index,
                                                             &p_params->params.write);
         SER_ASSERT(error_code == NRF_SUCCESS, error_code);
     }

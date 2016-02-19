@@ -205,9 +205,15 @@ uint32_t ble_enable_params_t_enc(void const * const p_void_enable_params,
     ble_enable_params_t * p_enable_params = (ble_enable_params_t *)p_void_enable_params;
     uint32_t              err_code        = NRF_SUCCESS;
 
-    err_code = ble_gatts_enable_params_t_enc(&p_enable_params->gatts_enable_params, p_buf, buf_len, p_index);
+    err_code = ble_common_enable_params_t_enc(&p_enable_params->common_enable_params, p_buf, buf_len, p_index);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
     
+    err_code = ble_gap_enable_params_t_enc(&p_enable_params->gap_enable_params, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = ble_gatts_enable_params_t_enc(&p_enable_params->gatts_enable_params, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
     return err_code;
 }
 
@@ -223,48 +229,233 @@ uint32_t ble_enable_params_t_dec(uint8_t const * const p_buf,
     ble_enable_params_t * p_enable_params = (ble_enable_params_t *)p_void_enable_params;
     uint32_t              err_code = NRF_SUCCESS;
 
+    err_code = ble_common_enable_params_t_dec(p_buf, buf_len, p_index, &(p_enable_params->common_enable_params));
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = ble_gap_enable_params_t_dec(p_buf, buf_len, p_index, &(p_enable_params->gap_enable_params));
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
     err_code = ble_gatts_enable_params_t_dec(p_buf, buf_len, p_index, &(p_enable_params->gatts_enable_params));
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
     return err_code;
 }
 
-uint32_t ble_common_opt_radio_cpu_mutex_t_enc(void const * const p_void_opt_mutex,
-                                              uint8_t * const    p_buf,
-                                              uint32_t           buf_len,
-                                              uint32_t * const   p_index)
+uint32_t ble_conn_bw_t_enc(void const * const p_void_conn_bw,
+                           uint8_t * const    p_buf,
+                           uint32_t           buf_len,
+                           uint32_t * const   p_index)
 {
     SER_ASSERT_NOT_NULL(p_buf);
     SER_ASSERT_NOT_NULL(p_index);
-    SER_ASSERT_NOT_NULL(p_void_opt_mutex);
+    SER_ASSERT_NOT_NULL(p_void_conn_bw);
 
-    ble_common_opt_radio_cpu_mutex_t * p_radio_cpu_mutex = (ble_common_opt_radio_cpu_mutex_t *)p_void_opt_mutex;
-    uint32_t                           err_code          = NRF_SUCCESS;
-    uint8_t                            byte;
+    ble_conn_bw_t * p_conn_bw = (ble_conn_bw_t *)p_void_conn_bw;
+    uint32_t        err_code  = NRF_SUCCESS;
 
-    byte = p_radio_cpu_mutex->enable;
-    err_code = uint8_t_enc(&byte, p_buf, buf_len, p_index);
+    err_code = uint8_t_enc(&p_conn_bw->conn_bw_rx, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = uint8_t_enc(&p_conn_bw->conn_bw_tx, p_buf, buf_len, p_index);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
     return err_code;
 }
 
-uint32_t ble_common_opt_radio_cpu_mutex_t_dec(uint8_t const * const p_buf,
-                                              uint32_t              buf_len,
-                                              uint32_t * const      p_index,
-                                              void * const          p_void_opt_mutex)
+uint32_t ble_conn_bw_t_dec(uint8_t const * const p_buf,
+                           uint32_t              buf_len,
+                           uint32_t * const      p_index,
+                           void * const          p_void_conn_bw)
 {
     SER_ASSERT_NOT_NULL(p_buf);
     SER_ASSERT_NOT_NULL(p_index);
-    SER_ASSERT_NOT_NULL(p_void_opt_mutex);
+    SER_ASSERT_NOT_NULL(p_void_conn_bw);
 
-    ble_common_opt_radio_cpu_mutex_t * p_radio_cpu_mutex = (ble_common_opt_radio_cpu_mutex_t *)p_void_opt_mutex;
-    uint32_t                           err_code          = NRF_SUCCESS;
-    uint8_t                            byte;
+    ble_conn_bw_t * p_conn_bw = (ble_conn_bw_t *)p_void_conn_bw;
+    uint32_t        err_code  = NRF_SUCCESS;
 
-    err_code = uint8_t_dec(p_buf, buf_len, p_index, &byte);
+    err_code = uint8_t_dec(p_buf, buf_len, p_index, &p_conn_bw->conn_bw_rx);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
-    p_radio_cpu_mutex->enable = byte & 0x01;
-    
+
+    err_code = uint8_t_dec(p_buf, buf_len, p_index, &p_conn_bw->conn_bw_tx);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    return err_code;
+}
+
+uint32_t ble_common_opt_conn_bw_t_enc(void const * const p_void_opt_conn_bw,
+                                      uint8_t * const    p_buf,
+                                      uint32_t           buf_len,
+                                      uint32_t * const   p_index)
+{
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+    SER_ASSERT_NOT_NULL(p_void_opt_conn_bw);
+
+    ble_opt_conn_bw_t * p_conn_bw = (ble_opt_conn_bw_t *)p_void_opt_conn_bw;
+    uint32_t            err_code  = NRF_SUCCESS;
+    uint8_t             byte;
+
+    byte = p_conn_bw->role;
+    err_code = uint8_t_enc(&byte, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = ble_conn_bw_t_enc(&p_conn_bw->conn_bw, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    return err_code;
+}
+
+uint32_t ble_common_opt_conn_bw_t_dec(uint8_t const * const p_buf,
+                                      uint32_t              buf_len,
+                                      uint32_t * const      p_index,
+                                      void * const          p_void_opt_conn_bw)
+{
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+    SER_ASSERT_NOT_NULL(p_void_opt_conn_bw);
+
+    ble_opt_conn_bw_t * p_conn_bw = (ble_opt_conn_bw_t *)p_void_opt_conn_bw;
+    uint32_t            err_code  = NRF_SUCCESS;
+
+    err_code = uint8_t_dec(p_buf, buf_len, p_index, &p_conn_bw->role);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = ble_conn_bw_t_dec(p_buf, buf_len, p_index, &p_conn_bw->conn_bw);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    return err_code;
+}
+
+uint32_t ble_conn_bw_count_t_enc(void const * const p_void_conn_bw_count,
+                                 uint8_t * const    p_buf,
+                                 uint32_t           buf_len,
+                                 uint32_t * const   p_index)
+{
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+    SER_ASSERT_NOT_NULL(p_void_conn_bw_count);
+
+    ble_conn_bw_count_t * p_conn_bw_count = (ble_conn_bw_count_t *)p_void_conn_bw_count;
+    uint32_t              err_code        = NRF_SUCCESS;
+
+    err_code = uint8_t_enc(&p_conn_bw_count->high_count, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = uint8_t_enc(&p_conn_bw_count->mid_count, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = uint8_t_enc(&p_conn_bw_count->low_count, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    return err_code;
+}
+
+uint32_t ble_conn_bw_count_t_dec(uint8_t const * const p_buf,
+                                 uint32_t              buf_len,
+                                 uint32_t * const      p_index,
+                                 void * const          p_void_conn_bw_count)
+{
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+    SER_ASSERT_NOT_NULL(p_void_conn_bw_count);
+
+    ble_conn_bw_count_t * p_conn_bw_count = (ble_conn_bw_count_t *)p_void_conn_bw_count;
+    uint32_t              err_code        = NRF_SUCCESS;
+
+    err_code = uint8_t_dec(p_buf, buf_len, p_index, &p_conn_bw_count->high_count);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = uint8_t_dec(p_buf, buf_len, p_index, &p_conn_bw_count->mid_count);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = uint8_t_dec(p_buf, buf_len, p_index, &p_conn_bw_count->low_count);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    return err_code;
+}
+
+uint32_t ble_conn_bw_counts_t_enc(void const * const p_void_conn_bw_counts,
+                                  uint8_t * const    p_buf,
+                                  uint32_t           buf_len,
+                                  uint32_t * const   p_index)
+{
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+    SER_ASSERT_NOT_NULL(p_void_conn_bw_counts);
+
+    ble_conn_bw_counts_t * p_conn_bw_counts = (ble_conn_bw_counts_t *)p_void_conn_bw_counts;
+    uint32_t              err_code        = NRF_SUCCESS;
+
+    err_code = ble_conn_bw_count_t_enc(&p_conn_bw_counts->tx_counts, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = ble_conn_bw_count_t_enc(&p_conn_bw_counts->rx_counts, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    return err_code;
+}
+
+uint32_t ble_conn_bw_counts_t_dec(uint8_t const * const p_buf,
+                                  uint32_t              buf_len,
+                                  uint32_t * const      p_index,
+                                  void * const          p_void_conn_bw_counts)
+{
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+    SER_ASSERT_NOT_NULL(p_void_conn_bw_counts);
+
+    ble_conn_bw_counts_t * p_conn_bw_counts = (ble_conn_bw_counts_t *)p_void_conn_bw_counts;
+    uint32_t              err_code        = NRF_SUCCESS;
+
+    err_code = ble_conn_bw_count_t_dec(p_buf, buf_len, p_index, &p_conn_bw_counts->tx_counts);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = ble_conn_bw_count_t_dec(p_buf, buf_len, p_index, &p_conn_bw_counts->rx_counts);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    return err_code;
+}
+
+uint32_t ble_common_enable_params_t_enc(void const * const p_void_common_enable_params,
+                                        uint8_t * const    p_buf,
+                                        uint32_t           buf_len,
+                                        uint32_t * const   p_index)
+{
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+    SER_ASSERT_NOT_NULL(p_void_common_enable_params);
+
+    ble_common_enable_params_t * p_common_enable_params = (ble_common_enable_params_t *)p_void_common_enable_params;
+    uint32_t              err_code        = NRF_SUCCESS;
+
+    err_code = uint16_t_enc(&p_common_enable_params->vs_uuid_count, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = cond_field_enc(p_common_enable_params->p_conn_bw_counts, p_buf, buf_len, p_index, ble_conn_bw_counts_t_enc);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    return err_code;
+}
+
+uint32_t ble_common_enable_params_t_dec(uint8_t const * const p_buf,
+                                        uint32_t              buf_len,
+                                        uint32_t * const      p_index,
+                                        void * const          p_void_common_enable_params)
+{
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+    SER_ASSERT_NOT_NULL(p_void_common_enable_params);
+
+    ble_common_enable_params_t * p_common_enable_params = (ble_common_enable_params_t *)p_void_common_enable_params;
+    uint32_t              err_code        = NRF_SUCCESS;
+
+    err_code = uint16_t_dec(p_buf, buf_len, p_index, &p_common_enable_params->vs_uuid_count);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = cond_field_dec(p_buf, buf_len, p_index, (void **) &(p_common_enable_params->p_conn_bw_counts),
+            ble_conn_bw_counts_t_dec);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
     return err_code;
 }

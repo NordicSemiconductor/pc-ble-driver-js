@@ -400,6 +400,43 @@ uint32_t ble_gattc_char_value_by_uuid_read_req_enc
 uint32_t ble_gattc_char_value_by_uuid_read_rsp_dec(uint8_t const * const p_buf,
                                                    uint32_t              packet_len,
                                                    uint32_t * const      p_result_code);
+
+/**@brief Encodes @ref sd_ble_gattc_attr_info_discover command request.
+ *
+ * @sa @ref ble_gattc_attr_info_discover_rsp_dec for command response decoder.
+ *
+ * @param[in]      conn_handle    Connection handle of the connection.
+ * @param[in]      p_handle_range Pointer to the range of handles
+ * @param[in]      p_buf          Pointer to buffer where encoded data command will be returned.
+ * @param[in, out] p_buf_len      \c in: size of \p p_buf buffer.
+ *                                \c out: Length of encoded command packet.
+ *
+ * @retval NRF_SUCCESS                Encoding success.
+ * @retval NRF_ERROR_NULL             Encoding failure. NULL pointer supplied.
+ * @retval NRF_ERROR_INVALID_LENGTH   Encoding failure. Incorrect buffer length.
+ */
+uint32_t ble_gattc_attr_info_discover_req_enc(uint16_t                               conn_handle,
+                                              ble_gattc_handle_range_t const * const p_handle_range,
+                                              uint8_t * const                        p_buf,
+                                              uint32_t *                             p_buf_len);
+
+/**@brief Decodes response to @ref sd_ble_gattc_attr_info_discover command.
+ *
+ * @sa @ref ble_gattc_attr_info_discover_req_enc for command request encoder.
+ *
+ * @param[in]  p_buf         Pointer to beginning of command response packet.
+ * @param[in]  packet_len    Length (in bytes) of response packet.
+ * @param[out] p_result_code Pointer to command response result code.
+ *
+ * @retval NRF_SUCCESS              Decoding success.
+ * @retval NRF_ERROR_NULL           Decoding failure. NULL pointer supplied.
+ * @retval NRF_ERROR_DATA_SIZE      Decoding failure. Incorrect buffer length.
+ * @retval NRF_ERROR_INVALID_DATA   Decoding failure. Decoded operation code does not match expected
+ *                                  operation code.
+ */
+uint32_t ble_gattc_attr_info_discover_rsp_dec(uint8_t const * const p_buf,
+                                              uint32_t              packet_len,
+                                              uint32_t * const      p_result_code);
 /** @} */
 #endif
 

@@ -32,7 +32,7 @@ uint32_t ble_opt_set_req_enc(uint32_t const          opt_id,
 
     SER_ASSERT_LENGTH_LEQ(1 + 4 + 1, initial_buf_len);
 
-    SER_ASSERT(((opt_id == BLE_COMMON_OPT_RADIO_CPU_MUTEX) ||
+    SER_ASSERT(((opt_id == BLE_COMMON_OPT_CONN_BW) ||
                 (opt_id == BLE_GAP_OPT_CH_MAP)             ||
                 (opt_id == BLE_GAP_OPT_LOCAL_CONN_LATENCY) ||
                 (opt_id == BLE_GAP_OPT_PASSKEY)            ||
@@ -51,8 +51,8 @@ uint32_t ble_opt_set_req_enc(uint32_t const          opt_id,
         
         switch(opt_id)
         {
-            case BLE_COMMON_OPT_RADIO_CPU_MUTEX:
-                err_code = ble_common_opt_radio_cpu_mutex_t_enc(&(p_opt->common_opt.radio_cpu_mutex),p_buf, initial_buf_len, &index);
+            case BLE_COMMON_OPT_CONN_BW:
+                err_code = ble_common_opt_conn_bw_t_enc(&(p_opt->common_opt.conn_bw),p_buf, initial_buf_len, &index);
                 break;
             case BLE_GAP_OPT_CH_MAP:
                 err_code = ble_gap_opt_ch_map_t_enc(&(p_opt->gap_opt.ch_map),p_buf, initial_buf_len, &index);

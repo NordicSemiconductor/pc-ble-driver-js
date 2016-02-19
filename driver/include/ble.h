@@ -66,7 +66,7 @@ enum BLE_COMMON_SVCS
 {
   SD_BLE_ENABLE = BLE_SVC_BASE,         /**< Enable and initialize the BLE stack */
   SD_BLE_EVT_GET,                       /**< Get an event from the pending events queue. */
-  SD_BLE_TX_BUFFER_COUNT_GET,           /**< Get the total number of available application transmission buffers from the BLE stack. */
+  SD_BLE_TX_PACKET_COUNT_GET,           /**< Get the total number of available application transmission packets for a particular connection. */
   SD_BLE_UUID_VS_ADD,                   /**< Add a Vendor Specific UUID. */
   SD_BLE_UUID_DECODE,                   /**< Decode UUID bytes. */
   SD_BLE_UUID_ENCODE,                   /**< Encode UUID bytes. */
@@ -76,9 +76,9 @@ enum BLE_COMMON_SVCS
   SD_BLE_OPT_GET,                       /**< Get a BLE option. */
 };
 
-/**
- * @brief BLE Module Independent Event IDs.
- */
+  /**
+   * @brief BLE Module Independent Event IDs.
+   */
 enum BLE_COMMON_EVTS
 {
   BLE_EVT_TX_COMPLETE  = BLE_EVT_BASE,  /**< Transmission Complete. @ref ble_evt_tx_complete_t */
@@ -86,13 +86,26 @@ enum BLE_COMMON_EVTS
   BLE_EVT_USER_MEM_RELEASE              /**< User Memory release. @ref ble_evt_user_mem_release_t */
 };
 
+/**@brief BLE connection bandwidth types.
+ * Bandwidth types supported by the SoftDevice in packets per connection interval.
+ */
+enum BLE_CONN_BWS
+{
+  BLE_CONN_BW_NONE = 0,
+  BLE_CONN_BW_LOW,
+  BLE_CONN_BW_MID,
+  BLE_CONN_BW_HIGH
+};
+
 /**@brief Common Option IDs.
  * IDs that uniquely identify a common option.
  */
 enum BLE_COMMON_OPTS
 {
-  BLE_COMMON_OPT_RADIO_CPU_MUTEX = BLE_OPT_BASE    /**< Radio CPU mutex option. @ref ble_common_opt_radio_cpu_mutex_t */
+  BLE_COMMON_OPT_CONN_BW = BLE_OPT_BASE,     /**< Bandwidth configuration @ref ble_opt_conn_bw_t */
+  BLE_COMMON_OPT_PA_LNA                      /**< PA and LNA options */
 };
+
 /** @} */
 
 /** @addtogroup BLE_COMMON_DEFINES Defines
@@ -108,9 +121,12 @@ enum BLE_COMMON_OPTS
 #define BLE_USER_MEM_TYPE_GATTS_QUEUED_WRITES   0x01  /**< User Memory for GATTS queued writes. */
 /** @} */
 
-/** @brief  Maximum number of Vendor Specific UUIDs.
-*/
-#define BLE_UUID_VS_MAX_COUNT     10
+/** @defgroup BLE_UUID_VS_COUNTS Vendor Specific UUID counts
+ * @{
+ */
+#define BLE_UUID_VS_COUNT_MIN         1    /**< Minimum VS UUID count. */
+#define BLE_UUID_VS_COUNT_DEFAULT     0    /**< Use the default VS UUID count (10 for this version of the SoftDevice). */
+/** @} */
 
 /** @} */
 
@@ -162,7 +178,7 @@ typedef struct
 typedef struct
 {
   uint16_t evt_id;                      /**< Value from a BLE_<module>_EVT series. */
-  uint16_t evt_len;                     /**< Length in octets excluding this header. */
+  uint16_t evt_len;                     /**< Length in octets including this header. */
 } ble_evt_hdr_t;
 
 /**@brief Common BLE Event type, wrapping the module specific event reports. */
@@ -190,48 +206,128 @@ typedef struct
   uint16_t  subversion_number;          /**< Link Layer Sub Version number, corresponds to the SoftDevice Config ID or Firmware ID (FWID). */
 } ble_version_t;
 
-/**@brief Mutual exclusion of radio activity and CPU execution.
+
+/**
+ * @brief BLE connection bandwith configuration parameters
+ */
+typedef struct
+{
+  uint8_t conn_bw_rx;   /**< Connection bandwidth configuration for transmitting, see @ref BLE_CONN_BWS.*/
+  uint8_t conn_bw_tx;   /**< Connection bandwidth configuration for receiving, see @ref BLE_CONN_BWS.*/
+} ble_conn_bw_t;
+
+/**
+ * @brief BLE bandwidth count parameters
  *
- *        This option configures the application's access to the CPU when the radio is active. The
- *        application can configure itself to be blocked from using the CPU while the radio is
- *        active. By default, the application will be able to share CPU time with the SoftDevice
- *        during radio activity. This parameter structure is used together with @ref sd_ble_opt_set
- *        to configure the @ref BLE_COMMON_OPT_RADIO_CPU_MUTEX option.
+ * The counts must add up to the sum of @ref ble_gap_enable_params_t::central_conn_count and @ref ble_gap_enable_params_t::periph_conn_count
+ * in @ref ble_gap_enable_params_t.
+ */
+typedef struct {
+  uint8_t high_count;   /**< Number of high bandwidth links*/
+  uint8_t mid_count;    /**< Number of medium bandwidth links*/
+  uint8_t low_count;    /**< Number of low bandwidth links*/
+} ble_conn_bw_count_t;
+
+/**
+ * @brief BLE bandwidth configuration parameters
  *
- * @note  Note that the application should use this option to configure the SoftDevice to block the
- *        CPU during radio activity (i.e enable mutual exclusion) when running the SoftDevice on
- *        hardware affected by PAN #44 "CCM may exceed real time requirements"and PAN #45 "AAR may
- *        exceed real time requirements".
+ * Bandwidth configuration parameters that can used to fine tune the bandwidth for the links.
+ * The user should specify the most demanding configuration the user intends to use.
+ * Any bandwidth configuration less demanding is then possible.
+ */
+typedef struct {
+  ble_conn_bw_count_t tx_counts;   /**< Bandwidth counts for transmission.*/
+  ble_conn_bw_count_t rx_counts;   /**< Bandwidth counts for reception.*/
+} ble_conn_bw_counts_t;
+
+
+
+/* @brief: Configuration parameters for the PA and LNA. */
+typedef struct
+{
+     uint8_t enable :1;      /**< Enable toggling for this amplifier */
+     uint8_t active_high :1; /**< Set the pin to be active high */
+     uint8_t gpio_pin :6;    /**< The GPIO pin to toggle for this amplifier */
+} ble_pa_lna_cfg_t;
+
+/*
+ * @brief PA & LNA GPIO toggle configuration
  *
- * @note  Note that when acting as a scanner, the mutex is only enabled for radio TX activity.
+ *        This option configures the SoftDevice to toggle pins when the radio is active for use with
+ *        a power amplifier and/or a low noise amplifier.
  *
+ *        Toggling the pins is achieved by using two PPI channels and a GPIOTE channel. The hardware
+ *        channel IDs are provided by the application and should be regarded as reserved as long as
+ *        any PA/LNA toggling is enabled.
  * @note  @ref sd_ble_opt_get is not supported for this option.
+ * @note  This feature is only supported for NRF52, on NRF51 @ref NRF_ERROR_NOT_SUPPORTED will allways be returned.
+ * @note  Setting this option while the radio is in use (i.e. any of the roles are active) may have undefined consequences and must be avoided by the application.
  *
  */
 typedef struct
 {
-  uint8_t enable : 1;                          /**< Enable mutual exclusion of radio activity and the CPU execution. */
-} ble_common_opt_radio_cpu_mutex_t;
+   ble_pa_lna_cfg_t pa_cfg;   /**< Power Amplifier configuration */
+   ble_pa_lna_cfg_t lna_cfg;  /**< Low Noise Amplifier configuration */
+
+   uint8_t ppi_ch_id_set;     /**< PPI channel used for radio pin setting */
+   uint8_t ppi_ch_id_clr;     /**< PPI channel used for radio pin clearing */
+   uint8_t gpiote_ch_id;      /**< GPIOTE channel used for radio pin toggling */
+} ble_common_opt_pa_lna_t;
+
+/**@brief Bandwidth configuration parameter.
+ *
+ *        This can be used with @ref sd_ble_opt_set to set the bandwidth configuration
+ *        to be used when creating connections.
+ *        Call @ref sd_ble_opt_set with this option prior to calling @ref sd_ble_gap_adv_start
+ *        or @ref sd_ble_gap_connect.
+ *        The default is for @ref BLE_GAP_ROLE_PERIPH to be configured with @ref BLE_CONN_BW_HIGH,
+ *        and for @ref BLE_GAP_ROLE_CENTRAL to be configured with @ref BLE_CONN_BW_MID.
+ *
+ *  @retval ::NRF_SUCCESS Set successfully.
+ *  @retval ::BLE_ERROR_INVALID_ROLE The role is invalid.
+ *  @retval ::NRF_ERROR_INVALID_PARAM Invalid bandwidth configuration parameters.
+ *  @retval ::NRF_ERROR_NOT_SUPPORTED If the combination of role and bandwidth configuration is not supported.
+ */
+typedef struct
+{
+  uint8_t            role;     /**< BLE role, see @ref BLE_GAP_ROLES. */
+  ble_conn_bw_t      conn_bw;  /**< Bandwidth configuration parameters. */
+} ble_opt_conn_bw_t;
 
 /**@brief Option structure for common options. */
 typedef union
 {
-  ble_common_opt_radio_cpu_mutex_t  radio_cpu_mutex;        /**< Parameters for the option for the mutual exclusion of radio activity and CPU execution. */
+  ble_opt_conn_bw_t       conn_bw;       /**< Parameters for the connection bandwidth option.*/
+  ble_common_opt_pa_lna_t pa_lna;        /**< Parameters for controlling PA and LNA pin toggeling. */
 } ble_common_opt_t;
 
 /**@brief Common BLE Option type, wrapping the module specific options. */
 typedef union
 {
-  ble_common_opt_t  common_opt;         /**< Common option, opt_id in BLE_COMMON_OPT_* series. */
+  ble_common_opt_t  common_opt;         /**< COMMON options, opt_id in BLE_COMMON_OPT_* series. */
   ble_gap_opt_t     gap_opt;            /**< GAP option, opt_id in BLE_GAP_OPT_* series. */
 } ble_opt_t;
 
 /**
- * @brief BLE GATTS init options
+ * @brief BLE Common Initialization parameters.
+ *
+ * @note If @ref p_conn_bw_counts is NULL the SoftDevice will assume default bandwidth configuration
+ *       for the links.
  */
 typedef struct
 {
-  ble_gatts_enable_params_t  gatts_enable_params; /**< GATTS init options @ref ble_gatts_enable_params_t. */
+  uint16_t                  vs_uuid_count;      /**< Maximum number of 128-bit, Vendor Specific UUID bases to allocate. */
+  ble_conn_bw_counts_t      *p_conn_bw_counts;  /**< Bandwidth configuration parameters or NULL*/
+} ble_common_enable_params_t;
+
+/**
+ * @brief BLE Initialization parameters.
+ */
+typedef struct
+{
+  ble_common_enable_params_t        common_enable_params;  /**< Common init parameters @ref ble_enable_params_t. */
+  ble_gap_enable_params_t           gap_enable_params;   /**< GAP init parameters @ref ble_gap_enable_params_t. */
+  ble_gatts_enable_params_t         gatts_enable_params; /**< GATTS init parameters @ref ble_gatts_enable_params_t. */
 } ble_enable_params_t;
 
 /** @} */
@@ -241,18 +337,27 @@ typedef struct
 
 /**@brief Enable the BLE stack
  *
- * @param[in] p_ble_enable_params Pointer to ble_enable_params_t
+ * @param[in, out] p_ble_enable_params Pointer to ble_enable_params_t
+ * @param[in, out] p_app_ram_base      The start address of the application RAM region. Unconditionally
+ *                                     filled with the end of the RAM region required by the SoftDevice
+ *                                     to allocate the resources described by p_ble_enable_params.
  *
  * @details This call initializes the BLE stack, no other BLE related function can be called before this one.
  *
- * @return @ref NRF_SUCCESS BLE the BLE stack has been initialized successfully
- * @retval @ref NRF_ERROR_INVALID_STATE the BLE stack had already been initialized and cannot be reinitialized.
- * @return @ref NRF_ERROR_INVALID_ADDR Invalid or not sufficiently aligned pointer supplied.
+ * @return @ref NRF_SUCCESS              The BLE stack has been initialized successfully.
+ * @retval @ref NRF_ERROR_INVALID_STATE  The BLE stack had already been initialized and cannot be reinitialized.
+ * @return @ref NRF_ERROR_INVALID_ADDR   Invalid or not sufficiently aligned pointer supplied.
  * @return @ref NRF_ERROR_INVALID_LENGTH The specified Attribute Table size is either too small or not a multiple of 4.
  *                                       The minimum acceptable size is defined by @ref BLE_GATTS_ATTR_TAB_SIZE_MIN.
- * @return @ref NRF_ERROR_NO_MEM         The Attribute Table size is too large. Decrease size in @ref ble_gatts_enable_params_t.
+ * @return @ref NRF_ERROR_INVALID_PARAM  Incorrectly configured VS UUID count or connection count parameters.
+ * @return @ref NRF_ERROR_DATA_SIZE      The memory space pointed by p_app_ram_base is within the area required by the SoftDevice
+                                         to store attribute table and link context information. Adjust it to the value returned
+                                         (via the same variable), or reduce the number of links and or attribute table size.
+ * @return @ref NRF_ERROR_NO_MEM         The requested total number of connections exceeds the maximum supported by the Softdevice.
+                                         Refer to the SoftDevice specification for details.
+ * @return @ref NRF_ERROR_NOT_SUPPORTED  The bandwidth configuration is not supported.
  */
-SD_RPC_API uint32_t sd_ble_enable(adapter_t *adapter, ble_enable_params_t * p_ble_enable_params);
+SD_RPC_API uint32_t sd_ble_enable(adapter_t *adapter, ble_enable_params_t * p_ble_enable_params, uint32_t * p_app_ram_base);
 
 /**@brief Get an event from the pending events queue.
  *
@@ -282,41 +387,46 @@ SD_RPC_API uint32_t sd_ble_enable(adapter_t *adapter, ble_enable_params_t * p_bl
 SD_RPC_API uint32_t sd_ble_evt_get(adapter_t *adapter, uint8_t *p_dest, uint16_t *p_len);
 
 
-/**@brief Get the total number of available application transmission buffers per link in the BLE stack.
+/**@brief Get the total number of available guaranteed application transmission packets for a particular connection.
  *
- * @details This call allows the application to obtain the total number of
- *          transmission buffers available per link for application data. Please note that
- *          this does not give the number of free buffers, but rather the total amount of them.
- *          The application has two options to handle its own application transmission buffers:
- *          - Use a simple arithmetic calculation: at boot time the application should use this function
- *          to find out the total amount of buffers available to it and store it in a variable.
- *          Every time a packet that consumes an application buffer is sent using any of the
- *          exposed functions in this BLE API, the application should decrement that variable.
- *          Conversely, whenever a @ref BLE_EVT_TX_COMPLETE event is received by the application
- *          it should retrieve the count field in such event and add that number to the same
- *          variable storing the number of available packets.
+ * @details This call allows the application to obtain the total number of guaranteed application transmission packets
+ *          available for a connection. Please note that this does not return the number of free packets,
+ *          but rather the total amount of them for that particular connection.
+ *          The application has two options to handle transmitting application packets:
+ *          - Use a simple arithmetic calculation: after connection creation time the application
+ *          should use this function to find out the total amount of guaranteed packets available to it and
+ *          and store it in a variable.
+ *          Every time a packet is successfully queued for a transmission on this connection using any of
+ *          the exposed functions in this BLE API, the application should decrement that variable.
+ *          Conversely, whenever a @ref BLE_EVT_TX_COMPLETE event with the conn_handle matching the particular
+ *          connection is received by the application, it should retrieve the count field in such event 
+ *          and add that number to the same variable storing the number of available guaranteed packets.
  *          This mechanism allows the application to be aware at any time of the number of
- *          application packets available in the BLE stack's internal buffers, and therefore
- *          it can know with certainty whether it is possible to send more data or it has to
- *          wait for a @ref BLE_EVT_TX_COMPLETE event before it proceeds.
- *          - Choose to simply not keep track of available buffers at all, and instead handle the
- *          @ref BLE_ERROR_NO_TX_BUFFERS error by queueing the packet to be transmitted and
+ *          guaranteed application packets available for each of the active connections, and therefore it can know
+ *          with certainty whether it is possible to send more data or it has to wait for a
+ *          @ref BLE_EVT_TX_COMPLETE event before it proceeds.
+ *          The application can still pursue transmissions when the number of guaranteed application packets available
+ *          is smaller than or equal to zero, but successful queuing of the tranmsission is not guaranteed.
+ *          - Choose to simply not keep track of available packets at all, and instead handle the
+ *          @ref BLE_ERROR_NO_TX_PACKETS error by queueing the packet to be transmitted and
  *          try again as soon as a @ref BLE_EVT_TX_COMPLETE event arrives.
  *
- *          The API functions that <b>may</b> consume an application buffer depending on
+ *          The API functions that <b>may</b> consume an application packet depending on
  *          the parameters supplied to them can be found below:
  *
  *          - @ref sd_ble_gattc_write (write without response only)
  *          - @ref sd_ble_gatts_hvx (notifications only)
  *          - @ref sd_ble_l2cap_tx (all packets)
  *
- * @param[out] p_count Pointer to a uint8_t which will contain the number of application transmission buffers upon
+ * @param[in]  conn_handle Connection handle.
+ * @param[out] p_count Pointer to a uint8_t which will contain the number of application transmission packets upon
  *                     successful return.
  *
- * @retval ::NRF_SUCCESS Number of application transmission buffers retrieved successfully.
+ * @retval ::NRF_SUCCESS Number of application transmission packets retrieved successfully.
+ * @retval ::BLE_ERROR_INVALID_CONN_HANDLE Invalid Connection Handle.
  * @retval ::NRF_ERROR_INVALID_ADDR Invalid pointer supplied.
  */
-SD_RPC_API uint32_t sd_ble_tx_buffer_count_get(adapter_t *adapter, uint8_t *p_count);
+SD_RPC_API uint32_t sd_ble_tx_packet_count_get(adapter_t *adapter, uint16_t conn_handle, uint8_t *p_count);
 
 
 /**@brief Add a Vendor Specific UUID.
@@ -335,6 +445,8 @@ SD_RPC_API uint32_t sd_ble_tx_buffer_count_get(adapter_t *adapter, uint8_t *p_co
  * @note Bytes 12 and 13 of the provided UUID will not be used internally, since those are always replaced by
  * the 16-bit uuid field in @ref ble_uuid_t.
  *
+ * @note If a UUID is already present in the BLE stack's internal table, the corresponding index will be returned in
+ * p_uuid_type along with an NRF_SUCCESS error code.
  *
  * @param[in]  p_vs_uuid    Pointer to a 16-octet (128-bit) little endian Vendor Specific UUID disregarding
  *                          bytes 12 and 13.
@@ -343,7 +455,6 @@ SD_RPC_API uint32_t sd_ble_tx_buffer_count_get(adapter_t *adapter, uint8_t *p_co
  * @retval ::NRF_SUCCESS Successfully added the Vendor Specific UUID.
  * @retval ::NRF_ERROR_INVALID_ADDR If p_vs_uuid or p_uuid_type is NULL or invalid.
  * @retval ::NRF_ERROR_NO_MEM If there are no more free slots for VS UUIDs.
- * @retval ::NRF_ERROR_FORBIDDEN If p_vs_uuid has already been added to the VS UUID table.
  */
 SD_RPC_API uint32_t sd_ble_uuid_vs_add(adapter_t *adapter, ble_uuid128_t const *p_vs_uuid, uint8_t *p_uuid_type);
 
