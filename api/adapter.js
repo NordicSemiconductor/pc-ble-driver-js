@@ -1553,8 +1553,12 @@ class Adapter extends EventEmitter {
         this._adapter.gapConnect(address, options.scanParams, options.connParams, err => {
             if (err) {
                 this._changeState({connecting: false});
-                this.emit('error', _makeError(`Could not connect to ${deviceAddress}`, err));
-                if (callback) { callback(_makeError('Failed to connect to ' + deviceAddress.address, err)); }
+                const errorMsg = (err.errcode === 'NRF_ERROR_NO_MEM') ?
+                    _makeError(`Could not connect. Max number of connections reached.`, err)
+                    : _makeError(`Could not connect to ${deviceAddress.address}`, err);
+
+                this.emit('error', errorMsg);
+                if (callback) { callback(errorMsg); }
             } else {
                 this._gapOperationsMap.connecting = {deviceAddress: address, callback: callback};
             }
