@@ -1,3 +1,15 @@
+/* Copyright (c) 2016 Nordic Semiconductor. All Rights Reserved.
+ *
+ * The information contained herein is property of Nordic Semiconductor ASA.
+ * Terms and conditions of usage are described in detail in NORDIC
+ * SEMICONDUCTOR STANDARD SOFTWARE LICENSE AGREEMENT.
+ *
+ * Licensees are granted free, non-transferable use of the information. NO
+ * WARRANTY of ANY KIND is provided. This heading must NOT be removed from
+ * the file.
+ *
+ */
+
 'use strict';
 
 const EventEmitter = require('events');
@@ -69,7 +81,7 @@ class Adapter extends EventEmitter {
         this._characteristics = {};
         this._descriptors = {};
 
-        this._converter = new Converter(this._bleDriver);
+        this._converter = new Converter(this._bleDriver, this._adapter);
 
         this._gapOperationsMap = {};
         this._gattOperationsMap = {};
@@ -1541,8 +1553,12 @@ class Adapter extends EventEmitter {
         this._adapter.gapConnect(address, options.scanParams, options.connParams, err => {
             if (err) {
                 this._changeState({connecting: false});
-                this.emit('error', _makeError(`Could not connect to ${deviceAddress}`, err));
-                if (callback) { callback(_makeError('Failed to connect to ' + deviceAddress.address, err)); }
+                const errorMsg = (err.errcode === 'NRF_ERROR_NO_MEM') ?
+                    _makeError(`Could not connect. Max number of connections reached.`, err)
+                    : _makeError(`Could not connect to ${deviceAddress.address}`, err);
+
+                this.emit('error', errorMsg);
+                if (callback) { callback(errorMsg); }
             } else {
                 this._gapOperationsMap.connecting = {deviceAddress: address, callback: callback};
             }
@@ -1951,7 +1967,7 @@ class Adapter extends EventEmitter {
                 // TODO: Fix Device Name uuid magic number
                 if (characteristic.uuid === '2A00') {
                     // TODO: At some point addon should accept string.
-                    this._setDeviceNameFromArray(characteristic.value, characteristic.properties.writePerm, err => {
+                    this._setDeviceNameFromArray(characteristic.value, characteristic.writePerm, err => {
                         if (!err) {
                             characteristic.declarationHandle = 2;
                             characteristic.valueHandle = 3;

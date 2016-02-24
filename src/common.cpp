@@ -1,3 +1,15 @@
+/* Copyright (c) 2016 Nordic Semiconductor. All Rights Reserved.
+ *
+ * The information contained herein is property of Nordic Semiconductor ASA.
+ * Terms and conditions of usage are described in detail in NORDIC
+ * SEMICONDUCTOR STANDARD SOFTWARE LICENSE AGREEMENT.
+ *
+ * Licensees are granted free, non-transferable use of the information. NO
+ * WARRANTY of ANY KIND is provided. This heading must NOT be removed from
+ * the file.
+ *
+ */
+
 #include <chrono>
 #include <ctime>
 #include <sstream>
@@ -5,6 +17,7 @@
 #include <cassert>
 
 #include "common.h"
+#include "ble_hci.h"
 
 #define RETURN_VALUE_OR_THROW_EXCEPTION(method) \
 try { \
@@ -51,7 +64,7 @@ static name_map_t sd_rpc_app_status_map = {
 
 static name_map_t hci_status_map =
 {
-/*    NAME_MAP_ENTRY(BLE_HCI_STATUS_CODE_SUCCESS),
+    NAME_MAP_ENTRY(BLE_HCI_STATUS_CODE_SUCCESS),
     NAME_MAP_ENTRY(BLE_HCI_STATUS_CODE_UNKNOWN_BTLE_COMMAND),
     NAME_MAP_ENTRY(BLE_HCI_STATUS_CODE_UNKNOWN_CONNECTION_IDENTIFIER),
     NAME_MAP_ENTRY(BLE_HCI_AUTHENTICATION_FAILURE),
@@ -76,7 +89,7 @@ static name_map_t hci_status_map =
     NAME_MAP_ENTRY(BLE_HCI_CONN_INTERVAL_UNACCEPTABLE),
     NAME_MAP_ENTRY(BLE_HCI_DIRECTED_ADVERTISER_TIMEOUT),
     NAME_MAP_ENTRY(BLE_HCI_CONN_TERMINATED_DUE_TO_MIC_FAILURE),
-    NAME_MAP_ENTRY(BLE_HCI_CONN_FAILED_TO_BE_ESTABLISHED)*/
+    NAME_MAP_ENTRY(BLE_HCI_CONN_FAILED_TO_BE_ESTABLISHED)
 };
 
 const std::string getCurrentTimeInMilliseconds()

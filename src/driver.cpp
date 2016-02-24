@@ -1,3 +1,15 @@
+/* Copyright (c) 2016 Nordic Semiconductor. All Rights Reserved.
+ *
+ * The information contained herein is property of Nordic Semiconductor ASA.
+ * Terms and conditions of usage are described in detail in NORDIC
+ * SEMICONDUCTOR STANDARD SOFTWARE LICENSE AGREEMENT.
+ *
+ * Licensees are granted free, non-transferable use of the information. NO
+ * WARRANTY of ANY KIND is provided. This heading must NOT be removed from
+ * the file.
+ *
+ */
+
 #include <iostream>
 #include <mutex>
 #include <sstream>
@@ -617,7 +629,7 @@ void Adapter::Open(uv_work_t *req)
 // This runs in  Main Thread
 void Adapter::AfterOpen(uv_work_t *req)
 {
-	Nan::HandleScope scope;
+    Nan::HandleScope scope;
     auto baton = static_cast<OpenBaton *>(req->data);
     delete req;
 
@@ -845,7 +857,7 @@ void Adapter::GetVersion(uv_work_t *req)
 // This runs in Main Thread
 void Adapter::AfterGetVersion(uv_work_t *req)
 {
-	Nan::HandleScope scope;
+    Nan::HandleScope scope;
     auto baton = static_cast<GetVersionBaton *>(req->data);
     v8::Local<v8::Value> argv[2];
 
@@ -1024,6 +1036,7 @@ NAN_METHOD(Adapter::GetStats)
 
 NAN_METHOD(Adapter::ReplyUserMemory)
 {
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     v8::Local<v8::Object> mem_block;
     v8::Local<v8::Function> callback;
@@ -1049,6 +1062,7 @@ NAN_METHOD(Adapter::ReplyUserMemory)
 
     auto baton = new BleUserMemReplyBaton(callback);
     baton->conn_handle = conn_handle;
+    baton->adapter = obj->adapter;
 
     try
     {
@@ -1066,9 +1080,8 @@ NAN_METHOD(Adapter::ReplyUserMemory)
 
 void Adapter::ReplyUserMemory(uv_work_t *req)
 {
-    //auto baton = static_cast<BleUserMemReplyBaton *>(req->data);
-    //lock_guard<mutex> lock(ble_driver_call_mutex);
-    //baton->result = sd_ble_user_mem_reply(baton->conn_handle, baton->p_block);
+    auto baton = static_cast<BleUserMemReplyBaton *>(req->data);
+    baton->result = sd_ble_user_mem_reply(baton->adapter, baton->conn_handle, baton->p_block);
 }
 
 // This runs in Main Thread
@@ -1265,6 +1278,7 @@ extern "C" {
     void init_driver(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
     void init_types(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
     void init_ranges(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
+    void init_ble(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
     void init_hci(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
     void init_error(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
     void init_app_status(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
@@ -1275,6 +1289,7 @@ extern "C" {
         init_driver(target);
         init_types(target);
         init_ranges(target);
+        init_ble(target);
         init_hci(target);
         init_error(target);
         init_app_status(target);
@@ -1429,6 +1444,17 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GATTS_OPT_LAST);     /**< Total: 32. */
         NODE_DEFINE_CONSTANT(target, BLE_L2CAP_OPT_BASE);     /**< L2CAP BLE Option base. */
         NODE_DEFINE_CONSTANT(target, BLE_L2CAP_OPT_LAST);     /**< Total: 32.  */
+    }
+
+    void init_ble(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
+    {
+        NODE_DEFINE_CONSTANT(target, BLE_USER_MEM_TYPE_INVALID);                /**< Invalid User Memory Types. */
+        NODE_DEFINE_CONSTANT(target, BLE_USER_MEM_TYPE_GATTS_QUEUED_WRITES);    /**< User Memory for GATTS queued writes. */
+        NODE_DEFINE_CONSTANT(target, BLE_UUID_VS_MAX_COUNT);                    /** @brief  Maximum number of Vendor Specific UUIDs. */
+
+        NODE_DEFINE_CONSTANT(target, BLE_EVT_TX_COMPLETE);                      /**< Transmission Complete. @ref ble_evt_tx_complete_t */
+        NODE_DEFINE_CONSTANT(target, BLE_EVT_USER_MEM_REQUEST);                 /**< User Memory request. @ref ble_evt_user_mem_request_t */
+        NODE_DEFINE_CONSTANT(target, BLE_EVT_USER_MEM_RELEASE);                 /**< User Memory release. @ref ble_evt_user_mem_release_t */
     }
 
     void init_hci(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)

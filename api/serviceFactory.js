@@ -1,3 +1,15 @@
+/* Copyright (c) 2016 Nordic Semiconductor. All Rights Reserved.
+ *
+ * The information contained herein is property of Nordic Semiconductor ASA.
+ * Terms and conditions of usage are described in detail in NORDIC
+ * SEMICONDUCTOR STANDARD SOFTWARE LICENSE AGREEMENT.
+ *
+ * Licensees are granted free, non-transferable use of the information. NO
+ * WARRANTY of ANY KIND is provided. This heading must NOT be removed from
+ * the file.
+ *
+ */
+
 'use strict';
 
 const Service = require('./service');
@@ -14,7 +26,7 @@ class ServiceFactory {
     }
 
     // returns Characteristic
-    createCharacteristic(service, uuid, value, properties) {
+    createCharacteristic(service, uuid, value, properties, options) {
         if (!service) throw new Error('Service to add characteritics to must be provided.');
 
         if (service._factory_characteristics === undefined) {
@@ -25,20 +37,21 @@ class ServiceFactory {
             service.instanceId,
             uuid,
             value,
-            properties);
+            properties,
+            options);
 
         service._factory_characteristics.push(characteristic);
         return characteristic;
     }
 
-    createDescriptor(characteristic, uuid, value, properties) {
+    createDescriptor(characteristic, uuid, value, options) {
         if (!characteristic) throw new Error('Characteristic to add descriptor to must be provided.');
 
         if (characteristic._factory_descriptors === undefined) {
             characteristic._factory_descriptors = [];
         }
 
-        const descriptor = new Descriptor(characteristic.instanceId, uuid, value, properties);
+        const descriptor = new Descriptor(characteristic.instanceId, uuid, value, options);
 
         characteristic._factory_descriptors.push(descriptor);
         return descriptor;

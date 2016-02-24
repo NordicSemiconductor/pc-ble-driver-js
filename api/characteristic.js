@@ -1,9 +1,21 @@
+/* Copyright (c) 2016 Nordic Semiconductor. All Rights Reserved.
+ *
+ * The information contained herein is property of Nordic Semiconductor ASA.
+ * Terms and conditions of usage are described in detail in NORDIC
+ * SEMICONDUCTOR STANDARD SOFTWARE LICENSE AGREEMENT.
+ *
+ * Licensees are granted free, non-transferable use of the information. NO
+ * WARRANTY of ANY KIND is provided. This heading must NOT be removed from
+ * the file.
+ *
+ */
+
 'use strict';
 
 var i = 1;
 
 class Characteristic {
-    constructor(serviceInstanceId, uuid, value, properties) {
+    constructor(serviceInstanceId, uuid, value, properties, options) {
         if (!serviceInstanceId) throw new Error('serviceInstanceId must be provided.');
         if (!value) throw new Error('value must be provided.');
         if (!properties) throw new Error('properties must be provided.');
@@ -20,6 +32,18 @@ class Characteristic {
         this.valueHandle = null;
         this.value = value;
         this.properties = properties;
+
+        for (let option in options) {
+            if (option === 'readPerm') {
+                this.readPerm = options.readPerm;
+            } else if (option === 'writePerm') {
+                this.writePerm = options.writePerm;
+            } else if (option === 'variableLength') {
+                this.variableLength = options.variableLength;
+            } else if (option === 'maxLength') {
+                this.maxLength = options.maxLength;
+            }
+        }
     }
 
     get instanceId() {
