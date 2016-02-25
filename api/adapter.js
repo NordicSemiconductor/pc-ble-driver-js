@@ -81,7 +81,7 @@ class Adapter extends EventEmitter {
         this._characteristics = {};
         this._descriptors = {};
 
-        this._converter = new Converter(this._bleDriver);
+        this._converter = new Converter(this._bleDriver, this._adapter);
 
         this._gapOperationsMap = {};
         this._gattOperationsMap = {};
@@ -194,10 +194,11 @@ class Adapter extends EventEmitter {
                 baudRate: 115200,
                 parity: 'none',
                 flowControl: 'none',
-                eventInterval: 1,
+                eventInterval: 0,
                 logLevel: 'info',
                 retransmissionInterval: 100,
-                responseTimeout: 750
+                responseTimeout: 750,
+                enableBLE: true,
             };
         } else {
             if (!options.baudRate) options.baudRate = 115200;
@@ -1553,8 +1554,12 @@ class Adapter extends EventEmitter {
         this._adapter.gapConnect(address, options.scanParams, options.connParams, err => {
             if (err) {
                 this._changeState({connecting: false});
-                this.emit('error', _makeError(`Could not connect to ${deviceAddress}`, err));
-                if (callback) { callback(_makeError('Failed to connect to ' + deviceAddress.address, err)); }
+                const errorMsg = (err.errcode === 'NRF_ERROR_NO_MEM') ?
+                    _makeError(`Could not connect. Max number of connections reached.`, err)
+                    : _makeError(`Could not connect to ${deviceAddress.address}`, err);
+
+                this.emit('error', errorMsg);
+                if (callback) { callback(errorMsg); }
             } else {
                 this._gapOperationsMap.connecting = {deviceAddress: address, callback: callback};
             }

@@ -245,15 +245,19 @@ private:
     bool waitForState(h5_state_t state, std::chrono::milliseconds timeout);
     std::condition_variable stateWaitCondition;
 
-    const uint8_t syncFirstByte = 0x01;
-    const uint8_t syncSecondByte = 0x7E;
-    const uint8_t syncRspFirstByte = 0x02;
-    const uint8_t syncRspSecondByte = 0x7D;
-    const uint8_t syncConfigFirstByte = 0x03;
-    const uint8_t syncConfigSecondByte = 0xFC;
-    const uint8_t syncConfigRspFirstByte = 0x04;
-    const uint8_t syncConfigRspSecondByte = 0x7B;
-    const uint8_t syncConfigField = 0x11;
+    static std::map<control_pkt_type, std::vector<uint8_t>> pkt_pattern;
+    static std::map<h5_state_t, std::string> stateString;
+    static std::map<h5_pkt_type_t, std::string> pktTypeString;
+
+    static const uint8_t syncFirstByte = 0x01;
+    static const uint8_t syncSecondByte = 0x7E;
+    static const uint8_t syncRspFirstByte = 0x02;
+    static const uint8_t syncRspSecondByte = 0x7D;
+    static const uint8_t syncConfigFirstByte = 0x03;
+    static const uint8_t syncConfigSecondByte = 0xFC;
+    static const uint8_t syncConfigRspFirstByte = 0x04;
+    static const uint8_t syncConfigRspSecondByte = 0x7B;
+    static const uint8_t syncConfigField = 0x11;
 };
 
 #endif //H5_TRANSPORT_H

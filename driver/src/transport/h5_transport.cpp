@@ -50,7 +50,6 @@ const uint8_t PACKET_RETRANSMISSIONS = 4;                              // Number
 const auto OPEN_WAIT_TIMEOUT = std::chrono::milliseconds(2000);   // Duration to wait for state ACTIVE after open is called
 const auto RESET_WAIT_DURATION = std::chrono::milliseconds(300);  // Duration to wait before continuing UART communication after reset is sent to target
 
-
 #pragma region Public methods
 H5Transport::H5Transport(Transport *_nextTransportLayer, uint32_t retransmission_interval)
     : Transport(),
@@ -68,6 +67,39 @@ H5Transport::~H5Transport()
 {
     delete nextTransportLayer;
 }
+
+#pragma region Static initializers
+
+std::map<h5_state_t, std::string> H5Transport::stateString{
+    { STATE_UNKNOWN, "STATE_UNKNOWN" },
+    { STATE_START, "STATE_START" },
+    { STATE_UNINITIALIZED, "STATE_UNINITIALIZED" },
+    { STATE_ACTIVE, "STATE_ACTIVE" },
+    { STATE_FAILED, "STATE_FAILED" },
+    { STATE_RESET, "STATE_RESET" },
+    { STATE_INITIALIZED, "STATE_INITIALIZED" }
+};
+
+std::map<control_pkt_type, std::vector<uint8_t>> H5Transport::pkt_pattern = {
+    { CONTROL_PKT_RESET, {} },
+    { CONTROL_PKT_SYNC, { syncFirstByte, syncSecondByte } },
+    { CONTROL_PKT_SYNC_RESPONSE, { syncRspFirstByte, syncRspSecondByte } },
+    { CONTROL_PKT_SYNC_CONFIG, { syncConfigFirstByte, syncConfigSecondByte, syncConfigField } },
+    { CONTROL_PKT_SYNC_CONFIG_RESPONSE, { syncConfigRspFirstByte, syncConfigRspSecondByte, syncConfigField } }
+};
+
+std::map<h5_pkt_type_t, std::string> H5Transport::pktTypeString{
+    { ACK_PACKET, "ACK" },
+    { HCI_COMMAND_PACKET, "HCI_COMMAND_PACKET" },
+    { ACL_DATA_PACKET, "ACL_DATA_PACKET" },
+    { SYNC_DATA_PACKET, "SYNC_DATA_PACKET" },
+    { HCI_EVENT_PACKET, "HCI_EVENT_PACKET" },
+    { RESET_PACKET, "RESERVED_5" },
+    { VENDOR_SPECIFIC_PACKET, "VENDOR_SPECIFIC" },
+    { LINK_CONTROL_PACKET, "LINK_CONTROL_PACKET" },
+};
+
+#pragma endregion
 
 uint32_t H5Transport::open(status_cb_t status_callback, data_cb_t data_callback, log_cb_t log_callback)
 {
@@ -622,14 +654,6 @@ bool H5Transport::waitForState(h5_state_t state, std::chrono::milliseconds timeo
 
 void H5Transport::sendControlPacket(control_pkt_type type)
 {
-    static std::map<control_pkt_type, std::vector<uint8_t>> pkt_pattern = {
-        {CONTROL_PKT_RESET, {}},
-        {CONTROL_PKT_SYNC, {syncFirstByte, syncSecondByte}},
-        {CONTROL_PKT_SYNC_RESPONSE, {syncRspFirstByte, syncRspSecondByte}},
-        {CONTROL_PKT_SYNC_CONFIG, {syncConfigFirstByte, syncConfigSecondByte, syncConfigField}},
-        {CONTROL_PKT_SYNC_CONFIG_RESPONSE, {syncConfigRspFirstByte, syncConfigRspSecondByte, syncConfigField}}
-    };
-
     h5_pkt_type_t h5_packet;
 
     switch (type)
@@ -674,32 +698,11 @@ void H5Transport::sendControlPacket(control_pkt_type type)
 #pragma region Debugging
 std::string H5Transport::stateToString(h5_state_t state)
 {
-    static std::map<h5_state_t, std::string> stateString{
-        { STATE_UNKNOWN, "STATE_UNKNOWN" },
-        { STATE_START, "STATE_START" },
-        { STATE_UNINITIALIZED, "STATE_UNINITIALIZED" },
-        { STATE_ACTIVE, "STATE_ACTIVE" },
-        { STATE_FAILED, "STATE_FAILED" },
-        { STATE_RESET, "STATE_RESET" },
-        { STATE_INITIALIZED, "STATE_INITIALIZED" }
-    };
-
     return stateString[state];
 }
 
 std::string H5Transport::pktTypeToString(h5_pkt_type_t pktType)
 {
-    static std::map<h5_pkt_type_t, std::string> pktTypeString{
-        { ACK_PACKET, "ACK" },
-        { HCI_COMMAND_PACKET, "HCI_COMMAND_PACKET" },
-        { ACL_DATA_PACKET, "ACL_DATA_PACKET" },
-        { SYNC_DATA_PACKET, "SYNC_DATA_PACKET" },
-        { HCI_EVENT_PACKET, "HCI_EVENT_PACKET" },
-        { RESET_PACKET, "RESERVED_5" },
-        { VENDOR_SPECIFIC_PACKET, "VENDOR_SPECIFIC" },
-        { LINK_CONTROL_PACKET, "LINK_CONTROL_PACKET" },
-    };
-
     return pktTypeString[pktType];
 }
 

@@ -103,15 +103,15 @@ void Adapter::initEventHandling(Nan::Callback *callback, uint32_t interval)
     // If we already have an async handle we do not create a new one
     if (!uv_is_active(reinterpret_cast<uv_handle_t *>(&asyncEvent)))
     {
-        assert(uv_async_init(uv_default_loop(), &asyncEvent, event_handler) == 0);
+        if (uv_async_init(uv_default_loop(), &asyncEvent, event_handler) != 0) std::terminate();
     }
 
     // Setup event interval functionality
     if (eventInterval > 0)
     {
         eventIntervalTimer.data = static_cast<void *>(this);
-        assert(uv_timer_init(uv_default_loop(), &eventIntervalTimer) == 0);
-        assert(uv_timer_start(&eventIntervalTimer, event_interval_handler, eventInterval, eventInterval) == 0);
+        if (uv_timer_init(uv_default_loop(), &eventIntervalTimer) != 0) std::terminate();
+        if (uv_timer_start(&eventIntervalTimer, event_interval_handler, eventInterval, eventInterval) != 0) std::terminate();
     }
 }
 

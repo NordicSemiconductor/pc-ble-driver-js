@@ -171,7 +171,6 @@ class SoftDeviceConverter {
         // Check if mandatory attributes are present in the characteristic object
         if (!descriptor.uuid) err = 'UUID must be provided. ';
         if (!descriptor.value) err += 'value must be provided. ';
-        if (!descriptor.properties) err += 'properties must be provided. ';
         if (!descriptor.maxLength) err += 'maxLength must be provided. ';
 
         if (err.length !== 0) {
