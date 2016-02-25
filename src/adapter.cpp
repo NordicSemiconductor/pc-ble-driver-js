@@ -12,7 +12,6 @@
 
 #include "adapter.h"
 #include "common.h"
-#include <iostream>
 
 Nan::Persistent<v8::Function> Adapter::constructor;
 
@@ -64,7 +63,6 @@ adapter_t *Adapter::getInternalAdapter() const
 extern "C" {
     void event_handler(uv_async_t *handle)
     {
-        std::cout << "%";
         auto adapter = static_cast<Adapter *>(handle->data);
 
         if (adapter != nullptr)
@@ -80,7 +78,6 @@ extern "C" {
 
     void event_interval_handler(uv_timer_t *handle)
     {
-        std::cout << "@";
         auto adapter = static_cast<Adapter *>(handle->data);
 
         if (adapter != nullptr)
