@@ -194,10 +194,11 @@ class Adapter extends EventEmitter {
                 baudRate: 115200,
                 parity: 'none',
                 flowControl: 'none',
-                eventInterval: 1,
+                eventInterval: 0,
                 logLevel: 'info',
                 retransmissionInterval: 100,
-                responseTimeout: 750
+                responseTimeout: 750,
+                enableBLE: true,
             };
         } else {
             if (!options.baudRate) options.baudRate = 115200;
