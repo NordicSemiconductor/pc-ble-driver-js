@@ -91,7 +91,8 @@ uint32_t ble_gap_sec_levels_enc(void const * const p_data,
 
     SER_ASSERT_LENGTH_LEQ(1, buf_len - *p_index);
 
-    p_buf[*p_index] = (p_sec_levels->lv1 << 0) | (p_sec_levels->lv2 << 1) | (p_sec_levels->lv3 << 2);
+    p_buf[*p_index] = (p_sec_levels->lv1 << 0) | (p_sec_levels->lv2 << 1) |
+                      (p_sec_levels->lv3 << 2) | (p_sec_levels->lv4 << 3);
     (*p_index)++;
 
     return NRF_SUCCESS;
@@ -114,6 +115,7 @@ uint32_t ble_gap_sec_levels_dec(uint8_t const * const p_buf,
     p_sec_levels->lv1 = uint8_temp & 0x01;
     p_sec_levels->lv2 = (uint8_temp >> 1) & 0x01;
     p_sec_levels->lv3 = (uint8_temp >> 2) & 0x01;
+    p_sec_levels->lv4 = (uint8_temp >> 3) & 0x01;
 
     return NRF_SUCCESS;
 }
@@ -136,6 +138,9 @@ uint32_t ble_gap_sec_keys_enc(void const * const p_data,
     err_code = cond_field_enc(p_sec_keys->p_sign_key, p_buf, buf_len, p_index, ble_gap_sign_info_enc);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
+    err_code = cond_field_enc(p_sec_keys->p_pk, p_buf, buf_len, p_index, ble_gap_lesc_p256_pk_t_enc);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
     return err_code;
 }
 
@@ -156,6 +161,9 @@ uint32_t ble_gap_sec_keys_dec(uint8_t const * const p_buf,
     err_code = cond_field_dec(p_buf, buf_len, p_index, (void * *)&(p_sec_keys->p_sign_key), ble_gap_sign_info_dec);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
+    err_code = cond_field_dec(p_buf, buf_len, p_index, (void * *)&(p_sec_keys->p_pk), ble_gap_lesc_p256_pk_t_dec);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
     return err_code;
 }
 
@@ -172,8 +180,10 @@ uint32_t ble_gap_enc_info_enc(void const * const p_data,
     memcpy(&p_buf[*p_index], p_enc_info->ltk, BLE_GAP_SEC_KEY_LEN);
     *p_index += BLE_GAP_SEC_KEY_LEN;
 
-    p_buf[*p_index]  = p_enc_info->auth & 0x01;
-    p_buf[*p_index] |= (p_enc_info->ltk_len & 0x7F) << 1;
+    uint8_t data = (p_enc_info->lesc & 0x01)       |
+                   ((p_enc_info->auth & 0x01) << 1)|
+                   ((p_enc_info->ltk_len & 0x3F) << 2);
+    p_buf[*p_index]  = data;
     (*p_index)++;
 
     return err_code;
@@ -191,8 +201,9 @@ uint32_t ble_gap_enc_info_dec(uint8_t const * const p_buf,
     *p_index += BLE_GAP_SEC_KEY_LEN;
 
     SER_ASSERT_LENGTH_LEQ(1, buf_len - *p_index);
-    p_enc_info->auth    = p_buf[*p_index] & 0x01;
-    p_enc_info->ltk_len = (p_buf[*p_index] >> 1) & 0x7F;
+    p_enc_info->lesc    = p_buf[*p_index] & 0x01;
+    p_enc_info->auth    = (p_buf[*p_index]>>1) & 0x01;
+    p_enc_info->ltk_len = (p_buf[*p_index] >> 2) & 0x3F;
     *p_index            += 1;
 
     return NRF_SUCCESS;
@@ -248,10 +259,10 @@ uint32_t ble_gap_evt_auth_status_t_enc(void const * const p_data,
     err_code = ble_gap_sec_levels_enc(&(p_auth_status->sm2_levels), p_buf, buf_len, p_index);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
-    err_code = ble_gap_sec_kdist_t_enc(&(p_auth_status->kdist_periph), p_buf, buf_len, p_index);
+    err_code = ble_gap_sec_kdist_t_enc(&(p_auth_status->kdist_own), p_buf, buf_len, p_index);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
-    err_code = ble_gap_sec_kdist_t_enc(&(p_auth_status->kdist_central), p_buf, buf_len, p_index);
+    err_code = ble_gap_sec_kdist_t_enc(&(p_auth_status->kdist_peer), p_buf, buf_len, p_index);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
     return err_code;
@@ -284,10 +295,10 @@ uint32_t ble_gap_evt_auth_status_t_dec(uint8_t const * const p_buf,
     err_code = ble_gap_sec_levels_dec(p_buf, buf_len, p_index, &(p_auth_status->sm2_levels));
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
-    err_code = ble_gap_sec_kdist_t_dec(p_buf, buf_len, p_index, &(p_auth_status->kdist_periph));
+    err_code = ble_gap_sec_kdist_t_dec(p_buf, buf_len, p_index, &(p_auth_status->kdist_own));
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
-    err_code = ble_gap_sec_kdist_t_dec(p_buf, buf_len, p_index, &(p_auth_status->kdist_central));
+    err_code = ble_gap_sec_kdist_t_dec(p_buf, buf_len, p_index, &(p_auth_status->kdist_peer));
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
     return err_code;
@@ -301,7 +312,8 @@ uint32_t ble_gap_conn_sec_mode_enc(void const * const p_void_sec_mode,
 {
     ble_gap_conn_sec_mode_t * p_sec_mode = (ble_gap_conn_sec_mode_t *)p_void_sec_mode;
     uint32_t                  err_code   = NRF_SUCCESS;
-    uint8_t                   temp8      = p_sec_mode->sm | (p_sec_mode->lv << 4);
+    uint8_t                   sm = p_sec_mode->sm & 0x0F;
+    uint8_t                   temp8      = sm | ((p_sec_mode->lv & 0x0F) << 4);
 
     err_code = uint8_t_enc(&temp8, p_buf, buf_len, p_index);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
@@ -494,10 +506,12 @@ uint32_t ble_gap_sec_params_t_enc(void const * const p_void_struct,
     uint32_t               err_code     = NRF_SUCCESS;
     uint8_t                temp8;
 
-    temp8 = (p_sec_params->bond     & 0x01)       |
-            ((p_sec_params->mitm    & 0x01) << 1) |
-            ((p_sec_params->io_caps & 0x07) << 2) |
-            ((p_sec_params->oob     & 0x01) << 5);
+    temp8 = (p_sec_params->bond      & 0x01)       |
+            ((p_sec_params->mitm     & 0x01) << 1) |
+            ((p_sec_params->lesc     & 0x01) << 2) |
+            ((p_sec_params->keypress & 0x01) << 3) |
+            ((p_sec_params->io_caps  & 0x07) << 4) |
+            ((p_sec_params->oob      & 0x01) << 7);
 
     err_code = uint8_t_enc((void *) &temp8, p_buf, buf_len, p_index);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
@@ -508,10 +522,10 @@ uint32_t ble_gap_sec_params_t_enc(void const * const p_void_struct,
     err_code = uint8_t_enc((void *) &(p_sec_params->max_key_size), p_buf, buf_len, p_index);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
-    err_code = ble_gap_sec_kdist_t_enc((void *) &(p_sec_params->kdist_periph), p_buf, buf_len, p_index);
+    err_code = ble_gap_sec_kdist_t_enc((void *) &(p_sec_params->kdist_own), p_buf, buf_len, p_index);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
-    err_code = ble_gap_sec_kdist_t_enc((void *) &(p_sec_params->kdist_central), p_buf, buf_len, p_index);
+    err_code = ble_gap_sec_kdist_t_enc((void *) &(p_sec_params->kdist_peer), p_buf, buf_len, p_index);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
     return err_code;
@@ -528,10 +542,12 @@ uint32_t ble_gap_sec_params_t_dec(uint8_t const * const p_buf,
 
     err_code = uint8_t_dec(p_buf, buf_len, p_index, (void *) &temp8);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
-    p_sec_params->bond    = temp8 & 0x01;
-    p_sec_params->mitm    = (temp8 >> 1) & 0x01;
-    p_sec_params->io_caps = (temp8 >> 2) & 0x07;
-    p_sec_params->oob     = (temp8 >> 5) & 0x01;
+    p_sec_params->bond     = temp8 & 0x01;
+    p_sec_params->mitm     = (temp8 >> 1) & 0x01;
+    p_sec_params->lesc     = (temp8 >> 2) & 0x01;
+    p_sec_params->keypress = (temp8 >> 3) & 0x01;
+    p_sec_params->io_caps  = (temp8 >> 4) & 0x07;
+    p_sec_params->oob      = (temp8 >> 7) & 0x01;
 
     err_code = uint8_t_dec(p_buf, buf_len, p_index, (void *) &(p_sec_params->min_key_size));
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
@@ -539,10 +555,10 @@ uint32_t ble_gap_sec_params_t_dec(uint8_t const * const p_buf,
     err_code = uint8_t_dec(p_buf, buf_len, p_index, (void *) &(p_sec_params->max_key_size));
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
-    err_code = ble_gap_sec_kdist_t_dec(p_buf, buf_len, p_index, (void *) &(p_sec_params->kdist_periph));
+    err_code = ble_gap_sec_kdist_t_dec(p_buf, buf_len, p_index, (void *) &(p_sec_params->kdist_own));
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
-    err_code = ble_gap_sec_kdist_t_dec(p_buf, buf_len, p_index, (void *) &(p_sec_params->kdist_central));
+    err_code = ble_gap_sec_kdist_t_dec(p_buf, buf_len, p_index, (void *) &(p_sec_params->kdist_peer));
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
     return err_code;
@@ -932,10 +948,10 @@ uint32_t ble_gap_sec_keyset_t_enc(void const * const p_data,
     ble_gap_sec_keyset_t * p_sec_keyset = (ble_gap_sec_keyset_t *) p_data;
     uint32_t err_code = NRF_SUCCESS;
 
-    err_code = ble_gap_sec_keys_enc(&(p_sec_keyset->keys_periph), p_buf, buf_len, p_index);
+    err_code = ble_gap_sec_keys_enc(&(p_sec_keyset->keys_own), p_buf, buf_len, p_index);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
-    err_code = ble_gap_sec_keys_enc(&(p_sec_keyset->keys_central), p_buf, buf_len, p_index);
+    err_code = ble_gap_sec_keys_enc(&(p_sec_keyset->keys_peer), p_buf, buf_len, p_index);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
     return err_code;
@@ -952,10 +968,10 @@ uint32_t ble_gap_sec_keyset_t_dec(uint8_t const * const p_buf,
     ble_gap_sec_keyset_t * p_sec_keyset = (ble_gap_sec_keyset_t *)p_data;
     uint32_t err_code = NRF_SUCCESS;
 
-    err_code = ble_gap_sec_keys_dec(p_buf, buf_len, p_index, &(p_sec_keyset->keys_periph));
+    err_code = ble_gap_sec_keys_dec(p_buf, buf_len, p_index, &(p_sec_keyset->keys_own));
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
-    err_code = ble_gap_sec_keys_dec(p_buf, buf_len, p_index, &(p_sec_keyset->keys_central));
+    err_code = ble_gap_sec_keys_dec(p_buf, buf_len, p_index, &(p_sec_keyset->keys_peer));
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
     return err_code;
@@ -974,8 +990,11 @@ uint32_t ble_gap_evt_sec_request_t_enc(void const * const p_void_struct,
     
     SER_ASSERT_LENGTH_LEQ(1, buf_len - *p_index);
 
-    p_buf[*p_index]  = p_evt_sec_request->bond & 0x01;
-    p_buf[*p_index] |= (p_evt_sec_request->mitm & 0x01) << 1;
+    uint8_t data = (p_evt_sec_request->bond & 0x01)        |
+                   ((p_evt_sec_request->mitm & 0x01) << 1) |
+                   ((p_evt_sec_request->lesc & 0x01) << 2) |
+                   ((p_evt_sec_request->keypress & 0x01) << 3);
+    p_buf[*p_index]  = data;
     (*p_index)++;
 
     return err_code;
@@ -995,6 +1014,8 @@ uint32_t ble_gap_evt_sec_request_t_dec(uint8_t const * const p_buf,
     SER_ASSERT_LENGTH_LEQ(1, buf_len - *p_index);
     p_sec_request->bond = p_buf[*p_index] & 0x01;
     p_sec_request->mitm = (p_buf[*p_index] >> 1) & 0x01;
+    p_sec_request->lesc = (p_buf[*p_index] >> 2) & 0x01;
+    p_sec_request->keypress = (p_buf[*p_index] >> 3) & 0x01;
     *p_index            += 1;
 
     return err_code;
@@ -1373,4 +1394,100 @@ uint32_t ble_gap_enable_params_t_dec(uint8_t const * const p_buf,
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
     return err_code;
+}
+
+uint32_t ble_gap_lesc_p256_pk_t_enc(void const * const p_pk,
+                               uint8_t * const    p_buf,
+                               uint32_t           buf_len,
+                               uint32_t * const   p_index)
+{
+    SER_ASSERT_LENGTH_LEQ(sizeof (ble_gap_lesc_p256_pk_t), buf_len - *p_index);
+    memcpy(&p_buf[*p_index], p_pk, sizeof (ble_gap_lesc_p256_pk_t));
+    *p_index += sizeof (ble_gap_lesc_p256_pk_t);
+
+    return NRF_SUCCESS;
+}
+
+uint32_t ble_gap_lesc_p256_pk_t_dec(uint8_t const * const p_buf,
+                               uint32_t              buf_len,
+                               uint32_t * const      p_index,
+                               void * const          p_pk)
+{
+    SER_ASSERT_LENGTH_LEQ(sizeof (ble_gap_lesc_p256_pk_t), buf_len - *p_index);
+    memcpy(p_pk, &p_buf[*p_index], sizeof (ble_gap_lesc_p256_pk_t));
+    *p_index += sizeof (ble_gap_lesc_p256_pk_t);
+
+    return NRF_SUCCESS;
+}
+
+uint32_t ble_gap_lesc_dhkey_t_enc(void const * const p_key,
+                               uint8_t * const    p_buf,
+                               uint32_t           buf_len,
+                               uint32_t * const   p_index)
+{
+    SER_ASSERT_LENGTH_LEQ(sizeof (ble_gap_lesc_dhkey_t), buf_len - *p_index);
+    memcpy(&p_buf[*p_index], p_key, sizeof (ble_gap_lesc_dhkey_t));
+    *p_index += sizeof (ble_gap_lesc_dhkey_t);
+
+    return NRF_SUCCESS;
+}
+
+uint32_t ble_gap_lesc_dhkey_t_dec(uint8_t const * const p_buf,
+                               uint32_t              buf_len,
+                               uint32_t * const      p_index,
+                               void * const          p_key)
+{
+    SER_ASSERT_LENGTH_LEQ(sizeof (ble_gap_lesc_dhkey_t), buf_len - *p_index);
+    memcpy(p_key, &p_buf[*p_index], sizeof (ble_gap_lesc_dhkey_t));
+    *p_index += sizeof (ble_gap_lesc_dhkey_t);
+
+    return NRF_SUCCESS;
+}
+
+uint32_t ble_gap_lesc_oob_data_t_enc(void const * const p_void_oob_data,
+                               uint8_t * const    p_buf,
+                               uint32_t           buf_len,
+                               uint32_t * const   p_index)
+{
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+
+    ble_gap_lesc_oob_data_t * p_oob_data = (ble_gap_lesc_oob_data_t *)p_void_oob_data;
+    uint32_t                err_code  = NRF_SUCCESS;
+
+    err_code = ble_gap_addr_enc(&p_oob_data->addr, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = buf_enc(p_oob_data->r, BLE_GAP_SEC_KEY_LEN, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = buf_enc(p_oob_data->c, BLE_GAP_SEC_KEY_LEN, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    return NRF_SUCCESS;
+}
+
+uint32_t ble_gap_lesc_oob_data_t_dec(uint8_t const * const p_buf,
+                               uint32_t              buf_len,
+                               uint32_t * const      p_index,
+                               void * const          p_void_oob_data)
+{
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+
+    ble_gap_lesc_oob_data_t * p_oob_data = (ble_gap_lesc_oob_data_t *)p_void_oob_data;
+    uint32_t                err_code  = NRF_SUCCESS;
+
+    err_code = ble_gap_addr_dec(p_buf, buf_len, p_index, &p_oob_data->addr);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    uint8_t * p = p_oob_data->r;
+    err_code = buf_dec(p_buf, buf_len, p_index, (uint8_t **)&p, BLE_GAP_SEC_KEY_LEN, BLE_GAP_SEC_KEY_LEN);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    p = p_oob_data->c;
+    err_code = buf_dec(p_buf, buf_len, p_index, (uint8_t **)&p, BLE_GAP_SEC_KEY_LEN,  BLE_GAP_SEC_KEY_LEN);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    return NRF_SUCCESS;
 }

@@ -64,16 +64,6 @@ uint32_t ble_gatts_char_handles_dec(uint8_t const * const p_buf,
                                     uint32_t * const      p_index,
                                     void * const          p_void_char_handles);
 
-uint32_t ble_gatts_attr_context_t_enc(void const * const p_void_attr_context,
-                                      uint8_t * const    p_buf,
-                                      uint32_t           buf_len,
-                                      uint32_t * const   p_index);
-
-uint32_t ble_gatts_attr_context_t_dec(uint8_t const * const p_buf,
-                                      uint32_t              buf_len,
-                                      uint32_t * const      p_index,
-                                      void * const          p_void_attr_context);
-
 uint32_t ble_gatts_evt_write_t_enc(void const * const p_void_write,
                                    uint8_t * const    p_buf,
                                    uint32_t           buf_len,

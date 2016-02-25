@@ -424,51 +424,6 @@ uint32_t ble_gatts_hvx_params_t_dec(uint8_t const * const p_buf,
     return err_code;
 }
 
-uint32_t ble_gatts_attr_context_t_enc(void const * const p_void_attr_context,
-                                      uint8_t * const    p_buf,
-                                      uint32_t           buf_len,
-                                      uint32_t * const   p_index)
-{
-    uint32_t                   error_code = NRF_SUCCESS;
-    ble_gatts_attr_context_t * p_context  = (ble_gatts_attr_context_t *) p_void_attr_context;
-
-    error_code = ble_uuid_t_enc(&(p_context->srvc_uuid), p_buf, buf_len, p_index);
-    SER_ASSERT(error_code == NRF_SUCCESS, error_code);
-    error_code = ble_uuid_t_enc(&(p_context->char_uuid), p_buf, buf_len, p_index);
-    SER_ASSERT(error_code == NRF_SUCCESS, error_code);
-    error_code = ble_uuid_t_enc(&(p_context->desc_uuid), p_buf, buf_len, p_index);
-    SER_ASSERT(error_code == NRF_SUCCESS, error_code);
-    error_code = uint16_t_enc(&(p_context->srvc_handle), p_buf, buf_len, p_index);
-    SER_ASSERT(error_code == NRF_SUCCESS, error_code);
-    error_code = uint16_t_enc(&(p_context->value_handle), p_buf, buf_len, p_index);
-    SER_ASSERT(error_code == NRF_SUCCESS, error_code);
-    error_code = uint8_t_enc(&(p_context->type), p_buf, buf_len, p_index);
-
-    return error_code;
-}
-
-uint32_t ble_gatts_attr_context_t_dec(uint8_t const * const p_buf,
-                                      uint32_t              buf_len,
-                                      uint32_t * const      p_index,
-                                      void * const          p_void_attr_context)
-{
-    uint32_t                   error_code = NRF_SUCCESS;
-    ble_gatts_attr_context_t * p_context  = (ble_gatts_attr_context_t *) p_void_attr_context;
-
-    error_code = ble_uuid_t_dec(p_buf, buf_len, p_index, &(p_context->srvc_uuid));
-    SER_ASSERT(error_code == NRF_SUCCESS, error_code);
-    error_code = ble_uuid_t_dec(p_buf, buf_len, p_index, &(p_context->char_uuid));
-    SER_ASSERT(error_code == NRF_SUCCESS, error_code);
-    error_code = ble_uuid_t_dec(p_buf, buf_len, p_index, &(p_context->desc_uuid));
-    SER_ASSERT(error_code == NRF_SUCCESS, error_code);
-
-    SER_ASSERT_LENGTH_LEQ(5, buf_len - *p_index);
-    uint16_dec(p_buf, buf_len, p_index, &(p_context->srvc_handle));
-    uint16_dec(p_buf, buf_len, p_index, &(p_context->value_handle));
-    uint8_dec(p_buf, buf_len, p_index, &(p_context->type));
-    return error_code;
-}
-
 uint32_t ble_gatts_evt_write_t_enc(void const * const p_void_write,
                                    uint8_t * const    p_buf,
                                    uint32_t           buf_len,
@@ -479,10 +434,16 @@ uint32_t ble_gatts_evt_write_t_enc(void const * const p_void_write,
 
     error_code = uint16_t_enc(&(p_write->handle), p_buf, buf_len, p_index);
     SER_ASSERT(error_code == NRF_SUCCESS, error_code);
+
+    error_code = ble_uuid_t_enc(&(p_write->uuid), p_buf, buf_len, p_index);
+    SER_ASSERT(error_code == NRF_SUCCESS, error_code);
+
     error_code = uint8_t_enc(&(p_write->op), p_buf, buf_len, p_index);
     SER_ASSERT(error_code == NRF_SUCCESS, error_code);
-    error_code = ble_gatts_attr_context_t_enc(&(p_write->context), p_buf, buf_len, p_index);
+
+    error_code = uint8_t_enc(&(p_write->auth_required), p_buf, buf_len, p_index);
     SER_ASSERT(error_code == NRF_SUCCESS, error_code);
+
     error_code = uint16_t_enc(&(p_write->offset), p_buf, buf_len, p_index);
     SER_ASSERT(error_code == NRF_SUCCESS, error_code);
 
@@ -515,12 +476,16 @@ uint32_t ble_gatts_evt_write_t_dec(uint8_t const * const p_buf,
     err_code = uint16_t_dec(p_buf, buf_len, p_index, &handle);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
+    ble_uuid_t uuid;
+    err_code = ble_uuid_t_dec(p_buf, buf_len, p_index, &uuid);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
     uint8_t op;
     err_code = uint8_t_dec(p_buf, buf_len, p_index, &op);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
-    ble_gatts_attr_context_t context;
-    err_code = ble_gatts_attr_context_t_dec(p_buf, buf_len, p_index, &context);
+    uint8_t auth_required;
+    err_code = uint8_t_dec(p_buf, buf_len, p_index, &auth_required);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
     uint16_t offset;
@@ -540,10 +505,9 @@ uint32_t ble_gatts_evt_write_t_dec(uint8_t const * const p_buf,
         SER_ASSERT_LENGTH_LEQ(*p_struct_len, in_struct_len);
 
         p_write->handle = handle;
+        p_write->uuid   = uuid;
         p_write->op     = op;
-
-        memcpy(&(p_write->context), &context, sizeof (ble_gatts_attr_context_t));
-
+        p_write->auth_required = auth_required;
         p_write->offset = offset;
         p_write->len    = len;
 
@@ -571,7 +535,7 @@ uint32_t ble_gatts_evt_read_t_enc(void const * const p_void_read,
     err_code = uint16_t_enc(&(p_read->handle), p_buf, buf_len, p_index);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
-    err_code = ble_gatts_attr_context_t_enc(&(p_read->context), p_buf, buf_len, p_index);
+    err_code = ble_uuid_t_enc(&(p_read->uuid), p_buf, buf_len, p_index);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
     err_code = uint16_t_enc(&(p_read->offset), p_buf, buf_len, p_index);
@@ -598,8 +562,8 @@ uint32_t ble_gatts_evt_read_t_dec(uint8_t const * const p_buf,
     err_code = uint16_t_dec(p_buf, buf_len, p_index, &handle);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
-    ble_gatts_attr_context_t context;
-    err_code = ble_gatts_attr_context_t_dec(p_buf, buf_len, p_index, &context);
+    ble_uuid_t uuid;
+    err_code = ble_uuid_t_dec(p_buf, buf_len, p_index, &uuid);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
     uint16_t offset;
@@ -613,7 +577,7 @@ uint32_t ble_gatts_evt_read_t_dec(uint8_t const * const p_buf,
         SER_ASSERT_LENGTH_LEQ(*p_struct_len, in_struct_len);
 
         p_read->handle = handle;
-        memcpy(&(p_read->context), &context, sizeof (context));
+        p_read->uuid   = uuid;
         p_read->offset = offset;
     }
 

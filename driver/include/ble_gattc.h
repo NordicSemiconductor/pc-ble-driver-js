@@ -51,6 +51,10 @@
 #include "ble_types.h"
 #include "ble_ranges.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** @addtogroup BLE_GATTC_ENUMERATIONS Enumerations
  * @{ */
 
@@ -176,36 +180,41 @@ typedef struct
 typedef struct
 {
   uint16_t             count;           /**< Service count. */
-  ble_gattc_service_t services[];       /**< Service data, variable length. */
+  ble_gattc_service_t services[1];      /**< Service data. @note This is a variable length array. The size of 1 indicated is only a placeholder for compilation.
+                                             See @ref sd_ble_evt_get for more information on how to use event structures with variable length array members. */
 } ble_gattc_evt_prim_srvc_disc_rsp_t;
 
 /**@brief Event structure for @ref BLE_GATTC_EVT_REL_DISC_RSP. */
 typedef struct
 {
   uint16_t             count;           /**< Include count. */
-  ble_gattc_include_t includes[];       /**< Include data, variable length. */
+  ble_gattc_include_t includes[1];      /**< Include data. @note This is a variable length array. The size of 1 indicated is only a placeholder for compilation.
+                                             See @ref sd_ble_evt_get for more information on how to use event structures with variable length array members. */
 } ble_gattc_evt_rel_disc_rsp_t;
 
 /**@brief Event structure for @ref BLE_GATTC_EVT_CHAR_DISC_RSP. */
 typedef struct
 {
   uint16_t            count;          /**< Characteristic count. */
-  ble_gattc_char_t    chars[];        /**< Characteristic data, variable length. */
+  ble_gattc_char_t    chars[1];       /**< Characteristic data. @note This is a variable length array. The size of 1 indicated is only a placeholder for compilation.
+                                           See @ref sd_ble_evt_get for more information on how to use event structures with variable length array members. */
 } ble_gattc_evt_char_disc_rsp_t;
 
 /**@brief Event structure for @ref BLE_GATTC_EVT_DESC_DISC_RSP. */
 typedef struct
 {
   uint16_t            count;          /**< Descriptor count. */
-  ble_gattc_desc_t    descs[];        /**< Descriptor data, variable length. */
+  ble_gattc_desc_t    descs[1];       /**< Descriptor data. @note This is a variable length array. The size of 1 indicated is only a placeholder for compilation.
+                                           See @ref sd_ble_evt_get for more information on how to use event structures with variable length array members. */
 } ble_gattc_evt_desc_disc_rsp_t;
 
 /**@brief Event structure for @ref BLE_GATTC_EVT_ATTR_INFO_DISC_RSP. */
 typedef struct
 {
-  uint16_t                     count;       /**< Attribute count. */
-  uint8_t                      format;      /**< Attribute information format, see @ref BLE_GATTC_ATTR_INFO_FORMAT. */
-  ble_gattc_attr_info_t        attr_info[]; /**< Attribute information, variable length. */
+  uint16_t                     count;        /**< Attribute count. */
+  uint8_t                      format;       /**< Attribute information format, see @ref BLE_GATTC_ATTR_INFO_FORMAT. */
+  ble_gattc_attr_info_t        attr_info[1]; /**< Attribute information. @note This is a variable length array. The size of 1 indicated is only a placeholder for compilation.
+                                           See @ref sd_ble_evt_get for more information on how to use event structures with variable length array members. */
 } ble_gattc_evt_attr_info_disc_rsp_t;
 
 /**@brief GATT read by UUID handle value pair. */
@@ -222,7 +231,8 @@ typedef struct
 {
   uint16_t                  count;            /**< Handle-Value Pair Count. */
   uint16_t                  value_len;        /**< Length of the value in Handle-Value(s) list. */
-  ble_gattc_handle_value_t  handle_value[];   /**< Handle-Value(s) list, variable length. */
+  ble_gattc_handle_value_t  handle_value[1];  /**< Handle-Value(s) list. @note This is a variable length array. The size of 1 indicated is only a placeholder for compilation.
+                                                   See @ref sd_ble_evt_get for more information on how to use event structures with variable length array members. */
 } ble_gattc_evt_char_val_by_uuid_read_rsp_t;
 
 /**@brief Event structure for @ref BLE_GATTC_EVT_READ_RSP. */
@@ -231,14 +241,16 @@ typedef struct
   uint16_t            handle;         /**< Attribute Handle. */
   uint16_t            offset;         /**< Offset of the attribute data. */
   uint16_t            len;            /**< Attribute data length. */
-  uint8_t             data[];         /**< Attribute data, variable length. */
+  uint8_t             data[1];        /**< Attribute data. @note This is a variable length array. The size of 1 indicated is only a placeholder for compilation.
+                                           See @ref sd_ble_evt_get for more information on how to use event structures with variable length array members. */
 } ble_gattc_evt_read_rsp_t;
 
 /**@brief Event structure for @ref BLE_GATTC_EVT_CHAR_VALS_READ_RSP. */
 typedef struct
 {
   uint16_t            len;            /**< Concatenated Attribute values length. */
-  uint8_t             values[];       /**< Attribute values, variable length. */
+  uint8_t             values[1];      /**< Attribute values. @note This is a variable length array. The size of 1 indicated is only a placeholder for compilation.
+                                           See @ref sd_ble_evt_get for more information on how to use event structures with variable length array members. */
 } ble_gattc_evt_char_vals_read_rsp_t;
 
 /**@brief Event structure for @ref BLE_GATTC_EVT_WRITE_RSP. */
@@ -248,7 +260,8 @@ typedef struct
   uint8_t             write_op;         /**< Type of write operation, see @ref BLE_GATT_WRITE_OPS. */
   uint16_t            offset;           /**< Data offset. */
   uint16_t            len;              /**< Data length. */
-  uint8_t             data[];           /**< Data, variable length. */
+  uint8_t             data[1];          /**< Data. @note This is a variable length array. The size of 1 indicated is only a placeholder for compilation.
+                                             See @ref sd_ble_evt_get for more information on how to use event structures with variable length array members. */
 } ble_gattc_evt_write_rsp_t;
 
 /**@brief Event structure for @ref BLE_GATTC_EVT_HVX. */
@@ -257,7 +270,8 @@ typedef struct
   uint16_t            handle;         /**< Handle to which the HVx operation applies. */
   uint8_t             type;           /**< Indication or Notification, see @ref BLE_GATT_HVX_TYPES. */
   uint16_t            len;            /**< Attribute data length. */
-  uint8_t             data[];         /**< Attribute data, variable length. */
+  uint8_t             data[1];        /**< Attribute data. @note This is a variable length array. The size of 1 indicated is only a placeholder for compilation.
+                                           See @ref sd_ble_evt_get for more information on how to use event structures with variable length array members. */
 } ble_gattc_evt_hvx_t;
 
 /**@brief Event structure for @ref BLE_GATTC_EVT_TIMEOUT. */
@@ -547,6 +561,9 @@ SD_RPC_API uint32_t sd_ble_gattc_attr_info_discover(adapter_t *adapter, uint16_t
 
 /** @} */
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* BLE_GATTC_H__ */
 
 /**

@@ -82,15 +82,7 @@ public:
     ble_gatts_value_t *ToNative() override;
 };
 
-class GattsAttributeContext : public BleToJs<ble_gatts_attr_context_t>
-{
-public:
-    GattsAttributeContext(ble_gatts_attr_context_t *attributeContext) : BleToJs<ble_gatts_attr_context_t>(attributeContext) {}
-    GattsAttributeContext(v8::Local<v8::Object> js) : BleToJs<ble_gatts_attr_context_t>(js) {}
-    v8::Local<v8::Object> ToJs() override;
-};
-
-#if 0
+#if 0 // TODO: Evalute/implement this
 class GattGattsReplyReadWriteAuthorizeParams : public BleToJs<ble_gatts_rw_authorize_reply_params_t>
 {
 public:

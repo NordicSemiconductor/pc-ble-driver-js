@@ -351,3 +351,33 @@ uint32_t ble_gap_enable_params_t_dec(uint8_t const * const p_buf,
                                      uint32_t              buf_len,
                                      uint32_t * const      p_index,
                                      void * const          p_void_enable_params);
+
+uint32_t ble_gap_lesc_p256_pk_t_enc(void const * const p_pk,
+                               uint8_t * const    p_buf,
+                               uint32_t           buf_len,
+                               uint32_t * const   p_index);
+
+uint32_t ble_gap_lesc_p256_pk_t_dec(uint8_t const * const p_buf,
+                               uint32_t              buf_len,
+                               uint32_t * const      p_index,
+                               void * const          p_pk);
+
+uint32_t ble_gap_lesc_dhkey_t_enc(void const * const p_key,
+                               uint8_t * const    p_buf,
+                               uint32_t           buf_len,
+                               uint32_t * const   p_index);
+
+uint32_t ble_gap_lesc_dhkey_t_dec(uint8_t const * const p_buf,
+                               uint32_t              buf_len,
+                               uint32_t * const      p_index,
+                               void * const          p_key);
+
+uint32_t ble_gap_lesc_oob_data_t_enc(void const * const p_void_oob_data,
+                               uint8_t * const    p_buf,
+                               uint32_t           buf_len,
+                               uint32_t * const   p_index);
+
+uint32_t ble_gap_lesc_oob_data_t_dec(uint8_t const * const p_buf,
+                               uint32_t              buf_len,
+                               uint32_t * const      p_index,
+                               void * const          p_void_oob_data);

@@ -206,7 +206,8 @@ public:
         {
             throw "bool";
         }
-        return static_cast<NativeType>(js->ToBoolean()->BooleanValue()) ? 1 : 0;
+
+        return static_cast<NativeType>(js->ToBoolean()->BooleanValue());
     }
 
     static NativeType getNativeUnsigned(v8::Local<v8::Object> js, const char *name)

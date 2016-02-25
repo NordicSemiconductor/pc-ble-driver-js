@@ -292,7 +292,7 @@ uint32_t ble_common_opt_conn_bw_t_enc(void const * const p_void_opt_conn_bw,
     SER_ASSERT_NOT_NULL(p_index);
     SER_ASSERT_NOT_NULL(p_void_opt_conn_bw);
 
-    ble_opt_conn_bw_t * p_conn_bw = (ble_opt_conn_bw_t *)p_void_opt_conn_bw;
+    ble_common_opt_conn_bw_t * p_conn_bw = (ble_common_opt_conn_bw_t *)p_void_opt_conn_bw;
     uint32_t            err_code  = NRF_SUCCESS;
     uint8_t             byte;
 
@@ -315,7 +315,7 @@ uint32_t ble_common_opt_conn_bw_t_dec(uint8_t const * const p_buf,
     SER_ASSERT_NOT_NULL(p_index);
     SER_ASSERT_NOT_NULL(p_void_opt_conn_bw);
 
-    ble_opt_conn_bw_t * p_conn_bw = (ble_opt_conn_bw_t *)p_void_opt_conn_bw;
+    ble_common_opt_conn_bw_t * p_conn_bw = (ble_common_opt_conn_bw_t *)p_void_opt_conn_bw;
     uint32_t            err_code  = NRF_SUCCESS;
 
     err_code = uint8_t_dec(p_buf, buf_len, p_index, &p_conn_bw->role);
@@ -459,3 +459,113 @@ uint32_t ble_common_enable_params_t_dec(uint8_t const * const p_buf,
 
     return err_code;
 }
+
+uint32_t ble_common_opt_pa_lna_t_enc(void const * const p_void_opt,
+                                 uint8_t * const    p_buf,
+                                 uint32_t           buf_len,
+                                 uint32_t * const   p_index)
+{
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+    SER_ASSERT_NOT_NULL(p_void_opt);
+
+    ble_common_opt_pa_lna_t * p_opt = (ble_common_opt_pa_lna_t *)p_void_opt;
+    uint32_t              err_code        = NRF_SUCCESS;
+
+    err_code = ble_pa_lna_cfg_t_enc(&p_opt->pa_cfg, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = ble_pa_lna_cfg_t_enc(&p_opt->lna_cfg, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = uint8_t_enc(&p_opt->ppi_ch_id_set, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = uint8_t_enc(&p_opt->ppi_ch_id_clr, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = uint8_t_enc(&p_opt->gpiote_ch_id, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    return err_code;
+}
+
+uint32_t ble_common_opt_pa_lna_t_dec(uint8_t const * const p_buf,
+                                      uint32_t              buf_len,
+                                      uint32_t * const      p_index,
+                                      void * const          p_void_opt)
+{
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+    SER_ASSERT_NOT_NULL(p_void_opt);
+
+    ble_common_opt_pa_lna_t * p_opt = (ble_common_opt_pa_lna_t *)p_void_opt;
+    uint32_t            err_code  = NRF_SUCCESS;
+
+    err_code = ble_pa_lna_cfg_t_dec(p_buf, buf_len, p_index, &p_opt->pa_cfg);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = ble_pa_lna_cfg_t_dec(p_buf, buf_len, p_index, &p_opt->lna_cfg);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = uint8_t_dec(p_buf, buf_len, p_index, &p_opt->ppi_ch_id_set);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = uint8_t_dec(p_buf, buf_len, p_index, &p_opt->ppi_ch_id_clr);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    err_code = uint8_t_dec(p_buf, buf_len, p_index, &p_opt->gpiote_ch_id);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    return err_code;
+}
+
+
+uint32_t ble_pa_lna_cfg_t_enc(void const * const p_void_cfg,
+                                 uint8_t * const    p_buf,
+                                 uint32_t           buf_len,
+                                 uint32_t * const   p_index)
+{
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+    SER_ASSERT_NOT_NULL(p_void_cfg);
+
+    ble_pa_lna_cfg_t * p_cfg = (ble_pa_lna_cfg_t *)p_void_cfg;
+    uint32_t           err_code        = NRF_SUCCESS;
+
+    uint8_t data = (p_cfg->enable & 0x01)             |
+                   ((p_cfg->active_high & 0x01) << 1) |
+                   (p_cfg->gpio_pin << 2);
+
+    err_code = uint8_t_enc(&data, p_buf, buf_len, p_index);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    return err_code;
+}
+
+uint32_t ble_pa_lna_cfg_t_dec(uint8_t const * const p_buf,
+                                      uint32_t              buf_len,
+                                      uint32_t * const      p_index,
+                                      void * const          p_void_cfg)
+{
+    SER_ASSERT_NOT_NULL(p_buf);
+    SER_ASSERT_NOT_NULL(p_index);
+    SER_ASSERT_NOT_NULL(p_void_cfg);
+
+    ble_pa_lna_cfg_t * p_cfg = (ble_pa_lna_cfg_t *)p_void_cfg;
+    uint32_t           err_code  = NRF_SUCCESS;
+
+    uint8_t data;
+
+    err_code = uint8_t_dec(p_buf, buf_len, p_index, &data);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    p_cfg->enable = data & 0x01;
+    p_cfg->active_high = (data >> 1) & 0x01;
+    p_cfg->gpio_pin = (data >> 2);
+
+
+    return err_code;
+}
+
+

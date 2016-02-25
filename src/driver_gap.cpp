@@ -633,8 +633,11 @@ v8::Local<v8::Object> GapAuthStatus::ToJs()
     Utility::Set(obj, "bonded", ConversionUtility::toJsBool(evt->bonded));
     Utility::Set(obj, "sm1_levels", GapSecLevels(&(evt->sm1_levels)).ToJs());
     Utility::Set(obj, "sm2_levels", GapSecLevels(&(evt->sm2_levels)).ToJs());
+#if 0 // TODO
     Utility::Set(obj, "kdist_periph", GapSecKdist(&(evt->kdist_periph)).ToJs());
     Utility::Set(obj, "kdist_central", GapSecKdist(&(evt->kdist_central)).ToJs());
+#endif
+
     return scope.Escape(obj);
 }
 
@@ -704,8 +707,10 @@ v8::Local<v8::Object> GapSecParams::ToJs()
     Utility::Set(obj, "oob", ConversionUtility::toJsBool(native->oob));
     Utility::Set(obj, "min_key_size", native->min_key_size);
     Utility::Set(obj, "max_key_size", native->max_key_size);
+#if 0 // TODO:
     Utility::Set(obj, "kdist_periph", GapSecKdist(&(native->kdist_periph)).ToJs());
     Utility::Set(obj, "kdist_central", GapSecKdist(&(native->kdist_central)).ToJs());
+#endif
 
     return scope.Escape(obj);
 }
@@ -728,8 +733,10 @@ ble_gap_sec_params_t *GapSecParams::ToNative()
     params->oob = ConversionUtility::getNativeBool(jsobj, "oob");
     params->min_key_size = ConversionUtility::getNativeUint8(jsobj, "min_key_size");
     params->max_key_size = ConversionUtility::getNativeUint8(jsobj, "max_key_size");
+#if 0 // TODO:
     params->kdist_periph = GapSecKdist(ConversionUtility::getJsObject(jsobj, "kdist_periph"));
     params->kdist_central = GapSecKdist(ConversionUtility::getJsObject(jsobj, "kdist_central"));
+#endif
 
     return params;
 }
@@ -782,8 +789,10 @@ v8::Local<v8::Object> GapSecKeyset::ToJs()
 {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+#if 0 // TODO:
     Utility::Set(obj, "keys_periph", GapSecKeys(&native->keys_periph).ToJs());
     Utility::Set(obj, "keys_central", GapSecKeys(&native->keys_central).ToJs());
+#endif
 
     return scope.Escape(obj);
 }
@@ -798,8 +807,10 @@ ble_gap_sec_keyset_t *GapSecKeyset::ToNative()
     auto keyset = new ble_gap_sec_keyset_t();
     memset(keyset, 0, sizeof(ble_gap_sec_keyset_t));
 
+#if 0 // TODO:
     keyset->keys_periph = GapSecKeys(ConversionUtility::getJsObject(jsobj, "keys_periph"));
     keyset->keys_central = GapSecKeys(ConversionUtility::getJsObject(jsobj, "keys_central"));
+#endif
 
     return keyset;
 }

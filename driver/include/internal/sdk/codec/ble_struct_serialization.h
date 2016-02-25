@@ -113,3 +113,23 @@ uint32_t ble_common_enable_params_t_dec(uint8_t const * const p_buf,
                                         uint32_t              buf_len,
                                         uint32_t * const      p_index,
                                         void * const          p_void_common_enable_params);
+
+uint32_t ble_common_opt_pa_lna_t_enc(void const * const p_void_opt,
+                                 uint8_t * const    p_buf,
+                                 uint32_t           buf_len,
+                                 uint32_t * const   p_index);
+
+uint32_t ble_common_opt_pa_lna_t_dec(uint8_t const * const p_buf,
+                                      uint32_t              buf_len,
+                                      uint32_t * const      p_index,
+                                      void * const          p_void_opt);
+
+uint32_t ble_pa_lna_cfg_t_enc(void const * const p_void_cfg,
+                                 uint8_t * const    p_buf,
+                                 uint32_t           buf_len,
+                                 uint32_t * const   p_index);
+
+uint32_t ble_pa_lna_cfg_t_dec(uint8_t const * const p_buf,
+                                      uint32_t              buf_len,
+                                      uint32_t * const      p_index,
+                                      void * const          p_void_cfg);

@@ -207,7 +207,7 @@ class Adapter extends EventEmitter {
             if (!options.logLevel) options.logLevel = 'info';
             if (!options.retransmissionInterval) options.retransmissionInterval = 100;
             if (!options.responseTimeout) options.responseTimeout = 750;
-            if (!options.enableBLE) options.enableBLE = true;
+            if (typeof(options.enableBLE) == 'undefined') options.enableBLE = true;
         }
 
         this._changeState({baudRate: options.baudRate, parity: options.parity, flowControl: options.flowControl});
@@ -221,10 +221,14 @@ class Adapter extends EventEmitter {
 
             this._changeState({available: true});
             this.emit('opened', this);
-            this.getState((err, state) => {
-                if (this._checkAndPropagateError(err, 'Error retrieving adapter state.', callback)) { return; }
-                if (callback) { callback(); }
-            });
+
+            if (options.enableBLE) {
+                this.getState((err, state) => {
+                    if (this._checkAndPropagateError(err, 'Error retrieving adapter state.', callback)) { return; }
+                });
+            }
+
+            if (callback) { callback(); }
         });
     }
 
@@ -1395,7 +1399,6 @@ class Adapter extends EventEmitter {
                 this.emit('error', _makeError('Failed to set name to adapter', err));
             } else if (this._state.name !== name) {
                 this._state.name = name;
-
                 this._changeState({name: name});
             }
 

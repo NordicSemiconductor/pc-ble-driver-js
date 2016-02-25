@@ -513,7 +513,7 @@ NAN_METHOD(Adapter::Open)
         baton->log_level = ToLogSeverityEnum(Utility::Get(options, "logLevel")->ToString()); parameter++;
         baton->retransmission_interval = ConversionUtility::getNativeUint32(options, "retransmissionInterval"); parameter++;
         baton->response_timeout = ConversionUtility::getNativeUint32(options, "responseTimeout"); parameter++;
-        baton->enable_ble = ConversionUtility::getNativeBool(options, "enableBLE") != 0; parameter++;
+        baton->enable_ble = ConversionUtility::getNativeBool(options, "enableBLE"); parameter++;
     }
     catch (char const *error)
     {

@@ -51,6 +51,10 @@
 #include "ble_ranges.h"
 #include "ble_err.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**@addtogroup BLE_L2CAP_ENUMERATIONS Enumerations
  * @{ */
 
@@ -107,7 +111,8 @@ typedef struct
 typedef struct
 {
   ble_l2cap_header_t header;                      /**< L2CAP packet header. */
-  uint8_t    data[1];                             /**< Packet data, variable length. */
+  uint8_t    data[1];                             /**< Packet data. @note This is a variable length array. The size of 1 indicated is only a placeholder for compilation.
+                                                       See @ref sd_ble_evt_get for more information on how to use event structures with variable length array members. */
 } ble_l2cap_evt_rx_t;
 
 
@@ -130,6 +135,10 @@ typedef struct
  *
  * @details This registers a higher protocol layer with the L2CAP multiplexer, and is requried prior to all operations on the CID.
  *
+ * @mscs
+ * @mmsc{@ref BLE_L2CAP_API_MSC}
+ * @endmscs
+ *
  * @param[in] cid L2CAP CID.
  *
  * @retval ::NRF_SUCCESS Successfully registered a CID with the L2CAP layer.
@@ -143,6 +152,10 @@ SD_RPC_API uint32_t sd_ble_l2cap_cid_register(adapter_t *adapter, uint16_t cid);
  *
  * @details This unregisters a previously registerd higher protocol layer with the L2CAP multiplexer.
  *
+ * @mscs
+ * @mmsc{@ref BLE_L2CAP_API_MSC}
+ * @endmscs
+ *
  * @param[in] cid L2CAP CID.
  *
  * @retval ::NRF_SUCCESS Successfully unregistered the CID.
@@ -153,9 +166,18 @@ SD_RPC_API uint32_t sd_ble_l2cap_cid_unregister(adapter_t *adapter, uint16_t cid
 
 /**@brief Transmit an L2CAP packet.
  *
- * @note    It is important to note that a call to this function will <b>consume an application buffer</b>, and will therefore
+ * @note    It is important to note that a call to this function will <b>consume an application packet</b>, and will therefore
  *          generate a @ref BLE_EVT_TX_COMPLETE event when the packet has been transmitted.
- *          Please see the documentation of @ref sd_ble_tx_buffer_count_get for more details.
+ *          Please see the documentation of @ref sd_ble_tx_packet_count_get for more details.
+ *
+ * @events
+ * @event{@ref BLE_EVT_TX_COMPLETE}
+ * @event{@ref BLE_L2CAP_EVT_RX}
+ * @endevents
+ *
+ * @mscs
+ * @mmsc{@ref BLE_L2CAP_API_MSC}
+ * @endmscs
  *
  * @param[in] conn_handle Connection Handle.
  * @param[in] p_header    Pointer to a packet header containing length and CID.
@@ -166,13 +188,16 @@ SD_RPC_API uint32_t sd_ble_l2cap_cid_unregister(adapter_t *adapter, uint16_t cid
  * @retval ::NRF_ERROR_INVALID_PARAM Invalid parameter(s) supplied, CIDs must be registered beforehand with @ref sd_ble_l2cap_cid_register.
  * @retval ::NRF_ERROR_NOT_FOUND CID not found.
  * @retval ::NRF_ERROR_NO_MEM Not enough memory to complete operation.
- * @retval ::BLE_ERROR_NO_TX_BUFFERS Not enough application buffers available.
+ * @retval ::BLE_ERROR_NO_TX_PACKETS Not enough application packets available.
  * @retval ::NRF_ERROR_DATA_SIZE Invalid data size(s) supplied, see @ref BLE_L2CAP_MTU_DEF.
  */
 SD_RPC_API uint32_t sd_ble_l2cap_tx(adapter_t *adapter, uint16_t conn_handle, ble_l2cap_header_t const *p_header, uint8_t const *p_data);
 
 /** @} */
 
+#ifdef __cplusplus
+}
+#endif
 #endif // BLE_L2CAP_H__
 
 /**
