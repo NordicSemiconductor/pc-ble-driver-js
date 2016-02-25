@@ -12,6 +12,7 @@
 
 #include "adapter.h"
 #include "common.h"
+#include <iostream>
 
 Nan::Persistent<v8::Function> Adapter::constructor;
 
@@ -63,6 +64,7 @@ adapter_t *Adapter::getInternalAdapter() const
 extern "C" {
     void event_handler(uv_async_t *handle)
     {
+        std::cout << "%";
         auto adapter = static_cast<Adapter *>(handle->data);
 
         if (adapter != nullptr)
@@ -78,6 +80,7 @@ extern "C" {
 
     void event_interval_handler(uv_timer_t *handle)
     {
+        std::cout << "@";
         auto adapter = static_cast<Adapter *>(handle->data);
 
         if (adapter != nullptr)
@@ -103,15 +106,15 @@ void Adapter::initEventHandling(Nan::Callback *callback, uint32_t interval)
     // If we already have an async handle we do not create a new one
     if (!uv_is_active(reinterpret_cast<uv_handle_t *>(&asyncEvent)))
     {
-        assert(uv_async_init(uv_default_loop(), &asyncEvent, event_handler) == 0);
+        if (uv_async_init(uv_default_loop(), &asyncEvent, event_handler) != 0) std::terminate();
     }
 
     // Setup event interval functionality
     if (eventInterval > 0)
     {
         eventIntervalTimer.data = static_cast<void *>(this);
-        assert(uv_timer_init(uv_default_loop(), &eventIntervalTimer) == 0);
-        assert(uv_timer_start(&eventIntervalTimer, event_interval_handler, eventInterval, eventInterval) == 0);
+        if (uv_timer_init(uv_default_loop(), &eventIntervalTimer) != 0) std::terminate();
+        if (uv_timer_start(&eventIntervalTimer, event_interval_handler, eventInterval, eventInterval) != 0) std::terminate();
     }
 }
 
