@@ -140,7 +140,7 @@ void Adapter::initLogHandling(Nan::Callback *callback)
     // If we already have an async handle we do not create a new one
     if (!uv_is_active(reinterpret_cast<uv_handle_t *>(&asyncLog)))
     {
-        assert(uv_async_init(uv_default_loop(), &asyncLog, log_handler) == 0);
+        if (uv_async_init(uv_default_loop(), &asyncLog, log_handler) != 0) std::terminate();
     }
 }
 
@@ -170,7 +170,7 @@ void Adapter::initStatusHandling(Nan::Callback *callback)
     // If we already have an async handle we do not create a new one
     if (!uv_is_active(reinterpret_cast<uv_handle_t *>(&asyncStatus)))
     {
-        assert(uv_async_init(uv_default_loop(), &asyncStatus, status_handler) == 0);
+        if (uv_async_init(uv_default_loop(), &asyncStatus, status_handler) != 0) std::terminate();
     }
 }
 
