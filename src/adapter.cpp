@@ -13,6 +13,8 @@
 #include "adapter.h"
 #include "common.h"
 
+#include <algorithm>
+
 Nan::Persistent<v8::Function> Adapter::constructor;
 
 std::vector<Adapter *> adapters;
@@ -287,6 +289,15 @@ Adapter::Adapter()
 
 Adapter::~Adapter()
 {
+    // Remove this adapter from the global container of adapters
+    adapters.erase(std::find(adapters.begin(), adapters.end(), this));
+
+    // Deallocate resources related to the event handling interval timer
+    if (uv_timer_stop(&eventIntervalTimer) != 0) std::terminate();
+    uv_close(reinterpret_cast<uv_handle_t*>(&eventIntervalTimer), NULL);
+
+    // Remove callbacks and cleanup uv_handle_t instances
+    removeCallbacks();
 }
 
 NAN_METHOD(Adapter::New)
