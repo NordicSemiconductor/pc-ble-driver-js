@@ -292,10 +292,17 @@ Adapter::~Adapter()
     // Remove this adapter from the global container of adapters
     adapters.erase(std::find(adapters.begin(), adapters.end(), this));
 
-    // Deallocate resources related to the event handling interval timer
-    if (uv_timer_stop(&eventIntervalTimer) != 0) std::terminate();
-    uv_close(reinterpret_cast<uv_handle_t*>(&eventIntervalTimer), NULL);
+    auto handle = reinterpret_cast<uv_handle_t*>(&eventIntervalTimer);
 
+    // Deallocate resources related to the event handling interval timer
+    if (uv_is_active(handle) != 0)
+    {
+        if (uv_timer_stop(&eventIntervalTimer) != 0)
+        {
+            std::terminate();
+        }
+    }
+    
     // Remove callbacks and cleanup uv_handle_t instances
     removeCallbacks();
 }
