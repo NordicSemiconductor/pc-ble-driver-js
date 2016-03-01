@@ -81,7 +81,7 @@ public:
 
     void onStatusEvent(uv_async_t *handle);
 
-    void removeCallbacks();
+    void cleanUpV8Resources();
 
     // Statistics:
     int32_t getEventCallbackTotalTime() const;
