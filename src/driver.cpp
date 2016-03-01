@@ -626,7 +626,7 @@ void Adapter::AfterOpen(uv_work_t *req)
     {
         argv[0] = ErrorMessage::getErrorMessage(baton->result, "opening port");
 
-        baton->mainObject->removeCallbacks();
+        baton->mainObject->cleanUpV8Resources();
     }
     else
     {
@@ -671,7 +671,7 @@ void Adapter::AfterClose(uv_work_t *req)
     Nan::HandleScope scope;
     auto baton = static_cast<CloseBaton *>(req->data);
 
-    baton->mainObject->removeCallbacks();
+    baton->mainObject->cleanUpV8Resources();
     baton->mainObject->closing = false;
 
     v8::Local<v8::Value> argv[1];
