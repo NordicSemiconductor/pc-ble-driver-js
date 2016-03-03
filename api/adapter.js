@@ -1758,12 +1758,23 @@ class Adapter extends EventEmitter {
     }
 
     // callback signature function(err) {}
-    pair(deviceInstanceId, bond, callback) {
-        if (bond) {
-            const errorObject = _makeError('Bonding is not (yet) supported', undefined);
-            this.emit('error', errorObject);
-            if (callback) { callback(errorObject); }
-            return;
+    pair(deviceInstanceId, options, callback) {
+        if (!options) {
+            options = {
+                ioCaps: this._bleDriver.BLE_GAP_IO_CAPS_NONE,
+                bond: false,
+                lesc: false,
+                mitm: false,
+                oob: false,
+                keypress: false,
+            };
+        } else {
+            if (!options.ioCaps) options.ioCaps = this._bleDriver.BLE_GAP_IO_CAPS_NONE;
+            if (typeof (options.bond) == 'undefined') options.bond = false;
+            if (typeof (options.lesc) == 'undefined') options.lesc = false;
+            if (typeof (options.mitm) == 'undefined') options.mitm = false;
+            if (typeof (options.oob) == 'undefined') options.oob = false;
+            if (typeof (options.keypress) == 'undefined') options.keypress = false;
         }
 
         if (this.state.securityRequestPending) {
@@ -1785,21 +1796,25 @@ class Adapter extends EventEmitter {
         this._changeState({securityRequestPending: true});
 
         this._adapter.gapAuthenticate(device.connectionHandle, {
-            bond: false,
-            mitm: false,
-            io_caps: this._bleDriver.BLE_GAP_IO_CAPS_NONE,
-            oob: false,
+            bond: options.bond,
+            mitm: options.mitm,
+            lesc: options.lesc,
+            keypress: options.keypress,
+            io_caps: options.ioCaps,
+            oob: options.oob,
             min_key_size: 7,
             max_key_size: 16,
-            kdist_periph: {
+            kdist_own: {
                 enc: false,
                 id: false,
                 sign: false,
+                link: false,
             },
-            kdist_central: {
+            kdist_peer: {
                 enc: false,
                 id: false,
                 sign: false,
+                link: false,
             },
         },
         err => {
