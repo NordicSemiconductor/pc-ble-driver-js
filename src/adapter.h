@@ -142,6 +142,8 @@ private:
     ADAPTER_METHOD_DEFINITIONS(GapGetPPCP);
     ADAPTER_METHOD_DEFINITIONS(GapSetAppearance);
     ADAPTER_METHOD_DEFINITIONS(GapGetAppearance);
+    ADAPTER_METHOD_DEFINITIONS(GapReplyAuthKey);
+    ADAPTER_METHOD_DEFINITIONS(GapReplyDHKeyLESC);
 
     // Gattc async mehtods
     ADAPTER_METHOD_DEFINITIONS(GattcDiscoverPrimaryServices);

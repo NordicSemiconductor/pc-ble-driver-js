@@ -237,16 +237,21 @@ void Adapter::onRpcEvent(uv_async_t *handle)
 
                 GAP_EVT_CASE(CONNECTED,                 Connected,              connected,                  array, arrayIndex, eventEntry);
                 GAP_EVT_CASE(DISCONNECTED,              Disconnected,           disconnected,               array, arrayIndex, eventEntry);
-                GAP_EVT_CASE(ADV_REPORT,                AdvReport,              adv_report,                 array, arrayIndex, eventEntry);
-                GAP_EVT_CASE(SCAN_REQ_REPORT,           ScanReqReport,          scan_req_report,            array, arrayIndex, eventEntry);
-                GAP_EVT_CASE(TIMEOUT,                   Timeout,                timeout,                    array, arrayIndex, eventEntry);
-                GAP_EVT_CASE(AUTH_STATUS,               AuthStatus,             auth_status,                array, arrayIndex, eventEntry);
                 GAP_EVT_CASE(CONN_PARAM_UPDATE,         ConnParamUpdate,        conn_param_update,          array, arrayIndex, eventEntry);
-                GAP_EVT_CASE(CONN_PARAM_UPDATE_REQUEST, ConnParamUpdateRequest, conn_param_update_request,  array, arrayIndex, eventEntry);
                 GAP_EVT_CASE(SEC_PARAMS_REQUEST,        SecParamsRequest,       sec_params_request,         array, arrayIndex, eventEntry);
-                GAP_EVT_CASE(CONN_SEC_UPDATE,           ConnSecUpdate,          conn_sec_update,            array, arrayIndex, eventEntry);
                 GAP_EVT_CASE(SEC_INFO_REQUEST,          SecInfoRequest,         sec_info_request,           array, arrayIndex, eventEntry);
-                GAP_EVT_CASE(SEC_REQUEST,               SecRequest,             sec_request,                array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(PASSKEY_DISPLAY,           PasskeyDisplay,         passkey_display,            array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(KEY_PRESSED,               KeyPressed,             key_pressed,                array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(AUTH_KEY_REQUEST,          AuthKeyRequest,         auth_key_request,           array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(LESC_DHKEY_REQUEST, LESCDHKeyRequest,  lesc_dhkey_request, array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(AUTH_STATUS, AuthStatus, auth_status, array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(CONN_SEC_UPDATE, ConnSecUpdate, conn_sec_update, array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(TIMEOUT, Timeout, timeout, array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(RSSI_CHANGED,              RssiChanged,            rssi_changed, array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(ADV_REPORT,                AdvReport,              adv_report,   array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(SEC_REQUEST,               SecRequest,             sec_request,  array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(CONN_PARAM_UPDATE_REQUEST, ConnParamUpdateRequest, conn_param_update_request,  array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(SCAN_REQ_REPORT,           ScanReqReport,          scan_req_report, array, arrayIndex, eventEntry);
 
                 GATTC_EVT_CASE(PRIM_SRVC_DISC_RSP,          PrimaryServiceDiscovery,       prim_srvc_disc_rsp,         array, arrayIndex, eventEntry);
                 GATTC_EVT_CASE(REL_DISC_RSP,                RelationshipDiscovery,         rel_disc_rsp,               array, arrayIndex, eventEntry);

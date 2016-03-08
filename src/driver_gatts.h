@@ -22,7 +22,7 @@ static name_map_t gatts_event_name_map = {
     NAME_MAP_ENTRY(BLE_GATTS_EVT_SYS_ATTR_MISSING),
     NAME_MAP_ENTRY(BLE_GATTS_EVT_HVC),
     NAME_MAP_ENTRY(BLE_GATTS_EVT_SC_CONFIRM),
-    NAME_MAP_ENTRY(BLE_GATTS_EVT_TIMEOUT),
+    NAME_MAP_ENTRY(BLE_GATTS_EVT_TIMEOUT)
 };
 
 class GattsAttributeMetadata : public BleToJs<ble_gatts_attr_md_t>

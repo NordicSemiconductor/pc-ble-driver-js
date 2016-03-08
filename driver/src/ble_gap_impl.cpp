@@ -13,6 +13,7 @@
 // C++ code
 #include "adapter.h"
 #include "ble_common.h"
+#include "adapter_internal.h"
 
 #include <cstring>
 
@@ -24,8 +25,6 @@
 #include "app_ble_gap_sec_keys.h" // m_app_keys_table and app_ble_gap_sec_context_create 
 
 #include <stdint.h>
-
-extern ser_ble_gap_app_keyset_t m_app_keys_table[SER_MAX_CONNECTIONS];
 
 uint32_t sd_ble_gap_adv_start(adapter_t *adapter, ble_gap_adv_params_t const * const p_adv_params)
 {
@@ -307,7 +306,7 @@ uint32_t sd_ble_gap_adv_stop(adapter_t *adapter)
 }
 
 
-uint32_t sd_ble_gap_auth_key_reply(adapter_t *adapter, uint16_t              conn_handle,
+uint32_t sd_ble_gap_auth_key_reply(adapter_t *adapter, uint16_t conn_handle,
     uint8_t               key_type,
     uint8_t const * const key)
 {
@@ -584,20 +583,106 @@ uint32_t sd_ble_gap_sec_params_reply(adapter_t *adapter,
     };
 
     uint32_t err_code = NRF_SUCCESS;
-    uint32_t sec_tab_index = 0;
+    ser_ble_gap_app_keyset_t *keyset = nullptr;
 
     // First allocate security context for serialization
     if (p_sec_keyset)
     {
-        err_code = app_ble_gap_sec_context_create(conn_handle, &sec_tab_index);
+        auto adapterInternal = static_cast<AdapterInternal*>(adapter->internal);
+        BLESecurityContext(adapterInternal->transport);
+
+        err_code = app_ble_gap_sec_context_create(conn_handle, &keyset);
 
         if (err_code != NRF_SUCCESS)
         {
             return err_code;
         }
 
-        std::memcpy(&(m_app_keys_table[sec_tab_index].keyset), p_sec_keyset, sizeof(ble_gap_sec_keyset_t));
+        std::memcpy(&(keyset->keyset), p_sec_keyset, sizeof(ble_gap_sec_keyset_t));
     }
+
+    return encode_decode(adapter, encode_function, decode_function);
+}
+
+uint32_t sd_ble_gap_lesc_oob_data_get(adapter_t *adapter, uint16_t conn_handle, ble_gap_lesc_p256_pk_t const *p_pk_own, ble_gap_lesc_oob_data_t *p_oobd_own)
+{
+    encode_function_t encode_function = [&](uint8_t *buffer, uint32_t *length) -> uint32_t {
+        return ble_gap_lesc_oob_data_get_req_enc(
+            conn_handle,
+            p_pk_own,
+            p_oobd_own,
+            buffer,
+            length);
+    };
+
+    decode_function_t decode_function = [&](uint8_t *buffer, uint32_t length, uint32_t *result) -> uint32_t {
+        return ble_gap_lesc_oob_data_get_rsp_dec(
+            buffer,
+            length,
+            &p_oobd_own,
+            result);
+    };
+
+    return encode_decode(adapter, encode_function, decode_function);
+}
+
+uint32_t sd_ble_gap_lesc_oob_data_set(adapter_t *adapter, uint16_t conn_handle, ble_gap_lesc_oob_data_t const *p_oobd_own, ble_gap_lesc_oob_data_t const *p_oobd_peer)
+{
+    encode_function_t encode_function = [&](uint8_t *buffer, uint32_t *length) -> uint32_t {
+        return ble_gap_lesc_oob_data_set_req_enc(
+            conn_handle,
+            p_oobd_own,
+            p_oobd_peer,
+            buffer,
+            length);
+    };
+
+    decode_function_t decode_function = [&](uint8_t *buffer, uint32_t length, uint32_t *result) -> uint32_t {
+        return ble_gap_lesc_oob_data_set_rsp_dec(
+            buffer,
+            length,
+            result);
+    };
+
+    return encode_decode(adapter, encode_function, decode_function);
+}
+
+uint32_t sd_ble_gap_lesc_dhkey_reply(adapter_t *adapter, uint16_t conn_handle, ble_gap_lesc_dhkey_t const *p_dhkey)
+{
+    encode_function_t encode_function = [&](uint8_t *buffer, uint32_t *length) -> uint32_t {
+        return ble_gap_lesc_dhkey_reply_req_enc(
+            conn_handle,
+            p_dhkey,
+            buffer,
+            length);
+    };
+
+    decode_function_t decode_function = [&](uint8_t *buffer, uint32_t length, uint32_t *result) -> uint32_t {
+        return ble_gap_lesc_dhkey_reply_rsp_dec(
+            buffer,
+            length,
+            result);
+    };
+
+    return encode_decode(adapter, encode_function, decode_function);
+}
+
+uint32_t sd_ble_gap_keypress_notify(adapter_t *adapter, uint16_t conn_handle, uint8_t kp_not)
+{
+    encode_function_t encode_function = [&](uint8_t *buffer, uint32_t *length) -> uint32_t {
+        return ble_gap_keypress_notify_req_enc(
+            conn_handle,
+            kp_not,
+            buffer,
+            length);
+    };
+
+    decode_function_t decode_function = [&](uint8_t *buffer, uint32_t length, uint32_t *result) -> uint32_t {
+        return ble_gap_keypress_notify_rsp_dec(
+            buffer,
+            length,
+            result);
+    };
 
     return encode_decode(adapter, encode_function, decode_function);
 }

@@ -16,6 +16,8 @@
 #include "ble_app.h"
 #include "nrf_error.h"
 
+#include "ble_common.h"
+
 #include <memory>
 #include <iostream>
 #include <cstring> // Do not remove! Required by gcc.
@@ -138,7 +140,11 @@ void SerializationTransport::eventHandlingRunner()
         {
             eventData_t eventData = eventQueue.front();
             eventQueue.pop();
-            // Allocate memory to store decoded event including an unkown quantity of padding
+            // Allocate memory to store decoded event including an unknown quantity of padding
+
+            // Set security context
+            BLESecurityContext context(this);
+
             uint32_t possibleEventLength = 512;
             std::unique_ptr<ble_evt_t> event(static_cast<ble_evt_t*>(std::malloc(possibleEventLength)));
             uint32_t errCode = ble_event_dec(eventData.data, eventData.dataLength, event.get(), &possibleEventLength);

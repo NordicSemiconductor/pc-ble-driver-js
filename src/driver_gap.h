@@ -20,21 +20,26 @@
 #include <string>
 
 static name_map_t gap_event_name_map = {
-    NAME_MAP_ENTRY(BLE_GAP_EVT_ADV_REPORT),
-    NAME_MAP_ENTRY(BLE_GAP_EVT_SCAN_REQ_REPORT),
     NAME_MAP_ENTRY(BLE_GAP_EVT_CONNECTED),
     NAME_MAP_ENTRY(BLE_GAP_EVT_DISCONNECTED),
-    NAME_MAP_ENTRY(BLE_GAP_EVT_TIMEOUT),
-    NAME_MAP_ENTRY(BLE_GAP_EVT_RSSI_CHANGED),
     NAME_MAP_ENTRY(BLE_GAP_EVT_CONN_PARAM_UPDATE),
-    NAME_MAP_ENTRY(BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST),
     NAME_MAP_ENTRY(BLE_GAP_EVT_SEC_PARAMS_REQUEST),
+    NAME_MAP_ENTRY(BLE_GAP_EVT_SEC_INFO_REQUEST),
+    NAME_MAP_ENTRY(BLE_GAP_EVT_PASSKEY_DISPLAY),
+    NAME_MAP_ENTRY(BLE_GAP_EVT_KEY_PRESSED),
+    NAME_MAP_ENTRY(BLE_GAP_EVT_AUTH_KEY_REQUEST),
+    NAME_MAP_ENTRY(BLE_GAP_EVT_LESC_DHKEY_REQUEST),
     NAME_MAP_ENTRY(BLE_GAP_EVT_AUTH_STATUS),
     NAME_MAP_ENTRY(BLE_GAP_EVT_CONN_SEC_UPDATE),
-    NAME_MAP_ENTRY(BLE_GAP_EVT_SEC_INFO_REQUEST),
-    NAME_MAP_ENTRY(BLE_GAP_EVT_SEC_REQUEST)
+    NAME_MAP_ENTRY(BLE_GAP_EVT_TIMEOUT),
+    NAME_MAP_ENTRY(BLE_GAP_EVT_RSSI_CHANGED),
+    NAME_MAP_ENTRY(BLE_GAP_EVT_ADV_REPORT),
+    NAME_MAP_ENTRY(BLE_GAP_EVT_SEC_REQUEST),
+    NAME_MAP_ENTRY(BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST),
+    NAME_MAP_ENTRY(BLE_GAP_EVT_SCAN_REQ_REPORT)
 };
 
+#pragma region Gap events
 // Gap events -- START --
 
 template<typename EventType>
@@ -178,8 +183,46 @@ public:
     v8::Local<v8::Object> ToJs();
 };
 
-// Gap events -- END --
+class GapPasskeyDisplay : public BleDriverGapEvent<ble_gap_evt_passkey_display_t>
+{
+public:
+    GapPasskeyDisplay(const std::string timestamp, uint16_t conn_handle, ble_gap_evt_passkey_display_t *evt)
+        : BleDriverGapEvent<ble_gap_evt_passkey_display_t>(BLE_GAP_EVT_PASSKEY_DISPLAY, timestamp, conn_handle, evt) {}
 
+    v8::Local<v8::Object> ToJs();
+};
+
+class GapKeyPressed : public BleDriverGapEvent<ble_gap_evt_key_pressed_t>
+{
+public:
+    GapKeyPressed(const std::string timestamp, uint16_t conn_handle, ble_gap_evt_key_pressed_t *evt)
+        : BleDriverGapEvent<ble_gap_evt_key_pressed_t>(BLE_GAP_EVT_KEY_PRESSED, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs();
+};
+
+class GapAuthKeyRequest : public BleDriverGapEvent<ble_gap_evt_auth_key_request_t>
+{
+public:
+    GapAuthKeyRequest(const std::string timestamp, uint16_t conn_handle, ble_gap_evt_auth_key_request_t *evt)
+        : BleDriverGapEvent<ble_gap_evt_auth_key_request_t>(BLE_GAP_EVT_AUTH_KEY_REQUEST, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs();
+};
+
+class GapLESCDHKeyRequest : public BleDriverGapEvent<ble_gap_evt_lesc_dhkey_request_t>
+{
+public:
+    GapLESCDHKeyRequest(const std::string timestamp, uint16_t conn_handle, ble_gap_evt_lesc_dhkey_request_t *evt)
+        : BleDriverGapEvent<ble_gap_evt_lesc_dhkey_request_t>(BLE_GAP_EVT_LESC_DHKEY_REQUEST, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs();
+};
+
+// Gap events -- END --
+#pragma endregion Gap events
+
+#pragma region Gap structs
 // Gap structs --START --
 
 class GapAddr : public BleToJs<ble_gap_addr_t>
@@ -299,6 +342,34 @@ public:
     ble_gap_sign_info_t  *ToNative();
 };
 
+class GapLescP256Pk : public BleToJs<ble_gap_lesc_p256_pk_t>
+{
+public:
+    GapLescP256Pk(ble_gap_lesc_p256_pk_t *lesc_p256_pk) : BleToJs<ble_gap_lesc_p256_pk_t>(lesc_p256_pk) {}
+    GapLescP256Pk(v8::Local<v8::Object> js) : BleToJs<ble_gap_lesc_p256_pk_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_lesc_p256_pk_t *ToNative();
+};
+
+class GapLescDHKey : public BleToJs<ble_gap_lesc_dhkey_t>
+{
+public:
+    GapLescDHKey(ble_gap_lesc_dhkey_t *lesc_dhkey) : BleToJs<ble_gap_lesc_dhkey_t>(lesc_dhkey) {}
+    GapLescDHKey(v8::Local<v8::Object> js) : BleToJs<ble_gap_lesc_dhkey_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_lesc_dhkey_t *ToNative();
+};
+
+class GapLescOobData : public BleToJs<ble_gap_lesc_oob_data_t>
+{
+public:
+    GapLescOobData(ble_gap_lesc_oob_data_t *lesc_oob_data) : BleToJs<ble_gap_lesc_oob_data_t>(lesc_oob_data) {}
+    GapLescOobData(v8::Local<v8::Object> js) : BleToJs<ble_gap_lesc_oob_data_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_lesc_oob_data_t *ToNative();
+};
+
+
 class GapIrk : public BleToJs<ble_gap_irk_t>
 {
 public:
@@ -346,6 +417,7 @@ public:
 
 
 // Gap structs -- END --
+#pragma endregion Gap structs
 
 
 ///// Start GAP Batons ////////////////////////////////////////////////////////////////////////////////
@@ -527,6 +599,23 @@ public:
     BATON_CONSTRUCTOR(GapGetAppearanceBaton);
     uint16_t appearance;
 };
+
+struct GapReplyAuthKeyBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GapReplyAuthKeyBaton);
+    uint16_t conn_handle;
+    uint8_t key_type;
+    uint8_t *key;
+};
+
+struct GapReplyDHKeyLESCBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GapReplyDHKeyLESCBaton);
+    uint16_t conn_handle;
+    ble_gap_lesc_dhkey_t *dhkey;
+};
+
+
 
 ///// End GAP Batons //////////////////////////////////////////////////////////////////////////////////
 

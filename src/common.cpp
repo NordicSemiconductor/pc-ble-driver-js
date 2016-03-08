@@ -32,6 +32,7 @@ catch(char const *error) \
 }
 
 static name_map_t error_message_name_map = {
+    // Generic errors
     NAME_MAP_ENTRY(NRF_SUCCESS),
     NAME_MAP_ENTRY(NRF_ERROR_SVC_HANDLER_MISSING),
     NAME_MAP_ENTRY(NRF_ERROR_SOFTDEVICE_NOT_ENABLED),
@@ -49,7 +50,22 @@ static name_map_t error_message_name_map = {
     NAME_MAP_ENTRY(NRF_ERROR_NULL),
     NAME_MAP_ENTRY(NRF_ERROR_FORBIDDEN),
     NAME_MAP_ENTRY(NRF_ERROR_INVALID_ADDR),
-    NAME_MAP_ENTRY(NRF_ERROR_BUSY)
+    NAME_MAP_ENTRY(NRF_ERROR_BUSY),
+
+    // GAP related errors
+    NAME_MAP_ENTRY(BLE_ERROR_GAP_UUID_LIST_MISMATCH),
+    NAME_MAP_ENTRY(BLE_ERROR_GAP_DISCOVERABLE_WITH_WHITELIST),
+    NAME_MAP_ENTRY(BLE_ERROR_GAP_INVALID_BLE_ADDR),
+    NAME_MAP_ENTRY(BLE_ERROR_GAP_WHITELIST_IN_USE),
+
+    // GATT related errors
+
+    // GATTC related errors
+    NAME_MAP_ENTRY(BLE_ERROR_GATTC_PROC_NOT_PERMITTED),
+
+    // GATTS related errors
+    NAME_MAP_ENTRY(BLE_ERROR_GATTS_INVALID_ATTR_TYPE),
+    NAME_MAP_ENTRY(BLE_ERROR_GATTS_SYS_ATTR_MISSING),
 };
 
 static name_map_t sd_rpc_app_status_map = {
@@ -704,7 +720,7 @@ v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char const *cu
         {
             std::ostringstream errorStringStream;
             errorStringStream << "Error occured when " << customMessage << ". "
-                << "Errorcode: " << ConversionUtility::valueToString(errorCode, error_message_name_map) << " (" << errorCode << ")" << std::endl;
+                << "Errorcode: " << ConversionUtility::valueToString(errorCode, error_message_name_map) << " (0x" << std::hex << errorCode << ")" << std::endl;
 
             v8::Local<v8::Value> error = v8::Exception::Error(ConversionUtility::toJsString(errorStringStream.str())->ToString());
 

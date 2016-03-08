@@ -17,16 +17,15 @@
 #include "app_util.h"
 #include "app_ble_gap_sec_keys.h"
 
-extern ser_ble_gap_app_keyset_t m_app_keys_table[];
-
-uint32_t ble_gap_evt_auth_status_dec(uint8_t const * const p_buf,
-                                     uint32_t              packet_len,
-                                     ble_evt_t * const     p_event,
-                                     uint32_t * const      p_event_len)
+uint32_t ble_gap_evt_auth_status_dec(
+        uint8_t const * const p_buf,
+        uint32_t              packet_len,
+        ble_evt_t * const     p_event,
+        uint32_t * const      p_event_len)
 {
     uint32_t index = 0;
     uint32_t err_code = NRF_SUCCESS;
-    uint32_t conn_index;
+    ser_ble_gap_app_keyset_t *keyset;
 
     SER_ASSERT_NOT_NULL(p_buf);
     SER_ASSERT_NOT_NULL(p_event_len);
@@ -53,10 +52,10 @@ uint32_t ble_gap_evt_auth_status_dec(uint8_t const * const p_buf,
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
     // keyset is an extension of standard event data - used to synchronize keys at application
-    err_code = app_ble_gap_sec_context_find(p_event->evt.gap_evt.conn_handle, &conn_index);
+    err_code = app_ble_gap_sec_context_find(p_event->evt.gap_evt.conn_handle, &keyset);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
-    err_code = ble_gap_sec_keyset_t_dec(p_buf, packet_len, &index, &(m_app_keys_table[conn_index].keyset));
+    err_code = ble_gap_sec_keyset_t_dec(p_buf, packet_len, &index, keyset);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
 
     err_code = app_ble_gap_sec_context_destroy(p_event->evt.gap_evt.conn_handle);
