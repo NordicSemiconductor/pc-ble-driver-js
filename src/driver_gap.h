@@ -615,7 +615,49 @@ public:
     ble_gap_lesc_dhkey_t *dhkey;
 };
 
+struct GapNotifyKeypressBaton : public Baton
+{
+public:
+    BATON_CONSTRUCTOR(GapNotifyKeypressBaton);
+    uint16_t conn_handle;
+    uint8_t kp_not;
+};
 
+struct GapGetLESCOOBDataBaton : public Baton
+{
+public:
+    BATON_CONSTRUCTOR(GapGetLESCOOBDataBaton);
+    uint16_t conn_handle;
+    ble_gap_lesc_p256_pk_t *p_pk_own;
+    ble_gap_lesc_oob_data_t *p_oobd_own;
+};
+
+struct GapSetLESCOOBDataBaton : public Baton
+{
+public:
+    BATON_CONSTRUCTOR(GapSetLESCOOBDataBaton);
+    uint16_t conn_handle;
+    ble_gap_lesc_oob_data_t *p_oobd_own;
+    ble_gap_lesc_oob_data_t *p_oobd_peer;
+};
+
+struct GapReplySecurityInfoBaton : public Baton
+{
+public:
+    BATON_CONSTRUCTOR(GapReplySecurityInfoBaton);
+    uint16_t conn_handle;
+    ble_gap_enc_info_t *p_enc_info;
+    ble_gap_irk_t *p_id_info;
+    ble_gap_sign_info_t *p_sign_info;
+};
+
+struct GapGetConnectionSecurityBaton : public Baton
+{
+public:
+    BATON_CONSTRUCTOR(GapGetConnectionSecurityBaton);
+    uint16_t conn_handle;
+    ble_gap_conn_sec_t *p_conn_sec;
+};
 
 ///// End GAP Batons //////////////////////////////////////////////////////////////////////////////////
 

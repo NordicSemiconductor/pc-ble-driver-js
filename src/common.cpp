@@ -244,6 +244,16 @@ uint8_t ConversionUtility::getNativeBool(v8::Local<v8::Value>js)
     return ConvUtil<bool>::getNativeBool(js);
 }
 
+bool ConversionUtility::getBool(v8::Local<v8::Object>js, const char *name)
+{
+    RETURN_VALUE_OR_THROW_EXCEPTION(ConvUtil<bool>::getNativeBool(js, name));
+}
+
+bool ConversionUtility::getBool(v8::Local<v8::Value>js)
+{
+    return ConvUtil<bool>::getNativeBool(js);
+}
+
 uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Object>js, const char *name)
 {
     v8::Local<v8::Value> value = Utility::Get(js, name);

@@ -257,6 +257,8 @@ public:
     static double       getNativeDouble(v8::Local<v8::Value> js);
     static uint8_t      getNativeBool(v8::Local<v8::Object>js, const char *name);
     static uint8_t      getNativeBool(v8::Local<v8::Value>js);
+    static bool         getBool(v8::Local<v8::Object>js, const char *name);
+    static bool         getBool(v8::Local<v8::Value>js);
     static uint8_t *    getNativePointerToUint8(v8::Local<v8::Object>js, const char *name);
     static uint8_t *    getNativePointerToUint8(v8::Local<v8::Value>js);
     static uint16_t *   getNativePointerToUint16(v8::Local<v8::Object>js, const char *name);

@@ -145,6 +145,11 @@ private:
     ADAPTER_METHOD_DEFINITIONS(GapReplyAuthKey);
     ADAPTER_METHOD_DEFINITIONS(GapReplyDHKeyLESC);
 
+    ADAPTER_METHOD_DEFINITIONS(GapNotifyKeypress);
+    ADAPTER_METHOD_DEFINITIONS(GapGetLESCOOBData);
+
+    ADAPTER_METHOD_DEFINITIONS(GapSetLESCOOBData);
+
     // Gattc async mehtods
     ADAPTER_METHOD_DEFINITIONS(GattcDiscoverPrimaryServices);
     ADAPTER_METHOD_DEFINITIONS(GattcDiscoverRelationship);

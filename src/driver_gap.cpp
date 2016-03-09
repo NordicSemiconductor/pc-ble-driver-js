@@ -3356,7 +3356,8 @@ NAN_METHOD(Adapter::GapReplyDHKeyLESC)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
-    ble_gap_lesc_dhkey_t dhkey;
+    uint8_t *key;
+    ble_gap_lesc_dhkey_t *dhkey = new ble_gap_lesc_dhkey_t();
     v8::Local<v8::Function> callback;
     auto argumentcount = 0;
 
@@ -3365,8 +3366,7 @@ NAN_METHOD(Adapter::GapReplyDHKeyLESC)
         conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
         argumentcount++;
 
-        // TODO:
-        //dhkey.key = ConversionUtility::getNativeUint8(info[argumentcount]);
+        key = ConversionUtility::getNativePointerToUint8(info[argumentcount]);
         argumentcount++;
 
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
@@ -3381,8 +3381,10 @@ NAN_METHOD(Adapter::GapReplyDHKeyLESC)
 
     auto baton = new GapReplyDHKeyLESCBaton(callback);
     baton->conn_handle = conn_handle;
-    
-    // baton->dhkey = dhkey;// TODO
+
+    memcpy(dhkey->key, key, sizeof(key));
+    baton->dhkey = dhkey;
+    delete key;
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -3410,10 +3412,236 @@ void Adapter::AfterGapReplyDHKeyLESC(uv_work_t *req)
     }
 
     baton->callback->Call(1, argv);
+    delete baton->dhkey;
     delete baton;
 }
 #pragma endregion GapReplyDHKeyLESC
 
+#pragma region GapNotifyKeypress
+
+NAN_METHOD(Adapter::GapNotifyKeypress)
+{
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    uint16_t conn_handle;
+    uint8_t kp_not;
+    v8::Local<v8::Function> callback;
+    auto argumentcount = 0;
+
+    try
+    {
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        kp_not = ConversionUtility::getNativeUint8(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    auto baton = new GapNotifyKeypressBaton(callback);
+    baton->conn_handle = conn_handle;
+    baton->kp_not = kp_not;
+}
+
+// This runs in a worker thread (not Main Thread)
+void Adapter::GapNotifyKeypress(uv_work_t *req)
+{
+    auto baton = static_cast<GapNotifyKeypressBaton *>(req->data);
+    baton->result = sd_ble_gap_keypress_notify(baton->adapter, baton->conn_handle, baton->kp_not);
+}
+
+// This runs in Main Thread
+void Adapter::AfterGapNotifyKeypress(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+
+    auto baton = static_cast<GapNotifyKeypressBaton *>(req->data);
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "notify keypress");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+
+    delete baton;
+}
+#pragma endregion GapNotifyKeypress
+
+#pragma region GapGetLESCOOBData
+
+NAN_METHOD(Adapter::GapGetLESCOOBData)
+{
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    uint16_t conn_handle;
+    uint8_t *key;
+    ble_gap_lesc_p256_pk_t *p_pk_own = new ble_gap_lesc_p256_pk_t();
+    v8::Local<v8::Function> callback;
+    auto argumentcount = 0;
+
+    try
+    {
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        key = ConversionUtility::getNativePointerToUint8(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    auto baton = new GapGetLESCOOBDataBaton(callback);
+    baton->conn_handle = conn_handle;
+    memcpy(p_pk_own->pk, key, sizeof(key));
+    baton->p_pk_own = p_pk_own;
+    delete key;
+}
+
+// This runs in a worker thread (not Main Thread)
+void Adapter::GapGetLESCOOBData(uv_work_t *req)
+{
+    auto baton = static_cast<GapGetLESCOOBDataBaton *>(req->data);
+    baton->result = sd_ble_gap_lesc_oob_data_get(baton->adapter, baton->conn_handle, baton->p_pk_own, baton->p_oobd_own);
+}
+
+// This runs in Main Thread
+void Adapter::AfterGapGetLESCOOBData(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+
+    auto baton = static_cast<GapGetLESCOOBDataBaton *>(req->data);
+    v8::Local<v8::Value> argv[2];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "get lesc oob data");
+        argv[1] = Nan::Undefined();
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+        argv[1] = GapLescOobData(baton->p_oobd_own);
+    }
+
+    baton->callback->Call(2, argv);
+
+    delete baton->p_pk_own;
+    delete baton->p_oobd_own;
+    delete baton;
+}
+#pragma endregion GapGetLESCOOBData
+
+#pragma region GapSetLESCOOBData
+
+NAN_METHOD(Adapter::GapSetLESCOOBData)
+{
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    uint16_t conn_handle;
+    v8::Local<v8::Object> p_oobd_own;
+    v8::Local<v8::Object> p_oobd_peer;
+    v8::Local<v8::Function> callback;
+    auto argumentcount = 0;
+
+    try
+    {
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        p_oobd_own = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        p_oobd_peer = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    auto baton = new GapSetLESCOOBDataBaton(callback);
+    baton->conn_handle = conn_handle;
+    baton->p_oobd_own = GapLescOobData(p_oobd_own);
+    baton->p_oobd_peer = GapLescOobData(p_oobd_peer);
+
+    try
+    {
+        baton->p_oobd_own = GapLescOobData(p_oobd_own);
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_oobd_own", error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    try
+    {
+        baton->p_oobd_peer = GapLescOobData(p_oobd_peer);
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_oobd_peer", error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+}
+
+// This runs in a worker thread (not Main Thread)
+void Adapter::GapSetLESCOOBData(uv_work_t *req)
+{
+    auto baton = static_cast<GapSetLESCOOBDataBaton *>(req->data);
+    baton->result = sd_ble_gap_lesc_oob_data_set(baton->adapter, baton->conn_handle, baton->p_oobd_own, baton->p_oobd_peer);
+}
+
+// This runs in Main Thread
+void Adapter::AfterGapSetLESCOOBData(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+
+    auto baton = static_cast<GapSetLESCOOBDataBaton *>(req->data);
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "set lesc oob data");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+
+    delete baton->p_oobd_own;
+    delete baton->p_oobd_peer;
+    delete baton;
+}
+#pragma endregion GapSetLESCOOBData
+ 
 #pragma endregion JavaScript function implementations
 
 #pragma region JavaScript constants from ble_gap.h
