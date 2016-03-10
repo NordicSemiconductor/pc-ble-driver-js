@@ -1902,7 +1902,7 @@ class Adapter extends EventEmitter {
         const device = this.getDevice(deviceInstanceId);
 
         if (!device) {
-            const errorObject = _makeError('Failed to reply lesc dh key', 'Failed to find device with id ' + deviceInstanceId);
+            const errorObject = _makeError('Failed to notify keypress', 'Failed to find device with id ' + deviceInstanceId);
             this.emit('error', errorObject);
             if (callback) { callback(errorObject); }
             return;
@@ -1911,7 +1911,7 @@ class Adapter extends EventEmitter {
         this._adapter.gapNotifyKeypress(device.connectionHandle, notificationType, err => {
             let errorObject;
             if (err) {
-                errorObject = _makeError('Failed to reply lesc dh key');
+                errorObject = _makeError('Failed to notify keypress');
                 this.emit('error', errorObject);
             }
 
@@ -1919,16 +1919,46 @@ class Adapter extends EventEmitter {
         });
     }
 
-    generateLescOobData(deviceInstanceId, ownPublicKey, callback) {
-        if (deviceInstanceId) {
-            const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
-        } else {
-            const connectionHandle = this._bleDriver.BLE_CONN_HANDLE_INVALID;
+    getLescOobData(deviceInstanceId, ownPublicKey, callback) {
+        const device = this.getDevice(deviceInstanceId);
+
+        if (!device) {
+            const errorObject = _makeError('Failed to get lesc oob data', 'Failed to find device with id ' + deviceInstanceId);
+            this.emit('error', errorObject);
+            if (callback) { callback(errorObject); }
+            return;
         }
+
+        this._adapter.gapGetLescOobData(device.connectionHandle, ownPublicKey, (err, ownOobData) => {
+            let errorObject;
+            if (err) {
+                errorObject = _makeError('Failed to get lesc oob data');
+                this.emit('error', errorObject);
+            }
+
+            if (callback) { callback(errorObject, ownOobData); }
+        })
     }
 
     setLescOobData(deviceInstanceId, ownOobData, peerOobData, callback) {
-        const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
+        const device = this.getDevice(deviceInstanceId);
+
+        if (!device) {
+            const errorObject = _makeError('Failed to set lesc oob data', 'Failed to find device with id ' + deviceInstanceId);
+            this.emit('error', errorObject);
+            if (callback) { callback(errorObject); }
+            return;
+        }
+
+        this._adapter.gapSetLescOobData(device.connectionHandle, ownOobData, peerOobData, err => {
+            let errorObject;
+            if (err) {
+                errorObject = _makeError('Failed to set lesc oob data');
+                this.emit('error', errorObject);
+            }
+
+            if (callback) { callback(errorObject); }
+        });
     }
 
     // encrypt(deviceInstanceId, masterId, encInfo) {
