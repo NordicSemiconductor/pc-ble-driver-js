@@ -1264,7 +1264,7 @@ ble_gap_scan_params_t *GapScanParams::ToNative()
     memset(params, 0, sizeof(ble_gap_scan_params_t));
 
     params->active = ConversionUtility::getNativeBool(jsobj, "active");
-    params->selective = ConversionUtility::getNativeBool(jsobj, "selective");
+    //params->selective = ConversionUtility::getNativeBool(jsobj, "selective");
     //TODO: params->p_whitelist = 
     params->interval = ConversionUtility::msecsToUnitsUint16(jsobj, "interval", ConversionUtility::ConversionUnit625ms);
     params->window = ConversionUtility::msecsToUnitsUint16(jsobj, "window", ConversionUtility::ConversionUnit625ms);
