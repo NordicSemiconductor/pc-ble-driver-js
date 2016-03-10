@@ -605,10 +605,8 @@ v8::Local<v8::Object> GapAuthStatus::ToJs()
     Utility::Set(obj, "bonded", ConversionUtility::toJsBool(evt->bonded));
     Utility::Set(obj, "sm1_levels", GapSecLevels(&(evt->sm1_levels)).ToJs());
     Utility::Set(obj, "sm2_levels", GapSecLevels(&(evt->sm2_levels)).ToJs());
-#if 0 // TODO
-    Utility::Set(obj, "kdist_periph", GapSecKdist(&(evt->kdist_periph)).ToJs());
-    Utility::Set(obj, "kdist_central", GapSecKdist(&(evt->kdist_central)).ToJs());
-#endif
+    Utility::Set(obj, "kdist_own", GapSecKdist(&(evt->kdist_own)).ToJs());
+    Utility::Set(obj, "kdist_peer", GapSecKdist(&(evt->kdist_peer)).ToJs());
 
     return scope.Escape(obj);
 }
@@ -801,10 +799,8 @@ v8::Local<v8::Object> GapSecKeyset::ToJs()
 {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-#if 0 // TODO:
-    Utility::Set(obj, "keys_periph", GapSecKeys(&native->keys_periph).ToJs());
-    Utility::Set(obj, "keys_central", GapSecKeys(&native->keys_central).ToJs());
-#endif
+    Utility::Set(obj, "keys_own", GapSecKeys(&native->keys_own).ToJs());
+    Utility::Set(obj, "keys_peer", GapSecKeys(&native->keys_peer).ToJs());
 
     return scope.Escape(obj);
 }
@@ -862,6 +858,8 @@ v8::Local<v8::Object> GapSecKeys::ToJs()
         Utility::Set(obj, "sign_key", GapSignInfo(native->p_sign_key).ToJs());
     }
 
+    Utility::Set(obj, "pk", GapLescP256Pk(native->p_pk).ToJs());
+
     return scope.Escape(obj);
 }
 
@@ -878,6 +876,7 @@ ble_gap_sec_keys_t *GapSecKeys::ToNative()
     keys->p_enc_key = GapEncKey(ConversionUtility::getJsObjectOrNull(jsobj, "enc_key"));
     keys->p_id_key = GapIdKey(ConversionUtility::getJsObjectOrNull(jsobj, "id_key"));
     keys->p_sign_key = GapSignInfo(ConversionUtility::getJsObjectOrNull(jsobj, "sign_key"));
+    keys->p_pk = GapLescP256Pk(ConversionUtility::getJsObject(jsobj, "pk"));
 
     return keys;
 }
