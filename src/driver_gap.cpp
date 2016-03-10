@@ -172,9 +172,7 @@ static name_map_t gap_auth_key_types =
 #pragma endregion Name Map entries to enable constants (value and name) from C in JavaScript
 
 #pragma region Conversion methods to/from JavaScript/C++
-//
-// GapAddr -- START --
-//
+#pragma region GapAddr
 
 v8::Local<v8::Object> GapAddr::ToJs()
 {
@@ -239,13 +237,9 @@ ble_gap_addr_t *GapAddr::ToNative()
     return address;
 }
 
-//
-// GapAddr -- END --
-//
+#pragma endregion GapAddr
 
-//
-// GapConnParams -- START --
-//
+#pragma region GapConnParams
 
 v8::Local<v8::Object> GapConnParams::ToJs()
 {
@@ -278,14 +272,10 @@ ble_gap_conn_params_t *GapConnParams::ToNative()
     return conn_params;
 }
 
-//
-// GapConnParams -- END --
-//
+#pragma endregion GapConnParams
 
 
-//
-// GapConnSecMode -- START --
-//
+#pragma region GapConnSecMode
 
 v8::Local<v8::Object> GapConnSecMode::ToJs()
 {
@@ -312,13 +302,9 @@ ble_gap_conn_sec_mode_t *GapConnSecMode::ToNative()
     return conn_sec_mode;
 }
 
-//
-// GapConnSecMode -- END --
-//
+#pragma endregion GapConnSecMode
 
-//
-// GapAdvReport -- START --
-//
+#pragma region GapAdvReport
 v8::Local<v8::Object> GapAdvReport::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -486,13 +472,9 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
     return scope.Escape(obj);
 }
 
-//
-// GapAdvReport -- END --
-//
+#pragma endregion GapAdvReport
 
-//
-// GapScanReqReport -- START --
-//
+#pragma region GapScanReqReport
 v8::Local<v8::Object> GapScanReqReport::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -504,13 +486,9 @@ v8::Local<v8::Object> GapScanReqReport::ToJs()
     return scope.Escape(obj);
 }
 
-//
-// GapScanReqReport -- END --
-//
+#pragma endregion GapScanReqReport
 
-//
-// GapConnected -- START --
-//
+#pragma region GapConnected
 v8::Local<v8::Object> GapConnected::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -531,13 +509,9 @@ v8::Local<v8::Object> GapConnected::ToJs()
     return scope.Escape(obj);
 }
 
-//
-// GapConnected -- END --
-//
+#pragma endregion GapConnected
 
-//
-// GapDisconnected -- START --
-//
+#pragma region GapDisconnected
 v8::Local<v8::Object> GapDisconnected::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -549,13 +523,9 @@ v8::Local<v8::Object> GapDisconnected::ToJs()
     return scope.Escape(obj);
 }
 
-//
-// GapDisconnected -- END --
-//
+#pragma endregion GapDisconnected
 
-//
-// GapTimeout -- START --
-//
+#pragma region GapTimeout
 v8::Local<v8::Object> GapTimeout::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -567,13 +537,9 @@ v8::Local<v8::Object> GapTimeout::ToJs()
     return scope.Escape(obj);
 }
 
-//
-// GapTimeout -- END --
-//
+#pragma endregion GapTimeout
 
-//
-// GapRssiChanged -- START --
-//
+#pragma region GapRssiChanged
 v8::Local<v8::Object> GapRssiChanged::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -584,13 +550,9 @@ v8::Local<v8::Object> GapRssiChanged::ToJs()
     return scope.Escape(obj);
 }
 
-//
-// GapRssiChanged -- END --
-//
+#pragma endregion GapRssiChanged
 
-//
-// GapConnParamUpdate -- START --
-//
+#pragma region GapConnParamUpdate
 v8::Local<v8::Object> GapConnParamUpdate::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -601,13 +563,9 @@ v8::Local<v8::Object> GapConnParamUpdate::ToJs()
     return scope.Escape(obj);
 }
 
-//
-// GapConnParamUpdate -- END --
-//
+#pragma endregion GapConnParamUpdate
 
-//
-// GapConnParamUpdateRequest -- START --
-//
+#pragma region GapConnParamUpdateRequest
 v8::Local<v8::Object> GapConnParamUpdateRequest::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -617,14 +575,10 @@ v8::Local<v8::Object> GapConnParamUpdateRequest::ToJs()
     return scope.Escape(obj);
 }
 
-//
-// GapConnParamUpdateRequest -- END --
-//
+#pragma endregion GapConnParamUpdateRequest
 
 
-//
-// GapSecParamsRequest -- START --
-//
+#pragma region GapSecParamsRequest
 
 v8::Local<v8::Object> GapSecParamsRequest::ToJs()
 {
@@ -635,13 +589,9 @@ v8::Local<v8::Object> GapSecParamsRequest::ToJs()
     return scope.Escape(obj);
 }
 
-//
-// GapSecParamsRequest -- END --
-//
+#pragma endregion GapSecParamsRequest
 
-//
-// GapAuthStatus -- START --
-//
+#pragma region GapAuthStatus
 
 v8::Local<v8::Object> GapAuthStatus::ToJs()
 {
@@ -663,13 +613,9 @@ v8::Local<v8::Object> GapAuthStatus::ToJs()
     return scope.Escape(obj);
 }
 
-//
-// GapAuthStatus -- END --
-//
+#pragma endregion GapAuthStatus
 
-//
-// GapConnSecUpdate -- START --
-//
+#pragma region GapConnSecUpdate
 
 v8::Local<v8::Object> GapConnSecUpdate::ToJs()
 {
@@ -680,11 +626,9 @@ v8::Local<v8::Object> GapConnSecUpdate::ToJs()
     return scope.Escape(obj);
 }
 
-//
-// GapConnSecUpdate -- END --
-//
+#pragma endregion GapConnSecUpdate
 
-// GapSecInfoRequest -- START --
+#pragma region GapSecInfoRequest
 
 v8::Local<v8::Object> GapSecInfoRequest::ToJs()
 {
@@ -699,9 +643,9 @@ v8::Local<v8::Object> GapSecInfoRequest::ToJs()
     return scope.Escape(obj);
 }
 
-// GapSecInfoRequest -- END --
+#pragma endregion GapSecInfoRequest
 
-// GapSecRequest -- START --
+#pragma region GapSecRequest
 
 v8::Local<v8::Object> GapSecRequest::ToJs()
 {
@@ -713,10 +657,10 @@ v8::Local<v8::Object> GapSecRequest::ToJs()
     return scope.Escape(obj);
 }
 
-// GapSecRequest -- END --
+#pragma endregion GapSecRequest
 
 
-// GapPasskeyDisplay -- START --
+#pragma region GapPasskeyDisplay
 
 v8::Local<v8::Object> GapPasskeyDisplay::ToJs()
 {
@@ -728,10 +672,10 @@ v8::Local<v8::Object> GapPasskeyDisplay::ToJs()
     return scope.Escape(obj);
 }
 
-// GapPasskeyDisplay -- END --
+#pragma endregion GapPasskeyDisplay
 
 
-// GapKeyPressed -- START --
+#pragma region GapKeyPressed
 
 v8::Local<v8::Object> GapKeyPressed::ToJs()
 {
@@ -742,9 +686,9 @@ v8::Local<v8::Object> GapKeyPressed::ToJs()
     return scope.Escape(obj);
 }
 
-// GapPasskeyDisplay -- END --
+#pragma endregion GapPasskeyDisplay
 
-// GapAuthKeyRequest -- START --
+#pragma region GapAuthKeyRequest
 v8::Local<v8::Object> GapAuthKeyRequest::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -753,9 +697,9 @@ v8::Local<v8::Object> GapAuthKeyRequest::ToJs()
     Utility::Set(obj, "key_type", ConversionUtility::valueToJsString(evt->key_type, gap_auth_key_types));
     return scope.Escape(obj);
 }
-// GapAuthKeyRequest -- END --
+#pragma endregion GapAuthKeyRequest
 
-// GapLESCDHKeyRequest -- START --
+#pragma region GapLESCDHKeyRequest
 v8::Local<v8::Object> GapLESCDHKeyRequest::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -765,13 +709,11 @@ v8::Local<v8::Object> GapLESCDHKeyRequest::ToJs()
     Utility::Set(obj, "oobd_req", ConversionUtility::toJsBool(evt->oobd_req));
     return scope.Escape(obj);
 }
-// GapLESCDHKeyRequest -- END --
+#pragma endregion GapLESCDHKeyRequest
 
 
 
-//
-// GapSecParams -- START --
-//
+#pragma region GapSecParams
 
 v8::Local<v8::Object> GapSecParams::ToJs()
 {
@@ -817,13 +759,9 @@ ble_gap_sec_params_t *GapSecParams::ToNative()
     return params;
 }
 
-//
-// GapSecParams -- END --
-//
+#pragma endregion GapSecParams
 
-//
-// GapSecKdist -- START --
-//
+#pragma region GapSecKdist
 
 v8::Local<v8::Object> GapSecKdist::ToJs()
 {
@@ -855,13 +793,9 @@ ble_gap_sec_kdist_t *GapSecKdist::ToNative()
     return kdist;
 }
 
-//
-// GapSecKdist -- END --
-//
+#pragma endregion GapSecKdist
 
-//
-// GapSecKeyset -- START --
-//
+#pragma region GapSecKeyset
 
 v8::Local<v8::Object> GapSecKeyset::ToJs()
 {
@@ -893,13 +827,9 @@ ble_gap_sec_keyset_t *GapSecKeyset::ToNative()
     return keyset;
 }
 
-//
-// GapSecKeyset -- END --
-//
+#pragma endregion GapSecKeyset
 
-//
-// GapSecKeys -- START --
-//
+#pragma region GapSecKeys
 
 v8::Local<v8::Object> GapSecKeys::ToJs()
 {
@@ -952,13 +882,9 @@ ble_gap_sec_keys_t *GapSecKeys::ToNative()
     return keys;
 }
 
-//
-// GapSecKeys -- END --
-//
+#pragma endregion GapSecKeys
 
-//
-// GapEncKeys -- START --
-//
+#pragma region GapEncKeys
 
 v8::Local<v8::Object> GapEncKey::ToJs()
 {
@@ -986,13 +912,9 @@ ble_gap_enc_key_t *GapEncKey::ToNative()
     return enc_key;
 }
 
-//
-// GapEncKeys -- END --
-//
+#pragma endregion GapEncKeys
 
-//
-// GapIdKey -- START --
-//
+#pragma region GapIdKey
 
 v8::Local<v8::Object> GapIdKey::ToJs()
 {
@@ -1020,13 +942,9 @@ ble_gap_id_key_t *GapIdKey::ToNative()
     return id_key;
 }
 
-//
-// GapIdKey -- END --
-//
+#pragma endregion GapIdKey
 
-//
-// GapSignInfo -- START --
-//
+#pragma region GapSignInfo
 
 v8::Local<v8::Object> GapSignInfo::ToJs()
 {
@@ -1057,14 +975,10 @@ ble_gap_sign_info_t *GapSignInfo::ToNative()
     return sign_info;
 }
 
-//
-// GapSignInfo -- END --
-//
+#pragma endregion GapSignInfo
 
 
-//
-// GapLescP256Pk -- START --
-//
+#pragma region GapLescP256Pk
 
 v8::Local<v8::Object> GapLescP256Pk::ToJs()
 {
@@ -1095,14 +1009,10 @@ ble_gap_lesc_p256_pk_t *GapLescP256Pk::ToNative()
     return lesc_p256;
 }
 
-//
-// GapLescP256Pk -- END --
-//
+#pragma endregion GapLescP256Pk
 
 
-//
-// GapLescDHKey -- START --
-//
+#pragma region GapLescDHKey
 
 v8::Local<v8::Object> GapLescDHKey::ToJs()
 {
@@ -1132,14 +1042,10 @@ ble_gap_lesc_dhkey_t *GapLescDHKey::ToNative()
     return lesc_dhkey;
 }
 
-//
-// GapLescDHKey -- END --
-//
+#pragma endregion GapLescDHKey
 
 
-//
-// GapLescOobData  -- START --
-//
+#pragma region GapLescOobData
 
 v8::Local<v8::Object> GapLescOobData::ToJs()
 {
@@ -1181,17 +1087,13 @@ ble_gap_lesc_oob_data_t *GapLescOobData::ToNative()
     return lesc_oob_data;
 }
 
-//
-// GapLescOobData -- END --
-//
+#pragma endregion GapLescOobData
 
 
 
 
 
-//
-// GapIrk -- START --
-//
+#pragma region GapIrk
 
 v8::Local<v8::Object> GapIrk::ToJs()
 {
@@ -1221,13 +1123,9 @@ ble_gap_irk_t *GapIrk::ToNative()
     return irk;
 }
 
-//
-// GapIrk -- END --
-//
+#pragma endregion GapIrk
 
-//
-// GapEncInfo -- START --
-//
+#pragma region GapEncInfo
 
 v8::Local<v8::Object> GapEncInfo::ToJs()
 {
@@ -1264,13 +1162,9 @@ ble_gap_enc_info_t *GapEncInfo::ToNative()
     return enc_info;
 }
 
-//
-// GapEncInfo -- END --
-//
+#pragma endregion GapEncInfo
 
-//
-// GapMasterId -- START --
-//
+#pragma region GapMasterId
 
 v8::Local<v8::Object> GapMasterId::ToJs()
 {
@@ -1304,13 +1198,9 @@ ble_gap_master_id_t *GapMasterId::ToNative()
     return master_id;
 }
 
-//
-// GapMasterId -- END --
-//
+#pragma endregion GapMasterId
 
-//
-// GapSecLevels -- START --
-//
+#pragma region GapSecLevels
 
 v8::Local<v8::Object> GapSecLevels::ToJs()
 {
@@ -1339,13 +1229,9 @@ ble_gap_sec_levels_t *GapSecLevels::ToNative()
     return sec_levels;
 }
 
-//
-// GapSecLevels -- END --
-//
+#pragma endregion GapSecLevels
 
-//
-// GapConnSec -- START --
-//
+#pragma region GapConnSec
 
 v8::Local<v8::Object> GapConnSec::ToJs()
 {
@@ -1372,13 +1258,9 @@ ble_gap_conn_sec_t *GapConnSec::ToNative()
     return conn_sec;
 }
 
-//
-// GapConnSec -- END --
-//
+#pragma endregion GapConnSec
 
-//
-// GapScanParams -- START --
-//
+#pragma region GapScanParams
 
 v8::Local<v8::Object> GapScanParams::ToJs()
 {
@@ -1408,13 +1290,9 @@ ble_gap_scan_params_t *GapScanParams::ToNative()
     return params;
 }
 
-//
-// GapScanParams -- END --
-//
+#pragma endregion GapScanParams
 
-//
-// GapAdvParams -- START --
-//
+#pragma region GapAdvParams
 
 v8::Local<v8::Object> GapAdvParams::ToJs()
 {
@@ -1446,13 +1324,9 @@ ble_gap_adv_params_t *GapAdvParams::ToNative()
     return params;
 }
 
-//
-// GapAdvParams -- END --
-//
+#pragma endregion GapAdvParams
 
-//
-// GapAdvChannelMask -- START --
-//
+#pragma region GapAdvChannelMask
 
 v8::Local<v8::Object> GapAdvChannelMask::ToJs()
 {
@@ -1479,14 +1353,13 @@ ble_gap_adv_ch_mask_t *GapAdvChannelMask::ToNative()
     return mask;
 }
 
-//
-// GapAdvChannelMask -- END --
-//
+#pragma endregion GapAdvChannelMask
 
 #pragma endregion Conversion methods to/from JavaScript/C++
 
 #pragma region JavaScript function implementations
 
+#pragma region GapSetAddress
 NAN_METHOD(Adapter::GapSetAddress)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
@@ -1559,6 +1432,10 @@ void Adapter::AfterGapSetAddress(uv_work_t *req)
     delete baton;
 }
 
+#pragma endregion GapSetAddress
+
+#pragma region GapGetAddress
+
 NAN_METHOD(Adapter::GapGetAddress)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
@@ -1617,6 +1494,10 @@ void Adapter::AfterGapGetAddress(uv_work_t *req)
     baton->callback->Call(2, argv);
     delete baton;
 }
+
+#pragma endregion GapGetAddress
+
+#pragma region GapUpdateConnectionParameters
 
 NAN_METHOD(Adapter::GapUpdateConnectionParameters)
 {
@@ -1692,6 +1573,10 @@ void Adapter::AfterGapUpdateConnectionParameters(uv_work_t *req)
     delete baton;
 }
 
+#pragma endregion GapUpdateConnectionParameters
+
+#pragma region GapDisconnect
+
 NAN_METHOD(Adapter::GapDisconnect)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
@@ -1754,6 +1639,10 @@ void Adapter::AfterGapDisconnect(uv_work_t *req)
     delete baton;
 }
 
+#pragma endregion GapDisconnect
+
+#pragma region GapSetTXPower
+
 NAN_METHOD(Adapter::GapSetTXPower)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
@@ -1812,6 +1701,10 @@ void Adapter::AfterGapSetTXPower(uv_work_t *req)
     baton->callback->Call(1, argv);
     delete baton;
 }
+
+#pragma endregion GapSetTXPower
+
+#pragma region GapSetDeviceName
 
 NAN_METHOD(Adapter::GapSetDeviceName)
 {
@@ -1891,6 +1784,10 @@ void Adapter::AfterGapSetDeviceName(uv_work_t *req)
     delete baton;
 }
 
+#pragma endregion GapSetDeviceName
+
+#pragma region GapGetDeviceName
+
 NAN_METHOD(Adapter::GapGetDeviceName)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
@@ -1953,6 +1850,10 @@ void Adapter::AfterGapGetDeviceName(uv_work_t *req)
     free(baton->dev_name);
     delete baton;
 }
+
+#pragma endregion GapGetDeviceName
+
+#pragma region GapStartRSSI
 
 NAN_METHOD(Adapter::GapStartRSSI)
 {
@@ -2021,6 +1922,10 @@ void Adapter::AfterGapStartRSSI(uv_work_t *req)
     delete baton;
 }
 
+#pragma endregion GapStartRSSI
+
+#pragma region GapStopRSSI
+
 NAN_METHOD(Adapter::GapStopRSSI)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
@@ -2077,6 +1982,10 @@ void Adapter::AfterGapStopRSSI(uv_work_t *req)
     baton->callback->Call(1, argv);
     delete baton;
 }
+
+#pragma endregion GapStopRSSI
+
+#pragma region GapStartScan
 
 NAN_METHOD(Adapter::GapStartScan)
 {
@@ -2137,6 +2046,10 @@ void Adapter::AfterGapStartScan(uv_work_t *req)
     delete baton;
 }
 
+#pragma endregion GapStartScan
+
+#pragma region GapStopScan
+
 NAN_METHOD(Adapter::GapStopScan)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
@@ -2189,7 +2102,10 @@ void Adapter::AfterGapStopScan(uv_work_t *req)
     delete baton;
 }
 
+#pragma endregion GapStopScan
+
 #pragma region GapConnect
+
 NAN_METHOD(Adapter::GapConnect)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
@@ -2291,6 +2207,7 @@ void Adapter::AfterGapConnect(uv_work_t *req)
 #pragma endregion GapConnect
 
 #pragma region GapCancelConnect
+
 NAN_METHOD(Adapter::GapCancelConnect)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
@@ -2412,6 +2329,8 @@ void Adapter::AfterGapGetRSSI(uv_work_t *req)
 
 #pragma endregion GapGetRSSI
 
+#pragma region GapStartAdvertising
+
 NAN_METHOD(Adapter::GapStartAdvertising)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
@@ -2479,6 +2398,10 @@ void Adapter::AfterGapStartAdvertising(uv_work_t *req)
     delete baton;
 }
 
+#pragma endregion GapStartAdvertising
+
+#pragma region GapStopAdvertising
+
 NAN_METHOD(Adapter::GapStopAdvertising)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
@@ -2530,6 +2453,10 @@ void Adapter::AfterGapStopAdvertising(uv_work_t *req)
     baton->callback->Call(1, argv);
     delete baton;
 }
+
+#pragma endregion GapStopAdvertising
+
+#pragma region GapGetConnectionSecurity
 
 NAN_METHOD(Adapter::GapGetConnectionSecurity)
 {
@@ -2592,7 +2519,10 @@ void Adapter::AfterGapGetConnectionSecurity(uv_work_t *req)
     delete baton;
 }
 
+#pragma endregion GapGetConnectionSecurity
+
 #pragma region GapEncrypt
+
 NAN_METHOD(Adapter::GapEncrypt)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
@@ -2881,7 +2811,10 @@ void Adapter::AfterGapReplySecurityInfo(uv_work_t *req)
     baton->callback->Call(1, argv);
     delete baton;
 }
+
 #pragma endregion GapReplySecurityInfo
+
+#pragma region GapAuthenticate
 
 NAN_METHOD(Adapter::GapAuthenticate)
 {
@@ -2954,6 +2887,10 @@ void Adapter::AfterGapAuthenticate(uv_work_t *req)
     baton->callback->Call(1, argv);
     delete baton;
 }
+
+#pragma endregion GapAuthenticate
+
+#pragma region GapSetAdvertisingData
 
 NAN_METHOD(Adapter::GapSetAdvertisingData)
 {
@@ -3043,6 +2980,10 @@ void Adapter::AfterGapSetAdvertisingData(uv_work_t *req)
     delete baton;
 }
 
+#pragma endregion GapSetAdvertisingData
+
+#pragma region GapSetPPCP
+
 NAN_METHOD(Adapter::GapSetPPCP)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
@@ -3111,6 +3052,9 @@ void Adapter::AfterGapSetPPCP(uv_work_t *req)
     delete baton;
 }
 
+#pragma endregion GapSetPPCP
+
+#pragma region GapGetPPCP
 
 NAN_METHOD(Adapter::GapGetPPCP)
 {
@@ -3168,7 +3112,10 @@ void Adapter::AfterGapGetPPCP(uv_work_t *req)
     delete baton;
 }
 
+#pragma endregion GapGetPPCP
+
 #pragma region GapSetAppearance
+
 NAN_METHOD(Adapter::GapSetAppearance)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
@@ -3641,7 +3588,7 @@ void Adapter::AfterGapSetLESCOOBData(uv_work_t *req)
     delete baton;
 }
 #pragma endregion GapSetLESCOOBData
- 
+
 #pragma endregion JavaScript function implementations
 
 #pragma region JavaScript constants from ble_gap.h
