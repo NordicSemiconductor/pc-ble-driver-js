@@ -1834,7 +1834,7 @@ class Adapter extends EventEmitter {
         });
     }
 
-    replySecParams(deviceInstanceId, secStatus, secParams, secKeys, callback) {
+    replySecParams(deviceInstanceId, secStatus, secParams, secKeyset, callback) {
         const device = this.getDevice(deviceInstanceId);
 
         if (!device) {
