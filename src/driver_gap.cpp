@@ -815,13 +815,13 @@ ble_gap_sec_keyset_t *GapSecKeyset::ToNative()
 v8::Local<v8::Object> GapSecKeys::ToJs()
 {
     Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
     if (native == nullptr)
     {
-        return scope.Escape(Nan::Null());
+        return scope.Escape(obj);
     }
 
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     if (native->p_enc_key == nullptr)
     {
         Utility::Set(obj, "enc_key", Nan::Null());
