@@ -55,7 +55,6 @@ static name_map_t gap_timeout_sources_map =
     NAME_MAP_ENTRY(BLE_GAP_TIMEOUT_SRC_CONN)
 };
 
-
 static name_map_t gap_addr_type_map =
 {
     NAME_MAP_ENTRY(BLE_GAP_ADDR_TYPE_PUBLIC),
@@ -117,13 +116,6 @@ static name_map_t gap_io_caps_map =
     NAME_MAP_ENTRY(BLE_GAP_IO_CAPS_KEYBOARD_ONLY),
     NAME_MAP_ENTRY(BLE_GAP_IO_CAPS_NONE),
     NAME_MAP_ENTRY(BLE_GAP_IO_CAPS_KEYBOARD_DISPLAY)
-};
-
-static name_map_t gap_auth_key_type_map =
-{
-    NAME_MAP_ENTRY(BLE_GAP_AUTH_KEY_TYPE_NONE),
-    NAME_MAP_ENTRY(BLE_GAP_AUTH_KEY_TYPE_PASSKEY),
-    NAME_MAP_ENTRY(BLE_GAP_AUTH_KEY_TYPE_OOB)
 };
 
 static name_map_t gap_sec_status_map =
@@ -815,10 +807,8 @@ ble_gap_sec_keyset_t *GapSecKeyset::ToNative()
     auto keyset = new ble_gap_sec_keyset_t();
     memset(keyset, 0, sizeof(ble_gap_sec_keyset_t));
 
-#if 0 // TODO:
-    keyset->keys_periph = GapSecKeys(ConversionUtility::getJsObject(jsobj, "keys_periph"));
-    keyset->keys_central = GapSecKeys(ConversionUtility::getJsObject(jsobj, "keys_central"));
-#endif
+    keyset->keys_own = GapSecKeys(ConversionUtility::getJsObject(jsobj, "keys_own"));
+    keyset->keys_peer = GapSecKeys(ConversionUtility::getJsObject(jsobj, "keys_peer"));
 
     return keyset;
 }
@@ -830,6 +820,12 @@ ble_gap_sec_keyset_t *GapSecKeyset::ToNative()
 v8::Local<v8::Object> GapSecKeys::ToJs()
 {
     Nan::EscapableHandleScope scope;
+
+    if (native == nullptr)
+    {
+        return scope.Escape(Nan::Null());
+    }
+
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     if (native->p_enc_key == nullptr)
     {
