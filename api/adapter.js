@@ -1808,12 +1808,14 @@ class Adapter extends EventEmitter {
         });
     }
 
-    authenticate(deviceInstanceId, secParams) {
+    authenticate(deviceInstanceId, secParams, callback) {
         const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
+        this._adapter.gapAuthenticate(connectionHandle, secParams, callback);
     }
 
-    replySecParams(deviceInstanceId, secStatus, secParams) {
+    replySecParams(deviceInstanceId, secStatus, secParams, keys, callback) {
         const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
+        this._adapter.gapReplySecurityParameters(connectionHandle, secStatus, secParams, keys, callback);
     }
 
     replyAuthKey(deviceInstanceId, keyType, key) {
