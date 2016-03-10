@@ -208,7 +208,7 @@ class Adapter extends EventEmitter {
             if (!options.logLevel) options.logLevel = 'info';
             if (!options.retransmissionInterval) options.retransmissionInterval = 100;
             if (!options.responseTimeout) options.responseTimeout = 750;
-            if (typeof(options.enableBLE) == 'undefined') options.enableBLE = true;
+            if ((typeof options.enableBLE) == 'undefined') options.enableBLE = true;
         }
 
         this._changeState({baudRate: options.baudRate, parity: options.parity, flowControl: options.flowControl});
@@ -247,7 +247,7 @@ class Adapter extends EventEmitter {
     }
 
     _statusCallback(status) {
-        switch(status.id) {
+        switch (status.id) {
             case this._bleDriver.RESET_PERFORMED:
                 this._init();
                 this._changeState(
@@ -1745,6 +1745,8 @@ class Adapter extends EventEmitter {
             const errorObject = _makeError('Failed to disconnect', 'Failed to find device with id ' + deviceInstanceId);
             this.emit('error', errorObject);
             if (callback) { callback(errorObject); }
+            return;
+
         }
 
         const hciStatusCode = this._bleDriver.BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION;
@@ -1809,28 +1811,115 @@ class Adapter extends EventEmitter {
     }
 
     authenticate(deviceInstanceId, secParams, callback) {
-        const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
-        this._adapter.gapAuthenticate(connectionHandle, secParams, callback);
+        const device = this.getDevice(deviceInstanceId);
+
+        if (!device) {
+            const errorObject = _makeError('Failed to authenticate', 'Failed to find device with id ' + deviceInstanceId);
+            this.emit('error', errorObject);
+            if (callback) { callback(errorObject); }
+            return;
+
+        }
+
+        this._adapter.gapAuthenticate(device.connectionHandle, secParams, err => {
+            let errorObject;
+            if (err) {
+                errorObject = _makeError('Failed to authenticate', err);
+                this.emit('error', errorObject);
+            }
+
+            // TODO: is this securityRequestPending used? and in any other function?
+            this._changeState({securityRequestPending: false});
+            if (callback) { callback(errorObject); }
+        });
     }
 
-    replySecParams(deviceInstanceId, secStatus, secParams, keys, callback) {
-        const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
-        this._adapter.gapReplySecurityParameters(connectionHandle, secStatus, secParams, keys, callback);
+    replySecParams(deviceInstanceId, secStatus, secParams, secKeys, callback) {
+        const device = this.getDevice(deviceInstanceId);
+
+        if (!device) {
+            const errorObject = _makeError('Failed to reply security parameters', 'Failed to find device with id ' + deviceInstanceId);
+            this.emit('error', errorObject);
+            if (callback) { callback(errorObject); }
+            return;
+
+        }
+
+        this._adapter.gapReplySecurityParameters(device.connectionHandle, secStatus, secParams, secKeyset, (err, secKeyset) => {
+            let errorObject;
+            if (err) {
+                errorObject = _makeError('Failed to reply security parameters', err);
+                this.emit('error', errorObject);
+            }
+
+            if (callback) { callback(errorObject, secKeyset); }
+        });
     }
 
-    replyAuthKey(deviceInstanceId, keyType, key) {
-        const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
+    replyAuthKey(deviceInstanceId, keyType, key, callback) {
+        const device = this.getDevice(deviceInstanceId);
+
+        if (!device) {
+            const errorObject = _makeError('Failed to reply authenticate key', 'Failed to find device with id ' + deviceInstanceId);
+            this.emit('error', errorObject);
+            if (callback) { callback(errorObject); }
+            return;
+        }
+
+        this._adapter.gapReplyAuthKey(device.connectionHandle, keyType, key, err => {
+            let errorObject;
+            if (err) {
+                errorObject = _makeError('Failed to reply authenticate key');
+                this.emit('error', errorObject);
+            }
+
+            if (callback) { callback(errorObject); }
+        });
     }
 
-    replyLescDhkey(deviceInstanceId, dhkey) {
-        const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
+    replyLescDhkey(deviceInstanceId, dhkey, callback) {
+        const device = this.getDevice(deviceInstanceId);
+
+        if (!device) {
+            const errorObject = _makeError('Failed to reply lesc dh key', 'Failed to find device with id ' + deviceInstanceId);
+            this.emit('error', errorObject);
+            if (callback) { callback(errorObject); }
+            return;
+        }
+
+        this._adapter.gapReplyLescDhKey(device.connectionHandle, dhkey, err => {
+            let errorObject;
+            if (err) {
+                errorObject = _makeError('Failed to reply lesc dh key');
+                this.emit('error', errorObject);
+            }
+
+            if (callback) { callback(errorObject); }
+        });
     }
 
-    notifyKeypress(deviceInstanceId, notificationType) {
-        const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
+    notifyKeypress(deviceInstanceId, notificationType, callback) {
+        const device = this.getDevice(deviceInstanceId);
+
+        if (!device) {
+            const errorObject = _makeError('Failed to reply lesc dh key', 'Failed to find device with id ' + deviceInstanceId);
+            this.emit('error', errorObject);
+            if (callback) { callback(errorObject); }
+            return;
+        }
+
+        this._adapter.gapNotifyKeypress(device.connectionHandle, notificationType, err => {
+            let errorObject;
+            if (err) {
+                errorObject = _makeError('Failed to reply lesc dh key');
+                this.emit('error', errorObject);
+            }
+
+            if (callback) { callback(errorObject); }
+        });
     }
 
-    generateLescOobData(deviceInstanceId, ownPublicKey) {
+    generateLescOobData(deviceInstanceId, ownPublicKey, callback) {
         if (deviceInstanceId) {
             const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
         } else {
@@ -1838,7 +1927,7 @@ class Adapter extends EventEmitter {
         }
     }
 
-    setLescOobData(deviceInstanceId, ownOobData, peerOobData) {
+    setLescOobData(deviceInstanceId, ownOobData, peerOobData, callback) {
         const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
     }
 
