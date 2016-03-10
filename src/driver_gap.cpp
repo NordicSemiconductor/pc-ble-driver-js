@@ -266,7 +266,6 @@ ble_gap_conn_params_t *GapConnParams::ToNative()
 
 #pragma endregion GapConnParams
 
-
 #pragma region GapConnSecMode
 
 v8::Local<v8::Object> GapConnSecMode::ToJs()
@@ -569,7 +568,6 @@ v8::Local<v8::Object> GapConnParamUpdateRequest::ToJs()
 
 #pragma endregion GapConnParamUpdateRequest
 
-
 #pragma region GapSecParamsRequest
 
 v8::Local<v8::Object> GapSecParamsRequest::ToJs()
@@ -649,7 +647,6 @@ v8::Local<v8::Object> GapSecRequest::ToJs()
 
 #pragma endregion GapSecRequest
 
-
 #pragma region GapPasskeyDisplay
 
 v8::Local<v8::Object> GapPasskeyDisplay::ToJs()
@@ -663,7 +660,6 @@ v8::Local<v8::Object> GapPasskeyDisplay::ToJs()
 }
 
 #pragma endregion GapPasskeyDisplay
-
 
 #pragma region GapKeyPressed
 
@@ -695,13 +691,12 @@ v8::Local<v8::Object> GapLESCDHKeyRequest::ToJs()
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
-    // TODO: unclear on how to solve p_pk_peer through connectivity firmware
     Utility::Set(obj, "oobd_req", ConversionUtility::toJsBool(evt->oobd_req));
+    // TODO: unclear on how to solve p_pk_peer through connectivity firmware
+//    Utility::Set(obj, "pk_peer", GapLescP256Pk(evt->p_pk_peer));
     return scope.Escape(obj);
 }
 #pragma endregion GapLESCDHKeyRequest
-
-
 
 #pragma region GapSecParams
 
@@ -972,7 +967,6 @@ ble_gap_sign_info_t *GapSignInfo::ToNative()
 
 #pragma endregion GapSignInfo
 
-
 #pragma region GapLescP256Pk
 
 v8::Local<v8::Object> GapLescP256Pk::ToJs()
@@ -1006,7 +1000,6 @@ ble_gap_lesc_p256_pk_t *GapLescP256Pk::ToNative()
 
 #pragma endregion GapLescP256Pk
 
-
 #pragma region GapLescDHKey
 
 v8::Local<v8::Object> GapLescDHKey::ToJs()
@@ -1038,7 +1031,6 @@ ble_gap_lesc_dhkey_t *GapLescDHKey::ToNative()
 }
 
 #pragma endregion GapLescDHKey
-
 
 #pragma region GapLescOobData
 
@@ -1083,10 +1075,6 @@ ble_gap_lesc_oob_data_t *GapLescOobData::ToNative()
 }
 
 #pragma endregion GapLescOobData
-
-
-
-
 
 #pragma region GapIrk
 
@@ -1276,8 +1264,8 @@ ble_gap_scan_params_t *GapScanParams::ToNative()
     memset(params, 0, sizeof(ble_gap_scan_params_t));
 
     params->active = ConversionUtility::getNativeBool(jsobj, "active");
-    //params->selective = ConversionUtility::getNativeBool(jsobj, "selective");
-    //TODO: Add whitelist
+    params->selective = ConversionUtility::getNativeBool(jsobj, "selective");
+    //TODO: params->p_whitelist = 
     params->interval = ConversionUtility::msecsToUnitsUint16(jsobj, "interval", ConversionUtility::ConversionUnit625ms);
     params->window = ConversionUtility::msecsToUnitsUint16(jsobj, "window", ConversionUtility::ConversionUnit625ms);
     params->timeout = ConversionUtility::getNativeUint16(jsobj, "timeout");
