@@ -1012,13 +1012,12 @@ ble_gap_id_key_t *GapIdKey::ToNative()
 v8::Local<v8::Object> GapSecKeys::ToJs()
 {
     Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     
     if (native == nullptr)
     {
-        return scope.Escape(Nan::Null()->ToObject());
+        return scope.Escape(obj);
     }
-
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
     if (native->p_enc_key == nullptr)
     {
@@ -1077,13 +1076,13 @@ ble_gap_sec_keys_t *GapSecKeys::ToNative()
 v8::Local<v8::Object> GapSecKeyset::ToJs()
 {
     Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
     if (native == nullptr)
     {
-        return scope.Escape(Nan::Null()->ToObject());
+        return scope.Escape(obj);
     }
 
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     Utility::Set(obj, "keys_own", GapSecKeys(&native->keys_own).ToJs());
     Utility::Set(obj, "keys_peer", GapSecKeys(&native->keys_peer).ToJs());
 
@@ -2728,7 +2727,15 @@ void Adapter::AfterGapReplySecurityParameters(uv_work_t *req)
     else
     {
         argv[0] = Nan::Undefined();
-        argv[1] = GapSecKeyset(baton->sec_keyset).ToJs();
+
+        if (baton->sec_keyset == nullptr)
+        {
+            argv[1] = Nan::Null();
+        }
+        else
+        {
+            argv[1] = GapSecKeyset(baton->sec_keyset).ToJs();
+        }
     }
 
     baton->callback->Call(2, argv);

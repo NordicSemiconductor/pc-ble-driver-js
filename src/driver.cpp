@@ -1161,14 +1161,13 @@ ble_conn_bw_count_t *BandwidthCountParameters::ToNative()
 v8::Local<v8::Object> BandwidthGlobalMemoryPool::ToJs()
 {
     Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
     if (native == nullptr)
     {
-        return Nan::Null()->ToObject();
+        return scope.Escape(obj);
     }
-
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-
+    
     Utility::Set(obj, "tx_counts", BandwidthCountParameters(&native->tx_counts).ToJs());
     Utility::Set(obj, "rx_counts", BandwidthCountParameters(&native->rx_counts).ToJs());
     
@@ -1198,7 +1197,14 @@ v8::Local<v8::Object> CommonEnableParameters::ToJs()
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
     Utility::Set(obj, "vs_uuid_count", native->vs_uuid_count);
-    Utility::Set(obj, "conn_bw_counts", BandwidthGlobalMemoryPool(native->p_conn_bw_counts).ToJs());
+    if (native->p_conn_bw_counts == nullptr)
+    {
+        Utility::Set(obj, "conn_bw_counts", Nan::Null());
+    }
+    else
+    {
+        Utility::Set(obj, "conn_bw_counts", BandwidthGlobalMemoryPool(native->p_conn_bw_counts).ToJs());
+    }
 
     return scope.Escape(obj);
 }
