@@ -14,6 +14,7 @@
 #include "common.h"
 
 #include <algorithm>
+#include <iostream>
 
 Nan::Persistent<v8::Function> Adapter::constructor;
 
@@ -73,8 +74,8 @@ extern "C" {
         }
         else
         {
+            std::cerr << "No AddOn adapter to process RPC event." << std::endl;
             std::terminate();
-            //TODO: Errormessage
         }
     }
 
@@ -88,8 +89,8 @@ extern "C" {
         }
         else
         {
+            std::cerr << "No AddOn adapter to process event interval callback." << std::endl;
             std::terminate();
-            //TODO: Errormessage
         }
     }
 }
@@ -105,15 +106,26 @@ void Adapter::initEventHandling(Nan::Callback *callback, uint32_t interval)
     // If we already have an async handle we do not create a new one
     if (!uv_is_active(reinterpret_cast<uv_handle_t *>(&asyncEvent)))
     {
-        if (uv_async_init(uv_default_loop(), &asyncEvent, event_handler) != 0) std::terminate();
+        if (uv_async_init(uv_default_loop(), &asyncEvent, event_handler) != 0) {
+            std::cerr << "Not able to create a new async event handler." << std::endl;
+            std::terminate();
+        }
     }
 
     // Setup event interval functionality
     if (eventInterval > 0)
     {
         eventIntervalTimer.data = static_cast<void *>(this);
-        if (uv_timer_init(uv_default_loop(), &eventIntervalTimer) != 0) std::terminate();
-        if (uv_timer_start(&eventIntervalTimer, event_interval_handler, eventInterval, eventInterval) != 0) std::terminate();
+        if (uv_timer_init(uv_default_loop(), &eventIntervalTimer) != 0) {
+            std::cerr << "Not able to create a new async event interval timer." << std::endl;
+            std::terminate();
+        }
+
+        if (uv_timer_start(&eventIntervalTimer, event_interval_handler, eventInterval, eventInterval) != 0) {
+            std::cerr << "Not able to create a new event interval handler." << std::endl;
+            std::terminate();
+        }
+
     }
 }
 
@@ -128,6 +140,7 @@ extern "C" {
         }
         else
         {
+            std::cerr << "No AddOn adapter to process log event." << std::endl;
             std::terminate();
         }
     }
@@ -142,7 +155,11 @@ void Adapter::initLogHandling(Nan::Callback *callback)
     // If we already have an async handle we do not create a new one
     if (!uv_is_active(reinterpret_cast<uv_handle_t *>(&asyncLog)))
     {
-        if (uv_async_init(uv_default_loop(), &asyncLog, log_handler) != 0) std::terminate();
+        if (uv_async_init(uv_default_loop(), &asyncLog, log_handler) != 0)
+        {
+            std::cerr << "Not able to create a new event log handler." << std::endl;
+            std::terminate();
+        }
     }
 }
 
@@ -157,8 +174,8 @@ extern "C" {
         }
         else
         {
+            std::cerr << "No AddOn adapter to process status event." << std::endl;
             std::terminate();
-            //TODO: Errormessage
         }
     }
 }
@@ -172,7 +189,11 @@ void Adapter::initStatusHandling(Nan::Callback *callback)
     // If we already have an async handle we do not create a new one
     if (!uv_is_active(reinterpret_cast<uv_handle_t *>(&asyncStatus)))
     {
-        if (uv_async_init(uv_default_loop(), &asyncStatus, status_handler) != 0) std::terminate();
+        if (uv_async_init(uv_default_loop(), &asyncStatus, status_handler) != 0)
+        {
+            std::cerr << "Not able to create a new status handler." << std::endl;
+            std::terminate();
+        }
     }
 }
 

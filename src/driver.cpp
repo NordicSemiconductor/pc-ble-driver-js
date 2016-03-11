@@ -100,6 +100,7 @@ void sd_rpc_on_log_event(adapter_t *adapter, sd_rpc_log_severity_t severity, con
     }
     else
     {
+        std::cerr << "No AddOn adapter to process log event." << std::endl;
         std::terminate();
     }
 }
@@ -170,8 +171,8 @@ static void sd_rpc_on_event(adapter_t *adapter, ble_evt_t *event)
     }
     else
     {
+        std::cerr << "No AddOn adapter to process BLE event." << std::endl;
         std::terminate();
-        //TODO: Return error
     }
 }
 
@@ -317,8 +318,8 @@ static void sd_rpc_on_status(adapter_t *adapter, sd_rpc_app_status_t id, const c
     }
     else
     {
+        std::cerr << "No AddOn adapter to process BLE status event." << std::endl;
         std::terminate();
-        //TODO: Return error
     }
 }
 
