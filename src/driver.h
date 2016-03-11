@@ -212,7 +212,8 @@ public:
 struct EnableBLEBaton : public Baton {
 public:
     BATON_CONSTRUCTOR(EnableBLEBaton)
-    Adapter *mainObject;
+    ble_enable_params_t *enable_params;
+    uint32_t app_ram_base;
 };
 
 

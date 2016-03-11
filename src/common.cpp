@@ -800,8 +800,11 @@ v8::Local<v8::String> ErrorMessage::getTypeErrorMessage(int argumentNumber, char
 
 v8::Local<v8::String> ErrorMessage::getStructErrorMessage(char const *name, char const *message)
 {
-    auto errormessage = "Property: " + std::string(name) + " Message: " + std::string(message);
-    return ConversionUtility::toJsString(errormessage)->ToString();
+    std::ostringstream stream;
+
+    stream << "Property: " << std::string(name) << " Message: " << std::string(message);
+    
+    return ConversionUtility::toJsString(stream.str())->ToString();
 }
 
 v8::Local<v8::Value> HciStatus::getHciStatus(int statusCode)

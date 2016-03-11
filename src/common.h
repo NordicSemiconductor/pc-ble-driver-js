@@ -288,7 +288,7 @@ public:
     static v8::Handle<v8::Value> toJsString(const char *cString, uint16_t length);
     static v8::Handle<v8::Value> toJsString(uint8_t *cString, uint16_t length);
     static v8::Handle<v8::Value> toJsString(std::string string);
-    static const char *                valueToString(uint16_t value, name_map_t name_map, const char *defaultValue = "Unknown value");
+    static const char *          valueToString(uint16_t value, name_map_t name_map, const char *defaultValue = "Unknown value");
     static v8::Handle<v8::Value> valueToJsString(uint16_t, name_map_t name_map, v8::Handle<v8::Value> defaultValue = Nan::New<v8::String>("Unknown value").ToLocalChecked());
 
     static v8::Local<v8::Function> getCallbackFunction(v8::Local<v8::Object> js, const char *name);

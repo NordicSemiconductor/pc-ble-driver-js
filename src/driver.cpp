@@ -418,9 +418,6 @@ uint32_t Adapter::enableBLE(adapter_t *adapter)
     /* the default Attribute Table size is appropriate for our application */
     ble_enable_params.gatts_enable_params.attr_tab_size = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
 
-    ble_enable_params.gatts_enable_params.attr_tab_size = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
-    ble_enable_params.gatts_enable_params.service_changed = false;
-
     return sd_ble_enable(adapter, &ble_enable_params, 0);
 }
 
@@ -428,11 +425,17 @@ uint32_t Adapter::enableBLE(adapter_t *adapter)
 NAN_METHOD(Adapter::EnableBLE)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    v8::Local<v8::Object> enableObject;
     v8::Local<v8::Function> callback;
+    auto argumentcount = 0;
 
     try
     {
+        enableObject = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
         callback = ConversionUtility::getCallbackFunction(info[0]);
+        argumentcount++;
     }
     catch (char const *error)
     {
@@ -442,7 +445,18 @@ NAN_METHOD(Adapter::EnableBLE)
     }
 
     auto baton = new EnableBLEBaton(callback);
-    baton->mainObject = obj;
+    baton->adapter = obj->adapter;
+
+    try
+    {
+        baton->enable_params = EnableParameters(enableObject);
+    }
+    catch (char const *error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("enable parameters", error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
 
     uv_queue_work(uv_default_loop(), baton->req, EnableBLE, reinterpret_cast<uv_after_work_cb>(AfterEnableBLE));
 }
@@ -451,7 +465,8 @@ NAN_METHOD(Adapter::EnableBLE)
 void Adapter::EnableBLE(uv_work_t *req)
 {
     auto baton = static_cast<EnableBLEBaton *>(req->data);
-    baton->result = baton->mainObject->enableBLE(baton->mainObject->adapter);
+    
+    baton->result = sd_ble_enable(baton->adapter, baton->enable_params, &baton->app_ram_base);
 }
 
 // This runs in  Main Thread
@@ -460,18 +475,23 @@ void Adapter::AfterEnableBLE(uv_work_t *req)
     Nan::HandleScope scope;
     auto baton = static_cast<EnableBLEBaton *>(req->data);
 
-    v8::Local<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[3];
 
     if (baton->result != NRF_SUCCESS)
     {
         argv[0] = ErrorMessage::getErrorMessage(baton->result, "enabling SoftDevice");
+        argv[1] = Nan::Undefined();
+        argv[2] = Nan::Undefined();
     }
     else
     {
         argv[0] = Nan::Undefined();
+        argv[1] = EnableParameters(baton->enable_params);
+        argv[2] = ConversionUtility::toJsNumber(baton->app_ram_base);
     }
 
-    baton->callback->Call(1, argv);
+    baton->callback->Call(3, argv);
+    delete baton->enable_params;
     delete baton;
 }
 
