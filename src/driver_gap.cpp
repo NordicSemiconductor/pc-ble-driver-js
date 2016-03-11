@@ -1077,6 +1077,12 @@ ble_gap_sec_keys_t *GapSecKeys::ToNative()
 v8::Local<v8::Object> GapSecKeyset::ToJs()
 {
     Nan::EscapableHandleScope scope;
+
+    if (native == nullptr)
+    {
+        return scope.Escape(Nan::Null()->ToObject());
+    }
+
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     Utility::Set(obj, "keys_own", GapSecKeys(&native->keys_own).ToJs());
     Utility::Set(obj, "keys_peer", GapSecKeys(&native->keys_peer).ToJs());
