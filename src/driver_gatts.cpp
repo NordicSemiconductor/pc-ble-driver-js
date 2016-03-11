@@ -19,6 +19,16 @@
 
 #include <iostream>
 
+ble_gatts_enable_params_t *GattsEnableParameters::ToNative()
+{
+    auto enableParams = new ble_gatts_enable_params_t();
+
+    enableParams->service_changed = ConversionUtility::getNativeBool(jsobj, "service_changed");
+    enableParams->attr_tab_size = ConversionUtility::getNativeUint32(jsobj, "attr_tab_size");
+
+    return enableParams;
+}
+
 ble_gatts_attr_md_t *GattsAttributeMetadata::ToNative()
 {
     if (Utility::IsNull(jsobj))

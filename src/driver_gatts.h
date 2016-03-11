@@ -25,6 +25,15 @@ static name_map_t gatts_event_name_map = {
     NAME_MAP_ENTRY(BLE_GATTS_EVT_TIMEOUT)
 };
 
+class GattsEnableParameters : public BleToJs<ble_gatts_enable_params_t>
+{
+public:
+    GattsEnableParameters(ble_gatts_enable_params_t *enableParamters) : BleToJs<ble_gatts_enable_params_t>(enableParamters) {}
+    GattsEnableParameters(v8::Local<v8::Object> js) : BleToJs<ble_gatts_enable_params_t>(js) {}
+    ble_gatts_enable_params_t *ToNative() override;
+};
+
+
 class GattsAttributeMetadata : public BleToJs<ble_gatts_attr_md_t>
 {
 public:

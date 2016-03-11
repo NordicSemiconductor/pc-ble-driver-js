@@ -1110,9 +1110,63 @@ void Adapter::AfterReplyUserMemory(uv_work_t *req)
     delete baton;
 }
 
-//
-// Version -- START --
-//
+#pragma region BandwidthGlobalMemoryPool
+
+ble_conn_bw_count_t *BandwidthCountParameters::ToNative()
+{
+    auto count_params = new ble_conn_bw_count_t();
+    count_params->high_count = ConversionUtility::getNativeUint8(jsobj, "high_count");
+    count_params->mid_count = ConversionUtility::getNativeUint8(jsobj, "mid_count");
+    count_params->low_count = ConversionUtility::getNativeUint8(jsobj, "low_count");
+    return count_params;
+}
+
+#pragma endregion BandwidthGlobalMemoryPool
+
+
+#pragma region BandwidthGlobalMemoryPool
+
+ble_conn_bw_counts_t *BandwidthGlobalMemoryPool::ToNative()
+{
+    if (Utility::IsNull(jsobj))
+    {
+        return nullptr;
+    }
+
+    auto memory_pool = new ble_conn_bw_counts_t();
+    memory_pool->tx_counts = BandwidthCountParameters(ConversionUtility::getJsObject(jsobj, "tx_counts"));
+    memory_pool->rx_counts = BandwidthCountParameters(ConversionUtility::getJsObject(jsobj, "rx_counts"));
+    return memory_pool;
+}
+
+#pragma endregion BandwidthGlobalMemoryPool
+
+#pragma region CommonEnableParams
+
+ble_common_enable_params_t *CommonEnableParameters::ToNative()
+{
+    auto enable_params = new ble_common_enable_params_t();
+    enable_params->vs_uuid_count = ConversionUtility::getNativeUint16(jsobj, "vs_uuid_count");
+    enable_params->p_conn_bw_counts = BandwidthGlobalMemoryPool(ConversionUtility::getJsObject(jsobj, "conn_bw_counts"));
+    return enable_params;
+}
+
+#pragma endregion CommonEnableParams
+
+#pragma region EnableParams
+
+ble_enable_params_t *EnableParameters::ToNative()
+{
+    auto enable_params = new ble_enable_params_t();
+    enable_params->common_enable_params = CommonEnableParameters(ConversionUtility::getJsObject(jsobj, "common_enable_params"));
+    enable_params->gap_enable_params = GapEnableParameters(ConversionUtility::getJsObject(jsobj, "gap_enable_params"));
+    enable_params->gatts_enable_params = GattsEnableParameters(ConversionUtility::getJsObjectOrNull(jsobj, "gatts_enable_params"));
+    return enable_params;
+}
+
+#pragma endregion EnableParams
+
+#pragma region Version
 
 v8::Local<v8::Object> Version::ToJs()
 {
@@ -1140,13 +1194,9 @@ ble_version_t *Version::ToNative()
     return version;
 }
 
-//
-// Version -- END --
-//
+#pragma endregion Version
 
-//
-// UserMemBlock -- START --
-//
+#pragma region UserMemBlock
 
 v8::Local<v8::Object> UserMemBlock::ToJs()
 {
@@ -1174,13 +1224,9 @@ ble_user_mem_block_t *UserMemBlock::ToNative()
     return uuid;
 }
 
-//
-// UserMemBlock -- END --
-//
+#pragma endregion UserMemBlock
 
-//
-// BleUUID -- START --
-//
+#pragma region BleUUID
 
 v8::Local<v8::Object> BleUUID::ToJs()
 {
@@ -1209,13 +1255,9 @@ ble_uuid_t *BleUUID::ToNative()
     return uuid;
 }
 
-//
-// BleUUID -- END --
-//
+#pragma endregion BleUUID
 
-//
-// UUID128 -- START --
-//
+#pragma region UUID128
 
 v8::Local<v8::Object> BleUUID128::ToJs()
 {
@@ -1274,9 +1316,7 @@ ble_uuid128_t *BleUUID128::ToNative()
     return uuid;
 }
 
-//
-// UUID128 -- END --
-//
+#pragma endregion UUID128
 
 extern "C" {
     void init_adapter_list(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);

@@ -223,6 +223,15 @@ public:
 #pragma endregion Gap events
 
 #pragma region Gap structs
+
+class GapEnableParameters : public BleToJs<ble_gap_enable_params_t>
+{
+public:
+    GapEnableParameters(ble_gap_enable_params_t *gap_addr) : BleToJs<ble_gap_enable_params_t>(gap_addr) {}
+    GapEnableParameters(v8::Local<v8::Object> js) : BleToJs<ble_gap_enable_params_t>(js) {}
+    ble_gap_enable_params_t *ToNative();
+};
+
 // Gap structs --START --
 
 class GapAddr : public BleToJs<ble_gap_addr_t>

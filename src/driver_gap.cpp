@@ -164,6 +164,27 @@ static name_map_t gap_auth_key_types =
 #pragma endregion Name Map entries to enable constants (value and name) from C in JavaScript
 
 #pragma region Conversion methods to/from JavaScript/C++
+#pragma region GapEnableParams
+
+ble_gap_enable_params_t *GapEnableParameters::ToNative()
+{
+    if (Utility::IsNull(jsobj))
+    {
+        return nullptr;
+    }
+
+    auto enable_params = new ble_gap_enable_params_t();
+    memset(enable_params, 0, sizeof(ble_gap_conn_params_t));
+
+    enable_params->periph_conn_count = ConversionUtility::getNativeUint8(jsobj, "periph_conn_count");
+    enable_params->central_conn_count = ConversionUtility::getNativeUint8(jsobj, "central_conn_count");
+    enable_params->central_sec_count = ConversionUtility::getNativeUint8(jsobj, "central_sec_count");
+
+    return enable_params;
+}
+
+#pragma endregion GapEnableParams
+
 #pragma region GapAddr
 
 v8::Local<v8::Object> GapAddr::ToJs()
