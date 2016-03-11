@@ -357,7 +357,7 @@ void Adapter::onStatusEvent(uv_async_t *handle)
 v8::Local<v8::Object> CommonTXCompleteEvent::ToJs()
 {
     Nan::EscapableHandleScope scope;
-    auto obj = Nan::New<v8::Object>();
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverCommonEvent::ToJs(obj);
 
     Utility::Set(obj, "count", ConversionUtility::toJsNumber(evt->count));
@@ -368,7 +368,7 @@ v8::Local<v8::Object> CommonTXCompleteEvent::ToJs()
 v8::Local<v8::Object> CommonMemRequestEvent::ToJs()
 {
     Nan::EscapableHandleScope scope;
-    auto obj = Nan::New<v8::Object>();
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverCommonEvent::ToJs(obj);
 
     Utility::Set(obj, "type", ConversionUtility::toJsNumber(evt->type));
@@ -1110,7 +1110,19 @@ void Adapter::AfterReplyUserMemory(uv_work_t *req)
     delete baton;
 }
 
-#pragma region BandwidthGlobalMemoryPool
+#pragma region BandwidthCountParameters
+
+v8::Local<v8::Object> BandwidthCountParameters::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+
+    Utility::Set(obj, "high_count", native->high_count);
+    Utility::Set(obj, "mid_count", native->mid_count);
+    Utility::Set(obj, "low_count", native->low_count);
+
+    return scope.Escape(obj);
+}
 
 ble_conn_bw_count_t *BandwidthCountParameters::ToNative()
 {
@@ -1121,10 +1133,26 @@ ble_conn_bw_count_t *BandwidthCountParameters::ToNative()
     return count_params;
 }
 
-#pragma endregion BandwidthGlobalMemoryPool
-
+#pragma endregion BandwidthCountParameters
 
 #pragma region BandwidthGlobalMemoryPool
+
+v8::Local<v8::Object> BandwidthGlobalMemoryPool::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+
+    if (native == nullptr)
+    {
+        return Nan::Null()->ToObject();
+    }
+
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+
+    Utility::Set(obj, "tx_counts", BandwidthCountParameters(&native->tx_counts).ToJs());
+    Utility::Set(obj, "rx_counts", BandwidthCountParameters(&native->rx_counts).ToJs());
+    
+    return scope.Escape(obj);
+}
 
 ble_conn_bw_counts_t *BandwidthGlobalMemoryPool::ToNative()
 {
@@ -1141,7 +1169,18 @@ ble_conn_bw_counts_t *BandwidthGlobalMemoryPool::ToNative()
 
 #pragma endregion BandwidthGlobalMemoryPool
 
-#pragma region CommonEnableParams
+#pragma region CommonEnableParameters
+
+v8::Local<v8::Object> CommonEnableParameters::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+
+    Utility::Set(obj, "vs_uuid_count", native->vs_uuid_count);
+    Utility::Set(obj, "conn_bw_counts", BandwidthGlobalMemoryPool(native->p_conn_bw_counts).ToJs());
+
+    return scope.Escape(obj);
+}
 
 ble_common_enable_params_t *CommonEnableParameters::ToNative()
 {
@@ -1151,9 +1190,21 @@ ble_common_enable_params_t *CommonEnableParameters::ToNative()
     return enable_params;
 }
 
-#pragma endregion CommonEnableParams
+#pragma endregion CommonEnableParameters
 
-#pragma region EnableParams
+#pragma region EnableParameters
+
+v8::Local<v8::Object> EnableParameters::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+
+    Utility::Set(obj, "common_enable_params", CommonEnableParameters(&native->common_enable_params).ToJs());
+    Utility::Set(obj, "gap_enable_params", GapEnableParameters(&native->gap_enable_params).ToJs());
+    Utility::Set(obj, "gatts_enable_params", GattsEnableParameters(&native->gatts_enable_params).ToJs());
+
+    return scope.Escape(obj);
+}
 
 ble_enable_params_t *EnableParameters::ToNative()
 {
@@ -1164,14 +1215,14 @@ ble_enable_params_t *EnableParameters::ToNative()
     return enable_params;
 }
 
-#pragma endregion EnableParams
+#pragma endregion EnableParameters
 
 #pragma region Version
 
 v8::Local<v8::Object> Version::ToJs()
 {
     Nan::EscapableHandleScope scope;
-    auto obj = Nan::New<v8::Object>();
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
     Utility::Set(obj, "version_number", native->version_number);
     Utility::Set(obj, "company_id", native->company_id);
@@ -1201,7 +1252,7 @@ ble_version_t *Version::ToNative()
 v8::Local<v8::Object> UserMemBlock::ToJs()
 {
     Nan::EscapableHandleScope scope;
-    auto obj = Nan::New<v8::Object>();
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
     Utility::Set(obj, "mem", ConversionUtility::toJsValueArray(native->p_mem, native->len));
     Utility::Set(obj, "len", native->len);

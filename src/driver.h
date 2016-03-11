@@ -40,6 +40,7 @@ public:
     explicit BandwidthCountParameters(v8::Local<v8::Object> js) : BleToJs<ble_conn_bw_count_t>(js) {}
     virtual ~BandwidthCountParameters() {}
 
+    v8::Local<v8::Object> ToJs() override;
     ble_conn_bw_count_t *ToNative() override;
 };
 
@@ -51,6 +52,7 @@ public:
     explicit BandwidthGlobalMemoryPool(v8::Local<v8::Object> js) : BleToJs<ble_conn_bw_counts_t>(js) {}
     virtual ~BandwidthGlobalMemoryPool() {}
 
+    v8::Local<v8::Object> ToJs() override;
     ble_conn_bw_counts_t *ToNative() override;
 };
 
@@ -61,6 +63,7 @@ public:
     explicit CommonEnableParameters(v8::Local<v8::Object> js) : BleToJs<ble_common_enable_params_t>(js) {}
     virtual ~CommonEnableParameters() {}
 
+    v8::Local<v8::Object> ToJs() override;
     ble_common_enable_params_t *ToNative() override;
 };
 
@@ -71,6 +74,7 @@ public:
     explicit EnableParameters(v8::Local<v8::Object> js) : BleToJs<ble_enable_params_t>(js) {}
     virtual ~EnableParameters() {}
 
+    v8::Local<v8::Object> ToJs() override;
     ble_enable_params_t *ToNative() override;
 };
      

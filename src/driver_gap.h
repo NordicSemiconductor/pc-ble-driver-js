@@ -229,6 +229,7 @@ class GapEnableParameters : public BleToJs<ble_gap_enable_params_t>
 public:
     GapEnableParameters(ble_gap_enable_params_t *gap_addr) : BleToJs<ble_gap_enable_params_t>(gap_addr) {}
     GapEnableParameters(v8::Local<v8::Object> js) : BleToJs<ble_gap_enable_params_t>(js) {}
+    v8::Local<v8::Object> ToJs();
     ble_gap_enable_params_t *ToNative();
 };
 

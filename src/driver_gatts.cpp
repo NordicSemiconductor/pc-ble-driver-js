@@ -19,6 +19,17 @@
 
 #include <iostream>
 
+v8::Local<v8::Object> GattsEnableParameters::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+
+    Utility::Set(obj, "service_changed", native->service_changed);
+    Utility::Set(obj, "attr_tab_size", native->attr_tab_size);
+
+    return scope.Escape(obj);
+}
+
 ble_gatts_enable_params_t *GattsEnableParameters::ToNative()
 {
     auto enableParams = new ble_gatts_enable_params_t();

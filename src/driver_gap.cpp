@@ -164,7 +164,19 @@ static name_map_t gap_auth_key_types =
 #pragma endregion Name Map entries to enable constants (value and name) from C in JavaScript
 
 #pragma region Conversion methods to/from JavaScript/C++
-#pragma region GapEnableParams
+#pragma region GapEnableParameters
+
+v8::Local<v8::Object> GapEnableParameters::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+
+    Utility::Set(obj, "periph_conn_count", native->periph_conn_count);
+    Utility::Set(obj, "central_conn_count", native->central_conn_count);
+    Utility::Set(obj, "central_sec_count", native->central_sec_count);
+
+    return scope.Escape(obj);
+}
 
 ble_gap_enable_params_t *GapEnableParameters::ToNative()
 {
@@ -183,7 +195,7 @@ ble_gap_enable_params_t *GapEnableParameters::ToNative()
     return enable_params;
 }
 
-#pragma endregion GapEnableParams
+#pragma endregion GapEnableParameters
 
 #pragma region GapAddr
 
@@ -1000,12 +1012,13 @@ ble_gap_id_key_t *GapIdKey::ToNative()
 v8::Local<v8::Object> GapSecKeys::ToJs()
 {
     Nan::EscapableHandleScope scope;
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-
+    
     if (native == nullptr)
     {
-        return scope.Escape(obj);
+        return scope.Escape(Nan::Null()->ToObject());
     }
+
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
     if (native->p_enc_key == nullptr)
     {

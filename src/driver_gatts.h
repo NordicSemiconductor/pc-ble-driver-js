@@ -30,6 +30,7 @@ class GattsEnableParameters : public BleToJs<ble_gatts_enable_params_t>
 public:
     GattsEnableParameters(ble_gatts_enable_params_t *enableParamters) : BleToJs<ble_gatts_enable_params_t>(enableParamters) {}
     GattsEnableParameters(v8::Local<v8::Object> js) : BleToJs<ble_gatts_enable_params_t>(js) {}
+    v8::Local<v8::Object> ToJs() override;
     ble_gatts_enable_params_t *ToNative() override;
 };
 
