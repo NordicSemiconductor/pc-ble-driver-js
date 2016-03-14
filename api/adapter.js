@@ -611,8 +611,7 @@ class Adapter extends EventEmitter {
 
     _parsePasskeyDisplayEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
-
-        this.emit('passkeyDisplay', device, event.passkey_display);
+        this.emit('passkeyDisplay', device, event.match_request, event.passkey);
     }
 
     _parseAuthKeyRequest(event) {
@@ -1863,6 +1862,11 @@ class Adapter extends EventEmitter {
             this.emit('error', errorObject);
             if (callback) { callback(errorObject); }
             return;
+        }
+
+        // If the key is a string we split it into an array before we call gapReplyAuthKey
+        if (key.constructor === String) {
+            key = Array.from(key);
         }
 
         this._adapter.gapReplyAuthKey(device.connectionHandle, keyType, key, err => {

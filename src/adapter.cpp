@@ -221,11 +221,11 @@ void Adapter::cleanUpV8Resources()
         uv_close(reinterpret_cast<uv_handle_t *>(&asyncLog), nullptr);
     }
 
-    if (uv_is_active(eventHandle)) 
+    if (uv_is_active(eventHandle))
     {
         uv_close(reinterpret_cast<uv_handle_t *>(&asyncEvent), nullptr);
     }
-    
+
     if (uv_is_active(statusHandle))
     {
         uv_close(reinterpret_cast<uv_handle_t *>(&asyncStatus), nullptr);
@@ -265,6 +265,7 @@ void Adapter::initGap(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "gapStartAdvertising", GapStartAdvertising);
     Nan::SetPrototypeMethod(tpl, "gapStopAdvertising", GapStopAdvertising);
     Nan::SetPrototypeMethod(tpl, "gapSetAdvertisingData", GapSetAdvertisingData);
+    Nan::SetPrototypeMethod(tpl, "gapReplyAuthKey", GapReplyAuthKey);
     Nan::SetPrototypeMethod(tpl, "gapReplySecurityParameters", GapReplySecurityParameters);
     Nan::SetPrototypeMethod(tpl, "gapGetConnectionSecurity", GapGetConnectionSecurity);
     Nan::SetPrototypeMethod(tpl, "gapEncrypt", GapEncrypt);

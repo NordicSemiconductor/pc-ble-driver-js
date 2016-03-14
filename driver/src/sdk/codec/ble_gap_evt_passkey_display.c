@@ -48,10 +48,9 @@ uint32_t ble_gap_evt_passkey_display_dec(uint8_t const * const p_buf,
     memcpy(p_event->evt.gap_evt.params.passkey_display.passkey, &p_buf[index], PASSKEY_LEN);
     index += PASSKEY_LEN;
 
-    SER_ASSERT_LENGTH_EQ(index, packet_len);
+    // SER_ASSERT_LENGTH_EQ(index, packet_len);  // Removed after input from Pawel 2016-03-14
 
     *p_event_len = event_len;
 
     return NRF_SUCCESS;
 }
-
