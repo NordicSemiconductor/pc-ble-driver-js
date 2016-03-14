@@ -617,8 +617,7 @@ class Adapter extends EventEmitter {
 
     _parseAuthKeyRequest(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
-
-        this.emit('authKeyRequest', device, event.auth_key_request);
+        this.emit('authKeyRequest', device, event.key_type);
     }
 
     _parseGapKeyPressedEvent(event) {
