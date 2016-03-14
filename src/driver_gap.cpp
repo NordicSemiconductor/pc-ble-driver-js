@@ -871,7 +871,7 @@ v8::Local<v8::Object> GapPasskeyDisplay::ToJs()
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
     Utility::Set(obj, "match_request", ConversionUtility::toJsBool(evt->match_request));
-    Utility::Set(obj, "passkey", ConversionUtility::toJsString(reinterpret_cast<char *>(evt->passkey, BLE_GAP_PASSKEY_LEN)));
+    Utility::Set(obj, "passkey", ConversionUtility::toJsString(reinterpret_cast<char *>(evt->passkey), BLE_GAP_PASSKEY_LEN));
     return scope.Escape(obj);
 }
 
