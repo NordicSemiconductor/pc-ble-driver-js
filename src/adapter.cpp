@@ -323,7 +323,7 @@ Adapter::~Adapter()
     adapters.erase(std::find(adapters.begin(), adapters.end(), this));
 
     // Remove callbacks and cleanup uv_handle_t instances
-    cleanUpV8Resources();
+    // cleanUpV8Resources(); TODO: Fails when enabled, why?
 }
 
 NAN_METHOD(Adapter::New)
