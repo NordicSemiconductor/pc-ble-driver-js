@@ -20,6 +20,7 @@
 
 #include <memory>
 #include <iostream>
+#include <sstream>
 #include <cstring> // Do not remove! Required by gcc.
 
 SerializationTransport::SerializationTransport(Transport *dataLinkLayer, uint32_t response_timeout)
@@ -152,6 +153,13 @@ void SerializationTransport::eventHandlingRunner()
             if (eventCallback != nullptr && errCode == NRF_SUCCESS)
             {
                 eventCallback(event.get());
+            }
+
+            if (errCode != NRF_SUCCESS)
+            {
+                std::stringstream logMessage;
+                logMessage << "Failed to decode event, error code is " << std::hex << errCode << "." << std::endl;
+                logCallback(SD_RPC_LOG_ERROR, logMessage.str().c_str());
             }
 
             free(eventData.data);
