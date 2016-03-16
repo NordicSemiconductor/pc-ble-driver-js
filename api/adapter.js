@@ -586,29 +586,22 @@ class Adapter extends EventEmitter {
 
     _parseAuthStatusEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
-
         device.ownPeriphInitiatedPairingPending = false;
 
-        this.emit('authStatus', device, event.auth_status);
-
-        // if (event.auth_status === this._bleDriver.BLE_GAP_SEC_STATUS_SUCCESS) {
-        //     const authParamters = {
-        //         bonded: event.bonded,
-        //         sm1Levels: event.sm1_levels.lv3 ? 3
-        //                     : event.sm1_levels.lv2 ? 2
-        //                     : event.sm1_levels.lv1 ? 1
-        //                     : null,
-        //         sm2Levels: null, // TODO: Add when supported in api
-        //         keysDistPeriph: null, // TODO: Add when supported in api
-        //         keysDistCentral: null, // TODO: Add when supported in api
-        //     };
-
-        //     this.emit('securityChanged', device, authParamters);
-        // } else {
-        //     this.emit('error', 'Pairing failed with error ' + event.auth_status);
-        // }
-
-        // this._changeState({securityRequestPending: false});
+        this.emit('authStatus',
+            device,
+            {
+                'auth_status': event.auth_status,
+				'auth_status_name': event.auth_status_name,
+                'error_src': event.error_src,
+				'error_src_name': event.error_src_name,
+                'bonded': event.bonded,
+                'sm1_levels': event.sm1_levels,
+                'sm2_levels': event.sm2_levels,
+                'kdist_own': event.kdist_own,
+                'kdist_peer': event.kdist_peer
+            }
+        );
     }
 
     _parsePasskeyDisplayEvent(event) {
