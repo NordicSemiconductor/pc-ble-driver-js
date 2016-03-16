@@ -592,9 +592,9 @@ class Adapter extends EventEmitter {
             device,
             {
                 'auth_status': event.auth_status,
-				'auth_status_name': event.auth_status_name,
+                'auth_status_name': event.auth_status_name,
                 'error_src': event.error_src,
-				'error_src_name': event.error_src_name,
+                'error_src_name': event.error_src_name,
                 'bonded': event.bonded,
                 'sm1_levels': event.sm1_levels,
                 'sm2_levels': event.sm2_levels,
@@ -606,6 +606,7 @@ class Adapter extends EventEmitter {
 
     _parsePasskeyDisplayEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
+        this.emit('passkeyDisplay', device, event.match_request, event.passkey);
 
         this.emit('passkeyDisplay', device, event.passkey_display);
     }
@@ -617,7 +618,7 @@ class Adapter extends EventEmitter {
 
     _parseGapKeyPressedEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
-
+        this.emit('passkeyDisplay', device, event.match_request, event.passkey);
         this.emit('keyPressed', device, event.key_pressed);
     }
 
