@@ -3335,6 +3335,8 @@ NAN_METHOD(Adapter::GapReplyAuthKey)
     baton->conn_handle = conn_handle;
     baton->key_type = key_type;
     baton->key = key;
+
+    uv_queue_work(uv_default_loop(), baton->req, GapReplyAuthKey, reinterpret_cast<uv_after_work_cb>(AfterGapReplyAuthKey));
 }
 
 // This runs in a worker thread (not Main Thread)
