@@ -1046,7 +1046,14 @@ v8::Local<v8::Object> GapSecKeys::ToJs()
         Utility::Set(obj, "sign_key", GapSignInfo(native->p_sign_key).ToJs());
     }
 
-    Utility::Set(obj, "pk", GapLescP256Pk(native->p_pk).ToJs());
+    if (native->p_pk == nullptr)
+    {
+        Utility::Set(obj, "pk", Nan::Null());
+    }
+    else
+    {
+        Utility::Set(obj, "pk", GapLescP256Pk(native->p_pk).ToJs());
+    }
 
     return scope.Escape(obj);
 }
@@ -1064,7 +1071,7 @@ ble_gap_sec_keys_t *GapSecKeys::ToNative()
     keys->p_enc_key = GapEncKey(ConversionUtility::getJsObjectOrNull(jsobj, "enc_key"));
     keys->p_id_key = GapIdKey(ConversionUtility::getJsObjectOrNull(jsobj, "id_key"));
     keys->p_sign_key = GapSignInfo(ConversionUtility::getJsObjectOrNull(jsobj, "sign_key"));
-    keys->p_pk = GapLescP256Pk(ConversionUtility::getJsObject(jsobj, "pk"));
+    keys->p_pk = GapLescP256Pk(ConversionUtility::getJsObjectOrNull(jsobj, "pk"));
 
     return keys;
 }
@@ -2673,6 +2680,7 @@ NAN_METHOD(Adapter::GapReplySecurityParameters)
     auto baton = new GapSecParamsReplyBaton(callback);
     baton->conn_handle = conn_handle;
     baton->sec_status = sec_status;
+
     try
     {
         baton->sec_params = GapSecParams(sec_params_object);
@@ -2686,7 +2694,24 @@ NAN_METHOD(Adapter::GapReplySecurityParameters)
 
     try
     {
-        baton->sec_keyset = GapSecKeyset(sec_keyset_object);
+        ble_gap_sec_keyset_t *keyset = GapSecKeyset(sec_keyset_object);
+
+        if (keyset == nullptr)
+        {
+            keyset = new ble_gap_sec_keyset_t();
+
+            keyset->keys_own.p_enc_key = nullptr;
+            keyset->keys_own.p_id_key = nullptr;
+            keyset->keys_own.p_sign_key = nullptr;
+            keyset->keys_own.p_pk = nullptr;
+        }
+
+        keyset->keys_peer.p_enc_key = new ble_gap_enc_key_t();
+        keyset->keys_peer.p_id_key = new ble_gap_id_key_t();
+        keyset->keys_peer.p_sign_key = new ble_gap_sign_info_t();
+        keyset->keys_peer.p_pk = new ble_gap_lesc_p256_pk_t();
+
+        baton->sec_keyset = keyset;
     }
     catch (char const *)
     {
