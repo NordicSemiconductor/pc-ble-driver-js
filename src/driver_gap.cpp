@@ -474,7 +474,7 @@ ble_gap_scan_params_t *GapScanParams::ToNative()
 
     params->active = ConversionUtility::getNativeBool(jsobj, "active");
     //params->selective = ConversionUtility::getNativeBool(jsobj, "selective");
-    //TODO: params->p_whitelist = 
+    //TODO: params->p_whitelist =
     params->interval = ConversionUtility::msecsToUnitsUint16(jsobj, "interval", ConversionUtility::ConversionUnit625ms);
     params->window = ConversionUtility::msecsToUnitsUint16(jsobj, "window", ConversionUtility::ConversionUnit625ms);
     params->timeout = ConversionUtility::getNativeUint16(jsobj, "timeout");
@@ -1013,7 +1013,7 @@ v8::Local<v8::Object> GapSecKeys::ToJs()
 {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    
+
     if (native == nullptr)
     {
         return scope.Escape(obj);
@@ -3272,6 +3272,7 @@ NAN_METHOD(Adapter::GapReplyAuthKey)
     uint16_t conn_handle;
     uint8_t key_type;
     uint8_t *key;
+    auto keyArgumentcount = -1;
     v8::Local<v8::Function> callback;
     auto argumentcount = 0;
 
@@ -3284,6 +3285,7 @@ NAN_METHOD(Adapter::GapReplyAuthKey)
         argumentcount++;
 
         key = ConversionUtility::getNativePointerToUint8(info[argumentcount]);
+        keyArgumentcount = argumentcount;
         argumentcount++;
 
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
@@ -3293,6 +3295,14 @@ NAN_METHOD(Adapter::GapReplyAuthKey)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
+        return;
+    }
+
+    if (!Utility::EnsureAsciiNumbers(key, BLE_GAP_PASSKEY_LEN))
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, "ascii number");
+        Nan::ThrowTypeError(message);
+        delete key;
         return;
     }
 

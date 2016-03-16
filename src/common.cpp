@@ -701,6 +701,33 @@ bool Utility::IsNull(v8::Local<v8::Object> jsobj)
     return jsobj->IsNull();
 }
 
+bool Utility::IsBetween(const uint8_t value, const uint8_t min, const uint8_t max)
+{
+    if (value < min || value > max)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool Utility::EnsureAsciiNumbers(uint8_t *value, const int length)
+{
+    for (int i = 0; i < length; ++i)
+    {
+        if (IsBetween(value[i], 0, 9))
+        {
+            value[i] = value[i] + '0';
+        }
+        else if (!IsBetween(value[i], '0', '9'))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char const *customMessage)
 {
     Nan::EscapableHandleScope scope;
@@ -803,7 +830,7 @@ v8::Local<v8::String> ErrorMessage::getStructErrorMessage(char const *name, char
     std::ostringstream stream;
 
     stream << "Property: " << std::string(name) << " Message: " << std::string(message);
-    
+
     return ConversionUtility::toJsString(stream.str())->ToString();
 }
 

@@ -98,6 +98,9 @@ public:
     static bool IsObject(v8::Local<v8::Object> jsobj, const char *name);
     static bool IsNull(v8::Local<v8::Object> jsobj, const char *name);
     static bool IsNull(v8::Local<v8::Object> jsobj);
+
+    static bool IsBetween(const uint8_t value, const uint8_t min, const uint8_t max);
+    static bool EnsureAsciiNumbers(uint8_t *value, const int length);
 };
 
 template<typename EventType>
