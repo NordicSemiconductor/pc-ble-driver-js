@@ -498,9 +498,7 @@ class Adapter extends EventEmitter {
     _parseSecParamsRequestEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
 
-        this.emit('secParamsRequest', device, {
-            peer_params: event.peer_params,
-        });
+        this.emit('secParamsRequest', device, event.peer_params);
     }
 
     _parseConnSecUpdateEvent(event) {
@@ -515,15 +513,15 @@ class Adapter extends EventEmitter {
         this.emit('authStatus',
             device,
             {
-                'auth_status': event.auth_status,
-                'auth_status_name': event.auth_status_name,
-                'error_src': event.error_src,
-                'error_src_name': event.error_src_name,
-                'bonded': event.bonded,
-                'sm1_levels': event.sm1_levels,
-                'sm2_levels': event.sm2_levels,
-                'kdist_own': event.kdist_own,
-                'kdist_peer': event.kdist_peer
+                auth_status: event.auth_status,
+                auth_status_name: event.auth_status_name,
+                error_src: event.error_src,
+                error_src_name: event.error_src_name,
+                bonded: event.bonded,
+                sm1_levels: event.sm1_levels,
+                sm2_levels: event.sm2_levels,
+                kdist_own: event.kdist_own,
+                kdist_peer: event.kdist_peer,
             }
         );
     }
