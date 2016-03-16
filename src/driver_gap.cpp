@@ -2706,6 +2706,27 @@ NAN_METHOD(Adapter::GapReplySecurityParameters)
             keyset->keys_own.p_pk = nullptr;
         }
 
+        if (keyset->keys_own.p_enc_key == nullptr)
+        {
+            keyset->keys_own.p_enc_key = new ble_gap_enc_key_t();
+        }
+
+        if (keyset->keys_own.p_id_key == nullptr)
+        {
+            keyset->keys_own.p_id_key = new ble_gap_id_key_t();
+        }
+
+        if (keyset->keys_own.p_sign_key == nullptr)
+        {
+            keyset->keys_own.p_sign_key = new ble_gap_sign_info_t();
+        }
+
+        if (keyset->keys_own.p_pk == nullptr)
+        {
+            keyset->keys_own.p_pk = new ble_gap_lesc_p256_pk_t();
+        }
+
+
         keyset->keys_peer.p_enc_key = new ble_gap_enc_key_t();
         keyset->keys_peer.p_id_key = new ble_gap_id_key_t();
         keyset->keys_peer.p_sign_key = new ble_gap_sign_info_t();
