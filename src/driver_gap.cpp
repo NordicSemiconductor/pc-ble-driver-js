@@ -3403,6 +3403,8 @@ NAN_METHOD(Adapter::GapReplyDHKeyLESC)
     memcpy(dhkey->key, key, sizeof(key));
     baton->dhkey = dhkey;
     delete key;
+
+    uv_queue_work(uv_default_loop(), baton->req, GapReplyDHKeyLESC, reinterpret_cast<uv_after_work_cb>(AfterGapReplyDHKeyLESC));
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -3466,6 +3468,8 @@ NAN_METHOD(Adapter::GapNotifyKeypress)
     auto baton = new GapNotifyKeypressBaton(callback);
     baton->conn_handle = conn_handle;
     baton->kp_not = kp_not;
+
+    uv_queue_work(uv_default_loop(), baton->req, GapNotifyKeypress, reinterpret_cast<uv_after_work_cb>(AfterGapNotifyKeypress));
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -3532,6 +3536,8 @@ NAN_METHOD(Adapter::GapGetLESCOOBData)
     memcpy(p_pk_own->pk, key, sizeof(key));
     baton->p_pk_own = p_pk_own;
     delete key;
+
+    uv_queue_work(uv_default_loop(), baton->req, GapGetLESCOOBData, reinterpret_cast<uv_after_work_cb>(AfterGapGetLESCOOBData));
 }
 
 // This runs in a worker thread (not Main Thread)
@@ -3626,6 +3632,8 @@ NAN_METHOD(Adapter::GapSetLESCOOBData)
         Nan::ThrowTypeError(message);
         return;
     }
+
+    uv_queue_work(uv_default_loop(), baton->req, GapSetLESCOOBData, reinterpret_cast<uv_after_work_cb>(AfterGapSetLESCOOBData));
 }
 
 // This runs in a worker thread (not Main Thread)
