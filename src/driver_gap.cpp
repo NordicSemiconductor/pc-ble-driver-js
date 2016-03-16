@@ -3332,6 +3332,7 @@ NAN_METHOD(Adapter::GapReplyAuthKey)
     }
 
     auto baton = new GapReplyAuthKeyBaton(callback);
+    baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
     baton->key_type = key_type;
     baton->key = key;
@@ -3398,6 +3399,7 @@ NAN_METHOD(Adapter::GapReplyDHKeyLESC)
     }
 
     auto baton = new GapReplyDHKeyLESCBaton(callback);
+    baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
 
     memcpy(dhkey->key, key, sizeof(key));
@@ -3466,6 +3468,7 @@ NAN_METHOD(Adapter::GapNotifyKeypress)
     }
 
     auto baton = new GapNotifyKeypressBaton(callback);
+    baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
     baton->kp_not = kp_not;
 
@@ -3532,6 +3535,7 @@ NAN_METHOD(Adapter::GapGetLESCOOBData)
     }
 
     auto baton = new GapGetLESCOOBDataBaton(callback);
+    baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
     memcpy(p_pk_own->pk, key, sizeof(key));
     baton->p_pk_own = p_pk_own;
@@ -3607,6 +3611,7 @@ NAN_METHOD(Adapter::GapSetLESCOOBData)
     }
 
     auto baton = new GapSetLESCOOBDataBaton(callback);
+    baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
     baton->p_oobd_own = GapLescOobData(p_oobd_own);
     baton->p_oobd_peer = GapLescOobData(p_oobd_peer);
