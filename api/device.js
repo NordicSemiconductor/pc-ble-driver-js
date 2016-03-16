@@ -44,6 +44,7 @@ class Device {
         this.connectionSupervisionTimeout = null;
 
         this.paired = false;
+        this.ownPeriphInitiatedPairingPending = false; // Local adapter peripheral initiated a pairing procedure
     }
 
     // null if not connected

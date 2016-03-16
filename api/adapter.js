@@ -587,6 +587,8 @@ class Adapter extends EventEmitter {
     _parseAuthStatusEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
 
+        device.ownPeriphInitiatedPairingPending = false;
+
         this.emit('authStatus', device, event.auth_status);
 
         // if (event.auth_status === this._bleDriver.BLE_GAP_SEC_STATUS_SUCCESS) {
@@ -611,7 +613,8 @@ class Adapter extends EventEmitter {
 
     _parsePasskeyDisplayEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
-        this.emit('passkeyDisplay', device, event.match_request, event.passkey);
+
+        this.emit('passkeyDisplay', device, event.passkey_display);
     }
 
     _parseAuthKeyRequest(event) {
@@ -1819,11 +1822,18 @@ class Adapter extends EventEmitter {
 
         }
 
+        if (device.role === 'central') {
+            device.ownPeriphInitiatedPairingPending = true;
+        }
+
         this._adapter.gapAuthenticate(device.connectionHandle, secParams, err => {
             let errorObject;
             if (err) {
                 errorObject = _makeError('Failed to authenticate', err);
                 this.emit('error', errorObject);
+                if (device.role === 'central') {
+                    device.ownPeriphInitiatedPairingPending = false;
+                }
             }
 
             // TODO: is this securityRequestPending used? and in any other function?
@@ -1862,11 +1872,6 @@ class Adapter extends EventEmitter {
             this.emit('error', errorObject);
             if (callback) { callback(errorObject); }
             return;
-        }
-
-        // If the key is a string we split it into an array before we call gapReplyAuthKey
-        if (key.constructor === String) {
-            key = Array.from(key);
         }
 
         this._adapter.gapReplyAuthKey(device.connectionHandle, keyType, key, err => {
