@@ -287,7 +287,7 @@ uint32_t ble_gap_evt_auth_status_t_dec(uint8_t const * const p_buf,
     err_code = uint8_t_dec(p_buf, buf_len, p_index, &byte);
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);
     p_auth_status->error_src = byte & 0x03;
-    p_auth_status->bonded =  (byte >> 2) & 0x01 ;
+    p_auth_status->bonded =  (byte >> 2) & 0x01;
 
     err_code = ble_gap_sec_levels_dec(p_buf, buf_len, p_index, &(p_auth_status->sm1_levels));
     SER_ASSERT(err_code == NRF_SUCCESS, err_code);

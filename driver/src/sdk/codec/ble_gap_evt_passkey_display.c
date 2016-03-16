@@ -54,3 +54,4 @@ uint32_t ble_gap_evt_passkey_display_dec(uint8_t const * const p_buf,
 
     return NRF_SUCCESS;
 }
+

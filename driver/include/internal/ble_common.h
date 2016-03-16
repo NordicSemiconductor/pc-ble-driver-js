@@ -29,7 +29,7 @@ public:
 
     ~BLESecurityContext()
     {
-        app_ble_gap_sec_context_root_release(context);
+        app_ble_gap_sec_context_root_release();
     }
 };
 

@@ -38,7 +38,7 @@
 
 // Map with context, each with a set of conn_handle and each conn_handle a ser_ble_gap_app_keyset_t*
 static std::map<void*, std::map<uint16_t, ser_ble_gap_app_keyset_t*>> m_app_keys_table;
-static void *current_context;
+static void *current_context = nullptr;
 static std::mutex current_context_mutex;
 
 void app_ble_gap_sec_context_root_set(void *context)
@@ -47,7 +47,7 @@ void app_ble_gap_sec_context_root_set(void *context)
     current_context = context;
 }
 
-void app_ble_gap_sec_context_root_release(void *context)
+void app_ble_gap_sec_context_root_release()
 {
     current_context = nullptr;
     current_context_mutex.unlock();
