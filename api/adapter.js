@@ -501,82 +501,6 @@ class Adapter extends EventEmitter {
         this.emit('secParamsRequest', device, {
             peer_params: event.peer_params,
         });
-
-        // const role = device.role;
-
-        // const secParamsCentral = null;
-        // const secParamsPeripheral = {
-        //     bond: false,
-        //     mitm: false,
-        //     io_caps: this._bleDriver.BLE_GAP_IO_CAPS_NONE,
-        //     oob: false,
-        //     min_key_size: 7,
-        //     max_key_size: 16,
-        //     kdist_periph: {
-        //         enc: false,
-        //         id: false,
-        //         sign: false,
-        //     },
-        //     kdist_central: {
-        //         enc: false,
-        //         id: false,
-        //         sign: false,
-        //     },
-        // };
-
-        // let secParams;
-        // if (role === 'central') {
-        //     secParams = secParamsPeripheral;
-        // } else {
-        //     secParams = secParamsCentral;
-        // }
-
-        // const connectionHandle = event.conn_handle;
-
-        // this._adapter.gapReplySecurityParameters(
-        //     event.conn_handle,
-        //     this._bleDriver.BLE_GAP_SEC_STATUS_SUCCESS, //sec_status
-        //     secParams,
-        //     { // sec_keyset
-        //         keys_periph: {
-        //             enc_key: {
-        //                 enc_info: {
-        //                     ltk: [0, 0, 0, 0, 0, 0, 0, 0],
-        //                     auth: false,
-        //                     ltk_len: 8,
-        //                 },
-        //                 master_id: {
-        //                     ediv: 0x1234,
-        //                     rand: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        //                 },
-        //             },
-        //             id_key: null,
-        //             sign_key: null,
-        //         },
-        //         keys_central: {
-        //             enc_key: {
-        //                 enc_info: {
-        //                     ltk: [0, 0, 0, 0, 0, 0, 0, 0],
-        //                     auth: false,
-        //                     ltk_len: 8,
-        //                 },
-        //                 master_id: {
-        //                     ediv: 0x1234,
-        //                     rand: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        //                 },
-        //             },
-        //             id_key: null,
-        //             sign_key: null,
-        //         },
-        //     },
-        //     (err, keyset) => {
-        //         if (err) {
-        //             this.emit('error', 'Failed to call security parameters reply');
-        //             this._changeState({securityRequestPending: false});
-        //             return;
-        //         }
-        //     }
-        // );
     }
 
     _parseConnSecUpdateEvent(event) {
@@ -616,29 +540,25 @@ class Adapter extends EventEmitter {
 
     _parseGapKeyPressedEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
-        this.emit('keyPressed', device, event.key_pressed);
+        this.emit('keyPressed', device, event.kp_not);
     }
 
     _parseLescDhkeyRequest(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
 
-        this.emit('lescDhkeyRequest', device, event.lesc_dhkey_request);
+        this.emit('lescDhkeyRequest', device, event.pk_peer, event.oobd_req);
     }
 
     _parseSecInfoRequest(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
 
-        this.emit('secInfoRequest', device, event.sec_info_request);
+        this.emit('secInfoRequest', device, event);
     }
 
     _parseGapSecurityRequestEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
-        this.emit('securityRequest', device, event.sec_request);
-        // this.pair(device.instanceId, false, error => {
-        //     if (error) {
-        //         console.log(error);
-        //     }
-        // });
+
+        this.emit('securityRequest', device, event);
     }
 
     _parseGapConnectionParameterUpdateRequestEvent(event) {
