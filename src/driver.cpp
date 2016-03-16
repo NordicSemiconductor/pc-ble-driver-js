@@ -278,8 +278,22 @@ void Adapter::onRpcEvent(uv_async_t *handle)
                 std::cout << "Event " << event->header.evt_id << " unknown to me." << std::endl;
                 break;
             }
-        }
 
+            //Special extra handling of some events:
+            if (event->header.evt_id == BLE_GAP_EVT_AUTH_STATUS)
+            {
+                auto keyset = getSecurityKey(event->evt.gap_evt.conn_handle);
+
+                if (keyset != 0)
+                {
+                    v8::Local<v8::Object> obj = Utility::Get(array, arrayIndex)->ToObject();
+                    Utility::Set(obj, "keyset", GapSecKeyset(keyset));
+                }
+
+                destroySecurityKeyStorage(event->evt.gap_evt.conn_handle);
+            }
+        }
+                                       
         arrayIndex++;
 
         // Free memory for current entry

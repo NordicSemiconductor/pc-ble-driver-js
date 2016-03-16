@@ -15,6 +15,7 @@
 
 #include <nan.h>
 #include <chrono>
+#include <map>
 
 #include "sd_rpc.h"
 
@@ -178,6 +179,12 @@ private:
 
     void dispatchEvents();
     static uint32_t enableBLE(adapter_t *adapter);
+
+    void createSecurityKeyStorage(const uint16_t connHandle, ble_gap_sec_keyset_t *keyset);
+    void destroySecurityKeyStorage(const uint16_t connHandle);
+    ble_gap_sec_keyset_t *getSecurityKey(const uint16_t connHandle);
+
+    std::map<uint16_t, ble_gap_sec_keyset_t *> keysetMap;
 
     adapter_t *adapter;
     EventQueue eventQueue;

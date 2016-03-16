@@ -606,6 +606,12 @@ v8::Local<v8::Value> Utility::Get(v8::Local<v8::Object> jsobj, const char *name)
     return scope.Escape(Nan::Get(jsobj, Nan::New(name).ToLocalChecked()).ToLocalChecked());
 }
 
+v8::Local<v8::Value> Utility::Get(v8::Local<v8::Object> jsobj, const int index)
+{
+    Nan::EscapableHandleScope scope;
+    return scope.Escape(Nan::Get(jsobj, index).ToLocalChecked());
+}
+
 void Utility::SetMethod(v8::Handle<v8::Object> target, const char *exportName, Nan::FunctionCallback function)
 {
     Utility::Set(target,

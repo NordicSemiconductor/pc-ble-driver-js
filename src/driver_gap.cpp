@@ -2733,6 +2733,8 @@ NAN_METHOD(Adapter::GapReplySecurityParameters)
         keyset->keys_peer.p_pk = new ble_gap_lesc_p256_pk_t();
 
         baton->sec_keyset = keyset;
+
+        obj->createSecurityKeyStorage(conn_handle, keyset);
     }
     catch (char const *)
     {

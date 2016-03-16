@@ -383,3 +383,80 @@ void Adapter::addEventBatchStatistics(std::chrono::milliseconds duration)
     eventCallbackBatchEventCounter = 0;
     eventCallbackBatchNumber += 1;
 }
+
+void Adapter::createSecurityKeyStorage(const uint16_t connHandle, ble_gap_sec_keyset_t *keyset)
+{
+    ble_gap_sec_keyset_t *set = new ble_gap_sec_keyset_t();
+    std::memcpy(&(set), keyset, sizeof(ble_gap_sec_keyset_t));
+
+    keysetMap.insert(std::pair<uint16_t, ble_gap_sec_keyset_t *>(connHandle, set));
+}
+
+void Adapter::destroySecurityKeyStorage(const uint16_t connHandle)
+{
+    auto keys = keysetMap.find(connHandle);
+
+    if (keys == keysetMap.end())
+    {
+        return;
+    }
+
+    auto keyset = keys->second;
+
+    if (keyset->keys_own.p_enc_key != nullptr)
+    {
+        delete keyset->keys_own.p_enc_key;
+    }
+
+    if (keyset->keys_own.p_id_key != nullptr)
+    {
+        delete keyset->keys_own.p_id_key;
+    }
+
+    if (keyset->keys_own.p_sign_key != nullptr)
+    {
+        delete keyset->keys_own.p_sign_key;
+    }
+
+    if (keyset->keys_own.p_pk != nullptr)
+    {
+        delete keyset->keys_own.p_pk;
+    }
+
+    if (keyset->keys_peer.p_enc_key != nullptr)
+    {
+        delete keyset->keys_peer.p_enc_key;
+    }
+
+    if (keyset->keys_peer.p_id_key != nullptr)
+    {
+        delete keyset->keys_peer.p_id_key;
+    }
+
+    if (keyset->keys_peer.p_sign_key != nullptr)
+    {
+        delete keyset->keys_peer.p_sign_key;
+    }
+
+    if (keyset->keys_peer.p_pk != nullptr)
+    {
+        delete keyset->keys_peer.p_pk;
+    }
+
+    delete keyset;
+
+    keysetMap.erase(connHandle);
+}
+
+ble_gap_sec_keyset_t *Adapter::getSecurityKey(const uint16_t connHandle)
+{
+    auto keyset = keysetMap.find(connHandle);
+
+    if (keyset == keysetMap.end())
+    {
+        return 0;
+    }
+
+    return keyset->second;
+
+}

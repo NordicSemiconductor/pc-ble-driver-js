@@ -77,6 +77,7 @@ class Utility
 {
 public:
 	static v8::Local<v8::Value> Get(v8::Local<v8::Object> jsobj, const char *name);
+    static v8::Local<v8::Value> Get(v8::Local<v8::Object> jsobj, const int index);
 	static void SetMethod(v8::Handle<v8::Object> target, const char *exportName, Nan::FunctionCallback function);
 
 	static bool Set(v8::Handle<v8::Object> target, const char *name, int32_t value);
