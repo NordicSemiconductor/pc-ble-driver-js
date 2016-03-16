@@ -387,7 +387,7 @@ void Adapter::addEventBatchStatistics(std::chrono::milliseconds duration)
 void Adapter::createSecurityKeyStorage(const uint16_t connHandle, ble_gap_sec_keyset_t *keyset)
 {
     ble_gap_sec_keyset_t *set = new ble_gap_sec_keyset_t();
-    std::memcpy(&(set), keyset, sizeof(ble_gap_sec_keyset_t));
+    std::memcpy(set, keyset, sizeof(ble_gap_sec_keyset_t));
 
     keysetMap.insert(std::pair<uint16_t, ble_gap_sec_keyset_t *>(connHandle, set));
 }
