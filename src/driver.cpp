@@ -284,10 +284,15 @@ void Adapter::onRpcEvent(uv_async_t *handle)
             {
                 auto keyset = getSecurityKey(event->evt.gap_evt.conn_handle);
 
+                v8::Local<v8::Object> obj = Utility::Get(array, arrayIndex)->ToObject();
+
                 if (keyset != 0)
                 {
-                    v8::Local<v8::Object> obj = Utility::Get(array, arrayIndex)->ToObject();
                     Utility::Set(obj, "keyset", GapSecKeyset(keyset));
+                }
+                else
+                {
+                    Utility::Set(obj, "keyset", Nan::Null());
                 }
 
                 destroySecurityKeyStorage(event->evt.gap_evt.conn_handle);

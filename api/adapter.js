@@ -522,6 +522,7 @@ class Adapter extends EventEmitter {
                 sm2_levels: event.sm2_levels,
                 kdist_own: event.kdist_own,
                 kdist_peer: event.kdist_peer,
+                keyset: event.keyset,
             }
         );
     }
