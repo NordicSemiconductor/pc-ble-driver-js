@@ -3332,7 +3332,11 @@ NAN_METHOD(Adapter::GapReplyAuthKey)
         key_type = ConversionUtility::getNativeUint8(info[argumentcount]);
         argumentcount++;
 
-        key = ConversionUtility::getNativePointerToUint8(info[argumentcount]);
+        v8::Local<v8::Object> keyobject = ConversionUtility::getJsObjectOrNull(info[argumentcount]);
+        if (!Utility::IsNull(keyobject))
+        {
+            key = ConversionUtility::getNativePointerToUint8(info[argumentcount]);
+        }
         keyArgumentcount = argumentcount;
         argumentcount++;
 
@@ -3346,12 +3350,15 @@ NAN_METHOD(Adapter::GapReplyAuthKey)
         return;
     }
 
-    if (!Utility::EnsureAsciiNumbers(key, BLE_GAP_PASSKEY_LEN))
+    if (key != nullptr)
     {
-        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, "ascii number");
-        Nan::ThrowTypeError(message);
-        delete key;
-        return;
+        if (!Utility::EnsureAsciiNumbers(key, BLE_GAP_PASSKEY_LEN))
+        {
+            v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, "ascii number");
+            Nan::ThrowTypeError(message);
+            delete key;
+            return;
+        }
     }
 
     auto baton = new GapReplyAuthKeyBaton(callback);

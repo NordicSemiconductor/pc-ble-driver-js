@@ -1801,7 +1801,7 @@ class Adapter extends EventEmitter {
         }
 
         // If the key is a string we split it into an array before we call gapReplyAuthKey
-        if (key.constructor === String) {
+        if (key && key.constructor === String) {
             key = Array.from(key);
         }
 
