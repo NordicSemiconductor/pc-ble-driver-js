@@ -525,6 +525,22 @@ class Adapter extends EventEmitter {
                 keyset: event.keyset,
             }
         );
+
+        if (event.auth_status === this._bleDriver.BLE_GAP_SEC_STATUS_SUCCESS) {
+            const authParamters = {
+                bonded: event.bonded,
+                sm1Levels: event.sm1_levels.lv4 ? 4
+                            : event.sm1_levels.lv3 ? 3
+                            : event.sm1_levels.lv2 ? 2
+                            : event.sm1_levels.lv1 ? 1
+                            : null,
+                sm2Levels: null, // TODO: Add when supported in api
+                keysDistPeriph: null, // TODO: Add when supported in api
+                keysDistCentral: null, // TODO: Add when supported in api
+            };
+
+            this.emit('securityChanged', device, authParamters);
+        }
     }
 
     _parsePasskeyDisplayEvent(event) {
