@@ -275,6 +275,11 @@ void Adapter::initGap(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "gapGetPPCP", GapGetPPCP);
     Nan::SetPrototypeMethod(tpl, "gapSetAppearance", GapSetAppearance);
     Nan::SetPrototypeMethod(tpl, "gapGetAppearance", GapGetAppearance);
+
+    Nan::SetPrototypeMethod(tpl, "gapReplyLescDhKey", GapReplyDHKeyLESC);
+    Nan::SetPrototypeMethod(tpl, "gapNotifyKeypress", GapNotifyKeypress);
+    Nan::SetPrototypeMethod(tpl, "gapGetLescOobData", GapGetLESCOOBData);
+    Nan::SetPrototypeMethod(tpl, "gapSetLescOobData", GapSetLESCOOBData);
 }
 
 void Adapter::initGattC(v8::Local<v8::FunctionTemplate> tpl)
