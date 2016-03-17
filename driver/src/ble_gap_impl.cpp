@@ -600,7 +600,7 @@ uint32_t sd_ble_gap_sec_params_reply(adapter_t *adapter,
     
     if (p_sec_keyset)
     {
-        std::memcpy(&(keyset->keyset), p_sec_keyset, sizeof(ble_gap_sec_keyset_t));
+        std::memcpy(&keyset->keyset, p_sec_keyset, sizeof(ble_gap_sec_keyset_t));
     }
 
     return encode_decode(adapter, encode_function, decode_function);

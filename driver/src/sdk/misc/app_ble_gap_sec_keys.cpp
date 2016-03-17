@@ -36,10 +36,12 @@
 
 #include <boost/thread/tss.hpp>
 
+typedef std::map<uint16_t, ser_ble_gap_app_keyset_t*> connhandle_keyset_t;
+
 // Map with context, each with a set of conn_handle and each conn_handle a ser_ble_gap_app_keyset_t*
-static std::map<void*, std::map<uint16_t, ser_ble_gap_app_keyset_t*>> m_app_keys_table;
-static void *current_context = nullptr;
-static std::mutex current_context_mutex;
+std::map<void*, connhandle_keyset_t*> m_app_keys_table;
+void *current_context = nullptr;
+std::mutex current_context_mutex;
 
 void app_ble_gap_sec_context_root_set(void *context)
 {
@@ -60,28 +62,30 @@ uint32_t app_ble_gap_sec_context_create(uint16_t conn_handle, ser_ble_gap_app_ke
     auto tempRootContext = m_app_keys_table.find(current_context);
 
     auto keyset = new ser_ble_gap_app_keyset_t();
-    std::map<uint16_t, ser_ble_gap_app_keyset_t*> connectionAndKeyset {
-        { conn_handle, keyset }
-    };
 
     // If current context is not found we have to add it
     if (tempRootContext == m_app_keys_table.end()) 
     {
+        auto connectionAndKeyset = new std::map<uint16_t, ser_ble_gap_app_keyset_t*>{
+            { conn_handle, keyset }
+        };
+
         m_app_keys_table.insert(std::make_pair(current_context, connectionAndKeyset));
     }
     else
     {
         auto connHandleMap = tempRootContext->second;
-        auto connHandle = connHandleMap.find(conn_handle);
+        auto connHandle = connHandleMap->find(conn_handle);
 
         // If connection handle does not exist from before
         // we create a new ser_ble_gap_app_keyset_t for the connnection handle
-        if (connHandle != connHandleMap.end())
+        if (connHandle != connHandleMap->end())
         {
             delete connHandle->second;
+            connHandleMap->erase(conn_handle);
         }
 
-        connHandleMap.insert(std::make_pair(conn_handle, keyset));
+        connHandleMap->insert(std::make_pair(conn_handle, keyset));
     }
 
     *pp_gap_app_keyset = keyset;
@@ -94,11 +98,11 @@ uint32_t app_ble_gap_sec_context_destroy(uint16_t conn_handle)
     if (tempAdapter == m_app_keys_table.end()) return NRF_ERROR_NOT_FOUND;
 
     auto connHandleMap = tempAdapter->second;
-    auto connHandle = connHandleMap.find(conn_handle);
+    auto connHandle = connHandleMap->find(conn_handle);
 
-    if (connHandle == connHandleMap.end()) return NRF_ERROR_NOT_FOUND;
+    if (connHandle == connHandleMap->end()) return NRF_ERROR_NOT_FOUND;
     delete connHandle->second; // Delete the ser_ble_gap_app_keyset_t 
-    connHandleMap.erase(connHandle);
+    connHandleMap->erase(conn_handle);
 
     return NRF_SUCCESS;
 }
@@ -109,9 +113,9 @@ uint32_t app_ble_gap_sec_context_find(uint16_t conn_handle, ser_ble_gap_app_keys
     if (tempAdapter == m_app_keys_table.end()) return NRF_ERROR_NOT_FOUND;
 
     auto connHandleMap = tempAdapter->second;
-    auto connHandle = connHandleMap.find(conn_handle);
+    auto connHandle = connHandleMap->find(conn_handle);
 
-    if (connHandle == connHandleMap.end()) return NRF_ERROR_NOT_FOUND;
+    if (connHandle == connHandleMap->end()) return NRF_ERROR_NOT_FOUND;
     *pp_gap_app_keyset = connHandle->second;
     return NRF_SUCCESS;
 }
