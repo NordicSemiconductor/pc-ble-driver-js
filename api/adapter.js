@@ -1900,13 +1900,47 @@ class Adapter extends EventEmitter {
         });
     }
 
-    // encrypt(deviceInstanceId, masterId, encInfo) {
-    //     const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
-    // }
+    encrypt(deviceInstanceId, masterId, encInfo, callback) {
+        const device = this.getDevice(deviceInstanceId);
 
-    // secInfoReply(deviceInstanceId, encInfo, idInfo, signInfo) {
-    //     const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
-    // }
+        if (!device) {
+            const errorObject = _makeError('Failed to encrypt', 'Failed to find device with id ' + deviceInstanceId);
+            this.emit('error', errorObject);
+            if (callback) { callback(errorObject); }
+            return;
+        }
+
+        this._adapter.gapEncrypt(device.connectionHandle, masterId, encInfo, err => {
+            let errorObject;
+            if (err) {
+                errorObject = _makeError('Failed to encrypt');
+                this.emit('error', errorObject);
+            }
+
+            if (callback) { callback(errorObject); }
+        });
+    }
+
+    secInfoReply(deviceInstanceId, encInfo, idInfo, signInfo, callback) {
+        const device = this.getDevice(deviceInstanceId);
+
+        if (!device) {
+            const errorObject = _makeError('Failed to encrypt', 'Failed to find device with id ' + deviceInstanceId);
+            this.emit('error', errorObject);
+            if (callback) { callback(errorObject); }
+            return;
+        }
+
+        this._adapter.gapReplySecurityInfo(device.connectionHandle, encInfo, idInfo, signInfo, err => {
+            let errorObject;
+            if (err) {
+                errorObject = _makeError('Failed to encrypt');
+                this.emit('error', errorObject);
+            }
+
+            if (callback) { callback(errorObject); }
+        });
+    }
 
     // connSecGet(deviceInstanceId) {
     //     const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
