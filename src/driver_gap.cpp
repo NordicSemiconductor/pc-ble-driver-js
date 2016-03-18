@@ -3352,7 +3352,9 @@ NAN_METHOD(Adapter::GapReplyAuthKey)
 
     if (key != nullptr)
     {
-        if (!Utility::EnsureAsciiNumbers(key, BLE_GAP_PASSKEY_LEN))
+        int authkeyTypeLenght[] = {0, BLE_GAP_AUTH_KEY_TYPE_PASSKEY, BLE_GAP_SEC_KEY_LEN};
+
+        if (!Utility::EnsureAsciiNumbers(key, authkeyTypeLenght[key_type]))
         {
             v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, "ascii number");
             Nan::ThrowTypeError(message);
