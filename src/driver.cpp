@@ -454,12 +454,12 @@ NAN_METHOD(Adapter::EnableBLE)
         enableObject = ConversionUtility::getJsObject(info[argumentcount]);
         argumentcount++;
 
-        callback = ConversionUtility::getCallbackFunction(info[0]);
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
     catch (char const *error)
     {
-        auto message = ErrorMessage::getTypeErrorMessage(0, error);
+        auto message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
         return;
     }
