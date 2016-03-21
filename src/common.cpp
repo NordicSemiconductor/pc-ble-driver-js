@@ -28,7 +28,7 @@ catch(char const *error) \
     std::cout << "Exception: " << name << ":" << error << std::endl; \
     std::stringstream ex; \
     ex << "Failed to get property " << name << ": " << error; \
-    throw ex.str().c_str(); \
+    throw ex.str(); \
 }
 
 static name_map_t error_message_name_map = {
@@ -734,9 +734,10 @@ bool Utility::EnsureAsciiNumbers(uint8_t *value, const int length)
     return true;
 }
 
-v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char const *customMessage)
+v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, const std::string customMessage)
 {
     Nan::EscapableHandleScope scope;
+
     switch (errorCode)
     {
         case NRF_SUCCESS:
@@ -765,14 +766,13 @@ v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, char const *cu
             errorStringStream << "Error occured when " << customMessage << ". "
                 << "Errorcode: " << ConversionUtility::valueToString(errorCode, error_message_name_map) << " (0x" << std::hex << errorCode << ")" << std::endl;
 
-            v8::Local<v8::Value> error = v8::Exception::Error(ConversionUtility::toJsString(errorStringStream.str())->ToString());
-
+            v8::Local<v8::Value> error = Nan::Error(errorStringStream.str().c_str());
             v8::Local<v8::Object> errorObject = error.As<v8::Object>();
 
             Utility::Set(errorObject, "errno", errorCode);
             Utility::Set(errorObject, "errcode", ConversionUtility::valueToString(errorCode, error_message_name_map));
             Utility::Set(errorObject, "erroperation", ConversionUtility::toJsString(customMessage));
-            Utility::Set(errorObject, "errmsg", errorStringStream.str());
+            Utility::Set(errorObject, "errmsg", ConversionUtility::toJsString(errorStringStream.str()));
 
             return scope.Escape(error);
         }
@@ -794,7 +794,7 @@ v8::Local<v8::Value> StatusMessage::getStatus(int status, char const *message, c
     return scope.Escape(obj);
 }
 
-v8::Local<v8::String> ErrorMessage::getTypeErrorMessage(int argumentNumber, char const *message)
+v8::Local<v8::String> ErrorMessage::getTypeErrorMessage(int argumentNumber, const std::string message)
 {
     std::ostringstream stream;
 
@@ -831,7 +831,7 @@ v8::Local<v8::String> ErrorMessage::getTypeErrorMessage(int argumentNumber, char
     return ConversionUtility::toJsString(stream.str())->ToString();
 }
 
-v8::Local<v8::String> ErrorMessage::getStructErrorMessage(char const *name, char const *message)
+v8::Local<v8::String> ErrorMessage::getStructErrorMessage(char const *name, const std::string message)
 {
     std::ostringstream stream;
 

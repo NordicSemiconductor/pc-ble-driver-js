@@ -242,8 +242,34 @@ class Adapter extends EventEmitter {
         this.emit('closed', this);
     }
 
-    enableBLE(callback) {
-        this._adapter.enableBLE(callback);
+    enableBLE(options, callback) {
+        if (options === undefined || options === null) {
+            options = {
+                gap_enable_params: {
+                    periph_conn_count: 1,
+                    central_conn_count: 7,
+                    central_sec_count: 1,
+                },
+                gatts_enable_params: {
+                    service_changed: true,
+                    attr_tab_size: this._bleDriver.BLE_GATTS_ATTR_TAB_SIZE_DEFAULT,
+                },
+                common_enable_params: {
+                    conn_bw_counts: null, // tell SD to use default
+                    vs_uuid_count: 10,
+                },
+            };
+        }
+
+        this._adapter.enableBLE(
+            options,
+            (err, parameters, app_ram_base) => {
+                if (this._checkAndPropagateError(err, 'Enabling BLE failed.', callback)) { return; }
+
+                if (callback) {
+                    callback(err, parameters, app_ram_base);
+                }
+        });
     }
 
     _statusCallback(status) {

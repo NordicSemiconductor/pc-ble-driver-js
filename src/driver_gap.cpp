@@ -1412,9 +1412,9 @@ NAN_METHOD(Adapter::GapSetAddress)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error.c_str());
         Nan::ThrowTypeError(message);
         return;
     }
@@ -1426,9 +1426,9 @@ NAN_METHOD(Adapter::GapSetAddress)
     {
         baton->address = GapAddr(addressObject);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("address", error);
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("address", error.c_str());
         Nan::ThrowTypeError(message);
         return;
     }

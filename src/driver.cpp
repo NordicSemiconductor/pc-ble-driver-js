@@ -457,7 +457,7 @@ NAN_METHOD(Adapter::EnableBLE)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         auto message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -471,7 +471,7 @@ NAN_METHOD(Adapter::EnableBLE)
     {
         baton->enable_params = EnableParameters(enableObject);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("enable parameters", error);
         Nan::ThrowTypeError(message);
@@ -485,7 +485,6 @@ NAN_METHOD(Adapter::EnableBLE)
 void Adapter::EnableBLE(uv_work_t *req)
 {
     auto baton = static_cast<EnableBLEBaton *>(req->data);
-    
     baton->result = sd_ble_enable(baton->adapter, baton->enable_params, &baton->app_ram_base);
 }
 
@@ -651,7 +650,8 @@ void Adapter::Open(uv_work_t *req)
     }
 
     if (baton->enable_ble) {
-        error_code = Adapter::enableBLE(adapter);
+        // Enable BLE with default values defined in Adapter:enableBLE private function
+        error_code = Adapter::enableBLE(adapter); 
 
         if (error_code == NRF_SUCCESS)
         {
@@ -683,8 +683,6 @@ void Adapter::AfterOpen(uv_work_t *req)
     if (baton->result != NRF_SUCCESS)
     {
         argv[0] = ErrorMessage::getErrorMessage(baton->result, "opening port");
-
-        baton->mainObject->cleanUpV8Resources();
     }
     else
     {
@@ -692,6 +690,12 @@ void Adapter::AfterOpen(uv_work_t *req)
     }
 
     baton->callback->Call(1, argv);
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        baton->mainObject->cleanUpV8Resources();
+    }
+
     delete baton;
 }
 
@@ -1232,7 +1236,7 @@ ble_common_enable_params_t *CommonEnableParameters::ToNative()
 {
     auto enable_params = new ble_common_enable_params_t();
     enable_params->vs_uuid_count = ConversionUtility::getNativeUint16(jsobj, "vs_uuid_count");
-    enable_params->p_conn_bw_counts = BandwidthGlobalMemoryPool(ConversionUtility::getJsObject(jsobj, "conn_bw_counts"));
+    enable_params->p_conn_bw_counts = BandwidthGlobalMemoryPool(ConversionUtility::getJsObjectOrNull(jsobj, "conn_bw_counts"));
     return enable_params;
 }
 
