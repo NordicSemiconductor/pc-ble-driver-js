@@ -1916,14 +1916,10 @@ class Adapter extends EventEmitter {
         }
 
         this._adapter.gapSetLescOobData(device.connectionHandle, ownOobData, peerOobData, err => {
-            let errorObject;
-            if (err) {
-                errorObject = _makeError('Failed to set lesc oob data');
-                this.emit('error', errorObject);
-            }
-
-            if (callback) { callback(errorObject); }
+            this._checkAndPropagateError(err, 'Failed to set lesc oob data.', callback);
         });
+
+        if (callback) { callback(); }
     }
 
     encrypt(deviceInstanceId, masterId, encInfo, callback) {

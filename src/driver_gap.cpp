@@ -3319,7 +3319,7 @@ NAN_METHOD(Adapter::GapReplyAuthKey)
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     uint8_t key_type;
-    uint8_t *key;
+    uint8_t *key = nullptr;
     auto keyArgumentcount = -1;
     v8::Local<v8::Function> callback;
     auto argumentcount = 0;
@@ -3333,10 +3333,12 @@ NAN_METHOD(Adapter::GapReplyAuthKey)
         argumentcount++;
 
         v8::Local<v8::Object> keyobject = ConversionUtility::getJsObjectOrNull(info[argumentcount]);
+
         if (!Utility::IsNull(keyobject))
         {
             key = ConversionUtility::getNativePointerToUint8(info[argumentcount]);
         }
+
         keyArgumentcount = argumentcount;
         argumentcount++;
 
@@ -3567,9 +3569,10 @@ NAN_METHOD(Adapter::GapGetLESCOOBData)
     auto baton = new GapGetLESCOOBDataBaton(callback);
     baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
-    memcpy(p_pk_own->pk, key, sizeof(key));
+    
+    memcpy(p_pk_own->pk, key, BLE_GAP_LESC_P256_PK_LEN);
     baton->p_pk_own = p_pk_own;
-    delete key;
+    baton->p_oobd_own = new ble_gap_lesc_oob_data_t();
 
     uv_queue_work(uv_default_loop(), baton->req, GapGetLESCOOBData, reinterpret_cast<uv_after_work_cb>(AfterGapGetLESCOOBData));
 }
@@ -3624,10 +3627,10 @@ NAN_METHOD(Adapter::GapSetLESCOOBData)
         conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
         argumentcount++;
 
-        p_oobd_own = ConversionUtility::getJsObject(info[argumentcount]);
+        p_oobd_own = ConversionUtility::getJsObjectOrNull(info[argumentcount]);
         argumentcount++;
 
-        p_oobd_peer = ConversionUtility::getJsObject(info[argumentcount]);
+        p_oobd_peer = ConversionUtility::getJsObjectOrNull(info[argumentcount]);
         argumentcount++;
 
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
@@ -3643,8 +3646,6 @@ NAN_METHOD(Adapter::GapSetLESCOOBData)
     auto baton = new GapSetLESCOOBDataBaton(callback);
     baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
-    baton->p_oobd_own = GapLescOobData(p_oobd_own);
-    baton->p_oobd_peer = GapLescOobData(p_oobd_peer);
 
     try
     {
