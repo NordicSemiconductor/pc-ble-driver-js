@@ -32,51 +32,51 @@ Adapter *adapterBeingOpened = nullptr;
 
 // Macro for keeping sanity in event switch case below
 #define COMMON_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, eventEntry) \
-    case BLE_EVT_##evt_enum:                                                                                        \
-    {                                                                                                                   \
-        ble_common_evt_t common_event = eventEntry->event->evt.common_evt;                                                      \
-        std::string timestamp = eventEntry->timestamp;                                                                 \
-        v8::Local<v8::Value> js_event =                                                                                 \
-            Common##evt_to_js##Event(timestamp, common_event.conn_handle, &(common_event.params.params_name)).ToJs();                   \
-        Nan::Set(event_array, event_array_idx, js_event);                                               \
-        break;                                                                                                          \
+    case BLE_EVT_##evt_enum:                                                                                         \
+    {                                                                                                                \
+        ble_common_evt_t common_event = eventEntry->event->evt.common_evt;                                           \
+        std::string timestamp = eventEntry->timestamp;                                                               \
+        v8::Local<v8::Value> js_event =                                                                              \
+            Common##evt_to_js##Event(timestamp, common_event.conn_handle, &(common_event.params.params_name)).ToJs();\
+        Nan::Set(event_array, event_array_idx, js_event);                                                            \
+        break;                                                                                                       \
     }
 
 
 // Macro for keeping sanity in event switch case below
 #define GAP_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, eventEntry) \
-    case BLE_GAP_EVT_##evt_enum:                                                                                        \
-    {                                                                                                                   \
-        ble_gap_evt_t gap_event = eventEntry->event->evt.gap_evt;                                                      \
-        std::string timestamp = eventEntry->timestamp;                                                                 \
-        v8::Local<v8::Object> js_event =                                                                                 \
-            Gap##evt_to_js(timestamp, gap_event.conn_handle, &(gap_event.params.params_name)).ToJs();                   \
-        Nan::Set(event_array, event_array_idx, js_event);                                               \
-        break;                                                                                                          \
+    case BLE_GAP_EVT_##evt_enum:                                                                                     \
+    {                                                                                                                \
+        ble_gap_evt_t gap_event = eventEntry->event->evt.gap_evt;                                                    \
+        std::string timestamp = eventEntry->timestamp;                                                               \
+        v8::Local<v8::Object> js_event =                                                                             \
+            Gap##evt_to_js(timestamp, gap_event.conn_handle, &(gap_event.params.params_name)).ToJs();                \
+        Nan::Set(event_array, event_array_idx, js_event);                                                            \
+        break;                                                                                                       \
     }
 
 // Macro for keeping sanity in event switch case below
 #define GATTC_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, eventEntry) \
-    case BLE_GATTC_EVT_##evt_enum:                                                                                        \
-    {                                                                                                                   \
-        ble_gattc_evt_t *gattc_event = &(eventEntry->event->evt.gattc_evt);                                                      \
-        std::string timestamp = eventEntry->timestamp;                                                                 \
-        v8::Local<v8::Value> js_event =                                                                                 \
-            Gattc##evt_to_js##Event(timestamp, gattc_event->conn_handle, gattc_event->gatt_status, gattc_event->error_handle, &(gattc_event->params.params_name)).ToJs();                   \
-        Nan::Set(event_array, event_array_idx, js_event);                                               \
-        break;                                                                                                          \
+    case BLE_GATTC_EVT_##evt_enum:                                                                                   \
+    {                                                                                                                \
+        ble_gattc_evt_t *gattc_event = &(eventEntry->event->evt.gattc_evt);                                          \
+        std::string timestamp = eventEntry->timestamp;                                                               \
+        v8::Local<v8::Value> js_event =                                                                              \
+            Gattc##evt_to_js##Event(timestamp, gattc_event->conn_handle, gattc_event->gatt_status, gattc_event->error_handle, &(gattc_event->params.params_name)).ToJs(); \
+        Nan::Set(event_array, event_array_idx, js_event);                                                            \
+        break;                                                                                                       \
     }
 
 // Macro for keeping sanity in event switch case below
-#define GATTS_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, eventEntry) \
-    case BLE_GATTS_EVT_##evt_enum:                                                                                        \
-    {                                                                                                                   \
-        ble_gatts_evt_t *gatts_event = &(eventEntry->event->evt.gatts_evt);                                                      \
-        std::string timestamp = eventEntry->timestamp;                                                                 \
-        v8::Local<v8::Value> js_event =                                                                                 \
-            Gatts##evt_to_js##Event(timestamp, gatts_event->conn_handle, &(gatts_event->params.params_name)).ToJs();                   \
-        Nan::Set(event_array, event_array_idx, js_event);                                               \
-        break;                                                                                                          \
+#define GATTS_EVT_CASE(evt_enum, evt_to_js, params_name, event_array, event_array_idx, eventEntry)                   \
+    case BLE_GATTS_EVT_##evt_enum:                                                                                   \
+    {                                                                                                                \
+        ble_gatts_evt_t *gatts_event = &(eventEntry->event->evt.gatts_evt);                                          \
+        std::string timestamp = eventEntry->timestamp;                                                               \
+        v8::Local<v8::Value> js_event =                                                                              \
+            Gatts##evt_to_js##Event(timestamp, gatts_event->conn_handle, &(gatts_event->params.params_name)).ToJs(); \
+        Nan::Set(event_array, event_array_idx, js_event);                                                            \
+        break;                                                                                                       \
     }
 
 static name_map_t uuid_type_name_map = {
@@ -288,7 +288,7 @@ void Adapter::onRpcEvent(uv_async_t *handle)
 
                 if (keyset != 0)
                 {
-                    Utility::Set(obj, "keyset", GapSecKeyset(keyset));
+                    Utility::Set(obj, "keyset", static_cast<v8::Handle<v8::Value>>(GapSecKeyset(keyset)));
                 }
                 else
                 {
