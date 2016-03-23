@@ -30,8 +30,8 @@ uint32_t ble_gattc_evt_write_rsp_dec(uint8_t const * const p_buf,
 
     uint16_t tmp_attr_len = uint16_decode(&(p_buf[11]));
 
-    uint32_t event_len = offsetof(ble_evt_t, evt.gattc_evt.params.write_rsp) +
-                         sizeof (ble_gattc_evt_write_rsp_t) + tmp_attr_len;
+    uint32_t event_len = offsetof(ble_gattc_evt_t, params.write_rsp) +
+                         offsetof(ble_gattc_evt_write_rsp_t, data) + tmp_attr_len;
 
     if (p_event == NULL)
     {

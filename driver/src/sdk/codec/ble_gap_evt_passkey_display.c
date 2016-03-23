@@ -29,9 +29,7 @@ uint32_t ble_gap_evt_passkey_display_dec(uint8_t const * const p_buf,
     SER_ASSERT_NOT_NULL(p_buf);
     SER_ASSERT_NOT_NULL(p_event_len);
 
-    SER_ASSERT_LENGTH_LEQ(SER_EVT_CONN_HANDLE_SIZE + PASSKEY_LEN, packet_len);
-
-    event_len = SER_EVT_CONN_HANDLE_SIZE + sizeof (ble_gap_evt_passkey_display_t);
+    event_len = offsetof(ble_gap_evt_t, params.passkey_display) + sizeof (ble_gap_evt_passkey_display_t);
 
     if (p_event == NULL)
     {
@@ -44,11 +42,19 @@ uint32_t ble_gap_evt_passkey_display_dec(uint8_t const * const p_buf,
     p_event->header.evt_id  = BLE_GAP_EVT_PASSKEY_DISPLAY;
     p_event->header.evt_len = event_len;
 
-    uint16_dec(p_buf, packet_len, &index, &p_event->evt.gap_evt.conn_handle);
+    uint32_t err_code = uint16_t_dec(p_buf, packet_len, &index, &p_event->evt.gap_evt.conn_handle);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
     memcpy(p_event->evt.gap_evt.params.passkey_display.passkey, &p_buf[index], PASSKEY_LEN);
     index += PASSKEY_LEN;
+    uint8_t match_req;
 
-    // SER_ASSERT_LENGTH_EQ(index, packet_len);  // Removed after input from Pawel 2016-03-14
+    err_code = uint8_t_dec(p_buf, packet_len, &index, &match_req);
+    SER_ASSERT(err_code == NRF_SUCCESS, err_code);
+
+    p_event->evt.gap_evt.params.passkey_display.match_request = (match_req & 0x01);
+
+    SER_ASSERT_LENGTH_EQ(index, packet_len);
 
     *p_event_len = event_len;
 

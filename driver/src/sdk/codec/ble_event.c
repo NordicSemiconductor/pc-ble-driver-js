@@ -1,14 +1,14 @@
 /* Copyright (c) 2014 Nordic Semiconductor. All Rights Reserved.
-*
-* The information contained herein is property of Nordic Semiconductor ASA.
-* Terms and conditions of usage are described in detail in NORDIC
-* SEMICONDUCTOR STANDARD SOFTWARE LICENSE AGREEMENT.
-*
-* Licensees are granted free, non-transferable use of the information. NO
-* WARRANTY of ANY KIND is provided. This heading must NOT be removed from
-* the file.
-*
-*/
+ *
+ * The information contained herein is property of Nordic Semiconductor ASA.
+ * Terms and conditions of usage are described in detail in NORDIC
+ * SEMICONDUCTOR STANDARD SOFTWARE LICENSE AGREEMENT.
+ *
+ * Licensees are granted free, non-transferable use of the information. NO
+ * WARRANTY of ANY KIND is provided. This heading must NOT be removed from
+ * the file.
+ *
+ */
 
 #include "ble_app.h"
 #include "ble_evt_app.h"
@@ -37,8 +37,8 @@ uint32_t ble_event_dec(uint8_t const * const p_buf,
 
     if (p_event)
     {
-        SER_ASSERT_LENGTH_LEQ(sizeof(ble_evt_hdr_t), *p_event_len);
-        *p_event_len -= sizeof(ble_evt_hdr_t);
+        SER_ASSERT_LENGTH_LEQ(sizeof (ble_evt_hdr_t), *p_event_len);
+        *p_event_len -= sizeof (ble_evt_hdr_t);
     }
 
     switch (event_id)

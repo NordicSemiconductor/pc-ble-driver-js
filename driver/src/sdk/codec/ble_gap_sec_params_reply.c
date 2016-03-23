@@ -30,6 +30,7 @@ uint32_t ble_gap_sec_params_reply_req_enc(uint16_t                           con
     uint8_t  op_code  = SD_BLE_GAP_SEC_PARAMS_REPLY;
     uint32_t err_code = NRF_SUCCESS;
     uint32_t buf_len  = *p_buf_len;
+
     uint32_t index    = 0;
 
     err_code = uint8_t_enc(&op_code, p_buf, buf_len, &index);
