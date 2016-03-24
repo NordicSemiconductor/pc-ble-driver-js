@@ -15,7 +15,7 @@ function build(debug)
     var cmakeJS = require('cmake-js');
 
     var defaultRuntime = 'node';
-    var defaultRuntimeVersion = '4.2.0';
+    var defaultRuntimeVersion = process.version.substr(1);
     var defaultWinArch = 'ia32';
 
     var options = {
