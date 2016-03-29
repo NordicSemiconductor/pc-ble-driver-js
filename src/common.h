@@ -306,15 +306,15 @@ public:
 class ErrorMessage
 {
 public:
-    static v8::Local<v8::Value> getErrorMessage(int errorCode, const std::string customMessage);
-    static v8::Local<v8::String> getTypeErrorMessage(int argumentNumber, const std::string message);
-    static v8::Local<v8::String> getStructErrorMessage(char const *name, const std::string message);
+    static v8::Local<v8::Value> getErrorMessage(const int errorCode, const std::string customMessage);
+    static v8::Local<v8::String> getTypeErrorMessage(const int argumentNumber, const std::string message);
+    static v8::Local<v8::String> getStructErrorMessage(const std::string name, const std::string message);
 };
 
 class StatusMessage
 {
 public:
-    static v8::Local<v8::Value> getStatus(int status, char const *message, char const *timestamp);
+    static v8::Local<v8::Value> getStatus(const int status, const std::string message, const std::string timestamp);
 };
 
 class HciStatus

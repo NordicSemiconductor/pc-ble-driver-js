@@ -381,7 +381,7 @@ NAN_METHOD(Adapter::GattsAddService)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -396,7 +396,7 @@ NAN_METHOD(Adapter::GattsAddService)
     {
         baton->p_uuid = BleUUID(uuid);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("uuid", error);
         Nan::ThrowTypeError(message);
@@ -459,7 +459,7 @@ NAN_METHOD(Adapter::GattsAddCharacteristic)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -546,7 +546,7 @@ NAN_METHOD(Adapter::GattsAddDescriptor)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -561,7 +561,7 @@ NAN_METHOD(Adapter::GattsAddDescriptor)
     {
         baton->p_attr = GattsAttribute(attributeStructure);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("attr", error);
         Nan::ThrowTypeError(message);
@@ -622,7 +622,7 @@ NAN_METHOD(Adapter::GattsHVX)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -637,7 +637,7 @@ NAN_METHOD(Adapter::GattsHVX)
     {
         baton->p_hvx_params = GattsHVXParams(hvx_params);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("hvx_params", error);
         Nan::ThrowTypeError(message);
@@ -715,7 +715,7 @@ NAN_METHOD(Adapter::GattsSystemAttributeSet)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -794,7 +794,7 @@ NAN_METHOD(Adapter::GattsSetValue)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -810,7 +810,7 @@ NAN_METHOD(Adapter::GattsSetValue)
     {
         baton->p_value = GattsValue(value);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("value", error);
         Nan::ThrowTypeError(message);
@@ -875,7 +875,7 @@ NAN_METHOD(Adapter::GattsGetValue)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -891,7 +891,7 @@ NAN_METHOD(Adapter::GattsGetValue)
     {
         baton->p_value = GattsValue(value);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("value", error);
         Nan::ThrowTypeError(message);
@@ -953,7 +953,7 @@ NAN_METHOD(Adapter::GattsReplyReadWriteAuthorize)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -968,7 +968,7 @@ NAN_METHOD(Adapter::GattsReplyReadWriteAuthorize)
     {
         baton->p_rw_authorize_reply_params = GattGattsReplyReadWriteAuthorizeParams(params);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("rw_authorize_reply_params", error);
         Nan::ThrowTypeError(message);

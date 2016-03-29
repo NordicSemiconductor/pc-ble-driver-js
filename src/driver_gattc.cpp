@@ -389,7 +389,7 @@ NAN_METHOD(Adapter::GattcDiscoverPrimaryServices)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -406,7 +406,7 @@ NAN_METHOD(Adapter::GattcDiscoverPrimaryServices)
     {
         baton->p_srvc_uuid = BleUUID(service_uuid);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("srvc_uuid", error);
         Nan::ThrowTypeError(message);
@@ -464,7 +464,7 @@ NAN_METHOD(Adapter::GattcDiscoverRelationship)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -480,7 +480,7 @@ NAN_METHOD(Adapter::GattcDiscoverRelationship)
     {
         baton->p_handle_range = GattcHandleRange(handle_range);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("handle_range", error);
         Nan::ThrowTypeError(message);
@@ -537,7 +537,7 @@ NAN_METHOD(Adapter::GattcDiscoverCharacteristics)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -553,7 +553,7 @@ NAN_METHOD(Adapter::GattcDiscoverCharacteristics)
     {
         baton->p_handle_range = GattcHandleRange(handle_range);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("handle_range", error);
         Nan::ThrowTypeError(message);
@@ -610,7 +610,7 @@ NAN_METHOD(Adapter::GattcDiscoverDescriptors)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -626,7 +626,7 @@ NAN_METHOD(Adapter::GattcDiscoverDescriptors)
     {
         baton->p_handle_range = GattcHandleRange(handle_range);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("handle_range", error);
         Nan::ThrowTypeError(message);
@@ -687,7 +687,7 @@ NAN_METHOD(Adapter::GattcReadCharacteristicValueByUUID)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -703,7 +703,7 @@ NAN_METHOD(Adapter::GattcReadCharacteristicValueByUUID)
     {
         baton->p_uuid = BleUUID(uuid);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("uuid", error);
         Nan::ThrowTypeError(message);
@@ -714,7 +714,7 @@ NAN_METHOD(Adapter::GattcReadCharacteristicValueByUUID)
     {
         baton->p_handle_range = GattcHandleRange(handle_range);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("handle_range", error);
         Nan::ThrowTypeError(message);
@@ -775,7 +775,7 @@ NAN_METHOD(Adapter::GattcRead)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -842,7 +842,7 @@ NAN_METHOD(Adapter::GattcReadCharacteristicValues)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -858,7 +858,7 @@ NAN_METHOD(Adapter::GattcReadCharacteristicValues)
             p_handles[i] = ConversionUtility::getNativeUint16(handles->Get(Nan::New<v8::Number>(i)));
         }
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("handles", error);
         Nan::ThrowTypeError(message);
@@ -923,7 +923,7 @@ NAN_METHOD(Adapter::GattcWrite)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -939,7 +939,7 @@ NAN_METHOD(Adapter::GattcWrite)
     {
         baton->p_write_params = GattcWriteParameters(p_write_params);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("write_params", error);
         Nan::ThrowTypeError(message);
@@ -995,7 +995,7 @@ NAN_METHOD(Adapter::GattcConfirmHandleValue)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);

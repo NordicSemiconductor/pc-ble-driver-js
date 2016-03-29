@@ -1414,7 +1414,7 @@ NAN_METHOD(Adapter::GapSetAddress)
     }
     catch (std::string error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error.c_str());
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
         return;
     }
@@ -1428,7 +1428,7 @@ NAN_METHOD(Adapter::GapSetAddress)
     }
     catch (std::string error)
     {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("address", error.c_str());
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("address", error);
         Nan::ThrowTypeError(message);
         return;
     }
@@ -1480,7 +1480,7 @@ NAN_METHOD(Adapter::GapGetAddress)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -1551,7 +1551,7 @@ NAN_METHOD(Adapter::GapUpdateConnectionParameters)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -1565,7 +1565,7 @@ NAN_METHOD(Adapter::GapUpdateConnectionParameters)
     {
         baton->connectionParameters = GapConnParams(connParamsObject);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("connectionParameters", error);
         Nan::ThrowTypeError(message);
@@ -1629,7 +1629,7 @@ NAN_METHOD(Adapter::GapDisconnect)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -1691,7 +1691,7 @@ NAN_METHOD(Adapter::GapSetTXPower)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -1758,7 +1758,7 @@ NAN_METHOD(Adapter::GapSetDeviceName)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -1773,7 +1773,7 @@ NAN_METHOD(Adapter::GapSetDeviceName)
     {
         baton->conn_sec_mode = GapConnSecMode(conn_sec_mode);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("conn_sec_mode", error);
         Nan::ThrowTypeError(message);
@@ -1832,7 +1832,7 @@ NAN_METHOD(Adapter::GapGetDeviceName)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -1911,7 +1911,7 @@ NAN_METHOD(Adapter::GapStartRSSI)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -1974,7 +1974,7 @@ NAN_METHOD(Adapter::GapStopRSSI)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -2035,7 +2035,7 @@ NAN_METHOD(Adapter::GapStartScan)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -2094,7 +2094,7 @@ NAN_METHOD(Adapter::GapStopScan)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -2162,7 +2162,7 @@ NAN_METHOD(Adapter::GapConnect)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -2177,7 +2177,7 @@ NAN_METHOD(Adapter::GapConnect)
     {
         baton->address = GapAddr(address);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("address", error);
         Nan::ThrowTypeError(message);
@@ -2188,7 +2188,7 @@ NAN_METHOD(Adapter::GapConnect)
     {
         baton->scan_params = GapScanParams(scan_params);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("scan_params", error);
         Nan::ThrowTypeError(message);
@@ -2199,7 +2199,7 @@ NAN_METHOD(Adapter::GapConnect)
     {
         baton->conn_params = GapConnParams(conn_params);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("conn_params", error);
         Nan::ThrowTypeError(message);
@@ -2252,7 +2252,7 @@ NAN_METHOD(Adapter::GapCancelConnect)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -2311,7 +2311,7 @@ NAN_METHOD(Adapter::GapGetRSSI)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -2379,7 +2379,7 @@ NAN_METHOD(Adapter::GapStartAdvertising)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -2391,7 +2391,7 @@ NAN_METHOD(Adapter::GapStartAdvertising)
     {
         baton->p_adv_params = GapAdvParams(adv_params);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("adv_params", error);
         Nan::ThrowTypeError(message);
@@ -2446,7 +2446,7 @@ NAN_METHOD(Adapter::GapStopAdvertising)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -2506,7 +2506,7 @@ NAN_METHOD(Adapter::GapGetConnectionSecurity)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -2579,7 +2579,7 @@ NAN_METHOD(Adapter::GapEncrypt)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -2593,7 +2593,7 @@ NAN_METHOD(Adapter::GapEncrypt)
     {
         baton->master_id = GapMasterId(master_id_object);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("master_id", error);
         Nan::ThrowTypeError(message);
@@ -2604,7 +2604,7 @@ NAN_METHOD(Adapter::GapEncrypt)
     {
         baton->enc_info = GapEncInfo(enc_info_object);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("enc_info", error);
         Nan::ThrowTypeError(message);
@@ -2670,7 +2670,7 @@ NAN_METHOD(Adapter::GapReplySecurityParameters)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -2685,7 +2685,7 @@ NAN_METHOD(Adapter::GapReplySecurityParameters)
     {
         baton->sec_params = GapSecParams(sec_params_object);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("sec_params", error);
         Nan::ThrowTypeError(message);
@@ -2820,7 +2820,7 @@ NAN_METHOD(Adapter::GapReplySecurityInfo)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -2835,7 +2835,7 @@ NAN_METHOD(Adapter::GapReplySecurityInfo)
     {
         baton->enc_info = GapEncInfo(enc_info_object);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("enc_info", error);
         Nan::ThrowTypeError(message);
@@ -2846,7 +2846,7 @@ NAN_METHOD(Adapter::GapReplySecurityInfo)
     {
         baton->id_info = GapIrk(id_info_object);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("id_info", error);
         Nan::ThrowTypeError(message);
@@ -2857,7 +2857,7 @@ NAN_METHOD(Adapter::GapReplySecurityInfo)
     {
         baton->sign_info = GapSignInfo(sign_info_object);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("sign_info", error);
         Nan::ThrowTypeError(message);
@@ -2917,7 +2917,7 @@ NAN_METHOD(Adapter::GapAuthenticate)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -2931,7 +2931,7 @@ NAN_METHOD(Adapter::GapAuthenticate)
     {
         baton->p_sec_params = GapSecParams(sec_params);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("sec_params", error);
         Nan::ThrowTypeError(message);
@@ -3017,7 +3017,7 @@ NAN_METHOD(Adapter::GapSetAdvertisingData)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -3081,7 +3081,7 @@ NAN_METHOD(Adapter::GapSetPPCP)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -3094,7 +3094,7 @@ NAN_METHOD(Adapter::GapSetPPCP)
     {
         baton->p_conn_params = GapConnParams(connectionParameters);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("setppcp", error);
         Nan::ThrowTypeError(message);
@@ -3149,7 +3149,7 @@ NAN_METHOD(Adapter::GapGetPPCP)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -3213,7 +3213,7 @@ NAN_METHOD(Adapter::GapSetAppearance)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -3268,7 +3268,7 @@ NAN_METHOD(Adapter::GapGetAppearance)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -3345,7 +3345,7 @@ NAN_METHOD(Adapter::GapReplyAuthKey)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -3423,7 +3423,7 @@ NAN_METHOD(Adapter::GapReplyDHKeyLESC)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -3492,7 +3492,7 @@ NAN_METHOD(Adapter::GapNotifyKeypress)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -3559,7 +3559,7 @@ NAN_METHOD(Adapter::GapGetLESCOOBData)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -3636,7 +3636,7 @@ NAN_METHOD(Adapter::GapSetLESCOOBData)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -3651,7 +3651,7 @@ NAN_METHOD(Adapter::GapSetLESCOOBData)
     {
         baton->p_oobd_own = GapLescOobData(p_oobd_own);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_oobd_own", error);
         Nan::ThrowTypeError(message);
@@ -3662,7 +3662,7 @@ NAN_METHOD(Adapter::GapSetLESCOOBData)
     {
         baton->p_oobd_peer = GapLescOobData(p_oobd_peer);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_oobd_peer", error);
         Nan::ThrowTypeError(message);

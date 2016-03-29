@@ -365,7 +365,7 @@ void Adapter::onStatusEvent(uv_async_t *handle)
         if (statusCallback != nullptr)
         {
             v8::Local<v8::Value> argv[1];
-            argv[0] = StatusMessage::getStatus(statusEntry->id, statusEntry->message.c_str(), statusEntry->timestamp.c_str());
+            argv[0] = StatusMessage::getStatus(statusEntry->id, statusEntry->message, statusEntry->timestamp);
             statusCallback->Call(1, argv);
         }
 
@@ -535,7 +535,7 @@ NAN_METHOD(Adapter::Open)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -559,11 +559,11 @@ NAN_METHOD(Adapter::Open)
         baton->response_timeout = ConversionUtility::getNativeUint32(options, "responseTimeout"); parameter++;
         baton->enable_ble = ConversionUtility::getBool(options, "enableBLE"); parameter++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         std::stringstream errormessage;
         errormessage << "A setup option was wrong. Option: ";
-        const char *_options[] = { "baudrate", "parity", "flowcontrol", "eventInterval", "logLevel" };
+        const char *_options[] = { "baudrate", "parity", "flowcontrol", "eventInterval", "logLevel", "retransmissionInterval", "responseTimeout", "enableBLE" };
         errormessage << _options[parameter] << ". Reason: " << error;
         Nan::ThrowTypeError(errormessage.str().c_str());
         return;
@@ -573,7 +573,7 @@ NAN_METHOD(Adapter::Open)
     {
         baton->log_callback = new Nan::Callback(ConversionUtility::getCallbackFunction(options, "logCallback"));
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         auto message = ErrorMessage::getStructErrorMessage("logCallback", error);
         Nan::ThrowTypeError(message);
@@ -584,7 +584,7 @@ NAN_METHOD(Adapter::Open)
     {
         baton->event_callback = new Nan::Callback(ConversionUtility::getCallbackFunction(options, "eventCallback"));
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         auto message = ErrorMessage::getStructErrorMessage("eventCallback", error);
         Nan::ThrowTypeError(message);
@@ -595,7 +595,7 @@ NAN_METHOD(Adapter::Open)
     {
         baton->status_callback = new Nan::Callback(ConversionUtility::getCallbackFunction(options, "statusCallback"));
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         auto message = ErrorMessage::getStructErrorMessage("statusCallback", error);
         Nan::ThrowTypeError(message);
@@ -708,7 +708,7 @@ NAN_METHOD(Adapter::Close)
     {
         callback = ConversionUtility::getCallbackFunction(info[0]);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         auto message = ErrorMessage::getTypeErrorMessage(0, error);
         Nan::ThrowTypeError(message);
@@ -767,7 +767,7 @@ NAN_METHOD(Adapter::AddVendorSpecificUUID)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         auto message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -878,7 +878,7 @@ NAN_METHOD(Adapter::GetVersion)
     {
         callback = ConversionUtility::getCallbackFunction(info[0]);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         auto message = ErrorMessage::getTypeErrorMessage(0, error);
         Nan::ThrowTypeError(message);
@@ -941,7 +941,7 @@ NAN_METHOD(Adapter::EncodeUUID)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         auto message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -954,7 +954,7 @@ NAN_METHOD(Adapter::EncodeUUID)
     {
         baton->p_uuid = BleUUID(uuid);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         std::stringstream errormessage;
         errormessage << "Could not process the UUID. Reason: " << error;
@@ -1022,7 +1022,7 @@ NAN_METHOD(Adapter::DecodeUUID)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         auto message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -1102,7 +1102,7 @@ NAN_METHOD(Adapter::ReplyUserMemory)
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         auto message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
         Nan::ThrowTypeError(message);
@@ -1117,7 +1117,7 @@ NAN_METHOD(Adapter::ReplyUserMemory)
     {
         baton->p_block = UserMemBlock(mem_block);
     }
-    catch (char const *error)
+    catch (std::string error)
     {
         auto message = ErrorMessage::getStructErrorMessage("user mem reply", error);
         Nan::ThrowTypeError(message);

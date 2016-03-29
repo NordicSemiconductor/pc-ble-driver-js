@@ -734,7 +734,7 @@ bool Utility::EnsureAsciiNumbers(uint8_t *value, const int length)
     return true;
 }
 
-v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, const std::string customMessage)
+v8::Local<v8::Value> ErrorMessage::getErrorMessage(const int errorCode, const std::string customMessage)
 {
     Nan::EscapableHandleScope scope;
 
@@ -766,7 +766,7 @@ v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, const std::str
             errorStringStream << "Error occured when " << customMessage << ". "
                 << "Errorcode: " << ConversionUtility::valueToString(errorCode, error_message_name_map) << " (0x" << std::hex << errorCode << ")" << std::endl;
 
-            v8::Local<v8::Value> error = Nan::Error(errorStringStream.str().c_str());
+            v8::Local<v8::Value> error = Nan::Error(ConversionUtility::toJsString(errorStringStream.str())->ToString());
             v8::Local<v8::Object> errorObject = error.As<v8::Object>();
 
             Utility::Set(errorObject, "errno", errorCode);
@@ -780,7 +780,7 @@ v8::Local<v8::Value> ErrorMessage::getErrorMessage(int errorCode, const std::str
 }
 
 
-v8::Local<v8::Value> StatusMessage::getStatus(int status, char const *message, char const *timestamp)
+v8::Local<v8::Value> StatusMessage::getStatus(const int status, const std::string message, const std::string timestamp)
 {
     Nan::EscapableHandleScope scope;
 
@@ -794,7 +794,7 @@ v8::Local<v8::Value> StatusMessage::getStatus(int status, char const *message, c
     return scope.Escape(obj);
 }
 
-v8::Local<v8::String> ErrorMessage::getTypeErrorMessage(int argumentNumber, const std::string message)
+v8::Local<v8::String> ErrorMessage::getTypeErrorMessage(const int argumentNumber, const std::string message)
 {
     std::ostringstream stream;
 
@@ -831,11 +831,11 @@ v8::Local<v8::String> ErrorMessage::getTypeErrorMessage(int argumentNumber, cons
     return ConversionUtility::toJsString(stream.str())->ToString();
 }
 
-v8::Local<v8::String> ErrorMessage::getStructErrorMessage(char const *name, const std::string message)
+v8::Local<v8::String> ErrorMessage::getStructErrorMessage(const std::string name, const std::string message)
 {
     std::ostringstream stream;
 
-    stream << "Property: " << std::string(name) << " Message: " << std::string(message);
+    stream << "Property: " << name << " Message: " << message;
 
     return ConversionUtility::toJsString(stream.str())->ToString();
 }
