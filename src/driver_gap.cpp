@@ -3922,6 +3922,13 @@ extern "C" {
 
         /* GAP_SEC_MODES GAP Security Modes */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_MODE); //No key (may be used to reject).
+
+        /* GAP Keypress Notification Types */
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_KP_NOT_TYPE_PASSKEY_START);
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_KP_NOT_TYPE_PASSKEY_DIGIT_IN);
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_KP_NOT_TYPE_PASSKEY_DIGIT_OUT);
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_KP_NOT_TYPE_PASSKEY_CLEAR);
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_KP_NOT_TYPE_PASSKEY_END);
     }
 }
 
