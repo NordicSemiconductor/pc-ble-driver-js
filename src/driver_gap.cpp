@@ -908,8 +908,7 @@ v8::Local<v8::Object> GapLESCDHKeyRequest::ToJs()
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
     Utility::Set(obj, "oobd_req", ConversionUtility::toJsBool(evt->oobd_req));
-    // TODO: unclear on how to solve p_pk_peer through connectivity firmware
-    //    Utility::Set(obj, "pk_peer", GapLescP256Pk(evt->p_pk_peer));
+    Utility::Set(obj, "pk_peer", GapLescP256Pk(evt->p_pk_peer));
     return scope.Escape(obj);
 }
 #pragma endregion GapLESCDHKeyRequest
