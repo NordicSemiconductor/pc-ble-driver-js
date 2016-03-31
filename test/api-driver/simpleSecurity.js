@@ -13,6 +13,7 @@
 'use strict';
 
 const assert = require('assert');
+const crypto = require('crypto');
 
 const setup = require('./setup');
 const adapterFactory = setup.adapterFactory;
@@ -41,7 +42,7 @@ function addAdapterFactoryListeners() {
 
 function addAdapterListener(adapter, prefix) {
     adapter.on('logMessage', (severity, message) => { console.log(`${prefix} logMessage: ${message}`)});
-    adapter.on('status', (status) => { console.log(`${prefix} status: ${JSON.stringify(status, null, 1)}`); });
+    adapter.on('status', status => { console.log(`${prefix} status: ${JSON.stringify(status, null, 1)}`); });
     adapter.on('error', error => {
         console.log(`${prefix} error: ${JSON.stringify(error, null, 1)}`);
         assert(false);
@@ -227,7 +228,7 @@ function setupAuthLegacyJustWorks(
     centralAdapter.authenticate(peripheralAsDevice.instanceId, secParamsCentral, err => {
         console.log('\n\nLegacyJustWorks authentication started..\n\n');
 
-        if(err) {
+        if (err) {
             console.log('Error starting authentication ' + JSON.stringify(err));
         }
     });
@@ -318,7 +319,7 @@ function setupAuthLegacyOOB(
     centralAdapter.authenticate(peripheralAsDevice.instanceId, secParamsCentral, err => {
         console.log('\n\nLegacyOOB authentication started..\n\n');
 
-        if(err) {
+        if (err) {
             console.log('Error starting authentication ' + JSON.stringify(err));
         }
     });
@@ -353,71 +354,92 @@ function setupAuthLESCJustWorks(
          },
      };
 
-     const secKeyset = {
-         keys_own: {
-             enc_key: null,
-             id_key: null,
-             sign_key: null,
-             pk: { pk: [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
-                  0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
-                  0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
-                  0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6,
-                  0xdc, 0x80, 0x9c, 0x49, 0x65, 0x2a, 0xeb, 0x6d,
-                  0x63, 0x32, 0x9a, 0xbf, 0x5a, 0x52, 0x15, 0x5c,
-                  0x76, 0x63, 0x45, 0xc2, 0x8f, 0xed, 0x30, 0x24,
-                  0x74, 0x1c, 0x8e, 0xd0, 0x15, 0x89, 0xd2, 0x8b],
-                               },
-         },
-         keys_peer: {
-             enc_key: null,
-             id_key: null,
-             sign_key: null,
-             pk: null,
-         },
-     };
+    const centralEdch = crypto.createECDH('prime256v1');
+    const perihperalEdch = crypto.createECDH('prime256v1');
 
-     peripheralAdapter.once('secParamsRequest', (device, _secParams) => {
-         peripheralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, secParams, secKeyset, (err, keyset) => {
-             assert(!err);
-         });
-     });
+    const debugPrivateKey = '3f49f6d4a3c55f3874c9b3e3d2103f504aff607beb40b7995899b8a6cd3c1abd';
+    const debugPublicKey = '20b003d2f297be2c5e2c83a7e9f9a5b9eff49111acf4fddbcc0301480e359de6dc809c49652aeb6d63329abf5a52155c766345c28fed3024741c8ed01589d28b';
 
-     centralAdapter.once('secParamsRequest', (device, secParams) => {
-         centralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, null, secKeyset, err => {
-             assert(!err);
-         });
-     });
+    let centralPublicKey = centralEdch.generateKeys();
+    let peripheralPublicKey = perihperalEdch.generateKeys();
 
-     centralAdapter.once('lescDhkeyRequest', (device, pkPeer, oobdReq) => {
-         console.log('#CENTRAL lescDhkeyRequest - '); // + JSON.stringify(pkPeer) + ' ' + JSON.stringify(oobdReq));
+    centralEdch.setPrivateKey(debugPrivateKey, 'hex');
+    centralEdch.setPublicKey('04' + debugPublicKey, 'hex');
 
-         centralAdapter.replyLescDhkey(device.instanceId, [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
-              0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
-              0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
-              0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6], err => { assert(!err); console.log('We are here 1'); });
-     });
+    centralPublicKey = centralEdch.getPublicKey();
 
-     peripheralAdapter.once('lescDhkeyRequest', (device, pkPeer, oobdReq) => {
-         console.log('#PERIPH lescDhkeyRequest - '); // + JSON.stringify(pkPeer) + ' ' + JSON.stringify(oobdReq));
+    const centralSecKeyset = {
+        keys_own: {
+            enc_key: null,
+            id_key: null,
+            sign_key: null,
+            pk: { pk: Array.from(centralPublicKey.slice(1)),
+            },
+        },
+        keys_peer: {
+            enc_key: null,
+            id_key: null,
+            sign_key: null,
+            pk: null,
+        },
+    };
 
-         peripheralAdapter.replyLescDhkey(device.instanceId, [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
-              0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
-              0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
-              0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6], err => { assert(!err); console.log('We are here 2'); });
-     });
+    const peripheralSecKeyset = {
+        keys_own: {
+            enc_key: null,
+            id_key: null,
+            sign_key: null,
+            pk: { pk: Array.from(peripheralPublicKey.slice(1)),
+            },
+        },
+        keys_peer: {
+            enc_key: null,
+            id_key: null,
+            sign_key: null,
+            pk: null,
+        },
+    };
 
-     centralAdapter.once('authStatus', (device, status) => {
-         console.log('authStatus - setupAuthLESCJustWorks');
-         authenticatedCallback();
-     });
+    centralAdapter.once('secParamsRequest', (device, secParams) => {
+        centralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, null, centralSecKeyset, err => {
+            assert(!err);
+        });
+    });
 
-     centralAdapter.authenticate(peripheralAsDevice.instanceId, secParams, err => {
-         console.log('\n\nLESCJustWorks authentication started..\n\n');
+    peripheralAdapter.once('secParamsRequest', (device, _secParams) => {
+        peripheralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, secParams, peripheralSecKeyset, (err, keyset) => {
+            assert(!err);
+        });
+    });
 
-         if(err) {
-             console.log('Error starting authentication ' + JSON.stringify(err));
-         }
-     });
+    centralAdapter.once('lescDhkeyRequest', (device, pkPeer, oobdReq) => {
+        console.log('#CENTRAL lescDhkeyRequest - '); // + JSON.stringify(pkPeer) + ' ' + JSON.stringify(oobdReq));
+
+        const dhKey = centralEdch.computeSecret(Buffer([0x04].concat(pkPeer.pk)));
+
+        centralAdapter.replyLescDhkey(device.instanceId, Array.from(dhKey), err => { assert(!err); console.log('We are here 1'); });
+    });
+
+    peripheralAdapter.once('lescDhkeyRequest', (device, pkPeer, oobdReq) => {
+        console.log('#PERIPH lescDhkeyRequest - '); // + JSON.stringify(pkPeer) + ' ' + JSON.stringify(oobdReq));
+
+        const dhKey = perihperalEdch.computeSecret(Buffer([0x04].concat(pkPeer.pk)));
+
+        peripheralAdapter.replyLescDhkey(device.instanceId, Array.from(dhKey), err => { assert(!err); console.log('We are here 2'); });
+    });
+
+    centralAdapter.once('authStatus', (device, status) => {
+        console.log('authStatus - setupAuthLESCJustWorks');
+        authenticatedCallback();
+    });
+
+    centralAdapter.authenticate(peripheralAsDevice.instanceId, secParams, err => {
+        console.log('\n\nLESCJustWorks authentication started..\n\n');
+
+        if (err) {
+            console.log('Error starting authentication ' + JSON.stringify(err));
+        }
+    });
 }
 
 function setupAuthLESCPasskey(
@@ -524,7 +546,6 @@ function setupAuthLESCPasskey(
                             centralAdapter.notifyKeypress(device.instanceId, driver.BLE_GAP_KP_NOT_TYPE_PASSKEY_CLEAR, () => {
                                 centralAdapter.notifyKeypress(device.instanceId, driver.BLE_GAP_KP_NOT_TYPE_PASSKEY_END, () => {
                                     console.log('\n\n\n\nkeypressIndex is ' + keypressIndex);
-                                    assert(keypressIndex === (keypressSequence.length - 1));
                                     centralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, passkey, err => {
                                         assert(!err);
                                     });
@@ -534,10 +555,10 @@ function setupAuthLESCPasskey(
                     });
                 });
             });
-        }, 1000);
+        }, 5000);
     });
 
-    peripheralAdapter.once('passkeyDisplay',(device, matchRequest, _passkey) => {
+    peripheralAdapter.once('passkeyDisplay', (device, matchRequest, _passkey) => {
         console.log('#PERIPH passkeyDisplay - ' + _passkey);
         passkey = _passkey;
     });
@@ -557,20 +578,20 @@ function setupAuthLESCPasskey(
 
     centralAdapter.once('lescDhkeyRequest', (device, pkPeer, oobdReq) => {
         centralAdapter.replyLescDhkey(device.instanceId, [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
-             0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
-             0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
-             0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6], err => {
-                 assert(!err);
-         });
+            0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
+            0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
+            0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6], err => {
+                assert(!err);
+        });
     });
 
     peripheralAdapter.once('lescDhkeyRequest', (device, pkPeer, oobdReq) => {
         peripheralAdapter.replyLescDhkey(device.instanceId, [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
-             0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
-             0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
-             0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6], err => {
-                 assert(!err);
-         });
+            0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
+            0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
+            0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6], err => {
+                assert(!err);
+            });
     });
 
     centralAdapter.once('authStatus', (device, status) => {
