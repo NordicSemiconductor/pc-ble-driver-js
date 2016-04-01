@@ -1802,17 +1802,11 @@ class Adapter extends EventEmitter {
             this.emit('error', errorObject);
             if (callback) { callback(errorObject); }
             return;
-
         }
 
         this._adapter.gapReplySecurityParameters(device.connectionHandle, secStatus, secParams, secKeyset, (err, secKeyset) => {
-            let errorObject;
-            if (err) {
-                errorObject = _makeError('Failed to reply security parameters', err);
-                this.emit('error', errorObject);
-            }
-
-            if (callback) { callback(errorObject, secKeyset); }
+            if (this._checkAndPropagateError(err, 'Failed to reply security parameters.', callback)) { return; }
+            if (callback) { callback(err, secKeyset); }
         });
     }
 
@@ -1832,13 +1826,8 @@ class Adapter extends EventEmitter {
         }
 
         this._adapter.gapReplyAuthKey(device.connectionHandle, keyType, key, err => {
-            let errorObject;
-            if (err) {
-                errorObject = _makeError('Failed to reply authenticate key');
-                this.emit('error', errorObject);
-            }
-
-            if (callback) { callback(errorObject); }
+            if (this._checkAndPropagateError(err, 'Failed to reply authenticate key.', callback)) { return; }
+            if (callback) { callback(); }
         });
     }
 
@@ -1853,13 +1842,8 @@ class Adapter extends EventEmitter {
         }
 
         this._adapter.gapReplyLescDhKey(device.connectionHandle, dhkey, err => {
-            let errorObject;
-            if (err) {
-                errorObject = _makeError('Failed to reply lesc dh key');
-                this.emit('error', errorObject);
-            }
-
-            if (callback) { callback(errorObject); }
+            if (this._checkAndPropagateError(err, 'Failed to reply lesc dh key.', callback)) { return; }
+            if (callback) { callback(); }
         });
     }
 
