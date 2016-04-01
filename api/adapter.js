@@ -1874,13 +1874,8 @@ class Adapter extends EventEmitter {
         }
 
         this._adapter.gapNotifyKeypress(device.connectionHandle, notificationType, err => {
-            let errorObject;
-            if (err) {
-                errorObject = _makeError('Failed to notify keypress');
-                this.emit('error', errorObject);
-            }
-
-            if (callback) { callback(errorObject); }
+            if (this._checkAndPropagateError(err, 'Failed to notify keypress.', callback)) { return; }
+            if (callback) { callback(); }
         });
     }
 
