@@ -51,6 +51,8 @@ static name_map_t error_message_name_map = {
     NAME_MAP_ENTRY(NRF_ERROR_FORBIDDEN),
     NAME_MAP_ENTRY(NRF_ERROR_INVALID_ADDR),
     NAME_MAP_ENTRY(NRF_ERROR_BUSY),
+    NAME_MAP_ENTRY(NRF_ERROR_CONN_COUNT),
+    NAME_MAP_ENTRY(NRF_ERROR_RESOURCES),
 
     // GAP related errors
     NAME_MAP_ENTRY(BLE_ERROR_GAP_UUID_LIST_MISMATCH),
@@ -760,6 +762,8 @@ v8::Local<v8::Value> ErrorMessage::getErrorMessage(const int errorCode, const st
         case NRF_ERROR_FORBIDDEN:
         case NRF_ERROR_INVALID_ADDR:
         case NRF_ERROR_BUSY:
+        case NRF_ERROR_CONN_COUNT:
+        case NRF_ERROR_RESOURCES:
         default:
         {
             std::ostringstream errorStringStream;

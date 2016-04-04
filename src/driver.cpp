@@ -1706,6 +1706,8 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, NRF_ERROR_FORBIDDEN);                   ///< Forbidden Operation
         NODE_DEFINE_CONSTANT(target, NRF_ERROR_INVALID_ADDR);                ///< Bad Memory Address
         NODE_DEFINE_CONSTANT(target, NRF_ERROR_BUSY);                        ///< Busy
+        NODE_DEFINE_CONSTANT(target, NRF_ERROR_CONN_COUNT);                  ///< Maximum connection count exceeded
+        NODE_DEFINE_CONSTANT(target, NRF_ERROR_RESOURCES);                   ///< Not enough resources for operation
     }
 
     void init_app_status(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
