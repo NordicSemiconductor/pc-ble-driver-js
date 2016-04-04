@@ -944,7 +944,7 @@ function setupAuthLESCNumericComparison(
     });
 
     peripheralAdapter.once('passkeyDisplay',  (device, match_request, passkey) => {
-        peripheralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => { assert(!err); });
+        setTimeout(() => {peripheralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => { assert(!err); });}, 1000);
     });
 
     centralAdapter.authenticate(peripheralAsDevice.instanceId, secParams, err => {
@@ -998,11 +998,33 @@ function runTests(centralAdapter, peripheralAdapter) {
     });
 }
 
+function runFailedTests(centralAdapter, peripheralAdapter) {
+    addAdapterListener(centralAdapter, '#CENTRAL');
+    addAdapterListener(peripheralAdapter, '#PERIPH');
+
+    setupAdapter(centralAdapter, 'centralAdapter', centralDeviceAddress, centralDeviceAddressType, adapter => {
+    });
+
+    setupAdapter(peripheralAdapter, 'peripheralAdapter', peripheralDeviceAddress, peripheralDeviceAddressType, adapter => {
+        startAdvertising(peripheralAdapter, () => {
+            console.log('Advertising started');
+        });
+
+        centralAdapter.once('deviceConnected', peripheralDevice => {
+
+            setupAuthLESCNumericComparison(centralAdapter, peripheralAdapter, peripheralDevice, () => {
+                console.log('\n\nLESCNumericComparison - OK\n\n');
+            });
+        });
+    });
+}
+
 addAdapterFactoryListeners();
 
 adapterFactory.getAdapters((error, adapters) => {
     assert(!error);
     assert(Object.keys(adapters).length == 2, 'The number of attached devices to computer must exactly 2');
 
-    runTests(adapters[Object.keys(adapters)[0]], adapters[Object.keys(adapters)[1]]);
+    //runTests(adapters[Object.keys(adapters)[0]], adapters[Object.keys(adapters)[1]]);
+    runFailedTests(adapters[Object.keys(adapters)[0]], adapters[Object.keys(adapters)[1]])
 });
