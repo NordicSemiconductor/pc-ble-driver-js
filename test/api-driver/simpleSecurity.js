@@ -1025,6 +1025,6 @@ adapterFactory.getAdapters((error, adapters) => {
     assert(!error);
     assert(Object.keys(adapters).length == 2, 'The number of attached devices to computer must exactly 2');
 
-    //runTests(adapters[Object.keys(adapters)[0]], adapters[Object.keys(adapters)[1]]);
-    runFailedTests(adapters[Object.keys(adapters)[0]], adapters[Object.keys(adapters)[1]])
+    runTests(adapters[Object.keys(adapters)[0]], adapters[Object.keys(adapters)[1]]);
+    //runFailedTests(adapters[Object.keys(adapters)[0]], adapters[Object.keys(adapters)[1]])
 });
