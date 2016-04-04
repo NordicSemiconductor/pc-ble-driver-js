@@ -920,13 +920,15 @@ function setupAuthLESCNumericComparison(
         });
     });
 
-    centralAdapter.once('passkeyDisplay',  (device, match_request, passkey) => {
-        centralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
-            centralAdapter.replyLescDhkey(device.instanceId, [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
+    centralAdapter.once('lescDhkeyRequest', (device, pkPeer, oobdReq) => {
+        centralAdapter.replyLescDhkey(device.instanceId, [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
                  0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
                  0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
                  0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6], err => { assert(!err); });
-        });
+    })
+
+    centralAdapter.once('passkeyDisplay',  (device, match_request, passkey) => {
+        centralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => { assert(!err); });
     });
 
     centralAdapter.once('authStatus', (device, status) => {
@@ -934,15 +936,15 @@ function setupAuthLESCNumericComparison(
         authenticatedCallback();
     });
 
-    peripheralAdapter.once('lescDhkeyRequest', (device, pkPeer, oobdReq) => { });
-
-    peripheralAdapter.once('passkeyDisplay',  (device, match_request, passkey) => {
-        peripheralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
-            peripheralAdapter.replyLescDhkey(device.instanceId, [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
+    peripheralAdapter.once('lescDhkeyRequest', (device, pkPeer, oobdReq) => {
+        peripheralAdapter.replyLescDhkey(device.instanceId, [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
                  0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
                  0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
                  0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6], err => { assert(!err); });
-        });
+    });
+
+    peripheralAdapter.once('passkeyDisplay',  (device, match_request, passkey) => {
+        peripheralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => { assert(!err); });
     });
 
     centralAdapter.authenticate(peripheralAsDevice.instanceId, secParams, err => {
