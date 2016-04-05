@@ -530,6 +530,13 @@ class Adapter extends EventEmitter {
     _parseConnSecUpdateEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         this.emit('connSecUpdate', device, event.conn_sec);
+
+        const authParamters = {
+            securityMode: event.conn_sec.sec_mode.sm,
+            securityLevel: event.conn_sec.sec_mode.lv,
+        };
+
+        this.emit('securityChanged', device, authParamters);
     }
 
     _parseAuthStatusEvent(event) {
@@ -551,22 +558,6 @@ class Adapter extends EventEmitter {
                 keyset: event.keyset,
             }
         );
-
-        if (event.auth_status === this._bleDriver.BLE_GAP_SEC_STATUS_SUCCESS) {
-            const authParamters = {
-                bonded: event.bonded,
-                sm1Levels: event.sm1_levels.lv4 ? 4
-                            : event.sm1_levels.lv3 ? 3
-                            : event.sm1_levels.lv2 ? 2
-                            : event.sm1_levels.lv1 ? 1
-                            : null,
-                sm2Levels: null, // TODO: Add when supported in api
-                keysDistPeriph: null, // TODO: Add when supported in api
-                keysDistCentral: null, // TODO: Add when supported in api
-            };
-
-            this.emit('securityChanged', device, authParamters);
-        }
     }
 
     _parsePasskeyDisplayEvent(event) {
@@ -1561,7 +1552,7 @@ class Adapter extends EventEmitter {
         this._adapter.gapConnect(address, options.scanParams, options.connParams, err => {
             if (err) {
                 this._changeState({connecting: false});
-                const errorMsg = (err.errcode === 'NRF_ERROR_NO_MEM') ?
+                const errorMsg = (err.errcode === 'NRF_ERROR_CONN_COUNT') ?
                     _makeError(`Could not connect. Max number of connections reached.`, err)
                     : _makeError(`Could not connect to ${deviceAddress.address}`, err);
 
