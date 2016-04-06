@@ -617,9 +617,11 @@ class Adapter extends EventEmitter {
         switch (event.src) {
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_ADVERTISING:
                 this._changeState({advertising: false});
+                this.emit('advertiseTimedOut');
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_SCAN:
                 this._changeState({scanning: false});
+                this.emit('scanTimedOut');
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_CONN:
                 const deviceAddress = this._gapOperationsMap.connecting.deviceAddress;
@@ -1872,7 +1874,7 @@ class Adapter extends EventEmitter {
             }
 
             if (callback) { callback(errorObject, ownOobData); }
-        })
+        });
     }
 
     setLescOobData(deviceInstanceId, ownOobData, peerOobData, callback) {
