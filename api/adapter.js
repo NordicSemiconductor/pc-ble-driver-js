@@ -282,7 +282,6 @@ class Adapter extends EventEmitter {
                         connecting: false,
                         scanning: false,
                         advertising: false,
-                        securityRequestPending: false,
                     }
                 );
                 break;
@@ -630,8 +629,9 @@ class Adapter extends EventEmitter {
                 this.emit('connectTimedOut', deviceAddress);
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_SECURITY_REQUEST:
-                this._changeState({securityRequestPending: false});
-                this.emit('error', _makeError('Security operation timeout.'));
+                const device = this._getDeviceByConnectionHandle(event.conn_handle);
+                this.emit('securityRequestTimedOut', device);
+                this.emit('error', _makeError('Security request timed out.'));
                 break;
             default:
                 console.log(`GAP operation timed out: ${event.src_name} (${event.src}).`);
@@ -1781,8 +1781,6 @@ class Adapter extends EventEmitter {
                 }
             }
 
-            // TODO: is this securityRequestPending used? and in any other function?
-            this._changeState({securityRequestPending: false});
             if (callback) { callback(errorObject); }
         });
     }
@@ -1935,76 +1933,6 @@ class Adapter extends EventEmitter {
             if (callback) { callback(errorObject); }
         });
     }
-
-    // connSecGet(deviceInstanceId) {
-    //     const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
-    // }
-
-    // setSecurityParams(params) {
-    //     if (!params) {
-    //         return;
-    //     }
-
-    //     this.securityParams = new SecurityParams(params);
-    // }
-
-    // getSecurityParams() {
-    //     return this.securityParams;
-    // }
-
-    // // callback signature function(err) {}
-    // pair(deviceInstanceId, callback) {
-    //     if (this.state.securityRequestPending) {
-    //         const errorObject = _makeError('Failed to pair, a security operation is already in progress', undefined);
-    //         this.emit('error', errorObject);
-    //         if (callback) { callback(errorObject); }
-    //         return;
-    //     }
-
-    //     const device = this.getDevice(deviceInstanceId);
-
-    //     if (!device) {
-    //         const errorObject = _makeError('Failed to pair, Could not find device with id ' + JSON.stringify(deviceInstanceId));
-    //         this.emit('error', errorObject);
-    //         if (callback) { callback(errorObject); }
-    //         return;
-    //     }
-
-    //     this._changeState({securityRequestPending: true});
-
-    //     this._adapter.gapAuthenticate(device.connectionHandle, {
-    //         bond: options.bond,
-    //         mitm: options.mitm,
-    //         lesc: options.lesc,
-    //         keypress: options.keypress,
-    //         io_caps: options.ioCaps,
-    //         oob: options.oob,
-    //         min_key_size: 7,
-    //         max_key_size: 16,
-    //         kdist_own: {
-    //             enc: false,
-    //             id: false,
-    //             sign: false,
-    //             link: false,
-    //         },
-    //         kdist_peer: {
-    //             enc: false,
-    //             id: false,
-    //             sign: false,
-    //             link: false,
-    //         },
-    //     },
-    //     err => {
-    //         let errorObject;
-    //         if (err) {
-    //             errorObject = _makeError('Failed to authenticate', err);
-    //             this.emit('error', errorObject);
-    //         }
-
-    //         this._changeState({securityRequestPending: false});
-    //         if (callback) { callback(errorObject); }
-    //     });
-    // }
 
     // GATTS
     // Array of services

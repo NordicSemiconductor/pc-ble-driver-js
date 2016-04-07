@@ -25,7 +25,6 @@ class AdapterState {
         this.scanning = false;
         this.advertising = false;
         this.connecting = false;
-        this.securityRequestPending = false;
 
         this._address = null;
         this._addressType = null;
