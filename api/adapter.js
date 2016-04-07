@@ -242,6 +242,10 @@ class Adapter extends EventEmitter {
         this.emit('closed', this);
     }
 
+    getStats() {
+        return this._adapter.getStats();
+    }
+
     enableBLE(options, callback) {
         if (options === undefined || options === null) {
             options = {

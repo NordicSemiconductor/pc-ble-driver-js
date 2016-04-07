@@ -109,9 +109,14 @@ void Adapter::appendLog(LogEntry *log)
 {
     logQueue.push(log);
 
-    if (!closing)
+    if (asyncLog != nullptr)
     {
-        uv_async_send(&asyncLog);
+        uv_async_send(asyncLog);
+    }
+    else 
+    { 
+        std::cerr << "Adapter::appendLog() asyncLog is nullptr!" << std::endl; 
+        std::terminate();
     }
 }
 
@@ -132,6 +137,10 @@ void Adapter::onLogEvent(uv_async_t *handle)
             argv[1] = ConversionUtility::toJsString(logEntry->message);
             logCallback->Call(2, argv);
         }
+        else 
+        {
+            std::cerr << "Log event received, but no callback is registered." << std::endl;
+        }
 
         // Free memory for current entry, we remove the element from the deque when the iteration is done
         delete logEntry;
@@ -142,9 +151,14 @@ void Adapter::onLogEvent(uv_async_t *handle)
 void Adapter::dispatchEvents()
 {
     // Trigger callback in NodeJS thread to call NodeJS callbacks
-    if (!closing)
+    if (asyncEvent != nullptr)
     {
-        uv_async_send(&asyncEvent);
+        uv_async_send(asyncEvent);
+    } 
+    else
+    {
+        std::cerr << "Adapter::dispatchEvents() asyncEvent is nullptr!" << std::endl;
+        std::terminate();
     }
 }
 
@@ -155,7 +169,6 @@ void Adapter::eventIntervalCallback(uv_timer_t *handle)
 
 static void sd_rpc_on_event(adapter_t *adapter, ble_evt_t *event)
 {
-    // TODO: Clarification:
     // The lifecycle for the event is controlled by the driver. We must not free any memory related to the incoming event.
 
     if (event == nullptr)
@@ -223,10 +236,17 @@ void Adapter::onRpcEvent(uv_async_t *handle)
     {
         EventEntry *eventEntry = nullptr;
         eventQueue.pop(eventEntry);
-        assert(eventEntry != nullptr);
+
+        if (eventEntry == nullptr) {
+            std::cerr << "eventEntry from queue is null. Illegal state, terminating." << std::endl;
+            std::terminate();
+        }
 
         auto event = eventEntry->event;
-        assert(event != nullptr);
+        if (eventEntry == nullptr) {
+            std::cerr << "event from eventEntry is null. Illegal state, terminating." << std::endl;
+            std::terminate();
+        }
 
         if (eventCallback != nullptr)
         {
@@ -275,7 +295,7 @@ void Adapter::onRpcEvent(uv_async_t *handle)
                 GATTS_EVT_CASE(SC_CONFIRM, SCConfirm, timeout, array, arrayIndex, eventEntry);
 
             default:
-                std::cout << "Event " << event->header.evt_id << " unknown to me." << std::endl;
+                std::cerr << "Event " << event->header.evt_id << " unknown to me." << std::endl;
                 break;
             }
 
@@ -315,6 +335,10 @@ void Adapter::onRpcEvent(uv_async_t *handle)
     {
         eventCallback->Call(1, callback_value);
     }
+    else
+    {
+        std::cerr << "BLE event received, but no callback is registered." << std::endl;
+    }
 
     auto end = chrono::high_resolution_clock::now();
 
@@ -346,9 +370,14 @@ void Adapter::appendStatus(StatusEntry *status)
 {
     statusQueue.push(status);
 
-    if (!closing)
+    if (asyncStatus != nullptr)
     {
-        uv_async_send(&asyncStatus);
+        uv_async_send(asyncStatus);
+    }
+    else
+    {
+        std::cerr << "Adapter::appendStatus() asyncStatus is nullptr." << std::endl;
+        std::terminate();
     }
 }
 
@@ -610,6 +639,12 @@ void Adapter::Open(uv_work_t *req)
 {
     auto baton = static_cast<OpenBaton *>(req->data);
 
+    baton->mainObject->eventIntervalTimer = new uv_timer_t();
+
+    baton->mainObject->asyncEvent = new uv_async_t();
+    baton->mainObject->asyncLog = new uv_async_t();
+    baton->mainObject->asyncStatus = new uv_async_t();
+
     baton->mainObject->initEventHandling(baton->event_callback, baton->evt_interval);
     baton->mainObject->initLogHandling(baton->log_callback);
     baton->mainObject->initStatusHandling(baton->status_callback);
@@ -628,7 +663,7 @@ void Adapter::Open(uv_work_t *req)
     baton->adapter = adapter;
     baton->mainObject->adapter = adapter;
 
-    // Clear the statiscits
+    // Clear the statistics
     baton->mainObject->eventCallbackCount = 0;
 
     // Max number of events in queue before sending it to JavaScript
@@ -644,7 +679,7 @@ void Adapter::Open(uv_work_t *req)
 
     if (error_code != NRF_SUCCESS)
     {
-        printf("Failed to open the nRF51 ble driver.\n"); fflush(stdout);
+        std::cerr << std::endl << "Failed to open the nRF51 ble driver." << std::endl;
         baton->result = error_code;
         return;
     }
@@ -661,11 +696,9 @@ void Adapter::Open(uv_work_t *req)
 
         if (error_code == NRF_ERROR_INVALID_STATE)
         {
-            printf("BLE stack already enabled\n"); fflush(stdout);
+            std::cerr << "BLE stack already enabled" << std::endl;
             return;
         }
-
-        printf("Failed to enable BLE stack.\n"); fflush(stdout);
     }
 
     baton->result = error_code;
@@ -733,9 +766,6 @@ void Adapter::AfterClose(uv_work_t *req)
     Nan::HandleScope scope;
     auto baton = static_cast<CloseBaton *>(req->data);
 
-    baton->mainObject->cleanUpV8Resources();
-    baton->mainObject->closing = false;
-
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -749,6 +779,8 @@ void Adapter::AfterClose(uv_work_t *req)
 
     baton->callback->Call(1, argv);
     delete baton;
+
+    baton->mainObject->cleanUpV8Resources();
 }
 
 NAN_METHOD(Adapter::AddVendorSpecificUUID)
@@ -1367,7 +1399,12 @@ v8::Local<v8::Object> BleUUID128::ToJs()
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     size_t uuid_len = 16 * 2 + 4 + 1; // Each byte -> 2 chars, 4 - separator _between_ some bytes and 1 byte null termination character
     auto uuid128string = static_cast<char*>(malloc(uuid_len));
-    assert(uuid128string != nullptr);
+
+    if (uuid128string == nullptr) {
+        std::cerr << "uuid128string is null. Illegal state, terminating." << std::endl;
+        std::terminate();
+    }
+
     uint8_t *ptr = native->uuid128;
 
     sprintf(uuid128string, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x", ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5], ptr[6], ptr[7], ptr[8], ptr[9], ptr[10], ptr[11], ptr[12], ptr[13], ptr[14], ptr[15]);
@@ -1392,7 +1429,12 @@ ble_uuid128_t *BleUUID128::ToNative()
     v8::Local<v8::String> uuidString = uuidObject->ToString();
     size_t uuid_len = uuidString->Length() + 1;
     auto uuidPtr = static_cast<char*>(malloc(uuid_len));
-    assert(uuidPtr != nullptr);
+
+    if (uuidPtr == nullptr) {
+        std::cerr << "uuidPtr is null. Illegal state, terminating." << std::endl;
+        std::terminate();
+    }
+
     uuidString->WriteUtf8(uuidPtr, uuid_len);
 
     auto scan_count = sscanf(uuidPtr,
@@ -1405,7 +1447,11 @@ ble_uuid128_t *BleUUID128::ToNative()
         &(ptr[5]), &(ptr[4]),
         &(ptr[3]), &(ptr[2]),
         &(ptr[1]), &(ptr[0]));
-    assert(scan_count == 16);
+
+    if (scan_count != 16) {
+        std::cerr << "scan_count is not 16, illegal state, terminating." << std::endl;
+        std::terminate();
+    }
 
     free(uuidPtr);
 

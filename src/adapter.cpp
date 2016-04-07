@@ -101,31 +101,28 @@ void Adapter::initEventHandling(Nan::Callback *callback, uint32_t interval)
 
     // Setup event related functionality
     eventCallback = callback;
-    asyncEvent.data = static_cast<void *>(this);
+    asyncEvent->data = static_cast<void *>(this);
 
-    // If we already have an async handle we do not create a new one
-    if (!uv_is_active(reinterpret_cast<uv_handle_t *>(&asyncEvent)))
-    {
-        if (uv_async_init(uv_default_loop(), &asyncEvent, event_handler) != 0) {
+    if (uv_async_init(uv_default_loop(), asyncEvent, event_handler) != 0) {
             std::cerr << "Not able to create a new async event handler." << std::endl;
             std::terminate();
         }
-    }
 
     // Setup event interval functionality
     if (eventInterval > 0)
     {
-        eventIntervalTimer.data = static_cast<void *>(this);
-        if (uv_timer_init(uv_default_loop(), &eventIntervalTimer) != 0) {
+        if (eventIntervalTimer != nullptr) {
+            eventIntervalTimer->data = static_cast<void *>(this);
+            if (uv_timer_init(uv_default_loop(), eventIntervalTimer) != 0) {
             std::cerr << "Not able to create a new async event interval timer." << std::endl;
             std::terminate();
         }
 
-        if (uv_timer_start(&eventIntervalTimer, event_interval_handler, eventInterval, eventInterval) != 0) {
+            if (uv_timer_start(eventIntervalTimer, event_interval_handler, eventInterval, eventInterval) != 0) {
             std::cerr << "Not able to create a new event interval handler." << std::endl;
             std::terminate();
         }
-
+        }
     }
 }
 
@@ -150,17 +147,18 @@ void Adapter::initLogHandling(Nan::Callback *callback)
 {
     // Setup event related functionality
     logCallback = callback;
-    asyncLog.data = static_cast<void *>(this);
+    asyncLog->data = static_cast<void *>(this);
 
-    // If we already have an async handle we do not create a new one
-    if (!uv_is_active(reinterpret_cast<uv_handle_t *>(&asyncLog)))
-    {
-        if (uv_async_init(uv_default_loop(), &asyncLog, log_handler) != 0)
+    if (asyncLog == nullptr)  {
+        std::cerr << "asyncLog is null, terminating." << std::endl;
+        std::terminate();
+    }
+
+    if (uv_async_init(uv_default_loop(), asyncLog, log_handler) != 0)
         {
             std::cerr << "Not able to create a new event log handler." << std::endl;
             std::terminate();
         }
-    }
 }
 
 extern "C" {
@@ -184,52 +182,65 @@ void Adapter::initStatusHandling(Nan::Callback *callback)
 {
     // Setup event related functionality
     statusCallback = callback;
-    asyncStatus.data = static_cast<void *>(this);
+    asyncStatus->data = static_cast<void *>(this);
 
-    // If we already have an async handle we do not create a new one
-    if (!uv_is_active(reinterpret_cast<uv_handle_t *>(&asyncStatus)))
-    {
-        if (uv_async_init(uv_default_loop(), &asyncStatus, status_handler) != 0)
+    if (uv_async_init(uv_default_loop(), asyncStatus, status_handler) != 0)
         {
             std::cerr << "Not able to create a new status handler." << std::endl;
             std::terminate();
         }
-    }
 }
 
 void Adapter::cleanUpV8Resources()
 {
-    closing = true;
+    uv_mutex_lock(adapterCloseMutex);
 
-    auto intervalTimerhandle = reinterpret_cast<uv_handle_t*>(&eventIntervalTimer);
+    if (asyncStatus != nullptr) {
+        auto handle = reinterpret_cast<uv_handle_t *>(asyncStatus);
+        uv_close(handle, [](uv_handle_t *handle) {
+            free(handle);
+        });
+
+        asyncStatus = nullptr;
+    }
+
+    if (eventIntervalTimer != nullptr) {
+        auto intervalTimerhandle = reinterpret_cast<uv_handle_t*>(eventIntervalTimer);
 
     // Deallocate resources related to the event handling interval timer
-    if (uv_is_active(intervalTimerhandle) != 0)
-    {
-        if (uv_timer_stop(&eventIntervalTimer) != 0)
+        if (uv_timer_stop(eventIntervalTimer) != 0)
         {
             std::terminate();
         }
+
+        auto handle = reinterpret_cast<uv_handle_t *>(eventIntervalTimer);
+        uv_close(handle, [](uv_handle_t *handle) {
+            free(handle);
+        });
+
+        eventIntervalTimer = nullptr;
     }
 
-    auto logHandle = reinterpret_cast<uv_handle_t *>(&asyncLog);
-    auto eventHandle = reinterpret_cast<uv_handle_t *>(&asyncEvent);
-    auto statusHandle = reinterpret_cast<uv_handle_t *>(&asyncStatus);
+    if (asyncEvent != nullptr) {
+        auto handle = reinterpret_cast<uv_handle_t *>(asyncEvent);
 
-    if (uv_is_active(logHandle))
-    {
-        uv_close(reinterpret_cast<uv_handle_t *>(&asyncLog), nullptr);
+        uv_close(handle, [](uv_handle_t *handle) {
+            free(handle);
+        });
+
+        asyncEvent = nullptr;
     }
 
-    if (uv_is_active(eventHandle))
-    {
-        uv_close(reinterpret_cast<uv_handle_t *>(&asyncEvent), nullptr);
+    if (asyncLog != nullptr) {
+        auto logHandle = reinterpret_cast<uv_handle_t *>(asyncLog);
+        uv_close(logHandle, [](uv_handle_t *handle) {
+            free(handle);
+        });
+
+        asyncLog = nullptr;
     }
 
-    if (uv_is_active(statusHandle))
-    {
-        uv_close(reinterpret_cast<uv_handle_t *>(&asyncStatus), nullptr);
-    }
+    uv_mutex_unlock(adapterCloseMutex);
 }
 
 void Adapter::initGeneric(v8::Local<v8::FunctionTemplate> tpl)
@@ -309,7 +320,6 @@ void Adapter::initGattS(v8::Local<v8::FunctionTemplate> tpl)
 
 Adapter::Adapter()
 {
-    adapters.push_back(this);
     adapter = nullptr;
 
     eventCallbackMaxCount = 0;
@@ -319,7 +329,20 @@ Adapter::Adapter()
 
     eventCallback = nullptr;
 
-    closing = false;
+    eventIntervalTimer = nullptr;
+
+    asyncEvent = nullptr;
+    asyncLog = nullptr;
+    asyncStatus = nullptr;
+
+    adapterCloseMutex = new uv_mutex_t();
+    if (uv_mutex_init(adapterCloseMutex) != 0)
+    {
+        std::cerr << "Not able to create adapterCloseMutex! Terminating." << std::endl;
+        std::terminate();
+    }
+
+    adapters.push_back(this);
 }
 
 Adapter::~Adapter()
@@ -328,7 +351,9 @@ Adapter::~Adapter()
     adapters.erase(std::find(adapters.begin(), adapters.end(), this));
 
     // Remove callbacks and cleanup uv_handle_t instances
-    // cleanUpV8Resources(); TODO: Fails when enabled, why?
+    cleanUpV8Resources();
+
+    uv_mutex_destroy(adapterCloseMutex);
 }
 
 NAN_METHOD(Adapter::New)

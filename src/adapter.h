@@ -197,11 +197,13 @@ private:
 
     // Interval to use for sending BLE driver events to JavaScript. If 0 events will be sent as soon as they are received from the BLE driver.
     uint32_t eventInterval;
-    uv_timer_t eventIntervalTimer;
-    uv_async_t asyncEvent;
+    uv_timer_t* eventIntervalTimer;
+    uv_async_t* asyncEvent;
 
-    uv_async_t asyncLog;
-    uv_async_t asyncStatus;
+    uv_async_t* asyncLog;
+    uv_async_t* asyncStatus;
+
+    uv_mutex_t* adapterCloseMutex;
 
     // Statistics:
     // Accumulated deltas for event callbacks done to the driver
@@ -213,7 +215,5 @@ private:
     uint32_t eventCallbackBatchEventCounter;
     uint32_t eventCallbackBatchEventTotalCount;
     uint32_t eventCallbackBatchNumber;
-
-    bool closing;
 };
 #endif
