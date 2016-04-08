@@ -722,12 +722,13 @@ void Adapter::AfterOpen(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
-
     if (baton->result != NRF_SUCCESS)
     {
         baton->mainObject->cleanUpV8Resources();
     }
+
+
+    baton->callback->Call(1, argv);
 
     delete baton;
 }
@@ -777,10 +778,10 @@ void Adapter::AfterClose(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
+    baton->mainObject->cleanUpV8Resources();
+
     baton->callback->Call(1, argv);
     delete baton;
-
-    baton->mainObject->cleanUpV8Resources();
 }
 
 NAN_METHOD(Adapter::AddVendorSpecificUUID)
