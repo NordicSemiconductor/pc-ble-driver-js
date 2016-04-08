@@ -135,6 +135,10 @@ static name_map_t gap_sec_status_map =
     NAME_MAP_ENTRY(BLE_GAP_SEC_STATUS_UNSPECIFIED),
     NAME_MAP_ENTRY(BLE_GAP_SEC_STATUS_REPEATED_ATTEMPTS),
     NAME_MAP_ENTRY(BLE_GAP_SEC_STATUS_INVALID_PARAMS),
+    NAME_MAP_ENTRY(BLE_GAP_SEC_STATUS_DHKEY_FAILURE),
+    NAME_MAP_ENTRY(BLE_GAP_SEC_STATUS_NUM_COMP_FAILURE),
+    NAME_MAP_ENTRY(BLE_GAP_SEC_STATUS_BR_EDR_IN_PROG),
+    NAME_MAP_ENTRY(BLE_GAP_SEC_STATUS_X_TRANS_KEY_DISALLOWED),
     NAME_MAP_ENTRY(BLE_GAP_SEC_STATUS_RFU_RANGE2_BEGIN),
     NAME_MAP_ENTRY(BLE_GAP_SEC_STATUS_RFU_RANGE2_END)
 };
@@ -3863,23 +3867,27 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GAP_AUTH_KEY_TYPE_OOB); //Out Of Band data.
 
         /* BLE_GAP_SEC_STATUS GAP Security status */
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_SUCCESS); //Procedure completed with success.
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_TIMEOUT); //Procedure timed out.
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_PDU_INVALID); //Invalid PDU received.
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_RFU_RANGE1_BEGIN); //Reserved for Future Use range #1 begin.
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_RFU_RANGE1_END); //Reserved for Future Use range #1 end.
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_PASSKEY_ENTRY_FAILED); //Passkey entry failed (user cancelled or other).
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_OOB_NOT_AVAILABLE); //Out of Band Key not available.
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_AUTH_REQ); //Authentication requirements not met.
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_CONFIRM_VALUE); //Confirm value failed.
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_PAIRING_NOT_SUPP); //Pairing not supported.
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_ENC_KEY_SIZE); //Encryption key size.
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_SMP_CMD_UNSUPPORTED); //Unsupported SMP command.
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_UNSPECIFIED); //Unspecified reason.
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_REPEATED_ATTEMPTS); //Too little time elapsed since last attempt.
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_INVALID_PARAMS); //Invalid parameters.
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_RFU_RANGE2_BEGIN); //Reserved for Future Use range #2 begin.
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_RFU_RANGE2_END); //Reserved for Future Use range #2 end.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_SUCCESS); // Procedure completed with success. 
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_TIMEOUT); // Procedure timed out. 
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_PDU_INVALID); // Invalid PDU received. 
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_RFU_RANGE1_BEGIN); // Reserved for Future Use range #1 begin. 
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_RFU_RANGE1_END); // Reserved for Future Use range #1 end. 
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_PASSKEY_ENTRY_FAILED); // Passkey entry failed (user cancelled or other). 
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_OOB_NOT_AVAILABLE); // Out of Band Key not available. 
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_AUTH_REQ); // Authentication requirements not met. 
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_CONFIRM_VALUE); // Confirm value failed. 
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_PAIRING_NOT_SUPP); // Pairing not supported.  
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_ENC_KEY_SIZE); // Encryption key size. 
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_SMP_CMD_UNSUPPORTED); // Unsupported SMP command. 
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_UNSPECIFIED); // Unspecified reason. 
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_REPEATED_ATTEMPTS); // Too little time elapsed since last attempt. 
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_INVALID_PARAMS); // Invalid parameters. 
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_DHKEY_FAILURE); // DHKey check failure. 
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_NUM_COMP_FAILURE); // Numeric Comparison failure. 
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_BR_EDR_IN_PROG); // BR/EDR pairing in progress. 
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_X_TRANS_KEY_DISALLOWED); // BR/EDR Link Key cannot be used for LE keys. 
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_RFU_RANGE2_BEGIN); // Reserved for Future Use range #2 begin. 
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_RFU_RANGE2_END); // Reserved for Future Use range #2 end. 
 
         /* BLE_GAP_SEC_STATUS_SOURCES GAP Security status sources */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_SOURCE_LOCAL); //Local failure.
