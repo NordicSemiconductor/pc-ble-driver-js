@@ -2914,7 +2914,7 @@ NAN_METHOD(Adapter::GapAuthenticate)
         conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
         argumentcount++;
 
-        sec_params = ConversionUtility::getJsObject(info[argumentcount]);
+        sec_params = ConversionUtility::getJsObjectOrNull(info[argumentcount]);
         argumentcount++;
 
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
