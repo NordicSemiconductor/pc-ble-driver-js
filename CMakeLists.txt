@@ -9,18 +9,8 @@ if(APPLE)
     set(CMAKE_INSTALL_RPATH "@loader_path/../../driver/lib")
 endif()
 
-#if("$ENV{PC_BLE_DRIVER_DIR}" STREQUAL "")
-#    message(WARNING "Environment variable PC_BLE_DRIVER_DIR not set. The environment variable can point at a custom pc-ble-driver.")
-set(_PC_BLE_DRIVER_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-#else()
-#    message("AddOn build uses build directory $ENV{PC_BLE_DRIVER_DIR}.")
-#    file(TO_CMAKE_PATH $ENV{PC_BLE_DRIVER_DIR} _PC_BLE_DRIVER_DIR)
-#endif()
-#
-set(BLE_DRIVER_INCLUDE_DIR ${_PC_BLE_DRIVER_DIR}/driver/include)
-#set(BLE_DRIVER_LIBRARY_DIR ${_PC_BLE_DRIVER_DIR}/driver/lib)
-
-message("Searching for pc-ble-driver library in ${BLE_DRIVER_LIBRARY_DIR}")
+set(BLE_DRIVER_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/driver/include)
+set(UECC_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/uECC)
 
 # Platform specific
 if(MSVC)
@@ -35,7 +25,7 @@ add_subdirectory(driver)
 
 # Essential include files to build a node addon,
 # you should add this line in every CMake.js based project.
-include_directories(${CMAKE_JS_INC} ${BLE_DRIVER_INCLUDE_DIR})
+include_directories(${CMAKE_JS_INC} ${BLE_DRIVER_INCLUDE_DIR} ${UECC_INCLUDE_DIR})
 
 # Specify source files
 file (GLOB SOURCE_FILES
@@ -47,7 +37,9 @@ file (GLOB SOURCE_FILES
     "src/driver_gatt.cpp"
     "src/driver_gattc.cpp"
     "src/driver_gatts.cpp"
+    "src/driver_uecc.cpp"
     "src/*.h"
+    "src/uECC/*.c"
 )
 
 if(WIN32)
@@ -74,6 +66,7 @@ set_target_properties(${PROJECT_NAME}
 if(WIN32)
     include_directories("${CMAKE_JS_INC}/win")
     set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
+#    TARGET_LINK_LIBRARIES(${PROJECT_NAME} )
 elseif(APPLE)
     target_link_libraries(${PROJECT_NAME} "-framework CoreFoundation")
     target_link_libraries(${PROJECT_NAME} "-framework IOKit")
