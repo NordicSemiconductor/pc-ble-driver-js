@@ -915,7 +915,7 @@ function setupAuthLESCNumericComparisonAndroid(
     peripheralAdapter.once('passkeyDisplay',  (device, match_request, passkey) => {
             peripheralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
                 assert(!err);
-                console.log('\n\nsharedSecret: ' + JSON.stringify(sharedSecret));
+                console.log('\n\nsharedSecret (passkeyDisplay): ' + JSON.stringify(sharedSecret));
                 peripheralAdapter.replyLescDhkey(device.instanceId, sharedSecret.ss, err => {
                     assert(!err);
                 });
@@ -923,8 +923,9 @@ function setupAuthLESCNumericComparisonAndroid(
     });
 
     peripheralAdapter.once('lescDhkeyRequest', (device, publicKeyPeer, oobdReq) => {
-        console.log(JSON.stringify(publicKeyPeer));
+        console.log('publicKeyPeer: ' + JSON.stringify(publicKeyPeer));
         sharedSecret = peripheralAdapter.computeSharedSecret(publicKeyPeer);
+        console.log('sharedSecret (calculated): ' + JSON.stringify(sharedSecret));
     });
 
     peripheralAdapter.once('authStatus', (device, status) => {
