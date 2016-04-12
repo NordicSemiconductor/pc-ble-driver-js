@@ -1,6 +1,6 @@
 'use strict';
 
-var driver = require('bindings')('ble_driver_js');
+const driver = require('./index.js').driver;
 
 driver.eccInit();
 
