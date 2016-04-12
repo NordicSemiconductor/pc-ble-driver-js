@@ -26,6 +26,8 @@ let peripheralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 let centralDeviceAddress = 'FF:11:22:33:AA:BF';
 let centralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
+let centralAsDevice;
+
 function addAdapterFactoryListeners() {
     adapterFactory.on('added', adapter => {
         console.log(`onAdded: Adapter added. Adapter: ${adapter.instanceId}`);
@@ -115,7 +117,10 @@ function setupAdapter(adapter, name, address, addressType, callback) {
             adapter.enableBLE(
                 null,
                 (error, params, app_ram_base) => {
-                    console.log(`error: ${error} params: ${JSON.stringify(params)}, app_ram_base: ${app_ram_base}`);
+                    if (error) {
+                        console.log(`error: ${error} params: ${JSON.stringify(params)}, app_ram_base: ${app_ram_base}`);
+                    }
+
                     adapter.getState((error, state) => {
                         assert(!error);
                         adapter.setAddress(address, addressType, error => {
@@ -154,6 +159,59 @@ function startAdvertising(adapter, callback) {
             );
         }
     );
+}
+
+function setupSecurityRequest(
+    centralAdapter,
+    peripheralAdapter,
+    peripheralAsDevice,
+    authenticatedCallback)
+{
+    const secParamsPeripheral = {
+        bond: false,
+        mitm: false,
+        lesc: false,
+        keypress: false,
+        io_caps: driver.BLE_GAP_IO_CAPS_NONE,
+        oob: false,
+        min_key_size: 7,
+        max_key_size: 16,
+        kdist_own: {
+            enc: false,   /**< Long Term Key and Master Identification. */
+            id: false,    /**< Identity Resolving Key and Identity Address Information. */
+            sign: false,  /**< Connection Signature Resolving Key. */
+            link: false,  /**< Derive the Link Key from the LTK. */
+        },
+        kdist_peer: {
+            enc: false,   /**< Long Term Key and Master Identification. */
+            id: false,    /**< Identity Resolving Key and Identity Address Information. */
+            sign: false,  /**< Connection Signature Resolving Key. */
+            link: false,  /**< Derive the Link Key from the LTK. */
+        },
+    };
+
+    centralAdapter.once('securityRequest', (device, params) => {
+        console.log('securityRequest received');
+        centralAdapter.authenticate(peripheralAsDevice.instanceId, null, err => {
+            if (err) {
+                console.log('Error rejecting securtiy request ' + JSON.stringify(err));
+            } else {
+                console.log('securityRequest rejected');
+            }
+        });
+    });
+
+    // Wait so that peripheral has time to receive connected event
+    setTimeout(() => {
+        console.log('Peripheral calling authenticate');
+        peripheralAdapter.authenticate(centralAsDevice.instanceId, secParamsPeripheral, err => {
+            if (err) {
+                console.log('Error starting authentication');
+            } else {
+                console.log('Authentication started');
+            }
+        });
+    }, 1000);
 }
 
 function setupAuthLegacyJustWorks(
@@ -1010,12 +1068,21 @@ function runFailedTests(centralAdapter, peripheralAdapter) {
             console.log('Advertising started');
         });
 
+        peripheralAdapter.once('deviceConnected', centralDevice => {
+            centralAsDevice = centralDevice;
+        });
+
         centralAdapter.once('deviceConnected', peripheralDevice => {
 
-            setupAuthLESCNumericComparison(centralAdapter, peripheralAdapter, peripheralDevice, () => {
-                console.log('\n\nLESCNumericComparison - OK\n\n');
+            // setupAuthLESCNumericComparison(centralAdapter, peripheralAdapter, peripheralDevice, () => {
+            //     console.log('\n\nLESCNumericComparison - OK\n\n');
+            // });
+            setupSecurityRequest(centralAdapter, peripheralAdapter, peripheralDevice, () => {
+                console.log('\n\nSecurityRequest - OK\n\n');
             });
         });
+
+        connect(centralAdapter, {address: peripheralDeviceAddress, type: peripheralDeviceAddressType});
     });
 }
 
@@ -1025,6 +1092,6 @@ adapterFactory.getAdapters((error, adapters) => {
     assert(!error);
     assert(Object.keys(adapters).length == 2, 'The number of attached devices to computer must exactly 2');
 
-    runTests(adapters[Object.keys(adapters)[0]], adapters[Object.keys(adapters)[1]]);
-    //runFailedTests(adapters[Object.keys(adapters)[0]], adapters[Object.keys(adapters)[1]])
+    //runTests(adapters[Object.keys(adapters)[0]], adapters[Object.keys(adapters)[1]]);
+    runFailedTests(adapters[Object.keys(adapters)[0]], adapters[Object.keys(adapters)[1]])
 });
