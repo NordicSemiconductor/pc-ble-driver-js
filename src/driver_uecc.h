@@ -5,8 +5,8 @@
 
 NAN_METHOD(ECCInit);
 NAN_METHOD(ECCP256GenerateKeypair);
-NAN_METHOD(ECCP256ComuptePublicKey);
-NAN_METHOD(ECCP256ComupteSharedSecret);
+NAN_METHOD(ECCP256ComputePublicKey);
+NAN_METHOD(ECCP256ComputeSharedSecret);
 
 extern "C" {
     void init_uecc(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
