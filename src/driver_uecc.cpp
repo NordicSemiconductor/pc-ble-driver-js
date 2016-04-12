@@ -27,8 +27,10 @@ NAN_METHOD(ECCInit)
 NAN_METHOD(ECCP256GenerateKeypair)
 {
     const struct uECC_Curve_t * p_curve;
+
     uint8_t p_le_sk[32];   // Out
-    uint8_t p_le_pk[32];   // Out
+    uint8_t p_le_pk[64];   // Out
+
 
     if (!p_le_sk || !p_le_pk)
     {
@@ -37,8 +39,7 @@ NAN_METHOD(ECCP256GenerateKeypair)
     }
 
     p_curve = uECC_secp256r1();
-
-    int ret = uECC_make_key((uint8_t *)p_le_pk, (uint8_t *)p_le_sk, p_curve);
+    int ret = uECC_make_key(p_le_pk, p_le_sk, p_curve);
 
     if (!ret)
     {
@@ -46,9 +47,9 @@ NAN_METHOD(ECCP256GenerateKeypair)
         return;
     }
 
-    v8::Local<v8::Object> retObject;
+    v8::Local<v8::Object> retObject = Nan::New<v8::Object>();
     Utility::Set(retObject, "SK", ConversionUtility::toJsValueArray(p_le_sk, 32));
-    Utility::Set(retObject, "PK", ConversionUtility::toJsValueArray(p_le_sk, 32));
+    Utility::Set(retObject, "PK", ConversionUtility::toJsValueArray(p_le_pk, 64));
 
     info.GetReturnValue().Set(retObject);
 }
