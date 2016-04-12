@@ -60,8 +60,8 @@ function addAdapterListener(adapter, prefix) {
     });
 
     adapter.on('authStatus', (device, status) => {
-        assert(status.auth_status === 0);
         console.log(`${prefix} authStatus - ${JSON.stringify(status)}`); // - ${JSON.stringify(status)}`);
+        assert(status.auth_status === 0);
     });
 
     adapter.on('secParamsRequest', (device, _secParams) => {
@@ -890,7 +890,7 @@ function setupAuthLESCNumericComparisonAndroid(
             enc_key: null,
             id_key: null,
             sign_key: null,
-            pk: { pk: peripheralAdapter.computePublicKey().pk },
+            pk: { pk: Array.from(peripheralAdapter.computePublicKey().pk.toString('hex').match(/.{2}/g).reverse().join("")) },
         },
         keys_peer: {
             enc_key: null,
@@ -913,18 +913,18 @@ function setupAuthLESCNumericComparisonAndroid(
     });
 
     peripheralAdapter.once('passkeyDisplay',  (device, match_request, passkey) => {
-        setTimeout(() => {
             peripheralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
                 assert(!err);
-                peripheralAdapter.replyLescDhkey(device.instanceId, sharedSecret.ss, err => {
+                console.log('\n\nsharedSecret: ' + JSON.stringify(sharedSecret));
+                peripheralAdapter.replyLescDhkey(device.instanceId, Array.from(sharedSecret.ss.toString('hex').match(/.{2}/g).reverse().join("")), err => {
                     assert(!err);
                 });
             });
-        }, 1000);
     });
 
     peripheralAdapter.once('lescDhkeyRequest', (device, publicKeyPeer, oobdReq) => {
-        sharedSecret = peripheralAdapter.computeSharedSecret(publicKeyPeer);
+        console.log(JSON.stringify(publicKeyPeer));
+        sharedSecret = peripheralAdapter.computeSharedSecret(Array.from(publicKeyPeer.toString('hex').match(/.{2}/g).reverse().join("")));
     });
 
     peripheralAdapter.once('authStatus', (device, status) => {
@@ -1125,7 +1125,6 @@ function runFailedTests(centralAdapter, peripheralAdapter) {
         });
 
         centralAdapter.once('deviceConnected', peripheralDevice => {
-
             setupAuthLESCNumericComparison(centralAdapter, peripheralAdapter, peripheralDevice, () => {
                 console.log('\n\nLESCNumericComparison - OK\n\n');
             });
