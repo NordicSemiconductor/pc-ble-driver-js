@@ -136,7 +136,7 @@ class Adapter extends EventEmitter {
         if (peerPublicKey == null) {
             return this._bleDriver.eccComputeSharedSecret(this._keys.sk, peerPublicKey);
         } else {
-            return this._bleDriver.eccComputeSharedSecret(this._keys.sk, this._key.pk);
+            return this._bleDriver.eccComputeSharedSecret(this._keys.sk, this._keys.pk);
         }
     }
 

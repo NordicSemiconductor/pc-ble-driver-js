@@ -109,7 +109,7 @@ NAN_METHOD(ECCP256ComputeSharedSecret)
 
     std::cout << "uECC_shared_secret complete: " << ret << std::endl;
     v8::Local<v8::Object> retObject = Nan::New<v8::Object>();
-    Utility::Set(retObject, "SS", ConversionUtility::toJsValueArray(p_le_ss, ECC_P256_SK_LEN));
+    Utility::Set(retObject, "ss", ConversionUtility::toJsValueArray(p_le_ss, ECC_P256_SK_LEN));
 
     info.GetReturnValue().Set(retObject);
 }

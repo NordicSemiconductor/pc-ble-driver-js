@@ -60,7 +60,7 @@ function addAdapterListener(adapter, prefix) {
     });
 
     adapter.on('authStatus', (device, status) => {
-        assert(status.auth_status == 0);
+        assert(status.auth_status === 0);
         console.log(`${prefix} authStatus - ${JSON.stringify(status)}`); // - ${JSON.stringify(status)}`);
     });
 
@@ -890,7 +890,7 @@ function setupAuthLESCNumericComparisonAndroid(
             enc_key: null,
             id_key: null,
             sign_key: null,
-            pk: { pk: peripheralAdapter.computePublicKey() },
+            pk: { pk: peripheralAdapter.computePublicKey().pk },
         },
         keys_peer: {
             enc_key: null,
@@ -916,7 +916,7 @@ function setupAuthLESCNumericComparisonAndroid(
         setTimeout(() => {
             peripheralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
                 assert(!err);
-                peripheralAdapter.replyLescDhkey(device.instanceId, sharedSecret, err => {
+                peripheralAdapter.replyLescDhkey(device.instanceId, sharedSecret.ss, err => {
                     assert(!err);
                 });
             });
