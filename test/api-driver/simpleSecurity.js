@@ -20,6 +20,8 @@ const adapterFactory = setup.adapterFactory;
 const ServiceFactory = setup.ServiceFactory;
 const driver = setup.driver;
 
+const os = require('os');
+
 let peripheralDeviceAddress = 'FF:11:22:33:AA:BE';
 let peripheralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
@@ -856,6 +858,109 @@ function setupAuthLegacyPasskey(
     });
 }
 
+function setupAuthLESCNumericComparisonAndroid(
+    peripheralAdapter,
+    authenticatedCallback)
+{
+    const secParams = {
+        bond: true,
+        mitm: true,
+        lesc: true,
+        keypress: false,
+        io_caps: driver.BLE_GAP_IO_CAPS_KEYBOARD_DISPLAY,
+        oob: false,
+        min_key_size: 7,
+        max_key_size: 16,
+        kdist_own: {
+            enc: false,   /**< Long Term Key and Master Identification. */
+            id: false,    /**< Identity Resolving Key and Identity Address Information. */
+            sign: false,  /**< Connection Signature Resolving Key. */
+            link: false,  /**< Derive the Link Key from the LTK. */
+        },
+        kdist_peer: {
+            enc: false,   /**< Long Term Key and Master Identification. */
+            id: false,    /**< Identity Resolving Key and Identity Address Information. */
+            sign: false,  /**< Connection Signature Resolving Key. */
+            link: false,  /**< Derive the Link Key from the LTK. */
+        },
+    };
+
+    const secKeyset = {
+        keys_own: {
+            enc_key: null,
+            id_key: null,
+            sign_key: null,
+            pk: { pk: peripheralAdapter.computePublicKey() },
+        },
+        keys_peer: {
+            enc_key: null,
+            id_key: null,
+            sign_key: null,
+            pk: null,
+        },
+    };
+
+    let sharedSecret;
+
+    peripheralAdapter.once('secParamsRequest', (device, _secParams) => {
+        assert(_secParams.lesc === true);
+        assert(_secParams.oob === false);
+        assert(_secParams.mitm === true);
+
+        peripheralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, secParams, secKeyset, (err, keyset) => {
+            assert(!err);
+        });
+    });
+
+    peripheralAdapter.once('passkeyDisplay',  (device, match_request, passkey) => {
+        setTimeout(() => {
+            peripheralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
+                assert(!err);
+                peripheralAdapter.replyLescDhkey(device.instanceId, sharedSecret, err => {
+                    assert(!err);
+                });
+            });
+        }, 1000);
+    });
+
+    peripheralAdapter.once('lescDhkeyRequest', (device, publicKeyPeer, oobdReq) => {
+        sharedSecret = peripheralAdapter.computeSharedSecret(publicKeyPeer);
+    });
+
+    peripheralAdapter.once('authStatus', (device, status) => {
+        assert(status.auth_status === 0);
+        authenticatedCallback();
+    });
+
+    const peripheralName = os.hostname();
+
+    var advertisingData = {
+        shortenedLocalName: peripheralName,
+        flags: ['leGeneralDiscMode', 'brEdrNotSupported'],
+        txPowerLevel: -10,
+    };
+
+    var scanResponseData = {
+    };
+
+    var options = {
+        interval: 40,
+        timeout: 180,
+        connectable: true,
+        scannable: false,
+    };
+
+    peripheralAdapter.setAdvertisingData(advertisingData, scanResponseData, err => {
+        assert(!err);
+    });
+
+    peripheralAdapter.startAdvertising( options, err => {
+        assert(!err);
+        console.log(`\n\nLescNumericComparisonAndroid authentication started.. not using centralAdapter, let that be the Android instead. \n#1 Please connect to ${peripheralName} from your Android phone \n#2 Start bonding on your Android phone.\n\n`);
+    });
+}
+
+
 function setupAuthLESCNumericComparison(
     centralAdapter,
     peripheralAdapter,
@@ -925,7 +1030,7 @@ function setupAuthLESCNumericComparison(
                  0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
                  0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
                  0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6], err => { assert(!err); });
-    })
+    });
 
     centralAdapter.once('passkeyDisplay',  (device, match_request, passkey) => {
         centralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => { assert(!err); });
@@ -961,16 +1066,25 @@ function runTests(centralAdapter, peripheralAdapter) {
     });
 
     setupAdapter(peripheralAdapter, 'peripheralAdapter', peripheralDeviceAddress, peripheralDeviceAddressType, adapter => {
-        startAdvertising(peripheralAdapter, () => {
+/*        startAdvertising(peripheralAdapter, () => {
             console.log('Advertising started');
+        });*/
+
+        setupAuthLESCNumericComparisonAndroid(peripheralAdapter, () => {
+            console.log('\n\LESCNumericComparisonAndroid - OK\n\n');
         });
 
-        centralAdapter.once('deviceConnected', peripheralDevice => {
-/*
+
+/*        centralAdapter.once('deviceConnected', peripheralDevice => {
+
             setupAuthLESCPasskey(centralAdapter, peripheralAdapter, peripheralDevice, () => {
                 console.log('\n\nLESCPasskey - OK\n\n');
             }); */
 
+/*            setupAuthLESCNumericComparisonAndroid(centralAdapter, peripheralAdapter, peripheralDevice, () => {
+                console.log('\n\LESCNumericComparisonAndroid - OK\n\n');
+            });*/
+/*
             setupAuthLegacyJustWorks(centralAdapter, peripheralAdapter, peripheralDevice, () => {
                 console.log('\n\nLegacyJustWorks - OK\n\n');
                 setupAuthLegacyPasskey(centralAdapter, peripheralAdapter, peripheralDevice, () => {
@@ -991,10 +1105,10 @@ function runTests(centralAdapter, peripheralAdapter) {
                        });
                     });
                 });
-            });
-        });
+            });*/
+//        });
 
-        connect(centralAdapter, {address: peripheralDeviceAddress, type: peripheralDeviceAddressType});
+        //connect(centralAdapter, {address: peripheralDeviceAddress, type: peripheralDeviceAddressType});
     });
 }
 

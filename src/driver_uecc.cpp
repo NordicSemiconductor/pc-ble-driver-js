@@ -48,8 +48,8 @@ NAN_METHOD(ECCP256GenerateKeypair)
     }
 
     v8::Local<v8::Object> retObject = Nan::New<v8::Object>();
-    Utility::Set(retObject, "SK", ConversionUtility::toJsValueArray(p_le_sk, ECC_P256_SK_LEN));
-    Utility::Set(retObject, "PK", ConversionUtility::toJsValueArray(p_le_pk, ECC_P256_PK_LEN));
+    Utility::Set(retObject, "sk", ConversionUtility::toJsValueArray(p_le_sk, ECC_P256_SK_LEN));
+    Utility::Set(retObject, "pk", ConversionUtility::toJsValueArray(p_le_pk, ECC_P256_PK_LEN));
 
     info.GetReturnValue().Set(retObject);
 }
@@ -81,7 +81,7 @@ NAN_METHOD(ECCP256ComputePublicKey)
     std::cout << "uECC_compute_public_key complete: " << ret << std::endl;
     
     v8::Local<v8::Object> retObject = Nan::New<v8::Object>();
-    Utility::Set(retObject, "PK", ConversionUtility::toJsValueArray(p_le_pk, ECC_P256_PK_LEN));
+    Utility::Set(retObject, "pk", ConversionUtility::toJsValueArray(p_le_pk, ECC_P256_PK_LEN));
 
     info.GetReturnValue().Set(retObject);
 }

@@ -89,6 +89,9 @@ class Adapter extends EventEmitter {
         this._preparedWritesMap = {};
 
         this._pendingNotificationsAndIndications = {};
+        this._keys = null;
+
+        this._bleDriver.eccInit(); // Initializing crypto
     }
 
     _getServiceType(service) {
@@ -123,6 +126,30 @@ class Adapter extends EventEmitter {
      */
     get state() {
         return this._state;
+    }
+
+    computeSharedSecret(peerPublicKey) {
+        if (this._keys == null) {
+            this._keys = this._bleDriver.eccGenerateKeypair();
+        }
+
+        if (peerPublicKey == null) {
+            return this._bleDriver.eccComputeSharedSecret(this._keys.sk, peerPublicKey);
+        } else {
+            return this._bleDriver.eccComputeSharedSecret(this._keys.sk, this._key.pk);
+        }
+    }
+
+    computePublicKey() {
+        if (this._keys == null) {
+            this._keys = this._bleDriver.eccGenerateKeypair();
+        }
+
+        return this._bleDriver.eccComputePublicKey(this._keys.sk);
+    }
+
+    deleteKeys() {
+        this._keys = null;
     }
 
     _checkAndPropagateError(err, userMessage, callback) {
