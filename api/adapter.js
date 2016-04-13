@@ -128,24 +128,27 @@ class Adapter extends EventEmitter {
         return this._state;
     }
 
-    computeSharedSecret(peerPublicKey) {
+    _generateKeyPair() {
         if (this._keys === null) {
             this._keys = this._bleDriver.eccGenerateKeypair();
+            this._keys.pk = this._bleDriver.eccComputePublicKey(this._keys.sk);
+            console.log('Generated own keys: ' + JSON.stringify(this._keys));
         }
+    }
 
-        if (peerPublicKey !== null) {
+    computeSharedSecret(peerPublicKey) {
+        this._generateKeyPair();
+
+        if (peerPublicKey !== null && peerPublicKey !== undefined) {
             return this._bleDriver.eccComputeSharedSecret(this._keys.sk, peerPublicKey.pk);
         } else {
-            return this._bleDriver.eccComputeSharedSecret(this._keys.sk, this._keys.pk);
+            return this._bleDriver.eccComputeSharedSecret(this._keys.sk, this._keys.pk.pk);
         }
     }
 
     computePublicKey() {
-        if (this._keys === null) {
-            this._keys = this._bleDriver.eccGenerateKeypair();
-        }
-
-        return this._bleDriver.eccComputePublicKey(this._keys.sk);
+        this._generateKeyPair();
+        return this._keys.pk;
     }
 
     deleteKeys() {
