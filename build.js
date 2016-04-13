@@ -13,29 +13,30 @@
 function build(debug)
 {
     var cmakeJS = require('cmake-js');
+    var os = require('os');
 
     var defaultRuntime = 'node';
     var defaultRuntimeVersion = process.version.substr(1);
-    var defaultWinArch = 'ia32';
+    var defaultWinArch = os.arch();
 
     var options = {
         runtime: process.env.npm_config_runtime || undefined,
         runtimeVersion: process.env.npm_config_target || undefined,
         arch: process.env.npm_config_arch || undefined,
         debug: debug
-    }
+    };
 
     var buildSystem = new cmakeJS.BuildSystem(options);
 
-    if (buildSystem.options.runtime == undefined) {
+    if (buildSystem.options.runtime === undefined) {
         buildSystem.options.runtime = defaultRuntime;
     }
 
-    if (buildSystem.options.runtimeVersion == undefined) {
+    if (buildSystem.options.runtimeVersion === undefined) {
         buildSystem.options.runtimeVersion = defaultRuntimeVersion;
     }
 
-    if (buildSystem.options.arch == undefined && process.platform == 'win32') {
+    if (buildSystem.options.arch === undefined && process.platform == 'win32') {
         buildSystem.options.arch = defaultWinArch;
     }
 
