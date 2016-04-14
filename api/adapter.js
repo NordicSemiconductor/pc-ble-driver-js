@@ -68,7 +68,7 @@ class Adapter extends EventEmitter {
         this._adapter = adapter;
         this._instanceId = instanceId;
         this._state = new AdapterState(instanceId, port);
-        this._security = new Security(this._bleDriver);
+        this._security = Security.getInstance(this._bleDriver);
 
         this._maxReadPayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 1;
         this._maxShortWritePayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 3;
@@ -137,13 +137,17 @@ class Adapter extends EventEmitter {
     }
 
     computeSharedSecret(peerPublicKey) {
-        this._generateKeyPair();
-
-        if (peerPublicKey !== null && peerPublicKey !== undefined) {
-            return this._security.generateSharedSecret(this._keys.sk, peerPublicKey.pk).ss;
-        } else {
-            return this._security.generateSharedSecret(this._keys.sk, this._keys.pk).ss;
+        if (this._keys === null) {
+            this._keys = this._security.generateKeyPair();
         }
+
+        var publicKey = peerPublicKey;
+
+        if (publicKey === null || publicKey === undefined) {
+            publicKey = this._keys.pk;
+        }
+
+        return this._security.generateSharedSecret(this._keys.sk, publicKey.pk).ss;
     }
 
     computePublicKey() {

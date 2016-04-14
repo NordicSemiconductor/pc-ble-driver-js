@@ -12,11 +12,28 @@
 
 'use strict';
 
+const _bleDriver = require('bindings')('pc-ble-driver-js');
+
+let _singleton = Symbol();
+
 class Security {
-    constructor(bleDriver) {
+    constructor(singletonToken, bleDriver) {
+        if (_singleton !== singletonToken)
+            throw new Error('Cannot instantiate directly.');
+
         this._bleDriver = bleDriver;
 
         this._bleDriver.eccInit();
+    }
+
+    static getInstance(bleDriver) {
+        if (bleDriver === undefined)
+            bleDriver = _bleDriver;
+
+        if (!this[_singleton])
+            this[_singleton] = new Security(_singleton, bleDriver);
+
+        return this[_singleton];
     }
 
     generateKeyPair() {

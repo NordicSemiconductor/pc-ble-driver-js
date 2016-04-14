@@ -17,6 +17,7 @@ var AdapterState = require('./api/adapterState');
 var Characteristic = require('./api/characteristic');
 var Descriptor = require('./api/descriptor');
 var Device = require('./api/device');
+var Security = require('./api/security');
 var Service = require('./api/service');
 var ServiceFactory = require('./api/serviceFactory');
 
@@ -28,6 +29,7 @@ module.exports.api = {
     Characteristic,
     Descriptor,
     Device,
+    Security,
     Service,
     ServiceFactory,
 };
