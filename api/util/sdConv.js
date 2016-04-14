@@ -63,7 +63,7 @@ class SoftDeviceConverter {
             if (sm == 2) lv = 1;
         }
 
-        return {sm: sm, lv: lv};
+        return { sm: sm, lv: lv };
     }
 
     /*

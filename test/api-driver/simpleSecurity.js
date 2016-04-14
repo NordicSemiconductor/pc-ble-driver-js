@@ -22,10 +22,10 @@ const driver = setup.driver;
 
 const os = require('os');
 
-let peripheralDeviceAddress = 'FF:11:22:33:AA:BE';
+let peripheralDeviceAddress = 'FF:11:22:33:AA:CE';
 let peripheralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
-let centralDeviceAddress = 'FF:11:22:33:AA:BF';
+let centralDeviceAddress = 'FF:11:22:33:AA:CF';
 let centralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
 function addAdapterFactoryListeners() {
@@ -890,7 +890,7 @@ function setupAuthLESCNumericComparisonAndroid(
             enc_key: null,
             id_key: null,
             sign_key: null,
-            pk: { pk: peripheralAdapter.computePublicKey().pk },
+            pk: { pk: peripheralAdapter.computePublicKey() },
         },
         keys_peer: {
             enc_key: null,
@@ -913,13 +913,13 @@ function setupAuthLESCNumericComparisonAndroid(
     });
 
     peripheralAdapter.once('passkeyDisplay',  (device, match_request, passkey) => {
-            peripheralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
+        peripheralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
+            assert(!err);
+            console.log('\n\nsharedSecret (passkeyDisplay): ' + JSON.stringify(sharedSecret));
+            peripheralAdapter.replyLescDhkey(device.instanceId, sharedSecret, err => {
                 assert(!err);
-                console.log('\n\nsharedSecret (passkeyDisplay): ' + JSON.stringify(sharedSecret));
-                peripheralAdapter.replyLescDhkey(device.instanceId, sharedSecret.ss, err => {
-                    assert(!err);
-                });
             });
+        });
     });
 
     peripheralAdapter.once('lescDhkeyRequest', (device, publicKeyPeer, oobdReq) => {

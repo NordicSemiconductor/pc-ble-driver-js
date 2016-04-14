@@ -24,8 +24,9 @@ const AdType = require('./util/adType');
 const Converter = require('./util/sdConv');
 const ToText = require('./util/toText');
 const logLevel = require('./util/logLevel');
+const Security = require('./security');
 
-const _makeError = function(userMessage, description) {
+const _makeError = function (userMessage, description) {
     return { message: userMessage, description: description };
 };
 
@@ -67,6 +68,7 @@ class Adapter extends EventEmitter {
         this._adapter = adapter;
         this._instanceId = instanceId;
         this._state = new AdapterState(instanceId, port);
+        this._security = new Security(this._bleDriver);
 
         this._maxReadPayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 1;
         this._maxShortWritePayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 3;
@@ -90,8 +92,6 @@ class Adapter extends EventEmitter {
 
         this._pendingNotificationsAndIndications = {};
         this._keys = null;
-
-        this._bleDriver.eccInit(); // Initializing crypto
     }
 
     _getServiceType(service) {
@@ -130,7 +130,7 @@ class Adapter extends EventEmitter {
 
     _generateKeyPair() {
         if (this._keys === null) {
-            this._keys = this._bleDriver.eccGenerateKeypair();
+            this._keys = this._security.generateKeyPair();
             this._keys.pk = this._bleDriver.eccComputePublicKey(this._keys.sk);
             console.log('Generated own keys: ' + JSON.stringify(this._keys));
         }
@@ -140,15 +140,18 @@ class Adapter extends EventEmitter {
         this._generateKeyPair();
 
         if (peerPublicKey !== null && peerPublicKey !== undefined) {
-            return this._bleDriver.eccComputeSharedSecret(this._keys.sk, peerPublicKey.pk);
+            return this._security.generateSharedSecret(this._keys.sk, peerPublicKey.pk).ss;
         } else {
-            return this._bleDriver.eccComputeSharedSecret(this._keys.sk, this._keys.pk.pk);
+            return this._security.generateSharedSecret(this._keys.sk, this._keys.pk).ss;
         }
     }
 
     computePublicKey() {
-        this._generateKeyPair();
-        return this._keys.pk;
+        if (this._keys === null) {
+            this._keys = this._security.generateKeyPair();
+        }
+
+        return this._security.generatePublicKey(this._keys.sk).pk;
     }
 
     deleteKeys() {
