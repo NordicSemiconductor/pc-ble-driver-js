@@ -557,7 +557,7 @@ function setupAuthLESCPasskey(
                     });
                 });
             });
-        }, 5000);
+        }, 500);
     });
 
     peripheralAdapter.once('passkeyDisplay', (device, matchRequest, _passkey) => {
@@ -902,62 +902,65 @@ function setupAuthLESCNumericComparisonAndroid(
 
     let sharedSecret;
 
-    peripheralAdapter.once('secParamsRequest', (device, _secParams) => {
-        assert(_secParams.lesc === true);
-        assert(_secParams.oob === false);
-        assert(_secParams.mitm === true);
+    peripheralAdapter.stopAdvertising(err => {
+        assert(!err);
 
-        peripheralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, secParams, secKeyset, (err, keyset) => {
-            assert(!err);
-        });
-    });
+        const peripheralName = os.hostname();
 
-    peripheralAdapter.once('passkeyDisplay',  (device, match_request, passkey) => {
-        peripheralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
-            assert(!err);
-            console.log('\n\nsharedSecret (passkeyDisplay): ' + JSON.stringify(sharedSecret));
-            peripheralAdapter.replyLescDhkey(device.instanceId, sharedSecret, err => {
+        var advertisingData = {
+            shortenedLocalName: peripheralName,
+            flags: ['leGeneralDiscMode', 'brEdrNotSupported'],
+            txPowerLevel: -10,
+        };
+
+        var scanResponseData = {
+        };
+
+        var options = {
+            interval: 40,
+            timeout: 180,
+            connectable: true,
+            scannable: false,
+        };
+
+        peripheralAdapter.once('secParamsRequest', (device, _secParams) => {
+            assert(_secParams.lesc === true);
+            assert(_secParams.oob === false);
+            assert(_secParams.mitm === true);
+
+            peripheralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, secParams, secKeyset, (err, keyset) => {
                 assert(!err);
             });
         });
-    });
 
-    peripheralAdapter.once('lescDhkeyRequest', (device, publicKeyPeer, oobdReq) => {
-        console.log('publicKeyPeer: ' + JSON.stringify(publicKeyPeer));
-        sharedSecret = peripheralAdapter.computeSharedSecret(publicKeyPeer);
-        console.log('sharedSecret (calculated): ' + JSON.stringify(sharedSecret));
-    });
+        peripheralAdapter.once('passkeyDisplay',  (device, match_request, passkey) => {
+            peripheralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
+                assert(!err);
+                console.log('\n\nsharedSecret (passkeyDisplay): ' + JSON.stringify(sharedSecret));
+                peripheralAdapter.replyLescDhkey(device.instanceId, sharedSecret, err => {
+                    assert(!err);
+                });
+            });
+        });
 
-    peripheralAdapter.once('authStatus', (device, status) => {
-        assert(status.auth_status === 0);
-        authenticatedCallback();
-    });
+        peripheralAdapter.once('lescDhkeyRequest', (device, publicKeyPeer, oobdReq) => {
+            console.log('publicKeyPeer: ' + JSON.stringify(publicKeyPeer));
+            sharedSecret = peripheralAdapter.computeSharedSecret(publicKeyPeer);
+            console.log('sharedSecret (calculated): ' + JSON.stringify(sharedSecret));
+        });
 
-    const peripheralName = os.hostname();
+        peripheralAdapter.once('authStatus', (device, status) => {
+            assert(status.auth_status === 0);
+            authenticatedCallback();
+        });
 
-    var advertisingData = {
-        shortenedLocalName: peripheralName,
-        flags: ['leGeneralDiscMode', 'brEdrNotSupported'],
-        txPowerLevel: -10,
-    };
-
-    var scanResponseData = {
-    };
-
-    var options = {
-        interval: 40,
-        timeout: 180,
-        connectable: true,
-        scannable: false,
-    };
-
-    peripheralAdapter.setAdvertisingData(advertisingData, scanResponseData, err => {
-        assert(!err);
-    });
-
-    peripheralAdapter.startAdvertising( options, err => {
-        assert(!err);
-        console.log(`\n\nLescNumericComparisonAndroid authentication started.. not using centralAdapter, let that be the Android instead. \n#1 Please connect to ${peripheralName} from your Android phone \n#2 Start bonding on your Android phone.\n\n`);
+        peripheralAdapter.setAdvertisingData(advertisingData, scanResponseData, err => {
+            assert(!err);
+            peripheralAdapter.startAdvertising(options, err => {
+                assert(!err);
+                console.log(`\n\nLescNumericComparisonAndroid authentication started.. not using centralAdapter, let that be the Android instead. \n#1 Please connect to ${peripheralName} from your Android phone \n#2 Start bonding on your Android phone.\n\n`);
+            });
+        });
     });
 }
 
@@ -1027,14 +1030,16 @@ function setupAuthLESCNumericComparison(
     });
 
     centralAdapter.once('lescDhkeyRequest', (device, pkPeer, oobdReq) => {
-        centralAdapter.replyLescDhkey(device.instanceId, [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
-                 0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
-                 0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
-                 0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6], err => { assert(!err); });
     });
 
     centralAdapter.once('passkeyDisplay',  (device, match_request, passkey) => {
-        centralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => { assert(!err); });
+        centralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
+            assert(!err);
+            centralAdapter.replyLescDhkey(device.instanceId, [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
+                     0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
+                     0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
+                     0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6], err => { assert(!err); });
+        });
     });
 
     centralAdapter.once('authStatus', (device, status) => {
@@ -1043,14 +1048,15 @@ function setupAuthLESCNumericComparison(
     });
 
     peripheralAdapter.once('lescDhkeyRequest', (device, pkPeer, oobdReq) => {
-        peripheralAdapter.replyLescDhkey(device.instanceId, [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
-                 0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
-                 0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
-                 0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6], err => { assert(!err); });
     });
 
     peripheralAdapter.once('passkeyDisplay',  (device, match_request, passkey) => {
-        setTimeout(() => {peripheralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => { assert(!err); });}, 1000);
+        peripheralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
+            peripheralAdapter.replyLescDhkey(device.instanceId, [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
+                     0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
+                     0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
+                     0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6], err => { assert(!err); });
+        });
     });
 
     centralAdapter.authenticate(peripheralAsDevice.instanceId, secParams, err => {
@@ -1067,25 +1073,11 @@ function runTests(centralAdapter, peripheralAdapter) {
     });
 
     setupAdapter(peripheralAdapter, 'peripheralAdapter', peripheralDeviceAddress, peripheralDeviceAddressType, adapter => {
-/*        startAdvertising(peripheralAdapter, () => {
+        startAdvertising(peripheralAdapter, () => {
             console.log('Advertising started');
-        });*/
-
-        setupAuthLESCNumericComparisonAndroid(peripheralAdapter, () => {
-            console.log('\n\LESCNumericComparisonAndroid - OK\n\n');
         });
 
-
-/*        centralAdapter.once('deviceConnected', peripheralDevice => {
-
-            setupAuthLESCPasskey(centralAdapter, peripheralAdapter, peripheralDevice, () => {
-                console.log('\n\nLESCPasskey - OK\n\n');
-            }); */
-
-/*            setupAuthLESCNumericComparisonAndroid(centralAdapter, peripheralAdapter, peripheralDevice, () => {
-                console.log('\n\LESCNumericComparisonAndroid - OK\n\n');
-            });*/
-/*
+        centralAdapter.once('deviceConnected', peripheralDevice => {
             setupAuthLegacyJustWorks(centralAdapter, peripheralAdapter, peripheralDevice, () => {
                 console.log('\n\nLegacyJustWorks - OK\n\n');
                 setupAuthLegacyPasskey(centralAdapter, peripheralAdapter, peripheralDevice, () => {
@@ -1100,16 +1092,19 @@ function runTests(centralAdapter, peripheralAdapter) {
                                     console.log('\n\nLESCPasskey - OK\n\n');
                                     setupAuthLESCOOB(centralAdapter, peripheralAdapter, peripheralDevice, () => {
                                         console.log('\n\nLESCOOB - OK\n\n');
+                                        setupAuthLESCNumericComparisonAndroid(peripheralAdapter, () => {
+                                            console.log('\n\nLESCNumericComparisonAndroid - OK\n\n');
+                                        });
                                     });
                                 });
                             });
                        });
                     });
                 });
-            });*/
-//        });
+            });
+        });
 
-        //connect(centralAdapter, {address: peripheralDeviceAddress, type: peripheralDeviceAddressType});
+        connect(centralAdapter, {address: peripheralDeviceAddress, type: peripheralDeviceAddressType});
     });
 }
 
