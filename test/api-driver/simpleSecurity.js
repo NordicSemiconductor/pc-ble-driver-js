@@ -720,7 +720,7 @@ function setupAuthLESCOOB(
             });
     });
 
-    centralAdapter.on('lescDhkeyRequest', (device, pkPeer, oobdReq) => {
+    centralAdapter.once('lescDhkeyRequest', (device, pkPeer, oobdReq) => {
         assert(oobdReq);
 
         console.log('\n\n\n\n\n\n#CENTRAL OOB data:' + JSON.stringify(peripheralOobData));
@@ -738,7 +738,7 @@ function setupAuthLESCOOB(
         });
     });
 
-    peripheralAdapter.on('lescDhkeyRequest', (device, pkPeer, oobdReq) => {
+    peripheralAdapter.once('lescDhkeyRequest', (device, pkPeer, oobdReq) => {
         assert(oobdReq);
         console.log('\n\n\n\n\n\n#PERIPH OOB data:' + JSON.stringify(centralOobData));
 
@@ -859,7 +859,9 @@ function setupAuthLegacyPasskey(
 }
 
 function setupAuthLESCNumericComparisonAndroid(
+    centralAdapter,
     peripheralAdapter,
+    peripheralDevice,
     authenticatedCallback)
 {
     const secParams = {
@@ -902,62 +904,63 @@ function setupAuthLESCNumericComparisonAndroid(
 
     let sharedSecret;
 
-    peripheralAdapter.stopAdvertising(err => {
+    const peripheralName = os.hostname();
+
+    var advertisingData = {
+        shortenedLocalName: peripheralName,
+        flags: ['leGeneralDiscMode', 'brEdrNotSupported'],
+        txPowerLevel: -10,
+    };
+
+    var scanResponseData = {
+    };
+
+    var options = {
+        interval: 40,
+        timeout: 180,
+        connectable: true,
+        scannable: false,
+    };
+
+    centralAdapter.disconnect(peripheralDevice.instanceId, err => {
         assert(!err);
-
-        const peripheralName = os.hostname();
-
-        var advertisingData = {
-            shortenedLocalName: peripheralName,
-            flags: ['leGeneralDiscMode', 'brEdrNotSupported'],
-            txPowerLevel: -10,
-        };
-
-        var scanResponseData = {
-        };
-
-        var options = {
-            interval: 40,
-            timeout: 180,
-            connectable: true,
-            scannable: false,
-        };
-
-        peripheralAdapter.once('secParamsRequest', (device, _secParams) => {
-            assert(_secParams.lesc === true);
-            assert(_secParams.oob === false);
-            assert(_secParams.mitm === true);
-
-            peripheralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, secParams, secKeyset, (err, keyset) => {
-                assert(!err);
-            });
-        });
-
-        peripheralAdapter.once('passkeyDisplay',  (device, match_request, passkey) => {
-            peripheralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
-                assert(!err);
-                console.log('\n\nsharedSecret (passkeyDisplay): ' + JSON.stringify(sharedSecret));
-                peripheralAdapter.replyLescDhkey(device.instanceId, sharedSecret, err => {
-                    assert(!err);
-                });
-            });
-        });
-
-        peripheralAdapter.once('lescDhkeyRequest', (device, publicKeyPeer, oobdReq) => {
-            console.log('publicKeyPeer: ' + JSON.stringify(publicKeyPeer));
-            sharedSecret = peripheralAdapter.computeSharedSecret(publicKeyPeer);
-            console.log('sharedSecret (calculated): ' + JSON.stringify(sharedSecret));
-        });
-
-        peripheralAdapter.once('authStatus', (device, status) => {
-            assert(status.auth_status === 0);
-            authenticatedCallback();
-        });
 
         peripheralAdapter.setAdvertisingData(advertisingData, scanResponseData, err => {
             assert(!err);
             peripheralAdapter.startAdvertising(options, err => {
                 assert(!err);
+
+                peripheralAdapter.once('authStatus', (device, status) => {
+                    assert(status.auth_status === 0);
+                    authenticatedCallback();
+                });
+
+                peripheralAdapter.once('secParamsRequest', (device, _secParams) => {
+                    assert(_secParams.lesc === true);
+                    assert(_secParams.oob === false);
+                    assert(_secParams.mitm === true);
+
+                    peripheralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, secParams, secKeyset, (err, keyset) => {
+                        assert(!err);
+                    });
+                });
+
+                peripheralAdapter.once('passkeyDisplay',  (device, match_request, passkey) => {
+                    peripheralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
+                        assert(!err);
+                        console.log('\n\nsharedSecret (passkeyDisplay): ' + JSON.stringify(sharedSecret));
+                        peripheralAdapter.replyLescDhkey(device.instanceId, sharedSecret, err => {
+                            assert(!err);
+                        });
+                    });
+                });
+
+                peripheralAdapter.once('lescDhkeyRequest', (device, publicKeyPeer, oobdReq) => {
+                    console.log('publicKeyPeer: ' + JSON.stringify(publicKeyPeer));
+                    sharedSecret = peripheralAdapter.computeSharedSecret(publicKeyPeer);
+                    console.log('sharedSecret (calculated): ' + JSON.stringify(sharedSecret));
+                });
+
                 console.log(`\n\nLescNumericComparisonAndroid authentication started.. not using centralAdapter, let that be the Android instead. \n#1 Please connect to ${peripheralName} from your Android phone \n#2 Start bonding on your Android phone.\n\n`);
             });
         });
@@ -1092,7 +1095,7 @@ function runTests(centralAdapter, peripheralAdapter) {
                                     console.log('\n\nLESCPasskey - OK\n\n');
                                     setupAuthLESCOOB(centralAdapter, peripheralAdapter, peripheralDevice, () => {
                                         console.log('\n\nLESCOOB - OK\n\n');
-                                        setupAuthLESCNumericComparisonAndroid(peripheralAdapter, () => {
+                                        setupAuthLESCNumericComparisonAndroid(centralAdapter, peripheralAdapter, peripheralDevice, () => {
                                             console.log('\n\nLESCNumericComparisonAndroid - OK\n\n');
                                         });
                                     });
