@@ -1386,7 +1386,11 @@ class Adapter extends EventEmitter {
 
     _parseMemoryRequest(event) {
         if (event.type === this._bleDriver.BLE_USER_MEM_TYPE_GATTS_QUEUED_WRITES) {
-            this._adapter.replyUserMemory(null);
+            this._adapter.replyUserMemory(event.conn_handle, null, error => {
+                if (error) {
+                    this.emit('error', _makeError('Failed to call replyUserMemory', error));
+                }
+            });
         }
     }
 
