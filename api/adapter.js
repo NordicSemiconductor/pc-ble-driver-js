@@ -137,11 +137,9 @@ class Adapter extends EventEmitter {
     }
 
     computeSharedSecret(peerPublicKey) {
-        if (this._keys === null) {
-            this._keys = this._security.generateKeyPair();
-        }
+        this._generateKeyPair();
 
-        var publicKey = peerPublicKey;
+        let publicKey = peerPublicKey;
 
         if (publicKey === null || publicKey === undefined) {
             publicKey = this._keys.pk;
@@ -151,10 +149,7 @@ class Adapter extends EventEmitter {
     }
 
     computePublicKey() {
-        if (this._keys === null) {
-            this._keys = this._security.generateKeyPair();
-        }
-
+        this._generateKeyPair();
         return this._security.generatePublicKey(this._keys.sk).pk;
     }
 
