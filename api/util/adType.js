@@ -126,7 +126,7 @@ class AdType {
      */
     static convertToBuffer(obj) {
         let buffer = new Buffer(AD_PACKET_MAX_SIZE);
-        var bufferPosition = 0;
+        let bufferPosition = 0;
 
         // We assume that all marshall methods returns an absolute position in the provided buffer
         for (let property in obj) {

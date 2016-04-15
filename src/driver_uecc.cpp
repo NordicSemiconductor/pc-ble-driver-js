@@ -45,15 +45,7 @@ NAN_METHOD(ECCP256GenerateKeypair)
     uint8_t p_le_sk[ECC_P256_SK_LEN];   // Out
     uint8_t p_le_pk[ECC_P256_PK_LEN];   // Out
 
-
-    if (!p_le_sk || !p_le_pk)
-    {
-        Nan::ThrowTypeError("NRF_ERROR_NULL");
-        return;
-    }
-
     p_curve = uECC_secp256r1();
-    //int ret = uECC_make_key(p_le_pk, p_le_sk, p_curve);
     int ret = uECC_make_key((uint8_t *)&m_be_keys[ECC_P256_SK_LEN], (uint8_t *)&m_be_keys[0], p_curve);
 
     if (!ret)
@@ -84,7 +76,7 @@ NAN_METHOD(ECCP256ComputePublicKey)
 
     p_le_sk = ConversionUtility::getNativePointerToUint8(info[0]);
 
-    if (!p_le_sk || !p_le_pk)
+    if (p_le_sk == nullptr)
     {
         Nan::ThrowTypeError("NRF_ERROR_NULL");
         return;

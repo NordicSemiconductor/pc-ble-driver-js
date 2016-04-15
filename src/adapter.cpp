@@ -205,9 +205,7 @@ void Adapter::cleanUpV8Resources()
     }
 
     if (eventIntervalTimer != nullptr) {
-        auto intervalTimerhandle = reinterpret_cast<uv_handle_t*>(eventIntervalTimer);
-
-    // Deallocate resources related to the event handling interval timer
+        // Deallocate resources related to the event handling interval timer
         if (uv_timer_stop(eventIntervalTimer) != 0)
         {
             std::terminate();

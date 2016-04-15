@@ -190,7 +190,6 @@ ble_gap_enable_params_t *GapEnableParameters::ToNative()
     }
 
     auto enable_params = new ble_gap_enable_params_t();
-    memset(enable_params, 0, sizeof(ble_gap_conn_params_t));
 
     enable_params->periph_conn_count = ConversionUtility::getNativeUint8(jsobj, "periph_conn_count");
     enable_params->central_conn_count = ConversionUtility::getNativeUint8(jsobj, "central_conn_count");
@@ -912,7 +911,7 @@ v8::Local<v8::Object> GapLESCDHKeyRequest::ToJs()
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
     Utility::Set(obj, "oobd_req", ConversionUtility::toJsBool(evt->oobd_req));
-    Utility::Set(obj, "pk_peer", GapLescP256Pk(evt->p_pk_peer));
+    Utility::Set(obj, "pk_peer", GapLescP256Pk(evt->p_pk_peer).ToJs());
     return scope.Escape(obj);
 }
 #pragma endregion GapLESCDHKeyRequest
@@ -3323,7 +3322,6 @@ NAN_METHOD(Adapter::GapReplyAuthKey)
     uint16_t conn_handle;
     uint8_t key_type;
     uint8_t *key = nullptr;
-    auto keyArgumentcount = -1;
     v8::Local<v8::Function> callback;
     auto argumentcount = 0;
 
@@ -3342,7 +3340,6 @@ NAN_METHOD(Adapter::GapReplyAuthKey)
             key = ConversionUtility::getNativePointerToUint8(info[argumentcount]);
         }
 
-        keyArgumentcount = argumentcount;
         argumentcount++;
 
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
