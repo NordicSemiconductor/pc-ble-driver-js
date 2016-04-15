@@ -134,7 +134,9 @@ class ToText {
 
             key = rewriter(key);
 
-            if (value.constructor === Array) {
+            if (value === null || value === undefined) {
+                this.current_stack.push(`${key}:null`);
+            } else if (value.constructor === Array) {
                 const array_stack = [];
 
                 for (let entry in value) {
