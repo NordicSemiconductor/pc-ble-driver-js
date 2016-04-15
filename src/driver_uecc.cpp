@@ -84,6 +84,8 @@ NAN_METHOD(ECCP256ComputePublicKey)
 
     p_curve = uECC_secp256r1();
 
+    reverse(&m_be_keys[0], (uint8_t *)p_le_sk, ECC_P256_SK_LEN);
+
     //int ret = uECC_compute_public_key(p_le_sk, (uint8_t *)p_le_pk, p_curve);
     int ret = uECC_compute_public_key((uint8_t *)&m_be_keys[0], (uint8_t *)&m_be_keys[ECC_P256_SK_LEN], p_curve);
 

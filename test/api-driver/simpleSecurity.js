@@ -1125,6 +1125,33 @@ function setupAuthLESCNumericComparison(
     });
 }
 
+function compareArray(first, second) {
+    return new Buffer(first).compare(new Buffer(second)) === 0;
+}
+
+function keyGeneration(central, peripheral) {
+    central._generateKeyPair();
+    peripheral._generateKeyPair();
+
+    const origCentralPK = central._keys.pk;
+    const origPeripheralPK = peripheral._keys.pk;
+
+    assert(origCentralPK !== origPeripheralPK);
+
+    assert(compareArray(origCentralPK, central.computePublicKey()));
+    assert(compareArray(origPeripheralPK, peripheral.computePublicKey()));
+
+    const centralSharedSecret = central.computeSharedSecret({ pk: origPeripheralPK });
+    const peripheralSharedSecret = peripheral.computeSharedSecret({ pk: origCentralPK });
+
+    assert(compareArray(centralSharedSecret, peripheralSharedSecret));
+
+    assert(compareArray(origCentralPK, central.computePublicKey()));
+    assert(compareArray(origPeripheralPK, peripheral.computePublicKey()));
+
+    console.log('\n\nKeygeneration - OK\n\n');
+}
+
 function runTests(centralAdapter, peripheralAdapter) {
     addAdapterListener(centralAdapter, '#CENTRAL');
     addAdapterListener(peripheralAdapter, '#PERIPH');
@@ -1136,6 +1163,8 @@ function runTests(centralAdapter, peripheralAdapter) {
         startAdvertising(peripheralAdapter, () => {
             console.log('Advertising started');
         });
+
+        keyGeneration(centralAdapter, peripheralAdapter);
 
         centralAdapter.once('deviceConnected', peripheralDevice => {
             setupAuthLegacyJustWorks(centralAdapter, peripheralAdapter, peripheralDevice, () => {
@@ -1158,7 +1187,7 @@ function runTests(centralAdapter, peripheralAdapter) {
                                     });
                                 });
                             });
-                       });
+                        });
                     });
                 });
             });
@@ -1203,6 +1232,6 @@ adapterFactory.getAdapters((error, adapters) => {
     assert(!error);
     assert(Object.keys(adapters).length == 2, 'The number of attached devices to computer must exactly 2');
 
-    //runTests(adapters[Object.keys(adapters)[0]], adapters[Object.keys(adapters)[1]]);
-    runFailedTests(adapters[Object.keys(adapters)[0]], adapters[Object.keys(adapters)[1]])
+    runTests(adapters[Object.keys(adapters)[0]], adapters[Object.keys(adapters)[1]]);
+    //runFailedTests(adapters[Object.keys(adapters)[0]], adapters[Object.keys(adapters)[1]]);
 });

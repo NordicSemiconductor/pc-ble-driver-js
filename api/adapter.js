@@ -131,8 +131,6 @@ class Adapter extends EventEmitter {
     _generateKeyPair() {
         if (this._keys === null) {
             this._keys = this._security.generateKeyPair();
-            this._keys.pk = this._bleDriver.eccComputePublicKey(this._keys.sk);
-            console.log('Generated own keys: ' + JSON.stringify(this._keys));
         }
     }
 
@@ -142,7 +140,7 @@ class Adapter extends EventEmitter {
         let publicKey = peerPublicKey;
 
         if (publicKey === null || publicKey === undefined) {
-            publicKey = this._keys.pk;
+            publicKey = this._keys;
         }
 
         return this._security.generateSharedSecret(this._keys.sk, publicKey.pk).ss;
