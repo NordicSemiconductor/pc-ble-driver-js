@@ -73,6 +73,7 @@ class Adapter extends EventEmitter {
         this._maxReadPayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 1;
         this._maxShortWritePayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 3;
         this._maxLongWritePayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 5;
+        this._keys = null;
 
         this._init();
     }
@@ -91,7 +92,6 @@ class Adapter extends EventEmitter {
         this._preparedWritesMap = {};
 
         this._pendingNotificationsAndIndications = {};
-        this._keys = null;
     }
 
     _getServiceType(service) {

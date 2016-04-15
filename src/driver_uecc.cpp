@@ -1,8 +1,9 @@
 #include "driver_uecc.h"
 #include "uECC/uECC.h"
-#include "nrf_error.h"    
+#include "nrf_error.h"
 #include <iostream>
 #include <cstdlib>
+#include <time.h>
 
 #include "common.h"
 
@@ -12,7 +13,7 @@
 int rng(uint8_t *dest, unsigned size)
 {
     for (unsigned i = 0; i < size; ++i)
-    {        
+    {
         dest[i] = rand() % 256;
     }
 
@@ -33,6 +34,7 @@ static void reverse(uint8_t* p_dst, uint8_t* p_src, uint32_t len)
 
 NAN_METHOD(ECCInit)
 {
+    srand ((unsigned int)time(NULL));
     uECC_set_rng(rng);
 }
 
