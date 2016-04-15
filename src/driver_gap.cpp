@@ -3411,7 +3411,6 @@ NAN_METHOD(Adapter::GapReplyDHKeyLESC)
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     uint16_t conn_handle;
     uint8_t *key;
-    ble_gap_lesc_dhkey_t *dhkey = new ble_gap_lesc_dhkey_t();
     v8::Local<v8::Function> callback;
     auto argumentcount = 0;
 
@@ -3437,7 +3436,8 @@ NAN_METHOD(Adapter::GapReplyDHKeyLESC)
     baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
 
-    memcpy(dhkey->key, key, sizeof(key));
+    ble_gap_lesc_dhkey_t *dhkey = new ble_gap_lesc_dhkey_t();
+    memcpy(dhkey->key, key, BLE_GAP_LESC_DHKEY_LEN);
     baton->dhkey = dhkey;
     delete key;
 

@@ -24,6 +24,7 @@
 #include "driver_gatt.h"
 #include "driver_gattc.h"
 #include "driver_gatts.h"
+#include "driver_uecc.h"
 
 using namespace std;
 
@@ -1492,6 +1493,8 @@ extern "C" {
         init_gatts(target);
 
         Adapter::Init(target);
+
+        init_uecc(target);
     }
 
     void init_adapter_list(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
