@@ -462,6 +462,11 @@ v8::Handle<v8::Value> ConversionUtility::toJsValueArray(uint8_t *nativeData, uin
     return scope.Escape(valueArray);
 }
 
+v8::Handle<v8::Value> ConversionUtility::toJsValueArray(const uint8_t *nativeData, uint16_t length)
+{
+	return ConversionUtility::toJsValueArray(const_cast<uint8_t *>(nativeData), length);
+}
+
 v8::Handle<v8::Value> ConversionUtility::toJsString(const char *cString)
 {
     return ConversionUtility::toJsString(cString, strlen(cString));

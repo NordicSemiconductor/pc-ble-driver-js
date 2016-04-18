@@ -288,6 +288,7 @@ public:
     static v8::Handle<v8::Value> toJsNumber(double nativeValue);
     static v8::Handle<v8::Value> toJsBool(uint8_t nativeValue);
     static v8::Handle<v8::Value> toJsValueArray(uint8_t *nativeValue, uint16_t length);
+	static v8::Handle<v8::Value> toJsValueArray(const uint8_t *nativeValue, uint16_t length);
     static v8::Handle<v8::Value> toJsString(const char *cString);
     static v8::Handle<v8::Value> toJsString(const char *cString, uint16_t length);
     static v8::Handle<v8::Value> toJsString(uint8_t *cString, uint16_t length);
