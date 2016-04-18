@@ -257,6 +257,7 @@ v8::Local<v8::Object> GattsWriteEvent::ToJs()
     Utility::Set(obj, "handle", ConversionUtility::toJsNumber(evt->handle));
     Utility::Set(obj, "op", ConversionUtility::toJsNumber(evt->op));
 	Utility::Set(obj, "op_name", ConversionUtility::valueToJsString(evt->op, gatts_op_map));
+    Utility::Set(obj, "auth_required", ConversionUtility::toJsBool(evt->auth_required));
     Utility::Set(obj, "uuid", BleUUID(&evt->uuid).ToJs());
     Utility::Set(obj, "offset", ConversionUtility::toJsNumber(evt->offset));
     Utility::Set(obj, "len", ConversionUtility::toJsNumber(evt->len));
