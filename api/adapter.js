@@ -285,7 +285,7 @@ class Adapter extends EventEmitter {
                     central_sec_count: 1,
                 },
                 gatts_enable_params: {
-                    service_changed: true,
+                    service_changed: false,
                     attr_tab_size: this._bleDriver.BLE_GATTS_ATTR_TAB_SIZE_DEFAULT,
                 },
                 common_enable_params: {
@@ -1330,6 +1330,10 @@ class Adapter extends EventEmitter {
                 type: event.type,
                 write: {
                     gatt_status: this._bleDriver.BLE_GATT_STATUS_SUCCESS,
+                    update: 1,
+                    offset: event.write.offset,
+                    len: event.write.len,
+                    data: event.write.data,
                 },
             };
         } else if (event.type === this._bleDriver.BLE_GATTS_AUTHORIZE_TYPE_READ) {
