@@ -1258,13 +1258,17 @@ class Adapter extends EventEmitter {
     }
 
     _parseGattTimeoutEvent(event) {
-        const gattOperation = this._gattOperationsMap[event.conn_handle];
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
+        const gattOperation = this._gattOperationsMap[device.instanceId];
         const error = _makeError('Received a Gatt timeout');
         this.emit('error', error);
 
         if (gattOperation) {
-            gattOperation.callback(error);
-            delete this._gattOperationsMap[event.conn_handle];
+            if (gattOperation.callback) {
+                gattOperation.callback(error);
+            }
+
+            delete this._gattOperationsMap[device.instanceId];
         }
     }
 
