@@ -6,7 +6,7 @@ project (pc-ble-driver-js)
 if(APPLE)
     set(CMAKE_SKIP_BUILD_RPATH TRUE)
     set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-    set(CMAKE_INSTALL_RPATH "@loader_path/../../driver/lib")
+    set(CMAKE_INSTALL_RPATH "@loader_path")
 endif()
 
 set(BLE_DRIVER_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/driver/include)
@@ -42,6 +42,10 @@ file (GLOB SOURCE_FILES
     "src/uECC/*.c"
 )
 
+file (GLOB UECC_SOURCE_FILES
+    "src/uECC/*.c"
+)
+
 if(WIN32)
     file(GLOB PLATFORM_SOURCE_FILES "src/win/*.c" "src/win/*.cpp" "src/serialadapter_win.cpp")
 elseif(APPLE)
@@ -51,12 +55,18 @@ else()
     file(GLOB PLATFORM_SOURCE_FILES "src/serialadapter_linux.cpp")
 endif()
 
+# Force .c files to be compiled with the C++ compiler
+set_source_files_properties(
+    ${UECC_SOURCE_FILES}
+    PROPERTIES
+    LANGUAGE CXX
+)
+
 # This line will tell CMake that we're building a shared library
 # named after the project's name
-add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES} ${PLATFORM_SOURCE_FILES})
+add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES} ${UECC_SOURCE_FILES} ${PLATFORM_SOURCE_FILES})
 
 # This line will give our library file a .node extension without any "lib" prefix
-# set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
 set_target_properties(${PROJECT_NAME}
     PROPERTIES
     COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -DBUILDING_NODE_EXTENSION"
@@ -66,7 +76,6 @@ set_target_properties(${PROJECT_NAME}
 if(WIN32)
     include_directories("${CMAKE_JS_INC}/win")
     set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
-#    TARGET_LINK_LIBRARIES(${PROJECT_NAME} )
 elseif(APPLE)
     target_link_libraries(${PROJECT_NAME} "-framework CoreFoundation")
     target_link_libraries(${PROJECT_NAME} "-framework IOKit")
@@ -75,9 +84,6 @@ else()
     # Assume Linux
     target_link_libraries(${PROJECT_NAME} "udev")
 endif()
-
-# Find BLE driver library
-#find_library(BLE_DRIVER_LIBRARY s130_nrf51_ble_driver HINTS ${BLE_DRIVER_LIBRARY_DIR})
 
 # Essential library files to link to a node addon,
 # you should add this line in every CMake.js based project.
