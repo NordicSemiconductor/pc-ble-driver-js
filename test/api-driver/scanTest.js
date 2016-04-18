@@ -60,7 +60,7 @@ function runTests(adapterOne, adapterTwo) {
 
         if(status.id == 7) {
             console.log("#1 Trying to enable BLE again.");
-            adapterOne.enableBLE((err) => {
+            adapterOne.enableBLE(null, (err) => {
                 if(err) {
                     console.log('#1 Tried to enable adapter after reset, but failed it failed:' + err);
                     return;
@@ -73,7 +73,7 @@ function runTests(adapterOne, adapterTwo) {
         console.log(`#2 status: ${JSON.stringify(status)}`);
         if(status.id == 7) {
             console.log("#2 Trying to enable BLE again.");
-            adapterTwo.enableBLE((err) => {
+            adapterTwo.enableBLE(null, (err) => {
                 if(err) {
                     console.log('#2 Tried to enable adapter after reset, but failed it failed:' + err);
                     return;
