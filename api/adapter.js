@@ -1274,72 +1274,108 @@ class Adapter extends EventEmitter {
 
     _parseGattsWriteEvent(event) {
         // TODO: BLE_GATTS_OP_SIGN_WRITE_CMD not supported?
-        const remoteDevice = this._getDeviceByConnectionHandle(event.conn_handle);
+        // TODO: Support auth_required flag
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const attribute = this._getAttributeByHandle('local.server', event.handle);
 
         if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ ||
             event.op === this._bleDriver.BLE_GATTS_OP_WRITE_CMD) {
             if (this._instanceIdIsOnLocalDevice(attribute.instanceId) && this._isCCCDDescriptor(attribute.instanceId)) {
-                this._setDescriptorValue(attribute, event.data, remoteDevice.instanceId);
+                this._setDescriptorValue(attribute, event.data, device.instanceId);
                 this._emitAttributeValueChanged(attribute);
             } else {
                 this._setAttributeValueWithOffset(attribute, event.data, event.offset);
                 this._emitAttributeValueChanged(attribute);
             }
-        } else if (event.op === this._bleDriver.BLE_GATTS_OP_PREP_WRITE_REQ) {
-            if (!this._preparedWritesMap[remoteDevice.instanceId]) {
-                this._preparedWritesMap[remoteDevice.instanceId] = {};
-            }
-
-            const preparedWrite = this._preparedWritesMap[remoteDevice.instanceId][event.handle];
-            if (!preparedWrite || event.offset <= preparedWrite.offset) {
-                this._preparedWritesMap[remoteDevice.instanceId][event.handle] = {value: event.data, offset: event.offset};
-                return;
-            }
-
-            // TODO: What to do if event.offset > preparedWrite.offset + preparedWrite.value.length?
-            preparedWrite.value = preparedWrite.value.slice(0, event.offset - preparedWrite.offset).concat(event.data);
-        } else if (event.op === this._bleDriver.BLE_GATTS_OP_EXEC_WRITE_REQ_CANCEL) {
-            delete this._preparedWritesMap[remoteDevice.instanceId];
-        } else if (event.op === this._bleDriver.BLE_GATTS_OP_EXEC_WRITE_REQ_NOW) {
-            for (let handle of this._preparedWritesMap[remoteDevice.instanceId]) {
-                const preparedWrite = this._preparedWritesMap[remoteDevice.instanceId][handle];
-                const attribute = this._getAttributeByHandle(handle);
-
-                this._writeLocalValue(attribute, preparedWrite.value, preparedWrite.offset, err => {
-                    if (err) {
-                        // TODO: Rollback if we fail? if yes should we wait with emiting attributes?
-                        this.emit('error', _makeError('Failed to set local attribute value when executing prepared writes'));
-                        return;
-                    }
-
-                    this._emitAttributeValueChanged(attribute);
-                });
-            }
-
-            delete this._preparedWritesMap[remoteDevice.instanceId];
         }
     }
 
     _parseGattsRWAutorizeRequestEvent(event) {
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
+        let promiseChain = new Promise(resolve => resolve());
         let authorizeReplyParams;
-        if (event.type === this._bleDriver.BLE_GATTS_AUTHORIZE_TYPE_WRITE) {
-            const attribute = this._getAttributeByHandle('local.server', event.write.handle);
-            this._writeLocalValue(attribute, event.write.data, event.write.offset, error => {
-                if (error) {
-                    this.emit('error', _makeError('Failed to set local attribute value from rwAuthorizeRequest', error));
-                }
+
+        const createWritePromise = (handle, data, offset) => {
+            new Promise((resolve, reject) => {
+                const attribute = this._getAttributeByHandle('local.server', handle);
+                this._writeLocalValue(attribute, data, offset, error => {
+                    if (error) {
+                        this.emit('error', _makeError('Failed to set local attribute value from rwAuthorizeRequest', error));
+                    } else {
+                        this._emitAttributeValueChanged(attribute);
+                    }
+                });
             });
-            authorizeReplyParams = {
-                type: event.type,
-                write: {
-                    gatt_status: this._bleDriver.BLE_GATT_STATUS_SUCCESS,
-                    update: 1,
-                    offset: event.write.offset,
-                    len: event.write.len,
-                    data: event.write.data,
-                },
-            };
+        };
+
+        if (event.type === this._bleDriver.BLE_GATTS_AUTHORIZE_TYPE_WRITE) {
+            if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ) {
+                promiseChain = promiseChain.then(() => {
+                    createWritePromise(event.write.handle, event.write.data, event.write.offset);
+                });
+
+                authorizeReplyParams = {
+                    type: event.type,
+                    write: {
+                        gatt_status: this._bleDriver.BLE_GATT_STATUS_SUCCESS,
+                        update: 1,
+                        offset: event.write.offset,
+                        len: event.write.len,
+                        data: event.write.data,
+                    },
+                };
+            } else if (event.op === this._bleDriver.BLE_GATTS_OP_PREP_WRITE_REQ) {
+                if (!this._preparedWritesMap[device.instanceId]) {
+                    this._preparedWritesMap[device.instanceId] = [];
+                }
+
+                const preparedWrites = this._preparedWritesMap[device.instanceId];
+                preparedWrites.concat({ handle: event.write.handle, value: event.write.data, offset: event.write.offset });
+
+                authorizeReplyParams = {
+                    type: event.type,
+                    write: {
+                        gatt_status: this._bleDriver.BLE_GATT_STATUS_SUCCESS,
+                        update: 1,
+                        offset: event.write.offset,
+                        len: event.write.len,
+                        data: event.write.data,
+                    },
+                };
+
+            } else if (event.op === this._bleDriver.BLE_GATTS_OP_EXEC_WRITE_REQ_CANCEL) {
+                delete this._preparedWritesMap[device.instanceId];
+
+                authorizeReplyParams = {
+                    type: event.type,
+                    write: {
+                        gatt_status: this._bleDriver.BLE_GATT_STATUS_SUCCESS,
+                        update: 0,
+                        offset: 0,
+                        len: 0,
+                        data: [],
+                    },
+                };
+            } else if (event.op === this._bleDriver.BLE_GATTS_OP_EXEC_WRITE_REQ_NOW) {
+                for (let preparedWrite of this._preparedWritesMap[device.instanceId]) {
+                    promiseChain = promiseChain.then(() => {
+                        createWritePromise(preparedWrite.handle, preparedWrite.data, preparedWrite.offset);
+                    });
+                }
+
+                delete this._preparedWritesMap[device.instanceId];
+
+                authorizeReplyParams = {
+                    type: event.type,
+                    write: {
+                        gatt_status: this._bleDriver.BLE_GATT_STATUS_SUCCESS,
+                        update: 0,
+                        offset: 0,
+                        len: 0,
+                        data: [],
+                    },
+                };
+            }
         } else if (event.type === this._bleDriver.BLE_GATTS_AUTHORIZE_TYPE_READ) {
             authorizeReplyParams = {
                 type: event.type,
@@ -1353,10 +1389,12 @@ class Adapter extends EventEmitter {
             };
         }
 
-        this._adapter.gattsReplyReadWriteAuthorize(event.conn_handle, authorizeReplyParams, error => {
-            if (error) {
-                this.emit('error', _makeError('Failed to call gattsReplyReadWriteAuthorize', error));
-            }
+        promiseChain.then(() => {
+            this._adapter.gattsReplyReadWriteAuthorize(event.conn_handle, authorizeReplyParams, error => {
+                if (error) {
+                    this.emit('error', _makeError('Failed to call gattsReplyReadWriteAuthorize', error));
+                }
+            });
         });
     }
 
