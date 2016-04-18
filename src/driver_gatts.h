@@ -92,7 +92,6 @@ public:
     ble_gatts_value_t *ToNative() override;
 };
 
-#if 0 // TODO: Evalute/implement this
 class GattGattsReplyReadWriteAuthorizeParams : public BleToJs<ble_gatts_rw_authorize_reply_params_t>
 {
 public:
@@ -101,24 +100,14 @@ public:
     ble_gatts_rw_authorize_reply_params_t *ToNative() override;
 };
 
-class GattsReadAuthorizeParameters : public BleToJs<ble_gatts_read_authorize_params_t>
+class GattsAuthorizeParameters : public BleToJs<ble_gatts_authorize_params_t>
 {
 public:
-    GattsReadAuthorizeParameters(ble_gatts_read_authorize_params_t *readAuthorizeParams) : BleToJs<ble_gatts_read_authorize_params_t>(readAuthorizeParams) {}
-    GattsReadAuthorizeParameters(v8::Local<v8::Object> js) : BleToJs<ble_gatts_read_authorize_params_t>(js) {}
+    GattsAuthorizeParameters(ble_gatts_authorize_params_t *authorizeParams) : BleToJs<ble_gatts_authorize_params_t>(authorizeParams) {}
+    GattsAuthorizeParameters(v8::Local<v8::Object> js) : BleToJs<ble_gatts_authorize_params_t>(js) {}
     v8::Local<v8::Object> ToJs() override;
-    ble_gatts_read_authorize_params_t *ToNative() override;
+    ble_gatts_authorize_params_t *ToNative() override;
 };
-
-class GattsWriteAuthorizeParameters : public BleToJs<ble_gatts_write_authorize_params_t>
-{
-public:
-    GattsWriteAuthorizeParameters(ble_gatts_write_authorize_params_t *writeAuthorizeParams) : BleToJs<ble_gatts_write_authorize_params_t>(writeAuthorizeParams) {}
-    GattsWriteAuthorizeParameters(v8::Local<v8::Object> js) : BleToJs<ble_gatts_write_authorize_params_t>(js) {}
-    v8::Local<v8::Object> ToJs();
-    ble_gatts_write_authorize_params_t *ToNative();
-};
-#endif
 
 template<typename EventType>
 class BleDriverGattsEvent : public BleDriverEvent<EventType>

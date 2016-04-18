@@ -313,7 +313,7 @@ void Adapter::initGattS(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "gattsSystemAttributeSet", GattsSystemAttributeSet);
     Nan::SetPrototypeMethod(tpl, "gattsSetValue", GattsSetValue);
     Nan::SetPrototypeMethod(tpl, "gattsGetValue", GattsGetValue);
-//    Nan::SetPrototypeMethod(tpl, "gattsReplyReadWriteAuthorize", GattsReplyReadWriteAuthorize);
+    Nan::SetPrototypeMethod(tpl, "gattsReplyReadWriteAuthorize", GattsReplyReadWriteAuthorize);
 }
 
 Adapter::Adapter()

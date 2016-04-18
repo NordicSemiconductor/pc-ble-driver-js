@@ -19,6 +19,16 @@
 
 #include <iostream>
 
+static name_map_t gatts_op_map = {
+	NAME_MAP_ENTRY(BLE_GATTS_OP_INVALID),
+	NAME_MAP_ENTRY(BLE_GATTS_OP_WRITE_REQ),
+	NAME_MAP_ENTRY(BLE_GATTS_OP_WRITE_CMD),
+	NAME_MAP_ENTRY(BLE_GATTS_OP_SIGN_WRITE_CMD),
+	NAME_MAP_ENTRY(BLE_GATTS_OP_PREP_WRITE_REQ),
+	NAME_MAP_ENTRY(BLE_GATTS_OP_EXEC_WRITE_REQ_CANCEL),
+	NAME_MAP_ENTRY(BLE_GATTS_OP_EXEC_WRITE_REQ_NOW)
+};
+
 v8::Local<v8::Object> GattsEnableParameters::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -183,8 +193,7 @@ v8::Local<v8::Object> GattsValue::ToJs()
     return scope.Escape(obj);
 }
 
-#if 0 // TODO: evaluate if we need this
-v8::Local<v8::Object> GattsReadAuthorizeParameters::ToJs()
+v8::Local<v8::Object> GattsAuthorizeParameters::ToJs()
 {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
@@ -198,44 +207,20 @@ v8::Local<v8::Object> GattsReadAuthorizeParameters::ToJs()
     return scope.Escape(obj);
 }
 
-ble_gatts_read_authorize_params_t *GattsReadAuthorizeParameters::ToNative()
+ble_gatts_authorize_params_t *GattsAuthorizeParameters::ToNative()
 {
     if (Utility::IsNull(jsobj))
     {
         return nullptr;
     }
 
-    auto params = new ble_gatts_read_authorize_params_t();
+    auto params = new ble_gatts_authorize_params_t();
 
     params->gatt_status = ConversionUtility::getNativeUint16(jsobj, "gatt_status");
     params->update = ConversionUtility::getNativeUint8(jsobj, "update");
     params->offset = ConversionUtility::getNativeUint16(jsobj, "offset");
     params->len = ConversionUtility::getNativeUint16(jsobj, "len");
     params->p_data = ConversionUtility::getNativePointerToUint8(jsobj, "data");
-
-    return params;
-}
-
-v8::Local<v8::Object> GattsWriteAuthorizeParameters::ToJs()
-{
-    Nan::EscapableHandleScope scope;
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-
-    Utility::Set(obj, "gatt_status", ConversionUtility::toJsNumber(native->gatt_status));
-
-    return scope.Escape(obj);
-}
-
-ble_gatts_write_authorize_params_t *GattsWriteAuthorizeParameters::ToNative()
-{
-    if (Utility::IsNull(jsobj))
-    {
-        return nullptr;
-    }
-
-    auto params = new ble_gatts_write_authorize_params_t();
-
-    params->gatt_status = ConversionUtility::getNativeUint16(jsobj, "gatt_status");
 
     return params;
 }
@@ -253,16 +238,15 @@ ble_gatts_rw_authorize_reply_params_t *GattGattsReplyReadWriteAuthorizeParams::T
 
     if (params->type == BLE_GATTS_AUTHORIZE_TYPE_READ)
     {
-        params->params.read = GattsReadAuthorizeParameters(ConversionUtility::getJsObject(jsobj, "read"));
+        params->params.read = GattsAuthorizeParameters(ConversionUtility::getJsObject(jsobj, "read"));
     }
     else if (params->type == BLE_GATTS_AUTHORIZE_TYPE_WRITE)
     {
-        params->params.write = GattsWriteAuthorizeParameters(ConversionUtility::getJsObject(jsobj, "write"));
+        params->params.write = GattsAuthorizeParameters(ConversionUtility::getJsObject(jsobj, "write"));
     }
 
     return params;
 }
-#endif
 
 v8::Local<v8::Object> GattsWriteEvent::ToJs()
 {
@@ -272,6 +256,7 @@ v8::Local<v8::Object> GattsWriteEvent::ToJs()
 
     Utility::Set(obj, "handle", ConversionUtility::toJsNumber(evt->handle));
     Utility::Set(obj, "op", ConversionUtility::toJsNumber(evt->op));
+	Utility::Set(obj, "op_name", ConversionUtility::valueToJsString(evt->op, gatts_op_map));
     Utility::Set(obj, "uuid", BleUUID(&evt->uuid).ToJs());
     Utility::Set(obj, "offset", ConversionUtility::toJsNumber(evt->offset));
     Utility::Set(obj, "len", ConversionUtility::toJsNumber(evt->len));
@@ -933,7 +918,6 @@ void Adapter::AfterGattsGetValue(uv_work_t *req)
     delete baton;
 }
 
-#if 0
 NAN_METHOD(Adapter::GattsReplyReadWriteAuthorize)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
@@ -1008,7 +992,6 @@ void Adapter::AfterGattsReplyReadWriteAuthorize(uv_work_t *req)
     delete baton;
 }
 
-#endif
 
 extern "C" {
     void init_gatts(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
