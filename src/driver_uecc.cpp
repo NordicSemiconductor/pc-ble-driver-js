@@ -73,8 +73,19 @@ NAN_METHOD(ECCP256ComputePublicKey)
     const struct uECC_Curve_t * p_curve;
     uint8_t *p_le_sk;   // In
     uint8_t p_le_pk[ECC_P256_PK_LEN];   // Out
+    auto argumentcount = 0;
 
-    p_le_sk = ConversionUtility::getNativePointerToUint8(info[0]);
+    try
+    {
+        p_le_sk = ConversionUtility::getNativePointerToUint8(info[0]);
+        argumentcount++;
+    }
+    catch (std::string error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
 
     if (p_le_sk == nullptr)
     {
@@ -111,9 +122,20 @@ NAN_METHOD(ECCP256ComputeSharedSecret)
     uint8_t *p_le_sk;  // In
     uint8_t *p_le_pk;  // In
     uint8_t p_le_ss[ECC_P256_SK_LEN];  // Out
+    auto argumentcount = 0;
 
-    p_le_sk = ConversionUtility::getNativePointerToUint8(info[0]);
-    p_le_pk = ConversionUtility::getNativePointerToUint8(info[1]);
+    try
+    {
+        p_le_sk = ConversionUtility::getNativePointerToUint8(info[0]);
+        p_le_pk = ConversionUtility::getNativePointerToUint8(info[1]);
+        argumentcount++;
+    }
+    catch (std::string error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
 
     p_curve = uECC_secp256r1();
 
