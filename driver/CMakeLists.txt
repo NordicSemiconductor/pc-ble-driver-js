@@ -33,7 +33,7 @@ set_source_files_properties(
 if(WIN32)
     add_library(pc-ble-driver SHARED ${LIB_C_SOURCES} ${LIB_CPP_SOURCES})
 else()
-    add_library(pc-ble-driver STATIC ${LIB_C_SOURCES} ${LIB_CPP_SOURCES})
+    add_library(pc-ble-driver SHARED ${LIB_C_SOURCES} ${LIB_CPP_SOURCES})
 endif()
 
 # Specify libraries to link serialization library with
