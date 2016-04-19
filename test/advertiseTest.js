@@ -1,8 +1,32 @@
+/* Copyright (c) 2016 Nordic Semiconductor. All Rights Reserved.
+ *
+ * The information contained herein is property of Nordic Semiconductor ASA.
+ * Terms and conditions of usage are described in detail in NORDIC
+ * SEMICONDUCTOR STANDARD SOFTWARE LICENSE AGREEMENT.
+ *
+ * Licensees are granted free, non-transferable use of the information. NO
+ * WARRANTY of ANY KIND is provided. This heading must NOT be removed from
+ * the file.
+ *
+ */
+
 'use strict';
 
 const setup = require('./setup');
 const adapterFactory = setup.adapterFactory;
 const serviceFactory = setup.ServiceFactory;
+
+adapterFactory.on('added', adapter => {
+    console.log(`onAdded: Adapter added. Adapter: ${adapter.instanceId}`);
+});
+
+adapterFactory.on('removed', adapter => {
+    console.log(`onRemoved: Adapter removed. Adapter: ${adapter.instanceId}`);
+});
+
+adapterFactory.on('error', error => {
+    console.log('onError: Error occured: ' + JSON.stringify(error, null, 1));
+});
 
 adapterFactory.getAdapters((err, adapters) => {
     if (err) {
@@ -75,7 +99,7 @@ adapterFactory.getAdapters((err, adapters) => {
                     write: true,
                     writeWoResp: false,
                     reliableWrite: false, /* extended property in MCP ? */
-                    notify: true,
+                    notify: false,
                     indicate: false, /* notify/indicate is cccd, therefore it must be set */
                 },
                 {
