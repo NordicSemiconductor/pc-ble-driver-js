@@ -1,6 +1,6 @@
 'use strict';
 
-const driver = require('./index.js').driver;
+const driver = require('../index.js').driver;
 
 driver.eccInit();
 

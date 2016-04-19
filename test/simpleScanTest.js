@@ -55,7 +55,7 @@ function runTests(adapterOne) {
     let connect_in_progress = false;
 
     if (!listenersAdded) {
-        adapterOne.on('logMessage', (severity, message) => { console.log(`#1 logMessage: ${message}`)});
+        adapterOne.on('logMessage', (severity, message) => { if (severity > 1) console.log(`#1 logMessage: ${message}`)});
         adapterOne.on('status', (status) => {
             console.log(`#1 status: ${JSON.stringify(status)}`); });
         adapterOne.on('error', error => { console.log('#1 error: ' + JSON.stringify(error, null, 1)); });
@@ -124,7 +124,10 @@ process.stdin.on('data', (data) => {
     if (data == 's')
     {
         console.log('s pressed');
-        runTests(adapterOne);
+        adapterFactory.getAdapters((error, adapters) => {
+            assert(!error);
+            runTests(adapters[Object.keys(adapters)[0]]);
+        });
         console.log("Running tests")
     } else if (data =='c') {
         if( adapterOne !== undefined ) {
