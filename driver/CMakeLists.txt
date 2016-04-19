@@ -30,8 +30,8 @@ set_source_files_properties(
     LANGUAGE CXX
 )
 
-if(WIN32)
-    add_library(pc-ble-driver SHARED ${LIB_C_SOURCES} ${LIB_CPP_SOURCES})
+if(APPLE)
+    add_library(pc-ble-driver STATIC ${LIB_C_SOURCES} ${LIB_CPP_SOURCES})
 else()
     add_library(pc-ble-driver SHARED ${LIB_C_SOURCES} ${LIB_CPP_SOURCES})
 endif()
