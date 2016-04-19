@@ -16,7 +16,6 @@ const assert = require('assert');
 
 const setup = require('./setup');
 const adapterFactory = setup.adapterFactory;
-const ServiceFactory = setup.ServiceFactory;
 
 const connectionParameters = {
            min_conn_interval: 7.5,
@@ -83,40 +82,19 @@ function runTests(adapterOne) {
             };
 
             console.log('Enabling BLE');
-/*            adapterOne.enableBLE(error => {
-                assert(!error);*/
+            adapterOne.getState((error, state) => {
+                assert(!error);
+                console.log(JSON.stringify(state));
 
-                adapterOne.getState((error, state) => {
+                //console.log('Setting name');
+                adapterOne.setName('adapterOne', error => {
                     assert(!error);
-                    console.log(JSON.stringify(state));
 
-                    //console.log('Setting name');
-                    adapterOne.setName('adapterOne', error => {
+                    console.log('Starting scan');
+                    adapterOne.startScan(scanParameters, (error) => {
                         assert(!error);
-
-                        console.log('Starting scan');
-                        adapterOne.startScan(scanParameters, (error) => {
-                            assert(!error);
-                        });
                     });
-                /*});*/
-
-/*
-                console.log('Setting advertising data');
-                adapterOne.setAdvertisingData(
-                    advData,
-                    {},
-                    error => {
-                        assert(!error);
-                        adapterOne.startAdvertising(advOptions, error => {
-                            assert(!error);
-
-                            adapterOne.startScan(scanParameters, (error) => {
-                                assert(!error);
-                            });
-                        });
-                    }
-                );*/
+                });
             });
         });
 }
@@ -157,26 +135,3 @@ process.stdin.on('data', (data) => {
         }
     }
 });
-
-
-/*
-adapterFactory.getAdapters((err, adapters) => {
-    if (err) {
-        console.log('Error:' + err);
-        return;
-    }
-
-    assert(Object.keys(adapters).length >= 1);
-
-    console.log('Press any key to exit');
-
-    process.stdin.setRawMode(true);
-    process.stdin.resume();
-    process.stdin.on('data', (data) => {
-        if (data == 's')
-        {
-            runTests(adapterOne);
-            console.log("Running tests")
-        }
-    });
-});*/

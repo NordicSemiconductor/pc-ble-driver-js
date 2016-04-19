@@ -12,8 +12,8 @@
 
 'use strict';
 
-const api = require('../../index').api;
-const driver = require('../../index').driver;
+const api = require('../index').api;
+const driver = require('../index').driver;
 const adapterFactory = api.AdapterFactory.getInstance();
 const ServiceFactory = new api.ServiceFactory;
 
