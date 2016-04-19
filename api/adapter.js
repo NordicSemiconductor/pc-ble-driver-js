@@ -157,7 +157,7 @@ class Adapter extends EventEmitter {
 
     _checkAndPropagateError(err, userMessage, callback) {
         if (err) {
-            var error = new Error(userMessage, err);
+            let error = new Error(userMessage, err);
             this.emit('error', error);
             if (callback) { callback(error); }
             return true;
@@ -267,9 +267,11 @@ class Adapter extends EventEmitter {
      * Close Adapter communication and free resources related to the Adapter. The event listeners added to the Adapter are removed.
      */
     close(callback) {
-        this._adapter.close(callback);
         this._changeState({available: false});
-        this.emit('closed', this);
+        this._adapter.close(error => {
+            this.emit('closed', this);
+            if (callback) callback(error);
+        });
     }
 
     getStats() {

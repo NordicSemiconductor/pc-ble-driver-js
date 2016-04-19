@@ -55,10 +55,12 @@ uint32_t UartBoost::open(status_cb_t status_callback, data_cb_t data_callback, l
     {
         serialPort.open(portName);
     }
-    catch (std::exception)
+    catch (std::exception& ex)
     {
-        statusCallback(IO_RESOURCES_UNAVAILABLE, "Exception thrown when opening serial port");
-        return NRF_ERROR_INTERNAL;
+        std::stringstream message;
+        message << "Exception thrown on " << ex.what() << ".";
+        statusCallback(IO_RESOURCES_UNAVAILABLE, message.str().c_str());
+            return NRF_ERROR_INTERNAL;
     }
 
     const auto baudRate = uartSettingsBoost.getBoostBaudRate();
@@ -150,9 +152,11 @@ uint32_t UartBoost::close()
         message << "Serial port " << uartSettingsBoost.getPortName().c_str() << " closed.";
         logCallback(SD_RPC_LOG_INFO, message.str());
     }
-    catch (std::exception)
+    catch (std::exception& ex)
     {
-        statusCallback(IO_RESOURCES_UNAVAILABLE, "Exception thrown when closing serial port");
+        std::stringstream message;
+        message << "Exception thrown on " << ex.what() << ".";
+        statusCallback(IO_RESOURCES_UNAVAILABLE, message.str().c_str());
     }
 
     asyncWriteInProgress = false;

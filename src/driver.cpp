@@ -114,9 +114,9 @@ void Adapter::appendLog(LogEntry *log)
     {
         uv_async_send(asyncLog);
     }
-    else 
-    { 
-        std::cerr << "Adapter::appendLog() asyncLog is nullptr!" << std::endl; 
+    else
+    {
+        std::cerr << "Adapter::appendLog() asyncLog is nullptr!" << std::endl;
         std::terminate();
     }
 }
@@ -138,7 +138,7 @@ void Adapter::onLogEvent(uv_async_t *handle)
             argv[1] = ConversionUtility::toJsString(logEntry->message);
             logCallback->Call(2, argv);
         }
-        else 
+        else
         {
             std::cerr << "Log event received, but no callback is registered." << std::endl;
         }
@@ -155,7 +155,7 @@ void Adapter::dispatchEvents()
     if (asyncEvent != nullptr)
     {
         uv_async_send(asyncEvent);
-    } 
+    }
     else
     {
         std::cerr << "Adapter::dispatchEvents() asyncEvent is nullptr!" << std::endl;
@@ -319,7 +319,7 @@ void Adapter::onRpcEvent(uv_async_t *handle)
                 destroySecurityKeyStorage(event->evt.gap_evt.conn_handle);
             }
         }
-                                       
+
         arrayIndex++;
 
         // Free memory for current entry
@@ -680,14 +680,14 @@ void Adapter::Open(uv_work_t *req)
 
     if (error_code != NRF_SUCCESS)
     {
-        std::cerr << std::endl << "Failed to open the nRF51 ble driver." << std::endl;
+        std::cerr << std::endl << "Failed to open the nRF5 BLE driver." << std::endl;
         baton->result = error_code;
         return;
     }
 
     if (baton->enable_ble) {
         // Enable BLE with default values defined in Adapter:enableBLE private function
-        error_code = Adapter::enableBLE(adapter); 
+        error_code = Adapter::enableBLE(adapter);
 
         if (error_code == NRF_SUCCESS)
         {
@@ -1224,10 +1224,10 @@ v8::Local<v8::Object> BandwidthGlobalMemoryPool::ToJs()
     {
         return scope.Escape(obj);
     }
-    
+
     Utility::Set(obj, "tx_counts", BandwidthCountParameters(&native->tx_counts).ToJs());
     Utility::Set(obj, "rx_counts", BandwidthCountParameters(&native->rx_counts).ToJs());
-    
+
     return scope.Escape(obj);
 }
 
