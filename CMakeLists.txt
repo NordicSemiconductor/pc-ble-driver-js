@@ -39,7 +39,6 @@ file (GLOB SOURCE_FILES
     "src/driver_gatts.cpp"
     "src/driver_uecc.cpp"
     "src/*.h"
-    "src/uECC/*.c"
 )
 
 file (GLOB UECC_SOURCE_FILES
