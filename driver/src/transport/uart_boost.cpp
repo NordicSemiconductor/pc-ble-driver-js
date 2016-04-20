@@ -58,7 +58,7 @@ uint32_t UartBoost::open(status_cb_t status_callback, data_cb_t data_callback, l
     catch (std::exception& ex)
     {
         std::stringstream message;
-        message << "Exception thrown on " << ex.what() << ".";
+        message << "Exception thrown on " << ex.what() << " on UART port " << uartSettingsBoost.getPortName().c_str() << ".";
         statusCallback(IO_RESOURCES_UNAVAILABLE, message.str().c_str());
             return NRF_ERROR_INTERNAL;
     }
@@ -90,9 +90,11 @@ uint32_t UartBoost::open(status_cb_t status_callback, data_cb_t data_callback, l
         boost::function<std::size_t()> ioServiceRun = boost::bind(&boost::asio::io_service::run, &ioService);
         ioWorkThread = boost::thread(ioServiceRun);
     }
-    catch (std::exception)
+    catch (std::exception& ex)
     {
-        statusCallback(IO_RESOURCES_UNAVAILABLE, "Exception thrown when starting uart work thread");
+        std::stringstream message;
+        message << "Exception thrown when starting UART work thread. " << ex.what() << " on UART port " << uartSettingsBoost.getPortName().c_str() << ".";
+        statusCallback(IO_RESOURCES_UNAVAILABLE, message.str().c_str());
         return NRF_ERROR_INTERNAL;
     }
 
@@ -149,13 +151,13 @@ uint32_t UartBoost::close()
     {
         std::stringstream message;
         serialPort.close();
-        message << "Serial port " << uartSettingsBoost.getPortName().c_str() << " closed.";
+        message << "UART port " << uartSettingsBoost.getPortName().c_str() << " closed.";
         logCallback(SD_RPC_LOG_INFO, message.str());
     }
     catch (std::exception& ex)
     {
         std::stringstream message;
-        message << "Exception thrown on " << ex.what() << ".";
+        message << "Exception thrown on " << ex.what() << " on UART port "  << uartSettingsBoost.getPortName().c_str() << ".";
         statusCallback(IO_RESOURCES_UNAVAILABLE, message.str().c_str());
     }
 
@@ -189,12 +191,18 @@ void UartBoost::readHandler(const boost::system::error_code& errorCode, const si
     }
     else if (errorCode == boost::asio::error::operation_aborted)
     {
+        std::stringstream message;
+        message << "UART read from UART port " << uartSettingsBoost.getPortName().c_str() << " aborted.";
+        statusCallback(IO_RESOURCES_UNAVAILABLE, message.str().c_str());
+
         // In case of an aborted connection, suppress notifications and return early
         return;
     }
     else
     {
-        statusCallback(IO_RESOURCES_UNAVAILABLE, "Uart implementation failed while reading bytes");
+        std::stringstream message;
+        message << "UART implementation failed while reading bytes from UART port " << uartSettingsBoost.getPortName().c_str() << ".";
+        statusCallback(IO_RESOURCES_UNAVAILABLE, message.str().c_str());
         return;
     }
 }
@@ -203,6 +211,10 @@ void UartBoost::writeHandler (const boost::system::error_code& errorCode, const 
 {
     if (errorCode == boost::asio::error::operation_aborted)
     {
+        std::stringstream message;
+        message << "UART write from UART port " << uartSettingsBoost.getPortName().c_str() << " aborted.";
+        statusCallback(IO_RESOURCES_UNAVAILABLE, message.str().c_str());
+
         // In case of an aborted connection, suppress notifications and return (i.e. no asyncWrite)
         queueMutex.lock();
         writeQueue.clear();
