@@ -1278,15 +1278,15 @@ class Adapter extends EventEmitter {
         // TODO: BLE_GATTS_OP_SIGN_WRITE_CMD not supported?
         // TODO: Support auth_required flag
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
-        const attribute = this._getAttributeByHandle('local.server', event.handle);
+        const attribute = this._getAttributeByHandle('local.server', event.write.handle);
 
-        if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ ||
-            event.op === this._bleDriver.BLE_GATTS_OP_WRITE_CMD) {
+        if (event.write.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ ||
+            event.write.op === this._bleDriver.BLE_GATTS_OP_WRITE_CMD) {
             if (this._instanceIdIsOnLocalDevice(attribute.instanceId) && this._isCCCDDescriptor(attribute.instanceId)) {
-                this._setDescriptorValue(attribute, event.data, device.instanceId);
+                this._setDescriptorValue(attribute, event.write.data, device.instanceId);
                 this._emitAttributeValueChanged(attribute);
             } else {
-                this._setAttributeValueWithOffset(attribute, event.data, event.offset);
+                this._setAttributeValueWithOffset(attribute, event.write.data, event.write.offset);
                 this._emitAttributeValueChanged(attribute);
             }
         }
@@ -1311,7 +1311,7 @@ class Adapter extends EventEmitter {
         };
 
         if (event.type === this._bleDriver.BLE_GATTS_AUTHORIZE_TYPE_WRITE) {
-            if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ) {
+            if (event.write.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ) {
                 promiseChain = promiseChain.then(() => {
                     createWritePromise(event.write.handle, event.write.data, event.write.offset);
                 });
@@ -1326,7 +1326,7 @@ class Adapter extends EventEmitter {
                         data: event.write.data,
                     },
                 };
-            } else if (event.op === this._bleDriver.BLE_GATTS_OP_PREP_WRITE_REQ) {
+            } else if (event.write.op === this._bleDriver.BLE_GATTS_OP_PREP_WRITE_REQ) {
                 if (!this._preparedWritesMap[device.instanceId]) {
                     this._preparedWritesMap[device.instanceId] = [];
                 }
@@ -1345,7 +1345,7 @@ class Adapter extends EventEmitter {
                     },
                 };
 
-            } else if (event.op === this._bleDriver.BLE_GATTS_OP_EXEC_WRITE_REQ_CANCEL) {
+            } else if (event.write.op === this._bleDriver.BLE_GATTS_OP_EXEC_WRITE_REQ_CANCEL) {
                 delete this._preparedWritesMap[device.instanceId];
 
                 authorizeReplyParams = {
@@ -1358,7 +1358,7 @@ class Adapter extends EventEmitter {
                         data: [],
                     },
                 };
-            } else if (event.op === this._bleDriver.BLE_GATTS_OP_EXEC_WRITE_REQ_NOW) {
+            } else if (event.write.op === this._bleDriver.BLE_GATTS_OP_EXEC_WRITE_REQ_NOW) {
                 for (let preparedWrite of this._preparedWritesMap[device.instanceId]) {
                     promiseChain = promiseChain.then(() => {
                         createWritePromise(preparedWrite.handle, preparedWrite.data, preparedWrite.offset);
