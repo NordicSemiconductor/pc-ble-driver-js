@@ -1298,16 +1298,13 @@ class Adapter extends EventEmitter {
         let authorizeReplyParams;
 
         const createWritePromise = (handle, data, offset) => {
-            console.log('Adding promise');
             return new Promise((resolve, reject) => {
                 const attribute = this._getAttributeByHandle('local.server', handle);
                 this._writeLocalValue(attribute, data, offset, error => {
                     if (error) {
-                        console.log('ERROR');
                         this.emit('error', _makeError('Failed to set local attribute value from rwAuthorizeRequest', error));
                         reject(_makeError('Failed to set local attribute value from rwAuthorizeRequest', error));
                     } else {
-                        console.log('Should emit');
                         this._emitAttributeValueChanged(attribute);
                         resolve();
                     }
