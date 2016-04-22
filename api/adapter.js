@@ -1301,7 +1301,6 @@ class Adapter extends EventEmitter {
             console.log('Adding promise');
             return new Promise((resolve, reject) => {
                 const attribute = this._getAttributeByHandle('local.server', handle);
-                console.log(JSON.stringify(attribute));
                 this._writeLocalValue(attribute, data, offset, error => {
                     if (error) {
                         console.log('ERROR');
@@ -1369,7 +1368,7 @@ class Adapter extends EventEmitter {
             } else if (event.write.op === this._bleDriver.BLE_GATTS_OP_EXEC_WRITE_REQ_NOW) {
                 for (let preparedWrite of this._preparedWritesMap[device.instanceId]) {
                     promiseChain = promiseChain.then(() => {
-                        createWritePromise(preparedWrite.handle, preparedWrite.data, preparedWrite.offset);
+                        createWritePromise(preparedWrite.handle, preparedWrite.value, preparedWrite.offset);
                     });
                 }
 
