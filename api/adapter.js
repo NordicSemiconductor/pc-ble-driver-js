@@ -1298,13 +1298,19 @@ class Adapter extends EventEmitter {
         let authorizeReplyParams;
 
         const createWritePromise = (handle, data, offset) => {
-            new Promise((resolve, reject) => {
+            console.log('Adding promise');
+            return new Promise((resolve, reject) => {
                 const attribute = this._getAttributeByHandle('local.server', handle);
+                console.log(JSON.stringify(attribute));
                 this._writeLocalValue(attribute, data, offset, error => {
                     if (error) {
+                        console.log('ERROR');
                         this.emit('error', _makeError('Failed to set local attribute value from rwAuthorizeRequest', error));
+                        reject(_makeError('Failed to set local attribute value from rwAuthorizeRequest', error));
                     } else {
+                        console.log('Should emit');
                         this._emitAttributeValueChanged(attribute);
+                        resolve();
                     }
                 });
             });
@@ -1331,8 +1337,10 @@ class Adapter extends EventEmitter {
                     this._preparedWritesMap[device.instanceId] = [];
                 }
 
-                const preparedWrites = this._preparedWritesMap[device.instanceId];
-                preparedWrites.concat({ handle: event.write.handle, value: event.write.data, offset: event.write.offset });
+                let preparedWrites = this._preparedWritesMap[device.instanceId];
+                preparedWrites = preparedWrites.concat({ handle: event.write.handle, value: event.write.data, offset: event.write.offset });
+
+                this._preparedWritesMap[device.instanceId] = preparedWrites;
 
                 authorizeReplyParams = {
                     type: event.type,
