@@ -38,3 +38,6 @@ endif()
 
 # Specify libraries to link serialization library with
 target_link_libraries (pc-ble-driver PRIVATE ${Boost_LIBRARIES})
+
+add_executable(test_uart test/test_uart.cpp)
+target_link_libraries(test_uart PRIVATE ${Boost_LIBRARIES})
