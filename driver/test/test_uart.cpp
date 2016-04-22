@@ -1,5 +1,6 @@
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
+#include <boost/thread.hpp>
 
 #include <iostream>
 #include <vector>
@@ -10,7 +11,7 @@
 
 using namespace boost::asio;
 
-void writeHandler (const boost::system::error_code& errorCode, const size_t bytesTransferred)
+void writeHandler(const boost::system::error_code& errorCode, const size_t bytesTransferred)
 {
     std::cout << "errorCode       : " << errorCode << std::endl;
     std::cout << "bytesTransferred: " << bytesTransferred << std::endl;
@@ -57,7 +58,15 @@ int main(int argc, char *argv[])
     }
 
     mutable_buffers_1 mutableWriteBuffer = boost::asio::buffer(writeBufferVector, writeBufferVector.size());
+
+    boost::thread t(boost::bind(&boost::asio::io_service::run, &io_service));
     async_write(segger, mutableWriteBuffer, &writeHandler);
     
-    std::this_thread::sleep_for(std::chrono::seconds(10));
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+
+    segger.cancel();
+    segger.close();
+
+    io_service.stop();
+    io_service.reset();
 }
