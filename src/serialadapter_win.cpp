@@ -81,7 +81,7 @@ void GetAdapterList(uv_work_t* req) {
                 // 'Manufacturuer' can be null, so only get it if we need it
                 dhGetValue(L"%s", &manu, objDevice,  L".Manufacturer");
 
-                if(strcmp("SEGGER", manu) == 0)
+                if(strcmp("SEGGER", manu) == 0 || strcmp("mbed", manu) == 0)
                 {
                     auto comname = strtok( match, "()");
                     auto resultItem = new AdapterListResultItem();
