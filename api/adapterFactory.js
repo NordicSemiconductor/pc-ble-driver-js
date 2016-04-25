@@ -82,13 +82,13 @@ class AdapterFactory extends EventEmitter {
 
         if (addOnAdapter === undefined) { throw new Error('Missing argument adapter.'); }
 
-        let isSupported = true;
+        let notSupportedMessage;
 
         if ((os.platform() === 'darwin') && (adapter.manufacturer === 'SEGGER')) {
-          isSupported = false;
+          notSupportedMessage = 'This adapter with SEGGER debug probe firmware is not supported on OS X. Please visit http://www.nordicsemi.com/asdfjknjfnnv/ for further instructions on how to change to ARM mbed DAPLink firmware.';
         }
 
-        const parsedAdapter = new Adapter(this._bleDriver, addOnAdapter, instanceId, adapter.comName, isSupported);
+        const parsedAdapter = new Adapter(this._bleDriver, addOnAdapter, instanceId, adapter.comName, notSupportedMessage);
         return parsedAdapter;
     }
 

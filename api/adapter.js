@@ -52,12 +52,12 @@ class Adapter extends EventEmitter {
      * @param {object} adapter - The adapter to use. The adapter is an object received from the pc-ble-driver-js AddOn
      * @param {string} instanceId - A unique id that represents this Adapter instance
      * @param {string} port - The port this adapter uses. For example it can be COM1, /dev/ttyUSB0 or similar
-     * @param {Boolean} isSupported - Indicates if Adapter is supported or not on this platform.
+     * @param {string} notSupportedMessage - Message given to developer if the adapter is not supported on this platform.
      *
      * @emits {Error} Emitted when error occurs
      *
      */
-    constructor(bleDriver, adapter, instanceId, port, isSupported) {
+    constructor(bleDriver, adapter, instanceId, port, notSupportedMessage) {
         super();
 
         if (bleDriver === undefined) { throw new Error('Missing argument bleDriver.'); }
@@ -70,7 +70,7 @@ class Adapter extends EventEmitter {
         this._instanceId = instanceId;
         this._state = new AdapterState(instanceId, port);
         this._security = Security.getInstance(this._bleDriver);
-        this._isSupported = isSupported;
+        this._notSupportedMessage = notSupportedMessage;
 
         this._maxReadPayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 1;
         this._maxShortWritePayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 3;
@@ -130,8 +130,8 @@ class Adapter extends EventEmitter {
         return this._state;
     }
 
-    isSupported() {
-      return this._isSupported;
+    get notSupportedMessage() {
+      return this._notSupportedMessage;
     }
 
     _generateKeyPair() {
@@ -227,8 +227,8 @@ class Adapter extends EventEmitter {
     open(options, callback) {
         console.log(JSON.stringify(this._adapter));
 
-        if (this._isSupported === false) {
-            let error = new Error('This adapter is not supported on this platform. Please go to http://www.nordicsemi.com/asdfjknjfnnv/ for further instructions.');
+        if (this.notSupportedMessage !== undefined) {
+            let error = new Error(this.notSupportedMessage);
             this.emit('error', error);
             if (callback) { callback(error); }
             return;
