@@ -13,6 +13,7 @@
 'use strict';
 
 const _bleDriver = require('bindings')('pc-ble-driver-js');
+const os = require('os');
 
 var  Adapter = require('./adapter');
 const EventEmitter = require('events');
@@ -80,8 +81,14 @@ class AdapterFactory extends EventEmitter {
         const addOnAdapter = new this._bleDriver.Adapter();
 
         if (addOnAdapter === undefined) { throw new Error('Missing argument adapter.'); }
-        const parsedAdapter = new Adapter(this._bleDriver, addOnAdapter, instanceId, adapter.comName);
 
+        let isSupported = true;
+
+        if ((os.platform() === 'darwin') && (adapter.manufacturer === 'SEGGER')) {
+          isSupported = false;
+        }
+
+        const parsedAdapter = new Adapter(this._bleDriver, addOnAdapter, instanceId, adapter.comName, isSupported);
         return parsedAdapter;
     }
 
