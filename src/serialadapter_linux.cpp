@@ -32,10 +32,11 @@ typedef struct serial_device_t {
 } serial_device_t;
 
 const char* SEGGER_VENDOR_ID = "1366";
+const char* NXP_VENDOR_ID = "0d28";
 
 typedef vector<serial_device_t*> adapter_list_t;
 
-static adapter_list_t* GetSeggerAdapters()
+static adapter_list_t* GetAdapters()
 {
     // Setup return value
     adapter_list_t* devices = new adapter_list_t();
@@ -69,8 +70,8 @@ static adapter_list_t* GetSeggerAdapters()
 
         const char *idVendor = udev_device_get_sysattr_value(udev_dev, "idVendor");
 
-        // Only add SEGGER devices to list
-        if(idVendor != NULL && strcmp(idVendor, SEGGER_VENDOR_ID) == 0)
+        // Only add SEGGER and ARM (even though VENDOR_ID is NXPs...) devices to list
+        if(idVendor != NULL && ((strcmp(idVendor, SEGGER_VENDOR_ID) == 0) || (strcmp(idVendor, NXP_VENDOR_ID) == 0)))
         {
             serial_device_t *serial_device = (serial_device_t*)malloc(sizeof(serial_device_t));
             memset(serial_device, 0, sizeof(serial_device_t));
@@ -98,11 +99,11 @@ void GetAdapterList(uv_work_t* req)
 {
     AdapterListBaton* data = static_cast<AdapterListBaton*>(req->data);
 
-    adapter_list_t* devices = GetSeggerAdapters();
+    adapter_list_t* devices = GetAdapters();
 
     for(auto device : *devices)
     {
-        if(strcmp(device->manufacturer,"SEGGER") == 0)
+        if((strcmp(device->manufacturer,"SEGGER") == 0) || (strcmp(device->manufacturer, "ARM") == 0))
         {
             AdapterListResultItem* resultItem = new AdapterListResultItem();
 
