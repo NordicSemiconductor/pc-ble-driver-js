@@ -362,7 +362,7 @@ void GetAdapterList(uv_work_t* req) {
 
     for(auto device : *devices)
     {
-        if(strcmp(device->manufacturer,"SEGGER") == 0  || EL_CAPITAN_ISSUE)
+        if((strcmp(device->manufacturer,"SEGGER") == 0) || strcmp(device->manufacturer, "ARM") == 0)
         {
             AdapterListResultItem* resultItem = new AdapterListResultItem();
 
