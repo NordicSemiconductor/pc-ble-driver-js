@@ -78,7 +78,7 @@ static io_registry_entry_t root;
 // Function prototypes
 static void FindModems(io_iterator_t *matchingServices);
 static io_registry_entry_t GetUsbDevice(char *pathName);
-static adapter_list_t* GetSeggerAdapters();
+static adapter_list_t* GetAdapters();
 
 static void FindModems(io_iterator_t *matchingServices)
 {
@@ -189,7 +189,7 @@ static void ExtractUsbInformation(serial_device_t *serialDevice, IOUSBDeviceInte
     }
 }
 
-static adapter_list_t* GetSeggerAdapters()
+static adapter_list_t* GetAdapters()
 {
     // Setup return value
     adapter_list_t* devices = new adapter_list_t();
@@ -358,7 +358,7 @@ void GetAdapterList(uv_work_t* req) {
     }
 
     AdapterListBaton* data = static_cast<AdapterListBaton*>(req->data);
-    adapter_list_t* devices = GetSeggerAdapters();
+    adapter_list_t* devices = GetAdapters();
 
     for(auto device : *devices)
     {
