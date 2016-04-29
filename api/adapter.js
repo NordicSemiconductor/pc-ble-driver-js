@@ -225,8 +225,6 @@ class Adapter extends EventEmitter {
 
     // Callback signature function(err) {}
     open(options, callback) {
-        console.log(JSON.stringify(this._adapter));
-
         if (this.notSupportedMessage !== undefined) {
             let error = new Error(this.notSupportedMessage);
             this.emit('error', error);

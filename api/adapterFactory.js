@@ -85,7 +85,7 @@ class AdapterFactory extends EventEmitter {
         let notSupportedMessage;
 
         if ((os.platform() === 'darwin') && (adapter.manufacturer === 'SEGGER')) {
-          notSupportedMessage = 'This adapter with SEGGER debug probe firmware is not supported on OS X. Please visit http://www.nordicsemi.com/asdfjknjfnnv/ for further instructions on how to change to ARM mbed DAPLink firmware.';
+          notSupportedMessage = 'This adapter with SEGGER debug probe firmware is not supported on OS X. Please visit http://www.nordicsemi.no/nRFconnectOSXfix for further instructions on how to change to ARM mbed DAPLink firmware.';
         }
 
         const parsedAdapter = new Adapter(this._bleDriver, addOnAdapter, instanceId, adapter.comName, notSupportedMessage);
