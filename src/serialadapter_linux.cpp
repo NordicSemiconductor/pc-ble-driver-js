@@ -103,7 +103,9 @@ void GetAdapterList(uv_work_t* req)
 
     for(auto device : *devices)
     {
-        if((strcmp(device->manufacturer,"SEGGER") == 0) || (strcmp(device->manufacturer, "ARM") == 0))
+        if((strcmp(device->manufacturer,"SEGGER") == 0)
+            || (stricmp(device->manufacturer, "arm") == 0)
+            || (stricmp(device->manufacturer, "mbed") == 0))
         {
             AdapterListResultItem* resultItem = new AdapterListResultItem();
 
