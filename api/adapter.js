@@ -1291,15 +1291,15 @@ class Adapter extends EventEmitter {
         // TODO: BLE_GATTS_OP_SIGN_WRITE_CMD not supported?
         // TODO: Support auth_required flag
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
-        const attribute = this._getAttributeByHandle('local.server', event.write.handle);
+        const attribute = this._getAttributeByHandle('local.server', event.handle);
 
-        if (event.write.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ ||
-            event.write.op === this._bleDriver.BLE_GATTS_OP_WRITE_CMD) {
+        if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ ||
+            event.op === this._bleDriver.BLE_GATTS_OP_WRITE_CMD) {
             if (this._instanceIdIsOnLocalDevice(attribute.instanceId) && this._isCCCDDescriptor(attribute.instanceId)) {
-                this._setDescriptorValue(attribute, event.write.data, device.instanceId);
+                this._setDescriptorValue(attribute, event.data, device.instanceId);
                 this._emitAttributeValueChanged(attribute);
             } else {
-                this._setAttributeValueWithOffset(attribute, event.write.data, event.write.offset);
+                this._setAttributeValueWithOffset(attribute, event.data, event.offset);
                 this._emitAttributeValueChanged(attribute);
             }
         }
