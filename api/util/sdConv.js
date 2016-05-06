@@ -40,6 +40,10 @@ class SoftDeviceConverter {
                     if (sm !== undefined) throw new Error('Illegal combination.');
                     sm = 1;
                     break;
+                case 'lesc':
+                    if (sm !== undefined) throw new Error('Illegal combination.');
+                    sm = 1; lv = 4;
+                    break;
                 case 'signed':
                     if (sm !== undefined) throw new Error('Illegal combination.');
                     sm = 2;
