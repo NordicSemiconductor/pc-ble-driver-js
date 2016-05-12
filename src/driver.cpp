@@ -768,20 +768,24 @@ void Adapter::AfterClose(uv_work_t *req)
     Nan::HandleScope scope;
     auto baton = static_cast<CloseBaton *>(req->data);
 
-    v8::Local<v8::Value> argv[1];
-
-    if (baton->result != NRF_SUCCESS)
-    {
-        argv[0] = ErrorMessage::getErrorMessage(baton->result, "closing connection");
-    }
-    else
-    {
-        argv[0] = Nan::Undefined();
-    }
-
     baton->mainObject->cleanUpV8Resources();
 
-    baton->callback->Call(1, argv);
+    if (baton->callback != nullptr)
+    {
+        v8::Local<v8::Value> argv[1];
+
+        if (baton->result != NRF_SUCCESS)
+        {
+            argv[0] = ErrorMessage::getErrorMessage(baton->result, "closing connection");
+        }
+        else
+        {
+            argv[0] = Nan::Undefined();
+        }
+
+        baton->callback->Call(1, argv);
+    }
+
     delete baton;
 }
 

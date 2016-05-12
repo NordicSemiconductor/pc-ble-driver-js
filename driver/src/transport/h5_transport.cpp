@@ -148,7 +148,13 @@ uint32_t H5Transport::open(status_cb_t status_callback, data_cb_t data_callback,
 
 uint32_t H5Transport::close()
 {
-    exitCriterias[currentState]->close = true;
+    auto exitCriteria = exitCriterias[currentState];
+    
+    if (exitCriteria != nullptr)
+    {
+        exitCriteria->close = true;
+    }
+
     stopStateMachine();
 
     auto errorCode1 = nextTransportLayer->close();
