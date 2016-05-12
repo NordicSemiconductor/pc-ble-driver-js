@@ -357,7 +357,13 @@ void H5Transport::statusHandler(sd_rpc_app_status_t code, const char * error)
 {
     if (code == IO_RESOURCES_UNAVAILABLE)
     {
-        exitCriterias[currentState]->ioResourceError = true;
+        auto exitCriteria = exitCriterias[currentState];
+
+        if (exitCriteria != nullptr)
+        {
+            exitCriteria->ioResourceError = true;
+        }
+        
         syncWaitCondition.notify_all();
     }
 
