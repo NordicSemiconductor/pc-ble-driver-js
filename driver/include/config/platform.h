@@ -20,16 +20,24 @@ extern "C" {
 #endif
 
 #ifdef _WIN32
-    #ifdef SD_RPC_EXPORTS
-        #define SD_RPC_API EXTERN_C __declspec(dllexport)
+    #if PC_BLE_DRIVER_STATIC // Static build of the library
+        #define SD_RPC_API
     #else
-        #define SD_RPC_API EXTERN_C __declspec(dllimport)
-    #endif
+        #ifdef SD_RPC_EXPORTS
+            #define SD_RPC_API EXTERN_C __declspec(dllexport)
+        #else
+            #define SD_RPC_API EXTERN_C __declspec(dllimport)
+        #endif
+    #endif // PC_BLE_DRIVER_STATIC_BUILD
 #else
-    #ifdef SD_RPC_EXPORTS
-        #define SD_RPC_API EXTERN_C __attribute__((visibility("default")))
+    #if PC_BLE_DRIVER_STATIC_BUILD
+        #define SD_RPC_API
     #else
-        #define SD_RPC_API EXTERN_C
+        #ifdef SD_RPC_EXPORTS
+            #define SD_RPC_API EXTERN_C __attribute__((visibility("default")))
+        #else
+            #define SD_RPC_API EXTERN_C
+        #endif
     #endif
 #endif
 

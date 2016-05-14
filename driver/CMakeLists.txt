@@ -30,11 +30,7 @@ set_source_files_properties(
     LANGUAGE CXX
 )
 
-if(APPLE)
-    add_library(pc-ble-driver STATIC ${LIB_C_SOURCES} ${LIB_CPP_SOURCES})
-else()
-    add_library(pc-ble-driver SHARED ${LIB_C_SOURCES} ${LIB_CPP_SOURCES})
-endif()
+add_library(pc-ble-driver STATIC ${LIB_C_SOURCES} ${LIB_CPP_SOURCES})
 
 # Specify libraries to link serialization library with
 target_link_libraries (pc-ble-driver PRIVATE ${Boost_LIBRARIES})
