@@ -72,6 +72,16 @@ let txPowerLevelMarshaller = function(buf, offset, powerLevel) {
     return buf.writeInt8(powerLevel, offset);
 };
 
+// Special case marshaller, requires id value to be provided in payload
+let customMarshaller = function(buf, offset, customData) {
+    let pos = offset - 1; // Overwrite the ID field at position offset - 1 since it is included in customData
+    const temp = new Buffer(customData, 'hex');
+    temp.copy(buf, pos);
+    pos += temp.length;
+
+    return pos;
+};
+
 const notImplemented = function(buf, offset, name) {
     throw new Error('Not implemented!');
 };
@@ -117,6 +127,8 @@ const adTypeConverter = {
     serviceData128bitUuid: { id: 0x21, marshall: notImplemented },
     '3dInformationData': { id: 0x3d, marshall: notImplemented },
     manufacturerSpecificData: { id: 0xff, marshall: notImplemented },
+
+    custom: { id: null, marshall: customMarshaller },
 };
 
 class AdType {
