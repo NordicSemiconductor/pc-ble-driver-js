@@ -1641,6 +1641,7 @@ class Adapter extends EventEmitter {
             const errorObject = _makeError('Could not connect. Another connect is in progress.');
             this.emit('error', errorObject);
             if (callback) { callback(errorObject); }
+            return;
         }
 
         var address = {};
