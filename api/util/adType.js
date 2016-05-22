@@ -137,7 +137,7 @@ class AdType {
      *
      */
     static convertToBuffer(obj) {
-        let buffer = new Buffer(AD_PACKET_MAX_SIZE);
+        let buffer = new Buffer(100); // Set buffer size well above max size to avoid out of index error before length check has been performed
         let bufferPosition = 0;
 
         // We assume that all marshall methods returns an absolute position in the provided buffer
