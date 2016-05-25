@@ -82,8 +82,8 @@ void GetAdapterList(uv_work_t* req) {
                 dhGetValue(L"%s", &manu, objDevice,  L".Manufacturer");
 
                 if((strcmp("SEGGER", manu) == 0)
-                    || (stricmp("arm", manu) == 0)
-                    || (stricmp("mbed", manu) == 0))
+                    || (_stricmp("arm", manu) == 0)
+                    || (_stricmp("mbed", manu) == 0))
                 {
                     auto comname = strtok( match, "()");
                     auto resultItem = new AdapterListResultItem();

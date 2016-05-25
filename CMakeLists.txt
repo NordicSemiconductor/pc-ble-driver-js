@@ -72,6 +72,11 @@ set_target_properties(${PROJECT_NAME}
     PREFIX ""
     SUFFIX ".node")
 
+# Build the pc-ble-driver as a static library
+add_definitions(
+    -DPC_BLE_DRIVER_STATIC
+)
+
 if(WIN32)
     include_directories("${CMAKE_JS_INC}/win")
     set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")

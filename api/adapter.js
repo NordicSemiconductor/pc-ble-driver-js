@@ -26,10 +26,6 @@ const ToText = require('./util/toText');
 const logLevel = require('./util/logLevel');
 const Security = require('./security');
 
-const _makeError = function (userMessage, description) {
-    return { message: userMessage, description: description };
-};
-
 /**
  * Class to mediate error conditions.
  */
@@ -44,6 +40,10 @@ class Error {
         this.description = description;
     }
 }
+
+const _makeError = function (userMessage, description) {
+    return new Error(userMessage, description);
+};
 
 class Adapter extends EventEmitter {
     /**
@@ -163,13 +163,17 @@ class Adapter extends EventEmitter {
 
     _checkAndPropagateError(err, userMessage, callback) {
         if (err) {
-            let error = new Error(userMessage, err);
-            this.emit('error', error);
-            if (callback) { callback(error); }
+            this._emitError(err, userMessage);
+            if (callback) { callback(err); }
             return true;
         }
 
         return false;
+    }
+
+    _emitError(err, userMessage) {
+        let error = new Error(userMessage, err);
+        this.emit('error', error);
     }
 
     _toHexString(value) {
@@ -514,6 +518,7 @@ class Adapter extends EventEmitter {
     _parseDisconnectedEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         if (!device) {
+            this._emitError('Internal inconsistency: Could not find device with connection handle ' + event.conn_handle, 'Disconnect failed');
             const errorObject = _makeError('Disconnect failed', 'Internal inconsistency: Could not find device with connection handle ' + event.conn_handle);
 
             // cannot reach callback when there is no device. The best we can do is emit error and return.
@@ -550,6 +555,7 @@ class Adapter extends EventEmitter {
 
     _parseConnectionParameterUpdateEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
+
         if (!device) {
             this.emit('error', 'Internal inconsistency: Could not find device with connection handle ' + event.conn_handle);
             return;
@@ -721,9 +727,10 @@ class Adapter extends EventEmitter {
                     this._adapter.gattcRead(device.connectionHandle, handleAsNumber, 0, err => {
                         if (err) {
                             this.emit('error', err);
-                            // Call getServices callback??
+                            gattOperation.callback(_makeError('Error reading attributes', err));
                         }
                     });
+
                     break;
                 }
             }
@@ -765,9 +772,7 @@ class Adapter extends EventEmitter {
         }
 
         this._adapter.gattcDiscoverPrimaryServices(device.connectionHandle, nextStartHandle, null, err => {
-            if (err) {
-                this.emit('error', 'Failed to get services');
-            }
+            this._checkAndPropagateError(err, 'Failed to get services', gattOperation.callback);
         });
     }
 
@@ -795,10 +800,8 @@ class Adapter extends EventEmitter {
                     // Only take the first found handle and start the read process.
                     const handleAsNumber = parseInt(handle, 10);
                     this._adapter.gattcRead(device.connectionHandle, handleAsNumber, 0, err => {
-                        if (err) {
-                            this.emit('error', err);
-
-                            // Call getDescriptors callback??
+                        if (this._checkAndPropagateError(err, `Failed to get characteristic with handle ${handleAsNumber}`, gattOperation.callback)) {
+                            return;
                         }
                     });
                     break;
@@ -819,8 +822,6 @@ class Adapter extends EventEmitter {
             const valueHandle = characteristic.handle_value;
             let uuid = this._numberTo16BitUuid(characteristic.uuid.uuid);
 
-
-
             if (characteristic.uuid.type >= this._bleDriver.BLE_UUID_TYPE_VENDOR_BEGIN) {
                 uuid = this._converter.lookupVsUuid(characteristic.uuid);
             } else if (characteristic.uuid.type === this._bleDriver.BLE_UUID_TYPE_UNKNOWN) {
@@ -828,6 +829,7 @@ class Adapter extends EventEmitter {
             }
 
             const properties = characteristic.char_props;
+
             const newCharacteristic = new Characteristic(service.instanceId, uuid, [], properties);
             newCharacteristic.declarationHandle = characteristic.handle_decl;
             newCharacteristic.valueHandle = characteristic.handle_value;
@@ -851,6 +853,7 @@ class Adapter extends EventEmitter {
             return;
         }
 
+        // Do one more round with discovery of characteristics
         this._adapter.gattcDiscoverCharacteristics(device.connectionHandle, handleRange, err => {
             if (err) {
                 this.emit('error', 'Failed to get Characteristics');
@@ -951,11 +954,7 @@ class Adapter extends EventEmitter {
         const handleRange = {start_handle: nextStartHandle, end_handle: service.endHandle};
 
         this._adapter.gattcDiscoverDescriptors(device.connectionHandle, handleRange, err => {
-            if (err) {
-                this.emit('error', 'Failed to get Descriptors');
-
-                // Call getDescriptors callback?
-            }
+            this._checkAndPropagateError(err, 'Failed to get Descriptors');
         });
     }
 
@@ -964,10 +963,6 @@ class Adapter extends EventEmitter {
         const handle = event.handle;
         const data = event.data;
         const gattOperation = this._gattOperationsMap[device.instanceId];
-        /*
-        event.offset;
-        event.len;
-        */
 
         if (gattOperation && gattOperation.pendingHandleReads && !_.isEmpty(gattOperation.pendingHandleReads)) {
             const pendingHandleReads = gattOperation.pendingHandleReads;
@@ -1025,6 +1020,7 @@ class Adapter extends EventEmitter {
 
                 if (_.isEmpty(pendingHandleReads)) {
                     const callbackCharacteristics = [];
+
                     for (let characteristicInstanceId in this._characteristics) {
                         if (this._characteristics[characteristicInstanceId].serviceInstanceId === attribute.serviceInstanceId) {
                             callbackCharacteristics.push(this._characteristics[characteristicInstanceId]);
@@ -1036,6 +1032,10 @@ class Adapter extends EventEmitter {
                 }
             } else if (attribute instanceof Descriptor) {
                 attribute.value = data;
+
+                if (attribute.uuid && attribute.value) {
+                    this.emit('descriptorAdded', attribute);
+                }
 
                 if (_.isEmpty(pendingHandleReads)) {
                     const callbackDescriptors = [];
@@ -1852,8 +1852,8 @@ class Adapter extends EventEmitter {
 
         // TODO: Does the AddOn support undefined second parameter?
         this._adapter.gapUpdateConnectionParameters(connectionHandle, null, err => {
-            if (err) {
-                this.emit('error', _makeError('Failed to reject connection parameters', err));
+            if (this._checkAndPropagateError(err, 'Failed to reject connection parameters', callback)) {
+                return;
             }
 
             if (callback) { callback(err); }
@@ -1876,16 +1876,15 @@ class Adapter extends EventEmitter {
         }
 
         this._adapter.gapAuthenticate(device.connectionHandle, secParams, err => {
-            let errorObject;
-            if (err) {
-                errorObject = _makeError('Failed to authenticate', err);
-                this.emit('error', errorObject);
+            if (this._checkAndPropagateError(err, 'Failed to authenticate', callback)) {
                 if (device.role === 'central') {
                     device.ownPeriphInitiatedPairingPending = false;
                 }
+
+                return;
             }
 
-            if (callback) { callback(errorObject); }
+            if (callback) { callback(); }
         });
     }
 
@@ -2292,7 +2291,7 @@ class Adapter extends EventEmitter {
         const device = this.getDevice(deviceInstanceId);
 
         if (this._gattOperationsMap[device.instanceId]) {
-            this.emit('error', _makeError('Failed to get services, a gatt operation already in progress', undefined));
+            this.emit('error', _makeError('Failed to get services, a GATT operation already in progress'));
             return;
         }
 
@@ -2320,11 +2319,11 @@ class Adapter extends EventEmitter {
         return this._characteristics[characteristicId];
     }
 
-    // Callback signature function(err, characteristics) {}
     getCharacteristics(serviceId, callback) {
         // TODO: Implement something for when device is local
 
         const service = this.getService(serviceId);
+
         if (!service) {
             throw new Error(_makeError('Failed to get characteristics.', 'Could not find service with id: ' + serviceId));
         }
@@ -2332,7 +2331,7 @@ class Adapter extends EventEmitter {
         const device = this.getDevice(service.deviceInstanceId);
 
         if (this._gattOperationsMap[device.instanceId]) {
-            this.emit('error', _makeError('Failed to get characteristics, a gatt operation already in progress', undefined));
+            this._checkAndPropagateError(undefined, 'Failed to get characteristics, a gatt operation already in progress', callback);
             return;
         }
 
@@ -2345,13 +2344,19 @@ class Adapter extends EventEmitter {
             return;
         }
 
-        const handleRange = {start_handle: service.startHandle, end_handle: service.endHandle};
-        this._gattOperationsMap[device.instanceId] = {callback: callback, pendingHandleReads: {}, parent: service};
+        const handleRange = {
+            start_handle: service.startHandle,
+            end_handle: service.endHandle
+        };
+
+        this._gattOperationsMap[device.instanceId] = {
+            callback: callback,
+            pendingHandleReads: {},
+            parent: service
+        };
 
         this._adapter.gattcDiscoverCharacteristics(device.connectionHandle, handleRange, err => {
-            if (err) {
-                this.emit('error', _makeError('Failed to get Characteristics', err));
-                if (callback) { callback(err); }
+            if (this._checkAndPropagateError(err, 'Failed to get Characteristics', callback)) {
                 return;
             }
         });
@@ -2421,9 +2426,7 @@ class Adapter extends EventEmitter {
         return newCollection;
     }
 
-    // Callback signature function(err, descriptors) {}
     getDescriptors(characteristicId, callback) {
-        // TODO: Implement something for when device is local
         const characteristic = this.getCharacteristic(characteristicId);
         const service = this.getService(characteristic.serviceInstanceId);
         const device = this.getDevice(service.deviceInstanceId);
@@ -2445,12 +2448,93 @@ class Adapter extends EventEmitter {
         const handleRange = {start_handle: characteristic.valueHandle + 1, end_handle: service.endHandle};
         this._gattOperationsMap[device.instanceId] = {callback: callback, pendingHandleReads: {}, parent: characteristic};
         this._adapter.gattcDiscoverDescriptors(device.connectionHandle, handleRange, err => {
-            if (err) {
-                this.emit('error', _makeError('Failed to get Descriptors', err));
-                if (callback) { callback(err); }
+            //this._checkAndPropagateError('Failed to get descriptors', err, callback);
+        });
+    }
+
+    _getDescriptorsPromise(data, serviceId, characteristicId) {
+        return (data, serviceId, characteristicId) => { return new Promise((resolve, reject) => {
+            this.getDescriptors(
+                characteristicId, (error, descriptors) => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+
+                    data.services[serviceId].characteristics[characteristicId].descriptors = descriptors;
+
+                    resolve(data);
+                }
+            );
+        });
+        };
+    }
+
+    _getCharacteristicsPromise(data, service) {
+        return (data, service) => { return new Promise((resolve, reject) => {
+            this.getCharacteristics(service.instanceId, (error, characteristics) => {
+                if (error) {
+                    reject(error);
                 return;
             }
+
+                data.services[service.instanceId].characteristics = {};
+                let promise = Promise.resolve(data);
+
+                for (let characteristic of characteristics) {
+                    data.services[service.instanceId].characteristics[characteristic.instanceId] = characteristic;
+
+                    promise = promise.then(data => {
+                        return this._getDescriptorsPromise()(
+                            data,
+                            service.instanceId,
+                            characteristic.instanceId);
         });
+                }
+
+                promise.then(data => {
+                    resolve(data);
+                }).catch(error => {
+                    reject(error);
+                });
+            });
+        });
+        };
+    }
+
+    _getServicesPromise(deviceInstanceId) {
+        return new Promise((resolve, reject) => {
+            this.getServices(
+                deviceInstanceId,
+                (error, services) => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+
+                    resolve(services);
+                });
+        });
+    }
+
+    getAttributes(deviceInstanceId, callback) {
+        let data = {'services':{}};
+
+        this._getServicesPromise(deviceInstanceId).then(services => {
+            let p = Promise.resolve(data);
+
+            for (let service of services) {
+                data.services[service.instanceId] = service;
+
+                p = p.then(data => {
+                    return this._getCharacteristicsPromise()(data, service);
+                });
+            }
+
+            return p;
+        })
+        .then(data => { if (callback) callback(undefined, data); })
+        .catch(error => { if (callback) callback(error); });
     }
 
     // Callback signature function(err, readBytes) {}

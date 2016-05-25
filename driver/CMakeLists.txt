@@ -17,6 +17,19 @@ include_directories (
 file(GLOB_RECURSE LIB_C_SOURCES src/*.c)
 file(GLOB_RECURSE LIB_CPP_SOURCES src/*.cpp)
 
+# Determine if we must add -fPIC since it is required for x64 architectures
+if(UNIX AND NOT WIN32 AND NOT APPLE)
+    find_program(CMAKE_UNAME uname /bin /usr/bin /usr/local/bin)
+    if(CMAKE_UNAME)
+        exec_program(uname ARGS -m OUTPUT_VARIABLE CMAKE_SYSTEM_PROCESSOR)
+        set(CMAKE_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR} CACHE INTERNAL "processor type (i386 and x86_64")
+        
+        if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+            add_definitions(-fPIC)
+        endif()
+    endif()
+endif()
+
 # Add definitions used by compiler when compiling source files
 add_definitions(
     -DSD_RPC_EXPORTS
@@ -30,11 +43,7 @@ set_source_files_properties(
     LANGUAGE CXX
 )
 
-if(APPLE)
-    add_library(pc-ble-driver STATIC ${LIB_C_SOURCES} ${LIB_CPP_SOURCES})
-else()
-    add_library(pc-ble-driver SHARED ${LIB_C_SOURCES} ${LIB_CPP_SOURCES})
-endif()
+add_library(pc-ble-driver STATIC ${LIB_C_SOURCES} ${LIB_CPP_SOURCES})
 
 # Specify libraries to link serialization library with
 target_link_libraries (pc-ble-driver PRIVATE ${Boost_LIBRARIES})

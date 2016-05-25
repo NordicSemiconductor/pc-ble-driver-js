@@ -108,16 +108,9 @@ void sd_rpc_on_log_event(adapter_t *adapter, sd_rpc_log_severity_t severity, con
 
 void Adapter::appendLog(LogEntry *log)
 {
+    if (asyncLog != nullptr) {
     logQueue.push(log);
-
-    if (asyncLog != nullptr)
-    {
         uv_async_send(asyncLog);
-    }
-    else
-    {
-        std::cerr << "Adapter::appendLog() asyncLog is nullptr!" << std::endl;
-        std::terminate();
     }
 }
 
@@ -369,16 +362,10 @@ static void sd_rpc_on_status(adapter_t *adapter, sd_rpc_app_status_t id, const c
 
 void Adapter::appendStatus(StatusEntry *status)
 {
-    statusQueue.push(status);
-
     if (asyncStatus != nullptr)
     {
+        statusQueue.push(status);
         uv_async_send(asyncStatus);
-    }
-    else
-    {
-        std::cerr << "Adapter::appendStatus() asyncStatus is nullptr." << std::endl;
-        std::terminate();
     }
 }
 
@@ -768,20 +755,24 @@ void Adapter::AfterClose(uv_work_t *req)
     Nan::HandleScope scope;
     auto baton = static_cast<CloseBaton *>(req->data);
 
-    v8::Local<v8::Value> argv[1];
-
-    if (baton->result != NRF_SUCCESS)
-    {
-        argv[0] = ErrorMessage::getErrorMessage(baton->result, "closing connection");
-    }
-    else
-    {
-        argv[0] = Nan::Undefined();
-    }
-
     baton->mainObject->cleanUpV8Resources();
 
-    baton->callback->Call(1, argv);
+    if (baton->callback != nullptr)
+    {
+        v8::Local<v8::Value> argv[1];
+
+        if (baton->result != NRF_SUCCESS)
+        {
+            argv[0] = ErrorMessage::getErrorMessage(baton->result, "closing connection");
+        }
+        else
+        {
+            argv[0] = Nan::Undefined();
+        }
+
+        baton->callback->Call(1, argv);
+    }
+
     delete baton;
 }
 
