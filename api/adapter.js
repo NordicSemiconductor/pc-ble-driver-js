@@ -547,7 +547,7 @@ class Adapter extends EventEmitter {
         }
 
         delete this._devices[device.instanceId];
-        this.emit('deviceDisconnected', device);
+        this.emit('deviceDisconnected', device, event.reason_name, event.reason);
 
         this._clearDeviceFromAllPerConnectionValues(device.instanceId);
         this._clearDeviceFromDiscoveredServices(device.instanceId);
