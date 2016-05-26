@@ -2452,7 +2452,7 @@ class Adapter extends EventEmitter {
         });
     }
 
-    _getDescriptorsPromise(data, serviceId, characteristicId) {
+    _getDescriptorsPromise() {
         return (data, serviceId, characteristicId) => { return new Promise((resolve, reject) => {
             this.getDescriptors(
                 characteristicId, (error, descriptors) => {
@@ -2470,7 +2470,7 @@ class Adapter extends EventEmitter {
         };
     }
 
-    _getCharacteristicsPromise(data, service) {
+    _getCharacteristicsPromise() {
         return (data, service) => { return new Promise((resolve, reject) => {
             this.getCharacteristics(service.instanceId, (error, characteristics) => {
                 if (error) {
