@@ -1,4 +1,4 @@
-[submodule "lib-ble-driver"]
+[submodule "ble-driver"]
 	path = ble-driver
 	url = https://github.com/NordicSemiconductor/pc-ble-driver.git
     branch = self_contained_driver
