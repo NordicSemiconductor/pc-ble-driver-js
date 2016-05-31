@@ -1,0 +1,3 @@
+[submodule "lib-ble-driver"]
+	path = lib-ble-driver
+	url = git@github.com:NordicSemiconductor/pc-lib-ble-driver.git
