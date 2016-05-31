@@ -9,7 +9,7 @@ if(APPLE)
     set(CMAKE_INSTALL_RPATH "@loader_path")
 endif()
 
-set(BLE_DRIVER_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/driver/include)
+set(BLE_DRIVER_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pc-ble-driver/include)
 set(UECC_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/uECC)
 
 # Platform specific
@@ -21,7 +21,7 @@ else()
     include(cmake/gcc.cmake)
 endif()
 
-add_subdirectory(driver)
+add_subdirectory(pc-ble-driver)
 
 # Essential include files to build a node addon,
 # you should add this line in every CMake.js based project.
