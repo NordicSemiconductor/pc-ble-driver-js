@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.0)
 project (pc-ble-driver-js)
 
 # All projects depending on pc-ble-driver need to include this first
+include(pc-ble-driver/cmake/pc-ble-driver.cmake)
 add_subdirectory(pc-ble-driver)
 
 set(UECC_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/uECC)
