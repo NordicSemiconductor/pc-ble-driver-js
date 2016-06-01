@@ -1,31 +1,15 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 
 # Name of the project (will be the name of the plugin)
 project (pc-ble-driver-js)
 
-if(APPLE)
-    set(CMAKE_SKIP_BUILD_RPATH TRUE)
-    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-    set(CMAKE_INSTALL_RPATH "@loader_path")
-endif()
-
-set(BLE_DRIVER_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pc-ble-driver/include)
-set(UECC_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/uECC)
-
-# Platform specific
-if(MSVC)
-    include(cmake/msvc.cmake)
-elseif(APPLE)
-    include(cmake/apple.cmake)
-else()
-    include(cmake/gcc.cmake)
-endif()
-
+# All projects depending on pc-ble-driver need to include this first
 add_subdirectory(pc-ble-driver)
 
+set(UECC_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/uECC)
 # Essential include files to build a node addon,
 # you should add this line in every CMake.js based project.
-include_directories(${CMAKE_JS_INC} ${BLE_DRIVER_INCLUDE_DIR} ${UECC_INCLUDE_DIR})
+include_directories(${CMAKE_JS_INC} ${PC_BLE_DRIVER_INCLUDE_DIR} ${UECC_INCLUDE_DIR})
 
 # Specify source files
 file (GLOB SOURCE_FILES
