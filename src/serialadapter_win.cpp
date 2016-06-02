@@ -30,10 +30,12 @@
 #include "serialadapter.h"
 
 #include <list>
+#include <string>
 
 #include "win/disphelper.h"
 #include "win/stdafx.h"
 #include "win/enumser.h"
+#include "win/jlinkIdRegLookup.h"
 
 #include <nan.h>
 
@@ -91,6 +93,11 @@ void GetAdapterList(uv_work_t* req) {
                     resultItem->manufacturer = manu;
                     resultItem->pnpId = pnpid;
                     data->results.push_back(resultItem);
+
+                    string jlinkId = portNameToJlinkId(string(comname));
+                    if (jlinkId != "") {
+                        resultItem->serialNumber = jlinkId.c_str();
+                    }
                 }
 
                 dhFreeString(manu);
