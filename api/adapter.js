@@ -57,7 +57,7 @@ class Adapter extends EventEmitter {
      * @emits {Error} Emitted when error occurs
      *
      */
-    constructor(bleDriver, adapter, instanceId, port, notSupportedMessage) {
+    constructor(bleDriver, adapter, instanceId, port, serialNumber, notSupportedMessage) {
         super();
 
         if (bleDriver === undefined) { throw new Error('Missing argument bleDriver.'); }
@@ -68,7 +68,7 @@ class Adapter extends EventEmitter {
         this._bleDriver = bleDriver;
         this._adapter = adapter;
         this._instanceId = instanceId;
-        this._state = new AdapterState(instanceId, port);
+        this._state = new AdapterState(instanceId, port, serialNumber);
         this._security = Security.getInstance(this._bleDriver);
         this._notSupportedMessage = notSupportedMessage;
 

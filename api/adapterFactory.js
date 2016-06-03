@@ -88,7 +88,7 @@ class AdapterFactory extends EventEmitter {
             notSupportedMessage = 'This adapter with SEGGER debug probe or mbed CMSIS firmware is not supported on OS X. Please visit http://www.nordicsemi.no/nRFConnectOSXfix for further instructions.';
         }
 
-        const parsedAdapter = new Adapter(this._bleDriver, addOnAdapter, instanceId, adapter.comName, notSupportedMessage);
+        const parsedAdapter = new Adapter(this._bleDriver, addOnAdapter, instanceId, adapter.comName, adapter.serialNumber, notSupportedMessage);
         return parsedAdapter;
     }
 

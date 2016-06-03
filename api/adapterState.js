@@ -13,9 +13,10 @@
 'use strict';
 
 class AdapterState {
-    constructor(instanceId, port) {
+    constructor(instanceId, port, serialNumber) {
         this._instanceId = instanceId + '.' + port;
         this._port = port;
+        this._serialNumber = serialNumber;
 
         this.baudRate = null;
         this.parity = null;
@@ -38,6 +39,10 @@ class AdapterState {
 
     get port() {
         return this._port;
+    }
+
+    get serialNumber() {
+        return this._serialNumber;
     }
 
     get powered() {
