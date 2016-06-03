@@ -35,7 +35,7 @@
 #include "win/disphelper.h"
 #include "win/stdafx.h"
 #include "win/enumser.h"
-#include "win/jlinkIdRegLookup.h"
+#include "win/jlinkid_reg_lookup.h"
 
 #include <nan.h>
 

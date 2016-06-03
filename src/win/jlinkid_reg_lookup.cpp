@@ -6,7 +6,7 @@
 #include <map>
 #include <regex>
 
-#include "jlinkIdRegLookup.h"
+#include "jlinkid_reg_lookup.h"
 
 using namespace std;
 
