@@ -35,25 +35,16 @@
 #include <list>
 #include <string>
 
+#include "serial_port_enum.h"
+
 #define ERROR_STRING_SIZE 1024
 
 METHOD_DEFINITIONS(GetAdapterList);
 
-struct AdapterListResultItem {
-public:
-    std::string comName;
-    std::string manufacturer;
-    std::string serialNumber;
-    std::string pnpId;
-    std::string locationId;
-    std::string vendorId;
-    std::string productId;
-};
-
 struct AdapterListBaton : Baton {
 public:
     BATON_CONSTRUCTOR(AdapterListBaton)
-    std::list<AdapterListResultItem*> results;
+        std::list<SerialPortDesc*> results;
     char errorString[ERROR_STRING_SIZE]; // TODO: change this to std::string
 };
 

@@ -31,12 +31,9 @@ file (GLOB UECC_SOURCE_FILES
 )
 
 if(WIN32)
-    file(GLOB PLATFORM_SOURCE_FILES "src/win/*.c" "src/win/*.cpp" "src/serialadapter_win.cpp")
 elseif(APPLE)
-    file(GLOB PLATFORM_SOURCE_FILES "src/serialadapter_osx.cpp")
 else()
     # Assume Linux
-    file(GLOB PLATFORM_SOURCE_FILES "src/serialadapter_linux.cpp")
 endif()
 
 # Force .c files to be compiled with the C++ compiler

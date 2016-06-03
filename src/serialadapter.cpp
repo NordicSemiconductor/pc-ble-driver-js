@@ -28,8 +28,10 @@
  */
 
 #include "serialadapter.h"
+#include "serial_port_enum.h"
 
-NAN_METHOD(GetAdapterList) {
+NAN_METHOD(GetAdapterList) 
+{
     if(!info[0]->IsFunction())
     {
         Nan::ThrowTypeError("First argument must be a function");
@@ -45,7 +47,15 @@ NAN_METHOD(GetAdapterList) {
     uv_queue_work(uv_default_loop(), req, GetAdapterList, reinterpret_cast<uv_after_work_cb>(AfterGetAdapterList));
 }
 
-void AfterGetAdapterList(uv_work_t* req) {
+void GetAdapterList(uv_work_t *req)
+{
+    auto baton = static_cast<AdapterListBaton*>(req->data);
+
+    EnumSerialPorts(baton->results);
+}
+
+void AfterGetAdapterList(uv_work_t* req) 
+{
 	Nan::HandleScope scope;
     auto baton = static_cast<AdapterListBaton*>(req->data);
 
