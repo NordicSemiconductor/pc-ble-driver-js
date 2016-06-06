@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 2.8.12)
 
 # Name of the project (will be the name of the plugin)
 project (pc-ble-driver-js)
