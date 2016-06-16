@@ -572,7 +572,14 @@ class Adapter extends EventEmitter {
             if (callback) { callback(undefined, device); }
         }
 
-        this.emit('connParamUpdate', device);
+        const connectionParameters = {
+            minConnectionInterval: event.conn_params.min_conn_interval,
+            maxConnectionInterval: event.conn_params.max_conn_interval,
+            slaveLatency: event.conn_params.slave_latency,
+            connectionSupervisionTimeout: event.conn_params.conn_sup_timeout,
+        };
+
+        this.emit('connParamUpdate', device, connectionParameters);
     }
 
     _parseSecParamsRequestEvent(event) {
