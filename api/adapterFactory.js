@@ -84,8 +84,10 @@ class AdapterFactory extends EventEmitter {
 
         let notSupportedMessage;
 
-        if ((os.platform() === 'darwin') && ((adapter.manufacturer === 'SEGGER') || (adapter.manufacturer === 'MBED'))) {
-            notSupportedMessage = 'This adapter with SEGGER debug probe or mbed CMSIS firmware is not supported on OS X. Please visit http://www.nordicsemi.no/nRFConnectOSXfix for further instructions.';
+        if ((os.platform() === 'darwin') && ((adapter.manufacturer === 'ARM') || (adapter.manufacturer === 'MBED'))) {
+            notSupportedMessage = 'This adapter with ARM or mbed CMSIS firmware is currently not supported on OS X. Please visit http://www.nordicsemi.com/nRFConnectOSXfix for further instructions.';
+        } else if ((os.platform() === 'darwin') && ((adapter.manufacturer === 'SEGGER'))) {
+            notSupportedMessage = 'This adapter with SEGGER debug probe requires MSD to be disabled to function properly on OSX. Please visit http://www.nordicsemi.com/nRFConnectOSXfix for further instructions.'
         }
 
         const parsedAdapter = new Adapter(this._bleDriver, addOnAdapter, instanceId, adapter.comName, adapter.serialNumber, notSupportedMessage);

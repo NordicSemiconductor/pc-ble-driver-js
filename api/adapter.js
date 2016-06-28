@@ -231,9 +231,7 @@ class Adapter extends EventEmitter {
     open(options, callback) {
         if (this.notSupportedMessage !== undefined) {
             let error = new Error(this.notSupportedMessage);
-            this.emit('error', error);
-            if (callback) { callback(error); }
-            return;
+            this.emit('warning', error);
         }
 
         if (!options) {
