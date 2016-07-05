@@ -62,30 +62,6 @@ export class Descriptor {
   characteristicInstanceId: string;
 }
 
-interface CallbackFunc {
-  (err: any): void;
-}
-
-interface ServicesCallbackFunc {
-  (err: any, services: Array<Service>): void;
-}
-
-interface CharacteristicCallbackFunc {
-  (err: any, services: Array<Characteristic>): void;
-}
-
-interface ReadCharacteristicCallbackFunc {
-  (err: any, value: Array<number>): void;
-}
-
-interface StateCallbackFunc {
-  (err: any, state: AdapterState): void;
-}
-
-interface AdapterFactoryCallbackFunc {
-  (err: any, adapters: Adapter[]): void;
-}
-
 // This is the declaration of EventEmitter taken
 // from node.d.ts file
 declare class EventEmitter {
@@ -104,22 +80,22 @@ declare class EventEmitter {
 export class Adapter extends EventEmitter {
   instanceId: string;
   state: AdapterState;
-  open(options?: AdapterOpenOptions, callback?: CallbackFunc): void;
-  close(callback?: CallbackFunc): void;
-  startScan(options: ScanParameters, callback?: CallbackFunc): void;
-  stopScan(callback?: CallbackFunc): void;
-  connect(deviceAddress: string, options: ConnectionOptions, callback?: CallbackFunc): void;
-  getServices(deviceInstanceId: string, callback?: ServicesCallbackFunc): void;
-  getCharacteristics(serviceInstanceId: string, callback?: CharacteristicCallbackFunc): void;
-  readCharacteristicValue(charInstanceId: string, callback?: ReadCharacteristicCallbackFunc): void;
-  disconnect(deviceInstanceId: string, callback?: CallbackFunc): void;
-  getState(callback: StateCallbackFunc): void;
-  setName(name: string, callback?: CallbackFunc): void;
+  open(options?: AdapterOpenOptions, callback?: (err: any) => void): void;
+  close(callback?: (err: any) => void): void;
+  startScan(options: ScanParameters, callback?: (err: any) => void): void;
+  stopScan(callback?: (err: any) => void): void;
+  connect(deviceAddress: string, options: ConnectionOptions, callback?: (err: any) => void): void;
+  getServices(deviceInstanceId: string, callback?: (err: any, services: Array<Service>) => void): void;
+  getCharacteristics(serviceInstanceId: string, callback?: (err: any, services: Array<Characteristic>) => void): void;
+  readCharacteristicValue(charInstanceId: string, callback?: (err: any, value: Array<number>) => void): void;
+  disconnect(deviceInstanceId: string, callback?: (err: any) => void): void;
+  getState(callback: (err: any, state: AdapterState) => void): void;
+  setName(name: string, callback?: (err: any) => void): void;
 }
 
 export class AdapterFactory extends EventEmitter {
   static getInstance(): AdapterFactory;
-  getAdapters(callback?: AdapterFactoryCallbackFunc);
+  getAdapters(callback?: (err: any, adapters: Adapter[]) => void);
 }
 
 export class ServiceFactory {
