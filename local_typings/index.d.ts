@@ -28,14 +28,14 @@ export interface ConnectionOptions {
   connParams: ConnectionParameters;
 }
 
-export interface AdapterState {
+export class AdapterState {
   instanceId: string;
   port: string;
   serialNumber: string;
   address: string;
 }
 
-export interface Device {
+export class Device {
   instanceId: string;
   address: string;
   role: string;
@@ -43,18 +43,23 @@ export interface Device {
   name: string;
 }
 
-export interface Service {
+export class Service {
   instanceId: string;
   deviceInstanceId: string;
   type: string;
   uuid: string;
 }
 
-export interface Characteristic {
+export class Characteristic {
   instanceId: string;
   serviceInstanceId: string;
   handle: string;
   uuid: string;
+}
+
+export class Descriptor {
+  instanceId: string;
+  characteristicInstanceId: string;
 }
 
 interface CallbackFunc {
@@ -77,7 +82,26 @@ interface StateCallbackFunc {
   (err: any, state: AdapterState): void;
 }
 
-export interface Adapter {
+interface AdapterFactoryCallbackFunc {
+  (err: any, adapters: Adapter[]): void;
+}
+
+// This is the declaration of EventEmitter taken
+// from node.d.ts file
+declare class EventEmitter {
+  addListener(event: string, listener: Function): this;
+  on(event: string, listener: Function): this;
+  once(event: string, listener: Function): this;
+  removeListener(event: string, listener: Function): this;
+  removeAllListeners(event?: string): this;
+  setMaxListeners(n: number): this;
+  getMaxListeners(): number;
+  listeners(event: string): Function[];
+  emit(event: string, ...args: any[]): boolean;
+  listenerCount(type: string): number;
+}
+
+export class Adapter extends EventEmitter {
   instanceId: string;
   state: AdapterState;
   open(options?: AdapterOpenOptions, callback?: CallbackFunc): void;
@@ -91,12 +115,28 @@ export interface Adapter {
   disconnect(deviceInstanceId: string, callback?: CallbackFunc): void;
   getState(callback: StateCallbackFunc): void;
   setName(name: string, callback?: CallbackFunc): void;
-
-  // do not know how to extend in the declaration file so adding the
-  // methods manually !!
-  on(eventname: string, listener: Function): void;
-  removeListener(eventname: string, listener: Function): void;
 }
 
-export var api: any;
-export var driver: any;
+export class AdapterFactory extends EventEmitter {
+  static getInstance(): AdapterFactory;
+  getAdapters(callback?: AdapterFactoryCallbackFunc);
+}
+
+export class ServiceFactory {
+  createService(uuid: string, serviceType: string);
+  createCharacteristic(service: Service, uuid: string, value: any, properties: any, options: any);
+  createDescriptor(characteristic: Characteristic, uuid: string, value: string, options: string);
+}
+
+export const api: {
+  AdapterFactory: typeof AdapterFactory;
+  Adapter: typeof Adapter;
+  AdapterState: typeof AdapterState;
+  Characteristic: typeof Characteristic;
+  Device: typeof Device;
+  Service: typeof Service;
+  Descriptor: typeof Descriptor;
+  ServiceFactory: typeof ServiceFactory;
+};
+
+export const driver: any;
