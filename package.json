@@ -1,34 +1,35 @@
 {
-  "name": "pc-ble-driver-js",
-  "version": "0.1.0",
-  "description": "Javascript bindings for pc-ble-driver",
-  "main": "index.js",
-  "scripts": {
-    "lint": "jshint api/ test/ && jscs api/ test/",
-    "install": "node build.js",
-    "test": "mocha --es_staging --recursive test/api"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/NordicSemiconductor/pc-ble-driver-js.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "bindings": "^1.2.1",
-    "change-case": "2.3.0",
-    "cmake-js": "1.1.0",
-    "nan": "2.3.3",
-    "underscore": "^1.8.3"
-  },
-  "devDependencies": {
-    "chai": "3.3.0",
-    "jscs": "^2.3.5",
-    "jshint": "^2.8.0",
-    "keypress": "0.2.1",
-    "mocha": "^2.3.3",
-    "proxyquire": "^1.7.3",
-    "sinon": "^1.17.1",
-    "yargs": "^3.29.0"
-  }
+    "name": "pc-ble-driver-js",
+    "version": "0.1.0",
+    "description": "Javascript bindings for pc-ble-driver",
+    "main": "index.js",
+    "scripts": {
+        "lint": "jshint api/ test/ && jscs api/ test/",
+        "install": "node build.js",
+        "test": "mocha --es_staging --recursive test/api"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/NordicSemiconductor/pc-ble-driver-js.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "bindings": "^1.2.1",
+        "change-case": "2.3.0",
+        "cmake-js": "1.1.0",
+        "nan": "2.3.3",
+        "underscore": "^1.8.3"
+    },
+    "devDependencies": {
+        "chai": "3.3.0",
+        "jscs": "^2.3.5",
+        "jshint": "^2.8.0",
+        "keypress": "0.2.1",
+        "mocha": "^2.3.3",
+        "proxyquire": "^1.7.3",
+        "sinon": "^1.17.1",
+        "yargs": "^3.29.0"
+    },
+    "typings": "local_typings/index.d.ts"
 }
