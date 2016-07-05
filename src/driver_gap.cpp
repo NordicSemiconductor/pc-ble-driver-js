@@ -218,7 +218,7 @@ v8::Local<v8::Object> GapAddr::ToJs()
     sprintf(addr, "%02X:%02X:%02X:%02X:%02X:%02X", ptr[5], ptr[4], ptr[3], ptr[2], ptr[1], ptr[0]);
 
     Utility::Set(obj, "address", addr);
-    Utility::Set(obj, "type", gap_addr_type_map[native->addr_type]);
+    Utility::Set(obj, "type", ConversionUtility::valueToJsString(native->addr_type, gap_addr_type_map));
 
     free(addr);
 
@@ -1190,7 +1190,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
 
     if (this->evt->scan_rsp != 1)
     {
-        Utility::Set(obj, "adv_type", gap_adv_type_map[this->evt->type]); // TODO: add support for non defined adv types
+        Utility::Set(obj, "adv_type", ConversionUtility::valueToJsString(this->evt->type, gap_adv_type_map)); // TODO: add support for non defined adv types
     }
 
     uint8_t dlen = this->evt->dlen;
