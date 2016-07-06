@@ -9,6 +9,11 @@ export interface AdapterOpenOptions {
   enableBLE?: boolean;
 }
 
+export interface Address {
+  address: string;
+  type: string; // TODO : Should replace this with enum
+}
+
 export interface ScanParameters {
   active: boolean;
   interval: number;
@@ -32,7 +37,13 @@ export class AdapterState {
   instanceId: string;
   port: string;
   serialNumber: string;
-  address: string;
+  address: Address;
+  addressType: string;
+  name: string;
+  available: boolean;
+  scanning: boolean;
+  advertising: boolean;
+  connecting: boolean;
 }
 
 export class Device {
