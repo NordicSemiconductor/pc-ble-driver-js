@@ -84,8 +84,8 @@ class AdapterFactory extends EventEmitter {
 
         let notSupportedMessage;
 
-        if ((os.platform() === 'darwin') && ((adapter.manufacturer === 'ARM') || (adapter.manufacturer === 'MBED'))) {
-            notSupportedMessage = 'This adapter with ARM or mbed CMSIS firmware is currently not supported on OS X. Please visit www.nordicsemi.com/nRFConnectOSXfix for further instructions.';
+        if ((os.platform() === 'darwin') && (adapter.manufacturer === 'MBED')) {
+            notSupportedMessage = 'This adapter with mbed CMSIS firmware is currently not supported on OS X. Please visit www.nordicsemi.com/nRFConnectOSXfix for further instructions.';
         } else if ((os.platform() === 'darwin') && ((adapter.manufacturer === 'SEGGER'))) {
             notSupportedMessage = 'Note: Adapters with Segger JLink debug probe requires MSD to be disabled to function properly on OSX. Please visit www.nordicsemi.com/nRFConnectOSXfix for further instructions.';
         }
