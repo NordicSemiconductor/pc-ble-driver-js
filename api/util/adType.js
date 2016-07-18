@@ -15,7 +15,7 @@
 const AD_PACKET_MAX_SIZE = 20;
 
 // Remove hyphens and reverse byte ordering to little endian
-let cleanUpUuid = function(uuid) {
+let cleanUpUuid = function (uuid) {
     return uuid
         .replace(/-/g, '')
         .match(/.{2}/g)
@@ -23,7 +23,7 @@ let cleanUpUuid = function(uuid) {
         .join('');
 };
 
-let flagsTypeMarshaller = function(buf, offset, flags) {
+let flagsTypeMarshaller = function (buf, offset, flags) {
     let value = 0x00;
 
     for (const flag in flags) {
@@ -51,7 +51,7 @@ let flagsTypeMarshaller = function(buf, offset, flags) {
     return buf.writeUInt8(value, offset);
 };
 
-let serviceUuidsMarshaller = function(buf, offset, uuids) {
+let serviceUuidsMarshaller = function (buf, offset, uuids) {
     // TODO: add uuids
     var pos = offset;
 
@@ -64,7 +64,7 @@ let serviceUuidsMarshaller = function(buf, offset, uuids) {
     return pos;
 };
 
-let txPowerLevelMarshaller = function(buf, offset, powerLevel) {
+let txPowerLevelMarshaller = function (buf, offset, powerLevel) {
     if (powerLevel < -127 || powerLevel > 127) {
         throw new Error('powerLevel is outside acceptable levels (-127 to +127 dBm)');
     }
@@ -73,7 +73,7 @@ let txPowerLevelMarshaller = function(buf, offset, powerLevel) {
 };
 
 // Special case marshaller, requires id value to be provided in payload
-let customMarshaller = function(buf, offset, customData) {
+let customMarshaller = function (buf, offset, customData) {
     let pos = offset - 1; // Overwrite the ID field at position offset - 1 since it is included in customData
     const temp = new Buffer(customData, 'hex');
     temp.copy(buf, pos);
@@ -82,7 +82,7 @@ let customMarshaller = function(buf, offset, customData) {
     return pos;
 };
 
-const notImplemented = function(buf, offset, name) {
+const notImplemented = function (buf, offset, name) {
     throw new Error('Not implemented!');
 };
 
@@ -96,9 +96,9 @@ const adTypeConverter = {
     incompleteListOf128BitServiceUuids: { id: 0x06, marshall: serviceUuidsMarshaller },
     completeListOf128BitServiceUuids:   { id: 0x07, marshall: serviceUuidsMarshaller },
 
-    shortenedLocalName: { id: 0x08, marshall: (buf, offset, name) => { return buf.write(name, offset, name.length, 'binary') + offset; }, },
+    shortenedLocalName: { id: 0x08, marshall: (buf, offset, name) => buf.write(name, offset, name.length, 'binary') + offset },
 
-    completeLocalName:  { id: 0x09, marshall: (buf, offset, name) => { return buf.write(name, offset, name.length, 'binary') + offset; } },
+    completeLocalName:  { id: 0x09, marshall: (buf, offset, name) => buf.write(name, offset, name.length, 'binary') + offset },
 
     txPowerLevel:  { id: 0x0a, marshall: txPowerLevelMarshaller },
     classOfDevice: { id: 0x0d, marshall: notImplemented },
