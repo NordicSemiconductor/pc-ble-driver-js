@@ -53,6 +53,7 @@ export class Device {
   connectionHandle: string;
   name: string;
   rssi: number;
+  adData: any;
 }
 
 export class Service {
