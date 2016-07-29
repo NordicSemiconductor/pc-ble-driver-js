@@ -52,6 +52,7 @@ export class Device {
   role: string;
   connectionHandle: string;
   name: string;
+  rssi: number;
 }
 
 export class Service {
