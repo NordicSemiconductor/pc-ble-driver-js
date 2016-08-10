@@ -98,12 +98,22 @@ export class Adapter extends EventEmitter {
   startScan(options: ScanParameters, callback?: (err: any) => void): void;
   stopScan(callback?: (err: any) => void): void;
   connect(deviceAddress: string, options: ConnectionOptions, callback?: (err: any) => void): void;
+  getService(serviceInstanceId: string, callback?: (err: any, service: Service) => void): void;
   getServices(deviceInstanceId: string, callback?: (err: any, services: Array<Service>) => void): void;
+  getCharacteristic(charInstanceId: string): Characteristic;
   getCharacteristics(serviceInstanceId: string, callback?: (err: any, services: Array<Characteristic>) => void): void;
+  getDescriptor(descriptorId: string): Descriptor;
+  getDescriptors(characteristicId: string, callback?: (err?: any, descriptors?: Array<Descriptor>) => void): void;
   readCharacteristicValue(charInstanceId: string, callback?: (err: any, value: Array<number>) => void): void;
+  readDescriptorValue(descriptorId: string, callback?: (err: any, value: Array<number>) => void): void;
   disconnect(deviceInstanceId: string, callback?: (err: any) => void): void;
   getState(callback: (err: any, state: AdapterState) => void): void;
   setName(name: string, callback?: (err: any) => void): void;
+  cancelConnect(callback?: (err: any) => void): void;
+  getDevices(): Device[];
+  getDevice(deviceInstanceId: string): Device;
+  updateConnectionParameters(deviceInstanceId: string, options: ConnectionParameters, callback?: (err: any) => void): void;
+  rejectConnParams(deviceInstanceId: string, callback?: (err: any) => void): void;
 }
 
 export class AdapterFactory extends EventEmitter {
