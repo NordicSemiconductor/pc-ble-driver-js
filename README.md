@@ -32,8 +32,11 @@ Your nRF51 Development Kit needs to be flashed with the connectivity firmware fo
 ## WIN32
 
 Setup npm:
+
+```
 npm config set cmake_CMAKE_GENERATOR:INTERNAL="Visual Studio 12 2013"
 npm config set cmake_BOOST_ROOT=c:\users\kere\dev\boost_1_60_0
+```
 
 # Run example
 
