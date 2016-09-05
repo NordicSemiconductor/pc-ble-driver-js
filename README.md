@@ -49,5 +49,5 @@ npm config set cmake_BOOST_ROOT=/path/to/boost_x_xx_x
 # Run example
 
 ```
-node example_scan.js
+node test/simpleScanTest.js
 ```
