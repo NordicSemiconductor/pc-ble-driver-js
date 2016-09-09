@@ -1,13 +1,38 @@
-/* Copyright (c) 2016 Nordic Semiconductor. All Rights Reserved.
+/*
+ * Copyright (c) 2016 Nordic Semiconductor ASA
+ * All rights reserved.
  *
- * The information contained herein is property of Nordic Semiconductor ASA.
- * Terms and conditions of usage are described in detail in NORDIC
- * SEMICONDUCTOR STANDARD SOFTWARE LICENSE AGREEMENT.
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
  *
- * Licensees are granted free, non-transferable use of the information. NO
- * WARRANTY of ANY KIND is provided. This heading must NOT be removed from
- * the file.
+ *   1. Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
+ *   2. Redistributions in binary form must reproduce the above copyright notice, this
+ *   list of conditions and the following disclaimer in the documentation and/or
+ *   other materials provided with the distribution.
+ *
+ *   3. Neither the name of Nordic Semiconductor ASA nor the names of other
+ *   contributors to this software may be used to endorse or promote products
+ *   derived from this software without specific prior written permission.
+ *
+ *   4. This software must only be used in or with a processor manufactured by Nordic
+ *   Semiconductor ASA, or in or with a processor manufactured by a third party that
+ *   is used in combination with a processor manufactured by Nordic Semiconductor.
+ *
+ *   5. Any software provided in binary or object form under this license must not be
+ *   reverse engineered, decompiled, modified and/or disassembled.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "common.h"
@@ -3353,7 +3378,7 @@ NAN_METHOD(Adapter::GapReplyAuthKey)
     }
 
     if (key != nullptr && key_type == BLE_GAP_AUTH_KEY_TYPE_PASSKEY)
-    {                                                                                              
+    {
         if (!Utility::EnsureAsciiNumbers(key, BLE_GAP_PASSKEY_LEN))
         {
             v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, "ascii number");
@@ -3569,7 +3594,7 @@ NAN_METHOD(Adapter::GapGetLESCOOBData)
     auto baton = new GapGetLESCOOBDataBaton(callback);
     baton->adapter = obj->adapter;
     baton->conn_handle = conn_handle;
-    
+
     memcpy(p_pk_own->pk, key, BLE_GAP_LESC_P256_PK_LEN);
     baton->p_pk_own = p_pk_own;
     baton->p_oobd_own = new ble_gap_lesc_oob_data_t();
@@ -3864,27 +3889,27 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GAP_AUTH_KEY_TYPE_OOB); //Out Of Band data.
 
         /* BLE_GAP_SEC_STATUS GAP Security status */
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_SUCCESS); // Procedure completed with success. 
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_TIMEOUT); // Procedure timed out. 
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_PDU_INVALID); // Invalid PDU received. 
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_RFU_RANGE1_BEGIN); // Reserved for Future Use range #1 begin. 
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_RFU_RANGE1_END); // Reserved for Future Use range #1 end. 
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_PASSKEY_ENTRY_FAILED); // Passkey entry failed (user cancelled or other). 
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_OOB_NOT_AVAILABLE); // Out of Band Key not available. 
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_AUTH_REQ); // Authentication requirements not met. 
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_CONFIRM_VALUE); // Confirm value failed. 
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_PAIRING_NOT_SUPP); // Pairing not supported.  
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_ENC_KEY_SIZE); // Encryption key size. 
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_SMP_CMD_UNSUPPORTED); // Unsupported SMP command. 
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_UNSPECIFIED); // Unspecified reason. 
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_REPEATED_ATTEMPTS); // Too little time elapsed since last attempt. 
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_INVALID_PARAMS); // Invalid parameters. 
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_DHKEY_FAILURE); // DHKey check failure. 
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_NUM_COMP_FAILURE); // Numeric Comparison failure. 
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_BR_EDR_IN_PROG); // BR/EDR pairing in progress. 
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_X_TRANS_KEY_DISALLOWED); // BR/EDR Link Key cannot be used for LE keys. 
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_RFU_RANGE2_BEGIN); // Reserved for Future Use range #2 begin. 
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_RFU_RANGE2_END); // Reserved for Future Use range #2 end. 
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_SUCCESS); // Procedure completed with success.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_TIMEOUT); // Procedure timed out.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_PDU_INVALID); // Invalid PDU received.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_RFU_RANGE1_BEGIN); // Reserved for Future Use range #1 begin.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_RFU_RANGE1_END); // Reserved for Future Use range #1 end.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_PASSKEY_ENTRY_FAILED); // Passkey entry failed (user cancelled or other).
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_OOB_NOT_AVAILABLE); // Out of Band Key not available.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_AUTH_REQ); // Authentication requirements not met.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_CONFIRM_VALUE); // Confirm value failed.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_PAIRING_NOT_SUPP); // Pairing not supported.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_ENC_KEY_SIZE); // Encryption key size.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_SMP_CMD_UNSUPPORTED); // Unsupported SMP command.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_UNSPECIFIED); // Unspecified reason.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_REPEATED_ATTEMPTS); // Too little time elapsed since last attempt.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_INVALID_PARAMS); // Invalid parameters.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_DHKEY_FAILURE); // DHKey check failure.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_NUM_COMP_FAILURE); // Numeric Comparison failure.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_BR_EDR_IN_PROG); // BR/EDR pairing in progress.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_X_TRANS_KEY_DISALLOWED); // BR/EDR Link Key cannot be used for LE keys.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_RFU_RANGE2_BEGIN); // Reserved for Future Use range #2 begin.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_RFU_RANGE2_END); // Reserved for Future Use range #2 end.
 
         /* BLE_GAP_SEC_STATUS_SOURCES GAP Security status sources */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_STATUS_SOURCE_LOCAL); //Local failure.
