@@ -153,13 +153,16 @@ process.stdin.on('data', (data) => {
             assert(!error);
             runTests(adapters[Object.keys(adapters)[0]]);
         });
-        console.log("Running tests")
-    } else if (data =='c') {
-        if( adapterOne !== undefined ) {
-            console.log("Closing adapter");
+        console.log('Running tests')
+    } else if (data == 'c') {
+        if (adapterOne !== undefined) {
+            console.log('Closing adapter');
             adapterOne.close(err => {
-                console.log("Adapter closed!");
+                console.log('Adapter closed!');
             });
         }
+    } else if (data == 'q') {
+        console.log('Quit');
+        process.exit(0);
     }
 });
