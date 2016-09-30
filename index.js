@@ -47,10 +47,10 @@ var Security = require('./api/security');
 var Service = require('./api/service');
 var ServiceFactory = require('./api/serviceFactory');
 
-module.exports.driver = {
-    driverSD20,
-    driverSD30,
-};
+module.exports.driver = driverSD30;
+
+module.exports.driverSD20 = driverSD20;
+module.exports.driverSD30 = driverSD30;
 
 module.exports.api = {
     Adapter,
