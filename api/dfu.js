@@ -38,6 +38,7 @@
 'use strict';
 
 const jszip = require('jszip');
+const fs = require('fs');
 
 const EventEmitter = require('events');
 
@@ -57,18 +58,49 @@ class Dfu extends EventEmitter {
 
         if (adapter === undefined) { throw new Error('Missing argument adapter.'); }
         this._adapter = adapter;
+
+        this._manifest = null;
     }
 
-    // TODO: Add functionality here
-/*    getAdapters(callback) {
-        this._updateAdapterList((error, adapters) => {
-            if (error) {
-                callback(error);
-            } else {
-                if (callback && (typeof callback === 'function')) callback(undefined, adapters);
+    _loadManifest(manifestFilePath, callback) {
+        fs.readFile(manifestFilePath, (err, data) => {
+            if (err) {
+                this.emit('error', err);
+                if (callback && (typeof callback === 'function')) {
+                    callback(err);
+                }
             }
-        });
-    }*/
+
+            try {
+                this._manifest = JSON.parse(data)['manifest'];
+            } catch (err) {
+                this.emit('error', err);
+            }
+
+            if (callback && (typeof callback === 'function')) {
+                callback();
+            }
+        })
+    }
+
+    /* Manifest object format:
+    Consists of one or more properties whose name is one of:
+        application
+        bootloader
+        softdevice
+        softdevice-bootloader
+    Each of the above properties is a firmware object, on the format:
+        {bin_file: <binfile>,   // Name of file containing firmware.
+         dat_file: <datfile>}   // Name of file containing init packet.
+    A firmware object named softdevice-bootloader has one additional property:
+        info_read_only_metadata: {
+            bl_size: <blsize>,    // Size of bootloader.
+            sd_size: <sdsize>}    // Size of softdevice.
+    */
+    get manifest() {
+        return this._manifest;
+    }
+
 }
 
 module.exports = Dfu;

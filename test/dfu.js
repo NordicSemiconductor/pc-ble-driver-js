@@ -47,6 +47,10 @@ const adapterFactory = setup.adapterFactory;
 
 function runTests(adapter) {
     const dfu = new api.Dfu(adapter);
+
+    const manifest = "../../manifest-examples/softdevice-bootloader-manifest.json";
+    dfu._loadManifest(manifest, (() => {console.log(dfu.manifest);}));
+
 }
 
 adapterFactory.getAdapters((error, adapters) => {
