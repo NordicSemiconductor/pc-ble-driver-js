@@ -19,7 +19,8 @@
         "change-case": "2.3.0",
         "cmake-js": "1.1.0",
         "nan": "2.3.3",
-        "underscore": "^1.8.3"
+        "underscore": "^1.8.3",
+        "jszip": "^3.1.2"
     },
     "devDependencies": {
         "chai": "3.3.0",

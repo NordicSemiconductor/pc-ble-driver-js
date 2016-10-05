@@ -35,28 +35,40 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-var driver = require('bindings')('pc-ble-driver-js');
-var Adapter = require('./api/adapter');
-var AdapterFactory = require('./api/adapterFactory');
-var AdapterState = require('./api/adapterState');
-var Characteristic = require('./api/characteristic');
-var Descriptor = require('./api/descriptor');
-var Device = require('./api/device');
-var Security = require('./api/security');
-var Service = require('./api/service');
-var ServiceFactory = require('./api/serviceFactory');
-var Dfu = require('./api/dfu');
+'use strict';
 
-module.exports.driver = driver;
-module.exports.api = {
-    Adapter,
-    AdapterFactory,
-    AdapterState,
-    Characteristic,
-    Descriptor,
-    Device,
-    Security,
-    Service,
-    ServiceFactory,
-    Dfu,
-};
+const jszip = require('jszip');
+
+const EventEmitter = require('events');
+
+
+/**
+ * Class that provides Adapters through the use of pc-ble-driver AddOn
+ * @class
+ */
+
+class Dfu extends EventEmitter {
+    /**
+    * Constructor that shall not be used by developer.
+    * @private
+    */
+    constructor(adapter) {
+        super();
+
+        if (adapter === undefined) { throw new Error('Missing argument adapter.'); }
+        this._adapter = adapter;
+    }
+
+    // TODO: Add functionality here
+/*    getAdapters(callback) {
+        this._updateAdapterList((error, adapters) => {
+            if (error) {
+                callback(error);
+            } else {
+                if (callback && (typeof callback === 'function')) callback(undefined, adapters);
+            }
+        });
+    }*/
+}
+
+module.exports = Dfu;
