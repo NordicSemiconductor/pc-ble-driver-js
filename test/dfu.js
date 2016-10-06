@@ -46,10 +46,14 @@ const setup = require('./setup');
 const adapterFactory = setup.adapterFactory;
 
 function runTests(adapter) {
-    const dfu = new api.Dfu(adapter);
+    const zipPath = "../../manifest-examples/dfu_test_softdevice_bootloader_s132.zip";
+
+    const dfu = new api.Dfu(adapter, zipPath);
+//    dfu._loadDFUZip();
+    dfu.getManifest((err, manifest) => { console.log(manifest) } );
 
     const manifest = "../../manifest-examples/softdevice-bootloader-manifest.json";
-    dfu._loadManifest(manifest, (() => {console.log(dfu.manifest);}));
+//    dfu._loadManifest(manifest, (() => { console.log(dfu.manifest); }));
 
 }
 

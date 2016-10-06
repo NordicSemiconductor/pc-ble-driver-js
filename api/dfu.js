@@ -37,7 +37,7 @@
 
 'use strict';
 
-const jszip = require('jszip');
+const JSZip = require('jszip');
 const fs = require('fs');
 
 const EventEmitter = require('events');
@@ -53,34 +53,84 @@ class Dfu extends EventEmitter {
     * Constructor that shall not be used by developer.
     * @private
     */
-    constructor(adapter) {
+    constructor(adapter, zipFile) {
         super();
 
         if (adapter === undefined) { throw new Error('Missing argument adapter.'); }
+        if (zipFile === undefined) { throw new Error('Missing argument zipFile.'); }
+        if ((typeof zipFile !== "string") || (!zipFile.length)) {
+            throw new Error('zipFile must be a non-empty string.');
+        }
         this._adapter = adapter;
+        this._zipFilePath = zipFile;
 
+        this._zip = null;
         this._manifest = null;
     }
 
-    _loadManifest(manifestFilePath, callback) {
-        fs.readFile(manifestFilePath, (err, data) => {
+    // Callback signature: function(err) {}
+    _loadDFUZip(callback) {
+        fs.readFile(this._zipFilePath, (err, data) => {
             if (err) {
                 this.emit('error', err);
                 if (callback && (typeof callback === 'function')) {
                     callback(err);
                 }
+                return;
             }
 
+            JSZip.loadAsync(data).then((zip) => {
+                this._zip = zip;
+                if (callback && (typeof callback === 'function')) {
+                    callback();
+                }
+            })
+        })
+    }
+
+    // Callback signature: function(err, manifest) {}
+    getManifest(callback) {
+        if (!this._manifest) {
+            this._loadManifest((err) => {
+                if (err) {
+                    this.emit('error', err);
+                    return callback(err);
+                }
+                this.getManifest(callback);
+            })
+            return;
+        }
+        callback(null, this._manifest);
+    }
+
+    // Callback signature: function(err) {}
+    _loadManifest(callback) {
+        if (!this._zip) {
+            this._loadDFUZip((err) => {
+                if (err) {
+                    this.emit('error', err);
+                    return callback(err);
+                }
+                this._loadManifest(callback);
+            })
+            return;
+        }
+
+        this._zip
+        .file("manifest.json")
+        .async("string")
+        .then((data) => {
             try {
                 this._manifest = JSON.parse(data)['manifest'];
+                return callback();
             } catch (err) {
                 this.emit('error', err);
+                return callback(err);
             }
-
-            if (callback && (typeof callback === 'function')) {
-                callback();
-            }
-        })
+        }, (err) => {
+            this.emit('error', err);
+            return callback(err);
+        });
     }
 
     /* Manifest object format:
@@ -88,19 +138,15 @@ class Dfu extends EventEmitter {
         application
         bootloader
         softdevice
-        softdevice-bootloader
+        softdevice_bootloader
     Each of the above properties is a firmware object, on the format:
         {bin_file: <binfile>,   // Name of file containing firmware.
          dat_file: <datfile>}   // Name of file containing init packet.
-    A firmware object named softdevice-bootloader has one additional property:
+    A firmware object named softdevice_bootloader has one additional property:
         info_read_only_metadata: {
             bl_size: <blsize>,    // Size of bootloader.
             sd_size: <sdsize>}    // Size of softdevice.
     */
-    get manifest() {
-        return this._manifest;
-    }
-
 }
 
 module.exports = Dfu;
