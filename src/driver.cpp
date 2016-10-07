@@ -652,6 +652,8 @@ void Adapter::Open(uv_work_t *req)
 {
     auto baton = static_cast<OpenBaton *>(req->data);
 
+    baton->mainObject->eventIntervalTimer = new uv_timer_t();
+
     baton->mainObject->asyncEvent = new uv_async_t();
     baton->mainObject->asyncLog = new uv_async_t();
     baton->mainObject->asyncStatus = new uv_async_t();
