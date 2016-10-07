@@ -44,7 +44,7 @@ const EventEmitter = require('events');
 
 
 /**
- * Class that provides Adapters through the use of pc-ble-driver AddOn
+ * Class that provides Dfu controller functionality
  * @class
  */
 
