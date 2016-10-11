@@ -53,24 +53,44 @@ class Dfu extends EventEmitter {
     * Constructor that shall not be used by developer.
     * @private
     */
-    constructor(adapter, zipFile) {
+    constructor(adapter = null) {
         super();
 
-        if (adapter === undefined) { throw new Error('Missing argument adapter.'); }
-        if (zipFile === undefined) { throw new Error('Missing argument zipFile.'); }
-        if ((typeof zipFile !== "string") || (!zipFile.length)) {
-            throw new Error('zipFile must be a non-empty string.');
-        }
         this._adapter = adapter;
-        this._zipFilePath = zipFile;
-
-        this._zip = null;
-        this._manifest = null;
+        this._zipFilePath = null;
     }
 
-    // Callback signature: function(err) {}
-    _loadDFUZip(callback) {
-        fs.readFile(this._zipFilePath, (err, data) => {
+    // Callback signature: function(err, zip) {}
+    _loadZip(zipFilePath, callback) {
+        // Read zip file
+        fs.readFile(zipFilePath, (err, data) => {
+            if (err) {
+                this.emit('error', err);
+                return callback(err);
+            }
+
+            // Get and return zip object
+            JSZip.loadAsync(data)
+            .then((zip) => {
+                callback(null, zip);
+            })
+            .catch((err) => {
+                this.emit('error', err);
+                return callback(err);
+            })
+        })
+    }
+
+
+    // Callback signature: function(err, manifest) {}
+    getManifest(zipFilePath, callback) {
+        if (zipFilePath === undefined) { throw new Error('Missing argument zipFilePath.'); }
+        if ((typeof zipFilePath !== "string") || (!zipFilePath.length)) {
+            throw new Error('zipFilePath must be a non-empty string.');
+        }
+
+        // Fetch zip object
+        this._loadZip(zipFilePath, (err, zip) => {
             if (err) {
                 this.emit('error', err);
                 if (callback && (typeof callback === 'function')) {
@@ -78,59 +98,25 @@ class Dfu extends EventEmitter {
                 }
                 return;
             }
-
-            JSZip.loadAsync(data).then((zip) => {
-                this._zip = zip;
-                if (callback && (typeof callback === 'function')) {
-                    callback();
-                }
-            })
-        })
-    }
-
-    // Callback signature: function(err, manifest) {}
-    getManifest(callback) {
-        if (!this._manifest) {
-            this._loadManifest((err) => {
-                if (err) {
+            // Read out manifest from zip
+            zip.file("manifest.json")
+            .async("string")
+            .then((data) => {
+                let manifest;
+                try {
+                    // Parse manifest as JASON
+                    manifest = JSON.parse(data)['manifest'];
+                } catch (err) {
                     this.emit('error', err);
                     return callback(err);
                 }
-                this.getManifest(callback);
-            })
-            return;
-        }
-        callback(null, this._manifest);
-    }
-
-    // Callback signature: function(err) {}
-    _loadManifest(callback) {
-        if (!this._zip) {
-            this._loadDFUZip((err) => {
-                if (err) {
-                    this.emit('error', err);
-                    return callback(err);
-                }
-                this._loadManifest(callback);
-            })
-            return;
-        }
-
-        this._zip
-        .file("manifest.json")
-        .async("string")
-        .then((data) => {
-            try {
-                this._manifest = JSON.parse(data)['manifest'];
-                return callback();
-            } catch (err) {
+                // Return manifest
+                return callback(null, manifest);
+            }, (err) => {
                 this.emit('error', err);
                 return callback(err);
-            }
-        }, (err) => {
-            this.emit('error', err);
-            return callback(err);
-        });
+            });
+        })
     }
 
     /* Manifest object format:
