@@ -2600,7 +2600,7 @@ class Adapter extends EventEmitter {
         });
     }
 
-    // Callback signature function(err) {}  ack: require acknowledge from device, irrelevant in GATTS role. options: {ack, long, offset}
+    // Callback signature function(err) {}  ack: require acknowledge from device, irrelevant in GATTS role.
     writeCharacteristicValue(characteristicId, value, ack, completeCallback, deviceNotifiedOrIndicated) {
         const characteristic = this.getCharacteristic(characteristicId);
         if (!characteristic) {
