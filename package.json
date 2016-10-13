@@ -6,7 +6,7 @@
     "scripts": {
         "lint": "jshint api/ test/ && jscs api/ test/",
         "install": "node build.js",
-        "test": "mocha --es_staging --recursive test/api"
+        "test": "jest --no-cache api"
     },
     "repository": {
         "type": "git",
@@ -23,7 +23,10 @@
         "jszip": "^3.1.2"
     },
     "devDependencies": {
+        "babel-jest": "^16.0.0",
+        "babel-preset-es2015": "^6.16.0",
         "chai": "3.3.0",
+        "jest": "^16.0.1",
         "jscs": "^2.3.5",
         "jshint": "^2.8.0",
         "keypress": "0.2.1",
