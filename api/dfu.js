@@ -43,6 +43,34 @@ const fs = require('fs');
 const EventEmitter = require('events');
 
 
+// DFU control point procedure operation codes.
+// (Not to be confused with "NRF DFU Object codes".)
+const ControlPointOpcode = Object.freeze({
+    CREATE: 0x01,
+    SET_PRN: 0x02, // Set Packet Receipt Notification
+    CALCULATE_CRC: 0x03, // Calculate CRC checksum
+    EXECUTE: 0x04,
+    SELECT: 0x06,
+    RESPONSE: 0x60, // Response command, only returned by the DFU target
+});
+
+// Return codes (result codes) for Control Point operations.
+const ResultCode = Object.freeze({
+    INVALID_CODE: 0x00,
+    SUCCESS: 0x01,
+    OPCODE_NOT_SUPPORTED: 0x02,
+    INVALID_PARAMETER: 0x03,
+    INSUFFICIENT_RESOURCES: 0x04,
+    INVALID_OBJECT: 0x05,
+    UNSUPPORTED_TYPE: 0x07,
+    OPERATION_NOT_PERMITTED: 0x08,
+    OPERATION_FAILED: 0x0A,
+});
+
+const SECURE_DFU_SERVICE_UUID = 'FE59';
+const SECURE_DFU_CONTROL_POINT_UUID = '8EC90001F3154F609FB8838830DAEA50';
+const SECURE_DFU_PACKET_UUID =        '8EC90002F3154F609FB8838830DAEA50';
+
 /**
  * Class that provides Dfu controller functionality
  * @class
@@ -58,6 +86,128 @@ class Dfu extends EventEmitter {
 
         this._adapter = adapter;
         this._zipFilePath = null;
+
+        this._controlPointCharacteristicId = null;
+        this._packetCharacteristicId = null;
+    }
+
+    // Start or resume DFU process
+    // TODO: Implement
+    // TODO: Make zipFilePath and adapter+instanceId optional (use existing if argument missing)
+    // Should only have logic for handling zipFilePath and adapter, then (re)start the process.
+    startDFU(zipFilePath, adapter, instanceId) {
+        this._zipFilePath = zipFilePath || this._zipFilePath;
+        this._adapter = adapter || this._adapter;
+        this._instanceId = instanceId || this._instanceId;
+
+        this._InitDFU(instanceId);
+    }
+
+    // Stop (pause) DFU process
+    // Should do nothing more than pause.
+    stopDFU() {
+
+    }
+
+    _getAttributes(deviceInstanceId) {
+        return new Promise((resolve, reject) => {
+            this._adapter.getAttributes(deviceInstanceId, (err, data) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(data);
+                }
+            })
+        })
+    }
+
+    _getCharacteristics(serviceUUID, instanceId) {
+        return new Promise((resolve, reject) => {
+            this._getAttributes(instanceId)
+            .then((data) => {
+                for (let id in data['services']) {
+                    if (data['services'][id].uuid === serviceUUID)
+                    {
+                        resolve(data['services'][id].characteristics);
+                    }
+                }
+                reject('Could not find service: ' + serviceUUID);
+            })
+            .catch(err => reject(err));
+        });
+    }
+
+    _getCharacteristic(characteristics, uuid) {
+        for (let id in characteristics) {
+            if (characteristics[id].uuid === uuid) {
+                return id;
+            }
+        }
+        throw new Error('Could not find characteristic: ' + uuid);
+    }
+
+
+    // Find characteristics,
+    // enable notifications,
+    // set up progress events,
+    _InitDFU(instanceId) {
+        // Find characteristics
+        // TODO: finish the chain of required steps for
+        //       finding the characteristics:
+        //       Secure DFU service -> characteristics
+
+        // Find DFU service and characteristics.
+        this._getCharacteristics(SECURE_DFU_SERVICE_UUID, instanceId)
+        .then(characteristics => {
+            this._controlPointCharacteristicId = this._getCharacteristic(characteristics, SECURE_DFU_CONTROL_POINT_UUID);
+            this._packetCharacteristicId = this._getCharacteristic(characteristics, SECURE_DFU_PACKET_UUID);
+            this.emit('initialized');
+        })
+        .catch(err => this.emit('error', err));
+
+    }
+
+    // select,
+    // create init packet,
+    // send init packet,
+    // execute
+    _sendInitPacket() {
+
+    }
+
+    // select,
+    // create init packet,
+    // send init packet,
+    // execute
+    _sendFirmwarePacket() {
+
+    }
+
+    //
+    _sendObject() {
+
+    }
+
+    _sendData() {
+
+    }
+
+
+    // Write the characteristic,
+    // get the response,
+    // check that response is of correct command, and
+    // pass response to callback.
+    // Callback signature: function(err, response)
+    _sendCommand(command, callback) {
+        return new Promise((resolve, reject) => {
+
+            this._adapter.writeCharacteristicValue(
+              this._controlPointCharacteristic, command, false, callback);
+        })
+    }
+
+    _sendExecuteCommand() {
+
     }
 
     // Callback signature: function(err, zip) {}
@@ -65,17 +215,17 @@ class Dfu extends EventEmitter {
         // Read zip file
         fs.readFile(zipFilePath, (err, data) => {
             if (err) {
-                this.emit('error', err);
+//                this.emit('error', err);
                 return callback(err);
             }
 
             // Get and return zip object
             JSZip.loadAsync(data)
             .then((zip) => {
-                callback(null, zip);
+                callback(undefined, zip);
             })
             .catch((err) => {
-                this.emit('error', err);
+//                this.emit('error', err);
                 return callback(err);
             })
         })
@@ -92,11 +242,8 @@ class Dfu extends EventEmitter {
         // Fetch zip object
         this._loadZip(zipFilePath, (err, zip) => {
             if (err) {
-                this.emit('error', err);
-                if (callback && (typeof callback === 'function')) {
-                    callback(err);
-                }
-                return;
+//                this.emit('error', err);
+                return callback(err);
             }
             // Read out manifest from zip
             zip.file("manifest.json")
@@ -107,13 +254,13 @@ class Dfu extends EventEmitter {
                     // Parse manifest as JASON
                     manifest = JSON.parse(data)['manifest'];
                 } catch (err) {
-                    this.emit('error', err);
+//                    this.emit('error', err);
                     return callback(err);
                 }
                 // Return manifest
-                return callback(null, manifest);
+                return callback(undefined, manifest);
             }, (err) => {
-                this.emit('error', err);
+//                this.emit('error', err);
                 return callback(err);
             });
         })

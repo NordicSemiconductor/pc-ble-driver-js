@@ -46,13 +46,140 @@ const setup = require('./setup');
 const adapterFactory = setup.adapterFactory;
 
 function runTests(adapter) {
+    getManifestOK();
+//    getManifestNonExistingZipPath();
+    listServices(adapter);
+}
+
+function getManifestOK() {
     const dfu = new api.Dfu();
-    const zipPath = "../../manifest-examples/dfu_test_softdevice_bootloader_s132.zip";
+    const zipPath = "./dfu/dfu_test_softdevice_bootloader_s132.zip";
     dfu.getManifest(zipPath, (err, manifest) => { console.log(manifest) } );
+}
+
+function getManifestNonExistingZipPath() {
+    const dfu = new api.Dfu();
+    dfu.getManifest("non-existing/path.zip", (err, manifest) => {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log(manifest);
+        }
+    });
+}
+
+function connect(adapter, connectToAddress, callback) {
+    const options = {
+        scanParams: {
+            active: false,
+            interval: 100,
+            window: 50,
+            timeout: 20,
+        },
+        connParams: {
+            min_conn_interval: 7.5,
+            max_conn_interval: 15,
+            slave_latency: 0,
+            conn_sup_timeout: 4000,
+        },
+    };
+
+    console.log("= before adapter.connect")
+    adapter.connect(
+        connectToAddress,
+        options,
+        error => {
+            console.log("= inside adapter.connect callback")
+            if (error) {
+                console.log(error);
+            }
+            assert(!error);
+            if (callback) callback();
+        }
+    );
+}
+
+function startScan(adapter, callback)
+{
+    const scanParameters = {
+        active: true,
+        interval: 100,
+        window: 20,
+        timeout: 4,
+    };
+
+    adapter.startScan(scanParameters, err => {
+        console.log(err);
+        assert(!err);
+        if (callback) callback();
+    });
+}
+
+function setupAdapter(adapter, name, address, addressType, callback) {
+    adapter.open(
+        {
+            baudRate: 115200,
+            parity: 'none',
+            flowControl: 'none',
+            enableBLE: false,
+            eventInterval: 0,
+        },
+        error => {
+            assert(!error);
+            adapter.enableBLE(
+                null,
+                (error, params, app_ram_base) => {
+                    assert(!error);
+                    adapter.getState((error, state) => {
+                        assert(!error);
+                        adapter.setAddress(address, addressType, error => {
+                            assert(!error);
+                            adapter.setName(name, error => {
+                                console.log('= adapter.setName: ', error);
+                                assert(!error);
+                                if (callback) callback(adapter);
+                            });
+                        });
+                    });
+                }
+            );
+        }
+    );
+}
+
+function listServices(adapter) {
+    const dfu = new api.Dfu();
+    const zipPath = "./dfu/dfu_test_softdevice_bootloader_s132.zip";
+
+    let deviceID = undefined;
+
+    adapter.on('logMessage', (severity, message) => { if(severity > 1) console.log(`#1 logMessage: ${message}`)});
+    adapter.on('status', (status) => { console.log(`#1 status: ${JSON.stringify(status)}`); });
+    adapter.on('error', error => { console.log('#1 error: ' + JSON.stringify(error, null, 1)); });
+    adapter.on('stateChanged', state => { console.log('#1 stateChanged: ' + JSON.stringify(state)); });
+    adapter.on('deviceDisconnected', device => { console.log('#1 deviceDisconnected: ' + JSON.stringify(device)); });
+    adapter.on('deviceDiscovered', device => { console.log(`Discovered device: ${JSON.stringify(device)}`); });
+    adapter.on('deviceConnected', device => {
+        console.log('#1 deviceConnected: ' + JSON.stringify(device));
+        deviceID = device._instanceId;
+    });
+
+    dfu.on('initialized', () => console.log('DFU initialized!'));
+
+    setupAdapter(adapter, 'Adapter', 'FF:11:22:33:AA:BF', 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC', () => {
+        console.log('Inside setupAdapter callback.');
+
+        connect(adapter, { address: 'FC:EC:28:81:8B:84', type: 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC' }, () => {
+            console.log('Inside connect callback.');
+
+            dfu.startDFU(zipPath, adapter, deviceID);
+        });
+    });
 }
 
 adapterFactory.getAdapters((error, adapters) => {
     assert(!error);
     const adapter = adapters[Object.keys(adapters)[0]]
     runTests(adapter);
+
 });
