@@ -163,6 +163,8 @@ function listServices(adapter) {
         console.log('#1 deviceConnected: ' + JSON.stringify(device));
         deviceID = device._instanceId;
     });
+    adapter.on('characteristicValueChanged', characteristic => { console.log('characteristicValueChanged: ', characteristic); });
+    adapter.on('descriptorValueChanged', descriptor => console.log('descriptorValueChanged: ', descriptor));
 
     dfu.on('initialized', () => console.log('DFU initialized!'));
 

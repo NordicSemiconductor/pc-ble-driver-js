@@ -161,10 +161,31 @@ class Dfu extends EventEmitter {
         .then(characteristics => {
             this._controlPointCharacteristicId = this._getCharacteristic(characteristics, SECURE_DFU_CONTROL_POINT_UUID);
             this._packetCharacteristicId = this._getCharacteristic(characteristics, SECURE_DFU_PACKET_UUID);
-            this.emit('initialized');
+
+            console.log('Control point characteristic id: ', this._controlPointCharacteristicId);
+
+            this._adapter.startCharacteristicsNotifications(this._controlPointCharacteristicId, false,
+              err => {
+                if (err) {
+                    throw err;
+                } else {
+                    this._adapter.on('characteristicValueChanged', (characteristic) => {
+                        console.log('characteristicValueChanged: ', characteristic);
+                        // TODO: probably emit an event depending on what characteristic i notified.
+                    });
+
+//                    let command = new Uint8Array([2, 0, 0]);
+//                    let command = "asd";
+//                    let command = [2, 0, 0];
+                    let command = [6, 1];
+                    this._sendCommand(command)
+                    .catch(err => console.log(err));
+
+                    this.emit('initialized');
+                }
+            });
         })
         .catch(err => this.emit('error', err));
-
     }
 
     // select,
@@ -193,16 +214,36 @@ class Dfu extends EventEmitter {
     }
 
 
+    _writeCommand(command) {
+        return new Promise((resolve, reject) => {
+            this._adapter.writeCharacteristicValue(this._controlPointCharacteristicId, command, true, (err) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    console.log('_writeCommand done');
+                    resolve();
+                }
+            });
+        })
+    }
+
+
     // Write the characteristic,
     // get the response,
     // check that response is of correct command, and
     // pass response to callback.
     // Callback signature: function(err, response)
-    _sendCommand(command, callback) {
+    _sendCommand(command) {
         return new Promise((resolve, reject) => {
-
-            this._adapter.writeCharacteristicValue(
-              this._controlPointCharacteristic, command, false, callback);
+            this._writeCommand(command)
+            .then(() => {
+                // TODO: get the response (via notification) and return it,
+                //       or fail.
+//                this._adapter.once('characteristicValueChanged');
+                console.log('command written');
+                resolve();
+            })
+            .catch(err => reject(err))
         })
     }
 
