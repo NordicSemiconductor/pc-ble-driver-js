@@ -3,27 +3,13 @@ jest.mock('jszip', () => {});
 
 import Dfu from '../dfu';
 
-describe('constructor', () => {
+describe('performDFU', () => {
 
-    describe('when initialized without adapter', () => {
+    const dfu = new Dfu();
 
-        const constructorCall = () => {
-            new Dfu();
-        };
-
-        it('throws missing argument error', () => {
-            expect(constructorCall).toThrowError('Missing argument adapter.');
-        });
-    });
-
-    describe('when initialized without zip file', () => {
-
-        const constructorCall = () => {
-            new Dfu({});
-        };
-
-        it('throws missing argument error', () => {
-            expect(constructorCall).toThrowError('Missing argument zipFile.');
+    describe('when started without zip file path', () => {
+        it('throws missing zip file path error', () => {
+            expect(() => dfu.performDFU()).toThrowError();
         });
     });
 
