@@ -89,19 +89,41 @@ class Dfu extends EventEmitter {
 
         this._controlPointCharacteristicId = null;
         this._packetCharacteristicId = null;
+
+        this._setupCharacteristics = this._setupCharacteristics.bind(this);
+        this._forwardControlPointResponse = this._forwardControlPointResponse.bind(this);
+        this._writeCommand = this._writeCommand.bind(this);
     }
 
-    // Start or resume DFU process
-    // TODO: Implement
-    // TODO: Make zipFilePath and adapter+instanceId optional (use existing if argument missing)
-    // Should only have logic for handling zipFilePath and adapter, then (re)start the process.
-    startDFU(zipFilePath, adapter, instanceId) {
+    // Run the entire DFU process
+    performDFU(zipFilePath, adapter, instanceId) {
         this._zipFilePath = zipFilePath || this._zipFilePath;
         this._adapter = adapter || this._adapter;
         this._instanceId = instanceId || this._instanceId;
 
-        this._InitDFU(instanceId);
+        if (!this._zipFilePath) {
+            throw new Error('No zipFilePath provided.');
+        }
+        if (!this._adapter) {
+            throw new Error('No adapter provided.');
+        }
+        if (!this._instanceId) {
+            throw new Error('No instance ID provided.');
+        }
+
+        // FIXME: finish the chain
+        this._initDFU(instanceId);
+//        .then()
+//        .then()
+//        .catch()
     }
+
+    // Start or resume DFU process
+    // TODO: Implement
+    startDFU() {
+
+    }
+
 
     // Stop (pause) DFU process
     // Should do nothing more than pause.
@@ -146,47 +168,63 @@ class Dfu extends EventEmitter {
         throw new Error('Could not find characteristic: ' + uuid);
     }
 
+    _forwardControlPointResponse(characteristic) {
+        if (characteristic._instanceId === this._controlPointCharacteristicId) {
+            this.emit('controlPointResponse', characteristic.value);
+        }
+    }
+
+    _setupCharacteristics(characteristics) {
+        return new Promise((resolve, reject) => {
+            this._controlPointCharacteristicId = this._getCharacteristic(characteristics, SECURE_DFU_CONTROL_POINT_UUID);
+            this._packetCharacteristicId = this._getCharacteristic(characteristics, SECURE_DFU_PACKET_UUID);
+
+            this._adapter.startCharacteristicsNotifications(this._controlPointCharacteristicId, false, err => {
+                if (err) {
+                    reject(err);
+                } else {
+                    this._adapter.on('characteristicValueChanged', this._forwardControlPointResponse);
+                    resolve();
+                }
+            });
+        });
+    }
 
     // Find characteristics,
     // enable notifications,
     // set up progress events,
-    _InitDFU(instanceId) {
-        // Find characteristics
-        // TODO: finish the chain of required steps for
-        //       finding the characteristics:
-        //       Secure DFU service -> characteristics
-
-        // Find DFU service and characteristics.
+    _initDFU(instanceId) {
+        // Find DFU service
         this._getCharacteristics(SECURE_DFU_SERVICE_UUID, instanceId)
-        .then(characteristics => {
-            this._controlPointCharacteristicId = this._getCharacteristic(characteristics, SECURE_DFU_CONTROL_POINT_UUID);
-            this._packetCharacteristicId = this._getCharacteristic(characteristics, SECURE_DFU_PACKET_UUID);
-
-            console.log('Control point characteristic id: ', this._controlPointCharacteristicId);
-
-            this._adapter.startCharacteristicsNotifications(this._controlPointCharacteristicId, false,
-              err => {
-                if (err) {
-                    throw err;
-                } else {
-                    this._adapter.on('characteristicValueChanged', (characteristic) => {
-                        console.log('characteristicValueChanged: ', characteristic);
-                        // TODO: probably emit an event depending on what characteristic i notified.
-                    });
-
-//                    let command = new Uint8Array([2, 0, 0]);
-//                    let command = "asd";
-//                    let command = [2, 0, 0];
-                    let command = [6, 1];
-                    this._sendCommand(command)
-                    .catch(err => console.log(err));
-
-                    this.emit('initialized');
-                }
-            });
+        // Find and set up notifications on DFU characteristics
+        .then(this._setupCharacteristics)
+        .then(() => { this.emit('initialized'); })
+        .then(() => {
+            let command = [6, 1];
+            this._sendCommand(command)
+            .catch(err => console.log('sendCommand error: ', err));
         })
         .catch(err => this.emit('error', err));
     }
+
+//    let command = [6, 1];
+//    this._sendCommand(command)
+//    .catch(err => console.log(err));
+
+    _uninitDFU() {
+        // stop Control Point notifications
+        this._adapter.stopCharacteristicsNotifications(this._controlPointCharacteristicId, (err) => {
+            console.log('Can not stop characteristics notifications: ', err);
+        });
+
+        // stop notification forwarding
+        this._adapter.removeListener('characteristicValueChanged', this._forwardControlPointResponse);
+
+        // clear characteristic IDs.
+        this._controlPointCharacteristicId = null;
+        this._packetCharacteristicId = null;
+    }
+
 
     // select,
     // create init packet,
@@ -227,21 +265,35 @@ class Dfu extends EventEmitter {
         })
     }
 
-
     // Write the characteristic,
     // get the response,
     // check that response is of correct command, and
-    // pass response to callback.
-    // Callback signature: function(err, response)
+    // return response.
     _sendCommand(command) {
+        let responseHandler = (response => {
+            return Promise.resolve().then(() => {
+                console.log('responseHandler: ', response);
+            });
+        });
+
+        let registerResponseHandler = (() => {
+            return Promise.resolve().then(() => {
+                console.log('registering response handler...');
+                this.on('controlPointResponse', responseHandler);
+            });
+        });
+
+        let removeResponseHandler = (() => {
+            return Promise.resolve().then(() => {
+                this.removeListener('controlPointResponse', responseHandler);
+            });
+        });
+
         return new Promise((resolve, reject) => {
-            this._writeCommand(command)
+            registerResponseHandler()
+            .then(() => this._writeCommand(command))
             .then(() => {
-                // TODO: get the response (via notification) and return it,
-                //       or fail.
-//                this._adapter.once('characteristicValueChanged');
                 console.log('command written');
-                resolve();
             })
             .catch(err => reject(err))
         })

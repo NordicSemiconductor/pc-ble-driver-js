@@ -163,10 +163,11 @@ function listServices(adapter) {
         console.log('#1 deviceConnected: ' + JSON.stringify(device));
         deviceID = device._instanceId;
     });
-    adapter.on('characteristicValueChanged', characteristic => { console.log('characteristicValueChanged: ', characteristic); });
-    adapter.on('descriptorValueChanged', descriptor => console.log('descriptorValueChanged: ', descriptor));
+//    adapter.on('characteristicValueChanged', characteristic => { console.log('characteristicValueChanged: ', characteristic); });
+//    adapter.on('descriptorValueChanged', descriptor => console.log('descriptorValueChanged: ', descriptor));
 
     dfu.on('initialized', () => console.log('DFU initialized!'));
+    dfu.on('controlPointResponse', (response) => console.log('controlPointResponse: ', response));
 
     setupAdapter(adapter, 'Adapter', 'FF:11:22:33:AA:BF', 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC', () => {
         console.log('Inside setupAdapter callback.');
@@ -174,7 +175,7 @@ function listServices(adapter) {
         connect(adapter, { address: 'FC:EC:28:81:8B:84', type: 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC' }, () => {
             console.log('Inside connect callback.');
 
-            dfu.startDFU(zipPath, adapter, deviceID);
+            dfu.performDFU(zipPath, adapter, deviceID);
         });
     });
 }
