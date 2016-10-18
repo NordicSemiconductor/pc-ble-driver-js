@@ -328,15 +328,18 @@ class Dfu extends EventEmitter {
 
                 // Unregister original responseHandler.
                 removeResponseHandler();
+
+                // TODO: Add timeout for _sendCommand, either here or elsewhere.
+
+                // TODO: Do we need to check responses one last time here,
+                //       in order to avoid a race condition? Or use another mechanism?
             })
         })
 
         return new Promise((resolve, reject) => {
+            // TODO: Reject if previous command is still pending.
             registerResponseHandler()
             .then(() => this._writeCommand(command))
-            .then(() => {
-                console.log('command written');
-            })
             .then(getResponse)
             .then(response => resolve(response))
             .catch(err => reject(err))
