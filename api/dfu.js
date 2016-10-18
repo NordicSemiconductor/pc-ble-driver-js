@@ -202,6 +202,7 @@ class Dfu extends EventEmitter {
         .then(() => {
             let command = [6, 1];
             this._sendCommand(command)
+            .then(response => console.log('Got response back from _sendCommand: ', response))
             .catch(err => console.log('sendCommand error: ', err));
         })
         .catch(err => this.emit('error', err));
@@ -259,7 +260,7 @@ class Dfu extends EventEmitter {
                     reject(err);
                 } else {
                     console.log('_writeCommand done');
-                    resolve();
+                    resolve(command);
                 }
             });
         })
@@ -270,12 +271,17 @@ class Dfu extends EventEmitter {
     // check that response is of correct command, and
     // return response.
     _sendCommand(command) {
+
+        // Response queue
+        let responses = [];
+
+        // Function for pushing responses to the response queue
         let responseHandler = (response => {
-            return Promise.resolve().then(() => {
-                console.log('responseHandler: ', response);
-            });
+            console.log('responseHandler: ', response);
+            responses.push(response);
         });
 
+        // Promise for registering the response handler.
         let registerResponseHandler = (() => {
             return Promise.resolve().then(() => {
                 console.log('registering response handler...');
@@ -283,11 +289,47 @@ class Dfu extends EventEmitter {
             });
         });
 
+        // Promise for removing the response handler.
         let removeResponseHandler = (() => {
             return Promise.resolve().then(() => {
                 this.removeListener('controlPointResponse', responseHandler);
             });
         });
+
+        let getResponse = (() => {
+            return new Promise ((resolve, reject) => {
+
+                let validateResponse = ((response) => {
+                    if (response[0] == command[0]) {
+                        return; // This is just a mirror of our written command.
+                    }
+                    if (response[0] == ControlPointOpcode.RESPONSE) {
+                        // We have our response. Stop waiting for more.
+                        removeResponseHandler();
+                        this.removeListener('controlPointResponse', validateResponse);
+                        if (response [1] == command[0]) {
+                            // The response is for the original command.
+                            resolve(response);
+                        } else {
+                            // The response does not match the command.
+                            reject('Wrong command in response: Expected ', command[0], ', got ', response[1], '.');
+                        }
+                    }
+                });
+
+                // Go through existing responses.
+                while(responses.length) {
+                    let response = responses.shift();
+                    validateResponse(response);
+                }
+
+                // Register handling future responses.
+                this.on('controlPointResponse', validateResponse);
+
+                // Unregister original responseHandler.
+                removeResponseHandler();
+            })
+        })
 
         return new Promise((resolve, reject) => {
             registerResponseHandler()
@@ -295,6 +337,8 @@ class Dfu extends EventEmitter {
             .then(() => {
                 console.log('command written');
             })
+            .then(getResponse)
+            .then(response => resolve(response))
             .catch(err => reject(err))
         })
     }
