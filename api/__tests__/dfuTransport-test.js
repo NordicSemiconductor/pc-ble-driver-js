@@ -1,16 +1,5 @@
 import DfuTransport from '../dfuTransport';
-
-describe('constructor', () => {
-
-    const adapter = {
-        startCharacteristicsNotifications: jest.fn()
-    };
-    new DfuTransport(adapter);
-
-    it('should start notifications for the given control point characteristic id', () => {
-        expect(adapter.startCharacteristicsNotifications).toHaveBeenCalled();
-    });
-});
+import EventEmitter from 'events';
 
 describe('_createChunks', () => {
 
@@ -72,111 +61,139 @@ describe('_createChunks', () => {
 });
 
 
-describe('_readControlPointResponse', () => {
+describe('_sendCommand', () => {
 
-    const RESPONSE_CODE = 0x60;
-    const createDfuTransport = notifications => {
-        const adapter = {
-            startCharacteristicsNotifications: jest.fn()
-        };
-        const dfuTransport = new DfuTransport(adapter);
-        dfuTransport._notifications = notifications;
-        dfuTransport.setPollInterval(10);
-        dfuTransport.setTimeout(50);
-        return dfuTransport;
-    };
+    const CONTROL_POINT_EXECUTE = 0x04;
+    const CONTROL_POINT_SELECT = 0x06;
+    const CONTROL_POINT_RESPONSE = 0x60;
+    const OBJECT_TYPE_COMMAND = 0x01;
 
-    describe('when empty list of notifications', () => {
+    describe('when writing of characteristic value failed', () => {
 
-        const dfuTransport = createDfuTransport([]);
+        let adapter;
+        let dfuTransport;
 
-        it('should time out', () => {
-            return dfuTransport._readControlPointResponse().catch(error => {
+        beforeEach(() => {
+            adapter = new EventEmitter();
+            adapter.writeCharacteristicValue = (id, command, ack, callback) => {
+                callback('Write failed');
+            };
+            dfuTransport = new DfuTransport(adapter);
+        });
+
+        it('should return error', () => {
+            return dfuTransport._sendCommand({}).catch(error => {
+                expect(error).toEqual('Write failed');
+            });
+        });
+
+        it('should remove event listener', () => {
+            return dfuTransport._sendCommand({}).catch(() => {
+                expect(adapter.listenerCount('characteristicValueChanged')).toEqual(0);
+            });
+        });
+
+    });
+
+    describe('when no response emitted', () => {
+
+        let adapter;
+        let dfuTransport;
+
+        beforeEach(() => {
+            adapter = new EventEmitter();
+            adapter.writeCharacteristicValue = jest.fn();
+            dfuTransport = new DfuTransport(adapter);
+        });
+
+        it('should return timeout', () => {
+            jest.useFakeTimers();
+            const promise = dfuTransport._sendCommand({}).catch(error => {
                 expect(error).toContain('Timed out');
             });
+            jest.runAllTimers();
+            return promise;
         });
 
-    });
-
-    describe('when notification has matching opcode, but is not a response', () => {
-
-        const notification = [0x01, 0x02];
-        const dfuTransport = createDfuTransport([notification]);
-
-        it('should time out', () => {
-            return dfuTransport._readControlPointResponse(0x02).catch(error => {
-                expect(error).toContain('Timed out');
+        it('should remove event listener', () => {
+            jest.useFakeTimers();
+            const promise = dfuTransport._sendCommand({}).catch(error => {
+                expect(adapter.listenerCount('characteristicValueChanged')).toEqual(0);
             });
+            jest.runAllTimers();
+            return promise;
         });
 
     });
 
-    describe('when notification is response, but does not have matching opcode', () => {
+    describe('when adapter emits response for different command', () => {
 
-        const notification = [RESPONSE_CODE, 0x01];
-        const dfuTransport = createDfuTransport([notification]);
+        const command = [CONTROL_POINT_SELECT, OBJECT_TYPE_COMMAND];
+        const response = [CONTROL_POINT_RESPONSE, CONTROL_POINT_EXECUTE];
+        let adapter;
+        let dfuTransport;
 
-        it('should time out', () => {
-            return dfuTransport._readControlPointResponse(0x02).catch(error => {
-                expect(error).toContain('Timed out');
+        beforeEach(() => {
+            adapter = new EventEmitter();
+            adapter.writeCharacteristicValue = jest.fn();
+            dfuTransport = new DfuTransport(adapter);
+        });
+
+        it('should return error', () => {
+            const promise = dfuTransport._sendCommand(command).catch(error => {
+                expect(error).toContain('Got unexpected response');
             });
+            adapter.emit('characteristicValueChanged', response);
+            return promise;
         });
 
-    });
-
-    describe('when notification is response, and has matching opcode', () => {
-
-        const notification = [RESPONSE_CODE, 0x01];
-        const dfuTransport = createDfuTransport([notification]);
-
-        it('should return notification', () => {
-            return dfuTransport._readControlPointResponse(0x01).then(notification => {
-                expect(notification).toBe(notification);
+        it('should remove event listener', () => {
+            const promise = dfuTransport._sendCommand(command).catch(() => {
+                expect(adapter.listenerCount('characteristicValueChanged')).toEqual(0);
             });
+            adapter.emit('characteristicValueChanged', response);
+            return promise;
         });
 
     });
 
-    describe('when two notifications, but only the last has matching opcode', () => {
+    describe('when adapter emits the anticipated response', () => {
 
-        const notification1 = [RESPONSE_CODE, 0x02];
-        const notification2 = [RESPONSE_CODE, 0x01];
-        const dfuTransport = createDfuTransport([notification1, notification2]);
+        const command = [CONTROL_POINT_SELECT, OBJECT_TYPE_COMMAND];
+        const response = [CONTROL_POINT_RESPONSE, CONTROL_POINT_SELECT];
+        let adapter;
+        let dfuTransport;
 
-        it('should return last notification', () => {
-            return dfuTransport._readControlPointResponse(0x01).then(notification => {
-                expect(notification).toBe(notification2);
+        beforeEach(() => {
+            adapter = new EventEmitter();
+            adapter.writeCharacteristicValue = jest.fn();
+            dfuTransport = new DfuTransport(adapter);
+        });
+
+        it('should write characteristic value', () => {
+            const promise = dfuTransport._sendCommand(command).then(() => {
+                expect(adapter.writeCharacteristicValue).toHaveBeenCalled();
             });
+            adapter.emit('characteristicValueChanged', response);
+            return promise;
         });
 
-    });
-
-    describe('when empty notifications initially, but notification is added before timeout', () => {
-
-        const notification = [RESPONSE_CODE, 0x01];
-        const dfuTransport = createDfuTransport([]);
-        setTimeout(() => dfuTransport._notifications.push(notification), 20);
-
-        it('should return notification', () => {
-            return dfuTransport._readControlPointResponse(0x01).then(notification => {
-                expect(notification).toBe(notification);
+        it('should return the response', () => {
+            const promise = dfuTransport._sendCommand(command).then(response => {
+                expect(response).toBe(response);
             });
+            adapter.emit('characteristicValueChanged', response);
+            return promise;
         });
 
-    });
-
-    describe('when empty notifications initially, but notification is added after timeout', () => {
-
-        const notification = [RESPONSE_CODE, 0x01];
-        const dfuTransport = createDfuTransport([]);
-        setTimeout(() => dfuTransport._notifications.push(notification), 20);
-
-        it('should time out', () => {
-            return dfuTransport._readControlPointResponse(0x02).catch(error => {
-                expect(error).toContain('Timed out');
+        it('should remove event listener', () => {
+            const promise = dfuTransport._sendCommand(command).then(() => {
+                expect(adapter.listenerCount('characteristicValueChanged')).toEqual(0);
             });
+            adapter.emit('characteristicValueChanged', response);
+            return promise;
         });
 
     });
+
 });
-

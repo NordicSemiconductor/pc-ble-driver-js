@@ -33,7 +33,6 @@ const ObjectType = Object.freeze({
 
 const DEFAULT_DATA_PACKET_SIZE = 20;
 const DEFAULT_TIMEOUT = 20000;
-const DEFAULT_POLL_INTERVAL = 50;
 const MAX_RETRIES = 3;
 
 
@@ -44,57 +43,39 @@ class DfuTransport {
         this._controlPointCharacteristicId = controlPointCharacteristicId;
         this._packetCharacteristicId = packetCharacteristicId;
         this._dataPacketSize = DEFAULT_DATA_PACKET_SIZE;
-        this._timeout = DEFAULT_TIMEOUT;
-        this._pollInterval = DEFAULT_POLL_INTERVAL;
-        this._notifications = [];
-        this._startNotificationListener();
     }
 
     sendInitPacket(initPacket) {
         // TODO: Try to resume if possible
-        return this._selectObject(ObjectType.COMMAND)
+        return this._startNotificationListener()
+            .then(() => this._selectObject(ObjectType.COMMAND))
             .then(response => this._validatePacketSize(initPacket.length, response.maxSize))
-            .then(() => this._streamInitPacket(initPacket));
+            .then(() => this._streamInitPacket(initPacket))
+            .then(() => this._stopNotificationListener());
     }
 
     sendFirmware(firmware) {
         // TODO: Try to resume if possible
-        return this._selectObject(ObjectType.DATA)
-            .then(response => this._streamFirmware(firmware, response.maxSize));
-    }
-
-    setPollInterval(pollInterval) {
-        this._pollInterval = pollInterval;
-    }
-
-    setTimeout(timeout) {
-        this._timeout = timeout;
+        return this._startNotificationListener()
+            .then(() => this._selectObject(ObjectType.DATA))
+            .then(response => this._streamFirmware(firmware, response.maxSize))
+            .then(() => this._stopNotificationListener());
     }
 
     _startNotificationListener() {
-        this._adapter.startCharacteristicsNotifications(this._controlPointCharacteristicId, false, error => {
-            if (error) {
-                throw new Error(error);
-            } else {
-                this._adapter.on('characteristicValueChanged', this._onCharacteristicNotification);
-            }
+        return new Promise((resolve, reject) => {
+            this._adapter.startCharacteristicsNotifications(this._controlPointCharacteristicId, false, error => {
+                error ? reject(error) : resolve();
+            });
         });
     }
 
     _stopNotificationListener() {
-        this._adapter.stopCharacteristicsNotifications(this._controlPointCharacteristicId, error => {
-            if (error) {
-                throw new Error(error);
-            } else {
-                this._adapter.removeListener('characteristicValueChanged', this._onCharacteristicNotification);
-            }
+        return new Promise((resolve, reject) => {
+            this._adapter.stopCharacteristicsNotifications(this._controlPointCharacteristicId, error => {
+                error ? reject(error) : resolve();
+            });
         });
-    }
-
-    _onCharacteristicNotification(characteristic) {
-        if (characteristic._instanceId == this._controlPointCharacteristicId) {
-            this._notifications.push(characteristic);
-        }
     }
 
     _streamInitPacket(initPacket) {
@@ -171,39 +152,36 @@ class DfuTransport {
     }
 
     _sendCommand(command) {
-        return this._writeControlPoint(command)
-            .then(() => this._readControlPointResponse(command[0]));
-    }
-
-    _writeControlPoint(command) {
-        return new Promise((resolve, reject) => {
-            this._adapter.writeCharacteristicValue(this._controlPointCharacteristicId, command, true, error => {
-                error ? reject(error) : resolve();
-            });
+        let onValueChanged;
+        const removeListener = () => {
+            this._adapter.removeListener('characteristicValueChanged', onValueChanged);
+        };
+        const timeout = new Promise((resolve, reject) => {
+            setTimeout(() => {
+                removeListener();
+                reject(`Timed out when waiting for ${command[0]} response.`);
+            }, DEFAULT_TIMEOUT);
         });
-    }
-
-    _readControlPointResponse(opCode) {
-        return new Promise((resolve, reject) => {
-            let attempts = 0;
-            const readResponse = () => {
-                while (this._notifications.length > 0) {
-                    const response = this._notifications.shift();
-                    if (response[0] === ControlPointOpcode.RESPONSE &&
-                        response[1] === opCode) {
+        const writeAndReceive = new Promise((resolve, reject) => {
+            onValueChanged = response => {
+                if (response[0] === ControlPointOpcode.RESPONSE) {
+                    removeListener();
+                    if (response[1] === command[0]) {
                         resolve(response);
-                        break;
+                    } else {
+                        reject(`Got unexpected response. Expected ${command[0]}, but got ${response[1]}.`);
                     }
                 }
-                attempts++;
-                if (attempts * this._pollInterval > this._timeout) {
-                    reject(`Timed out when waiting for ${opCode} response.`);
-                } else {
-                    setTimeout(readResponse, this._pollInterval);
-                }
             };
-            readResponse();
+            this._adapter.on('characteristicValueChanged', onValueChanged);
+            this._adapter.writeCharacteristicValue(this._controlPointCharacteristicId, command, true, error => {
+                if (error) {
+                    removeListener();
+                    reject(error);
+                }
+            });
         });
+        return Promise.race([writeAndReceive, timeout]);
     }
 
     _execute() {
@@ -211,6 +189,7 @@ class DfuTransport {
     }
 
     _createObject(objectType, size) {
+        // TODO: Include size in the command
         return this._sendCommand([ControlPointOpcode.CREATE, objectType]);
     }
 
