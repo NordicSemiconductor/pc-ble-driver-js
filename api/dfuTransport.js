@@ -31,25 +31,70 @@ const ObjectType = Object.freeze({
     DATA: 0x02,
 });
 
-const DATA_PACKET_SIZE = 20;
+const DEFAULT_DATA_PACKET_SIZE = 20;
+const DEFAULT_TIMEOUT = 20000;
+const DEFAULT_POLL_INTERVAL = 50;
 const MAX_RETRIES = 3;
 
 
 class DfuTransport {
 
-    constructor(adapter = null) {
+    constructor(adapter, controlPointCharacteristicId, packetCharacteristicId) {
         this._adapter = adapter;
+        this._controlPointCharacteristicId = controlPointCharacteristicId;
+        this._packetCharacteristicId = packetCharacteristicId;
+        this._dataPacketSize = DEFAULT_DATA_PACKET_SIZE;
+        this._timeout = DEFAULT_TIMEOUT;
+        this._pollInterval = DEFAULT_POLL_INTERVAL;
+        this._notifications = [];
+        this._startNotificationListener();
     }
 
     sendInitPacket(initPacket) {
+        // TODO: Try to resume if possible
         return this._selectObject(ObjectType.COMMAND)
             .then(response => this._validatePacketSize(initPacket.length, response.maxSize))
             .then(() => this._streamInitPacket(initPacket));
     }
 
     sendFirmware(firmware) {
+        // TODO: Try to resume if possible
         return this._selectObject(ObjectType.DATA)
             .then(response => this._streamFirmware(firmware, response.maxSize));
+    }
+
+    setPollInterval(pollInterval) {
+        this._pollInterval = pollInterval;
+    }
+
+    setTimeout(timeout) {
+        this._timeout = timeout;
+    }
+
+    _startNotificationListener() {
+        this._adapter.startCharacteristicsNotifications(this._controlPointCharacteristicId, false, error => {
+            if (error) {
+                throw new Error(error);
+            } else {
+                this._adapter.on('characteristicValueChanged', this._onCharacteristicNotification);
+            }
+        });
+    }
+
+    _stopNotificationListener() {
+        this._adapter.stopCharacteristicsNotifications(this._controlPointCharacteristicId, error => {
+            if (error) {
+                throw new Error(error);
+            } else {
+                this._adapter.removeListener('characteristicValueChanged', this._onCharacteristicNotification);
+            }
+        });
+    }
+
+    _onCharacteristicNotification(characteristic) {
+        if (characteristic._instanceId == this._controlPointCharacteristicId) {
+            this._notifications.push(characteristic);
+        }
     }
 
     _streamInitPacket(initPacket) {
@@ -73,12 +118,10 @@ class DfuTransport {
     }
 
     _streamFirmware(firmware, chunkSize) {
-        return new Promise((resolve, reject) => {
-            const firmwareChunks = this._createChunks(firmware, chunkSize);
-            firmwareChunks.reduce((prev, curr) => {
-                prev.then(() => this._streamFirmwareChunk(curr));
-            }, new Promise.resolve());
-        });
+        const firmwareChunks = this._createChunks(firmware, chunkSize);
+        return firmwareChunks.reduce((prev, curr) => {
+            return prev.then(() => this._streamFirmwareChunk(curr));
+        }, new Promise.resolve());
     }
 
     _streamFirmwareChunk(chunk) {
@@ -103,9 +146,9 @@ class DfuTransport {
 
     _streamData(data) {
         return new Promise((resolve, reject) => {
-            const chunks = this._createChunks(data, DATA_PACKET_SIZE);
+            const chunks = this._createChunks(data, this._dataPacketSize);
             // TODO: Listen for packet notifications using this._adapter.on('...')
-            // TODO: Write data point with dataToSend using this._adapter
+            // TODO: Write data point with chunks using this._adapter
             // TODO: Calculate CRC using crc.crc32(dataToSend)
             // TODO: Compare calculated CRC with the one received in PRN - throw if mismatch
             // TODO: Remove packet notification listener
@@ -127,43 +170,60 @@ class DfuTransport {
         return chunks;
     }
 
-    _writeControlPoint(opCode) {
+    _sendCommand(command) {
+        return this._writeControlPoint(command)
+            .then(() => this._readControlPointResponse(command[0]));
+    }
+
+    _writeControlPoint(command) {
         return new Promise((resolve, reject) => {
-            // TODO: Write control point using this._adapter and opCode
+            this._adapter.writeCharacteristicValue(this._controlPointCharacteristicId, command, true, error => {
+                error ? reject(error) : resolve();
+            });
         });
     }
 
     _readControlPointResponse(opCode) {
         return new Promise((resolve, reject) => {
-            // TODO: Read control point using this._adapter and opCode
+            let attempts = 0;
+            const readResponse = () => {
+                while (this._notifications.length > 0) {
+                    const response = this._notifications.shift();
+                    if (response[0] === ControlPointOpcode.RESPONSE &&
+                        response[1] === opCode) {
+                        resolve(response);
+                        break;
+                    }
+                }
+                attempts++;
+                if (attempts * this._pollInterval > this._timeout) {
+                    reject(`Timed out when waiting for ${opCode} response.`);
+                } else {
+                    setTimeout(readResponse, this._pollInterval);
+                }
+            };
+            readResponse();
         });
     }
 
     _execute() {
-        return this._writeControlPoint(ControlPointOpcode.EXECUTE)
-            .then(() => this._readControlPointResponse(ControlPointOpcode.EXECUTE));
+        return this._sendCommand([ControlPointOpcode.EXECUTE]);
     }
 
     _createObject(objectType, size) {
-        return new Promise((resolve, reject) => {
-
-            // TODO: Write control point using this._adapter, ControlPointOpcode.CREATE, size
-            // TODO: Read control point using this._readControlPointResponse(ControlPointOpcode.CREATE)
-        });
+        return this._sendCommand([ControlPointOpcode.CREATE, objectType]);
     }
 
     _selectObject(objectType) {
-        return new Promise((resolve, reject) => {
-            // TODO: Write control point using this._adapter, ControlPointOpcode.SELECT, objectType
-            // TODO: Read control point response using this._readControlPointResponse(ControlPointOpcode.SELECT)
-            // TODO: Return { maxSize, offset, crc } from response
-        });
+        return this._sendCommand([ControlPointOpcode.SELECT, objectType]);
     }
 
     _validatePacketSize(packetSize, maxSize) {
-        if (packetSize > maxSize) {
-            throw new Error(`Init packet size (${packetSize}) is larger than max size (${maxSize})`);
-        }
+        return Promise.resolve().then(() => {
+            if (packetSize > maxSize) {
+                throw new Error(`Init packet size (${packetSize}) is larger than max size (${maxSize})`);
+            }
+        });
     }
 }
 
