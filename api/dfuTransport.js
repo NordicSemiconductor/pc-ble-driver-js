@@ -1,6 +1,7 @@
 'use strict';
 
 const {intToArray, arrayToInt} = require('./util/intArrayConv');
+const crc = require('crc');
 
 // DFU control point procedure operation codes.
 // (Not to be confused with "NRF DFU Object codes".)
@@ -96,11 +97,12 @@ class DfuTransport {
                         }
                     });
             };
+            tryStream();
         });
     }
 
     _streamFirmware(firmware, chunkSize) {
-        const firmwareChunks = this._createChunks(firmware, chunkSize);
+        const firmwareChunks = DfuTransport._createChunks(firmware, chunkSize);
         return firmwareChunks.reduce((prev, curr) => {
             return prev.then(() => this._streamFirmwareChunk(curr));
         }, new Promise.resolve());
@@ -123,17 +125,48 @@ class DfuTransport {
                         }
                     });
             };
+            tryStream();
         });
     }
 
-    _streamData(data) {
+    _streamData(data, connectionPrn) {
         return new Promise((resolve, reject) => {
-            const chunks = this._createChunks(data, this._dataPacketSize);
-            // TODO: Listen for packet notifications using this._adapter.on('...')
-            // TODO: Write data point with chunks using this._adapter
-            // TODO: Calculate CRC using crc.crc32(dataToSend)
-            // TODO: Compare calculated CRC with the one received in PRN - throw if mismatch
-            // TODO: Remove packet notification listener
+            const chunks = DfuTransport._createChunks(data, this._dataPacketSize);
+            let localCrc;
+            let chunkCount = 0;
+            let currentPrnCount = 0;
+
+            const send = () => {
+                const proceed = () => {
+                    if (chunkCount === chunks.length-1) {
+                        resolve();
+                    } else {
+                        chunkCount++;
+                        send();
+                    }
+                };
+
+                const chunk = chunks[chunkCount];
+                const dataToSend = chunk.map(char => char.charCodeAt(0));
+                currentPrnCount++;
+                localCrc = crc.crc32(chunk, localCrc);
+
+                if (currentPrnCount === connectionPrn) {
+                    this._sendObject(dataToSend)
+                        .then(() => this._calculateChecksum())
+                        .then(responseCrc => {
+                            currentPrnCount = 0;
+                            if (responseCrc !== localCrc) {
+                                reject('CRC validation failed.');
+                            }
+                            proceed();
+                        });
+                } else {
+                    this._sendObject(dataToSend)
+                        .then(() => proceed());
+                }
+            };
+            send();
         });
     }
 
@@ -191,6 +224,14 @@ class DfuTransport {
             });
         });
         return Promise.race([writeAndReceive, timeout]);
+    }
+
+    _sendObject(data) {
+        return new Promise((resolve, reject) => {
+            this._adapter.writeCharacteristicValue(this._packetCharacteristicId, data, true, error => {
+                error ? reject(error) : resolve();
+            });
+        });
     }
 
     _execute() {
