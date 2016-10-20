@@ -164,15 +164,16 @@ class DfuTransport {
         });
         const writeAndReceive = new Promise((resolve, reject) => {
             onValueChanged = characteristic => {
-                if (characteristic._instanceId === this._controlPointCharacteristicId) {
-                    let response = characteristic.value;
-                    if (response[0] === ControlPointOpcode.RESPONSE) {
-                        removeListener();
-                        if (response[1] === command[0]) {
-                            resolve(response);
-                        } else {
-                            reject(`Got unexpected response. Expected ${command[0]}, but got ${response[1]}.`);
-                        }
+                if (characteristic._instanceId !== this._controlPointCharacteristicId) {
+                    return;
+                }
+                let response = characteristic.value;
+                if (response[0] === ControlPointOpcode.RESPONSE) {
+                    removeListener();
+                    if (response[1] === command[0]) {
+                        resolve(response);
+                    } else {
+                        reject(`Got unexpected response. Expected ${command[0]}, but got ${response[1]}.`);
                     }
                 }
             };
