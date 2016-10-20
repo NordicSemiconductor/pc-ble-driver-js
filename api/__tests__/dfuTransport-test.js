@@ -95,7 +95,7 @@ describe('_sendCommand', () => {
 
     });
 
-    describe('when no response emitted', () => {
+    describe('when no characteristic emitted', () => {
 
         let adapter;
         let dfuTransport;
@@ -126,24 +126,28 @@ describe('_sendCommand', () => {
 
     });
 
-    describe('when adapter emits response for different command', () => {
+    describe('when adapter emits characteristic for different command', () => {
 
+        const controlPointCharacteristicId = 123;
         const command = [CONTROL_POINT_SELECT, OBJECT_TYPE_COMMAND];
-        const response = [CONTROL_POINT_RESPONSE, CONTROL_POINT_EXECUTE];
+        const characteristic = {
+            _instanceId: controlPointCharacteristicId,
+            value: [CONTROL_POINT_RESPONSE, CONTROL_POINT_EXECUTE]
+        };
         let adapter;
         let dfuTransport;
 
         beforeEach(() => {
             adapter = new EventEmitter();
             adapter.writeCharacteristicValue = jest.fn();
-            dfuTransport = new DfuTransport(adapter);
+            dfuTransport = new DfuTransport(adapter, controlPointCharacteristicId);
         });
 
         it('should return error', () => {
             const promise = dfuTransport._sendCommand(command).catch(error => {
                 expect(error).toContain('Got unexpected response');
             });
-            adapter.emit('characteristicValueChanged', response);
+            adapter.emit('characteristicValueChanged', characteristic);
             return promise;
         });
 
@@ -151,30 +155,66 @@ describe('_sendCommand', () => {
             const promise = dfuTransport._sendCommand(command).catch(() => {
                 expect(adapter.listenerCount('characteristicValueChanged')).toEqual(0);
             });
-            adapter.emit('characteristicValueChanged', response);
+            adapter.emit('characteristicValueChanged', characteristic);
             return promise;
         });
 
     });
 
-    describe('when adapter emits the anticipated response', () => {
+    describe('when adapter emits characteristic for different characteristic id', () => {
 
+        const controlPointCharacteristicId = 123;
         const command = [CONTROL_POINT_SELECT, OBJECT_TYPE_COMMAND];
-        const response = [CONTROL_POINT_RESPONSE, CONTROL_POINT_SELECT];
+        const characteristicToIgnore = {
+            _instanceId: 456,
+            value: [CONTROL_POINT_RESPONSE, CONTROL_POINT_SELECT]
+        };
+        const characteristicToReturn = {
+            _instanceId: controlPointCharacteristicId,
+            value: [CONTROL_POINT_RESPONSE, CONTROL_POINT_SELECT]
+        };
         let adapter;
         let dfuTransport;
 
         beforeEach(() => {
             adapter = new EventEmitter();
             adapter.writeCharacteristicValue = jest.fn();
-            dfuTransport = new DfuTransport(adapter);
+            dfuTransport = new DfuTransport(adapter, controlPointCharacteristicId);
+        });
+
+        it('should ignore the characteristic that has different characteristic id', () => {
+            const promise = dfuTransport._sendCommand(command).then(response => {
+                expect(response).toBe(characteristicToReturn.value);
+            });
+            adapter.emit('characteristicValueChanged', characteristicToIgnore);
+            adapter.emit('characteristicValueChanged', characteristicToReturn);
+            return promise;
+        });
+
+    });
+
+    describe('when adapter emits the anticipated characteristic', () => {
+
+        const controlPointCharacteristicId = 123;
+        const command = [CONTROL_POINT_SELECT, OBJECT_TYPE_COMMAND];
+        const characteristic = {
+            _instanceId: controlPointCharacteristicId,
+            value: [CONTROL_POINT_RESPONSE, CONTROL_POINT_SELECT]
+        };
+        let adapter;
+        let dfuTransport;
+
+        beforeEach(() => {
+            adapter = new EventEmitter();
+            adapter.writeCharacteristicValue = jest.fn();
+            dfuTransport = new DfuTransport(adapter, controlPointCharacteristicId);
         });
 
         it('should write characteristic value', () => {
             const promise = dfuTransport._sendCommand(command).then(() => {
                 expect(adapter.writeCharacteristicValue).toHaveBeenCalled();
             });
-            adapter.emit('characteristicValueChanged', response);
+            adapter.emit('characteristicValueChanged', characteristic);
             return promise;
         });
 
@@ -182,7 +222,7 @@ describe('_sendCommand', () => {
             const promise = dfuTransport._sendCommand(command).then(response => {
                 expect(response).toBe(response);
             });
-            adapter.emit('characteristicValueChanged', response);
+            adapter.emit('characteristicValueChanged', characteristic);
             return promise;
         });
 
@@ -190,7 +230,7 @@ describe('_sendCommand', () => {
             const promise = dfuTransport._sendCommand(command).then(() => {
                 expect(adapter.listenerCount('characteristicValueChanged')).toEqual(0);
             });
-            adapter.emit('characteristicValueChanged', response);
+            adapter.emit('characteristicValueChanged', characteristic);
             return promise;
         });
 
