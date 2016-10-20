@@ -1,7 +1,6 @@
 'use strict';
 
-const intToArray = require('../intArrayConv').intToArray;
-const arrayToInt = require('../intArrayConv').arrayToInt;
+const {intToArray, arrayToInt} = require('./util/intArrayConv');
 
 // DFU control point procedure operation codes.
 // (Not to be confused with "NRF DFU Object codes".)
@@ -16,15 +15,15 @@ const ControlPointOpcode = Object.freeze({
 
 // Return codes (result codes) for Control Point operations.
 const ResultCode = Object.freeze({
-    INVALID_CODE: 0x00,
-    SUCCESS: 0x01,
-    OPCODE_NOT_SUPPORTED: 0x02,
-    INVALID_PARAMETER: 0x03,
-    INSUFFICIENT_RESOURCES: 0x04,
-    INVALID_OBJECT: 0x05,
-    UNSUPPORTED_TYPE: 0x07,
-    OPERATION_NOT_PERMITTED: 0x08,
-    OPERATION_FAILED: 0x0A,
+    INVALID_CODE: 0x00, 0x00: 'Invalid code.',
+    SUCCESS: 0x01, 0x01: 'Success.',
+    OPCODE_NOT_SUPPORTED: 0x02, 0x02: 'Opcode not supported.',
+    INVALID_PARAMETER: 0x03, 0x03: 'Invalid parameter.',
+    INSUFFICIENT_RESOURCES: 0x04, 0x04: 'Insufficient resources.',
+    INVALID_OBJECT: 0x05, 0x05: 'Invalid object.',
+    UNSUPPORTED_TYPE: 0x07, 0x07: 'Unsupported type.',
+    OPERATION_NOT_PERMITTED: 0x08, 0x08: 'Operation not permitted.',
+    OPERATION_FAILED: 0x0A, 0x0A: 'Operation failed.',
 });
 
 // Object types for create/select operations.
@@ -173,7 +172,11 @@ class DfuTransport {
                 if (response[0] === ControlPointOpcode.RESPONSE) {
                     removeListener();
                     if (response[1] === command[0]) {
-                        resolve(response);
+                        if (response[2] === ResultCode.SUCCESS) {
+                            resolve(response.slice(3));
+                        } else {
+                            reject(`Control Point operation ${command} returned error ${response[2]}: ${ResultCode[response[2]]}`);
+                        }
                     } else {
                         reject(`Got unexpected response. Expected ${command[0]}, but got ${response[1]}.`);
                     }
