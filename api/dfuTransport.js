@@ -163,13 +163,16 @@ class DfuTransport {
             }, DEFAULT_TIMEOUT);
         });
         const writeAndReceive = new Promise((resolve, reject) => {
-            onValueChanged = response => {
-                if (response[0] === ControlPointOpcode.RESPONSE) {
-                    removeListener();
-                    if (response[1] === command[0]) {
-                        resolve(response);
-                    } else {
-                        reject(`Got unexpected response. Expected ${command[0]}, but got ${response[1]}.`);
+            onValueChanged = characteristic => {
+                if (characteristic._instanceId === this._controlPointCharacteristicId) {
+                    let response = characteristic.value;
+                    if (response[0] === ControlPointOpcode.RESPONSE) {
+                        removeListener();
+                        if (response[1] === command[0]) {
+                            resolve(response);
+                        } else {
+                            reject(`Got unexpected response. Expected ${command[0]}, but got ${response[1]}.`);
+                        }
                     }
                 }
             };
