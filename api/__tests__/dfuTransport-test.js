@@ -197,3 +197,55 @@ describe('_sendCommand', () => {
     });
 
 });
+
+describe('Integer/array conversions', () => {
+
+    let adapter = new EventEmitter();
+    let dfuTransport = new DfuTransport(adapter);
+
+    describe('when converting integers to arrays', () => {
+
+        it('should throw if the array is too small to fit the integer', () => {
+            expect(() => dfuTransport._intToArray(0x100, 1)).toThrow();
+            expect(() => dfuTransport._intToArray(0x10000, 2)).toThrow();
+            expect(() => dfuTransport._intToArray(0x1000000, 3)).toThrow();
+            expect(() => dfuTransport._intToArray(0x100000000, 4)).toThrow();
+        });
+
+        it('should convert a two byte integer correctly to a two element array (little-endian)', () => {
+            expect(dfuTransport._intToArray(0x928f, 2)).toEqual([0x8f, 0x92]);
+        });
+
+        it('should pad the resulting array with 0x00', () => {
+            expect(dfuTransport._intToArray(0x01, 4)).toEqual([0x01, 0x00, 0x00, 0x00]);
+        })
+
+        // TODO: More test cases for correct behaviour, especially edge cases.
+    });
+
+    describe('when converting arrays to integers', () => {
+
+        it('should throw if the argument is not an array', () => {
+            expect(dfuTransport._arrayToInt({})).toThrow();
+            expect(dfuTransport._arrayToInt(42)).toThrow();
+            expect(dfuTransport._arrayToInt("string")).toThrow();
+        });
+
+        it('should throw if the array contains non-integers', () => {
+            expect(dfuTransport._arrayToInt([82, 129, "baz"])).toThrow();
+            expect(dfuTransport._arrayToInt([{}, 42])).toThrow();
+        });
+
+        it('should throw if the array values are not in (0x00, 0xFF)', () => {
+            expect(dfuTransport._arrayToInt([17, -3])).toThrow();
+            expect(dfuTransport._arrayToInt([42, 0x100])).toThrow();
+        });
+
+        it('should convert [0x00] to 0', () => {
+            expect(dfuTransport._arrayToInt([0x00])).toEqual(0);
+        });
+
+        // TODO: More test cases for correct behaviour, especially edge cases.
+    });
+
+});
