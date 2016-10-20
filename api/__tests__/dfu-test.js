@@ -5,7 +5,11 @@ import Dfu from '../dfu';
 
 describe('performDFU', () => {
 
-    const dfu = new Dfu();
+    let dfu;
+
+    beforeEach(() => {
+        dfu = new Dfu();
+    });
 
     describe('when started without zip file path', () => {
         it('throws missing zip file path error', () => {
