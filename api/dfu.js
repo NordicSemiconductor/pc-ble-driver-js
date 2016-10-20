@@ -198,13 +198,7 @@ class Dfu extends EventEmitter {
         this._getCharacteristics(SECURE_DFU_SERVICE_UUID, instanceId)
         // Find and set up notifications on DFU characteristics
         .then(this._setupCharacteristics)
-        .then(() => { this.emit('initialized'); })
-        .then(() => {
-            let command = [6, 1];
-            this._sendCommand(command)
-            .then(response => console.log('Got response back from _sendCommand: ', response))
-            .catch(err => console.log('sendCommand error: ', err));
-        })
+        .then(() => this.emit('initialized'))
         .catch(err => this.emit('error', err));
     }
 
