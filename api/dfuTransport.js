@@ -1,5 +1,7 @@
 'use strict';
 
+const intToArray = require('../intArrayConv').intToArray;
+const arrayToInt = require('../intArrayConv').arrayToInt;
 
 // DFU control point procedure operation codes.
 // (Not to be confused with "NRF DFU Object codes".)
@@ -193,7 +195,7 @@ class DfuTransport {
     }
 
     _createObject(objectType, size) {
-        return this._sendCommand([ControlPointOpcode.CREATE, objectType, this._intToArray(size, 4)]);
+        return this._sendCommand([ControlPointOpcode.CREATE, objectType, intToArray(size, 4)]);
     }
 
     _selectObject(objectType) {
@@ -205,7 +207,7 @@ class DfuTransport {
     }
 
     _setPRN(value) {
-        return this._sendCommand([ControlPointOpcode.SET_PRN], this._intToARray(value, 2));
+        return this._sendCommand([ControlPointOpcode.SET_PRN], intToArray(value, 2));
     }
 
     _validatePacketSize(packetSize, maxSize) {
@@ -214,30 +216,6 @@ class DfuTransport {
                 throw new Error(`Init packet size (${packetSize}) is larger than max size (${maxSize})`);
             }
         });
-    }
-
-    _intToArray(integer, sizeInBytes) {
-        // TODO: Check that integer is an integer.
-        let array = [];
-        for (let i = 0; i < sizeInBytes; i++) {
-            array[i] = integer % 0x100;
-            integer = Math.floor(integer / 0x100);
-        }
-        if (integer) {
-            throw new Error ('Integer to array conversion overflow.')
-        }
-        return array;
-    }
-
-    _arrayToInt(array) {
-        // TODO: Check that the elements of the array are integers in the range 0x00 to 0xFF.
-        let integer = 0;
-        let factor = 1;
-        for (let byte in array) {
-            integer += byte * factor;
-            factor *= 0x100;
-        }
-        return integer;
     }
 }
 
