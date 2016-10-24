@@ -1,8 +1,8 @@
 'use strict';
 
-const crc = require('crc');
 const { splitArray } = require('../util/arrayUtil');
 const { ControlPointOpcode, ResultCode } = require('./dfuConstants');
+const DfuPacketWriter = require('./dfuPacketWriter');
 
 const DEFAULT_MTU_SIZE = 20;
 const DEFAULT_PRN = 0;
@@ -58,46 +58,13 @@ class DfuObjectWriter {
     }
 
     _writePackets(packets) {
-        return new Promise(resolve => {
-            let packetIndex = 0;
-            let prnIndex = 0;
-            let accumulatedCrc;
-
-            const send = () => {
-                if (packetIndex === packets.length) {
-                    return resolve(accumulatedCrc);
-                }
-
-                const packet = packets[packetIndex];
-                packetIndex++;
-                prnIndex++;
-                accumulatedCrc = crc.crc32(packet, accumulatedCrc);
-
-                // Validate checksum each time we reach the given
-                // packet receipt notification number.
-                if (prnIndex === this._prn) {
-                    prnIndex = 0;
-                    this._writePacket(packet)
-                        .then(() => this._validateCrc(accumulatedCrc))
-                        .then(() => {
-                            send();
-                        });
-                } else {
-                    this._writePacket(packet)
-                        .then(() => {
-                            send();
-                        });
-                }
-            };
-            send();
-        });
-    }
-
-    _writePacket(data) {
-        return new Promise((resolve, reject) => {
-            this._adapter.writeCharacteristicValue(this._packetCharacteristicId, data, true, error => {
-                error ? reject(error) : resolve();
-            });
+        const packetWriter = new DfuPacketWriter(this._adapter, this._packetCharacteristicId, this._prn);
+        const writeChain = packets.reduce((prev, curr) => {
+            return prev.then(() => packetWriter.writePacket(curr))
+                .then(crc => crc ? this._validateCrc(crc) : Promise.resolve());
+        }, Promise.resolve());
+        writeChain.then(() => {
+            return packetWriter.getAccumulatedCrc();
         });
     }
 

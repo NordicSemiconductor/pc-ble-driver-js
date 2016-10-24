@@ -138,7 +138,7 @@ class DfuTransport {
         const objects = splitArray(firmware, objectSize);
         return objects.reduce((prev, curr) => {
             return prev.then(() => this._writeFirmwareObject(curr));
-        }, new Promise.resolve());
+        }, Promise.resolve());
     }
 
     _writeFirmwareObject(data) {
