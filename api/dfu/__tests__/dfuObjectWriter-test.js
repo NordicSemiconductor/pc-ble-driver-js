@@ -4,33 +4,49 @@ const DfuObjectWriter = require('../dfuObjectWriter');
 
 describe('writeObject', () => {
 
-    let adapter;
-    let writer;
+    const adapter = {};
+    let notificationStore;
+    let objectWriter;
 
     beforeEach(() => {
-        adapter = {
-            on: jest.fn(),
-            removeListener: jest.fn()
+        notificationStore = {
+            startListening: jest.fn(),
+            stopListening: jest.fn(),
+            readLatest: jest.fn()
         };
-        writer = new DfuObjectWriter(adapter);
+        objectWriter = new DfuObjectWriter(adapter);
+        objectWriter._notificationStore = notificationStore;
     });
 
-    describe('when write packets successful', () => {
+    describe('when write packets called', () => {
 
-        it('should enable and disable notification listener', () => {
-            writer._writePackets = () => Promise.resolve();
-            return writer.writeObject([1]).then(() => {
-                expect(adapter.on).toHaveBeenCalled();
-                expect(adapter.removeListener).toHaveBeenCalled();
-            });
-        });
+        describe('when write packets complete', () => {
 
-        it('should return CRC', () => {
-            const dummyCrc = 123;
-            writer._writePackets = () => Promise.resolve(dummyCrc);
-            return writer.writeObject([1]).then(crc => {
-                expect(crc).toEqual(dummyCrc);
+            const accumulatedCrc = 123;
+
+            beforeEach(() => {
+                // Inject our own packet writer that returns successfully,
+                // and has an accumulated CRC.
+                objectWriter._createPacketWriter = () => {
+                    return {
+                        writePacket: () => Promise.resolve(),
+                        getAccumulatedCrc: () => accumulatedCrc
+                    };
+                };
             });
+
+            it('should return accumulated CRC', () => {
+                return objectWriter.writeObject([1]).then(crc => {
+                    expect(crc).toEqual(accumulatedCrc);
+                });
+            });
+
+            it('should stop listening to notifications', () => {
+                return objectWriter.writeObject([1]).then(() => {
+                    expect(notificationStore.stopListening).toHaveBeenCalled();
+                });
+            });
+
         });
 
     });
@@ -38,17 +54,16 @@ describe('writeObject', () => {
     describe('when write packets failed', () => {
 
         it('should re-throw error', () => {
-            writer._writePackets = () => Promise.reject('Some error');
-            return writer.writeObject([1]).catch(error => {
+            objectWriter._writePackets = () => Promise.reject('Some error');
+            return objectWriter.writeObject([1]).catch(error => {
                 expect(error).toEqual('Some error');
             });
         });
 
-        it('should enable and disable notification listener', () => {
-            writer._writePackets = () => Promise.reject('Some error');
-            return writer.writeObject([1]).catch(() => {
-                expect(adapter.on).toHaveBeenCalled();
-                expect(adapter.removeListener).toHaveBeenCalled();
+        it('should stop listening to notifications', () => {
+            objectWriter._writePackets = () => Promise.reject('Some error');
+            return objectWriter.writeObject([1]).catch(() => {
+                expect(notificationStore.stopListening).toHaveBeenCalled();
             });
         });
     });
