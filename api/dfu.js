@@ -124,23 +124,25 @@ class Dfu extends EventEmitter {
 
     _performUpdates(updates) {
         return new Promise((resolve, reject) => {
-            console.log('_performUpdates creates a transport with the following parameters: ',
-                this._controlPointCharacteristicId, ' and ', this._packetCharacteristicId);
             let transport = new DfuTransport(this._adapter, this._controlPointCharacteristicId, this._packetCharacteristicId);
 
             //transport.setMtuSize(); // <-- TODO: Set MTU size.
 
             updates.reduce((prev, update) => {
                 return prev.then(() => this._performSingleUpdate(transport, update));
-            }, new Promise (resolve => resolve()))
+            },  Promise.resolve())
             .then(() => resolve());
         });
     }
 
     _performSingleUpdate(transport, update) {
         return new Promise((resolve, reject) => {
-            transport.sendInitPacket(update['initPacket'])
-            .then(() => transport.sendFirmware(update['firmware']))
+  //          transport.init()
+            Promise.resolve()
+            .then(update['initPacket'])
+            .then(data => transport.sendInitPacket(data))
+            .then(update['firmware'])
+            .then(data => transport.sendFirmware(data))
             .then(() => resolve())
             .catch(err => {
                 console.log(err);
@@ -193,9 +195,11 @@ class Dfu extends EventEmitter {
                             Promise.all([() => zip.file(update['dat_file']).async('binarystring'),
                                         () => zip.file(update['bin_file']).async('binarystring')])
                             .then(([initPacket, firmware]) => updates.push({'initPacket': initPacket, 'firmware': firmware}))
+                            .then(() => resolve())
                             .catch(err => reject(err));
+                        } else {
+                          resolve();
                         }
-                        resolve();
                     });
                 });
 
@@ -207,6 +211,7 @@ class Dfu extends EventEmitter {
                 }
 
                 promiseChain.then(() => resolve(updates))
+                .catch(err => reject(err));
             })
             .catch(err => reject(err));
         });
