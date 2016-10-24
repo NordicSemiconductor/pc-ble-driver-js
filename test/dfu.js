@@ -170,13 +170,13 @@ function listServices(adapter) {
     dfu.on('controlPointResponse', (response) => console.log('controlPointResponse: ', response));
 
     dfu.on('initialized', () => {
-        console.log('DFU is initialized.')
+        console.log('DFU is initialized.')/*
         const dfuTransport = new api.DfuTransport(adapter, dfu._controlPointCharacteristicId, dfu._packetCharacteristicId);
         dfuTransport._sendCommand([6, 1])
         .then(response => console.log(response))
         .then(() => dfuTransport._sendCommand([5]))
         .then(response => console.log(response))
-        .catch(error => console.log(error));
+        .catch(error => console.log(error));*/
       });
 
     setupAdapter(adapter, 'Adapter', 'FF:11:22:33:AA:BF', 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC', () => {
