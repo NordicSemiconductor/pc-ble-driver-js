@@ -25,6 +25,14 @@ describe('writeObject', () => {
             });
         });
 
+        it('should return CRC', () => {
+            const dummyCrc = 123;
+            writer._writePackets = () => Promise.resolve(dummyCrc);
+            return writer.writeObject([1]).then(crc => {
+                expect(crc).toEqual(dummyCrc);
+            });
+        });
+
     });
 
     describe('when write packets failed', () => {
