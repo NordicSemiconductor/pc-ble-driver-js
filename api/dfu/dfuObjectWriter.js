@@ -59,10 +59,13 @@ class DfuObjectWriter {
 
     _writePackets(packets) {
         const packetWriter = new DfuPacketWriter(this._adapter, this._packetCharacteristicId, this._prn);
-        return packets.reduce((prev, curr) => {
+        const writeChain = packets.reduce((prev, curr) => {
             return prev.then(() => packetWriter.writePacket(curr))
                 .then(crc => crc ? this._validateCrc(crc) : Promise.resolve());
         }, Promise.resolve());
+        writeChain.then(() => {
+            return packetWriter.getAccumulatedCrc();
+        });
     }
 
     _validateCrc(crc) {

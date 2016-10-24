@@ -14,7 +14,7 @@ class DfuPacketWriter {
         this._packetCharacteristicId = packetCharacteristicId;
         this._prn = prn;
         this._prnCount = 0;
-        this._accumulatedCrc = 0;
+        this._accumulatedCrc = undefined;
     }
 
     /**
@@ -32,8 +32,18 @@ class DfuPacketWriter {
             .then(() => this._returnCrcIfPrnReached());
     }
 
+    /**
+     * Returns the accumulated CRC value.
+     *
+     * @returns the CRC value
+     */
+    getAccumulatedCrc() {
+        return this._accumulatedCrc;
+    }
+
     _calculateCrc(packet) {
         this._accumulatedCrc = crc.crc32(packet, this._accumulatedCrc);
+        return Promise.resolve();
     }
 
     _write(packet) {
