@@ -17,7 +17,7 @@ class ControlPointService {
     }
 
     createObject(objectType, size) {
-        return this._sendCommand([ControlPointOpcode.CREATE, objectType, intToArray(size, 4)]);
+        return this._sendCommand([].concat([ControlPointOpcode.CREATE, objectType], intToArray(size, 4)));
     }
 
     selectObject(objectType) {
@@ -29,7 +29,7 @@ class ControlPointService {
     }
 
     setPRN(value) {
-        return this._sendCommand([ControlPointOpcode.SET_PRN], intToArray(value, 2));
+        return this._sendCommand([].concat([ControlPointOpcode.SET_PRN], intToArray(value, 2)));
     }
 
     _sendCommand(command) {
