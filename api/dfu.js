@@ -92,7 +92,6 @@ class Dfu extends EventEmitter {
 
         this._setupCharacteristics = this._setupCharacteristics.bind(this);
         this._forwardControlPointResponse = this._forwardControlPointResponse.bind(this);
-        this._writeCommand = this._writeCommand.bind(this);
     }
 
     // Run the entire DFU process
@@ -111,12 +110,79 @@ class Dfu extends EventEmitter {
             throw new Error('No instance ID provided.');
         }
 
-        // FIXME: finish the chain
-        this._initDFU(instanceId);
-//        .then()
-//        .then()
-//        .catch()
+        // TODO: instead of outputting the init packet of the first update,
+        //       actually perform the updates.
+        this._fetchUpdates(this._zipFilePath)
+        .then(updates => {
+            updates[0]['initPacket']().then(data => console.log(data));
+        })
+        .catch(err => console.log(err));
     }
+
+
+    _getManifestAsync(zipFilePath) {
+        return new Promise((resolve, reject) => {
+            this.getManifest(zipFilePath, (err, manifest) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(manifest);
+                }
+            });
+        });
+    }
+
+    _loadZipAsync(zipFilePath) {
+        return new Promise ((resolve, reject) => {
+            this._loadZip(zipFilePath, (err, zip) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(zip);
+                }
+            });
+        });
+    }
+
+    // Uses the manifest to fetch init packet (dat_file) and firmware (bin_file)
+    // from the zip. Returns a sorted array of updates, on the format
+    // [ {initPacket: <dat_file promise>, firmware: <bin_file promise>}, ... ]
+    // The sorting is such that the application update is put last.
+    // Each promise resolves with the contents of the given file.
+    _fetchUpdates(zipFilePath) {
+        return new Promise((resolve, reject) => {
+
+            Promise.all([this._loadZipAsync(zipFilePath),
+                         this._getManifestAsync(zipFilePath)])
+            .then(([zip, manifest]) => {
+                let updates = [];
+
+                const createUpdatePromise = (updateType => {
+                    return new Promise((resolve, reject) => {
+                        let update = manifest[updateType];
+                        if (update) {
+                            Promise.all([() => zip.file(update['dat_file']).async('binarystring'),
+                                        () => zip.file(update['bin_file']).async('binarystring')])
+                            .then(([initPacket, firmware]) => updates.push({'initPacket': initPacket, 'firmware': firmware}))
+                            .catch(err => reject(err));
+                        }
+                        resolve();
+                    });
+                });
+
+                let promiseChain = new Promise(resolve => resolve());
+
+                // The sorting of updates happens here; fetching is chained in the below order.
+                for (let updateType of ['softdevice', 'bootloader', 'softdevice_bootloader', 'application']) {
+                    promiseChain = promiseChain.then(() => createUpdatePromise(updateType));
+                }
+
+                promiseChain.then(() => resolve(updates))
+            })
+            .catch(err => reject(err));
+        });
+    }
+
 
     // Start or resume DFU process
     // TODO: Implement
@@ -131,6 +197,11 @@ class Dfu extends EventEmitter {
 
     }
 
+
+
+
+// TODO: Move the functionality of the following functions to DFU transport.
+//       (Start of portion to be moved.)
     _getAttributes(deviceInstanceId) {
         return new Promise((resolve, reject) => {
             this._adapter.getAttributes(deviceInstanceId, (err, data) => {
@@ -219,130 +290,10 @@ class Dfu extends EventEmitter {
         this._controlPointCharacteristicId = null;
         this._packetCharacteristicId = null;
     }
+// TODO: Move the functionality of the above functions to DFU transport.
+//       (End of portion to be moved.)
 
 
-    // select,
-    // create init packet,
-    // send init packet,
-    // execute
-    _sendInitPacket() {
-
-    }
-
-    // select,
-    // create init packet,
-    // send init packet,
-    // execute
-    _sendFirmwarePacket() {
-
-    }
-
-    //
-    _sendObject() {
-
-    }
-
-    _sendData() {
-
-    }
-
-
-    _writeCommand(command) {
-        return new Promise((resolve, reject) => {
-            this._adapter.writeCharacteristicValue(this._controlPointCharacteristicId, command, true, (err) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    console.log('_writeCommand done');
-                    resolve(command);
-                }
-            });
-        })
-    }
-
-    // Write the characteristic,
-    // get the response,
-    // check that response is of correct command, and
-    // return response.
-    _sendCommand(command) {
-
-        // Response queue
-        let responses = [];
-
-        // Function for pushing responses to the response queue
-        let responseHandler = (response => {
-            console.log('responseHandler: ', response);
-            responses.push(response);
-        });
-
-        // Promise for registering the response handler.
-        let registerResponseHandler = (() => {
-            return Promise.resolve().then(() => {
-                console.log('registering response handler...');
-                this.on('controlPointResponse', responseHandler);
-            });
-        });
-
-        // Promise for removing the response handler.
-        let removeResponseHandler = (() => {
-            return Promise.resolve().then(() => {
-                this.removeListener('controlPointResponse', responseHandler);
-            });
-        });
-
-        let getResponse = (() => {
-            return new Promise ((resolve, reject) => {
-
-                let validateResponse = ((response) => {
-                    if (response[0] == command[0]) {
-                        return; // This is just a mirror of our written command.
-                    }
-                    if (response[0] == ControlPointOpcode.RESPONSE) {
-                        // We have our response. Stop waiting for more.
-                        removeResponseHandler();
-                        this.removeListener('controlPointResponse', validateResponse);
-                        if (response [1] == command[0]) {
-                            // The response is for the original command.
-                            resolve(response);
-                        } else {
-                            // The response does not match the command.
-                            reject('Wrong command in response: Expected ', command[0], ', got ', response[1], '.');
-                        }
-                    }
-                });
-
-                // Go through existing responses.
-                while(responses.length) {
-                    let response = responses.shift();
-                    validateResponse(response);
-                }
-
-                // Register handling future responses.
-                this.on('controlPointResponse', validateResponse);
-
-                // Unregister original responseHandler.
-                removeResponseHandler();
-
-                // TODO: Add timeout for _sendCommand, either here or elsewhere.
-
-                // TODO: Do we need to check responses one last time here,
-                //       in order to avoid a race condition? Or use another mechanism?
-            })
-        })
-
-        return new Promise((resolve, reject) => {
-            // TODO: Reject if previous command is still pending.
-            registerResponseHandler()
-            .then(() => this._writeCommand(command))
-            .then(getResponse)
-            .then(response => resolve(response))
-            .catch(err => reject(err))
-        })
-    }
-
-    _sendExecuteCommand() {
-
-    }
 
     // Callback signature: function(err, zip) {}
     _loadZip(zipFilePath, callback) {
