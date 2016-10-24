@@ -4,13 +4,17 @@ const crc = require('crc');
 const { splitArray } = require('../util/arrayUtil');
 const { ControlPointOpcode, ResultCode } = require('./dfuConstants');
 
+const DEFAULT_MTU_SIZE = 20;
+const DEFAULT_PRN = 0;
+
 class DfuObjectWriter {
 
-    constructor(adapter, controlPointCharacteristicId, packetCharacteristicId, prn) {
+    constructor(adapter, controlPointCharacteristicId, packetCharacteristicId) {
         this._adapter = adapter;
         this._controlPointCharacteristicId = controlPointCharacteristicId;
         this._packetCharacteristicId = packetCharacteristicId;
-        this._prn = prn;
+        this._prn = DEFAULT_PRN;
+        this._mtuSize = DEFAULT_MTU_SIZE;
         this._notifications = [];
     }
 
@@ -18,15 +22,12 @@ class DfuObjectWriter {
      * Writes DFU data object according to the given MTU size.
      *
      * @param data byte array that should be written
-     * @param mtuSize the MTU size used when splitting data into packets
      * @returns promise that returns the final locally calculated CRC
      */
-    writeObject(data, mtuSize) {
-        const packets = splitArray(data, mtuSize);
+    writeObject(data) {
+        const packets = splitArray(data, this._mtuSize);
         this._enableNotificationListener();
-        return packets.reduce((prev, curr) => {
-            return prev.then(() => this._writePackets(curr));
-        }, Promise.resolve())
+        return this._writePackets(packets)
             .then(crc => {
                 this._disableNotificationListener();
                 return crc;
@@ -34,6 +35,26 @@ class DfuObjectWriter {
                 this._disableNotificationListener();
                 throw error;
             });
+    }
+
+    /**
+     * Sets packet receipt notification (PRN) value, which specifies how many
+     * packages should be sent before receiving receipt.
+     *
+     * @param prn the PRN value (disabled if 0)
+     */
+    setPrn(prn) {
+        this._prn = prn;
+    }
+
+    /**
+     * Sets maximum transmission unit (MTU) size. This defines the size of
+     * packets that are transferred to the device. Default is 20.
+     *
+     * @param mtuSize the MTU size
+     */
+    setMtuSize(mtuSize) {
+        this._mtuSize = mtuSize;
     }
 
     _writePackets(packets) {

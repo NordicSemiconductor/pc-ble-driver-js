@@ -6,8 +6,6 @@ const { ObjectType } = require('./dfuConstants');
 const { splitArray } = require('../util/arrayUtil');
 const crc = require('crc');
 
-const DEFAULT_MTU_SIZE = 20;
-const DEFAULT_PRN = 0;
 const MAX_RETRIES = 3;
 
 
@@ -20,14 +18,12 @@ class DfuTransport {
      * @param adapter a connected adapter instance
      * @param controlPointCharacteristicId the DFU control point characteristic ID for the device
      * @param packetCharacteristicId the DFU packet characteristic ID for the device
-     * @param prn number of packets to send before receiving and comparing CRC (optional)
      */
-    constructor(adapter, controlPointCharacteristicId, packetCharacteristicId, prn = DEFAULT_PRN) {
+    constructor(adapter, controlPointCharacteristicId, packetCharacteristicId) {
         this._adapter = adapter;
         this._controlPointCharacteristicId = controlPointCharacteristicId;
         this._controlPointService = new ControlPointService(adapter, controlPointCharacteristicId);
-        this._objectWriter = new DfuObjectWriter(adapter, controlPointCharacteristicId, packetCharacteristicId, prn);
-        this._mtuSize = DEFAULT_MTU_SIZE;
+        this._objectWriter = new DfuObjectWriter(adapter, controlPointCharacteristicId, packetCharacteristicId);
     }
 
     /**
@@ -79,12 +75,49 @@ class DfuTransport {
             });
     }
 
+    /**
+     * Sets packet receipt notification (PRN) value, which specifies how many
+     * packages should be sent before receiving receipt.
+     *
+     * @param prn the PRN value (disabled if 0)
+     * @returns promise with empty response
+     */
+    setPrn(prn) {
+        return this._startNotificationListener()
+            .then(() => this._controlPointService.setPRN(prn))
+            .then(() => {
+                this._objectWriter.setPrn(prn);
+                return Promise.resolve();
+            })
+            .then(()       => this._stopNotificationListener())
+            .catch(error   => {
+                this._stopNotificationListener()
+                    .catch(notificationCloseError => {
+                        console.log(notificationCloseError);
+                        throw error;
+                    })
+                    .then(() => {
+                        throw error;
+                    });
+            });
+    }
+
+    /**
+     * Sets maximum transmission unit (MTU) size. This defines the size of
+     * packets that are transferred to the device. Default is 20.
+     *
+     * @param mtuSize the MTU size
+     */
+    setMtuSize(mtuSize) {
+        this._objectWriter.setMtuSize(mtuSize);
+    }
+
     _writeInitPacket(initPacket) {
         return new Promise((resolve, reject) => {
             let attempts = 0;
             const tryWrite = () => {
                 this._controlPointService.createObject(ObjectType.COMMAND, initPacket.length)
-                    .then(()  => this._objectWriter.writeObject(initPacket, this._mtuSize))
+                    .then(()  => this._objectWriter.writeObject(initPacket))
                     .then(crc => this._validateChecksum(crc))
                     .then(()  => this._controlPointService.execute())
                     .then(()  => resolve())
@@ -113,8 +146,7 @@ class DfuTransport {
             let attempts = 0;
             const tryWrite = () => {
                 this._controlPointService.createObject(ObjectType.DATA, data.length)
-                    .then(()  => this._controlPointService.setPRN(this._prn))
-                    .then(()  => this._objectWriter.writeObject(data, this._mtuSize))
+                    .then(()  => this._objectWriter.writeObject(data))
                     .then(crc => this._validateChecksum(crc))
                     .then(()  => this._controlPointService.execute())
                     .then(()  => resolve())
