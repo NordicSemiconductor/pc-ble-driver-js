@@ -54,31 +54,3 @@ describe('writeObject', () => {
     });
 
 });
-
-describe('_writePackets', () => {
-
-    let adapter;
-    let outputStream;
-
-    beforeEach(() => {
-        adapter = {
-            writeCharacteristicValue: (id, command, ack, callback) => {
-                callback();
-            }
-        };
-        outputStream = new DfuObjectWriter(adapter);
-    });
-
-    describe('when one packet', () => {
-
-        const packets = [1];
-
-        it('should write one packet', () => {
-            return outputStream._writePackets(packets).then(() => {
-                // TODO
-                //expect(adapter.writeCharacteristicValue).toHaveBeenCalledTimes(1);
-            })
-        });
-    });
-
-});
