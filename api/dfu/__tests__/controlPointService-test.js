@@ -1,65 +1,7 @@
-import DfuTransport from '../dfuTransport';
-import EventEmitter from 'events';
+'use strict';
 
-describe('_createChunks', () => {
-
-    const createChunks = (data, chunkSize) => DfuTransport._createChunks(data, chunkSize);
-
-    describe('when array is empty', () => {
-        const data = [];
-        const chunkSize = 1;
-
-        it('should return empty array', () => {
-            expect(createChunks(data, chunkSize)).toEqual([]);
-        });
-    });
-
-    describe('when chunk size is 0', () => {
-        const data = [];
-        const chunkSize = 0;
-
-        it('should throw error', () => {
-            expect(() => createChunks(data, chunkSize)).toThrow();
-        });
-    });
-
-    describe('when array has 1 item and chunk size is 2', () => {
-        const data = [1];
-        const chunkSize = 2;
-
-        it('should return 1 chunk', () => {
-            expect(createChunks(data, chunkSize)).toEqual([[1]]);
-        });
-    });
-
-    describe('when array has 1 item and chunk size is 1', () => {
-        const data = [1];
-        const chunkSize = 1;
-
-        it('should return 1 chunk with 1 item', () => {
-            expect(createChunks(data, chunkSize)).toEqual([[1]]);
-        });
-    });
-
-    describe('when array has 2 items and chunk size is 1', () => {
-        const data = [1, 2];
-        const chunkSize = 1;
-
-        it('should return 2 chunks with 1 item each', () => {
-            expect(createChunks(data, chunkSize)).toEqual([[1], [2]]);
-        });
-    });
-
-    describe('when array has 7 items and chunk size is 3', () => {
-        const data = [1, 2, 3, 4, 5, 6, 7];
-        const chunkSize = 3;
-
-        it('should return 3 chunks with max 3 items', () => {
-            expect(createChunks(data, chunkSize)).toEqual([[1, 2, 3], [4, 5, 6], [7]]);
-        });
-    });
-});
-
+const ControlPointService = require('../controlPointService');
+const EventEmitter = require('events');
 
 describe('_sendCommand', () => {
 
@@ -73,24 +15,24 @@ describe('_sendCommand', () => {
     describe('when writing of characteristic value failed', () => {
 
         let adapter;
-        let dfuTransport;
+        let controlPointService;
 
         beforeEach(() => {
             adapter = new EventEmitter();
             adapter.writeCharacteristicValue = (id, command, ack, callback) => {
                 callback('Write failed');
             };
-            dfuTransport = new DfuTransport(adapter);
+            controlPointService = new ControlPointService(adapter);
         });
 
         it('should return error', () => {
-            return dfuTransport._sendCommand({}).catch(error => {
+            return controlPointService._sendCommand({}).catch(error => {
                 expect(error).toEqual('Write failed');
             });
         });
 
         it('should remove event listener', () => {
-            return dfuTransport._sendCommand({}).catch(() => {
+            return controlPointService._sendCommand({}).catch(() => {
                 expect(adapter.listenerCount('characteristicValueChanged')).toEqual(0);
             });
         });
@@ -100,17 +42,17 @@ describe('_sendCommand', () => {
     describe('when no characteristic emitted', () => {
 
         let adapter;
-        let dfuTransport;
+        let controlPointService;
 
         beforeEach(() => {
             adapter = new EventEmitter();
             adapter.writeCharacteristicValue = jest.fn();
-            dfuTransport = new DfuTransport(adapter);
+            controlPointService = new ControlPointService(adapter);
         });
 
         it('should return timeout', () => {
             jest.useFakeTimers();
-            const promise = dfuTransport._sendCommand({}).catch(error => {
+            const promise = controlPointService._sendCommand({}).catch(error => {
                 expect(error).toContain('Timed out');
             });
             jest.runAllTimers();
@@ -119,7 +61,7 @@ describe('_sendCommand', () => {
 
         it('should remove event listener', () => {
             jest.useFakeTimers();
-            const promise = dfuTransport._sendCommand({}).catch(error => {
+            const promise = controlPointService._sendCommand({}).catch(error => {
                 expect(adapter.listenerCount('characteristicValueChanged')).toEqual(0);
             });
             jest.runAllTimers();
@@ -137,16 +79,16 @@ describe('_sendCommand', () => {
             value: [CONTROL_POINT_RESPONSE, CONTROL_POINT_EXECUTE]
         };
         let adapter;
-        let dfuTransport;
+        let controlPointService;
 
         beforeEach(() => {
             adapter = new EventEmitter();
             adapter.writeCharacteristicValue = jest.fn();
-            dfuTransport = new DfuTransport(adapter, controlPointCharacteristicId);
+            controlPointService = new ControlPointService(adapter, controlPointCharacteristicId);
         });
 
         it('should return error', () => {
-            const promise = dfuTransport._sendCommand(command).catch(error => {
+            const promise = controlPointService._sendCommand(command).catch(error => {
                 expect(error).toContain('Got unexpected response');
             });
             adapter.emit('characteristicValueChanged', characteristic);
@@ -154,7 +96,7 @@ describe('_sendCommand', () => {
         });
 
         it('should remove event listener', () => {
-            const promise = dfuTransport._sendCommand(command).catch(() => {
+            const promise = controlPointService._sendCommand(command).catch(() => {
                 expect(adapter.listenerCount('characteristicValueChanged')).toEqual(0);
             });
             adapter.emit('characteristicValueChanged', characteristic);
@@ -176,16 +118,16 @@ describe('_sendCommand', () => {
             value: [CONTROL_POINT_RESPONSE, CONTROL_POINT_SELECT, RESULT_CODE_SUCCESS, 42]
         };
         let adapter;
-        let dfuTransport;
+        let controlPointService;
 
         beforeEach(() => {
             adapter = new EventEmitter();
             adapter.writeCharacteristicValue = jest.fn();
-            dfuTransport = new DfuTransport(adapter, controlPointCharacteristicId);
+            controlPointService = new ControlPointService(adapter, controlPointCharacteristicId);
         });
 
         it('should ignore the characteristic that has different characteristic id', () => {
-            const promise = dfuTransport._sendCommand(command).then(response => {
+            const promise = controlPointService._sendCommand(command).then(response => {
                 expect(response).toEqual(characteristicToReturn.value.slice(3));
             });
             adapter.emit('characteristicValueChanged', characteristicToIgnore);
@@ -204,16 +146,16 @@ describe('_sendCommand', () => {
             value: [CONTROL_POINT_RESPONSE, CONTROL_POINT_SELECT, RESULT_CODE_SUCCESS]
         };
         let adapter;
-        let dfuTransport;
+        let controlPointService;
 
         beforeEach(() => {
             adapter = new EventEmitter();
             adapter.writeCharacteristicValue = jest.fn();
-            dfuTransport = new DfuTransport(adapter, controlPointCharacteristicId);
+            controlPointService = new ControlPointService(adapter, controlPointCharacteristicId);
         });
 
         it('should write characteristic value', () => {
-            const promise = dfuTransport._sendCommand(command).then(() => {
+            const promise = controlPointService._sendCommand(command).then(() => {
                 expect(adapter.writeCharacteristicValue).toHaveBeenCalled();
             });
             adapter.emit('characteristicValueChanged', characteristic);
@@ -221,7 +163,7 @@ describe('_sendCommand', () => {
         });
 
         it('should return the response', () => {
-            const promise = dfuTransport._sendCommand(command).then(response => {
+            const promise = controlPointService._sendCommand(command).then(response => {
                 expect(response).toBe(response);
             });
             adapter.emit('characteristicValueChanged', characteristic);
@@ -229,7 +171,7 @@ describe('_sendCommand', () => {
         });
 
         it('should remove event listener', () => {
-            const promise = dfuTransport._sendCommand(command).then(() => {
+            const promise = controlPointService._sendCommand(command).then(() => {
                 expect(adapter.listenerCount('characteristicValueChanged')).toEqual(0);
             });
             adapter.emit('characteristicValueChanged', characteristic);
@@ -239,3 +181,4 @@ describe('_sendCommand', () => {
     });
 
 });
+
