@@ -1,3 +1,5 @@
+'use strict';
+
 const DfuObjectWriter = require('../dfuObjectWriter');
 
 describe('writeObject', () => {

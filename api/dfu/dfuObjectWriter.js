@@ -1,3 +1,5 @@
+'use strict';
+
 const crc = require('crc');
 const { splitArray } = require('../util/arrayUtil');
 const { ControlPointOpcode, ResultCode } = require('./dfuConstants');

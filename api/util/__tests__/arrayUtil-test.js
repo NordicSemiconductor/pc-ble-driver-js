@@ -1,3 +1,5 @@
+'use strict';
+
 const splitArray = require('../arrayUtil').splitArray;
 
 describe('splitArray', () => {

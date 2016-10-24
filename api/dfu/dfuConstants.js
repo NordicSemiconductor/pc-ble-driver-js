@@ -1,3 +1,5 @@
+'use strict';
+
 const ControlPointOpcode = Object.freeze({
     CREATE: 0x01,
     SET_PRN: 0x02, // Set Packet Receipt Notification

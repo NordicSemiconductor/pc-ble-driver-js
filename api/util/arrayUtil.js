@@ -1,3 +1,5 @@
+'use strict';
+
 function splitArray(data, chunkSize) {
     if (chunkSize < 1) {
         throw new Error(`Invalid chunk size: ${chunkSize}`);

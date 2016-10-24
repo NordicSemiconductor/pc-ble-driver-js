@@ -1,3 +1,5 @@
+'use strict';
+
 const ControlPointService = require('../controlPointService');
 const EventEmitter = require('events');
 

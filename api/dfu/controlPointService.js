@@ -1,3 +1,5 @@
+'use strict';
+
 const { ControlPointOpcode, ResultCode } = require('./dfuConstants');
 const {intToArray, arrayToInt} = require('../util/intArrayConv');
 
