@@ -13,7 +13,6 @@ class DfuNotificationStore {
         this._adapter = adapter;
         this._controlPointCharacteristicId = controlPointCharacteristicId;
         this._notifications = [];
-
         this._onNotificationReceived = this._onNotificationReceived.bind(this);
     }
 
@@ -71,16 +70,20 @@ class DfuNotificationStore {
     }
 
     _parseNotification(opCode, notification) {
-        if (notification[0] === ControlPointOpcode.RESPONSE) {
-            if (notification[1] === opCode) {
-                if (notification[2] === ResultCode.SUCCESS) {
-                    return notification.slice(3);
+        if (notification._instanceId !== this._controlPointCharacteristicId) {
+            return null;
+        }
+        const value = notification.value;
+        if (value[0] === ControlPointOpcode.RESPONSE) {
+            if (value[1] === opCode) {
+                if (value[2] === ResultCode.SUCCESS) {
+                    return value.slice(3);
                 } else {
-                    throw new Error(`Operation ${opCode} returned error code ${notification[2]}`);
+                    throw new Error(`Operation ${opCode} returned error code ${value[2]}`);
                 }
             } else {
                 throw new Error(`Got unexpected response. Expected code ` +
-                    `${ControlPointOpcode.RESPONSE}, but got code ${notification[1]}.`);
+                    `${ControlPointOpcode.RESPONSE}, but got code ${value[1]}.`);
             }
         }
         return null;
