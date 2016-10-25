@@ -1,55 +1,103 @@
 'use strict';
 
+const { ControlPointOpcode } = require('../dfuConstants');
 const DfuObjectWriter = require('../dfuObjectWriter');
 
 describe('writeObject', () => {
 
-    let adapter;
-    let writer;
+    const adapter = {};
+    let notificationStore;
+    let objectWriter;
 
     beforeEach(() => {
-        adapter = {
-            on: jest.fn(),
-            removeListener: jest.fn()
+        notificationStore = {
+            startListening: jest.fn(),
+            stopListening: jest.fn(),
+            readLatest: jest.fn()
         };
-        writer = new DfuObjectWriter(adapter);
+        objectWriter = new DfuObjectWriter(adapter);
+        objectWriter._notificationStore = notificationStore;
     });
 
-    describe('when write packets successful', () => {
 
-        it('should enable and disable notification listener', () => {
-            writer._writePackets = () => Promise.resolve();
-            return writer.writeObject([1]).then(() => {
-                expect(adapter.on).toHaveBeenCalled();
-                expect(adapter.removeListener).toHaveBeenCalled();
+    describe('when writing packets has succeeded', () => {
+
+        const accumulatedCrc = 123;
+
+        beforeEach(() => {
+            // Inject our own packet writer that returns successfully,
+            // and has an accumulated CRC.
+            objectWriter._createPacketWriter = () => {
+                return {
+                    writePacket: () => Promise.resolve(),
+                    getAccumulatedCrc: () => accumulatedCrc
+                };
+            };
+        });
+
+        it('should return accumulated CRC', () => {
+            return objectWriter.writeObject([1]).then(crc => {
+                expect(crc).toEqual(accumulatedCrc);
             });
         });
 
-        it('should return CRC', () => {
-            const dummyCrc = 123;
-            writer._writePackets = () => Promise.resolve(dummyCrc);
-            return writer.writeObject([1]).then(crc => {
-                expect(crc).toEqual(dummyCrc);
+        it('should stop listening to notifications', () => {
+            return objectWriter.writeObject([1]).then(() => {
+                expect(notificationStore.stopListening).toHaveBeenCalled();
             });
         });
 
     });
 
-    describe('when write packets failed', () => {
+    describe('when writing packets have failed', () => {
 
         it('should re-throw error', () => {
-            writer._writePackets = () => Promise.reject('Some error');
-            return writer.writeObject([1]).catch(error => {
+            objectWriter._writePackets = () => Promise.reject('Some error');
+            return objectWriter.writeObject([1]).catch(error => {
                 expect(error).toEqual('Some error');
             });
         });
 
-        it('should enable and disable notification listener', () => {
-            writer._writePackets = () => Promise.reject('Some error');
-            return writer.writeObject([1]).catch(() => {
-                expect(adapter.on).toHaveBeenCalled();
-                expect(adapter.removeListener).toHaveBeenCalled();
+        it('should stop listening to notifications', () => {
+            objectWriter._writePackets = () => Promise.reject('Some error');
+            return objectWriter.writeObject([1]).catch(() => {
+                expect(notificationStore.stopListening).toHaveBeenCalled();
             });
+        });
+    });
+
+    describe('when packet writer returns CRC', () => {
+
+        const crc = 123;
+
+        beforeEach(() => {
+            // Inject our own packet writer that returns CRC.
+            objectWriter._createPacketWriter = () => {
+                return {
+                    writePacket: () => Promise.resolve(crc),
+                    getAccumulatedCrc: jest.fn()
+                };
+            };
+        });
+
+        describe('when match with CRC from last notification', () => {
+
+            it('should complete without error', () => {
+                notificationStore.readLatest = () => Promise.resolve({ crc: 123 });
+                return objectWriter.writeObject([1]).then(() => {});
+            });
+
+        });
+
+        describe('when mismatch with CRC from last notification', () => {
+
+            it('should return error', () => {
+                notificationStore.readLatest = () => Promise.resolve({ crc: 456 });
+                return objectWriter.writeObject([1]).catch(error => {
+                    expect(error.message).toContain('Error when validating CRC');
+                });
+            });
+
         });
     });
 

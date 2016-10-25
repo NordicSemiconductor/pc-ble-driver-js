@@ -1,7 +1,8 @@
 'use strict';
 
 const { splitArray } = require('../util/arrayUtil');
-const { ControlPointOpcode, ResultCode } = require('./dfuConstants');
+const { ControlPointOpcode } = require('./dfuConstants');
+const DfuNotificationStore = require('./dfuNotificationStore');
 const DfuPacketWriter = require('./dfuPacketWriter');
 
 const DEFAULT_MTU_SIZE = 20;
@@ -11,11 +12,10 @@ class DfuObjectWriter {
 
     constructor(adapter, controlPointCharacteristicId, packetCharacteristicId) {
         this._adapter = adapter;
-        this._controlPointCharacteristicId = controlPointCharacteristicId;
         this._packetCharacteristicId = packetCharacteristicId;
+        this._notificationStore = new DfuNotificationStore(adapter, controlPointCharacteristicId);
         this._prn = DEFAULT_PRN;
         this._mtuSize = DEFAULT_MTU_SIZE;
-        this._notifications = [];
     }
 
     /**
@@ -26,13 +26,13 @@ class DfuObjectWriter {
      */
     writeObject(data) {
         const packets = splitArray(data, this._mtuSize);
-        this._enableNotificationListener();
+        this._notificationStore.startListening();
         return this._writePackets(packets)
             .then(crc => {
-                this._disableNotificationListener();
+                this._notificationStore.stopListening();
                 return crc;
             }).catch(error => {
-                this._disableNotificationListener();
+                this._notificationStore.stopListening();
                 throw error;
             });
     }
@@ -58,83 +58,35 @@ class DfuObjectWriter {
     }
 
     _writePackets(packets) {
-        const packetWriter = new DfuPacketWriter(this._adapter, this._packetCharacteristicId, this._prn);
+        const packetWriter = this._createPacketWriter();
         const writeChain = packets.reduce((prev, curr) => {
             return prev.then(() => packetWriter.writePacket(curr))
                 .then(crc => crc ? this._validateCrc(crc) : Promise.resolve());
         }, Promise.resolve());
-        writeChain.then(() => {
+        return writeChain.then(() => {
             return packetWriter.getAccumulatedCrc();
         });
     }
 
+    _createPacketWriter() {
+        return new DfuPacketWriter(this._adapter, this._packetCharacteristicId, this._prn);
+    }
+
     _validateCrc(crc) {
-        return this._waitForNotification()
+        return this._notificationStore.readLatest(ControlPointOpcode.CALCULATE_CRC)
             .then(notification => {
-                const responseCrc = notification.crc;
+                const responseCrc = this._parseCrc(notification);
                 if (responseCrc !== crc) {
                     throw new Error(`Error when validating CRC. Got ${responseCrc}, but expected ${crc}.`);
                 }
             });
     }
 
-    _enableNotificationListener() {
-        this._adapter.on('characteristicValueChanged', this._onNotificationReceived.bind(this));
+    _parseCrc(notification) {
+        // TODO: Convert from bytes to CRC value
+        return notification.crc;
     }
 
-    _disableNotificationListener() {
-        this._adapter.removeListener('characteristicValueChanged', this._onNotificationReceived.bind(this));
-    }
-
-    _onNotificationReceived(notification) {
-        this._notifications.push(notification);
-    }
-
-    _waitForNotification() {
-        const pollInterval = 20; // Could we use 0?
-        const timeout = 20000;
-        const waitPromise = new Promise((resolve, reject) => {
-            const wait = () => {
-                while (this._notifications.length > 0) {
-                    try {
-                        const notification = this._parseNotification(this._notifications.shift());
-                        if (notification) {
-                            resolve(notification);
-                            return;
-                        }
-                    } catch (error) {
-                        reject(error);
-                        return;
-                    }
-                }
-                setTimeout(wait, pollInterval);
-            };
-            wait();
-        });
-        const timeoutPromise = new Promise((resolve, reject) => {
-            setTimeout(() => {
-                reject(`Timed out when waiting for packet receipt notification.`);
-            }, timeout);
-        });
-        return Promise.race([waitPromise, timeoutPromise]);
-    }
-
-    _parseNotification(notification, resolve, reject) {
-        if (notification[0] === ControlPointOpcode.RESPONSE) {
-            if (notification[1] === ControlPointOpcode.CALCULATE_CRC) {
-                if (notification[2] === ResultCode.SUCCESS) {
-                    // TODO: Convert to object with crc property
-                    resolve(notification.slice(3));
-                } else {
-                    reject(`Operation ${ControlPointOpcode.CALCULATE_CRC} ` +
-                        `returned error code ${notification[2]}`);
-                }
-            } else {
-                reject(`Got unexpected response. Expected code ` +
-                    `${ControlPointOpcode.RESPONSE}, but got code ${notification[1]}.`);
-            }
-        }
-    }
 }
 
 module.exports = DfuObjectWriter;
