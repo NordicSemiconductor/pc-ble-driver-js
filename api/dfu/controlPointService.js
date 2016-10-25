@@ -73,10 +73,10 @@ class ControlPointService {
         switch(command[0]) {
             case ControlPointOpcode.CREATE:
                 commandObject.type = command[1];
-                commandObject.size = arrayToInt(command.slice(2, 4));
+                commandObject.size = arrayToInt(command.slice(2, 6));
                 break;
             case ControlPointOpcode.SET_PRN:
-                commandObject.value = arrayToInt(command.slice(1, 2));
+                commandObject.value = arrayToInt(command.slice(1, 3));
                 break;
             case ControlPointOpcode.CALCULATE_CRC:
                 break;
@@ -86,7 +86,7 @@ class ControlPointService {
                 commandObject.type = command[1];
                 break;
             case ControlPointOpcode.RESPONSE:
-                return parseResponse(command);
+                return this.parseResponse(command);
                 break;
         }
 
@@ -102,20 +102,27 @@ class ControlPointService {
         let responseObject = {};
 
         responseObject.command = response[0]
-        responseObject.requestOpcode = command[1];
-        responseObject.resultCode = command[2];
+        responseObject.requestOpcode = response[1];
+        responseObject.resultCode = response[2];
 
-        switch(response[1]) {
-            case ConrolPointOpcode.CREATE:
-                break;
-            case ControlPointOpcode.SET_PRN:
-                break;
-            case ControlPointOpcode.CALCULATE_CRC:
-                break;
-            case ControlPointOpcode.EXECUTE:
-                break;
-            case ControlPointOpcode.SELECT:
-                break;
+        if (response[2] === ResultCode.SUCCESS) {
+            switch(response[1]) {
+                case ControlPointOpcode.CREATE:
+                    break;
+                case ControlPointOpcode.SET_PRN:
+                    break;
+                case ControlPointOpcode.CALCULATE_CRC:
+                    responseObject.offset = arrayToInt(response.slice(3, 7));
+                    responseObject.crc32 = arrayToInt(response.slice(7, 11));
+                    break;
+                case ControlPointOpcode.EXECUTE:
+                    break;
+                case ControlPointOpcode.SELECT:
+                    responseObject.maximumSize = arrayToInt(response.slice(3, 7));
+                    responseObject.offset = arrayToInt(response.slice(7, 11));
+                    responseObject.crc32 = arrayToInt(response.slice(11, 15));
+                    break;
+            }
         }
         return responseObject;
     }
