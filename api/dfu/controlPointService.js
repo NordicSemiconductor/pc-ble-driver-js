@@ -72,6 +72,62 @@ class ControlPointService {
         });
         return Promise.race([writeAndReceive, timeout]);
     }
+
+    parseCommand(command) {
+        // TODO? Check that command is a byte array.
+
+        let commandObject = {};
+        commandObject.command = command[0];
+
+        switch(command[0]) {
+            case ControlPointOpcode.CREATE:
+                commandObject.type = command[1];
+                commandObject.size = arrayToInt(command.slice(2, 4));
+                break;
+            case ControlPointOpcode.SET_PRN:
+                commandObject.value = arrayToInt(command.slice(1, 2));
+                break;
+            case ControlPointOpcode.CALCULATE_CRC:
+                break;
+            case ControlPointOpcode.EXECUTE:
+                break;
+            case ControlPointOpcode.SELECT:
+                commandObject.type = command[1];
+                break;
+            case ControlPointOpcode.RESPONSE:
+                return parseResponse(command);
+                break;
+        }
+
+        return commandObject;
+    }
+
+    parseResponse(response) {
+        // TODO? Check that command is a byte array.
+        if (response[0] !== ControlPointOpcode.RESPONSE) {
+            throw('This is not a response.');
+        }
+
+        let responseObject = {};
+
+        responseObject.command = response[0]
+        responseObject.requestOpcode = command[1];
+        responseObject.resultCode = command[2];
+
+        switch(response[1]) {
+            case ConrolPointOpcode.CREATE:
+                break;
+            case ControlPointOpcode.SET_PRN:
+                break;
+            case ControlPointOpcode.CALCULATE_CRC:
+                break;
+            case ControlPointOpcode.EXECUTE:
+                break;
+            case ControlPointOpcode.SELECT:
+                break;
+        }
+        return responseObject;
+    }
 }
 
 module.exports = ControlPointService;
