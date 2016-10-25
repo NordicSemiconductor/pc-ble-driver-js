@@ -39,9 +39,9 @@
 
 const JSZip = require('jszip');
 const fs = require('fs');
-
 const EventEmitter = require('events');
 
+const DfuTransport = require('./dfu/dfuTransport');
 
 // DFU control point procedure operation codes.
 // (Not to be confused with "NRF DFU Object codes".)
@@ -110,15 +110,46 @@ class Dfu extends EventEmitter {
             throw new Error('No instance ID provided.');
         }
 
-        // TODO: instead of outputting the init packet of the first update,
-        //       actually perform the updates.
-        this._fetchUpdates(this._zipFilePath)
-        .then(updates => {
-            updates[0]['initPacket']().then(data => console.log(data));
-        })
+        const foo = () => {
+            return new Promise((resolve, reject) => {
+                this._initDFU(instanceId, () => resolve());
+            })
+        }
+
+        foo()
+        .then(() => this._fetchUpdates(this._zipFilePath))
+        .then(updates => this._performUpdates(updates))
         .catch(err => console.log(err));
     }
 
+    _performUpdates(updates) {
+        return new Promise((resolve, reject) => {
+            let transport = new DfuTransport(this._adapter, this._controlPointCharacteristicId, this._packetCharacteristicId);
+
+            //transport.setMtuSize(); // <-- TODO: Set MTU size.
+
+            updates.reduce((prev, update) => {
+                return prev.then(() => this._performSingleUpdate(transport, update));
+            },  Promise.resolve())
+            .then(() => resolve());
+        });
+    }
+
+    _performSingleUpdate(transport, update) {
+        return new Promise((resolve, reject) => {
+  //          transport.init()
+            Promise.resolve()
+            .then(update['initPacket'])
+            .then(data => transport.sendInitPacket(data))
+            .then(update['firmware'])
+            .then(data => transport.sendFirmware(data))
+            .then(() => resolve())
+            .catch(err => {
+                console.log(err);
+                reject(err);
+            });
+        });
+    }
 
     _getManifestAsync(zipFilePath) {
         return new Promise((resolve, reject) => {
@@ -164,9 +195,11 @@ class Dfu extends EventEmitter {
                             Promise.all([() => zip.file(update['dat_file']).async('binarystring'),
                                         () => zip.file(update['bin_file']).async('binarystring')])
                             .then(([initPacket, firmware]) => updates.push({'initPacket': initPacket, 'firmware': firmware}))
+                            .then(() => resolve())
                             .catch(err => reject(err));
+                        } else {
+                          resolve();
                         }
-                        resolve();
                     });
                 });
 
@@ -178,6 +211,7 @@ class Dfu extends EventEmitter {
                 }
 
                 promiseChain.then(() => resolve(updates))
+                .catch(err => reject(err));
             })
             .catch(err => reject(err));
         });
@@ -264,12 +298,13 @@ class Dfu extends EventEmitter {
     // Find characteristics,
     // enable notifications,
     // set up progress events,
-    _initDFU(instanceId) {
+    _initDFU(instanceId, callback) {
         // Find DFU service
         this._getCharacteristics(SECURE_DFU_SERVICE_UUID, instanceId)
         // Find and set up notifications on DFU characteristics
         .then(this._setupCharacteristics)
         .then(() => this.emit('initialized'))
+        .then(() => callback())
         .catch(err => this.emit('error', err));
     }
 

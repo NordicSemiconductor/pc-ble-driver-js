@@ -46,16 +46,27 @@ function intToArray(integer, sizeInBytes) {
         integer = Math.floor(integer / 0x100);
     }
     if (integer) {
-        throw new Error ('Integer to array conversion overflow.')
+        throw new Error('Integer to array conversion overflow.');
     }
     return array;
 }
 
 function arrayToInt(array) {
-    // TODO: Check that the elements of the array are integers in the range 0x00 to 0xFF.
+    if (!Array.isArray(array)) {
+        throw new Error('Array to integer conversion error: Argument is not an array.');
+    }
     let integer = 0;
     let factor = 1;
-    for (let byte in array) {
+    for (let byte of array) {
+        if (!Number.isInteger(byte)) {
+            throw new Error('Array to integer conversion error: Array contains non-integer.');
+        }
+        if (byte < 0) {
+            throw new Error('Array to integer conversion error: Array contains negative integer.');
+        }
+        if (byte > 0xFF) {
+            throw new Error('Array to integer conversion error: Array contains integer larger than 255.');
+        }
         integer += byte * factor;
         factor *= 0x100;
     }

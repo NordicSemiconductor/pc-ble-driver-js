@@ -17,7 +17,7 @@ class ControlPointService {
     }
 
     createObject(objectType, size) {
-        return this._sendCommand([ControlPointOpcode.CREATE, objectType, intToArray(size, 4)]);
+        return this._sendCommand([].concat([ControlPointOpcode.CREATE, objectType], intToArray(size, 4)));
     }
 
     selectObject(objectType) {
@@ -29,7 +29,7 @@ class ControlPointService {
     }
 
     setPRN(value) {
-        return this._sendCommand([ControlPointOpcode.SET_PRN], intToArray(value, 2));
+        return this._sendCommand([].concat([ControlPointOpcode.SET_PRN], intToArray(value, 2)));
     }
 
     _sendCommand(command) {
@@ -62,6 +62,69 @@ class ControlPointService {
     _parseResponse(response) {
         // TODO: Convert response to JS object
         return Promise.resolve(response);
+    }
+
+    parseCommand(command) {
+        // TODO? Check that command is a byte array.
+
+        let commandObject = {};
+        commandObject.command = command[0];
+
+        switch(command[0]) {
+            case ControlPointOpcode.CREATE:
+                commandObject.type = command[1];
+                commandObject.size = arrayToInt(command.slice(2, 6));
+                break;
+            case ControlPointOpcode.SET_PRN:
+                commandObject.value = arrayToInt(command.slice(1, 3));
+                break;
+            case ControlPointOpcode.CALCULATE_CRC:
+                break;
+            case ControlPointOpcode.EXECUTE:
+                break;
+            case ControlPointOpcode.SELECT:
+                commandObject.type = command[1];
+                break;
+            case ControlPointOpcode.RESPONSE:
+                return this.parseResponse(command);
+                break;
+        }
+
+        return commandObject;
+    }
+
+    parseResponse(response) {
+        // TODO? Check that command is a byte array.
+        if (response[0] !== ControlPointOpcode.RESPONSE) {
+            throw('This is not a response.');
+        }
+
+        let responseObject = {};
+
+        responseObject.command = response[0]
+        responseObject.requestOpcode = response[1];
+        responseObject.resultCode = response[2];
+
+        if (response[2] === ResultCode.SUCCESS) {
+            switch(response[1]) {
+                case ControlPointOpcode.CREATE:
+                    break;
+                case ControlPointOpcode.SET_PRN:
+                    break;
+                case ControlPointOpcode.CALCULATE_CRC:
+                    responseObject.offset = arrayToInt(response.slice(3, 7));
+                    responseObject.crc32 = arrayToInt(response.slice(7, 11));
+                    break;
+                case ControlPointOpcode.EXECUTE:
+                    break;
+                case ControlPointOpcode.SELECT:
+                    responseObject.maximumSize = arrayToInt(response.slice(3, 7));
+                    responseObject.offset = arrayToInt(response.slice(7, 11));
+                    responseObject.crc32 = arrayToInt(response.slice(11, 15));
+                    break;
+            }
+        }
+        return responseObject;
     }
 }
 
