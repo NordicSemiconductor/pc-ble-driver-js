@@ -22,8 +22,10 @@ class DfuTransport {
     constructor(adapter, controlPointCharacteristicId, packetCharacteristicId) {
         this._adapter = adapter;
         this._controlPointCharacteristicId = controlPointCharacteristicId;
+        this._packetCharacteristicId = packetCharacteristicId;
         this._controlPointService = new ControlPointService(adapter, controlPointCharacteristicId);
         this._objectWriter = new DfuObjectWriter(adapter, controlPointCharacteristicId, packetCharacteristicId);
+        this._isOpen = false;
     }
 
     /**
@@ -34,21 +36,10 @@ class DfuTransport {
      */
     sendInitPacket(initPacket) {
         // TODO: Resume if response.offset from selectObject is != 0
-        return this._startNotificationListener()
+        return this._open()
             .then(()       => this._controlPointService.selectObject(ObjectType.COMMAND))
             .then(response => this._validateInitPacketSize(initPacket.length, response.maxSize))
-            .then(()       => this._writeInitPacket(initPacket))
-            .then(()       => this._stopNotificationListener())
-            .catch(error   => {
-                this._stopNotificationListener()
-                    .catch(notificationCloseError => {
-                        console.log(notificationCloseError);
-                        throw error;
-                    })
-                    .then(() => {
-                        throw error;
-                    });
-            });
+            .then(()       => this._writeInitPacket(initPacket));
     }
 
     /**
@@ -59,20 +50,9 @@ class DfuTransport {
      */
     sendFirmware(firmware) {
         // TODO: Resume if response.offset from selectObject is != 0
-        return this._startNotificationListener()
+        return this._open()
             .then(()       => this._controlPointService.selectObject(ObjectType.DATA))
-            .then(response => this._writeFirmware(firmware, response.maxSize))
-            .then(()       => this._stopNotificationListener())
-            .catch(error   => {
-                this._stopNotificationListener()
-                    .catch(notificationCloseError => {
-                        console.log(notificationCloseError);
-                        throw error;
-                    })
-                    .then(() => {
-                        throw error;
-                    });
-            });
+            .then(response => this._writeFirmware(firmware, response.maxSize));
     }
 
     /**
@@ -83,22 +63,11 @@ class DfuTransport {
      * @returns promise with empty response
      */
     setPrn(prn) {
-        return this._startNotificationListener()
+        return this._open()
             .then(() => this._controlPointService.setPRN(prn))
             .then(() => {
                 this._objectWriter.setPrn(prn);
                 return Promise.resolve();
-            })
-            .then(()       => this._stopNotificationListener())
-            .catch(error   => {
-                this._stopNotificationListener()
-                    .catch(notificationCloseError => {
-                        console.log(notificationCloseError);
-                        throw error;
-                    })
-                    .then(() => {
-                        throw error;
-                    });
             });
     }
 
@@ -110,6 +79,35 @@ class DfuTransport {
      */
     setMtuSize(mtuSize) {
         this._objectWriter.setMtuSize(mtuSize);
+    }
+
+    /**
+     * Closes the transport. This instructs the device to stop notifying about
+     * changes to the DFU control point characteristic. Should be invoked by the
+     * caller when being done with the transport.
+     *
+     * @returns promise with empty response
+     */
+    close() {
+        if (!this._isOpen) {
+            return Promise.resolve();
+        }
+        return new Promise((resolve, reject) => {
+            this._adapter.stopCharacteristicsNotifications(this._controlPointCharacteristicId, error => {
+                error ? reject(error) : resolve();
+            });
+        });
+    }
+
+    _open() {
+        if (this._isOpen) {
+            return Promise.resolve();
+        }
+        return new Promise((resolve, reject) => {
+            this._adapter.startCharacteristicsNotifications(this._controlPointCharacteristicId, false, error => {
+                error ? reject(error) : resolve();
+            });
+        });
     }
 
     _writeInitPacket(initPacket) {
@@ -163,21 +161,6 @@ class DfuTransport {
         });
     }
 
-    _startNotificationListener() {
-        return new Promise((resolve, reject) => {
-            this._adapter.startCharacteristicsNotifications(this._controlPointCharacteristicId, false, error => {
-                error ? reject(error) : resolve();
-            });
-        });
-    }
-
-    _stopNotificationListener() {
-        return new Promise((resolve, reject) => {
-            this._adapter.stopCharacteristicsNotifications(this._controlPointCharacteristicId, error => {
-                error ? reject(error) : resolve();
-            });
-        });
-    }
 
     _validateInitPacketSize(packetSize, maxSize) {
         return Promise.resolve().then(() => {
