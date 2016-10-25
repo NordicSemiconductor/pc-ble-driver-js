@@ -1,15 +1,15 @@
 'use strict';
 
+const DfuNotificationStore = require('./dfuNotificationStore');
 const { ControlPointOpcode, ResultCode } = require('./dfuConstants');
 const {intToArray, arrayToInt} = require('../util/intArrayConv');
-
-const DEFAULT_TIMEOUT = 20000;
 
 class ControlPointService {
 
     constructor(adapter, controlPointCharacteristicId) {
         this._adapter = adapter;
         this._controlPointCharacteristicId = controlPointCharacteristicId;
+        this._notificationStore = new DfuNotificationStore(adapter, controlPointCharacteristicId);
     }
 
     execute() {
@@ -33,44 +33,35 @@ class ControlPointService {
     }
 
     _sendCommand(command) {
-        let onValueChanged;
-        const removeListener = () => {
-            this._adapter.removeListener('characteristicValueChanged', onValueChanged);
-        };
-        const timeout = new Promise((resolve, reject) => {
-            setTimeout(() => {
-                removeListener();
-                reject(`Timed out when waiting for ${command[0]} response.`);
-            }, DEFAULT_TIMEOUT);
-        });
-        const writeAndReceive = new Promise((resolve, reject) => {
-            onValueChanged = characteristic => {
-                if (characteristic._instanceId !== this._controlPointCharacteristicId) {
-                    return;
-                }
-                let response = characteristic.value;
-                if (response[0] === ControlPointOpcode.RESPONSE) {
-                    removeListener();
-                    if (response[1] === command[0]) {
-                        if (response[2] === ResultCode.SUCCESS) {
-                            resolve(response.slice(3));
-                        } else {
-                            reject(`Control Point operation ${command} returned error ${response[2]}: ${ResultCode[response[2]]}`);
-                        }
-                    } else {
-                        reject(`Got unexpected response. Expected ${command[0]}, but got ${response[1]}.`);
-                    }
-                }
-            };
-            this._adapter.on('characteristicValueChanged', onValueChanged);
-            this._adapter.writeCharacteristicValue(this._controlPointCharacteristicId, command, true, error => {
-                if (error) {
-                    removeListener();
-                    reject(error);
-                }
+        this._notificationStore.startListening();
+        return this._writeCharacteristicValue(command)
+            .then(() => this._readResponse(command[0]))
+            .then(response => {
+                this._notificationStore.stopListening();
+                return response;
+            })
+            .catch(error => {
+                this._notificationStore.stopListening();
+                throw error;
             });
-        });
-        return Promise.race([writeAndReceive, timeout]);
+    }
+
+    _writeCharacteristicValue(command) {
+        return new Promise((resolve, reject) => {
+            this._adapter.writeCharacteristicValue(this._controlPointCharacteristicId, command, true, error => {
+                error ? reject(error) : resolve();
+            });
+        })
+    }
+
+    _readResponse(opCode) {
+        return this._notificationStore.readLatest(opCode)
+            .then(response => this._parseResponse(response));
+    }
+
+    _parseResponse(response) {
+        // TODO: Convert response to JS object
+        return Promise.resolve(response);
     }
 }
 
