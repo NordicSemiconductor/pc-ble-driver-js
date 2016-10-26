@@ -56,12 +56,7 @@ class ControlPointService {
 
     _readResponse(opCode) {
         return this._notificationStore.readLatest(opCode)
-            .then(response => this._parseResponse(response));
-    }
-
-    _parseResponse(response) {
-        // TODO: Convert response to JS object
-        return Promise.resolve(response);
+            .then(response => this.parseResponse(response));
     }
 
     parseCommand(command) {
@@ -101,7 +96,7 @@ class ControlPointService {
 
         let responseObject = {};
 
-        responseObject.command = response[0]
+        responseObject.command = response[0];
         responseObject.requestOpcode = response[1];
         responseObject.resultCode = response[2];
 

@@ -164,7 +164,7 @@ describe('readLatest', () => {
             it('should return notification payload', () => {
                 jest.useFakeTimers();
                 const promise = notificationStore.readLatest(ControlPointOpcode.CALCULATE_CRC).then(response => {
-                    expect(response).toEqual([1, 2, 3]);
+                    expect(response).toEqual(notification.value);
                 });
                 adapter.emit('characteristicValueChanged', notification);
                 jest.runOnlyPendingTimers();
@@ -183,7 +183,7 @@ describe('readLatest', () => {
             it('should return notification payload', () => {
                 notificationStore._notifications = [notification];
                 return notificationStore.readLatest(ControlPointOpcode.CALCULATE_CRC).then(response => {
-                    expect(response).toEqual([1, 2, 3]);
+                    expect(response).toEqual(notification.value);
                 });
             });
 

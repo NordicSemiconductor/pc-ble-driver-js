@@ -73,11 +73,13 @@ describe('_sendCommand', () => {
 
     });
 
-    describe('when notification store returns response', () => {
+    describe('when notification store returns response array', () => {
 
         let adapter;
         let controlPointService;
         let notificationStore;
+        const responseArray = [0x60, 0x01, 0x01];
+        const responseObject = {command: 0x60, requestOpcode: 0x01, resultCode: 0x01};
 
         beforeEach(() => {
             adapter = {
@@ -86,15 +88,15 @@ describe('_sendCommand', () => {
             notificationStore = {
                 startListening: jest.fn(),
                 stopListening: jest.fn(),
-                readLatest: () => Promise.resolve([1, 2, 3])
+                readLatest: () => Promise.resolve(responseArray)
             };
             controlPointService = new ControlPointService(adapter);
             controlPointService._notificationStore = notificationStore;
         });
 
-        it('should return response', () => {
+        it('should return response object', () => {
             return controlPointService._sendCommand({}).then(response => {
-                expect(response).toEqual([1, 2, 3]);
+                expect(response).toEqual(responseObject);
             });
         });
 
@@ -141,7 +143,7 @@ describe('parseCommand', () => {
             expect(controlPointService.parseCommand(selectCommandArray)).toEqual(selectCommandObject);
         });
         it('should call parseResponse for parsing RESPONSE command', () => {
-            let controlPointService = new ControlPointService;
+            let controlPointService = new ControlPointService();
             controlPointService.parseResponse = jest.fn();
             controlPointService.parseCommand(createResponseArray);
             expect(controlPointService.parseResponse).toHaveBeenCalled();

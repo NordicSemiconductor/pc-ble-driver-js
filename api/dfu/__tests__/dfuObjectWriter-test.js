@@ -1,6 +1,6 @@
 'use strict';
 
-const { ControlPointOpcode } = require('../dfuConstants');
+const { ControlPointOpcode, ResultCode } = require('../dfuConstants');
 const DfuObjectWriter = require('../dfuObjectWriter');
 
 describe('writeObject', () => {
@@ -68,7 +68,7 @@ describe('writeObject', () => {
 
     describe('when packet writer returns CRC', () => {
 
-        const crc = 123;
+        const crc = 0x5678;
 
         beforeEach(() => {
             // Inject our own packet writer that returns CRC.
@@ -82,8 +82,16 @@ describe('writeObject', () => {
 
         describe('when match with CRC from last notification', () => {
 
+            const crcResponse = [
+                ControlPointOpcode.RESPONSE,
+                ControlPointOpcode.CALCULATE_CRC,
+                ResultCode.SUCCESS,
+                0x34, 0x12, 0x00, 0x00, // offset
+                0x78, 0x56, 0x00, 0x00  // crc
+            ];
+
             it('should complete without error', () => {
-                notificationStore.readLatest = () => Promise.resolve({ crc: 123 });
+                notificationStore.readLatest = () => Promise.resolve(crcResponse);
                 return objectWriter.writeObject([1]).then(() => {});
             });
 
@@ -91,8 +99,16 @@ describe('writeObject', () => {
 
         describe('when mismatch with CRC from last notification', () => {
 
+            const crcResponse = [
+                ControlPointOpcode.RESPONSE,
+                ControlPointOpcode.CALCULATE_CRC,
+                ResultCode.SUCCESS,
+                0x34, 0x12, 0x00, 0x00, // offset
+                0x79, 0x56, 0x00, 0x00  // crc
+            ];
+
             it('should return error', () => {
-                notificationStore.readLatest = () => Promise.resolve({ crc: 456 });
+                notificationStore.readLatest = () => Promise.resolve(crcResponse);
                 return objectWriter.writeObject([1]).catch(error => {
                     expect(error.message).toContain('Error when validating CRC');
                 });

@@ -4,7 +4,6 @@ const DfuObjectWriter = require('./dfuObjectWriter');
 const ControlPointService = require('./controlPointService');
 const { ObjectType } = require('./dfuConstants');
 const { splitArray } = require('../util/arrayUtil');
-const crc = require('crc');
 
 const MAX_RETRIES = 3;
 
@@ -38,7 +37,7 @@ class DfuTransport {
         // TODO: Resume if response.offset from selectObject is != 0
         return this._open()
             .then(()       => this._controlPointService.selectObject(ObjectType.COMMAND))
-            .then(response => this._validateInitPacketSize(initPacket.length, response.maxSize))
+            .then(response => this._validateInitPacketSize(initPacket.length, response.maximumSize))
             .then(()       => this._writeInitPacket(initPacket));
     }
 
@@ -52,7 +51,7 @@ class DfuTransport {
         // TODO: Resume if response.offset from selectObject is != 0
         return this._open()
             .then(()       => this._controlPointService.selectObject(ObjectType.DATA))
-            .then(response => this._writeFirmware(firmware, response.maxSize));
+            .then(response => this._writeFirmware(firmware, response.maximumSize));
     }
 
     /**
@@ -172,9 +171,9 @@ class DfuTransport {
 
     _validateChecksum(crc) {
         return this._controlPointService.calculateChecksum()
-            .then(remoteCrc => {
-                if (crc !== remoteCrc) {
-                    throw new Error(`CRC validation failed. Got ${remoteCrc}, but expected ${crc}`);
+            .then(response => {
+                if (crc !== response.crc32) {
+                    throw new Error(`CRC validation failed. Got ${response.crc32}, but expected ${crc}`);
                 }
             });
     }

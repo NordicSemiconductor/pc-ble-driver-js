@@ -1,6 +1,7 @@
 'use strict';
 
 const { splitArray } = require('../util/arrayUtil');
+const { arrayToInt } = require('../util/intArrayConv');
 const { ControlPointOpcode } = require('./dfuConstants');
 const DfuNotificationStore = require('./dfuNotificationStore');
 const DfuPacketWriter = require('./dfuPacketWriter');
@@ -83,8 +84,8 @@ class DfuObjectWriter {
     }
 
     _parseCrc(notification) {
-        // TODO: Convert from bytes to CRC value
-        return notification.crc;
+        const crcPart = notification.slice(7, 11);
+        return arrayToInt(crcPart);
     }
 
 }

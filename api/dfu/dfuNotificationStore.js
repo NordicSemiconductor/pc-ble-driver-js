@@ -77,7 +77,7 @@ class DfuNotificationStore {
         if (value[0] === ControlPointOpcode.RESPONSE) {
             if (value[1] === opCode) {
                 if (value[2] === ResultCode.SUCCESS) {
-                    return value.slice(3);
+                    return value;
                 } else {
                     throw new Error(`Operation ${opCode} returned error code ${value[2]}`);
                 }
