@@ -192,8 +192,8 @@ class Dfu extends EventEmitter {
                     return new Promise((resolve, reject) => {
                         let update = manifest[updateType];
                         if (update) {
-                            Promise.all([() => zip.file(update['dat_file']).async('binarystring'),
-                                        () => zip.file(update['bin_file']).async('binarystring')])
+                            Promise.all([() => zip.file(update['dat_file']).async('array'),
+                                        () => zip.file(update['bin_file']).async('array')])
                             .then(([initPacket, firmware]) => updates.push({'initPacket': initPacket, 'firmware': firmware}))
                             .then(() => resolve())
                             .catch(err => reject(err));
