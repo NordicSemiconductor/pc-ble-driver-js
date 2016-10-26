@@ -23,15 +23,18 @@ class DfuObjectWriter {
      * Writes DFU data object according to the given MTU size.
      *
      * @param data byte array that should be written
-     * @returns promise that returns the final locally calculated CRC
+     * @param offset the offset to continue from
+     * @param crc32 the CRC32 value to continue from (optional)
+     * @returns promise that returns the final locally calculated CRC32 value
      */
-    writeObject(data) {
+    writeObject(data, offset, crc32) {
         const packets = splitArray(data, this._mtuSize);
+        const packetWriter = this._createPacketWriter(offset, crc32);
         this._notificationStore.startListening();
-        return this._writePackets(packets)
-            .then(crc => {
+        return this._writePackets(packetWriter, packets)
+            .then(() => {
                 this._notificationStore.stopListening();
-                return crc;
+                return packetWriter.getCrc32();
             }).catch(error => {
                 this._notificationStore.stopListening();
                 throw error;
@@ -58,36 +61,51 @@ class DfuObjectWriter {
         this._mtuSize = mtuSize;
     }
 
-    _writePackets(packets) {
-        const packetWriter = this._createPacketWriter();
-        const writeChain = packets.reduce((prev, curr) => {
-            return prev.then(() => packetWriter.writePacket(curr))
-                .then(crc => crc ? this._validateCrc(crc) : Promise.resolve());
+    _writePackets(packetWriter, packets) {
+        return packets.reduce((prevPromise, currentPacket) => {
+            return prevPromise
+                .then(() => packetWriter.writePacket(currentPacket))
+                .then(progressInfo => () => {
+                    if (progressInfo) {
+                        this._validateProgress(progressInfo);
+                    }
+                });
         }, Promise.resolve());
-        return writeChain.then(() => {
-            return packetWriter.getAccumulatedCrc();
-        });
     }
 
-    _createPacketWriter() {
-        return new DfuPacketWriter(this._adapter, this._packetCharacteristicId, this._prn);
+    _createPacketWriter(offset, crc32) {
+        const writer = new DfuPacketWriter(this._adapter, this._packetCharacteristicId);
+        writer.setOffset(offset);
+        writer.setCrc32(crc32);
+        writer.setPrn(this._prn);
+        return writer;
     }
 
-    _validateCrc(crc) {
+    _validateProgress(progressInfo) {
         return this._notificationStore.readLatest(ControlPointOpcode.CALCULATE_CRC)
             .then(notification => {
-                const responseCrc = this._parseCrc(notification);
-                if (responseCrc !== crc) {
-                    throw new Error(`Error when validating CRC. Got ${responseCrc}, but expected ${crc}.`);
-                }
+                this._validateOffset(notification, progressInfo.offset);
+                this._validateCrc32(notification, progressInfo.crc32);
             });
     }
 
-    _parseCrc(notification) {
-        const crcPart = notification.slice(7, 11);
-        return arrayToInt(crcPart);
+    _validateOffset(notification, offset) {
+        const offsetArray = notification.slice(3, 7);
+        const responseOffset = arrayToInt(offsetArray);
+        if (responseOffset !== offset) {
+            throw new Error(`Error when validating offset. Got ${responseOffset}, ` +
+                `but expected ${offset}.`);
+        }
     }
 
+    _validateCrc32(notification, crc32) {
+        const crc32Array = notification.slice(7, 11);
+        const responseCrc = arrayToInt(crc32Array);
+        if (responseCrc !== crc32) {
+            throw new Error(`Error when validating CRC. Got ${responseCrc}, ` +
+                `but expected ${crc32}.`);
+        }
+    }
 }
 
 module.exports = DfuObjectWriter;

@@ -22,7 +22,7 @@ describe('writeObject', () => {
 
     describe('when writing packets has succeeded', () => {
 
-        const accumulatedCrc = 123;
+        const crc32 = 123;
 
         beforeEach(() => {
             // Inject our own packet writer that returns successfully,
@@ -30,14 +30,14 @@ describe('writeObject', () => {
             objectWriter._createPacketWriter = () => {
                 return {
                     writePacket: () => Promise.resolve(),
-                    getAccumulatedCrc: () => accumulatedCrc
+                    getCrc32: () => crc32
                 };
             };
         });
 
         it('should return accumulated CRC', () => {
             return objectWriter.writeObject([1]).then(crc => {
-                expect(crc).toEqual(accumulatedCrc);
+                expect(crc).toEqual(crc32);
             });
         });
 
@@ -66,23 +66,64 @@ describe('writeObject', () => {
         });
     });
 
-    describe('when packet writer returns CRC', () => {
+    describe('when packet writer returns progress info', () => {
 
-        const crc = 0x5678;
+        const progressInfo = {
+            offset: 0x1234,
+            crc32: 0x5678
+        };
 
         beforeEach(() => {
-            // Inject our own packet writer that returns CRC.
+            // Inject our own packet writer that returns progress info
             objectWriter._createPacketWriter = () => {
                 return {
-                    writePacket: () => Promise.resolve(crc),
-                    getAccumulatedCrc: jest.fn()
+                    writePacket: () => Promise.resolve(progressInfo),
+                    getCrc32: jest.fn()
                 };
             };
         });
 
-        describe('when match with CRC from last notification', () => {
+        describe('when CRC32 value does not match notification', () => {
 
-            const crcResponse = [
+            const notification = [
+                ControlPointOpcode.RESPONSE,
+                ControlPointOpcode.CALCULATE_CRC,
+                ResultCode.SUCCESS,
+                0x34, 0x12, 0x00, 0x00, // offset
+                0x79, 0x56, 0x00, 0x00  // crc32
+            ];
+
+            it('should return error', () => {
+                notificationStore.readLatest = () => Promise.resolve(notification);
+                return objectWriter.writeObject([1]).catch(error => {
+                    expect(error.message).toContain('Error when validating CRC');
+                });
+            });
+
+        });
+
+        describe('when offset does not match notification', () => {
+
+            const notification = [
+                ControlPointOpcode.RESPONSE,
+                ControlPointOpcode.CALCULATE_CRC,
+                ResultCode.SUCCESS,
+                0x35, 0x12, 0x00, 0x00, // offset
+                0x78, 0x56, 0x00, 0x00  // crc32
+            ];
+
+            it('should return error', () => {
+                notificationStore.readLatest = () => Promise.resolve(notification);
+                return objectWriter.writeObject([1]).catch(error => {
+                    expect(error.message).toContain('Error when validating offset');
+                });
+            });
+
+        });
+
+        describe('when CRC32 and offset matches notification', () => {
+
+            const notification = [
                 ControlPointOpcode.RESPONSE,
                 ControlPointOpcode.CALCULATE_CRC,
                 ResultCode.SUCCESS,
@@ -91,30 +132,12 @@ describe('writeObject', () => {
             ];
 
             it('should complete without error', () => {
-                notificationStore.readLatest = () => Promise.resolve(crcResponse);
+                notificationStore.readLatest = () => Promise.resolve(notification);
                 return objectWriter.writeObject([1]).then(() => {});
             });
 
         });
 
-        describe('when mismatch with CRC from last notification', () => {
-
-            const crcResponse = [
-                ControlPointOpcode.RESPONSE,
-                ControlPointOpcode.CALCULATE_CRC,
-                ResultCode.SUCCESS,
-                0x34, 0x12, 0x00, 0x00, // offset
-                0x79, 0x56, 0x00, 0x00  // crc
-            ];
-
-            it('should return error', () => {
-                notificationStore.readLatest = () => Promise.resolve(crcResponse);
-                return objectWriter.writeObject([1]).catch(error => {
-                    expect(error.message).toContain('Error when validating CRC');
-                });
-            });
-
-        });
     });
 
 });

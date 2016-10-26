@@ -4,17 +4,18 @@ const crc = require('crc');
 
 /**
  * Writes packets to the given packet characteristic. If packet receipt
- * notifications (PRN) is enabled, it will return CRC to the caller each
- * time the configured PRN is reached.
+ * notifications (PRN) is enabled, it will return progress information (offset
+ * and accumulated CRC32) to the caller when the configured PRN is reached.
  */
 class DfuPacketWriter {
 
-    constructor(adapter, packetCharacteristicId, prn) {
+    constructor(adapter, packetCharacteristicId) {
         this._adapter = adapter;
         this._packetCharacteristicId = packetCharacteristicId;
-        this._prn = prn;
+        this._prn = 0;
+        this._offset = 0;
         this._prnCount = 0;
-        this._accumulatedCrc = undefined;
+        this._crc32 = undefined;
     }
 
     /**
@@ -23,27 +24,14 @@ class DfuPacketWriter {
      * promise is returned.
      *
      * @param packet byte array that should be written
-     * @returns promise with CRC if PRN has been reached, otherwise empty promise
+     * @returns promise with offset and CRC if PRN has been reached, otherwise empty promise
      */
     writePacket(packet) {
-        return this._calculateCrc(packet)
-            .then(() => this._write(packet))
+        return this._write(packet)
+            .then(() => this._accumulateCrc32(packet))
+            .then(() => this._incrementOffset(packet))
             .then(() => this._incrementPrn())
-            .then(() => this._returnCrcIfPrnReached());
-    }
-
-    /**
-     * Returns the accumulated CRC value.
-     *
-     * @returns the CRC value
-     */
-    getAccumulatedCrc() {
-        return this._accumulatedCrc;
-    }
-
-    _calculateCrc(packet) {
-        this._accumulatedCrc = crc.crc32(packet, this._accumulatedCrc);
-        return Promise.resolve();
+            .then(() => this._returnProgressIfPrnReached());
     }
 
     _write(packet, attempts = 0) {
@@ -67,19 +55,54 @@ class DfuPacketWriter {
         });
     }
 
+    _incrementOffset(packet) {
+        this._offset += packet.length;
+        return Promise.resolve();
+    }
+
     _incrementPrn() {
         this._prnCount++;
         return Promise.resolve();
     }
 
-    _returnCrcIfPrnReached() {
+    _accumulateCrc32(packet) {
+        this._crc32 = crc.crc32(packet, this._crc32);
+        return Promise.resolve();
+    }
+
+    _returnProgressIfPrnReached() {
         if (this._prnCount === this._prn) {
             this._prnCount = 0;
-            return Promise.resolve(this._accumulatedCrc);
+            const progress = {
+                offset: this._offset,
+                crc32: this._crc32
+            };
+            return Promise.resolve(progress);
         } else {
             return Promise.resolve();
         }
     }
+
+    setOffset(offset) {
+        this._offset = offset;
+    }
+
+    getOffset() {
+        return this._offset;
+    }
+
+    setCrc32(crc32) {
+        this._crc32 = crc32;
+    }
+
+    getCrc32() {
+        return this._crc32;
+    }
+
+    setPrn(prn) {
+        this._prn = prn;
+    }
+
 }
 
 module.exports = DfuPacketWriter;
