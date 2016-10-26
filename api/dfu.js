@@ -41,7 +41,7 @@ const JSZip = require('jszip');
 const fs = require('fs');
 const EventEmitter = require('events');
 
-const DfuTransport = require('./dfu/dfuTransport');
+const DfuTransportFactory = require('./dfu/dfuTransportFactory');
 
 // DFU control point procedure operation codes.
 // (Not to be confused with "NRF DFU Object codes".)
@@ -124,14 +124,14 @@ class Dfu extends EventEmitter {
 
     _performUpdates(updates) {
         return new Promise((resolve, reject) => {
-            let transport = new DfuTransport(this._adapter, this._controlPointCharacteristicId, this._packetCharacteristicId);
-
             //transport.setMtuSize(); // <-- TODO: Set MTU size.
-
-            updates.reduce((prev, update) => {
-                return prev.then(() => this._performSingleUpdate(transport, update));
-            },  Promise.resolve())
-            .then(() => resolve());
+            DfuTransportFactory.create(this._adapter, this._instanceId)
+            .then(transport => {
+                updates.reduce((prev, update) => {
+                    return prev.then(() => this._performSingleUpdate(transport, update));
+                },  Promise.resolve())})
+            .then(() => resolve())
+            .catch(err => reject(err));
         });
     }
 
