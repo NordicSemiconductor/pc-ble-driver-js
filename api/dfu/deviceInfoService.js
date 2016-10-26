@@ -22,9 +22,21 @@ class DeviceInfoService {
      * @returns promise that returns characteristic id
      */
     getCharacteristicId(serviceUuid, characteristicUuid) {
-        return this._adapter.getAttributes(this._deviceInstanceId)
+        return this._getAttributes()
             .then(attributeData => this._getService(attributeData, serviceUuid))
             .then(service => this._getCharacteristicIdFromService(service, characteristicUuid));
+    }
+
+    _getAttributes() {
+        return new Promise((resolve, reject) => {
+            this._adapter.getAttributes(this._deviceId, (err, data) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(data);
+                }
+            });
+        });
     }
 
     _getService(attributeData, serviceUuid) {
