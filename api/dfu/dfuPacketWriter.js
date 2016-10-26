@@ -54,7 +54,7 @@ class DfuPacketWriter {
             const callback = error => {
                 error ? reject(error) : resolve();
             };
-            this._adapter.writeCharacteristicValue(characteristicId, value, ack, callback);
+            setTimeout(() => this._adapter.writeCharacteristicValue(characteristicId, value, ack, callback), 20);
         });
     }
 
