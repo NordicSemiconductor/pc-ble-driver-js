@@ -48,18 +48,20 @@ class DfuNotificationStore {
                         const notification = this._parseNotification(opCode, this._notifications.shift());
                         if (notification) {
                             resolve(notification);
+                            return;
                         }
                     }
                     setTimeout(wait, pollInterval);
                 } catch (error) {
                     reject(error);
+                    return;
                 }
             };
             wait();
         });
         const timeoutPromise = new Promise((resolve, reject) => {
             setTimeout(() => {
-                reject(`Timed out when waiting for packet receipt notification.`);
+                reject(`Timed out when waiting for Control Point Characteristic notification for opCode ${opCode}.`);
             }, timeout);
         });
         return Promise.race([waitPromise, timeoutPromise]);
