@@ -18,7 +18,7 @@ class DfuTransportFactory {
      */
     static create(adapter, deviceInstanceId) {
         return DfuTransportFactory._getCharacteristicIds(adapter, deviceInstanceId)
-            .then(ids => new DfuTransport(this._adapter, ids.controlPointCharacteristicId, ids.packetCharacteristicId));
+            .then(ids => new DfuTransport(adapter, ids.controlPointCharacteristicId, ids.packetCharacteristicId));
     }
 
     static _getCharacteristicIds(adapter, deviceInstanceId) {
