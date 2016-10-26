@@ -11,7 +11,7 @@ describe('getCharacteristicId', () => {
 
         beforeEach(() => {
             adapter = {
-                getAttributes: () => Promise.reject('Some error')
+                getAttributes: (id, callback) => callback('Some error')
             };
             service = new DeviceInfoService(adapter);
         });
@@ -27,7 +27,7 @@ describe('getCharacteristicId', () => {
 
         beforeEach(() => {
             adapter = {
-                getAttributes: () => Promise.resolve({
+                getAttributes: (id, callback) => callback(null, {
                     services: {
                         'service-id-123': {
                             uuid: 'service-uuid-123',
