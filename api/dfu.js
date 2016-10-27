@@ -89,9 +89,6 @@ class Dfu extends EventEmitter {
 
         this._controlPointCharacteristicId = null;
         this._packetCharacteristicId = null;
-
-        this._setupCharacteristics = this._setupCharacteristics.bind(this);
-        this._forwardControlPointResponse = this._forwardControlPointResponse.bind(this);
     }
 
     // Run the entire DFU process
@@ -110,14 +107,7 @@ class Dfu extends EventEmitter {
             throw new Error('No instance ID provided.');
         }
 
-        const foo = () => {
-            return new Promise((resolve, reject) => {
-                this._initDFU(instanceId, () => resolve());
-            })
-        }
-
-        foo()
-        .then(() => this._fetchUpdates(this._zipFilePath))
+        this._fetchUpdates(this._zipFilePath)
         .then(updates => this._performUpdates(updates))
         .catch(err => console.log(err));
     }
@@ -230,104 +220,6 @@ class Dfu extends EventEmitter {
     stopDFU() {
 
     }
-
-
-
-
-// TODO: Move the functionality of the following functions to DFU transport.
-//       (Start of portion to be moved.)
-    _getAttributes(deviceInstanceId) {
-        return new Promise((resolve, reject) => {
-            this._adapter.getAttributes(deviceInstanceId, (err, data) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(data);
-                }
-            })
-        })
-    }
-
-    _getCharacteristics(serviceUUID, instanceId) {
-        return new Promise((resolve, reject) => {
-            this._getAttributes(instanceId)
-            .then((data) => {
-                for (let id in data['services']) {
-                    if (data['services'][id].uuid === serviceUUID)
-                    {
-                        resolve(data['services'][id].characteristics);
-                    }
-                }
-                reject('Could not find service: ' + serviceUUID);
-            })
-            .catch(err => reject(err));
-        });
-    }
-
-    _getCharacteristic(characteristics, uuid) {
-        for (let id in characteristics) {
-            if (characteristics[id].uuid === uuid) {
-                return id;
-            }
-        }
-        throw new Error('Could not find characteristic: ' + uuid);
-    }
-
-    _forwardControlPointResponse(characteristic) {
-        if (characteristic._instanceId === this._controlPointCharacteristicId) {
-            this.emit('controlPointResponse', characteristic.value);
-        }
-    }
-
-    _setupCharacteristics(characteristics) {
-        return new Promise((resolve, reject) => {
-            this._controlPointCharacteristicId = this._getCharacteristic(characteristics, SECURE_DFU_CONTROL_POINT_UUID);
-            this._packetCharacteristicId = this._getCharacteristic(characteristics, SECURE_DFU_PACKET_UUID);
-
-            this._adapter.startCharacteristicsNotifications(this._controlPointCharacteristicId, false, err => {
-                if (err) {
-                    reject(err);
-                } else {
-                    this._adapter.on('characteristicValueChanged', this._forwardControlPointResponse);
-                    resolve();
-                }
-            });
-        });
-    }
-
-    // Find characteristics,
-    // enable notifications,
-    // set up progress events,
-    _initDFU(instanceId, callback) {
-        // Find DFU service
-        this._getCharacteristics(SECURE_DFU_SERVICE_UUID, instanceId)
-        // Find and set up notifications on DFU characteristics
-        .then(this._setupCharacteristics)
-        .then(() => this.emit('initialized'))
-        .then(() => callback())
-        .catch(err => this.emit('error', err));
-    }
-
-//    let command = [6, 1];
-//    this._sendCommand(command)
-//    .catch(err => console.log(err));
-
-    _uninitDFU() {
-        // stop Control Point notifications
-        this._adapter.stopCharacteristicsNotifications(this._controlPointCharacteristicId, (err) => {
-            console.log('Can not stop characteristics notifications: ', err);
-        });
-
-        // stop notification forwarding
-        this._adapter.removeListener('characteristicValueChanged', this._forwardControlPointResponse);
-
-        // clear characteristic IDs.
-        this._controlPointCharacteristicId = null;
-        this._packetCharacteristicId = null;
-    }
-// TODO: Move the functionality of the above functions to DFU transport.
-//       (End of portion to be moved.)
-
 
 
     // Callback signature: function(err, zip) {}
