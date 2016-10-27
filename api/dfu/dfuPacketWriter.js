@@ -46,15 +46,24 @@ class DfuPacketWriter {
         return Promise.resolve();
     }
 
-    _write(packet) {
+    _write(packet, attempts = 0) {
         return new Promise((resolve, reject) => {
             const characteristicId = this._packetCharacteristicId;
             const value = packet;
             const ack = false;
             const callback = error => {
-                error ? reject(error) : resolve();
+                if (error) {
+                    if (error.errno === 12292 && ++attempts < 10) {
+                        // NO_TX_PACKETS error. Try again after a delay.
+                        setTimeout(() => this._write(packet, attempts).then(() => resolve()).catch(err => reject(err)), 5);
+                    } else {
+                        reject(error);
+                    }
+                } else {
+                    resolve();
+                }
             };
-            setTimeout(() => this._adapter.writeCharacteristicValue(characteristicId, value, ack, callback), 20);
+            this._adapter.writeCharacteristicValue(characteristicId, value, ack, callback);
         });
     }
 
