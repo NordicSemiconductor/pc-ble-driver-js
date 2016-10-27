@@ -11,6 +11,10 @@ set(UECC_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/uECC)
 # Essential include files to build a node addon,
 # you should add this line in every CMake.js based project.
 include_directories(${CMAKE_JS_INC} ${PC_BLE_DRIVER_INCLUDE_DIR} ${UECC_INCLUDE_DIR})
+include_directories(${PC_BLE_DRIVER_INCLUDE_DIR}/common)
+include_directories(${PC_BLE_DRIVER_INCLUDE_DIR}/common/sdk_compat)
+include_directories(${PC_BLE_DRIVER_INCLUDE_DIR}/common/internal/transport)
+include_directories(${PC_BLE_DRIVER_ROOT_DIR}/src/sd_api_v2/sdk/components/softdevice/s132/headers)
 
 # Specify source files
 file (GLOB SOURCE_FILES
@@ -73,4 +77,4 @@ endif()
 
 # Essential library files to link to a node addon,
 # you should add this line in every CMake.js based project.
-target_link_libraries(${PROJECT_NAME} ${CMAKE_JS_LIB} ${PC_BLE_DRIVER_STATIC_LIB})
+target_link_libraries(${PROJECT_NAME} ${CMAKE_JS_LIB} ${PC_BLE_DRIVER_SD_API_V2_STATIC_LIB})

@@ -35,8 +35,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-var driverSD20 = require('bindings')('pc-ble-driver-js-sd20');
-var driverSD30 = require('bindings')('pc-ble-driver-js-sd30');
+var driverSD20 = require('bindings')('pc-ble-driver-js');
+//var driverSD30 = require('bindings')('pc-ble-driver-js-s13v30');
+//var driverSD50 = require('bindings')('pc-ble-driver-js-s14v50');
+
 var Adapter = require('./api/adapter');
 var AdapterFactory = require('./api/adapterFactory');
 var AdapterState = require('./api/adapterState');
@@ -47,9 +49,12 @@ var Security = require('./api/security');
 var Service = require('./api/service');
 var ServiceFactory = require('./api/serviceFactory');
 
-module.exports.driver = {
+module.exports.driver = driverSD20; // for backward compatibility keep "driver" available
+
+module.exports.drivers = {
     driverSD20,
-    driverSD30,
+//    driverSD30,
+//    driverSD50,
 };
 
 module.exports.api = {
