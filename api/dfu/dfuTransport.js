@@ -114,10 +114,10 @@ class DfuTransport {
             let attempts = 0;
             const tryWrite = () => {
                 this._controlPointService.createObject(ObjectType.COMMAND, initPacket.length)
-                    .then(()  => this._objectWriter.writeObject(initPacket))
-                    .then(crc => this._validateChecksum(crc))
-                    .then(()  => this._controlPointService.execute())
-                    .then(()  => resolve())
+                    .then(()       => this._objectWriter.writeObject(initPacket))
+                    .then(progress => this._validateProgress(progress))
+                    .then(()       => this._controlPointService.execute())
+                    .then(()       => resolve())
                     .catch(error => {
                         attempts++;
                         if (attempts < MAX_RETRIES) {
@@ -132,21 +132,27 @@ class DfuTransport {
     }
 
     _writeFirmware(firmware, objectSize) {
+        // TODO: Set initial progress to offset and crc32 from select response
+        const initialProgress = {
+            offset: 0
+        };
         const objects = splitArray(firmware, objectSize);
-        return objects.reduce((prev, curr) => {
-            return prev.then(() => this._writeFirmwareObject(curr));
-        }, Promise.resolve());
+        return objects.reduce((prevPromise, object) => {
+            return prevPromise.then(progress => this._writeFirmwareObject(object, progress.offset, progress.crc32));
+        }, Promise.resolve(initialProgress));
     }
 
-    _writeFirmwareObject(data) {
+    _writeFirmwareObject(data, offset, crc32) {
         return new Promise((resolve, reject) => {
             let attempts = 0;
             const tryWrite = () => {
                 this._controlPointService.createObject(ObjectType.DATA, data.length)
-                    .then(()  => this._objectWriter.writeObject(data))
-                    .then(crc => this._validateChecksum(crc))
-                    .then(()  => this._controlPointService.execute())
-                    .then(()  => resolve())
+                    .then(()  => this._objectWriter.writeObject(data, offset, crc32))
+                    .then(progress => {
+                        return this._validateProgress(progress)
+                            .then(() => this._controlPointService.execute())
+                            .then(() => resolve(progress))
+                    })
                     .catch(error => {
                         attempts++;
                         if (attempts < MAX_RETRIES) {
@@ -169,11 +175,14 @@ class DfuTransport {
         });
     }
 
-    _validateChecksum(crc) {
+    _validateProgress(progressInfo) {
         return this._controlPointService.calculateChecksum()
             .then(response => {
-                if (crc !== response.crc32) {
-                    throw new Error(`CRC validation failed. Got ${response.crc32}, but expected ${crc}`);
+                if (progressInfo.crc32 !== response.crc32) {
+                    throw new Error(`CRC validation failed. Got ${response.crc32}, but expected ${progressInfo.crc32}`);
+                }
+                if (progressInfo.offset !== response.offset) {
+                    throw new Error(`Offset validation failed. Got ${response.offset}, but expected ${progressInfo.offset}`);
                 }
             });
     }

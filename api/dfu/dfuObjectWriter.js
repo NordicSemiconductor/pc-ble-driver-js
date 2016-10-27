@@ -65,9 +65,9 @@ class DfuObjectWriter {
         return packets.reduce((prevPromise, currentPacket) => {
             return prevPromise
                 .then(() => packetWriter.writePacket(currentPacket))
-                .then(progressInfo => () => {
+                .then(progressInfo => {
                     if (progressInfo) {
-                        this._validateProgress(progressInfo);
+                        return this._validateProgress(progressInfo);
                     }
                 });
         }, Promise.resolve());
