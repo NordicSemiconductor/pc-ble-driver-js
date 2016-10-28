@@ -7,7 +7,6 @@ const DfuNotificationStore = require('./dfuNotificationStore');
 const DfuPacketWriter = require('./dfuPacketWriter');
 
 const DEFAULT_MTU_SIZE = 20;
-const DEFAULT_PRN = 0;
 
 class DfuObjectWriter {
 
@@ -15,7 +14,6 @@ class DfuObjectWriter {
         this._adapter = adapter;
         this._packetCharacteristicId = packetCharacteristicId;
         this._notificationStore = new DfuNotificationStore(adapter, controlPointCharacteristicId);
-        this._prn = DEFAULT_PRN;
         this._mtuSize = DEFAULT_MTU_SIZE;
     }
 
@@ -23,9 +21,9 @@ class DfuObjectWriter {
      * Writes DFU data object according to the given MTU size.
      *
      * @param data byte array that should be written
-     * @param offset the offset to continue from
+     * @param offset the offset to continue from (optional)
      * @param crc32 the CRC32 value to continue from (optional)
-     * @returns promise that returns the final locally calculated CRC32 value
+     * @returns promise that returns progress info (CRC32 value and offset)
      */
     writeObject(data, offset, crc32) {
         const packets = splitArray(data, this._mtuSize);
@@ -34,7 +32,10 @@ class DfuObjectWriter {
         return this._writePackets(packetWriter, packets)
             .then(() => {
                 this._notificationStore.stopListening();
-                return {crc32: packetWriter.getCrc32(), offset: packetWriter.getOffset()};
+                return {
+                    offset: packetWriter.getOffset(),
+                    crc32: packetWriter.getCrc32()
+                };
             }).catch(error => {
                 this._notificationStore.stopListening();
                 throw error;

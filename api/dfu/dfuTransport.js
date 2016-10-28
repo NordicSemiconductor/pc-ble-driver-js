@@ -4,6 +4,7 @@ const DfuObjectWriter = require('./dfuObjectWriter');
 const ControlPointService = require('./controlPointService');
 const { ObjectType } = require('./dfuConstants');
 const { splitArray } = require('../util/arrayUtil');
+const crc = require('crc');
 
 const MAX_RETRIES = 3;
 
@@ -34,11 +35,16 @@ class DfuTransport {
      * @return promise with empty response
      */
     sendInitPacket(initPacket) {
-        // TODO: Resume if response.offset from selectObject is != 0
         return this._open()
-            .then(()       => this._controlPointService.selectObject(ObjectType.COMMAND))
-            .then(response => this._validateInitPacketSize(initPacket.length, response.maximumSize))
-            .then(()       => this._writeInitPacket(initPacket));
+            .then(() => this._controlPointService.selectObject(ObjectType.COMMAND))
+            .then(response => {
+                const { maximumSize, offset, crc32 } = response;
+                return this._validateInitPacketSize(initPacket.length, maximumSize).then(() => {
+                    return this._canResumeWriting(initPacket, offset, crc32) ?
+                        this._writeObject(initPacket.slice(offset), offset, crc32) :
+                        this._createAndWriteObject(initPacket, ObjectType.COMMAND);
+                });
+            });
     }
 
     /**
@@ -48,10 +54,17 @@ class DfuTransport {
      * @returns promise with empty response
      */
     sendFirmware(firmware) {
-        // TODO: Resume if response.offset from selectObject is != 0
         return this._open()
-            .then(()       => this._controlPointService.selectObject(ObjectType.DATA))
-            .then(response => this._writeFirmware(firmware, response.maximumSize));
+            .then(() => this._controlPointService.selectObject(ObjectType.DATA))
+            .then(response => {
+                return this._recoverIncompleteTransfer(firmware, response)
+                    .then(progress => {
+                        const { offset, crc32 } = progress;
+                        const dataToSend = firmware.slice(offset);
+                        const objects = splitArray(dataToSend, response.maximumSize);
+                        return this._createAndWriteObjects(objects, ObjectType.DATA, offset, crc32);
+                    });
+            });
     }
 
     /**
@@ -64,10 +77,7 @@ class DfuTransport {
     setPrn(prn) {
         return this._open()
             .then(() => this._controlPointService.setPRN(prn))
-            .then(() => {
-                this._objectWriter.setPrn(prn);
-                return Promise.resolve();
-            });
+            .then(() => this._objectWriter.setPrn(prn));
     }
 
     /**
@@ -98,61 +108,71 @@ class DfuTransport {
         });
     }
 
+    /**
+     * Opens the transport. Instructs the device to start notifying about changes
+     * to the DFU control point characteristic. Private method - not intended to
+     * be used outside of the class.
+     *
+     * @returns promise with empty response
+     * @private
+     */
     _open() {
         if (this._isOpen) {
             return Promise.resolve();
         }
         return new Promise((resolve, reject) => {
-            this._adapter.startCharacteristicsNotifications(this._controlPointCharacteristicId, false, error => {
+            const ack = false;
+            this._adapter.startCharacteristicsNotifications(this._controlPointCharacteristicId, ack, error => {
                 error ? reject(error) : resolve();
             });
         });
     }
 
-    _writeInitPacket(initPacket) {
-        return new Promise((resolve, reject) => {
-            let attempts = 0;
-            const tryWrite = () => {
-                this._controlPointService.createObject(ObjectType.COMMAND, initPacket.length)
-                    .then(()       => this._objectWriter.writeObject(initPacket, 0))
-                    .then(progress => this._validateProgress(progress))
-                    .then(()       => this._controlPointService.execute())
-                    .then(()       => resolve())
-                    .catch(error => {
-                        attempts++;
-                        if (attempts < MAX_RETRIES) {
-                            tryWrite();
-                        } else {
-                            reject(error);
-                        }
-                    });
+    /**
+     * Recovers from a previous firmware transfer. If the previous transfer stopped
+     * in the middle of an object, it will write the remaining parts of the object.
+     * Returns new offset and crc32 after recovery.
+     *
+     * @param firmware byte array with complete firmware data
+     * @param selectResponse response from SELECT command
+     * @returns promise with offset and crc32 values after recovery
+     * @private
+     */
+    _recoverIncompleteTransfer(firmware, selectResponse) {
+        let { maximumSize, offset, crc32 } = selectResponse;
+        return Promise.resolve().then(() => {
+            const incompleteObjectData = this._getIncompleteObjectData(firmware, maximumSize, offset);
+            if (incompleteObjectData.length === 0) {
+                return { offset, crc32 };
+            }
+            if (this._canResumeWriting(firmware, offset, crc32)) {
+                return this._writeObject(incompleteObjectData, offset, crc32);
+            }
+            // Unable to resume transfer of incomplete object. Backtrack to
+            // where the object begins, so that it can be sent again.
+            const objectStartOffset = offset - maximumSize + incompleteObjectData.length;
+            return {
+                offset: objectStartOffset,
+                crc32: crc.crc32(firmware.slice(0, objectStartOffset))
             };
-            tryWrite();
         });
     }
 
-    _writeFirmware(firmware, objectSize) {
-        // TODO: Set initial progress to offset and crc32 from select response
-        const initialProgress = {
-            offset: 0
-        };
-        const objects = splitArray(firmware, objectSize);
+    _createAndWriteObjects(objects, type, offset, crc32) {
         return objects.reduce((prevPromise, object) => {
-            return prevPromise.then(progress => this._writeFirmwareObject(object, progress.offset, progress.crc32));
-        }, Promise.resolve(initialProgress));
+            return prevPromise.then(progress => {
+                return this._createAndWriteObject(object, type, progress.offset, progress.crc32)
+            });
+        }, Promise.resolve({ offset, crc32 }));
     }
 
-    _writeFirmwareObject(data, offset, crc32) {
+    _createAndWriteObject(data, type, offset, crc32) {
         return new Promise((resolve, reject) => {
             let attempts = 0;
             const tryWrite = () => {
-                this._controlPointService.createObject(ObjectType.DATA, data.length)
-                    .then(()  => this._objectWriter.writeObject(data, offset, crc32))
-                    .then(progress => {
-                        return this._validateProgress(progress)
-                            .then(() => this._controlPointService.execute())
-                            .then(() => resolve(progress))
-                    })
+                this._controlPointService.createObject(type, data.length)
+                    .then(() => this._writeObject(data, offset, crc32))
+                    .then(progress => resolve(progress))
                     .catch(error => {
                         attempts++;
                         if (attempts < MAX_RETRIES) {
@@ -166,6 +186,29 @@ class DfuTransport {
         });
     }
 
+    _writeObject(data, offset, crc32) {
+        return this._objectWriter.writeObject(data, offset, crc32)
+            .then(progress => {
+                return this._validateProgress(progress)
+                    .then(() => this._controlPointService.execute())
+                    .then(() => progress);
+            });
+    }
+
+    _getIncompleteObjectData(data, maximumSize, offset) {
+        const remainder = offset % maximumSize;
+        if (offset === 0 || remainder === 0 || offset === data.length) {
+            return [];
+        }
+        return data.slice(offset, offset + maximumSize - remainder);
+    }
+
+    _canResumeWriting(data, offset, crc32) {
+        if (offset === 0 || offset > data.length || crc32 !== crc.crc32(data.slice(0, offset))) {
+            return false;
+        }
+        return true;
+    }
 
     _validateInitPacketSize(packetSize, maxSize) {
         return Promise.resolve().then(() => {
@@ -178,15 +221,17 @@ class DfuTransport {
     _validateProgress(progressInfo) {
         return this._controlPointService.calculateChecksum()
             .then(response => {
-                if (progressInfo.crc32 !== response.crc32) {
-                    throw new Error(`CRC validation failed. Got ${response.crc32}, but expected ${progressInfo.crc32}`);
-                }
+                // Same checks are being done in objectWriter. Could we reuse?
                 if (progressInfo.offset !== response.offset) {
-                    throw new Error(`Offset validation failed. Got ${response.offset}, but expected ${progressInfo.offset}`);
+                    throw new Error(`Error when validating offset. Got ${response.offset}, ` +
+                        `but expected ${progressInfo.offset}.`);
+                }
+                if (progressInfo.crc32 !== response.crc32) {
+                    throw new Error(`Error when validating CRC. Got ${response.crc32}, ` +
+                        `but expected ${progressInfo.crc32}`);
                 }
             });
     }
-
 }
 
 module.exports = DfuTransport;

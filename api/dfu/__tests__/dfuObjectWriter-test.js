@@ -22,22 +22,27 @@ describe('writeObject', () => {
 
     describe('when writing packets has succeeded', () => {
 
-        const crc32 = 123;
+        const offset = 123;
+        const crc32 = 456;
 
         beforeEach(() => {
             // Inject our own packet writer that returns successfully,
-            // and has an accumulated CRC.
+            // and has offset and crc32.
             objectWriter._createPacketWriter = () => {
                 return {
                     writePacket: () => Promise.resolve(),
+                    getOffset: () => offset,
                     getCrc32: () => crc32
                 };
             };
         });
 
-        it('should return accumulated CRC', () => {
-            return objectWriter.writeObject([1]).then(crc => {
-                expect(crc).toEqual(crc32);
+        it('should return progress info (offset and crc32)', () => {
+            return objectWriter.writeObject([1]).then(progressInfo => {
+                expect(progressInfo).toEqual({
+                    offset,
+                    crc32
+                });
             });
         });
 
@@ -78,6 +83,7 @@ describe('writeObject', () => {
             objectWriter._createPacketWriter = () => {
                 return {
                     writePacket: () => Promise.resolve(progressInfo),
+                    getOffset: jest.fn(),
                     getCrc32: jest.fn()
                 };
             };
