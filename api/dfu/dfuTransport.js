@@ -114,7 +114,7 @@ class DfuTransport {
             let attempts = 0;
             const tryWrite = () => {
                 this._controlPointService.createObject(ObjectType.COMMAND, initPacket.length)
-                    .then(()       => this._objectWriter.writeObject(initPacket))
+                    .then(()       => this._objectWriter.writeObject(initPacket, 0))
                     .then(progress => this._validateProgress(progress))
                     .then(()       => this._controlPointService.execute())
                     .then(()       => resolve())

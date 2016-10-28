@@ -34,7 +34,7 @@ class DfuObjectWriter {
         return this._writePackets(packetWriter, packets)
             .then(() => {
                 this._notificationStore.stopListening();
-                return packetWriter.getCrc32();
+                return {crc32: packetWriter.getCrc32(), offset: packetWriter.getOffset()};
             }).catch(error => {
                 this._notificationStore.stopListening();
                 throw error;
