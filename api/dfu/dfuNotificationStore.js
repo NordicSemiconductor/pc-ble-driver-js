@@ -31,6 +31,10 @@ class DfuNotificationStore {
         this._adapter.removeListener('characteristicValueChanged', this._onNotificationReceived);
     }
 
+    _onNotificationReceived(notification) {
+        this._notifications.push(notification);
+    }
+
     /**
      * Reads the latest notification that matches the given opCode. The notification,
      * is removed from the store.
@@ -39,36 +43,44 @@ class DfuNotificationStore {
      * @returns promise with notification, or timeout if no notification was received
      */
     readLatest(opCode) {
-        const pollInterval = 20; // Could we use 0?
         const timeout = 20000;
-        const waitPromise = new Promise((resolve, reject) => {
+        const pollInterval = 20; // Can we use 0?
+        const timeoutPromise = new Promise((resolve, reject) => {
+            setTimeout(() => {
+                reject(`Timed out when waiting for packet receipt notification.`);
+            }, timeout);
+        });
+        return Promise.race([
+            this._waitForNotification(opCode, pollInterval),
+            timeoutPromise
+        ]);
+    }
+
+    _waitForNotification(opCode, pollInterval) {
+        return new Promise((resolve, reject) => {
             const wait = () => {
                 try {
-                    while (this._notifications.length > 0) {
-                        const notification = this._parseNotification(opCode, this._notifications.shift());
-                        if (notification) {
-                            resolve(notification);
-                            return;
-                        }
+                    const notification = this._findNotification(opCode);
+                    if (notification) {
+                        resolve(notification);
+                        return;
                     }
                     setTimeout(wait, pollInterval);
                 } catch (error) {
                     reject(error);
-                    return;
                 }
             };
             wait();
         });
-        const timeoutPromise = new Promise((resolve, reject) => {
-            setTimeout(() => {
-                reject(`Timed out when waiting for Control Point Characteristic notification for opCode ${opCode}.`);
-            }, timeout);
-        });
-        return Promise.race([waitPromise, timeoutPromise]);
     }
 
-    _onNotificationReceived(notification) {
-        this._notifications.push(notification);
+    _findNotification(opCode) {
+        while (this._notifications.length > 0) {
+            const notification = this._parseNotification(opCode, this._notifications.shift());
+            if (notification) {
+                return notification;
+            }
+        }
     }
 
     _parseNotification(opCode, notification) {
