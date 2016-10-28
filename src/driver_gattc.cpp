@@ -307,23 +307,25 @@ v8::Local<v8::Object> GattcHandleValue::ToJs()
 
 v8::Local<v8::Object> GattcCharacteristicValueReadByUUIDEvent::ToJs()
 {
-    Nan::EscapableHandleScope scope;
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    BleDriverGattcEvent::ToJs(obj);
+	Nan::EscapableHandleScope scope;
+	v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+	BleDriverGattcEvent::ToJs(obj);
+	Utility::Set(obj, "count", evt->count);
+	Utility::Set(obj, "value_len", evt->value_len);
 
-    Utility::Set(obj, "count", evt->count);
-    Utility::Set(obj, "value_len", evt->value_len);
 
+#if NRF_SD_BLE_API_VERSION <= 2
     v8::Local<v8::Array> handle_value_array = Nan::New<v8::Array>();
 
     for (auto i = 0; i < evt->count; ++i)
     {
-        handle_value_array->Set(Nan::New<v8::Integer>(i), GattcHandleValue(&evt->handle_value[i], evt->value_len));
+        //handle_value_array->Set(Nan::New<v8::Integer>(i), GattcHandleValue(&evt->handle_value[i], evt->value_len));
     }
 
     Utility::Set(obj, "handle_values", handle_value_array);
+#endif
 
-    return scope.Escape(obj);
+	return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcReadEvent::ToJs()

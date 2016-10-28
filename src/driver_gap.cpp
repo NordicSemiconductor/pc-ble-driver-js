@@ -818,16 +818,18 @@ v8::Local<v8::Object> GapConnected::ToJs()
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
 
-    Utility::Set(obj, "own_addr", GapAddr(&(evt->own_addr)).ToJs());
     Utility::Set(obj, "peer_addr", GapAddr(&(evt->peer_addr)).ToJs());
     Utility::Set(obj, "role", ConversionUtility::valueToJsString(evt->role, gap_role_map));
     Utility::Set(obj, "conn_params", GapConnParams(&(evt->conn_params)).ToJs());
-    Utility::Set(obj, "irk_match", ConversionUtility::toJsBool(evt->irk_match));
+#if NRF_SD_BLE_API_VERSION <= 2
+	Utility::Set(obj, "own_addr", GapAddr(&(evt->own_addr)).ToJs());
+	Utility::Set(obj, "irk_match", ConversionUtility::toJsBool(evt->irk_match));
 
     if (evt->irk_match == 1)
     {
         Utility::Set(obj, "irk_idx", evt->irk_match_idx);
     }
+#endif
 
     return scope.Escape(obj);
 }
@@ -1467,7 +1469,11 @@ NAN_METHOD(Adapter::GapSetAddress)
 void Adapter::GapSetAddress(uv_work_t *req)
 {
     auto baton = static_cast<GapAddressSetBaton *>(req->data);
+#if NRF_SD_BLE_API_VERSION <= 2
     baton->result = sd_ble_gap_address_set(baton->adapter, baton->addr_cycle_mode, baton->address);
+#else
+	Nan::ThrowError("Not implemented.");
+#endif
 }
 
 // This runs in Main Thread
@@ -1529,7 +1535,11 @@ NAN_METHOD(Adapter::GapGetAddress)
 void Adapter::GapGetAddress(uv_work_t *req)
 {
     auto baton = static_cast<GapAddressGetBaton *>(req->data);
-    baton->result = sd_ble_gap_address_get(baton->adapter, baton->address);
+#if NRF_SD_BLE_API_VERSION <= 2
+	baton->result = sd_ble_gap_address_get(baton->adapter, baton->address);
+#else
+	Nan::ThrowError("Not implemented.");
+#endif
 }
 
 // This runs in Main Thread
@@ -1808,7 +1818,7 @@ NAN_METHOD(Adapter::GapSetDeviceName)
     }
 
     baton->dev_name = dev_name;
-    baton->length = length;
+    baton->length = (uint16_t)length;
     baton->adapter = obj->adapter;
 
     uv_queue_work(uv_default_loop(), baton->req, GapSetDeviceName, reinterpret_cast<uv_after_work_cb>(AfterGapSetDeviceName));
@@ -3782,9 +3792,10 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GAP_ADDR_TYPE_RANDOM_PRIVATE_NON_RESOLVABLE); //Private Non-Resolvable address.
 
         /* BLE_GAP_ADDR_CYCLE_MODES GAP Address cycle modes */
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_ADDR_CYCLE_MODE_NONE); //Set addresses directly, no automatic address cycling.
+#if NRF_SD_BLE_API_VERSION <= 2
+		NODE_DEFINE_CONSTANT(target, BLE_GAP_ADDR_CYCLE_MODE_NONE); //Set addresses directly, no automatic address cycling.
         NODE_DEFINE_CONSTANT(target, BLE_GAP_ADDR_CYCLE_MODE_AUTO); //Automatically generate and update private addresses.
-
+#endif
         /* The default interval in seconds at which a private address is refreshed when address cycle mode is @ref BLE_GAP_ADDR_CYCLE_MODE_AUTO.  */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_DEFAULT_PRIVATE_ADDR_CYCLE_INTERVAL_S);
 
@@ -3945,9 +3956,11 @@ extern "C" {
         /* Maximum amount of addresses in a whitelist. */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_WHITELIST_ADDR_MAX_COUNT);
 
-        /* Maximum amount of IRKs in a whitelist.
+#if NRF_SD_BLE_API_VERSION <= 2
+		/* Maximum amount of IRKs in a whitelist.
         * @note  The number of IRKs is limited to 8, even if the hardware supports more. */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_WHITELIST_IRK_MAX_COUNT);
+#endif
 
         /* GAP_SEC_MODES GAP Security Modes */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_MODE); //No key (may be used to reject).
