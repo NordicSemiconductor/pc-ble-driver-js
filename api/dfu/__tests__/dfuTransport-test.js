@@ -49,76 +49,6 @@ describe('sendInitPacket', () => {
             expect(error.message).toContain('larger than max size');
         });
     });
-
-    // TODO: Remove test. Too much mocking to be maintainable in the long run.
-    it('should create object before writing if there is no init packet on the device (offset is 0)', () => {
-        const initPacket = [1, 2, 3];
-        const createObject = jest.fn();
-        createObject.mockReturnValueOnce(Promise.resolve());
-        const dfuTransport = new DfuTransport(adapter);
-        dfuTransport._controlPointService = {
-            selectObject: () => Promise.resolve({
-                maximumSize: 3,
-                offset: 0
-            }),
-            createObject
-        };
-        dfuTransport._writeObject = jest.fn();
-        dfuTransport._writeObject.mockReturnValueOnce(Promise.resolve());
-
-        return dfuTransport.sendInitPacket(initPacket).then(() => {
-            expect(createObject).toHaveBeenCalledWith(ObjectType.COMMAND, initPacket.length);
-            expect(dfuTransport._writeObject).toHaveBeenCalledWith(initPacket, undefined, undefined);
-        });
-    });
-
-    // TODO: Remove test. Too much mocking to be maintainable in the long run.
-    it('should create object before writing if init packet differs from data on device (crc32 mismatch)', () => {
-        const initPacket = [1, 2, 3];
-        const createObject = jest.fn();
-        createObject.mockReturnValueOnce(Promise.resolve());
-        const dfuTransport = new DfuTransport(adapter);
-        dfuTransport._controlPointService = {
-            selectObject: () => Promise.resolve({
-                maximumSize: 3,
-                offset: 1,
-                crc32: 123
-            }),
-            createObject
-        };
-        dfuTransport._writeObject = jest.fn();
-        dfuTransport._writeObject.mockReturnValueOnce(Promise.resolve());
-
-        return dfuTransport.sendInitPacket(initPacket).then(() => {
-            expect(createObject).toHaveBeenCalledWith(ObjectType.COMMAND, initPacket.length);
-            expect(dfuTransport._writeObject).toHaveBeenCalledWith(initPacket, undefined, undefined);
-        });
-    });
-
-    // TODO: Remove test. Too much mocking to be maintainable in the long run.
-    it('should skip creating object and continue writing if offset and crc32 matches data from device', () => {
-        const initPacket = [1, 2, 3];
-        const offset = 2;
-        const crc32 = crc.crc32(initPacket.slice(0, offset));
-        const dfuTransport = new DfuTransport(adapter);
-        const createObject = jest.fn();
-        createObject.mockReturnValueOnce(Promise.resolve());
-        dfuTransport._controlPointService = {
-            selectObject: () => Promise.resolve({
-                maximumSize: 3,
-                offset: offset,
-                crc32: crc32
-            }),
-            createObject
-        };
-        dfuTransport._writeObject = jest.fn();
-        dfuTransport._writeObject.mockReturnValueOnce(Promise.resolve());
-
-        return dfuTransport.sendInitPacket(initPacket).then(() => {
-            expect(createObject).not.toHaveBeenCalled();
-            expect(dfuTransport._writeObject).toHaveBeenCalledWith(initPacket.slice(offset), offset, crc32);
-        });
-    });
 });
 
 
@@ -153,137 +83,124 @@ describe('sendFirmware', () => {
             expect(error).toEqual('Select failed');
         });
     });
+});
 
-    // TODO: Remove test. Too much mocking to be maintainable in the long run.
-    it('should continue to write objects after trying to recover', () => {
-        const dfuTransport = new DfuTransport(adapter);
-        dfuTransport._controlPointService = {
-            selectObject: () => Promise.resolve({maximumSize: 1})
+
+describe('_getFirmwareTransferData', () => {
+
+    let dfuTransport = new DfuTransport();
+
+    describe('when no data exists on device', () => {
+        const firmware = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        const selectResponse = {
+            offset: 0,
+            crc32: 0,
+            maximumSize: 4
         };
-        dfuTransport._recoverIncompleteTransfer = () => Promise.resolve({ offset: 0, crc32: 0 });
-        dfuTransport._createAndWriteObjects = jest.fn();
-        dfuTransport._createAndWriteObjects.mockReturnValueOnce(Promise.resolve());
+        const transferData = dfuTransport._getFirmwareTransferData(firmware, selectResponse);
 
-        return dfuTransport.sendFirmware([1, 2, 3]).then(() => {
-            expect(dfuTransport._createAndWriteObjects).toHaveBeenCalledWith([[1], [2], [3]], ObjectType.DATA, 0, 0);
+        it('should return zero offset', () => {
+            expect(transferData.offset).toEqual(0);
+        });
+
+        it('should return zero crc32', () => {
+            expect(transferData.crc32).toEqual(0);
+        });
+
+        it('should return all firmware data as objects according to maximumSize', () => {
+            expect(transferData.objects).toEqual([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10]]);
+        });
+
+        it('should return empty partial object', () => {
+            expect(transferData.partialObject).toEqual([]);
         });
     });
 
-});
-
-
-describe('_recoverIncompleteTransfer', () => {
-
-    let dfuTransport;
-
-    describe('when no previous data exists on device', () => {
-
-        const data = [1, 2, 3];
-        const selectResponse = { offset: 0 };
-
-        beforeEach(() => {
-            dfuTransport = new DfuTransport();
-            dfuTransport._writeObject = jest.fn();
-        });
-
-        it('should not write any remaining data', () => {
-            return dfuTransport._recoverIncompleteTransfer(data, selectResponse).then(() => {
-                expect(dfuTransport._writeObject).not.toHaveBeenCalled();
-            });
-        });
-
-        it('should return offset 0 and empty crc32', () => {
-            return dfuTransport._recoverIncompleteTransfer(data, selectResponse).then(progress => {
-                expect(progress).toEqual({ offset: 0 });
-            });
-        });
-    });
-
-    describe('when previous data exists on device, but crc32 is invalid', () => {
-
-        const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-        const maximumSize = 4;
+    describe('when offset is in the middle of partially transferred object, but crc32 is invalid', () => {
+        const firmware = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         const offset = 5;
-        const selectResponse = { maximumSize, offset };
-        const crc32 = crc.crc32(data.slice(0, offset)) + 1;
+        const invalidCrc32 = crc.crc32(firmware.slice(0, offset)) + 1;
+        const selectResponse = {
+            offset: offset,
+            crc32: invalidCrc32,
+            maximumSize: 4
+        };
+        const transferData = dfuTransport._getFirmwareTransferData(firmware, selectResponse);
 
-        beforeEach(() => {
-            dfuTransport = new DfuTransport();
-            dfuTransport._writeObject = jest.fn();
+        it('should return offset where the partial object starts', () => {
+            expect(transferData.offset).toEqual(4);
         });
 
-        it('should not write any remaining data', () => {
-            return dfuTransport._recoverIncompleteTransfer(data, selectResponse).then(() => {
-                expect(dfuTransport._writeObject).not.toHaveBeenCalled();
-            });
+        it('should return crc32 value for the data before the partial object', () => {
+            expect(transferData.crc32).toEqual(crc.crc32(firmware.slice(0, 4)));
         });
 
-        it('should return offset where the current object starts', () => {
-            return dfuTransport._recoverIncompleteTransfer(data, selectResponse).then(progress => {
-                expect(progress.offset).toEqual(4);
-            });
+        it('should return remaining firmware objects including the full partial object', () => {
+            expect(transferData.objects).toEqual([[5, 6, 7, 8], [9, 10]]);
         });
 
-        it('should return crc32 value for the data before the current object', () => {
-            return dfuTransport._recoverIncompleteTransfer(data, selectResponse).then(progress => {
-                expect(progress.crc32).toEqual(crc.crc32(data.slice(0, 4)));
-            });
+        it('should return empty partial object', () => {
+            expect(transferData.partialObject).toEqual([]);
         });
     });
 
-    describe('when transfer can be resumed and object is incomplete', () => {
-
-        const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-        const maximumSize = 4;
+    describe('when transfer can be resumed, and there is a partially transferred object', () => {
+        const firmware = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         const offset = 5;
-        const crc32 = crc.crc32(data.slice(0, offset));
-        const selectResponse = { maximumSize, offset, crc32 };
+        const selectResponse = {
+            offset: offset,
+            crc32: crc.crc32(firmware.slice(0, offset)),
+            maximumSize: 4
+        };
+        const transferData = dfuTransport._getFirmwareTransferData(firmware, selectResponse);
 
-        beforeEach(() => {
-            dfuTransport = new DfuTransport();
-            dfuTransport._writeObject = jest.fn();
-            dfuTransport._writeObject.mockReturnValueOnce(Promise.resolve());
+        it('should return the same offset that was returned by the device', () => {
+            expect(transferData.offset).toEqual(selectResponse.offset);
         });
 
-        it('should write the remaining parts of the incomplete object', () => {
-            return dfuTransport._recoverIncompleteTransfer(data, selectResponse).then(() => {
-                expect(dfuTransport._writeObject).toHaveBeenCalledWith([6, 7, 8], offset, crc32);
-            });
+        it('should return the same crc32 value that was returned by the device', () => {
+            expect(transferData.crc32).toEqual(selectResponse.crc32);
+        });
+
+        it('should return remaining firmware objects after the partial object', () => {
+            expect(transferData.objects).toEqual([[9, 10]]);
+        });
+
+        it('should return partial object', () => {
+            expect(transferData.partialObject).toEqual([6, 7, 8]);
         });
     });
 
-    describe('when transfer can be resumed and there is no incomplete object', () => {
+    describe('when data exists on device, and there is no partially transferred object', () => {
 
-        const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-        const maximumSize = 4;
+        const firmware = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         const offset = 8;
-        const crc32 = crc.crc32(data.slice(0, offset));
-        const selectResponse = { maximumSize, offset, crc32 };
+        const selectResponse = {
+            offset: offset,
+            crc32: crc.crc32(firmware.slice(0, offset)),
+            maximumSize: 4
+        };
+        const transferData = dfuTransport._getFirmwareTransferData(firmware, selectResponse);
 
-        beforeEach(() => {
-            dfuTransport = new DfuTransport();
-            dfuTransport._writeObject = jest.fn();
-            dfuTransport._writeObject.mockReturnValueOnce(Promise.resolve());
+        it('should return the same offset that was returned by the device', () => {
+            expect(transferData.offset).toEqual(selectResponse.offset);
         });
 
-        it('should not write any incomplete data', () => {
-            return dfuTransport._recoverIncompleteTransfer(data, selectResponse).then(() => {
-                expect(dfuTransport._writeObject).not.toHaveBeenCalled();
-            });
+        it('should return the same crc32 value that was returned by the device', () => {
+            expect(transferData.crc32).toEqual(selectResponse.crc32);
         });
 
-        it('should return the same offset and crc32 that was provided', () => {
-            return dfuTransport._recoverIncompleteTransfer(data, selectResponse).then(progress => {
-                expect(progress).toEqual({
-                    offset: selectResponse.offset,
-                    crc32: selectResponse.crc32
-                });
-            });
+        it('should return remaining firmware objects', () => {
+            expect(transferData.objects).toEqual([[9, 10]]);
+        });
+
+        it('should return empty partial object', () => {
+            expect(transferData.partialObject).toEqual([]);
         });
     });
 });
 
-describe('_canResumeWriting', () => {
+describe('_canResumePartiallyWrittenObject', () => {
 
     const dfuTransport = new DfuTransport();
 
@@ -291,7 +208,7 @@ describe('_canResumeWriting', () => {
         const data = [1, 2, 3];
         const offset = 0;
 
-        expect(dfuTransport._canResumeWriting(data, offset)).toEqual(false);
+        expect(dfuTransport._canResumePartiallyWrittenObject(data, offset)).toEqual(false);
     });
 
     it('should not resume transfer if init packet differs from data on device (crc32 mismatch)', () => {
@@ -299,7 +216,7 @@ describe('_canResumeWriting', () => {
         const offset = 2;
         const crc32 = crc.crc32(data.slice(0, offset)) + 1;
 
-        expect(dfuTransport._canResumeWriting(data, offset, crc32)).toEqual(false);
+        expect(dfuTransport._canResumePartiallyWrittenObject(data, offset, crc32)).toEqual(false);
     });
 
     it('should resume transfer if offset and crc32 matches data from device', () => {
@@ -307,7 +224,7 @@ describe('_canResumeWriting', () => {
         const offset = 2;
         const crc32 = crc.crc32(data.slice(0, offset));
 
-        expect(dfuTransport._canResumeWriting(data, offset, crc32)).toEqual(true);
+        expect(dfuTransport._canResumePartiallyWrittenObject(data, offset, crc32)).toEqual(true);
     });
 });
 

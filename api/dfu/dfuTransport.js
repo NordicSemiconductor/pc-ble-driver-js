@@ -39,11 +39,11 @@ class DfuTransport {
             .then(() => this._controlPointService.selectObject(ObjectType.COMMAND))
             .then(response => {
                 const { maximumSize, offset, crc32 } = response;
-                return this._validateInitPacketSize(initPacket.length, maximumSize).then(() => {
-                    return this._canResumeWriting(initPacket, offset, crc32) ?
-                        this._writeObject(initPacket.slice(offset), offset, crc32) :
-                        this._createAndWriteObject(initPacket, ObjectType.COMMAND);
-                });
+                this._validateInitPacketSize(initPacket, maximumSize);
+                if (this._canResumePartiallyWrittenObject(initPacket, offset, crc32)) {
+                    return this._writeObject(initPacket.slice(offset), offset, crc32);
+                }
+                return this._createAndWriteObject(initPacket, ObjectType.COMMAND);
             });
     }
 
@@ -57,13 +57,13 @@ class DfuTransport {
         return this._open()
             .then(() => this._controlPointService.selectObject(ObjectType.DATA))
             .then(response => {
-                return this._recoverIncompleteTransfer(firmware, response)
-                    .then(progress => {
-                        const { offset, crc32 } = progress;
-                        const dataToSend = firmware.slice(offset);
-                        const objects = splitArray(dataToSend, response.maximumSize);
-                        return this._createAndWriteObjects(objects, ObjectType.DATA, offset, crc32);
-                    });
+                const transferData = this._getFirmwareTransferData(firmware, response);
+                const { offset, crc32, objects, partialObject } = transferData;
+                if (partialObject.length > 0) {
+                    return this._writeObject(partialObject, offset, crc32).then(progress =>
+                        this._createAndWriteObjects(objects, ObjectType.DATA, progress.offset, progress.crc32));
+                }
+                return this._createAndWriteObjects(objects, ObjectType.DATA, offset, crc32);
             });
     }
 
@@ -128,34 +128,25 @@ class DfuTransport {
         });
     }
 
-    /**
-     * Recovers from a previous firmware transfer. If the previous transfer stopped
-     * in the middle of an object, it will write the remaining parts of the object.
-     * Returns new offset and crc32 after recovery.
-     *
-     * @param firmware byte array with complete firmware data
-     * @param selectResponse response from SELECT command
-     * @returns promise with offset and crc32 values after recovery
-     * @private
-     */
-    _recoverIncompleteTransfer(firmware, selectResponse) {
-        let { maximumSize, offset, crc32 } = selectResponse;
-        return Promise.resolve().then(() => {
-            const incompleteObjectData = this._getIncompleteObjectData(firmware, maximumSize, offset);
-            if (incompleteObjectData.length === 0) {
-                return { offset, crc32 };
-            }
-            if (this._canResumeWriting(firmware, offset, crc32)) {
-                return this._writeObject(incompleteObjectData, offset, crc32);
-            }
-            // Unable to resume transfer of incomplete object. Backtrack to
-            // where the object begins, so that it can be sent again.
-            const objectStartOffset = offset - maximumSize + incompleteObjectData.length;
-            return {
-                offset: objectStartOffset,
-                crc32: crc.crc32(firmware.slice(0, objectStartOffset))
-            };
-        });
+    _getFirmwareTransferData(firmware, selectResponse) {
+        const { maximumSize, offset, crc32 } = selectResponse;
+        let startOffset = offset;
+        let startCrc32 = crc32;
+
+        let partialObject = this._getRemainingPartialObject(firmware, maximumSize, offset);
+        if (partialObject.length > 0 && !this._canResumePartiallyWrittenObject(firmware, offset, crc32)) {
+            startOffset = offset - maximumSize + partialObject.length;
+            startCrc32 = crc.crc32(firmware.slice(0, startOffset));
+            partialObject = [];
+        }
+
+        const dataToSend = firmware.slice(startOffset + partialObject.length);
+        return {
+            offset: startOffset,
+            crc32: startCrc32,
+            objects: splitArray(dataToSend, selectResponse.maximumSize),
+            partialObject: partialObject
+        };
     }
 
     _createAndWriteObjects(objects, type, offset, crc32) {
@@ -195,7 +186,7 @@ class DfuTransport {
             });
     }
 
-    _getIncompleteObjectData(data, maximumSize, offset) {
+    _getRemainingPartialObject(data, maximumSize, offset) {
         const remainder = offset % maximumSize;
         if (offset === 0 || remainder === 0 || offset === data.length) {
             return [];
@@ -203,19 +194,17 @@ class DfuTransport {
         return data.slice(offset, offset + maximumSize - remainder);
     }
 
-    _canResumeWriting(data, offset, crc32) {
+    _canResumePartiallyWrittenObject(data, offset, crc32) {
         if (offset === 0 || offset > data.length || crc32 !== crc.crc32(data.slice(0, offset))) {
             return false;
         }
         return true;
     }
 
-    _validateInitPacketSize(packetSize, maxSize) {
-        return Promise.resolve().then(() => {
-            if (packetSize > maxSize) {
-                throw new Error(`Init packet size (${packetSize}) is larger than max size (${maxSize})`);
-            }
-        });
+    _validateInitPacketSize(initPacket, maxSize) {
+        if (initPacket.length > maxSize) {
+            throw new Error(`Init packet size (${initPacket.length}) is larger than max size (${maxSize})`);
+        }
     }
 
     _validateProgress(progressInfo) {
