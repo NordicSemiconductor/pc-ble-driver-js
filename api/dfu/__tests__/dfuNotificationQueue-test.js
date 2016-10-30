@@ -1,26 +1,26 @@
 'use strict';
 
 const EventEmitter = require('events');
-const DfuNotificationStore = require('../dfuNotificationStore');
+const DfuNotificationQueue = require('../dfuNotificationQueue');
 const { ControlPointOpcode, ResultCode } = require('../dfuConstants');
 
 describe('listening', () => {
 
     let adapter;
-    let notificationStore;
+    let notificationQueue;
 
     beforeEach(() => {
         adapter = {
             on: jest.fn(),
             removeListener: jest.fn()
         };
-        notificationStore = new DfuNotificationStore(adapter);
+        notificationQueue = new DfuNotificationQueue(adapter);
     });
 
     describe('when startListening is called', () => {
 
         it('should listen to characteristic value changes', () => {
-            notificationStore.startListening();
+            notificationQueue.startListening();
             expect(adapter.on).toHaveBeenCalled();
             const firstArgument = adapter.on.mock.calls[0][0];
             expect(firstArgument).toEqual('characteristicValueChanged');
@@ -31,37 +31,37 @@ describe('listening', () => {
     describe('when stopListening is called', () => {
 
         it('should stop listening to characteristic value changes', () => {
-            notificationStore.stopListening();
+            notificationQueue.stopListening();
             expect(adapter.removeListener).toHaveBeenCalled();
             const firstArgument = adapter.removeListener.mock.calls[0][0];
             expect(firstArgument).toEqual('characteristicValueChanged');
         });
 
         it('should clear notifications', () => {
-            notificationStore._notifications = [1, 2, 3];
-            notificationStore.stopListening();
-            expect(notificationStore._notifications).toEqual([]);
+            notificationQueue._notifications = [1, 2, 3];
+            notificationQueue.stopListening();
+            expect(notificationQueue._notifications).toEqual([]);
         });
 
     });
 });
 
-describe('readLatest', () => {
+describe('readNext', () => {
 
     const characteristicId = 123;
     let adapter = {
         on: jest.fn()
     };
-    let notificationStore;
+    let notificationQueue;
 
     beforeEach(() => {
         adapter = new EventEmitter();
-        notificationStore = new DfuNotificationStore(adapter, characteristicId);
-        notificationStore.startListening();
+        notificationQueue = new DfuNotificationQueue(adapter, characteristicId);
+        notificationQueue.startListening();
     });
 
     afterEach(() => {
-        notificationStore.stopListening();
+        notificationQueue.stopListening();
     });
 
     describe('when reading latest CALCULATE_CRC response', () => {
@@ -70,7 +70,7 @@ describe('readLatest', () => {
 
             it('should time out', () => {
                 jest.useFakeTimers();
-                const promise = notificationStore.readLatest(ControlPointOpcode.CALCULATE_CRC).catch(error => {
+                const promise = notificationQueue.readNext(ControlPointOpcode.CALCULATE_CRC).catch(error => {
                     expect(error).toContain('Timed out');
                 });
                 jest.runOnlyPendingTimers();
@@ -87,7 +87,7 @@ describe('readLatest', () => {
 
             it('should time out', () => {
                 jest.useFakeTimers();
-                const promise = notificationStore.readLatest(ControlPointOpcode.CALCULATE_CRC).catch(error => {
+                const promise = notificationQueue.readNext(ControlPointOpcode.CALCULATE_CRC).catch(error => {
                     expect(error).toContain('Timed out');
                 });
                 adapter.emit('characteristicValueChanged', notification);
@@ -106,7 +106,7 @@ describe('readLatest', () => {
 
             it('should time out', () => {
                 jest.useFakeTimers();
-                const promise = notificationStore.readLatest(ControlPointOpcode.CALCULATE_CRC).catch(error => {
+                const promise = notificationQueue.readNext(ControlPointOpcode.CALCULATE_CRC).catch(error => {
                     expect(error).toContain('Timed out');
                 });
                 adapter.emit('characteristicValueChanged', notification);
@@ -125,7 +125,7 @@ describe('readLatest', () => {
 
             it('should return error', () => {
                 jest.useFakeTimers();
-                const promise = notificationStore.readLatest(ControlPointOpcode.CALCULATE_CRC).catch(error => {
+                const promise = notificationQueue.readNext(ControlPointOpcode.CALCULATE_CRC).catch(error => {
                     expect(error.message).toContain('Got unexpected response');
                 });
                 adapter.emit('characteristicValueChanged', notification);
@@ -144,7 +144,7 @@ describe('readLatest', () => {
 
             it('should return error', () => {
                 jest.useFakeTimers();
-                const promise = notificationStore.readLatest(ControlPointOpcode.CALCULATE_CRC).catch(error => {
+                const promise = notificationQueue.readNext(ControlPointOpcode.CALCULATE_CRC).catch(error => {
                     expect(error.message).toContain('returned error code');
                 });
                 adapter.emit('characteristicValueChanged', notification);
@@ -163,7 +163,7 @@ describe('readLatest', () => {
 
             it('should return notification payload', () => {
                 jest.useFakeTimers();
-                const promise = notificationStore.readLatest(ControlPointOpcode.CALCULATE_CRC).then(response => {
+                const promise = notificationQueue.readNext(ControlPointOpcode.CALCULATE_CRC).then(response => {
                     expect(response).toEqual(notification.value);
                 });
                 adapter.emit('characteristicValueChanged', notification);
@@ -181,8 +181,8 @@ describe('readLatest', () => {
             };
 
             it('should return notification payload', () => {
-                notificationStore._notifications = [notification];
-                return notificationStore.readLatest(ControlPointOpcode.CALCULATE_CRC).then(response => {
+                notificationQueue._notifications = [notification];
+                return notificationQueue.readNext(ControlPointOpcode.CALCULATE_CRC).then(response => {
                     expect(response).toEqual(notification.value);
                 });
             });

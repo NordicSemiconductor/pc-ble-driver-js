@@ -4,10 +4,10 @@ const { ControlPointOpcode, ResultCode } = require('./dfuConstants');
 
 /**
  * Listens to notifications for the given control point characteristic,
- * and adds them to an internal queue. It is the callers responsibility
- * to read from the store when it expects a notification.
+ * and keeps them in an internal queue. It is the callers responsibility
+ * to read from the queue when it expects a notification.
  */
-class DfuNotificationStore {
+class DfuNotificationQueue {
 
     constructor(adapter, controlPointCharacteristicId) {
         this._adapter = adapter;
@@ -36,13 +36,12 @@ class DfuNotificationStore {
     }
 
     /**
-     * Reads the latest notification that matches the given opCode. The notification,
-     * is removed from the store.
+     * Waits for and returns the latest notification that matches the given opCode.
      *
      * @param opCode the opCode to read
      * @returns promise with notification, or timeout if no notification was received
      */
-    readLatest(opCode) {
+    readNext(opCode) {
         const timeout = 20000;
         const pollInterval = 20; // Can we use 0?
         const timeoutPromise = new Promise((resolve, reject) => {
@@ -104,4 +103,4 @@ class DfuNotificationStore {
     }
 }
 
-module.exports = DfuNotificationStore;
+module.exports = DfuNotificationQueue;
