@@ -245,6 +245,10 @@ v8::Local<v8::Object> GapAddr::ToJs()
     Utility::Set(obj, "address", addr);
     Utility::Set(obj, "type", ConversionUtility::valueToJsString(native->addr_type, gap_addr_type_map));
 
+#if NRF_SD_BLE_API_VERSION >= 3
+    Utility::Set(obj, "addr_id_peer", native->addr_id_peer);
+#endif
+
     free(addr);
 
     return scope.Escape(obj);
@@ -1449,7 +1453,9 @@ NAN_METHOD(Adapter::GapSetAddress)
     }
 
     auto baton = new GapAddressSetBaton(callback);
+#if NRF_SD_BLE_API_VERSION <= 2
     baton->addr_cycle_mode = address_cycle_mode;
+#endif
 
     try
     {
@@ -1471,8 +1477,8 @@ void Adapter::GapSetAddress(uv_work_t *req)
     auto baton = static_cast<GapAddressSetBaton *>(req->data);
 #if NRF_SD_BLE_API_VERSION <= 2
     baton->result = sd_ble_gap_address_set(baton->adapter, baton->addr_cycle_mode, baton->address);
-#else
-	Nan::ThrowError("Not implemented.");
+#elif NRF_SD_BLE_API_VERSION >= 3
+    baton->result = sd_ble_gap_addr_set(baton->adapter, baton->address);
 #endif
 }
 
@@ -1536,9 +1542,9 @@ void Adapter::GapGetAddress(uv_work_t *req)
 {
     auto baton = static_cast<GapAddressGetBaton *>(req->data);
 #if NRF_SD_BLE_API_VERSION <= 2
-	baton->result = sd_ble_gap_address_get(baton->adapter, baton->address);
-#else
-	Nan::ThrowError("Not implemented.");
+    baton->result = sd_ble_gap_address_get(baton->adapter, baton->address);
+#elif NRF_SD_BLE_API_VERSION >= 3
+    baton->result = sd_ble_gap_addr_get(baton->adapter, baton->address);
 #endif
 }
 
