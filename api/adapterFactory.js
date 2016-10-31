@@ -114,9 +114,9 @@ class AdapterFactory extends EventEmitter {
         // TODO: get adapters from one driver
         // TODO: Figure out what device it is (nRF51 or nRF52). Perhaps serial number can be used?
 
-        const seggerSerialNumber = /^00068([0-3]{1})[0-9]{6}$/;
+        const seggerSerialNumber = /^.*68([0-3]{1})[0-9]{6}$/;
 
-        if (adapter.vendorId === '0x1366' && seggerSerialNumber.test(instanceId)) {
+        if (seggerSerialNumber.test(instanceId)) {
             const developmentKit = parseInt(seggerSerialNumber.exec(instanceId)[1], 10);
             let sdVersion;
 
