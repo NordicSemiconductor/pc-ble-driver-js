@@ -61,7 +61,6 @@ foreach(SD_API_VER ${SD_API_VERS})
         SUFFIX ".node")
 
 	string(REGEX MATCH "[0-9]+$" _SD_API_VER_NUM "${SD_API_VER}")
-	#target_compile_definitions(${CURRENT_TARGET} -DNRF_SD_BLE_API_VERSION=${_SD_API_VER_NUM})
 	set_target_properties(${CURRENT_TARGET} PROPERTIES COMPILE_OPTIONS -DNRF_SD_BLE_API_VERSION=${_SD_API_VER_NUM})
 
     target_include_directories(${CURRENT_TARGET} PRIVATE ${PC_BLE_DRIVER_${SD_API_VER}_PUBLIC_INCLUDE_DIRS})
