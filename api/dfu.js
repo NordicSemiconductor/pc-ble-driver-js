@@ -135,16 +135,7 @@ class Dfu extends EventEmitter {
 
     _performSingleUpdate(transport, update) {
         return new Promise((resolve, reject) => {
-            Promise.all([
-                Promise.resolve()
-                    .then(update['initPacket'])
-                    .then(data => this._handleProgressFactory(0.15, 0.2, data.length))
-                    .catch(err => reject(err)),
-                Promise.resolve()
-                    .then(update['firmware'])
-                    .then(data => this._handleProgressFactory(0.2, 1.0, data.length))
-                    .catch(err => reject(err))
-                ])
+            this._getProgressHandlers(update)
             .then(([handleInitPacketProgress, handleFirmwareProgress]) => {
                 Promise.resolve()
                 // Init Packet
@@ -167,6 +158,19 @@ class Dfu extends EventEmitter {
             })
             .catch(err => reject(err));
         });
+    }
+
+    _getProgressHandlers(update) {
+        return Promise.all([
+            Promise.resolve()
+                .then(update['initPacket'])
+                .then(data => this._handleProgressFactory(0.15, 0.2, data.length))
+                .catch(err => reject(err)),
+            Promise.resolve()
+                .then(update['firmware'])
+                .then(data => this._handleProgressFactory(0.2, 1.0, data.length))
+                .catch(err => reject(err))
+        ]);
     }
 
     _emitProgress(stage, progress) {
