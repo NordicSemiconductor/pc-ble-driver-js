@@ -150,6 +150,9 @@ function setupAdapter(adapter, name, address, addressType, callback) {
 function listServices(adapter) {
     const dfu = new api.Dfu();
     const zipPath = "./dfu/dfu_test_softdevice_bootloader_s132.zip";
+//    const zipPath = "./dfu/dfu_test_softdevice_s132.zip";
+//    const zipPath = "./dfu/dfu_test_bootloader_s132.zip";
+//    const zipPath = "./dfu/dfu_test_app_hrm_s132.zip";
 
     let deviceID = undefined;
 
@@ -165,6 +168,7 @@ function listServices(adapter) {
     });
 //    adapter.on('characteristicValueChanged', characteristic => { console.log('characteristicValueChanged: ', characteristic); });
 //    adapter.on('descriptorValueChanged', descriptor => console.log('descriptorValueChanged: ', descriptor));
+//    adapter.on('characteristicValueChanged', characteristic => console.log('Value changed to: ', characteristic.value));
 
     dfu.on('initialized', () => console.log('DFU initialized!'));
     dfu.on('controlPointResponse', (response) => console.log('controlPointResponse: ', response));
