@@ -16,8 +16,8 @@ class DfuTransportFactory {
      * @param deviceInstanceId the device instance id
      * @returns promise that returns a new DfuTransport instance
      */
-    static create(adapter, deviceInstanceId) {
-        return DfuTransportFactory._getCharacteristicIds(adapter, deviceInstanceId)
+    static create(adapter, deviceAddress) {
+        return DfuTransportFactory._getCharacteristicIds(adapter, adapter._getDeviceByAddress(deviceAddress).instanceId)
             .then(ids => new DfuTransport(adapter, ids.controlPointCharacteristicId, ids.packetCharacteristicId));
     }
 

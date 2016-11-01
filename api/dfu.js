@@ -94,10 +94,10 @@ class Dfu extends EventEmitter {
     }
 
     // Run the entire DFU process
-    performDFU(zipFilePath, adapter, instanceId) {
+    performDFU(zipFilePath, adapter, targetAddress) {
         this._zipFilePath = zipFilePath || this._zipFilePath;
         this._adapter = adapter || this._adapter;
-        this._instanceId = instanceId || this._instanceId;
+        this._targetAddress = targetAddress || this._targetAddress;
 
         if (!this._zipFilePath) {
             throw new Error('No zipFilePath provided.');
@@ -105,8 +105,8 @@ class Dfu extends EventEmitter {
         if (!this._adapter) {
             throw new Error('No adapter provided.');
         }
-        if (!this._instanceId) {
-            throw new Error('No instance ID provided.');
+        if (!this._targetAddress) {
+            throw new Error('No target address provided.');
         }
 
         this._fetchUpdates(this._zipFilePath)
@@ -119,7 +119,7 @@ class Dfu extends EventEmitter {
             //transport.setMtuSize(); // <-- TODO: Set MTU size.
             Promise.resolve()
             // TODO: set up progress events here?
-            .then(() => DfuTransportFactory.create(this._adapter, this._instanceId))
+            .then(() => DfuTransportFactory.create(this._adapter, this._targetAddress))
             .then(transport => {
                 transport.on('progressUpdate', this._handleProgressUpdate);
 
@@ -231,9 +231,10 @@ class Dfu extends EventEmitter {
 
 
     // Start or resume DFU process
-    // TODO: Implement
-    startDFU() {
-
+    // For now, just restart the DFU process.
+    // It is part of the protocol to continue at the current offset.
+    startDFU(zipFilePath, adapter, targetAddress) {
+        performDFU(zipFilePath, adapter, targetAddress);
     }
 
 
@@ -249,7 +250,6 @@ class Dfu extends EventEmitter {
         // Read zip file
         fs.readFile(zipFilePath, (err, data) => {
             if (err) {
-//                this.emit('error', err);
                 return callback(err);
             }
 
@@ -259,7 +259,6 @@ class Dfu extends EventEmitter {
                 callback(undefined, zip);
             })
             .catch((err) => {
-//                this.emit('error', err);
                 return callback(err);
             })
         })
@@ -276,7 +275,6 @@ class Dfu extends EventEmitter {
         // Fetch zip object
         this._loadZip(zipFilePath, (err, zip) => {
             if (err) {
-//                this.emit('error', err);
                 return callback(err);
             }
             // Read out manifest from zip
@@ -288,13 +286,11 @@ class Dfu extends EventEmitter {
                     // Parse manifest as JASON
                     manifest = JSON.parse(data)['manifest'];
                 } catch (err) {
-//                    this.emit('error', err);
                     return callback(err);
                 }
                 // Return manifest
                 return callback(undefined, manifest);
             }, (err) => {
-//                this.emit('error', err);
                 return callback(err);
             });
         })
