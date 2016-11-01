@@ -134,7 +134,6 @@ class Dfu extends EventEmitter {
     }
 
     _performSingleUpdate(transport, update) {
-        // TODO: catch rejections, error handling, from the below promises
         return new Promise((resolve, reject) => {
             Promise.all([
                 Promise.resolve()
@@ -165,7 +164,8 @@ class Dfu extends EventEmitter {
                     transport.removeListener('progressUpdate', handleFirmwareProgress)
                     reject(err);
                 });
-            });
+            })
+            .catch(err => reject(err));
         });
     }
 

@@ -38,11 +38,13 @@ class DfuTransport extends EventEmitter {
      * @return promise with empty response
      */
     sendInitPacket(initPacket) {
+        this._emitProgress(0, ObjectType.COMMAND);
         return this._open()
             .then(() => this._controlPointService.selectObject(ObjectType.COMMAND))
             .then(response => {
                 const { maximumSize, offset, crc32 } = response;
                 this._validateInitPacketSize(initPacket, maximumSize);
+                this._emitProgress(offset, ObjectType.COMMAND);
                 if (this._canResumePartiallyWrittenObject(initPacket, offset, crc32)) {
                     return this._writeObject(initPacket.slice(offset), offset, crc32);
                 }
@@ -57,11 +59,13 @@ class DfuTransport extends EventEmitter {
      * @returns promise with empty response
      */
     sendFirmware(firmware) {
+        this._emitProgress(0, ObjectType.DATA);
         return this._open()
             .then(() => this._controlPointService.selectObject(ObjectType.DATA))
             .then(response => {
                 const transferData = this._getFirmwareTransferData(firmware, response);
                 const { offset, crc32, objects, partialObject } = transferData;
+                this._emitProgress(offset, ObjectType.DATA);
                 if (partialObject.length > 0) {
                     return this._writeObject(partialObject, offset, crc32).then(progress =>
                         this._createAndWriteObjects(objects, ObjectType.DATA, progress.offset, progress.crc32));
@@ -167,7 +171,7 @@ class DfuTransport extends EventEmitter {
                 this._controlPointService.createObject(type, data.length)
                     .then(() => this._writeObject(data, offset, crc32))
                     .then(progress => {
-                        this._emitProgress(progress, type);
+                        this._emitProgress(progress.offset, type);
                         resolve(progress);
                     })
                     .catch(error => {
@@ -228,7 +232,7 @@ class DfuTransport extends EventEmitter {
             });
     }
 
-    _emitProgress(progress, type) {
+    _emitProgress(offset, type) {
         let typeString;
         switch(type) {
             case ObjectType.COMMAND:
@@ -242,7 +246,7 @@ class DfuTransport extends EventEmitter {
         }
         this.emit('progressUpdate',
           {stage: 'transferring ' + typeString,
-           offset: progress.offset});
+           offset: offset});
     }
 }
 
