@@ -3,19 +3,17 @@
 const { splitArray } = require('../util/arrayUtil');
 const { arrayToInt } = require('../util/intArrayConv');
 const { ControlPointOpcode } = require('./dfuConstants');
-const DfuNotificationStore = require('./dfuNotificationStore');
+const DfuNotificationQueue = require('./dfuNotificationQueue');
 const DfuPacketWriter = require('./dfuPacketWriter');
 
 const DEFAULT_MTU_SIZE = 20;
-const DEFAULT_PRN = 0;
 
 class DfuObjectWriter {
 
     constructor(adapter, controlPointCharacteristicId, packetCharacteristicId) {
         this._adapter = adapter;
         this._packetCharacteristicId = packetCharacteristicId;
-        this._notificationStore = new DfuNotificationStore(adapter, controlPointCharacteristicId);
-        this._prn = DEFAULT_PRN;
+        this._notificationQueue = new DfuNotificationQueue(adapter, controlPointCharacteristicId);
         this._mtuSize = DEFAULT_MTU_SIZE;
     }
 
@@ -23,20 +21,23 @@ class DfuObjectWriter {
      * Writes DFU data object according to the given MTU size.
      *
      * @param data byte array that should be written
-     * @param offset the offset to continue from
+     * @param offset the offset to continue from (optional)
      * @param crc32 the CRC32 value to continue from (optional)
-     * @returns promise that returns the final locally calculated CRC32 value
+     * @returns promise that returns progress info (CRC32 value and offset)
      */
     writeObject(data, offset, crc32) {
         const packets = splitArray(data, this._mtuSize);
         const packetWriter = this._createPacketWriter(offset, crc32);
-        this._notificationStore.startListening();
+        this._notificationQueue.startListening();
         return this._writePackets(packetWriter, packets)
             .then(() => {
-                this._notificationStore.stopListening();
-                return {crc32: packetWriter.getCrc32(), offset: packetWriter.getOffset()};
+                this._notificationQueue.stopListening();
+                return {
+                    offset: packetWriter.getOffset(),
+                    crc32: packetWriter.getCrc32()
+                };
             }).catch(error => {
-                this._notificationStore.stopListening();
+                this._notificationQueue.stopListening();
                 throw error;
             });
     }
@@ -82,7 +83,7 @@ class DfuObjectWriter {
     }
 
     _validateProgress(progressInfo) {
-        return this._notificationStore.readLatest(ControlPointOpcode.CALCULATE_CRC)
+        return this._notificationQueue.readNext(ControlPointOpcode.CALCULATE_CRC)
             .then(notification => {
                 this._validateOffset(notification, progressInfo.offset);
                 this._validateCrc32(notification, progressInfo.crc32);

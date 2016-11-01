@@ -2,6 +2,10 @@
 
 const crc = require('crc');
 
+const DEFAULT_OFFSET = 0;
+const DEFAULT_CRC32 = undefined;
+const DEFAULT_PRN = 0;
+
 /**
  * Writes packets to the given packet characteristic. If packet receipt
  * notifications (PRN) is enabled, it will return progress information (offset
@@ -12,10 +16,10 @@ class DfuPacketWriter {
     constructor(adapter, packetCharacteristicId) {
         this._adapter = adapter;
         this._packetCharacteristicId = packetCharacteristicId;
-        this._prn = 0;
-        this._offset = 0;
+        this._prn = DEFAULT_PRN;
+        this._offset = DEFAULT_OFFSET;
+        this._crc32 = DEFAULT_CRC32;
         this._prnCount = 0;
-        this._crc32 = undefined;
     }
 
     /**
@@ -84,7 +88,7 @@ class DfuPacketWriter {
     }
 
     setOffset(offset) {
-        this._offset = offset;
+        this._offset = offset || DEFAULT_OFFSET;
     }
 
     getOffset() {
@@ -92,7 +96,7 @@ class DfuPacketWriter {
     }
 
     setCrc32(crc32) {
-        this._crc32 = crc32;
+        this._crc32 = crc32 || DEFAULT_CRC32;
     }
 
     getCrc32() {
@@ -100,7 +104,7 @@ class DfuPacketWriter {
     }
 
     setPrn(prn) {
-        this._prn = prn;
+        this._prn = prn || DEFAULT_PRN;
     }
 
 }

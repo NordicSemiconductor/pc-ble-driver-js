@@ -1,6 +1,6 @@
 'use strict';
 
-const DfuNotificationStore = require('./dfuNotificationStore');
+const DfuNotificationQueue = require('./dfuNotificationQueue');
 const { ControlPointOpcode, ResultCode } = require('./dfuConstants');
 const {intToArray, arrayToInt} = require('../util/intArrayConv');
 
@@ -9,7 +9,7 @@ class ControlPointService {
     constructor(adapter, controlPointCharacteristicId) {
         this._adapter = adapter;
         this._controlPointCharacteristicId = controlPointCharacteristicId;
-        this._notificationStore = new DfuNotificationStore(adapter, controlPointCharacteristicId);
+        this._notificationQueue = new DfuNotificationQueue(adapter, controlPointCharacteristicId);
     }
 
     execute() {
@@ -33,15 +33,16 @@ class ControlPointService {
     }
 
     _sendCommand(command) {
-        this._notificationStore.startListening();
+        this._notificationQueue.startListening();
         return this._writeCharacteristicValue(command)
-            .then(() => this._readResponse(command[0]))
+            .then(() => this._notificationQueue.readNext(command[0]))
+            .then(response => this.parseResponse(response))
             .then(response => {
-                this._notificationStore.stopListening();
+                this._notificationQueue.stopListening();
                 return response;
             })
             .catch(error => {
-                this._notificationStore.stopListening();
+                this._notificationQueue.stopListening();
                 throw error;
             });
     }
@@ -52,11 +53,6 @@ class ControlPointService {
                 error ? reject(error) : resolve();
             });
         })
-    }
-
-    _readResponse(opCode) {
-        return this._notificationStore.readLatest(opCode)
-            .then(response => this.parseResponse(response));
     }
 
     parseCommand(command) {

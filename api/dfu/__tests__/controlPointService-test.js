@@ -8,7 +8,7 @@ describe('_sendCommand', () => {
 
         let adapter;
         let controlPointService;
-        let notificationStore;
+        let notificationQueue;
 
         beforeEach(() => {
             adapter = {
@@ -16,12 +16,12 @@ describe('_sendCommand', () => {
                     callback('Write failed');
                 }
             };
-            notificationStore = {
+            notificationQueue = {
                 startListening: jest.fn(),
                 stopListening: jest.fn()
             };
             controlPointService = new ControlPointService(adapter);
-            controlPointService._notificationStore = notificationStore;
+            controlPointService._notificationQueue = notificationQueue;
         });
 
         it('should return error', () => {
@@ -32,17 +32,17 @@ describe('_sendCommand', () => {
 
         it('should stop listening for response notifications', () => {
             return controlPointService._sendCommand({}).catch(() => {
-                expect(notificationStore.stopListening).toHaveBeenCalled();
+                expect(notificationQueue.stopListening).toHaveBeenCalled();
             });
         });
 
     });
 
-    describe('when error returned from notification store', () => {
+    describe('when error returned from notification queue', () => {
 
         let adapter;
         let controlPointService;
-        let notificationStore;
+        let notificationQueue;
 
         beforeEach(() => {
             adapter = {
@@ -50,13 +50,13 @@ describe('_sendCommand', () => {
                     callback();
                 }
             };
-            notificationStore = {
+            notificationQueue = {
                 startListening: jest.fn(),
                 stopListening: jest.fn(),
-                readLatest: () => Promise.reject('Some error')
+                readNext: () => Promise.reject('Some error')
             };
             controlPointService = new ControlPointService(adapter);
-            controlPointService._notificationStore = notificationStore;
+            controlPointService._notificationQueue = notificationQueue;
         });
 
         it('should re-throw error', () => {
@@ -67,17 +67,17 @@ describe('_sendCommand', () => {
 
         it('should stop listening for response notifications', () => {
             return controlPointService._sendCommand({}).catch(() => {
-                expect(notificationStore.stopListening).toHaveBeenCalled();
+                expect(notificationQueue.stopListening).toHaveBeenCalled();
             });
         });
 
     });
 
-    describe('when notification store returns response array', () => {
+    describe('when notification queue returns response array', () => {
 
         let adapter;
         let controlPointService;
-        let notificationStore;
+        let notificationQueue;
         const responseArray = [0x60, 0x01, 0x01];
         const responseObject = {command: 0x60, requestOpcode: 0x01, resultCode: 0x01};
 
@@ -85,13 +85,13 @@ describe('_sendCommand', () => {
             adapter = {
                 writeCharacteristicValue: (id, command, ack, callback) => callback()
             };
-            notificationStore = {
+            notificationQueue = {
                 startListening: jest.fn(),
                 stopListening: jest.fn(),
-                readLatest: () => Promise.resolve(responseArray)
+                readNext: () => Promise.resolve(responseArray)
             };
             controlPointService = new ControlPointService(adapter);
-            controlPointService._notificationStore = notificationStore;
+            controlPointService._notificationQueue = notificationQueue;
         });
 
         it('should return response object', () => {
@@ -102,7 +102,7 @@ describe('_sendCommand', () => {
 
         it('should stop listening for response notifications', () => {
             return controlPointService._sendCommand({}).then(() => {
-                expect(notificationStore.stopListening).toHaveBeenCalled();
+                expect(notificationQueue.stopListening).toHaveBeenCalled();
             });
         });
 
