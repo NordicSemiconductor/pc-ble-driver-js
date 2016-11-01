@@ -89,8 +89,6 @@ class Dfu extends EventEmitter {
 
         this._controlPointCharacteristicId = null;
         this._packetCharacteristicId = null;
-
-        this._handleProgressUpdate = this._handleProgressUpdate.bind(this);
     }
 
     // Run the entire DFU process
@@ -112,24 +110,21 @@ class Dfu extends EventEmitter {
         this._fetchUpdates(this._zipFilePath)
         .then(updates => this._performUpdates(updates))
         .catch(err => console.log(err));
+
+        // TODO: Return callback(err, success)
     }
 
     _performUpdates(updates) {
         return new Promise((resolve, reject) => {
             //transport.setMtuSize(); // <-- TODO: Set MTU size.
             Promise.resolve()
-            // TODO: set up progress events here?
             .then(() => DfuTransportFactory.create(this._adapter, this._targetAddress))
             .then(transport => {
-                transport.on('progressUpdate', this._handleProgressUpdate);
-
                 return transport.setPrn(20)
                 .then(() => updates.reduce((prev, update) => {
                     return prev.then(() => this._performSingleUpdate(transport, update));
                 }, Promise.resolve() ))
-                .then(() => transport.removeListener('progressUpdate', this._handleProgressUpdate))
                 .catch(err => {
-                    transport.removeListener('progressUpdate', this._handleProgressUpdate);
                     reject(err);
                 });
              })
@@ -139,28 +134,50 @@ class Dfu extends EventEmitter {
     }
 
     _performSingleUpdate(transport, update) {
+        // TODO: catch rejections, error handling, from the below promises
         return new Promise((resolve, reject) => {
-            Promise.resolve()
-            // TODO: Set up progress event handling from the transport here?
-            .then(update['initPacket'])
-            .then(data => transport.sendInitPacket(data))
-            .then(update['firmware'])
-            .then(data => transport.sendFirmware(data))
-            .then(() => resolve())
-            .catch(err => {
-                console.log(err);
-                reject(err);
+            Promise.all([
+                Promise.resolve()
+                    .then(update['initPacket'])
+                    .then(data => this._handleProgressFactory(0.15, 0.2, data.length))
+                    .catch(err => reject(err)),
+                Promise.resolve()
+                    .then(update['firmware'])
+                    .then(data => this._handleProgressFactory(0.2, 1.0, data.length))
+                    .catch(err => reject(err))
+                ])
+            .then(([handleInitPacketProgress, handleFirmwareProgress]) => {
+                Promise.resolve()
+                // Init Packet
+                .then(() => transport.on('progressUpdate', handleInitPacketProgress))
+                .then(update['initPacket'])
+                .then(data => transport.sendInitPacket(data))
+                .then(() => transport.removeListener('progressUpdate', handleInitPacketProgress))
+                // Firmware
+                .then(() => transport.on('progressUpdate', handleFirmwareProgress))
+                .then(update['firmware'])
+                .then(data => transport.sendFirmware(data))
+                .then(() => transport.removeListener('progressUpdate', handleFirmwareProgress))
+                // That's all
+                .then(Promise.resolve())
+                .catch(err => {
+                    transport.removeListener('progressUpdate', handleInitPacketProgress);
+                    transport.removeListener('progressUpdate', handleFirmwareProgress)
+                    reject(err);
+                });
             });
         });
     }
 
     _emitProgress(stage, progress) {
-        this.emit('progressUpdate', {stage: stage, offset: progress});
+        this.emit('progressUpdate', {stage: stage, progress: progress.toFixed(2)});
     }
 
-    _handleProgressUpdate(progressUpdate) {
-
-        this._emitProgress(progressUpdate.stage, progressUpdate.offset);
+    _handleProgressFactory(progressStart, progressEnd, transferSize) {
+        return progressUpdate => {
+            this._emitProgress(progressUpdate.stage,
+              (progressStart + (progressUpdate.offset / transferSize * (progressEnd - progressStart))));
+        };
     }
 
     _getManifestAsync(zipFilePath) {
