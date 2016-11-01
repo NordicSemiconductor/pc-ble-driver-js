@@ -168,6 +168,7 @@ function listServices(adapter) {
 
     dfu.on('initialized', () => console.log('DFU initialized!'));
     dfu.on('controlPointResponse', (response) => console.log('controlPointResponse: ', response));
+    dfu.on('progressUpdate', progressUpdate => console.log('Progress update: ', progressUpdate));
 
     dfu.on('initialized', () => {
         console.log('DFU is initialized.')/*

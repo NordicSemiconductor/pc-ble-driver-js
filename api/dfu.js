@@ -89,6 +89,8 @@ class Dfu extends EventEmitter {
 
         this._controlPointCharacteristicId = null;
         this._packetCharacteristicId = null;
+
+        this._handleProgressUpdate = this._handleProgressUpdate.bind(this);
     }
 
     // Run the entire DFU process
@@ -115,11 +117,22 @@ class Dfu extends EventEmitter {
     _performUpdates(updates) {
         return new Promise((resolve, reject) => {
             //transport.setMtuSize(); // <-- TODO: Set MTU size.
-            DfuTransportFactory.create(this._adapter, this._instanceId)
+            Promise.resolve()
+            // TODO: set up progress events here?
+            .then(() => DfuTransportFactory.create(this._adapter, this._instanceId))
             .then(transport => {
-                updates.reduce((prev, update) => {
+                transport.on('progressUpdate', this._handleProgressUpdate);
+
+                return transport.setPrn(20)
+                .then(() => updates.reduce((prev, update) => {
                     return prev.then(() => this._performSingleUpdate(transport, update));
-                },  Promise.resolve())})
+                }, Promise.resolve() ))
+                .then(() => transport.removeListener('progressUpdate', this._handleProgressUpdate))
+                .catch(err => {
+                    transport.removeListener('progressUpdate', this._handleProgressUpdate);
+                    reject(err);
+                });
+             })
             .then(() => resolve())
             .catch(err => reject(err));
         });
@@ -127,8 +140,8 @@ class Dfu extends EventEmitter {
 
     _performSingleUpdate(transport, update) {
         return new Promise((resolve, reject) => {
-  //          transport.init()
             Promise.resolve()
+            // TODO: Set up progress event handling from the transport here?
             .then(update['initPacket'])
             .then(data => transport.sendInitPacket(data))
             .then(update['firmware'])
@@ -139,6 +152,15 @@ class Dfu extends EventEmitter {
                 reject(err);
             });
         });
+    }
+
+    _emitProgress(stage, progress) {
+        this.emit('progressUpdate', {stage: stage, offset: progress});
+    }
+
+    _handleProgressUpdate(progressUpdate) {
+
+        this._emitProgress(progressUpdate.stage, progressUpdate.offset);
     }
 
     _getManifestAsync(zipFilePath) {

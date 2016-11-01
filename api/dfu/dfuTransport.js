@@ -4,11 +4,12 @@ const DfuObjectWriter = require('./dfuObjectWriter');
 const ControlPointService = require('./controlPointService');
 const { ObjectType } = require('./dfuConstants');
 const { splitArray } = require('../util/arrayUtil');
+const EventEmitter = require('events');
 
 const MAX_RETRIES = 3;
 
 
-class DfuTransport {
+class DfuTransport extends EventEmitter {
 
     /**
      * Creates a DfuTransport object with an adapter, plus control point and packet
@@ -19,6 +20,8 @@ class DfuTransport {
      * @param packetCharacteristicId the DFU packet characteristic ID for the device
      */
     constructor(adapter, controlPointCharacteristicId, packetCharacteristicId) {
+        super();
+
         this._adapter = adapter;
         this._controlPointCharacteristicId = controlPointCharacteristicId;
         this._packetCharacteristicId = packetCharacteristicId;
@@ -115,8 +118,11 @@ class DfuTransport {
             const tryWrite = () => {
                 this._controlPointService.createObject(ObjectType.COMMAND, initPacket.length)
                     .then(()       => this._objectWriter.writeObject(initPacket, 0))
-                    .then(progress => this._validateProgress(progress))
-                    .then(()       => this._controlPointService.execute())
+                    .then(progress => {
+                        return        this._validateProgress(progress)
+                        .then(()   => this._controlPointService.execute())
+                        .then(()   => this.emit('progressUpdate', {stage: 'transferring init packet', offset: progress.offset}));
+                    })
                     .then(()       => resolve())
                     .catch(error => {
                         attempts++;
@@ -151,6 +157,7 @@ class DfuTransport {
                     .then(progress => {
                         return this._validateProgress(progress)
                             .then(() => this._controlPointService.execute())
+                            .then(() => this.emit('progressUpdate', {stage: 'transferring firmware', offset: progress.offset}))
                             .then(() => resolve(progress))
                     })
                     .catch(error => {
