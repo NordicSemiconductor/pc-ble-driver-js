@@ -319,10 +319,12 @@ v8::Local<v8::Object> GattcCharacteristicValueReadByUUIDEvent::ToJs()
 
     for (auto i = 0; i < evt->count; ++i)
     {
-        //handle_value_array->Set(Nan::New<v8::Integer>(i), GattcHandleValue(&evt->handle_value[i], evt->value_len));
+        handle_value_array->Set(Nan::New<v8::Integer>(i), GattcHandleValue(&evt->handle_value[i], evt->value_len));
     }
 
     Utility::Set(obj, "handle_values", handle_value_array);
+#else
+#pragma message("Support for GattcCharacteristicValueReadByUUIDEvent not implemented in AddOn for SDv3 and higher.")
 #endif
 
 	return scope.Escape(obj);
