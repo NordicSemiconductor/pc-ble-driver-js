@@ -148,10 +148,10 @@ class Dfu extends EventEmitter {
                 .then(data => transport.sendFirmware(data))
                 .then(() => transport.removeListener('progressUpdate', handleFirmwareProgress))
                 // That's all
-                .then(Promise.resolve())
+                .then(() => resolve())
                 .catch(err => {
                     transport.removeListener('progressUpdate', handleInitPacketProgress);
-                    transport.removeListener('progressUpdate', handleFirmwareProgress)
+                    transport.removeListener('progressUpdate', handleFirmwareProgress);
                     reject(err);
                 });
             })
