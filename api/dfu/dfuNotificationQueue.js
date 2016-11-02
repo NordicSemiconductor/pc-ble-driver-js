@@ -1,6 +1,6 @@
 'use strict';
 
-const { ControlPointOpcode, ResultCode } = require('./dfuConstants');
+const { ControlPointOpcode, ResultCode, ErrorCode, createError } = require('./dfuConstants');
 
 /**
  * Listens to notifications for the given control point characteristic,
@@ -46,7 +46,8 @@ class DfuNotificationQueue {
         const pollInterval = 20; // Can we use 0?
         const timeoutPromise = new Promise((resolve, reject) => {
             setTimeout(() => {
-                reject(`Timed out when waiting for packet receipt notification.`);
+                reject(createError(ErrorCode.NOTIFICATION_TIMEOUT, `Timed out when waiting for ` +
+                    `response to operation ${opCode}`));
             }, timeout);
         });
         return Promise.race([
@@ -92,11 +93,13 @@ class DfuNotificationQueue {
                 if (value[2] === ResultCode.SUCCESS) {
                     return value;
                 } else {
-                    throw new Error(`Operation ${opCode} returned error code ${value[2]}`);
+                    throw createError(ErrorCode.COMMAND_ERROR, `Operation ` +
+                        `${opCode} returned error code ${value[2]}`);
                 }
             } else {
-                throw new Error(`Got unexpected response. Expected code ` +
-                    `${ControlPointOpcode.RESPONSE}, but got code ${value[1]}.`);
+                throw createError(ErrorCode.UNEXPECTED_NOTIFICATION, `Got unexpected ` +
+                    `response. Expected code ${ControlPointOpcode.RESPONSE}, but got ` +
+                    `code ${value[1]}.`);
             }
         }
         return null;

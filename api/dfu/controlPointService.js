@@ -1,7 +1,7 @@
 'use strict';
 
 const DfuNotificationQueue = require('./dfuNotificationQueue');
-const { ControlPointOpcode, ResultCode } = require('./dfuConstants');
+const { ControlPointOpcode, ResultCode, ErrorCode, createError } = require('./dfuConstants');
 const {intToArray, arrayToInt} = require('../util/intArrayConv');
 
 class ControlPointService {
@@ -50,14 +50,12 @@ class ControlPointService {
     _writeCharacteristicValue(command) {
         return new Promise((resolve, reject) => {
             this._adapter.writeCharacteristicValue(this._controlPointCharacteristicId, command, true, error => {
-                error ? reject(error) : resolve();
+                error ? reject(createError(ErrorCode.WRITE_ERROR, error.message)) : resolve();
             });
         })
     }
 
     parseCommand(command) {
-        // TODO? Check that command is a byte array.
-
         let commandObject = {};
         commandObject.command = command[0];
 
@@ -85,9 +83,9 @@ class ControlPointService {
     }
 
     parseResponse(response) {
-        // TODO? Check that command is a byte array.
         if (response[0] !== ControlPointOpcode.RESPONSE) {
-            throw('This is not a response.');
+            throw createError(ErrorCode.UNEXPECTED_NOTIFICATION,
+                `Expected ${ControlPointOpcode.RESPONSE} but got ${response[0]}`);
         }
 
         let responseObject = {};

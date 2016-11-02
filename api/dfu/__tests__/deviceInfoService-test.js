@@ -1,5 +1,6 @@
 'use strict';
 
+const { ErrorCode } = require('../dfuConstants');
 const DeviceInfoService = require('../deviceInfoService');
 
 describe('getCharacteristicId', () => {
@@ -11,14 +12,14 @@ describe('getCharacteristicId', () => {
 
         beforeEach(() => {
             adapter = {
-                getAttributes: (id, callback) => callback('Some error')
+                getAttributes: (id, callback) => callback(new Error())
             };
             service = new DeviceInfoService(adapter);
         });
 
         it('should return error', () => {
             return service.getCharacteristicId().catch(error => {
-                expect(error).toEqual('Some error');
+                expect(error.code).toEqual(ErrorCode.NO_DFU_SERVICE);
             });
         });
     });
@@ -49,7 +50,7 @@ describe('getCharacteristicId', () => {
             it('should return error', () => {
                 const serviceUuid = 'non-existing-uuid';
                 return service.getCharacteristicId(serviceUuid).catch(error => {
-                    expect(error).toContain('Unable to find service');
+                    expect(error.code).toEqual(ErrorCode.NO_DFU_SERVICE);
                 });
             });
 
@@ -61,7 +62,7 @@ describe('getCharacteristicId', () => {
                 const serviceUuid = 'service-uuid-123';
                 const characteristicUuid = 'non-existing-characteristic-uuid';
                 return service.getCharacteristicId(serviceUuid, characteristicUuid).catch(error => {
-                    expect(error).toContain('Unable to find characteristic');
+                    expect(error.code).toEqual(ErrorCode.NO_DFU_CHARACTERISTIC);
                 });
             });
         });

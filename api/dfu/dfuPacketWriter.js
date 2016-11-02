@@ -1,6 +1,7 @@
 'use strict';
 
 const crc = require('crc');
+const { ErrorCode, createError } = require('./dfuConstants');
 
 const DEFAULT_OFFSET = 0;
 const DEFAULT_CRC32 = undefined;
@@ -44,7 +45,7 @@ class DfuPacketWriter {
             const value = packet;
             const ack = false;
             this._adapter.writeCharacteristicValue(characteristicId, value, ack, error => {
-                error ? reject(error) : resolve();
+                error ? reject(createError(ErrorCode.WRITE_ERROR, error.message)) : resolve();
             });
         });
     }

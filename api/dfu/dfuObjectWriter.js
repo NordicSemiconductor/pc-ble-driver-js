@@ -97,7 +97,7 @@ class DfuObjectWriter {
 
     _checkAbortState() {
         if (this._abort) {
-            return Promise.reject(createError(ErrorCode.ABORTED));
+            return Promise.reject(createError(ErrorCode.ABORTED, 'Abort was triggered.'));
         }
         return Promise.resolve();
     }
@@ -114,8 +114,8 @@ class DfuObjectWriter {
         const offsetArray = notification.slice(3, 7);
         const responseOffset = arrayToInt(offsetArray);
         if (responseOffset !== offset) {
-            throw new Error(`Error when validating offset. Got ${responseOffset}, ` +
-                `but expected ${offset}.`);
+            throw createError(ErrorCode.INVALID_OFFSET, `Error when validating offset. ` +
+                `Got ${responseOffset}, but expected ${offset}.`);
         }
     }
 
@@ -123,8 +123,8 @@ class DfuObjectWriter {
         const crc32Array = notification.slice(7, 11);
         const responseCrc = arrayToInt(crc32Array);
         if (responseCrc !== crc32) {
-            throw new Error(`Error when validating CRC. Got ${responseCrc}, ` +
-                `but expected ${crc32}.`);
+            throw createError(ErrorCode.INVALID_CRC, `Error when validating CRC. ` +
+                `Got ${responseCrc}, but expected ${crc32}.`);
         }
     }
 }

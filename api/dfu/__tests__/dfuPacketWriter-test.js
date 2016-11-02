@@ -1,5 +1,6 @@
 'use strict';
 
+const { ErrorCode } = require('../dfuConstants');
 const DfuPacketWriter = require('../dfuPacketWriter');
 const crc = require('crc');
 
@@ -10,19 +11,18 @@ describe('writePacket', () => {
         return new DfuPacketWriter(adapter, characteristicId);
     };
 
-    describe('when adapter returns write error', () => {
+    describe('when adapter returns error', () => {
 
-        const errorMessage = 'Write error';
         const adapter = {
             writeCharacteristicValue: ((id, value, ack, callback) => {
-                callback(errorMessage);
+                callback(new Error());
             })
         };
         const writer = createWriter(adapter);
 
-        it('should return the write error', () => {
+        it('should return write error', () => {
             return writer.writePacket([1]).catch(error => {
-                expect(error).toEqual(errorMessage);
+                expect(error.code).toEqual(ErrorCode.WRITE_ERROR);
             });
         });
     });

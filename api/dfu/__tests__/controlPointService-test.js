@@ -1,6 +1,7 @@
 'use strict';
 
 const ControlPointService = require('../controlPointService');
+const { ErrorCode } = require('../dfuConstants');
 
 describe('_sendCommand', () => {
 
@@ -13,7 +14,7 @@ describe('_sendCommand', () => {
         beforeEach(() => {
             adapter = {
                 writeCharacteristicValue: (id, command, ack, callback) => {
-                    callback('Write failed');
+                    callback(new Error());
                 }
             };
             notificationQueue = {
@@ -26,7 +27,7 @@ describe('_sendCommand', () => {
 
         it('should return error', () => {
             return controlPointService._sendCommand({}).catch(error => {
-                expect(error).toEqual('Write failed');
+                expect(error.code).toEqual(ErrorCode.WRITE_ERROR);
             });
         });
 

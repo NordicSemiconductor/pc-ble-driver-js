@@ -35,8 +35,12 @@ const ErrorCode = Object.freeze({
     INVALID_CRC: 0x04,
     INVALID_OFFSET: 0x05,
     WRITE_ERROR: 0x06,
-    NO_DFU_CHARACTERISTIC: 0x07,
-    NO_DFU_SERVICE: 0x08,
+    COMMAND_ERROR: 0x07,
+    NO_DFU_CHARACTERISTIC: 0x08,
+    NO_DFU_SERVICE: 0x09,
+    NOTIFICATION_START_ERROR: 0x10,
+    NOTIFICATION_STOP_ERROR: 0x11,
+    INIT_PACKET_TOO_LARGE: 0x12,
 });
 
 function createError(code, message) {

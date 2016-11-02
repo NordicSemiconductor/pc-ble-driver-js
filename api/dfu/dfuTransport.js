@@ -2,7 +2,7 @@
 
 const DfuObjectWriter = require('./dfuObjectWriter');
 const ControlPointService = require('./controlPointService');
-const { ObjectType, ErrorCode } = require('./dfuConstants');
+const { ObjectType, ErrorCode, createError } = require('./dfuConstants');
 const { splitArray } = require('../util/arrayUtil');
 const EventEmitter = require('events');
 const crc = require('crc');
@@ -115,7 +115,7 @@ class DfuTransport extends EventEmitter {
         }
         return new Promise((resolve, reject) => {
             this._adapter.stopCharacteristicsNotifications(this._controlPointCharacteristicId, error => {
-                error ? reject(error) : resolve();
+                error ? reject(createError(ErrorCode.NOTIFICATION_STOP_ERROR, error.message)) : resolve();
             });
         });
     }
@@ -135,7 +135,7 @@ class DfuTransport extends EventEmitter {
         return new Promise((resolve, reject) => {
             const ack = false;
             this._adapter.startCharacteristicsNotifications(this._controlPointCharacteristicId, ack, error => {
-                error ? reject(error) : resolve();
+                error ? reject(createError(ErrorCode.NOTIFICATION_START_ERROR, error.message)) : resolve();
             });
         });
     }
@@ -192,15 +192,6 @@ class DfuTransport extends EventEmitter {
         });
     }
 
-    _shouldRetry(attempts, error) {
-        if (attempts < MAX_RETRIES &&
-            error.code !== ErrorCode.ABORTED &&
-            error.code !== ErrorCode.NOTIFICATION_TIMEOUT) {
-            return true;
-        }
-        return false;
-    }
-
     _writeObject(data, offset, crc32) {
         return this._objectWriter.writeObject(data, offset, crc32)
             .then(progress => {
@@ -208,6 +199,15 @@ class DfuTransport extends EventEmitter {
                     .then(() => this._controlPointService.execute())
                     .then(() => progress);
             });
+    }
+
+    _shouldRetry(attempts, error) {
+        if (attempts < MAX_RETRIES &&
+            error.code !== ErrorCode.ABORTED &&
+            error.code !== ErrorCode.NOTIFICATION_TIMEOUT) {
+            return true;
+        }
+        return false;
     }
 
     _getRemainingPartialObject(data, maximumSize, offset) {
@@ -227,7 +227,8 @@ class DfuTransport extends EventEmitter {
 
     _validateInitPacketSize(initPacket, maxSize) {
         if (initPacket.length > maxSize) {
-            throw new Error(`Init packet size (${initPacket.length}) is larger than max size (${maxSize})`);
+            throw createError(ErrorCode.INIT_PACKET_TOO_LARGE, `Init packet size (${initPacket.length}) ` +
+                `is larger than max size (${maxSize})`);
         }
     }
 
@@ -236,12 +237,12 @@ class DfuTransport extends EventEmitter {
             .then(response => {
                 // Same checks are being done in objectWriter. Could we reuse?
                 if (progressInfo.offset !== response.offset) {
-                    throw new Error(`Error when validating offset. Got ${response.offset}, ` +
-                        `but expected ${progressInfo.offset}.`);
+                    throw createError(ErrorCode.INVALID_OFFSET, `Error when validating offset. ` +
+                        `Got ${response.offset}, but expected ${progressInfo.offset}.`);
                 }
                 if (progressInfo.crc32 !== response.crc32) {
-                    throw new Error(`Error when validating CRC. Got ${response.crc32}, ` +
-                        `but expected ${progressInfo.crc32}`);
+                    throw createError(ErrorCode.INVALID_CRC, `Error when validating CRC. ` +
+                        `Got ${response.crc32}, but expected ${progressInfo.crc32}.`);
                 }
             });
     }

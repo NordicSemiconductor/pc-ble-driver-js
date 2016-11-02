@@ -57,9 +57,10 @@ describe('writeObject', () => {
     describe('when writing packets have failed', () => {
 
         it('should re-throw error', () => {
-            objectWriter._writePackets = () => Promise.reject('Some error');
-            return objectWriter.writeObject([1]).catch(error => {
-                expect(error).toEqual('Some error');
+            const error = new Error();
+            objectWriter._writePackets = () => Promise.reject(error);
+            return objectWriter.writeObject([1]).catch(caughtError => {
+                expect(caughtError).toEqual(error);
             });
         });
 
@@ -116,7 +117,7 @@ describe('writeObject', () => {
             it('should return error', () => {
                 notificationQueue.readNext = () => Promise.resolve(notification);
                 return objectWriter.writeObject([1]).catch(error => {
-                    expect(error.message).toContain('Error when validating CRC');
+                    expect(error.code).toEqual(ErrorCode.INVALID_CRC);
                 });
             });
 
@@ -135,7 +136,7 @@ describe('writeObject', () => {
             it('should return error', () => {
                 notificationQueue.readNext = () => Promise.resolve(notification);
                 return objectWriter.writeObject([1]).catch(error => {
-                    expect(error.message).toContain('Error when validating offset');
+                    expect(error.code).toEqual(ErrorCode.INVALID_OFFSET);
                 });
             });
 

@@ -2,7 +2,7 @@
 
 const EventEmitter = require('events');
 const DfuNotificationQueue = require('../dfuNotificationQueue');
-const { ControlPointOpcode, ResultCode } = require('../dfuConstants');
+const { ControlPointOpcode, ResultCode, ErrorCode } = require('../dfuConstants');
 
 describe('listening', () => {
 
@@ -71,7 +71,7 @@ describe('readNext', () => {
             it('should time out', () => {
                 jest.useFakeTimers();
                 const promise = notificationQueue.readNext(ControlPointOpcode.CALCULATE_CRC).catch(error => {
-                    expect(error).toContain('Timed out');
+                    expect(error.code).toEqual(ErrorCode.NOTIFICATION_TIMEOUT);
                 });
                 jest.runOnlyPendingTimers();
                 return promise;
@@ -88,7 +88,7 @@ describe('readNext', () => {
             it('should time out', () => {
                 jest.useFakeTimers();
                 const promise = notificationQueue.readNext(ControlPointOpcode.CALCULATE_CRC).catch(error => {
-                    expect(error).toContain('Timed out');
+                    expect(error.code).toEqual(ErrorCode.NOTIFICATION_TIMEOUT);
                 });
                 adapter.emit('characteristicValueChanged', notification);
                 jest.runOnlyPendingTimers();
@@ -107,7 +107,7 @@ describe('readNext', () => {
             it('should time out', () => {
                 jest.useFakeTimers();
                 const promise = notificationQueue.readNext(ControlPointOpcode.CALCULATE_CRC).catch(error => {
-                    expect(error).toContain('Timed out');
+                    expect(error.code).toEqual(ErrorCode.NOTIFICATION_TIMEOUT);
                 });
                 adapter.emit('characteristicValueChanged', notification);
                 jest.runOnlyPendingTimers();
@@ -126,7 +126,7 @@ describe('readNext', () => {
             it('should return error', () => {
                 jest.useFakeTimers();
                 const promise = notificationQueue.readNext(ControlPointOpcode.CALCULATE_CRC).catch(error => {
-                    expect(error.message).toContain('Got unexpected response');
+                    expect(error.code).toEqual(ErrorCode.UNEXPECTED_NOTIFICATION);
                 });
                 adapter.emit('characteristicValueChanged', notification);
                 jest.runOnlyPendingTimers();
@@ -145,7 +145,7 @@ describe('readNext', () => {
             it('should return error', () => {
                 jest.useFakeTimers();
                 const promise = notificationQueue.readNext(ControlPointOpcode.CALCULATE_CRC).catch(error => {
-                    expect(error.message).toContain('returned error code');
+                    expect(error.code).toEqual(ErrorCode.COMMAND_ERROR);
                 });
                 adapter.emit('characteristicValueChanged', notification);
                 jest.runOnlyPendingTimers();

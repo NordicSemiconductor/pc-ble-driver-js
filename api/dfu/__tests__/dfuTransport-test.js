@@ -1,7 +1,7 @@
 'use strict';
 
 const DfuTransport = require('../dfuTransport');
-const { ObjectType } = require('../dfuConstants');
+const { ObjectType, ErrorCode, createError } = require('../dfuConstants');
 const crc = require('crc');
 
 describe('sendInitPacket', () => {
@@ -16,23 +16,26 @@ describe('sendInitPacket', () => {
 
     it('should return error if not able to start notifications', () => {
         adapter = {
-            startCharacteristicsNotifications: (id, ack, callback) => callback('Start failed')
+            startCharacteristicsNotifications: (id, ack, callback) => {
+                callback(new Error());
+            }
         };
         const dfuTransport = new DfuTransport(adapter);
 
         return dfuTransport.sendInitPacket([]).catch(error => {
-            expect(error).toEqual('Start failed');
+            expect(error.code).toEqual(ErrorCode.NOTIFICATION_START_ERROR);
         });
     });
 
     it('should return error if SELECT fails', () => {
         const dfuTransport = new DfuTransport(adapter);
+        const error = createError(ErrorCode.COMMAND_ERROR, 'Select failed');
         dfuTransport._controlPointService = {
-            selectObject: () => Promise.reject('Select failed')
+            selectObject: () => Promise.reject(error)
         };
 
-        return dfuTransport.sendInitPacket([]).catch(error => {
-            expect(error).toEqual('Select failed');
+        return dfuTransport.sendInitPacket([]).catch(caughtError => {
+            expect(caughtError).toEqual(error);
         });
     });
 
@@ -46,7 +49,7 @@ describe('sendInitPacket', () => {
         };
 
         return dfuTransport.sendInitPacket(initPacket).catch(error => {
-            expect(error.message).toContain('larger than max size');
+            expect(error.code).toEqual(ErrorCode.INIT_PACKET_TOO_LARGE);
         });
     });
 });
@@ -64,23 +67,26 @@ describe('sendFirmware', () => {
 
     it('should return error if not able to start notifications', () => {
         adapter = {
-            startCharacteristicsNotifications: (id, ack, callback) => callback('Start failed')
+            startCharacteristicsNotifications: (id, ack, callback) => {
+                callback(new Error());
+            }
         };
         const dfuTransport = new DfuTransport(adapter);
 
         return dfuTransport.sendFirmware([]).catch(error => {
-            expect(error).toEqual('Start failed');
+            expect(error.code).toEqual(ErrorCode.NOTIFICATION_START_ERROR);
         });
     });
 
     it('should return error if SELECT fails', () => {
         const dfuTransport = new DfuTransport(adapter);
+        const error = createError(ErrorCode.COMMAND_ERROR, 'Select failed');
         dfuTransport._controlPointService = {
-            selectObject: () => Promise.reject('Select failed')
+            selectObject: () => Promise.reject(error)
         };
 
-        return dfuTransport.sendFirmware([]).catch(error => {
-            expect(error).toEqual('Select failed');
+        return dfuTransport.sendFirmware([]).catch(caughtError => {
+            expect(caughtError).toEqual(error);
         });
     });
 });
