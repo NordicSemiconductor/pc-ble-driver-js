@@ -487,7 +487,7 @@ class Adapter extends EventEmitter {
                     this._parseMemoryRequest(event);
                     break;
                 case this._bleDriver.BLE_EVT_TX_COMPLETE:
-                    // No need to handle tx_complete, for now.
+                    this._parseTxCompleteEvent(event);
                     break;
                 default:
                     this.emit('logMessage', logLevel.INFO, `Unsupported event received from SoftDevice: ${event.id} - ${event.name}`);
@@ -1483,6 +1483,11 @@ class Adapter extends EventEmitter {
                 }
             });
         }
+    }
+
+    _parseTxCompleteEvent(event) {
+        const remoteDevice = this._getDeviceByConnectionHandle(event.conn_handle);
+        this.emit('txComplete', remoteDevice, event.count);
     }
 
     _setAttributeValueWithOffset(attribute, value, offset) {
