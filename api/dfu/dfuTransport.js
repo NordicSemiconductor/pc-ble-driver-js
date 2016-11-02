@@ -234,7 +234,7 @@ class DfuTransport extends EventEmitter {
 
     _emitProgress(offset, type) {
         let typeString;
-        switch(type) {
+        switch (type) {
             case ObjectType.COMMAND:
                 typeString = 'init packet';
                 break;
@@ -244,9 +244,10 @@ class DfuTransport extends EventEmitter {
             default:
                 typeString = 'unknown object';
         }
-        this.emit('progressUpdate',
-          {stage: 'transferring ' + typeString,
-           offset: offset});
+        this.emit('progressUpdate', {
+            stage: 'Transferring ' + typeString,
+            offset: offset
+        });
     }
 }
 
