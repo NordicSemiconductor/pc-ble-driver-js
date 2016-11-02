@@ -38,13 +38,11 @@ class DfuTransport extends EventEmitter {
      * @return promise with empty response
      */
     sendInitPacket(initPacket) {
-        this._emitProgress(0, ObjectType.COMMAND);
         return this._open()
             .then(() => this._controlPointService.selectObject(ObjectType.COMMAND))
             .then(response => {
                 const { maximumSize, offset, crc32 } = response;
                 this._validateInitPacketSize(initPacket, maximumSize);
-                this._emitProgress(offset, ObjectType.COMMAND);
                 if (this._canResumePartiallyWrittenObject(initPacket, offset, crc32)) {
                     return this._writeObject(initPacket.slice(offset), offset, crc32);
                 }
@@ -59,13 +57,11 @@ class DfuTransport extends EventEmitter {
      * @returns promise with empty response
      */
     sendFirmware(firmware) {
-        this._emitProgress(0, ObjectType.DATA);
         return this._open()
             .then(() => this._controlPointService.selectObject(ObjectType.DATA))
             .then(response => {
                 const transferData = this._getFirmwareTransferData(firmware, response);
                 const { offset, crc32, objects, partialObject } = transferData;
-                this._emitProgress(offset, ObjectType.DATA);
                 if (partialObject.length > 0) {
                     return this._writeObject(partialObject, offset, crc32).then(progress =>
                         this._createAndWriteObjects(objects, ObjectType.DATA, progress.offset, progress.crc32));
@@ -158,9 +154,9 @@ class DfuTransport extends EventEmitter {
 
     _createAndWriteObjects(objects, type, offset, crc32) {
         return objects.reduce((prevPromise, object) => {
-            return prevPromise.then(progress => {
-                return this._createAndWriteObject(object, type, progress.offset, progress.crc32)
-            });
+            return prevPromise.then(progress =>
+                this._createAndWriteObject(object, type, progress.offset, progress.crc32)
+            );
         }, Promise.resolve({ offset, crc32 }));
     }
 
