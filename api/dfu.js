@@ -92,7 +92,7 @@ class Dfu extends EventEmitter {
     }
 
     // Run the entire DFU process
-    performDFU(zipFilePath, adapter, targetAddress) {
+    performDFU(zipFilePath, adapter, targetAddress, callback) {
         this._zipFilePath = zipFilePath || this._zipFilePath;
         this._adapter = adapter || this._adapter;
         this._targetAddress = targetAddress || this._targetAddress;
@@ -109,9 +109,8 @@ class Dfu extends EventEmitter {
 
         this._fetchUpdates(this._zipFilePath)
         .then(updates => this._performUpdates(updates))
-        .catch(err => console.log(err));
-
-        // TODO: Return callback(err, success)
+        .then(() => callback())
+        .catch(err => callback(err));
     }
 
     _performUpdates(updates) {
