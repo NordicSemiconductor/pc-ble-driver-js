@@ -28,8 +28,27 @@ const ObjectType = Object.freeze({
     DATA: 0x02,
 });
 
+const ErrorCode = Object.freeze({
+    ABORTED: 0x01,
+    NOTIFICATION_TIMEOUT: 0x02,
+    UNEXPECTED_NOTIFICATION: 0x03,
+    INVALID_CRC: 0x04,
+    INVALID_OFFSET: 0x05,
+    WRITE_ERROR: 0x06,
+    NO_DFU_CHARACTERISTIC: 0x07,
+    NO_DFU_SERVICE: 0x08,
+});
+
+function createError(code, message) {
+    const error = new Error(message);
+    error.code = code;
+    return error;
+}
+
 module.exports = {
     ControlPointOpcode,
     ResultCode,
     ObjectType,
+    ErrorCode,
+    createError,
 };

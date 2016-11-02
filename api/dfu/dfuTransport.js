@@ -2,7 +2,7 @@
 
 const DfuObjectWriter = require('./dfuObjectWriter');
 const ControlPointService = require('./controlPointService');
-const { ObjectType } = require('./dfuConstants');
+const { ObjectType, ErrorCode } = require('./dfuConstants');
 const { splitArray } = require('../util/arrayUtil');
 const EventEmitter = require('events');
 const crc = require('crc');
@@ -68,6 +68,15 @@ class DfuTransport extends EventEmitter {
                 }
                 return this._createAndWriteObjects(objects, ObjectType.DATA, offset, crc32);
             });
+    }
+
+    /**
+     * Specifies that the transfer in progress should be interrupted. This will
+     * abort before the next packet is written, and throw an error object with
+     * code ABORTED.
+     */
+    abort() {
+        this._objectWriter.abort();
     }
 
     /**
@@ -172,7 +181,7 @@ class DfuTransport extends EventEmitter {
                     })
                     .catch(error => {
                         attempts++;
-                        if (attempts < MAX_RETRIES) {
+                        if (this._shouldRetry(attempts, error)) {
                             tryWrite();
                         } else {
                             reject(error);
@@ -181,6 +190,15 @@ class DfuTransport extends EventEmitter {
             };
             tryWrite();
         });
+    }
+
+    _shouldRetry(attempts, error) {
+        if (attempts < MAX_RETRIES &&
+            error.code !== ErrorCode.ABORTED &&
+            error.code !== ErrorCode.NOTIFICATION_TIMEOUT) {
+            return true;
+        }
+        return false;
     }
 
     _writeObject(data, offset, crc32) {

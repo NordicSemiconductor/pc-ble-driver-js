@@ -1,6 +1,6 @@
 'use strict';
 
-const { ControlPointOpcode, ResultCode } = require('../dfuConstants');
+const { ControlPointOpcode, ResultCode, ErrorCode } = require('../dfuConstants');
 const DfuObjectWriter = require('../dfuObjectWriter');
 
 describe('writeObject', () => {
@@ -69,6 +69,20 @@ describe('writeObject', () => {
                 expect(notificationQueue.stopListening).toHaveBeenCalled();
             });
         });
+    });
+
+    describe('when abort has been invoked', () => {
+
+        beforeEach(() => {
+            objectWriter.abort();
+        });
+
+        it('should throw error with code ABORTED', () => {
+            return objectWriter.writeObject([1]).catch(error => {
+                expect(error.code).toEqual(ErrorCode.ABORTED);
+            });
+        });
+
     });
 
     describe('when packet writer returns progress info', () => {

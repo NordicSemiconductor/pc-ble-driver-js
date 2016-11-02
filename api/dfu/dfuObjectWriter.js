@@ -2,7 +2,7 @@
 
 const { splitArray } = require('../util/arrayUtil');
 const { arrayToInt } = require('../util/intArrayConv');
-const { ControlPointOpcode } = require('./dfuConstants');
+const { ControlPointOpcode, ErrorCode, createError } = require('./dfuConstants');
 const DfuNotificationQueue = require('./dfuNotificationQueue');
 const DfuPacketWriter = require('./dfuPacketWriter');
 
@@ -15,6 +15,7 @@ class DfuObjectWriter {
         this._packetCharacteristicId = packetCharacteristicId;
         this._notificationQueue = new DfuNotificationQueue(adapter, controlPointCharacteristicId);
         this._mtuSize = DEFAULT_MTU_SIZE;
+        this._abort = false;
     }
 
     /**
@@ -42,6 +43,14 @@ class DfuObjectWriter {
             });
     }
 
+    /*
+     * Specifies that the object writer should abort before the next packet is
+     * written. An error with code ABORTED will be thrown.
+     */
+    abort() {
+        this._abort = true;
+    }
+
     /**
      * Sets packet receipt notification (PRN) value, which specifies how many
      * packages should be sent before receiving receipt.
@@ -63,15 +72,19 @@ class DfuObjectWriter {
     }
 
     _writePackets(packetWriter, packets) {
-        return packets.reduce((prevPromise, currentPacket) => {
-            return prevPromise
-                .then(() => packetWriter.writePacket(currentPacket))
-                .then(progressInfo => {
-                    if (progressInfo) {
-                        return this._validateProgress(progressInfo);
-                    }
-                });
+        return packets.reduce((prevPromise, packet) => {
+            return prevPromise.then(() => this._writePacket(packetWriter, packet));
         }, Promise.resolve());
+    }
+
+    _writePacket(packetWriter, packet) {
+        return this._checkAbortState()
+            .then(() => packetWriter.writePacket(packet))
+            .then(progressInfo => {
+                if (progressInfo) {
+                    return this._validateProgress(progressInfo);
+                }
+            });
     }
 
     _createPacketWriter(offset, crc32) {
@@ -80,6 +93,13 @@ class DfuObjectWriter {
         writer.setCrc32(crc32);
         writer.setPrn(this._prn);
         return writer;
+    }
+
+    _checkAbortState() {
+        if (this._abort) {
+            return Promise.reject(createError(ErrorCode.ABORTED));
+        }
+        return Promise.resolve();
     }
 
     _validateProgress(progressInfo) {
