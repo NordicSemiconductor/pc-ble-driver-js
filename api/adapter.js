@@ -2763,7 +2763,7 @@ class Adapter extends EventEmitter {
             value: value,
         };
 
-        this._adapter.gattcWrite(device.connectionHandle, writeParameters, err => {
+        this._gattcWriteWithRetries(device.connectionHandle, writeParameters, err => {
             if (err) {
                 delete this._gattOperationsMap[device.instanceId];
                 this.emit('error', 'Failed to write to attribute with handle: ' + attribute.handle);
@@ -2777,6 +2777,28 @@ class Adapter extends EventEmitter {
                 if (callback) { callback(undefined, attribute); }
             }
         });
+    }
+
+    _gattcWriteWithRetries(connectionHandle, writeParameters, callback)
+    {
+        let attempts = 0;
+        const MAX_ATTEMPTS = 5;
+        const RETRY_DELAY = 5;
+        const BLE_ERROR_NO_TX_PACKETS = 0x3004;
+        const tryWrite = () => {
+            this._adapter.gattcWrite(connectionHandle, writeParameters, err => {
+                if (err) {
+                    if (err.errno === BLE_ERROR_NO_TX_PACKETS && attempts++ <= MAX_ATTEMPTS) {
+                        setTimeout(() => tryWrite(), RETRY_DELAY);
+                    } else {
+                        callback(err);
+                    }
+                } else {
+                    callback();
+                }
+            });
+        };
+        tryWrite();
     }
 
     _longWrite(device, attribute, value, callback) {
