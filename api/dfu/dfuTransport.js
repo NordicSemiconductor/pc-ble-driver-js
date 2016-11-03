@@ -38,6 +38,7 @@ class DfuTransport extends EventEmitter {
      * @return promise with empty response
      */
     sendInitPacket(initPacket) {
+        this._emitInitializeEvent(ObjectType.COMMAND);
         return this._open()
             .then(() => this._controlPointService.selectObject(ObjectType.COMMAND))
             .then(response => {
@@ -58,6 +59,7 @@ class DfuTransport extends EventEmitter {
      * @returns promise with empty response
      */
     sendFirmware(firmware) {
+        this._emitInitializeEvent(ObjectType.DATA);
         return this._open()
             .then(() => this._controlPointService.selectObject(ObjectType.DATA))
             .then(response => {
@@ -270,6 +272,13 @@ class DfuTransport extends EventEmitter {
         this.emit('progressUpdate', {
             stage: `Transferring ${this._getObjectTypeString(type)}`,
             offset: offset
+        });
+    }
+
+    _emitInitializeEvent(type) {
+        this.emit('progressUpdate', {
+            stage: `Initializing ${this._getObjectTypeString(type)}`,
+            offset: 0
         });
     }
 
