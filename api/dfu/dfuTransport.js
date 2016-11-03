@@ -44,6 +44,7 @@ class DfuTransport extends EventEmitter {
                 const { maximumSize, offset, crc32 } = response;
                 this._validateInitPacketSize(initPacket, maximumSize);
                 if (this._canResumePartiallyWrittenObject(initPacket, offset, crc32)) {
+                    this._emitResumeEvent(offset, ObjectType.COMMAND);
                     return this._writeObject(initPacket.slice(offset), offset, crc32);
                 }
                 return this._createAndWriteObject(initPacket, ObjectType.COMMAND);
@@ -63,6 +64,7 @@ class DfuTransport extends EventEmitter {
                 const state = this._getFirmwareState(firmware, response);
                 const { offset, crc32, objects, partialObject } = state;
                 if (partialObject.length > 0) {
+                    this._emitResumeEvent(offset, ObjectType.DATA);
                     return this._writeObject(partialObject, offset, crc32).then(progress =>
                         this._createAndWriteObjects(objects, ObjectType.DATA, progress.offset, progress.crc32));
                 }
@@ -186,7 +188,7 @@ class DfuTransport extends EventEmitter {
                 this._controlPointService.createObject(type, data.length)
                     .then(() => this._writeObject(data, offset, crc32))
                     .then(progress => {
-                        this._emitProgress(progress.offset, type);
+                        this._emitTransferEvent(progress.offset, type);
                         resolve(progress);
                     })
                     .catch(error => {
@@ -257,22 +259,28 @@ class DfuTransport extends EventEmitter {
             });
     }
 
-    _emitProgress(offset, type) {
-        let typeString;
-        switch (type) {
-            case ObjectType.COMMAND:
-                typeString = 'init packet';
-                break;
-            case ObjectType.DATA:
-                typeString = 'firmware';
-                break;
-            default:
-                typeString = 'unknown object';
-        }
+    _emitResumeEvent(offset, type) {
         this.emit('progressUpdate', {
-            stage: 'Transferring ' + typeString,
+            stage: `Resuming ${this._getObjectTypeString(type)} transfer`,
             offset: offset
         });
+    }
+
+    _emitTransferEvent(offset, type) {
+        this.emit('progressUpdate', {
+            stage: `Transferring ${this._getObjectTypeString(type)}`,
+            offset: offset
+        });
+    }
+
+    _getObjectTypeString(type) {
+        switch (type) {
+            case ObjectType.COMMAND:
+                return 'init packet';
+            case ObjectType.DATA:
+                return 'firmware';
+        }
+        return 'unknown object';
     }
 }
 
