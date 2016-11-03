@@ -41,6 +41,7 @@ const JSZip = require('jszip');
 const fs = require('fs');
 const EventEmitter = require('events');
 
+const { ErrorCode } = require('./dfu/dfuConstants');
 const DfuTransportFactory = require('./dfu/dfuTransportFactory');
 
 // DFU control point procedure operation codes.
@@ -85,6 +86,7 @@ class Dfu extends EventEmitter {
         super();
 
         this._adapter = adapter;
+        this._transport = null;
         this._zipFilePath = null;
 
         this._controlPointCharacteristicId = null;
@@ -108,9 +110,24 @@ class Dfu extends EventEmitter {
         }
 
         this._fetchUpdates(this._zipFilePath)
-        .then(updates => this._performUpdates(updates))
-        .then(() => callback())
-        .catch(err => callback(err));
+            .then(updates => this._performUpdates(updates))
+            .then(() => callback())
+            .catch(err => {
+                if (err.code === ErrorCode.ABORTED) {
+                    const aborted = true;
+                    callback(null, aborted);
+                } else {
+                    callback(err)
+                }
+            });
+    }
+
+    abort() {
+        if (this._transport) {
+            this._transport.abort();
+        } else {
+            throw new Error('Abort called, but no transport is in progress.');
+        }
     }
 
     _performUpdates(updates) {
@@ -119,6 +136,7 @@ class Dfu extends EventEmitter {
             Promise.resolve()
             .then(() => DfuTransportFactory.create(this._adapter, this._targetAddress))
             .then(transport => {
+                this._transport = transport;
                 return transport.setPrn(20)
                 .then(() => updates.reduce((prev, update) => {
                     return prev.then(() => this._performSingleUpdate(transport, update));
