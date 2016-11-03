@@ -1,7 +1,7 @@
 'use strict';
 
 const DfuTransport = require('../dfuTransport');
-const { ObjectType, ErrorCode, createError } = require('../dfuConstants');
+const { ErrorCode, createError } = require('../dfuConstants');
 const crc = require('crc');
 
 describe('sendInitPacket', () => {
@@ -92,7 +92,7 @@ describe('sendFirmware', () => {
 });
 
 
-describe('_getFirmwareTransferData', () => {
+describe('_getFirmwareState', () => {
 
     let dfuTransport = new DfuTransport();
 
@@ -103,22 +103,22 @@ describe('_getFirmwareTransferData', () => {
             crc32: 0,
             maximumSize: 4
         };
-        const transferData = dfuTransport._getFirmwareTransferData(firmware, selectResponse);
+        const state = dfuTransport._getFirmwareState(firmware, selectResponse);
 
         it('should return zero offset', () => {
-            expect(transferData.offset).toEqual(0);
+            expect(state.offset).toEqual(0);
         });
 
         it('should return zero crc32', () => {
-            expect(transferData.crc32).toEqual(0);
+            expect(state.crc32).toEqual(0);
         });
 
         it('should return all firmware data as objects according to maximumSize', () => {
-            expect(transferData.objects).toEqual([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10]]);
+            expect(state.objects).toEqual([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10]]);
         });
 
         it('should return empty partial object', () => {
-            expect(transferData.partialObject).toEqual([]);
+            expect(state.partialObject).toEqual([]);
         });
     });
 
@@ -131,22 +131,22 @@ describe('_getFirmwareTransferData', () => {
             crc32: invalidCrc32,
             maximumSize: 4
         };
-        const transferData = dfuTransport._getFirmwareTransferData(firmware, selectResponse);
+        const state = dfuTransport._getFirmwareState(firmware, selectResponse);
 
         it('should return offset where the partial object starts', () => {
-            expect(transferData.offset).toEqual(4);
+            expect(state.offset).toEqual(4);
         });
 
         it('should return crc32 value for the data before the partial object', () => {
-            expect(transferData.crc32).toEqual(crc.crc32(firmware.slice(0, 4)));
+            expect(state.crc32).toEqual(crc.crc32(firmware.slice(0, 4)));
         });
 
         it('should return remaining firmware objects including the full partial object', () => {
-            expect(transferData.objects).toEqual([[5, 6, 7, 8], [9, 10]]);
+            expect(state.objects).toEqual([[5, 6, 7, 8], [9, 10]]);
         });
 
         it('should return empty partial object', () => {
-            expect(transferData.partialObject).toEqual([]);
+            expect(state.partialObject).toEqual([]);
         });
     });
 
@@ -158,22 +158,22 @@ describe('_getFirmwareTransferData', () => {
             crc32: crc.crc32(firmware.slice(0, offset)),
             maximumSize: 4
         };
-        const transferData = dfuTransport._getFirmwareTransferData(firmware, selectResponse);
+        const state = dfuTransport._getFirmwareState(firmware, selectResponse);
 
         it('should return the same offset that was returned by the device', () => {
-            expect(transferData.offset).toEqual(selectResponse.offset);
+            expect(state.offset).toEqual(selectResponse.offset);
         });
 
         it('should return the same crc32 value that was returned by the device', () => {
-            expect(transferData.crc32).toEqual(selectResponse.crc32);
+            expect(state.crc32).toEqual(selectResponse.crc32);
         });
 
         it('should return remaining firmware objects after the partial object', () => {
-            expect(transferData.objects).toEqual([[9, 10]]);
+            expect(state.objects).toEqual([[9, 10]]);
         });
 
         it('should return partial object', () => {
-            expect(transferData.partialObject).toEqual([6, 7, 8]);
+            expect(state.partialObject).toEqual([6, 7, 8]);
         });
     });
 
@@ -186,22 +186,22 @@ describe('_getFirmwareTransferData', () => {
             crc32: crc.crc32(firmware.slice(0, offset)),
             maximumSize: 4
         };
-        const transferData = dfuTransport._getFirmwareTransferData(firmware, selectResponse);
+        const state = dfuTransport._getFirmwareState(firmware, selectResponse);
 
         it('should return the same offset that was returned by the device', () => {
-            expect(transferData.offset).toEqual(selectResponse.offset);
+            expect(state.offset).toEqual(selectResponse.offset);
         });
 
         it('should return the same crc32 value that was returned by the device', () => {
-            expect(transferData.crc32).toEqual(selectResponse.crc32);
+            expect(state.crc32).toEqual(selectResponse.crc32);
         });
 
         it('should return remaining firmware objects', () => {
-            expect(transferData.objects).toEqual([[9, 10]]);
+            expect(state.objects).toEqual([[9, 10]]);
         });
 
         it('should return empty partial object', () => {
-            expect(transferData.partialObject).toEqual([]);
+            expect(state.partialObject).toEqual([]);
         });
     });
 });

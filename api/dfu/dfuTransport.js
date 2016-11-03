@@ -60,8 +60,8 @@ class DfuTransport extends EventEmitter {
         return this._open()
             .then(() => this._controlPointService.selectObject(ObjectType.DATA))
             .then(response => {
-                const transferData = this._getFirmwareTransferData(firmware, response);
-                const { offset, crc32, objects, partialObject } = transferData;
+                const state = this._getFirmwareState(firmware, response);
+                const { offset, crc32, objects, partialObject } = state;
                 if (partialObject.length > 0) {
                     return this._writeObject(partialObject, offset, crc32).then(progress =>
                         this._createAndWriteObjects(objects, ObjectType.DATA, progress.offset, progress.crc32));
@@ -140,7 +140,17 @@ class DfuTransport extends EventEmitter {
         });
     }
 
-    _getFirmwareTransferData(firmware, selectResponse) {
+    /**
+     * Looks at the complete firmware data array and the SELECT response to determine
+     * the offset and crc32 starting points. Also returns firmware data that remains
+     * to be written (objects and partialObject).
+     *
+     * @param firmware byte array
+     * @param selectResponse response from select command
+     * @returns object containing current offset, crc32, and data to be transferred
+     * @private
+     */
+    _getFirmwareState(firmware, selectResponse) {
         const { maximumSize, offset, crc32 } = selectResponse;
         let startOffset = offset;
         let startCrc32 = crc32;
