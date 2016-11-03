@@ -189,7 +189,7 @@ function listServices(adapter) {
 
         connect(adapter, { address: 'FC:EC:28:81:8B:84', type: 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC' }, () => {
             console.log('Inside connect callback.');
-            dfu.performDFU(zipPath, adapter, 'FC:EC:28:81:8B:84');
+            dfu.performDFU(zipPath, adapter, 'FC:EC:28:81:8B:84', (err) => console.log(err));
         });
     });
 }
