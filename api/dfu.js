@@ -181,11 +181,11 @@ class Dfu extends EventEmitter {
         return Promise.all([
             Promise.resolve()
                 .then(update['initPacket'])
-                .then(data => this._handleProgressFactory(0.15, 0.2, data.length))
+                .then(data => this._handleProgressFactory(0.05, 0.1, data.length))
                 .catch(err => reject(err)),
             Promise.resolve()
                 .then(update['firmware'])
-                .then(data => this._handleProgressFactory(0.2, 1.0, data.length))
+                .then(data => this._handleProgressFactory(0.1, 1.0, data.length))
                 .catch(err => reject(err))
         ]);
     }
