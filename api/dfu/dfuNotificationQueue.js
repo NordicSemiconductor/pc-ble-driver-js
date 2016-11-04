@@ -43,7 +43,7 @@ class DfuNotificationQueue {
      */
     readNext(opCode) {
         const timeout = 20000;
-        const pollInterval = 20; // Can we use 0?
+        const pollInterval = 0;
         const timeoutPromise = new Promise((resolve, reject) => {
             setTimeout(() => {
                 reject(createError(ErrorCode.NOTIFICATION_TIMEOUT, `Timed out when waiting for ` +
