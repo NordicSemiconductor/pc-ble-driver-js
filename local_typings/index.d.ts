@@ -92,7 +92,7 @@ declare class EventEmitter {
 
 export class Adapter extends EventEmitter {
   instanceId: string;
-  driver: driver;
+  driver: any;
   state: AdapterState;
   open(options?: AdapterOpenOptions, callback?: (err: any) => void): void;
   close(callback?: (err: any) => void): void;
