@@ -244,21 +244,6 @@ class Dfu extends EventEmitter {
     }
 
 
-    // Start or resume DFU process
-    // For now, just restart the DFU process.
-    // It is part of the protocol to continue at the current offset.
-    startDFU(zipFilePath, adapter, targetAddress) {
-        performDFU(zipFilePath, adapter, targetAddress);
-    }
-
-
-    // Stop (pause) DFU process
-    // Should do nothing more than pause.
-    stopDFU() {
-
-    }
-
-
     // Callback signature: function(err, zip) {}
     _loadZip(zipFilePath, callback) {
         // Read zip file
