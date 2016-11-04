@@ -58,42 +58,44 @@ class Dfu extends EventEmitter {
     * Constructor that shall not be used by developer.
     * @private
     */
-    constructor(adapter = null) {
+    constructor() {
         super();
 
-        this._adapter = adapter;
-        this._transport = null;
         this._zipFilePath = null;
-
-        this._controlPointCharacteristicId = null;
-        this._packetCharacteristicId = null;
+        this._transportType = null;
+        this._transportParameters = null;
+        this._transport = null;
     }
 
     // Run the entire DFU process
-    performDFU(zipFilePath, adapter, targetAddress, callback) {
+    performDFU(zipFilePath, transportType, transportParameters, callback) {
         this._zipFilePath = zipFilePath || this._zipFilePath;
-        this._adapter = adapter || this._adapter;
-        this._targetAddress = targetAddress || this._targetAddress;
+        this._transportType = transportType || this._transportType;
+        this._transportParameters = transportParameters || this._transportParameters;
 
         if (!this._zipFilePath) {
             throw new Error('No zipFilePath provided.');
         }
-        if (!this._adapter) {
-            throw new Error('No adapter provided.');
+        if (!this._transportType) {
+            throw new Error('No transport type provided.');
         }
-        if (!this._targetAddress) {
-            throw new Error('No target address provided.');
+        if (!this._transportParameters) {
+            throw new Error('No transport parameters provided.');
         }
 
         this._fetchUpdates(this._zipFilePath)
             .then(updates => this._performUpdates(updates))
-            .then(() => callback())
+            .then(() => {
+                if (callback) {
+                    callback();
+                }
+            })
             .catch(err => {
                 if (err.code === ErrorCode.ABORTED) {
                     const aborted = true;
-                    callback(null, aborted);
+                    if (callback) { callback(null, aborted); }
                 } else {
-                    callback(err)
+                    if (callback) { callback(err); }
                 }
             });
     }
@@ -108,44 +110,42 @@ class Dfu extends EventEmitter {
 
     _performUpdates(updates) {
         return new Promise((resolve, reject) => {
-            //transport.setMtuSize(); // <-- TODO: Set MTU size.
             Promise.resolve()
-            .then(() => DfuTransportFactory.create(this._adapter, this._targetAddress))
-            .then(transport => {
-                this._transport = transport;
-                return transport.setPrn(20)
-                .then(() => updates.reduce((prev, update) => {
-                    return prev.then(() => this._performSingleUpdate(transport, update));
-                }, Promise.resolve() ))
-                .catch(err => {
-                    reject(err);
-                });
-             })
+            .then(() => updates.reduce((prev, update) => {
+                return prev.then(() => this._performSingleUpdate(update));
+            }, Promise.resolve()))
             .then(() => resolve())
             .catch(err => reject(err));
         });
     }
 
-    _performSingleUpdate(transport, update) {
+    _performSingleUpdate(update) {
         return new Promise((resolve, reject) => {
             this._getProgressHandlers(update)
             .then(([handleInitPacketProgress, handleFirmwareProgress]) => {
-                Promise.resolve()
+                // Set up and configure transport
+                DfuTransportFactory.create(this._transportParameters)
+                .then(transport => {
+                    this._transport = transport;
+                })
                 // Init Packet
-                .then(() => transport.on('progressUpdate', handleInitPacketProgress))
+                .then(() => this._transport.on('progressUpdate', handleInitPacketProgress))
                 .then(update['initPacket'])
-                .then(data => transport.sendInitPacket(data))
-                .then(() => transport.removeListener('progressUpdate', handleInitPacketProgress))
+                .then(data => this._transport.sendInitPacket(data))
+                .then(() => this._transport.removeListener('progressUpdate', handleInitPacketProgress))
                 // Firmware
-                .then(() => transport.on('progressUpdate', handleFirmwareProgress))
+                .then(() => this._transport.on('progressUpdate', handleFirmwareProgress))
                 .then(update['firmware'])
-                .then(data => transport.sendFirmware(data))
-                .then(() => transport.removeListener('progressUpdate', handleFirmwareProgress))
+                .then(data => this._transport.sendFirmware(data))
+                .then(() => this._transport.removeListener('progressUpdate', handleFirmwareProgress))
                 // That's all
                 .then(() => resolve())
                 .catch(err => {
-                    transport.removeListener('progressUpdate', handleInitPacketProgress);
-                    transport.removeListener('progressUpdate', handleFirmwareProgress);
+                    if (this._transport) {
+                        this._transport.removeListener('progressUpdate', handleInitPacketProgress);
+                        this._transport.removeListener('progressUpdate', handleFirmwareProgress);
+                        this._transport = null;
+                    }
                     reject(err);
                 });
             })

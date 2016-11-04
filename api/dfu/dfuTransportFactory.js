@@ -16,9 +16,21 @@ class DfuTransportFactory {
      * @param deviceInstanceId the device instance id
      * @returns promise that returns a new DfuTransport instance
      */
-    static create(adapter, deviceAddress) {
-        return DfuTransportFactory._getCharacteristicIds(adapter, adapter._getDeviceByAddress(deviceAddress).instanceId)
-            .then(ids => new DfuTransport(adapter, ids.controlPointCharacteristicId, ids.packetCharacteristicId));
+
+    static create(transportParameters) {
+        let adapter = transportParameters.adapter;
+        let targetAddress = transportParameters.targetAddress;
+        const prnValue = transportParameters.prnValue;
+        const mtuSize = transportParameters.mtuSize;
+
+        let transport = null;
+
+        return DfuTransportFactory._getCharacteristicIds(adapter, adapter._getDeviceByAddress(targetAddress).instanceId)
+            .then(ids => new DfuTransport(adapter, ids.controlPointCharacteristicId, ids.packetCharacteristicId))
+            .then(t => transport = t)
+            .then(prnValue ? () => transport.setPrn(prnValue) : Promise.resolve())
+            .then(mtuSize ? () => transport.setMtuSize(mtuSize) : Promise.resolve())
+            .then(() => { return transport; });
     }
 
     static _getCharacteristicIds(adapter, deviceInstanceId) {
