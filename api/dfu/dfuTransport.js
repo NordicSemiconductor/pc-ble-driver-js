@@ -28,6 +28,7 @@ class DfuTransport extends EventEmitter {
         this._packetCharacteristicId = packetCharacteristicId;
         this._controlPointService = new ControlPointService(adapter, controlPointCharacteristicId);
         this._objectWriter = new DfuObjectWriter(adapter, controlPointCharacteristicId, packetCharacteristicId);
+        this._objectWriter.on('packetWritten', progress => this._emitTransferEvent(progress.offset, progress.type));
         this._isOpen = false;
     }
 
@@ -38,17 +39,18 @@ class DfuTransport extends EventEmitter {
      * @return promise with empty response
      */
     sendInitPacket(initPacket) {
-        this._emitInitializeEvent(ObjectType.COMMAND);
+        const objectType = ObjectType.COMMAND;
+        this._emitInitializeEvent(objectType);
         return this._open()
-            .then(() => this._controlPointService.selectObject(ObjectType.COMMAND))
+            .then(() => this._controlPointService.selectObject(objectType))
             .then(response => {
                 const { maximumSize, offset, crc32 } = response;
                 this._validateInitPacketSize(initPacket, maximumSize);
                 if (this._canResumePartiallyWrittenObject(initPacket, offset, crc32)) {
-                    this._emitResumeEvent(offset, ObjectType.COMMAND);
-                    return this._writeObject(initPacket.slice(offset), offset, crc32);
+                    this._emitResumeEvent(offset, objectType);
+                    return this._writeObject(initPacket.slice(offset), objectType, offset, crc32);
                 }
-                return this._createAndWriteObject(initPacket, ObjectType.COMMAND);
+                return this._createAndWriteObject(initPacket, objectType);
             });
     }
 
@@ -59,18 +61,19 @@ class DfuTransport extends EventEmitter {
      * @returns promise with empty response
      */
     sendFirmware(firmware) {
-        this._emitInitializeEvent(ObjectType.DATA);
+        const objectType = ObjectType.DATA;
+        this._emitInitializeEvent(objectType);
         return this._open()
-            .then(() => this._controlPointService.selectObject(ObjectType.DATA))
+            .then(() => this._controlPointService.selectObject(objectType))
             .then(response => {
                 const state = this._getFirmwareState(firmware, response);
                 const { offset, crc32, objects, partialObject } = state;
                 if (partialObject.length > 0) {
-                    this._emitResumeEvent(offset, ObjectType.DATA);
-                    return this._writeObject(partialObject, offset, crc32).then(progress =>
-                        this._createAndWriteObjects(objects, ObjectType.DATA, progress.offset, progress.crc32));
+                    this._emitResumeEvent(offset, objectType);
+                    return this._writeObject(partialObject, objectType, offset, crc32).then(progress =>
+                        this._createAndWriteObjects(objects, objectType, progress.offset, progress.crc32));
                 }
-                return this._createAndWriteObjects(objects, ObjectType.DATA, offset, crc32);
+                return this._createAndWriteObjects(objects, objectType, offset, crc32);
             });
     }
 
@@ -188,11 +191,8 @@ class DfuTransport extends EventEmitter {
             let attempts = 0;
             const tryWrite = () => {
                 this._controlPointService.createObject(type, data.length)
-                    .then(() => this._writeObject(data, offset, crc32))
-                    .then(progress => {
-                        this._emitTransferEvent(progress.offset, type);
-                        resolve(progress);
-                    })
+                    .then(() => this._writeObject(data, type, offset, crc32))
+                    .then(progress => resolve(progress))
                     .catch(error => {
                         attempts++;
                         if (this._shouldRetry(attempts, error)) {
@@ -206,8 +206,8 @@ class DfuTransport extends EventEmitter {
         });
     }
 
-    _writeObject(data, offset, crc32) {
-        return this._objectWriter.writeObject(data, offset, crc32)
+    _writeObject(data, type, offset, crc32) {
+        return this._objectWriter.writeObject(data, type, offset, crc32)
             .then(progress => {
                 return this._validateProgress(progress)
                     .then(() => this._controlPointService.execute())
