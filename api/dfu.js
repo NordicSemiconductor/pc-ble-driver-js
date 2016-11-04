@@ -44,30 +44,6 @@ const EventEmitter = require('events');
 const { ErrorCode } = require('./dfu/dfuConstants');
 const DfuTransportFactory = require('./dfu/dfuTransportFactory');
 
-// DFU control point procedure operation codes.
-// (Not to be confused with "NRF DFU Object codes".)
-const ControlPointOpcode = Object.freeze({
-    CREATE: 0x01,
-    SET_PRN: 0x02, // Set Packet Receipt Notification
-    CALCULATE_CRC: 0x03, // Calculate CRC checksum
-    EXECUTE: 0x04,
-    SELECT: 0x06,
-    RESPONSE: 0x60, // Response command, only returned by the DFU target
-});
-
-// Return codes (result codes) for Control Point operations.
-const ResultCode = Object.freeze({
-    INVALID_CODE: 0x00,
-    SUCCESS: 0x01,
-    OPCODE_NOT_SUPPORTED: 0x02,
-    INVALID_PARAMETER: 0x03,
-    INSUFFICIENT_RESOURCES: 0x04,
-    INVALID_OBJECT: 0x05,
-    UNSUPPORTED_TYPE: 0x07,
-    OPERATION_NOT_PERMITTED: 0x08,
-    OPERATION_FAILED: 0x0A,
-});
-
 const SECURE_DFU_SERVICE_UUID = 'FE59';
 const SECURE_DFU_CONTROL_POINT_UUID = '8EC90001F3154F609FB8838830DAEA50';
 const SECURE_DFU_PACKET_UUID =        '8EC90002F3154F609FB8838830DAEA50';
