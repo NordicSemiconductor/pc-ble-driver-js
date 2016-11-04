@@ -122,35 +122,46 @@ class Dfu extends EventEmitter {
     _performSingleUpdate(update) {
         return new Promise((resolve, reject) => {
             this._getProgressHandlers(update)
-            .then(([handleInitPacketProgress, handleFirmwareProgress]) => {
+            .then(([initPacketProgressHandler, firmwareProgressHandler]) => {
                 // Set up and configure transport
                 DfuTransportFactory.create(this._transportParameters)
-                .then(transport => {
-                    this._transport = transport;
-                })
-                // Init Packet
-                .then(() => this._transport.on('progressUpdate', handleInitPacketProgress))
-                .then(update['initPacket'])
-                .then(data => this._transport.sendInitPacket(data))
-                .then(() => this._transport.removeListener('progressUpdate', handleInitPacketProgress))
-                // Firmware
-                .then(() => this._transport.on('progressUpdate', handleFirmwareProgress))
-                .then(update['firmware'])
-                .then(data => this._transport.sendFirmware(data))
-                .then(() => this._transport.removeListener('progressUpdate', handleFirmwareProgress))
+                .then(transport => { this._transport = transport; })
+                // Send the update
+                .then(() => this._sendInitPacket(update['initPacket'], initPacketProgressHandler))
+                .then(() => this._sendFirmware(update['firmware'], firmwareProgressHandler))
                 // That's all
                 .then(() => resolve())
-                .catch(err => {
-                    if (this._transport) {
-                        this._transport.removeListener('progressUpdate', handleInitPacketProgress);
-                        this._transport.removeListener('progressUpdate', handleFirmwareProgress);
-                        this._transport = null;
-                    }
-                    reject(err);
-                });
+                .catch(err => reject(err));
             })
             .catch(err => reject(err));
         });
+    }
+
+    _sendInitPacket(dataPromise, progressHandler) {
+        return this._sendData(dataPromise,
+          this._transport.sendInitPacket.bind(this._transport),
+          progressHandler);
+    }
+
+    _sendFirmware(dataPromise, progressHandler) {
+        return this._sendData(dataPromise,
+          this._transport.sendFirmware.bind(this._transport),
+          progressHandler);
+    }
+
+    _sendData(dataPromise, sendFunction, progressHandler) {
+        return new Promise((resolve, reject) => {
+            Promise.resolve()
+              .then(() => this._transport.on('progressUpdate', progressHandler))
+              .then(dataPromise)
+              .then(data => sendFunction(data))
+              .then(() => this._transport.removeListener('progressUpdate', progressHandler))
+              .then(() => resolve())
+              .catch(err => {
+                  this._transport.removeListener('progressUpdate', progressHandler);
+                  reject(err);
+              });
+        })
     }
 
     _getProgressHandlers(update) {
