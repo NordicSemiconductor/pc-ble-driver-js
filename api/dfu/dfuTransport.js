@@ -41,16 +41,14 @@ class DfuTransport extends EventEmitter {
     sendInitPacket(initPacket) {
         const objectType = ObjectType.COMMAND;
         this._emitInitializeEvent(objectType);
-        return this._open()
-            .then(() => this._controlPointService.selectObject(objectType))
-            .then(response => {
-                const { maximumSize, offset, crc32 } = response;
-                this._validateInitPacketSize(initPacket, maximumSize);
-                if (this._canResumePartiallyWrittenObject(initPacket, offset, crc32)) {
+        return this.getInitPacketState(initPacket)
+            .then(state => {
+                const { offset, crc32, data } = state;
+                if (offset > 0) {
                     this._emitResumeEvent(offset, objectType);
-                    return this._writeObject(initPacket.slice(offset), objectType, offset, crc32);
+                    return this._writeObject(data, objectType, offset, crc32);
                 }
-                return this._createAndWriteObject(initPacket, objectType);
+                return this._createAndWriteObject(data, objectType);
             });
     }
 
@@ -63,10 +61,8 @@ class DfuTransport extends EventEmitter {
     sendFirmware(firmware) {
         const objectType = ObjectType.DATA;
         this._emitInitializeEvent(objectType);
-        return this._open()
-            .then(() => this._controlPointService.selectObject(objectType))
-            .then(response => {
-                const state = this._getFirmwareState(firmware, response);
+        return this.getFirmwareState(firmware)
+            .then(state => {
                 const { offset, crc32, objects, partialObject } = state;
                 if (partialObject.length > 0) {
                     this._emitResumeEvent(offset, objectType);
@@ -75,6 +71,35 @@ class DfuTransport extends EventEmitter {
                 }
                 return this._createAndWriteObjects(objects, objectType, offset, crc32);
             });
+    }
+
+    /**
+     * Sends a SELECT command to the device to determine its current initPacket state.
+     * Returns the offset and crc32 starting points, including the data (bytes) that
+     * remains to be written.
+     *
+     * @param initPacket byte array
+     * @returns promise that returns { offset, crc32, data }
+     */
+    getInitPacketState(initPacket) {
+        return this._open()
+            .then(() => this._controlPointService.selectObject(ObjectType.COMMAND))
+            .then(response => this._getInitPacketState(initPacket, response));
+    }
+
+    /**
+     * Sends a SELECT command to the device to determine its current firmware state.
+     * Returns the offset and crc32 starting points, including the object data (bytes)
+     * that remains to be written. If an object has been partially written to the
+     * device, then partialObject will contain the remaining data to write for that
+     * object.
+     *
+     * @returns promise that returns { offset, crc32, objects, partialObject }
+     */
+    getFirmwareState(firmware) {
+        return this._open()
+            .then(() => this._controlPointService.selectObject(ObjectType.DATA))
+            .then(response => this._getFirmwareState(firmware, response));
     }
 
     /**
@@ -147,16 +172,15 @@ class DfuTransport extends EventEmitter {
         });
     }
 
-    /**
-     * Looks at the complete firmware data array and the SELECT response to determine
-     * the offset and crc32 starting points. Also returns firmware data that remains
-     * to be written (objects and partialObject).
-     *
-     * @param firmware byte array
-     * @param selectResponse response from select command
-     * @returns object containing current offset, crc32, and data to be transferred
-     * @private
-     */
+    _getInitPacketState(initPacket, selectResponse) {
+        const { maximumSize, offset, crc32 } = selectResponse;
+        this._validateInitPacketSize(initPacket, maximumSize);
+        if (this._canResumePartiallyWrittenObject(initPacket, offset, crc32)) {
+            return { offset, crc32, data: initPacket.slice(offset) };
+        }
+        return { offset: 0, data: initPacket };
+    }
+
     _getFirmwareState(firmware, selectResponse) {
         const { maximumSize, offset, crc32 } = selectResponse;
         let startOffset = offset;
