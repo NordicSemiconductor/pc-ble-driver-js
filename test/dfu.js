@@ -98,7 +98,7 @@ function connect(adapter, connectToAddress, callback) {
         }
     );
 }
-
+/*
 function startScan(adapter, callback)
 {
     const scanParameters = {
@@ -114,7 +114,7 @@ function startScan(adapter, callback)
         if (callback) callback();
     });
 }
-
+*/
 function setupAdapter(adapter, name, address, addressType, callback) {
     adapter.open(
         {
@@ -149,10 +149,11 @@ function setupAdapter(adapter, name, address, addressType, callback) {
 
 function listServices(adapter) {
     const dfu = new api.Dfu();
-    const zipPath = "./dfu/dfu_test_softdevice_bootloader_s132.zip";
+//    const zipPath = "./dfu/dfu_test_softdevice_bootloader_s132.zip";
 //    const zipPath = "./dfu/dfu_test_softdevice_s132.zip";
 //    const zipPath = "./dfu/dfu_test_bootloader_s132.zip";
 //    const zipPath = "./dfu/dfu_test_app_hrm_s132.zip";
+    const zipPath = "./dfu/dfu_test_all_s132.zip";
 
     let deviceID = undefined;
 
@@ -192,8 +193,13 @@ function listServices(adapter) {
             const transportParameters = {
                 adapter: adapter,
                 targetAddress: 'FC:EC:28:81:8B:84',
+                targetAddressType: 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC',
             }
-            dfu.performDFU(zipPath, 'bleTransport', transportParameters, (err) => console.log(err));
+            dfu.performDFU(zipPath, 'bleTransport', transportParameters, (err) => {
+                if (err) {
+                    console.log('  performDFU failed: ', err);
+                }
+            });
         });
     });
 }

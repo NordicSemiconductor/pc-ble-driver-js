@@ -130,7 +130,7 @@ class Dfu extends EventEmitter {
                 .then(() => this._sendInitPacket(update['initPacket'], initPacketProgressHandler))
                 .then(() => this._sendFirmware(update['firmware'], firmwareProgressHandler))
                 // That's all
-                .then(() => resolve())
+                .then(() => setTimeout(() => resolve(), 5000))
                 .catch(err => reject(err));
             })
             .catch(err => reject(err));
