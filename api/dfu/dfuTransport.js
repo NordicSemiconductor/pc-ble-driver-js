@@ -45,7 +45,6 @@ class DfuTransport extends EventEmitter {
             .then(state => {
                 const { offset, crc32, data } = state;
                 if (offset > 0) {
-                    this._emitResumeEvent(offset, objectType);
                     return this._writeObject(data, objectType, offset, crc32);
                 }
                 return this._createAndWriteObject(data, objectType);
@@ -65,7 +64,6 @@ class DfuTransport extends EventEmitter {
             .then(state => {
                 const { offset, crc32, objects, partialObject } = state;
                 if (partialObject.length > 0) {
-                    this._emitResumeEvent(offset, objectType);
                     return this._writeObject(partialObject, objectType, offset, crc32).then(progress =>
                         this._createAndWriteObjects(objects, objectType, progress.offset, progress.crc32));
                 }
@@ -285,24 +283,19 @@ class DfuTransport extends EventEmitter {
             });
     }
 
-    _emitResumeEvent(offset, type) {
-        this.emit('progressUpdate', {
-            stage: `Resuming ${this._getObjectTypeString(type)} transfer`,
-            offset: offset
-        });
-    }
-
     _emitTransferEvent(offset, type) {
-        this.emit('progressUpdate', {
-            stage: `Transferring ${this._getObjectTypeString(type)}`,
-            offset: offset
-        });
+        const event = {
+            stage: `Transferring ${this._getObjectTypeString(type)}`
+        };
+        if (type === ObjectType.DATA) {
+            event.offset = offset;
+        }
+        this.emit('progressUpdate', event);
     }
 
     _emitInitializeEvent(type) {
         this.emit('progressUpdate', {
-            stage: `Initializing ${this._getObjectTypeString(type)}`,
-            offset: 0
+            stage: `Initializing ${this._getObjectTypeString(type)}`
         });
     }
 

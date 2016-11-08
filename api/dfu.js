@@ -174,14 +174,11 @@ class Dfu extends EventEmitter {
             .then(state => {
                 this._speedometer = new DfuSpeedometer(data.length, state.offset);
                 return transport.sendFirmware(data);
-            })
-            .then(() => {
-                this._speedometer = null;
             });
     }
 
     _handleProgressUpdate(progressUpdate) {
-        if (this._speedometer) {
+        if (progressUpdate.offset) {
             this._speedometer.setCompletedBytes(progressUpdate.offset);
             this.emit('progressUpdate', {
                 stage: progressUpdate.stage,
@@ -191,6 +188,10 @@ class Dfu extends EventEmitter {
                 averageBytesPerSecond: this._speedometer.getAverageBytesPerSecond(),
                 completedBytes: this._speedometer.getCompletedBytes(),
                 totalBytes: this._speedometer.getTotalBytes(),
+            });
+        } else {
+            this.emit('progressUpdate', {
+                stage: progressUpdate.stage,
             });
         }
     }
