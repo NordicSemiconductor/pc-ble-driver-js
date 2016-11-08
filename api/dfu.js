@@ -37,12 +37,14 @@
 
 'use strict';
 
+const _ = require('underscore');
 const JSZip = require('jszip');
 const fs = require('fs');
 const EventEmitter = require('events');
 
 const { ErrorCode } = require('./dfu/dfuConstants');
 const DfuTransportFactory = require('./dfu/dfuTransportFactory');
+const DfuSpeedometer = require('./dfu/dfuSpeedometer');
 
 const SECURE_DFU_SERVICE_UUID = 'FE59';
 const SECURE_DFU_CONTROL_POINT_UUID = '8EC90001F3154F609FB8838830DAEA50';
@@ -65,6 +67,8 @@ class Dfu extends EventEmitter {
         this._transportType = null;
         this._transportParameters = null;
         this._transport = null;
+        this._speedometer = null;
+        this._handleProgressUpdate = _.throttle(this._handleProgressUpdate.bind(this), 1000);
     }
 
     // Run the entire DFU process
@@ -121,71 +125,46 @@ class Dfu extends EventEmitter {
 
     _performSingleUpdate(update) {
         return new Promise((resolve, reject) => {
-            this._getProgressHandlers(update)
-            .then(([initPacketProgressHandler, firmwareProgressHandler]) => {
-                // Set up and configure transport
-                DfuTransportFactory.create(this._transportParameters)
+            DfuTransportFactory.create(this._transportParameters)
                 .then(transport => { this._transport = transport; })
-                // Send the update
-                .then(() => this._sendInitPacket(update['initPacket'], initPacketProgressHandler))
-                .then(() => this._sendFirmware(update['firmware'], firmwareProgressHandler))
-                // That's all
+                .then(() => this._transport.on('progressUpdate', this._handleProgressUpdate))
+                .then(update['initPacket'])
+                .then(data => this._transport.sendInitPacket(data))
+                .then(update['firmware'])
+                .then(data => this._transferFirmware(this._transport, data))
+                .then(() => this._transport.removeListener('progressUpdate', this._handleProgressUpdate))
                 .then(() => setTimeout(() => resolve(), 5000))
-                .catch(err => reject(err));
-            })
-            .catch(err => reject(err));
+                .catch(err => {
+                    this._transport.removeListener('progressUpdate', this._handleProgressUpdate);
+                    reject(err);
+                });
         });
     }
 
-    _sendInitPacket(dataPromise, progressHandler) {
-        return this._sendData(dataPromise,
-          this._transport.sendInitPacket.bind(this._transport),
-          progressHandler);
+    _transferFirmware(transport, data) {
+        return transport.getFirmwareState(data)
+            .then(state => {
+                this._speedometer = new DfuSpeedometer(data.length, state.offset);
+                return transport.sendFirmware(data);
+            })
+            .then(() => {
+                this._speedometer = null;
+            });
     }
 
-    _sendFirmware(dataPromise, progressHandler) {
-        return this._sendData(dataPromise,
-          this._transport.sendFirmware.bind(this._transport),
-          progressHandler);
-    }
-
-    _sendData(dataPromise, sendFunction, progressHandler) {
-        return new Promise((resolve, reject) => {
-            Promise.resolve()
-              .then(() => this._transport.on('progressUpdate', progressHandler))
-              .then(dataPromise)
-              .then(data => sendFunction(data))
-              .then(() => this._transport.removeListener('progressUpdate', progressHandler))
-              .then(() => resolve())
-              .catch(err => {
-                  this._transport.removeListener('progressUpdate', progressHandler);
-                  reject(err);
-              });
-        })
-    }
-
-    _getProgressHandlers(update) {
-        return Promise.all([
-            Promise.resolve()
-                .then(update['initPacket'])
-                .then(data => this._handleProgressFactory(0.05, 0.1, data.length))
-                .catch(err => reject(err)),
-            Promise.resolve()
-                .then(update['firmware'])
-                .then(data => this._handleProgressFactory(0.1, 1.0, data.length))
-                .catch(err => reject(err))
-        ]);
-    }
-
-    _emitProgress(stage, progress) {
-        this.emit('progressUpdate', {stage: stage, progress: progress.toFixed(2)});
-    }
-
-    _handleProgressFactory(progressStart, progressEnd, transferSize) {
-        return progressUpdate => {
-            this._emitProgress(progressUpdate.stage,
-              (progressStart + (progressUpdate.offset / transferSize * (progressEnd - progressStart))));
-        };
+    _handleProgressUpdate(progressUpdate) {
+        if (this._speedometer) {
+            this._speedometer.setCompletedBytes(progressUpdate.offset);
+            this.emit('progressUpdate', {
+                stage: progressUpdate.stage,
+                offset: progressUpdate.offset,
+                percentCompleted: this._speedometer.getPercentCompleted(),
+                bytesPerSecond: this._speedometer.getBytesPerSecond(),
+                averageBytesPerSecond: this._speedometer.getAverageBytesPerSecond(),
+                completedBytes: this._speedometer.getCompletedBytes(),
+                totalBytes: this._speedometer.getTotalBytes(),
+            });
+        }
     }
 
     _getManifestAsync(zipFilePath) {

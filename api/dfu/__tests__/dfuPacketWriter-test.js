@@ -105,20 +105,20 @@ describe('writePacket', () => {
             const writer = createWriter(adapter);
             writer.setPrn(3);
 
-            it('should not return progress after the first write', () => {
-                return writer.writePacket(packet).then(progress => expect(progress).toBeUndefined());
+            it('should return PRN false after the first write', () => {
+                return writer.writePacket(packet).then(progress => expect(progress.isPrnReached).toEqual(false));
             });
 
-            it('should not return progress after the second write', () => {
-                return writer.writePacket(packet).then(progress => expect(progress).toBeUndefined());
+            it('should return PRN false after the second write', () => {
+                return writer.writePacket(packet).then(progress => expect(progress.isPrnReached).toEqual(false));
             });
 
-            it('should return progress after third write', () => {
-                return writer.writePacket(packet).then(progress => expect(progress).toBeDefined());
+            it('should return PRN true after third write', () => {
+                return writer.writePacket(packet).then(progress => expect(progress.isPrnReached).toEqual(true));
             });
 
-            it('should not return progress after the fourth write', () => {
-                return writer.writePacket(packet).then(progress => expect(progress).toBeUndefined());
+            it('should return PRN false after the fourth write', () => {
+                return writer.writePacket(packet).then(progress => expect(progress.isPrnReached).toEqual(false));
             });
         });
     });

@@ -30,7 +30,7 @@ describe('writeObject', () => {
             // and has offset and crc32.
             objectWriter._createPacketWriter = () => {
                 return {
-                    writePacket: () => Promise.resolve(),
+                    writePacket: () => Promise.resolve({offset, crc32}),
                     getOffset: () => offset,
                     getCrc32: () => crc32
                 };
@@ -49,6 +49,14 @@ describe('writeObject', () => {
         it('should stop listening to notifications', () => {
             return objectWriter.writeObject([1]).then(() => {
                 expect(notificationQueue.stopListening).toHaveBeenCalled();
+            });
+        });
+
+        it('should emit packetWritten event', () => {
+            const onEventEmitted = jest.fn();
+            objectWriter.on('packetWritten', onEventEmitted);
+            return objectWriter.writeObject([1]).then(() => {
+                expect(onEventEmitted).toHaveBeenCalled();
             });
         });
 
@@ -86,11 +94,38 @@ describe('writeObject', () => {
 
     });
 
-    describe('when packet writer returns progress info', () => {
+    describe('when PRN is not reached', () => {
 
         const progressInfo = {
             offset: 0x1234,
-            crc32: 0x5678
+            crc32: 0x5678,
+            isPrnReached: false,
+        };
+
+        beforeEach(() => {
+            // Inject our own packet writer that returns progress info
+            objectWriter._createPacketWriter = () => {
+                return {
+                    writePacket: () => Promise.resolve(progressInfo),
+                    getOffset: jest.fn(),
+                    getCrc32: jest.fn()
+                };
+            };
+        });
+
+        it('should not read notification', () => {
+            return objectWriter.writeObject([1]).then(() => {
+                expect(notificationQueue.readNext).not.toHaveBeenCalled();
+            });
+        });
+    });
+
+    describe('when PRN is reached', () => {
+
+        const progressInfo = {
+            offset: 0x1234,
+            crc32: 0x5678,
+            isPrnReached: true,
         };
 
         beforeEach(() => {
@@ -158,7 +193,5 @@ describe('writeObject', () => {
             });
 
         });
-
     });
-
 });

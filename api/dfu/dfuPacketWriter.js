@@ -36,7 +36,7 @@ class DfuPacketWriter {
             .then(() => this._accumulateCrc32(packet))
             .then(() => this._incrementOffset(packet))
             .then(() => this._incrementPrn())
-            .then(() => this._returnProgressIfPrnReached());
+            .then(() => this._returnProgress());
     }
 
     _write(packet) {
@@ -65,17 +65,17 @@ class DfuPacketWriter {
         return Promise.resolve();
     }
 
-    _returnProgressIfPrnReached() {
+    _returnProgress() {
+        let isPrnReached = false;
         if (this._prnCount === this._prn) {
             this._prnCount = 0;
-            const progress = {
-                offset: this._offset,
-                crc32: this._crc32
-            };
-            return Promise.resolve(progress);
-        } else {
-            return Promise.resolve();
+            isPrnReached = true;
         }
+        return Promise.resolve({
+            offset: this._offset,
+            crc32: this._crc32,
+            isPrnReached: isPrnReached,
+        });
     }
 
     setOffset(offset) {
