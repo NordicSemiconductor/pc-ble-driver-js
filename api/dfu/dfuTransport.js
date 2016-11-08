@@ -74,6 +74,46 @@ class DfuTransport extends EventEmitter {
     }
 
     /**
+     * Wait for the connection to the DFU target to break.
+     *
+     * @returns promise resolving when the target device is disconnected
+     */
+    waitForDisconnection() {
+        return new Promise((resolve, reject) => {
+            const TIMEOUT_MS = 10000;
+
+            // Get the device.
+            // It would probably be better to take deviceInstanceId in the
+            // constructor, and save it as a property instead.
+            // FIXME: If already disconnected, the below line will fail with message
+            //        'No characteristic found with id' from the adapter.
+            let thisDevice = this._adapter._getDeviceByCharacteristicId(this._packetCharacteristicId);
+
+            // Handler resolving on disconnect from the DFU target.
+            const disconnectionHandler = (device => {
+                if (device._instanceId === thisDevice._instanceId)
+                {
+                    this._adapter.removeListener('deviceDisconnected', disconnectionHandler);
+                    resolve();
+                }
+            });
+            this._adapter.on('deviceDisconnected', disconnectionHandler);
+
+            // Check if already disconnected.
+            if (!thisDevice || (thisDevice.connected === false)) {
+                this._adapter.removeListener('deviceDisconnected', disconnectionHandler);
+                resolve();
+            }
+
+            // Fallback: time out.
+            setTimeout(() => {
+                this._adapter.removeListener('deviceDisconnected', disconnectionHandler);
+                reject('Timed out waiting for target device disconnection.');
+            }, TIMEOUT_MS);
+        });
+    }
+
+    /**
      * Sends a SELECT command to the device to determine its current initPacket state.
      * Returns the offset and crc32 starting points, including the data (bytes) that
      * remains to be written.
