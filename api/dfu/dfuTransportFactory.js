@@ -23,11 +23,10 @@ class DfuTransportFactory {
         const targetAddressType = transportParameters.targetAddressType;
         const prnValue = transportParameters.prnValue;
         const mtuSize = transportParameters.mtuSize;
-        const connectCallback = transportParameters.connectCallback;
 
         let transport = null;
 
-        return DfuTransportFactory._connectIfNeeded(adapter, targetAddress, targetAddressType, connectCallback)
+        return DfuTransportFactory._connectIfNeeded(adapter, targetAddress, targetAddressType)
             .then(() => DfuTransportFactory._getCharacteristicIds(adapter, adapter._getDeviceByAddress(targetAddress).instanceId))
             .then(ids => new DfuTransport(adapter, ids.controlPointCharacteristicId, ids.packetCharacteristicId))
             .then(t => transport = t)
@@ -51,15 +50,13 @@ class DfuTransportFactory {
     }
 
 
-    static _connectIfNeeded(adapter, targetAddress, targetAddressType, connectCallback) {
+    static _connectIfNeeded(adapter, targetAddress, targetAddressType) {
         // if connected
         if (adapter && adapter._getDeviceByAddress(targetAddress)
                 && adapter._getDeviceByAddress(targetAddress).connected) {
             return Promise.resolve();
         // not connected
-        } else if (connectCallback) {
-            return connectCallback(adapter, targetAddress, targetAddressType);
-        } else
+        } else {
             return DfuTransportFactory._connect(adapter, targetAddress, targetAddressType);
         }
     }
