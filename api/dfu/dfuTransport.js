@@ -210,6 +210,11 @@ class DfuTransport extends EventEmitter {
         });
     }
 
+    /**
+     *
+     *
+     * @private
+     */
     _getInitPacketState(initPacket, selectResponse) {
         const { maximumSize, offset, crc32 } = selectResponse;
         this._validateInitPacketSize(initPacket, maximumSize);
@@ -219,6 +224,11 @@ class DfuTransport extends EventEmitter {
         return { offset: 0, data: initPacket };
     }
 
+    /**
+     *
+     *
+     * @private
+     */
     _getFirmwareState(firmware, selectResponse) {
         const { maximumSize, offset, crc32 } = selectResponse;
         let startOffset = offset;
@@ -240,6 +250,11 @@ class DfuTransport extends EventEmitter {
         };
     }
 
+    /**
+     *
+     *
+     * @private
+     */
     _createAndWriteObjects(objects, type, offset, crc32) {
         return objects.reduce((prevPromise, object) => {
             return prevPromise.then(progress =>
@@ -248,6 +263,11 @@ class DfuTransport extends EventEmitter {
         }, Promise.resolve({ offset, crc32 }));
     }
 
+    /**
+     *
+     *
+     * @private
+     */
     _createAndWriteObject(data, type, offset, crc32) {
         return new Promise((resolve, reject) => {
             let attempts = 0;
@@ -268,6 +288,11 @@ class DfuTransport extends EventEmitter {
         });
     }
 
+    /**
+     *
+     *
+     * @private
+     */
     _writeObject(data, type, offset, crc32) {
         return this._objectWriter.writeObject(data, type, offset, crc32)
             .then(progress => {
@@ -277,6 +302,11 @@ class DfuTransport extends EventEmitter {
             });
     }
 
+    /**
+     *
+     *
+     * @private
+     */
     _shouldRetry(attempts, error) {
         if (attempts < MAX_RETRIES &&
             error.code !== ErrorCode.ABORTED &&
@@ -286,6 +316,11 @@ class DfuTransport extends EventEmitter {
         return false;
     }
 
+    /**
+     *
+     *
+     * @private
+     */
     _getRemainingPartialObject(data, maximumSize, offset) {
         const remainder = offset % maximumSize;
         if (offset === 0 || remainder === 0 || offset === data.length) {
@@ -294,6 +329,11 @@ class DfuTransport extends EventEmitter {
         return data.slice(offset, offset + maximumSize - remainder);
     }
 
+    /**
+     *
+     *
+     * @private
+     */
     _canResumePartiallyWrittenObject(data, offset, crc32) {
         if (offset === 0 || offset > data.length || crc32 !== crc.crc32(data.slice(0, offset))) {
             return false;
@@ -301,6 +341,11 @@ class DfuTransport extends EventEmitter {
         return true;
     }
 
+    /**
+     *
+     *
+     * @private
+     */
     _validateInitPacketSize(initPacket, maxSize) {
         if (initPacket.length > maxSize) {
             throw createError(ErrorCode.INIT_PACKET_TOO_LARGE, `Init packet size (${initPacket.length}) ` +
@@ -308,6 +353,11 @@ class DfuTransport extends EventEmitter {
         }
     }
 
+    /**
+     *
+     *
+     * @private
+     */
     _validateProgress(progressInfo) {
         return this._controlPointService.calculateChecksum()
             .then(response => {
@@ -323,6 +373,11 @@ class DfuTransport extends EventEmitter {
             });
     }
 
+    /**
+     *
+     *
+     * @private
+     */
     _emitTransferEvent(offset, type) {
         const event = {
             stage: `Transferring ${this._getObjectTypeString(type)}`
@@ -333,12 +388,22 @@ class DfuTransport extends EventEmitter {
         this.emit('progressUpdate', event);
     }
 
+    /**
+     *
+     *
+     * @private
+     */
     _emitInitializeEvent(type) {
         this.emit('progressUpdate', {
             stage: `Initializing ${this._getObjectTypeString(type)}`
         });
     }
 
+    /**
+     *
+     *
+     * @private
+     */
     _getObjectTypeString(type) {
         switch (type) {
             case ObjectType.COMMAND:

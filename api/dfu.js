@@ -169,6 +169,14 @@ class Dfu extends EventEmitter {
         }
     }
 
+   /**
+    * Get promise for manifest.json from the given zip file.
+    * This function is a wrapper for getManifest().
+    *
+    * @param zipFilePath path of the zip file
+    * @returns Promise for manifest.json
+    * @private
+    */
     _getManifestAsync(zipFilePath) {
         return new Promise((resolve, reject) => {
             this.getManifest(zipFilePath, (err, manifest) => {
@@ -181,6 +189,14 @@ class Dfu extends EventEmitter {
         });
     }
 
+    /**
+     * Get promise for JSZip zip object of the given zip file.
+     * This function is a wrapper for _loadZip().
+     *
+     * @param zipFilePath path of the zip file
+     * @returns Promise for JSZip zip object
+     * @private
+     */
     _loadZipAsync(zipFilePath) {
         return new Promise ((resolve, reject) => {
             this._loadZip(zipFilePath, (err, zip) => {
@@ -193,11 +209,17 @@ class Dfu extends EventEmitter {
         });
     }
 
-    // Uses the manifest to fetch init packet (dat_file) and firmware (bin_file)
-    // from the zip. Returns a sorted array of updates, on the format
-    // [ {initPacket: <dat_file promise>, firmware: <bin_file promise>}, ... ]
-    // The sorting is such that the application update is put last.
-    // Each promise resolves with the contents of the given file.
+    /**
+     * Fetch init packet (dat_file) and firmware (bin_file) for all updates
+     * included in the zip. Returns a sorted array of updates, on the format
+     * [ {initPacket: <dat_file promise>, firmware: <bin_file promise>}, ... ]
+     * The sorting is such that the application update is put last.
+     * Each promise resolves with the contents of the given file.
+     *
+     * @param zipFilePath path of the zip file containing the updates
+     * @returns Promise resolves to an array of updates
+     * @private
+     */
     _fetchUpdates(zipFilePath) {
         return new Promise((resolve, reject) => {
 
@@ -236,7 +258,13 @@ class Dfu extends EventEmitter {
     }
 
 
-    // Callback signature: function(err, zip) {}
+    /**
+     * Get JSZip zip object of the given zip file.
+     *
+     * @param zipFilePath path of the zip file
+     * @param callback signature: (err, zip) => {}
+     * @private
+     */
     _loadZip(zipFilePath, callback) {
         // Read zip file
         fs.readFile(zipFilePath, (err, data) => {
@@ -255,8 +283,12 @@ class Dfu extends EventEmitter {
         })
     }
 
-
-    // Callback signature: function(err, manifest) {}
+    /**
+     * Get and return manifest.json from the given zip file.
+     *
+     * @param zipFilePath path of the zip file
+     * @param callback signature: (err, manifest) => {}
+     */
     getManifest(zipFilePath, callback) {
         if (zipFilePath === undefined) { throw new Error('Missing argument zipFilePath.'); }
         if ((typeof zipFilePath !== "string") || (!zipFilePath.length)) {
