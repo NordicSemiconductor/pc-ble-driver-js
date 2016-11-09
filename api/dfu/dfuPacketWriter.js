@@ -8,9 +8,7 @@ const DEFAULT_CRC32 = undefined;
 const DEFAULT_PRN = 0;
 
 /**
- * Writes packets to the given packet characteristic. If packet receipt
- * notifications (PRN) is enabled, it will return progress information (offset
- * and accumulated CRC32) to the caller when the configured PRN is reached.
+ * Writes packets to the given packet characteristic.
  */
 class DfuPacketWriter {
 
@@ -24,12 +22,10 @@ class DfuPacketWriter {
     }
 
     /**
-     * Writes the given packet. If PRN is reached, then the accumulated
-     * CRC is returned so that the caller can verify it. Otherwise, an empty
-     * promise is returned.
+     * Writes the given packet, and returns a promise with progress information.
      *
      * @param packet byte array that should be written
-     * @returns promise with offset and CRC if PRN has been reached, otherwise empty promise
+     * @returns promise that returns { offset, crc32, isPrnReached }
      */
     writePacket(packet) {
         return this._write(packet)
