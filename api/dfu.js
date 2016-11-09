@@ -46,30 +46,6 @@ const { ErrorCode } = require('./dfu/dfuConstants');
 const DfuTransportFactory = require('./dfu/dfuTransportFactory');
 const DfuSpeedometer = require('./dfu/dfuSpeedometer');
 
-// DFU control point procedure operation codes.
-// (Not to be confused with "NRF DFU Object codes".)
-const ControlPointOpcode = Object.freeze({
-    CREATE: 0x01,
-    SET_PRN: 0x02, // Set Packet Receipt Notification
-    CALCULATE_CRC: 0x03, // Calculate CRC checksum
-    EXECUTE: 0x04,
-    SELECT: 0x06,
-    RESPONSE: 0x60, // Response command, only returned by the DFU target
-});
-
-// Return codes (result codes) for Control Point operations.
-const ResultCode = Object.freeze({
-    INVALID_CODE: 0x00,
-    SUCCESS: 0x01,
-    OPCODE_NOT_SUPPORTED: 0x02,
-    INVALID_PARAMETER: 0x03,
-    INSUFFICIENT_RESOURCES: 0x04,
-    INVALID_OBJECT: 0x05,
-    UNSUPPORTED_TYPE: 0x07,
-    OPERATION_NOT_PERMITTED: 0x08,
-    OPERATION_FAILED: 0x0A,
-});
-
 const SECURE_DFU_SERVICE_UUID = 'FE59';
 const SECURE_DFU_CONTROL_POINT_UUID = '8EC90001F3154F609FB8838830DAEA50';
 const SECURE_DFU_PACKET_UUID =        '8EC90002F3154F609FB8838830DAEA50';
@@ -84,45 +60,46 @@ class Dfu extends EventEmitter {
     * Constructor that shall not be used by developer.
     * @private
     */
-    constructor(adapter = null) {
+    constructor() {
         super();
 
-        this._adapter = adapter;
-        this._transport = null;
         this._zipFilePath = null;
+        this._transportType = null;
+        this._transportParameters = null;
+        this._transport = null;
         this._speedometer = null;
-
-        this._controlPointCharacteristicId = null;
-        this._packetCharacteristicId = null;
-
         this._handleProgressUpdate = _.throttle(this._handleProgressUpdate.bind(this), 1000);
     }
 
     // Run the entire DFU process
-    performDFU(zipFilePath, adapter, targetAddress, callback) {
+    performDFU(zipFilePath, transportType, transportParameters, callback) {
         this._zipFilePath = zipFilePath || this._zipFilePath;
-        this._adapter = adapter || this._adapter;
-        this._targetAddress = targetAddress || this._targetAddress;
+        this._transportType = transportType || this._transportType;
+        this._transportParameters = transportParameters || this._transportParameters;
 
         if (!this._zipFilePath) {
             throw new Error('No zipFilePath provided.');
         }
-        if (!this._adapter) {
-            throw new Error('No adapter provided.');
+        if (!this._transportType) {
+            throw new Error('No transport type provided.');
         }
-        if (!this._targetAddress) {
-            throw new Error('No target address provided.');
+        if (!this._transportParameters) {
+            throw new Error('No transport parameters provided.');
         }
 
         this._fetchUpdates(this._zipFilePath)
             .then(updates => this._performUpdates(updates))
-            .then(() => callback())
+            .then(() => {
+                if (callback) {
+                    callback();
+                }
+            })
             .catch(err => {
                 if (err.code === ErrorCode.ABORTED) {
                     const aborted = true;
-                    callback(null, aborted);
+                    if (callback) { callback(null, aborted); }
                 } else {
-                    callback(err)
+                    if (callback) { callback(err); }
                 }
             });
     }
@@ -137,36 +114,32 @@ class Dfu extends EventEmitter {
 
     _performUpdates(updates) {
         return new Promise((resolve, reject) => {
-            //transport.setMtuSize(); // <-- TODO: Set MTU size.
             Promise.resolve()
-            .then(() => DfuTransportFactory.create(this._adapter, this._targetAddress))
-            .then(transport => {
-                this._transport = transport;
-                return transport.setPrn(20)
-                .then(() => updates.reduce((prev, update) => {
-                    return prev.then(() => this._performSingleUpdate(transport, update));
-                }, Promise.resolve() ))
-                .catch(err => {
-                    reject(err);
-                });
-             })
+            .then(() => updates.reduce((prev, update) => {
+                return prev.then(() => this._performSingleUpdate(update));
+            }, Promise.resolve()))
             .then(() => resolve())
             .catch(err => reject(err));
         });
     }
 
-    _performSingleUpdate(transport, update) {
-        transport.on('progressUpdate', this._handleProgressUpdate);
-        return Promise.resolve()
-            .then(update['initPacket'])
-            .then(data => transport.sendInitPacket(data))
-            .then(update['firmware'])
-            .then(data => this._transferFirmware(transport, data))
-            .then(() => transport.removeListener('progressUpdate', this._handleProgressUpdate))
-            .catch(err => {
-                transport.removeListener('progressUpdate', this._handleProgressUpdate);
-                throw err;
-            });
+    _performSingleUpdate(update) {
+        return new Promise((resolve, reject) => {
+            DfuTransportFactory.create(this._transportParameters)
+                .then(transport => { this._transport = transport; })
+                .then(() => this._transport.on('progressUpdate', this._handleProgressUpdate))
+                .then(update['initPacket'])
+                .then(data => this._transport.sendInitPacket(data))
+                .then(update['firmware'])
+                .then(data => this._transferFirmware(this._transport, data))
+                .then(() => this._transport.removeListener('progressUpdate', this._handleProgressUpdate))
+                .then(() => this._transport.waitForDisconnection())
+                .then(() => resolve())
+                .catch(err => {
+                    this._transport.removeListener('progressUpdate', this._handleProgressUpdate);
+                    reject(err);
+                });
+        });
     }
 
     _transferFirmware(transport, data) {
@@ -260,21 +233,6 @@ class Dfu extends EventEmitter {
             })
             .catch(err => reject(err));
         });
-    }
-
-
-    // Start or resume DFU process
-    // For now, just restart the DFU process.
-    // It is part of the protocol to continue at the current offset.
-    startDFU(zipFilePath, adapter, targetAddress) {
-        performDFU(zipFilePath, adapter, targetAddress);
-    }
-
-
-    // Stop (pause) DFU process
-    // Should do nothing more than pause.
-    stopDFU() {
-
     }
 
 

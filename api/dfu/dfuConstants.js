@@ -1,5 +1,7 @@
 'use strict';
 
+// Control point operation codes for DFU BLE transport.
+// (Not to be confused with "NRF DFU Object codes".)
 const ControlPointOpcode = Object.freeze({
     CREATE: 0x01,
     SET_PRN: 0x02, // Set Packet Receipt Notification
