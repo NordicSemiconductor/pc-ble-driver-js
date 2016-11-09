@@ -35,6 +35,15 @@ class DfuTransportFactory {
             .then(() => { return transport; });
     }
 
+
+    /**
+     * Find the control point and dfu packet characteristic IDs.
+     *
+     * @param adapter a connected adapter instance
+     * @param deviceInstanceId instance ID of the DFU target device
+     * @returns { controlPointCharacteristicId, packetCharacteristicId }
+     * @private
+     */
     static _getCharacteristicIds(adapter, deviceInstanceId) {
         const deviceInfoService = new DeviceInfoService(adapter, deviceInstanceId);
         return deviceInfoService.getCharacteristicId(SERVICE_UUID, DFU_CONTROL_POINT_UUID)
@@ -49,7 +58,16 @@ class DfuTransportFactory {
             });
     }
 
-
+    /**
+     * If not connected to the given address using the given adapter: Connect.
+     * If already connected: Do nothing.
+     *
+     * @param adapter a connected adapter instance
+     * @param targetAddress BLE address of the DFU target
+     * @param targetAddressType type of the DFU target BLE address
+     * @returns Promise resolving (to nothing) when connected to the device.
+     * @private
+     */
     static _connectIfNeeded(adapter, targetAddress, targetAddressType) {
         // if connected
         if (adapter && adapter._getDeviceByAddress(targetAddress)
@@ -62,6 +80,15 @@ class DfuTransportFactory {
     }
 
 
+    /**
+     * Connect to the given address using the given adapter.
+     *
+     * @param adapter a connected adapter instance
+     * @param targetAddress BLE address of the DFU target
+     * @param targetAddressType type of the DFU target BLE address
+     * @returns Promise resolving (to nothing) when connected to the device.
+     * @private
+     */
     static _connect(adapter, targetAddress, targetAddressType) {
 
         const rejectOnCompleted = () => Promise.reject('Timed out while trying to connect.');
