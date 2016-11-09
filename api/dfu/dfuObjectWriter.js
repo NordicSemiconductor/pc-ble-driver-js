@@ -1,5 +1,6 @@
 'use strict';
 
+const EventEmitter = require('events');
 const { splitArray } = require('../util/arrayUtil');
 const { arrayToInt } = require('../util/intArrayConv');
 const { ControlPointOpcode, ErrorCode, createError } = require('./dfuConstants');
@@ -8,9 +9,10 @@ const DfuPacketWriter = require('./dfuPacketWriter');
 
 const DEFAULT_MTU_SIZE = 20;
 
-class DfuObjectWriter {
+class DfuObjectWriter extends EventEmitter {
 
     constructor(adapter, controlPointCharacteristicId, packetCharacteristicId) {
+        super();
         this._adapter = adapter;
         this._packetCharacteristicId = packetCharacteristicId;
         this._notificationQueue = new DfuNotificationQueue(adapter, controlPointCharacteristicId);
@@ -22,15 +24,16 @@ class DfuObjectWriter {
      * Writes DFU data object according to the given MTU size.
      *
      * @param data byte array that should be written
+     * @param type the ObjectType that we are writing
      * @param offset the offset to continue from (optional)
      * @param crc32 the CRC32 value to continue from (optional)
      * @returns promise that returns progress info (CRC32 value and offset)
      */
-    writeObject(data, offset, crc32) {
+    writeObject(data, type, offset, crc32) {
         const packets = splitArray(data, this._mtuSize);
         const packetWriter = this._createPacketWriter(offset, crc32);
         this._notificationQueue.startListening();
-        return this._writePackets(packetWriter, packets)
+        return this._writePackets(packetWriter, packets, type)
             .then(() => {
                 this._notificationQueue.stopListening();
                 return {
@@ -71,19 +74,23 @@ class DfuObjectWriter {
         this._mtuSize = mtuSize;
     }
 
-    _writePackets(packetWriter, packets) {
+    _writePackets(packetWriter, packets, objectType) {
         return packets.reduce((prevPromise, packet) => {
-            return prevPromise.then(() => this._writePacket(packetWriter, packet));
+            return prevPromise.then(() => this._writePacket(packetWriter, packet, objectType));
         }, Promise.resolve());
     }
 
-    _writePacket(packetWriter, packet) {
+    _writePacket(packetWriter, packet, objectType) {
         return this._checkAbortState()
             .then(() => packetWriter.writePacket(packet))
             .then(progressInfo => {
-                if (progressInfo) {
+                if (progressInfo.isPrnReached) {
                     return this._validateProgress(progressInfo);
                 }
+                this.emit('packetWritten', {
+                    offset: progressInfo.offset,
+                    type: objectType
+                });
             });
     }
 
