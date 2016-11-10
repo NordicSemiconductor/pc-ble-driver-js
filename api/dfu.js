@@ -46,20 +46,12 @@ const { ErrorCode } = require('./dfu/dfuConstants');
 const DfuTransportFactory = require('./dfu/dfuTransportFactory');
 const DfuSpeedometer = require('./dfu/dfuSpeedometer');
 
-const SECURE_DFU_SERVICE_UUID = 'FE59';
-const SECURE_DFU_CONTROL_POINT_UUID = '8EC90001F3154F609FB8838830DAEA50';
-const SECURE_DFU_PACKET_UUID =        '8EC90002F3154F609FB8838830DAEA50';
-
 /**
  * Class that provides Dfu controller functionality
  * @class
  */
-
 class Dfu extends EventEmitter {
-    /**
-    * Constructor that shall not be used by developer.
-    * @private
-    */
+
     constructor() {
         super();
 
@@ -73,9 +65,9 @@ class Dfu extends EventEmitter {
 
     // Run the entire DFU process
     performDFU(zipFilePath, transportType, transportParameters, callback) {
-        this._zipFilePath = zipFilePath || this._zipFilePath;
-        this._transportType = transportType || this._transportType;
-        this._transportParameters = transportParameters || this._transportParameters;
+        this._zipFilePath = zipFilePath;
+        this._transportType = transportType;
+        this._transportParameters = transportParameters;
 
         if (!this._zipFilePath) {
             throw new Error('No zipFilePath provided.');
@@ -89,11 +81,7 @@ class Dfu extends EventEmitter {
 
         this._fetchUpdates(this._zipFilePath)
             .then(updates => this._performUpdates(updates))
-            .then(() => {
-                if (callback) {
-                    callback();
-                }
-            })
+            .then(() => callback && callback())
             .catch(err => {
                 if (err.code === ErrorCode.ABORTED) {
                     const aborted = true;
@@ -113,41 +101,42 @@ class Dfu extends EventEmitter {
     }
 
     _performUpdates(updates) {
-        return new Promise((resolve, reject) => {
-            Promise.resolve()
-            .then(() => updates.reduce((prev, update) => {
-                return prev.then(() => this._performSingleUpdate(update));
-            }, Promise.resolve()))
-            .then(() => resolve())
-            .catch(err => reject(err));
-        });
+        return updates.reduce((prevPromise, update) => {
+            return prevPromise.then(() => this._performSingleUpdate(update.initPacket, update.firmware));
+        }, Promise.resolve());
     }
 
-    _performSingleUpdate(update) {
-        return new Promise((resolve, reject) => {
-            DfuTransportFactory.create(this._transportParameters)
-                .then(transport => { this._transport = transport; })
+    _performSingleUpdate(initPacket, firmware) {
+        return DfuTransportFactory.create(this._transportParameters)
+                .then(transport => this._transport = transport)
                 .then(() => this._transport.on('progressUpdate', this._handleProgressUpdate))
-                .then(update['initPacket'])
-                .then(data => this._transport.sendInitPacket(data))
-                .then(update['firmware'])
-                .then(data => this._transferFirmware(this._transport, data))
+                .then(() => this._transferInitPacket(initPacket))
+                .then(() => this._transferFirmware(firmware))
                 .then(() => this._transport.removeListener('progressUpdate', this._handleProgressUpdate))
                 .then(() => this._transport.waitForDisconnection())
-                .then(() => resolve())
                 .catch(err => {
                     this._transport.removeListener('progressUpdate', this._handleProgressUpdate);
-                    reject(err);
+                    throw err;
                 });
-        });
     }
 
-    _transferFirmware(transport, data) {
-        return transport.getFirmwareState(data)
-            .then(state => {
-                this._speedometer = new DfuSpeedometer(data.length, state.offset);
-                return transport.sendFirmware(data);
-            });
+    _transferInitPacket(initPacket) {
+        this.emit('transferStart', initPacket.name);
+        return initPacket.loadData()
+            .then(data => this._transport.sendInitPacket(data))
+            .then(() => this.emit('transferComplete', initPacket.name));
+    }
+
+    _transferFirmware(firmware) {
+        this.emit('transferStart', firmware.name);
+        return firmware.loadData().then(data => {
+            return this._transport.getFirmwareState(data)
+                .then(state => {
+                    this._speedometer = new DfuSpeedometer(data.length, state.offset);
+                    return this._transport.sendFirmware(data);
+                })
+                .then(() => this.emit('transferComplete', firmware.name));
+        });
     }
 
     _handleProgressUpdate(progressUpdate) {
@@ -209,54 +198,37 @@ class Dfu extends EventEmitter {
         });
     }
 
-    /**
-     * Fetch init packet (dat_file) and firmware (bin_file) for all updates
-     * included in the zip. Returns a sorted array of updates, on the format
-     * [ {initPacket: <dat_file promise>, firmware: <bin_file promise>}, ... ]
-     * The sorting is such that the application update is put last.
-     * Each promise resolves with the contents of the given file.
-     *
-     * @param zipFilePath path of the zip file containing the updates
-     * @returns Promise resolves to an array of updates
-     * @private
-     */
     _fetchUpdates(zipFilePath) {
-        return new Promise((resolve, reject) => {
-
-            Promise.all([this._loadZipAsync(zipFilePath),
-                         this._getManifestAsync(zipFilePath)])
-            .then(([zip, manifest]) => {
-                let updates = [];
-
-                const createUpdatePromise = (updateType => {
-                    return new Promise((resolve, reject) => {
-                        let update = manifest[updateType];
-                        if (update) {
-                            Promise.all([() => zip.file(update['dat_file']).async('array'),
-                                        () => zip.file(update['bin_file']).async('array')])
-                            .then(([initPacket, firmware]) => updates.push({'initPacket': initPacket, 'firmware': firmware}))
-                            .then(() => resolve())
-                            .catch(err => reject(err));
-                        } else {
-                          resolve();
-                        }
-                    });
-                });
-
-                let promiseChain = new Promise(resolve => resolve());
-
-                // The sorting of updates happens here; fetching is chained in the below order.
-                for (let updateType of ['softdevice', 'bootloader', 'softdevice_bootloader', 'application']) {
-                    promiseChain = promiseChain.then(() => createUpdatePromise(updateType));
-                }
-
-                promiseChain.then(() => resolve(updates))
-                .catch(err => reject(err));
-            })
-            .catch(err => reject(err));
+        return Promise.all([
+            this._loadZipAsync(zipFilePath),
+            this._getManifestAsync(zipFilePath)
+        ]).then(([zip, manifest]) => {
+            return this._getFirmwareTypes(manifest).map(type => {
+                const firmwareUpdate = manifest[type];
+                const initPacketName = firmwareUpdate['dat_file'];
+                const firmwareName = firmwareUpdate['bin_file'];
+                return {
+                    initPacket: {
+                        name: initPacketName,
+                        loadData: () => zip.file(initPacketName).async('array'),
+                    },
+                    firmware: {
+                        name: firmwareName,
+                        loadData: () => zip.file(firmwareName).async('array'),
+                    },
+                };
+            });
         });
     }
 
+    _getFirmwareTypes(manifest) {
+        return [
+            'softdevice',
+            'bootloader',
+            'softdevice_bootloader',
+            'application'
+        ].filter(type => manifest[type] ? true : false);
+    }
 
     /**
      * Get JSZip zip object of the given zip file.
