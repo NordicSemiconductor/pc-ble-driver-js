@@ -24,15 +24,15 @@ class DfuTransportFactory {
         const prnValue = transportParameters.prnValue;
         const mtuSize = transportParameters.mtuSize;
 
-        let transport = null;
-
         return DfuTransportFactory._connectIfNeeded(adapter, targetAddress, targetAddressType)
             .then(() => DfuTransportFactory._getCharacteristicIds(adapter, adapter._getDeviceByAddress(targetAddress).instanceId))
             .then(ids => new DfuTransport(adapter, ids.controlPointCharacteristicId, ids.packetCharacteristicId))
-            .then(t => transport = t)
-            .then(prnValue ? () => transport.setPrn(prnValue) : Promise.resolve())
-            .then(mtuSize ? () => transport.setMtuSize(mtuSize) : Promise.resolve())
-            .then(() => { return transport; });
+            .then(transport => {
+                return Promise.resolve()
+                    .then(() => prnValue ? transport.setPrn(prnValue) : null)
+                    .then(() => mtuSize ? transport.setMtuSize(mtuSize) : null)
+                    .then(() => transport);
+            });
     }
 
 
@@ -116,7 +116,7 @@ class DfuTransportFactory {
             const options = {
                 scanParams: scanParameters,
                 connParams: connectionParameters,
-            }
+            };
 
             adapter.once('deviceConnected', resolveOnCompleted);
             adapter.once('connectTimedOut', rejectOnCompleted);
