@@ -198,6 +198,27 @@ class Dfu extends EventEmitter {
         });
     }
 
+    /**
+     * Fetch init packet (dat_file) and firmware (bin_file) for all updates
+     * included in the zip. Returns a sorted array of updates, on the format:
+     * [{
+     *   initPacket: {
+     *     name: filename.dat,
+     *     loadData: <function returning promise with data>
+     *   },
+     *   firmware: {
+     *     name: filename.bin,
+     *     loadData: <function returning promise with data>
+     *   }
+     * }, ... ]
+     *
+     * The sorting is such that the application update is put last.
+     * Each promise resolves with the contents of the given file.
+     *
+     * @param zipFilePath path of the zip file containing the updates
+     * @returns Promise resolves to an array of updates
+     * @private
+     */
     _fetchUpdates(zipFilePath) {
         return Promise.all([
             this._loadZipAsync(zipFilePath),
