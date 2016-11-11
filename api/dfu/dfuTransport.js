@@ -63,7 +63,7 @@ class DfuTransport extends EventEmitter {
         return this.getFirmwareState(firmware)
             .then(state => {
                 const { offset, crc32, objects, partialObject } = state;
-                if (partialObject.length > 0) {
+                if (partialObject) {
                     return this._writeObject(partialObject, objectType, offset, crc32).then(progress =>
                         this._createAndWriteObjects(objects, objectType, progress.offset, progress.crc32));
                 }
@@ -234,14 +234,14 @@ class DfuTransport extends EventEmitter {
         let startOffset = offset;
         let startCrc32 = crc32;
 
-        let partialObject = this._getRemainingPartialObject(firmware, maximumSize, offset);
-        if (partialObject.length > 0 && !this._canResumePartiallyWrittenObject(firmware, offset, crc32)) {
+        let partialObject = this._getRemainingPartialObject(firmware, maximumSize, offset, crc32);
+        if (partialObject && partialObject.length > 0 && !this._canResumePartiallyWrittenObject(firmware, offset, crc32)) {
             startOffset = offset - maximumSize + partialObject.length;
-            startCrc32 = crc.crc32(firmware.slice(0, startOffset));
-            partialObject = [];
+            startCrc32 = 0;
+            partialObject = null;
         }
 
-        const dataToSend = firmware.slice(startOffset + partialObject.length);
+        const dataToSend = firmware.slice(startOffset + (partialObject ? partialObject.length : 0));
         return {
             offset: startOffset,
             crc32: startCrc32,
@@ -321,7 +321,10 @@ class DfuTransport extends EventEmitter {
      *
      * @private
      */
-    _getRemainingPartialObject(data, maximumSize, offset) {
+    _getRemainingPartialObject(data, maximumSize, offset, crc32) {
+        if (!crc32) {
+            return null;
+        }
         const remainder = offset % maximumSize;
         if (offset === 0 || remainder === 0 || offset === data.length) {
             return [];

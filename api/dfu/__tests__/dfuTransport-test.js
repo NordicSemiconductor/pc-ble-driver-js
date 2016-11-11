@@ -117,8 +117,8 @@ describe('_getFirmwareState', () => {
             expect(state.objects).toEqual([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10]]);
         });
 
-        it('should return empty partial object', () => {
-            expect(state.partialObject).toEqual([]);
+        it('should not return partial object', () => {
+            expect(state.partialObject).toEqual(null);
         });
     });
 
@@ -137,16 +137,16 @@ describe('_getFirmwareState', () => {
             expect(state.offset).toEqual(4);
         });
 
-        it('should return crc32 value for the data before the partial object', () => {
-            expect(state.crc32).toEqual(crc.crc32(firmware.slice(0, 4)));
+        it('should return zero crc32', () => {
+            expect(state.crc32).toEqual(0);
         });
 
         it('should return remaining firmware objects including the full partial object', () => {
             expect(state.objects).toEqual([[5, 6, 7, 8], [9, 10]]);
         });
 
-        it('should return empty partial object', () => {
-            expect(state.partialObject).toEqual([]);
+        it('should not return partial object', () => {
+            expect(state.partialObject).toEqual(null);
         });
     });
 
@@ -177,7 +177,35 @@ describe('_getFirmwareState', () => {
         });
     });
 
-    describe('when data exists on device, and there is no partially transferred object', () => {
+    describe('when data exists on device, and there is a fully transferred object that has been executed', () => {
+
+        const firmware = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        const offset = 8;
+        const selectResponse = {
+            offset: offset,
+            crc32: undefined, // crc32 is reset on the device after execute
+            maximumSize: 4
+        };
+        const state = dfuTransport._getFirmwareState(firmware, selectResponse);
+
+        it('should return the same offset that was returned by the device', () => {
+            expect(state.offset).toEqual(selectResponse.offset);
+        });
+
+        it('should return the same crc32 value that was returned by the device', () => {
+            expect(state.crc32).toEqual(selectResponse.crc32);
+        });
+
+        it('should return remaining firmware objects', () => {
+            expect(state.objects).toEqual([[9, 10]]);
+        });
+
+        it('should not return a partial object', () => {
+            expect(state.partialObject).toEqual(null);
+        });
+    });
+
+    describe('when data exists on device, and there is a fully transferred object that has not been executed', () => {
 
         const firmware = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         const offset = 8;
