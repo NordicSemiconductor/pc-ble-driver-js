@@ -102,14 +102,14 @@ class Dfu extends EventEmitter {
 
     _performUpdates(updates) {
         return updates.reduce((prevPromise, update) => {
-            return prevPromise.then(() => this._performSingleUpdate(update.initPacket, update.firmware));
+            return prevPromise.then(() => this._performSingleUpdate(update.datFile, update.binFile));
         }, Promise.resolve());
     }
 
-    _performSingleUpdate(initPacket, firmware) {
+    _performSingleUpdate(datFile, binFile) {
         return this._initializeDfuTransport()
-            .then(() => this._transferInitPacket(initPacket))
-            .then(() => this._transferFirmware(firmware))
+            .then(() => this._transferInitPacket(datFile))
+            .then(() => this._transferFirmware(binFile))
             .then(() => this._closeDfuTransport());
     }
 
@@ -130,22 +130,23 @@ class Dfu extends EventEmitter {
             });
     }
 
-    _transferInitPacket(initPacket) {
-        this.emit('transferStart', initPacket.name);
-        return initPacket.loadData()
-            .then(data => this._transport.sendInitPacket(data))
-            .then(() => this.emit('transferComplete', initPacket.name));
+    _transferInitPacket(file) {
+        this.emit('transferStart', file.name);
+        return file.loadData().then(data => {
+            return this._transport.sendInitPacket(data)
+                .then(() => this.emit('transferComplete', file.name));
+        });
     }
 
-    _transferFirmware(firmware) {
-        this.emit('transferStart', firmware.name);
-        return firmware.loadData().then(data => {
+    _transferFirmware(file) {
+        this.emit('transferStart', file.name);
+        return file.loadData().then(data => {
             return this._transport.getFirmwareState(data)
                 .then(state => {
                     this._speedometer = new DfuSpeedometer(data.length, state.offset);
                     return this._transport.sendFirmware(data);
                 })
-                .then(() => this.emit('transferComplete', firmware.name));
+                .then(() => this.emit('transferComplete', file.name));
         });
     }
 
@@ -209,14 +210,14 @@ class Dfu extends EventEmitter {
     }
 
     /**
-     * Fetch init packet (dat_file) and firmware (bin_file) for all updates
-     * included in the zip. Returns a sorted array of updates, on the format:
+     * Fetch datFile and binFile for all updates included in the zip.
+     * Returns a sorted array of updates, on the format:
      * [{
-     *   initPacket: {
+     *   datFile: {
      *     name: filename.dat,
      *     loadData: <function returning promise with data>
      *   },
-     *   firmware: {
+     *   binFile: {
      *     name: filename.bin,
      *     loadData: <function returning promise with data>
      *   }
@@ -236,16 +237,16 @@ class Dfu extends EventEmitter {
         ]).then(([zip, manifest]) => {
             return this._getFirmwareTypes(manifest).map(type => {
                 const firmwareUpdate = manifest[type];
-                const initPacketName = firmwareUpdate['dat_file'];
-                const firmwareName = firmwareUpdate['bin_file'];
+                const datFileName = firmwareUpdate['dat_file'];
+                const binFileName = firmwareUpdate['bin_file'];
                 return {
-                    initPacket: {
-                        name: initPacketName,
-                        loadData: () => zip.file(initPacketName).async('array'),
+                    datFile: {
+                        name: datFileName,
+                        loadData: () => zip.file(datFileName).async('array'),
                     },
-                    firmware: {
-                        name: firmwareName,
-                        loadData: () => zip.file(firmwareName).async('array'),
+                    binFile: {
+                        name: binFileName,
+                        loadData: () => zip.file(binFileName).async('array'),
                     },
                 };
             });
