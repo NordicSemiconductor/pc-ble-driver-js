@@ -98,23 +98,7 @@ function connect(adapter, connectToAddress, callback) {
         }
     );
 }
-/*
-function startScan(adapter, callback)
-{
-    const scanParameters = {
-        active: true,
-        interval: 100,
-        window: 20,
-        timeout: 4,
-    };
 
-    adapter.startScan(scanParameters, err => {
-        console.log(err);
-        assert(!err);
-        if (callback) callback();
-    });
-}
-*/
 function setupAdapter(adapter, name, address, addressType, callback) {
     adapter.open(
         {
@@ -135,7 +119,6 @@ function setupAdapter(adapter, name, address, addressType, callback) {
                         adapter.setAddress(address, addressType, error => {
                             assert(!error);
                             adapter.setName(name, error => {
-                                console.log('= adapter.setName: ', error);
                                 assert(!error);
                                 if (callback) callback(adapter);
                             });
@@ -167,29 +150,23 @@ function listServices(adapter) {
         console.log('#1 deviceConnected: ' + JSON.stringify(device));
         deviceID = device._instanceId;
     });
+//    adapter.on('connParamUpdateRequest', (device, connParams) => console.log('-> connParamUpdateRequest: ', connParams, device));
+
 //    adapter.on('characteristicValueChanged', characteristic => { console.log('characteristicValueChanged: ', characteristic); });
 //    adapter.on('descriptorValueChanged', descriptor => console.log('descriptorValueChanged: ', descriptor));
 //    adapter.on('characteristicValueChanged', characteristic => console.log('Value changed to: ', characteristic.value));
 
     dfu.on('initialized', () => console.log('DFU initialized!'));
     dfu.on('controlPointResponse', (response) => console.log('controlPointResponse: ', response));
-    dfu.on('progressUpdate', progressUpdate => console.log('Progress update: ', progressUpdate));
+    dfu.on('progressUpdate', progressUpdate => console.log(`${progressUpdate.stage}: ${progressUpdate.percentCompleted} % (${progressUpdate.completedBytes} / ${progressUpdate.totalBytes})`));
 
-    dfu.on('initialized', () => {
-        console.log('DFU is initialized.')/*
-        const dfuTransport = new api.DfuTransport(adapter, dfu._controlPointCharacteristicId, dfu._packetCharacteristicId);
-        dfuTransport._sendCommand([6, 1])
-        .then(response => console.log(response))
-        .then(() => dfuTransport._sendCommand([5]))
-        .then(response => console.log(response))
-        .catch(error => console.log(error));*/
-      });
+    dfu.on('initialized', () => console.log('DFU is initialized.'));
 
     setupAdapter(adapter, 'Adapter', 'FF:11:22:33:AA:BF', 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC', () => {
         console.log('Inside setupAdapter callback.');
 
-        connect(adapter, { address: 'FC:EC:28:81:8B:84', type: 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC' }, () => {
-            console.log('Inside connect callback.');
+//        connect(adapter, { address: 'FC:EC:28:81:8B:84', type: 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC' }, () => {
+//            console.log('Inside connect callback.');
             const transportParameters = {
                 adapter: adapter,
                 targetAddress: 'FC:EC:28:81:8B:84',
@@ -200,7 +177,7 @@ function listServices(adapter) {
                     console.log('  performDFU failed: ', err);
                 }
             });
-        });
+//        });
     });
 }
 

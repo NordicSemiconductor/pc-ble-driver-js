@@ -1,6 +1,7 @@
 'use strict';
 
 const DfuObjectWriter = require('./dfuObjectWriter');
+const DeviceInfoService = require('./deviceInfoService');
 const ControlPointService = require('./controlPointService');
 const { ObjectType, ErrorCode, createError } = require('./dfuConstants');
 const { splitArray } = require('../util/arrayUtil');
@@ -8,6 +9,10 @@ const EventEmitter = require('events');
 const crc = require('crc');
 
 const MAX_RETRIES = 3;
+
+const SERVICE_UUID = 'FE59';
+const DFU_CONTROL_POINT_UUID = '8EC90001F3154F609FB8838830DAEA50';
+const DFU_PACKET_UUID = '8EC90002F3154F609FB8838830DAEA50';
 
 
 class DfuTransport extends EventEmitter {
@@ -20,17 +25,139 @@ class DfuTransport extends EventEmitter {
      * @param controlPointCharacteristicId the DFU control point characteristic ID for the device
      * @param packetCharacteristicId the DFU packet characteristic ID for the device
      */
-    constructor(adapter, controlPointCharacteristicId, packetCharacteristicId) {
+    constructor(adapter, targetAddress, targetAddressType) {
         super();
 
         this._adapter = adapter;
-        this._controlPointCharacteristicId = controlPointCharacteristicId;
-        this._packetCharacteristicId = packetCharacteristicId;
-        this._controlPointService = new ControlPointService(adapter, controlPointCharacteristicId);
-        this._objectWriter = new DfuObjectWriter(adapter, controlPointCharacteristicId, packetCharacteristicId);
-        this._objectWriter.on('packetWritten', progress => this._emitTransferEvent(progress.offset, progress.type));
+        this._targetAddress = targetAddress;
+        this._targetAddressType = targetAddressType;
+
+        this._deviceInstanceId = null;
+
+        this._handleConnParamUpdateRequest = this._handleConnParamUpdateRequest.bind(this);
+
+        this._adapter.on('connParamUpdateRequest', this._handleConnParamUpdateRequest);
+
         this._isOpen = false;
+        this._isInitialized = false;
     }
+
+    init() {
+        return this._connectIfNeeded()
+            .then(() => this._getCharacteristicIds())
+            .then(characteristicIds => {
+                this._controlPointCharacteristicId = characteristicIds.controlPoint;
+                this._packetCharacteristicId = characteristicIds.packet;
+
+                this._controlPointService = new ControlPointService(this._adapter, characteristicIds.controlPoint);
+                this._objectWriter = new DfuObjectWriter(this._adapter, characteristicIds.controlPoint, characteristicIds.packet);
+                this._objectWriter.on('packetWritten', progress => this._emitTransferEvent(progress.offset, progress.type));
+            })
+            .then(() => this._isInitialized = true);
+    }
+
+    destroy() {
+        this._objectWriter.removeAllListeners();
+        this._adapter.removeListener('connParamUpdateRequest', this._handleConnParamUpdateRequest);
+    }
+
+
+    /**
+     * Find the control point and dfu packet characteristic IDs.
+     *
+     * @returns { controlPointCharacteristicId, packetCharacteristicId }
+     * @private
+     */
+    _getCharacteristicIds() {
+        const deviceInfoService = new DeviceInfoService(this._adapter, this._deviceInstanceId);
+        return deviceInfoService.getCharacteristicId(SERVICE_UUID, DFU_CONTROL_POINT_UUID)
+            .then(controlPointCharacteristicId => {
+                return deviceInfoService.getCharacteristicId(SERVICE_UUID, DFU_PACKET_UUID)
+                    .then(packetCharacteristicId => {
+                        return {
+                            controlPoint: controlPointCharacteristicId,
+                            packet: packetCharacteristicId
+                        };
+                    });
+            });
+    }
+
+
+    /**
+     * If not connected to the target device: Connect.
+     * If already connected: Do nothing.
+     *
+     * @returns Promise resolving (to nothing) when connected to the device.
+     * @private
+     */
+    _connectIfNeeded(adapter, targetAddress, targetAddressType) {
+        // if connected
+        if (this._adapter && this._adapter._getDeviceByAddress(targetAddress)
+                && this._adapter._getDeviceByAddress(targetAddress).connected) {
+            return Promise.resolve();
+        // not connected
+        } else {
+            return this._connect();
+        }
+    }
+
+
+    /**
+     * Connect to the target device.
+     *
+     * @returns Promise resolving to the device ID when connected to the device.
+     * @private
+     */
+    _connect() {
+        const rejectOnCompleted = () => Promise.reject('Timed out while trying to connect.');
+        const resolveOnCompleted = device => Promise.resolve(device._instanceId);
+
+        return new Promise((resolve, reject) => {
+            if (this._adapter === null) {
+                reject('Adapter not provided.');
+            }
+
+            const connectionParameters = {
+                min_conn_interval: 7.5,
+                max_conn_interval: 7.5,
+                slave_latency: 0,
+                conn_sup_timeout: 4000,
+            };
+
+            const scanParameters = {
+                active: true,
+                interval: 100,
+                window: 50,
+                timeout: 20,
+            };
+
+            const options = {
+                scanParams: scanParameters,
+                connParams: connectionParameters,
+            };
+
+            this._adapter.once('deviceConnected', resolveOnCompleted);
+            this._adapter.once('connectTimedOut', rejectOnCompleted);
+
+            this._adapter.connect(
+                { address: this._targetAddress, type: this._targetAddressType },
+                options,
+                (err, device) => {
+                    if (err) {
+                        this._adapter.removeListener('deviceConnected', resolveOnCompleted);
+                        this._adapter.removeListener('connectTimedOut', rejectOnCompleted);
+                        reject(err);
+                    }
+                    this._deviceInstanceId = device._instanceId;
+                    resolve();
+                }
+            );
+        }).then(() => {
+            this._adapter.removeListener('deviceConnected', resolveOnCompleted);
+            this._adapter.removeListener('connectTimedOut', rejectOnCompleted);
+        });
+    }
+
 
     /**
      * Sends init packet to the device.
@@ -185,7 +312,12 @@ class DfuTransport extends EventEmitter {
         }
         return new Promise((resolve, reject) => {
             this._adapter.stopCharacteristicsNotifications(this._controlPointCharacteristicId, error => {
-                error ? reject(createError(ErrorCode.NOTIFICATION_STOP_ERROR, error.message)) : resolve();
+                if (error) {
+                    reject(createError(ErrorCode.NOTIFICATION_STOP_ERROR, error.message));
+                } else {
+                    this._isOpen = false;
+                    resolve();
+                }
             });
         });
     }
@@ -205,9 +337,24 @@ class DfuTransport extends EventEmitter {
         return new Promise((resolve, reject) => {
             const ack = false;
             this._adapter.startCharacteristicsNotifications(this._controlPointCharacteristicId, ack, error => {
-                error ? reject(createError(ErrorCode.NOTIFICATION_START_ERROR, error.message)) : resolve();
+                if (error) {
+                    reject(createError(ErrorCode.NOTIFICATION_START_ERROR, error.message));
+                } else {
+                    this._isOpen = true;
+                    resolve();
+                }
             });
         });
+    }
+
+    _handleConnParamUpdateRequest(device, connectionParameters) {
+        if (device._instanceId === this._deviceInstanceId) {
+            this._adapter.updateConnectionParameters(this._deviceInstanceId, connectionParameters, err => {
+                if (err) {
+                    throw err;
+                }
+            });
+        }
     }
 
     /**

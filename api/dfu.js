@@ -114,8 +114,10 @@ class Dfu extends EventEmitter {
                 .then(() => this._transferFirmware(firmware))
                 .then(() => this._transport.removeListener('progressUpdate', this._handleProgressUpdate))
                 .then(() => this._transport.waitForDisconnection())
+                .then(() => this._transport.destroy())
                 .catch(err => {
                     this._transport.removeListener('progressUpdate', this._handleProgressUpdate);
+                    this._transport.destroy();
                     throw err;
                 });
     }

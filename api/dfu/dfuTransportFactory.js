@@ -1,11 +1,6 @@
 'use strict';
 
 const DfuTransport = require('./dfuTransport');
-const DeviceInfoService = require('./deviceInfoService');
-
-const SERVICE_UUID = 'FE59';
-const DFU_CONTROL_POINT_UUID = '8EC90001F3154F609FB8838830DAEA50';
-const DFU_PACKET_UUID = '8EC90002F3154F609FB8838830DAEA50';
 
 class DfuTransportFactory {
 
@@ -24,119 +19,15 @@ class DfuTransportFactory {
         const prnValue = transportParameters.prnValue;
         const mtuSize = transportParameters.mtuSize;
 
-        return DfuTransportFactory._connectIfNeeded(adapter, targetAddress, targetAddressType)
-            .then(() => DfuTransportFactory._getCharacteristicIds(adapter, adapter._getDeviceByAddress(targetAddress).instanceId))
-            .then(ids => new DfuTransport(adapter, ids.controlPointCharacteristicId, ids.packetCharacteristicId))
+        return Promise.resolve()
+            .then(() => new DfuTransport(adapter, targetAddress, targetAddressType))
             .then(transport => {
                 return Promise.resolve()
+                    .then(() => transport.init())
                     .then(() => prnValue ? transport.setPrn(prnValue) : null)
                     .then(() => mtuSize ? transport.setMtuSize(mtuSize) : null)
                     .then(() => transport);
             });
-    }
-
-
-    /**
-     * Find the control point and dfu packet characteristic IDs.
-     *
-     * @param adapter a connected adapter instance
-     * @param deviceInstanceId instance ID of the DFU target device
-     * @returns { controlPointCharacteristicId, packetCharacteristicId }
-     * @private
-     */
-    static _getCharacteristicIds(adapter, deviceInstanceId) {
-        const deviceInfoService = new DeviceInfoService(adapter, deviceInstanceId);
-        return deviceInfoService.getCharacteristicId(SERVICE_UUID, DFU_CONTROL_POINT_UUID)
-            .then(controlPointCharacteristicId => {
-                return deviceInfoService.getCharacteristicId(SERVICE_UUID, DFU_PACKET_UUID)
-                    .then(packetCharacteristicId => {
-                        return {
-                            controlPointCharacteristicId,
-                            packetCharacteristicId
-                        };
-                    });
-            });
-    }
-
-    /**
-     * If not connected to the given address using the given adapter: Connect.
-     * If already connected: Do nothing.
-     *
-     * @param adapter a connected adapter instance
-     * @param targetAddress BLE address of the DFU target
-     * @param targetAddressType type of the DFU target BLE address
-     * @returns Promise resolving (to nothing) when connected to the device.
-     * @private
-     */
-    static _connectIfNeeded(adapter, targetAddress, targetAddressType) {
-        // if connected
-        if (adapter && adapter._getDeviceByAddress(targetAddress)
-                && adapter._getDeviceByAddress(targetAddress).connected) {
-            return Promise.resolve();
-        // not connected
-        } else {
-            return DfuTransportFactory._connect(adapter, targetAddress, targetAddressType);
-        }
-    }
-
-
-    /**
-     * Connect to the given address using the given adapter.
-     *
-     * @param adapter a connected adapter instance
-     * @param targetAddress BLE address of the DFU target
-     * @param targetAddressType type of the DFU target BLE address
-     * @returns Promise resolving (to nothing) when connected to the device.
-     * @private
-     */
-    static _connect(adapter, targetAddress, targetAddressType) {
-
-        const rejectOnCompleted = () => Promise.reject('Timed out while trying to connect.');
-        const resolveOnCompleted = () => Promise.resolve();
-
-        return new Promise((resolve, reject) => {
-            if (adapter === null) {
-                reject('Adapter not provided.');
-            }
-
-            const connectionParameters = {
-                min_conn_interval: 7.5,
-                max_conn_interval: 7.5,
-                slave_latency: 0,
-                conn_sup_timeout: 4000,
-            };
-
-            const scanParameters = {
-                active: true,
-                interval: 100,
-                window: 50,
-                timeout: 20,
-            };
-
-            const options = {
-                scanParams: scanParameters,
-                connParams: connectionParameters,
-            };
-
-            adapter.once('deviceConnected', resolveOnCompleted);
-            adapter.once('connectTimedOut', rejectOnCompleted);
-
-            adapter.connect(
-                { address: targetAddress, type: targetAddressType },
-                options,
-                err => {
-                    if (err) {
-                        adapter.removeListener('deviceConnected', resolveOnCompleted);
-                        adapter.removeListener('connectTimedOut', rejectOnCompleted);
-                        reject(err);
-                    }
-                    resolve();
-                }
-            );
-        }).then(() => {
-            adapter.removeListener('deviceConnected', resolveOnCompleted);
-            adapter.removeListener('connectTimedOut', rejectOnCompleted);
-        });
     }
 
 }
