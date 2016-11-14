@@ -128,7 +128,8 @@ class Dfu extends EventEmitter {
 
     _closeDfuTransport() {
         this._transport.removeListener('progressUpdate', this._handleProgressUpdate);
-        return this._transport.close()
+        return Promise.resolve()
+            .then(() => this._transport.destroy())
             .then(() => this._transport = null );
     }
 

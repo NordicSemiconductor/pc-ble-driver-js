@@ -38,11 +38,13 @@ class DfuTransport extends EventEmitter {
 
         this._adapter.on('connParamUpdateRequest', this._handleConnParamUpdateRequest);
 
-        this._isOpen = false;
         this._isInitialized = false;
     }
 
     init() {
+        if (this._isInitialized) {
+            return Promise.resolve();
+        }
         return this._connectIfNeeded()
             .then(() => this._getCharacteristicIds())
             .then(characteristicIds => {
@@ -53,6 +55,7 @@ class DfuTransport extends EventEmitter {
                 this._objectWriter = new DfuObjectWriter(this._adapter, characteristicIds.controlPoint, characteristicIds.packet);
                 this._objectWriter.on('packetWritten', progress => this._emitTransferEvent(progress.offset, progress.type));
             })
+            .then(() => this._startCharacteristicsNotifications())
             .then(() => this._isInitialized = true);
     }
 
@@ -241,7 +244,7 @@ class DfuTransport extends EventEmitter {
      * @returns promise that returns { offset, crc32, data }
      */
     getInitPacketState(initPacket) {
-        return this._open()
+        return this.init()
             .then(() => this._controlPointService.selectObject(ObjectType.COMMAND))
             .then(response => this._getInitPacketState(initPacket, response));
     }
@@ -256,7 +259,7 @@ class DfuTransport extends EventEmitter {
      * @returns promise that returns { offset, crc32, objects, partialObject }
      */
     getFirmwareState(firmware) {
-        return this._open()
+        return this.init()
             .then(() => this._controlPointService.selectObject(ObjectType.DATA))
             .then(response => this._getFirmwareState(firmware, response));
     }
@@ -278,7 +281,7 @@ class DfuTransport extends EventEmitter {
      * @returns promise with empty response
      */
     setPrn(prn) {
-        return this._open()
+        return this.init()
             .then(() => this._controlPointService.setPRN(prn))
             .then(() => this._objectWriter.setPrn(prn));
     }
@@ -293,48 +296,22 @@ class DfuTransport extends EventEmitter {
         this._objectWriter.setMtuSize(mtuSize);
     }
 
-    /**
-     * Closes the transport. This instructs the device to stop notifying about
-     * changes to the DFU control point characteristic. Should be invoked by the
-     * caller when being done with the transport.
-     *
-     * @returns promise with empty response
-     */
-    close() {
-        if (!this._isOpen) {
-            return Promise.resolve();
-        }
-        return new Promise((resolve, reject) => {
-            this._adapter.stopCharacteristicsNotifications(this._controlPointCharacteristicId, error => {
-                if (error) {
-                    reject(createError(ErrorCode.NOTIFICATION_STOP_ERROR, error.message));
-                } else {
-                    this._isOpen = false;
-                    resolve();
-                }
-            });
-        });
-    }
 
     /**
-     * Opens the transport. Instructs the device to start notifying about changes
-     * to the DFU control point characteristic. Private method - not intended to
-     * be used outside of the class.
+     * Instructs the device to start notifying about changes to the DFU control
+     * point characteristic. Private method - not intended to be used outside
+     * of the class.
      *
      * @returns promise with empty response
      * @private
      */
-    _open() {
-        if (this._isOpen) {
-            return Promise.resolve();
-        }
+    _startCharacteristicsNotifications() {
         return new Promise((resolve, reject) => {
             const ack = false;
             this._adapter.startCharacteristicsNotifications(this._controlPointCharacteristicId, ack, error => {
                 if (error) {
                     reject(createError(ErrorCode.NOTIFICATION_START_ERROR, error.message));
                 } else {
-                    this._isOpen = true;
                     resolve();
                 }
             });
