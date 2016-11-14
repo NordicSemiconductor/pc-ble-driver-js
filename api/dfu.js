@@ -107,19 +107,29 @@ class Dfu extends EventEmitter {
     }
 
     _performSingleUpdate(initPacket, firmware) {
+        return this._initializeDfuTransport()
+            .then(() => this._transferInitPacket(initPacket))
+            .then(() => this._transferFirmware(firmware))
+            .then(() => this._transport.waitForDisconnection())
+            .then(() => this._closeDfuTransport())
+            .catch(err => {
+                this._closeDfuTransport();
+                throw err;
+            });
+    }
+
+    _initializeDfuTransport() {
         return DfuTransportFactory.create(this._transportParameters)
-                .then(transport => this._transport = transport)
-                .then(() => this._transport.on('progressUpdate', this._handleProgressUpdate))
-                .then(() => this._transferInitPacket(initPacket))
-                .then(() => this._transferFirmware(firmware))
-                .then(() => this._transport.removeListener('progressUpdate', this._handleProgressUpdate))
-                .then(() => this._transport.waitForDisconnection())
-                .then(() => this._transport.destroy())
-                .catch(err => {
-                    this._transport.removeListener('progressUpdate', this._handleProgressUpdate);
-                    this._transport.destroy();
-                    throw err;
-                });
+            .then(transport => {
+                this._transport = transport;
+                this._transport.on('progressUpdate', this._handleProgressUpdate);
+            });
+    }
+
+    _closeDfuTransport() {
+        this._transport.removeListener('progressUpdate', this._handleProgressUpdate);
+        return this._transport.close()
+            .then(() => this._transport = null );
     }
 
     _transferInitPacket(initPacket) {
