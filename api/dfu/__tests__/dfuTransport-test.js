@@ -10,16 +10,15 @@ describe('sendInitPacket', () => {
 
     beforeEach(() => {
         adapter = {
-            startCharacteristicsNotifications: (id, ack, callback) => callback()
+            startCharacteristicsNotifications: (id, ack, callback) => callback(),
+            on: () => {},
         };
     });
 
     it('should return error if not able to start notifications', () => {
-        adapter = {
-            startCharacteristicsNotifications: (id, ack, callback) => {
-                callback(new Error());
-            }
-        };
+        adapter.startCharacteristicsNotifications = (id, ack, callback) => {
+            callback(new Error());
+        }
         const dfuTransport = new DfuTransport(adapter);
 
         return dfuTransport.sendInitPacket([]).catch(error => {
@@ -61,15 +60,14 @@ describe('sendFirmware', () => {
 
     beforeEach(() => {
         adapter = {
-            startCharacteristicsNotifications: (id, ack, callback) => callback()
+            startCharacteristicsNotifications: (id, ack, callback) => callback(),
+            on: () => {},
         };
     });
 
     it('should return error if not able to start notifications', () => {
-        adapter = {
-            startCharacteristicsNotifications: (id, ack, callback) => {
-                callback(new Error());
-            }
+        adapter.startCharacteristicsNotifications = (id, ack, callback) => {
+            callback(new Error());
         };
         const dfuTransport = new DfuTransport(adapter);
 
@@ -94,7 +92,8 @@ describe('sendFirmware', () => {
 
 describe('_getFirmwareState', () => {
 
-    let dfuTransport = new DfuTransport();
+    let adapter = { on: () => {} };
+    let dfuTransport = new DfuTransport(adapter);
 
     describe('when no data exists on device', () => {
         const firmware = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -208,7 +207,8 @@ describe('_getFirmwareState', () => {
 
 describe('_canResumePartiallyWrittenObject', () => {
 
-    const dfuTransport = new DfuTransport();
+    let adapter = { on: () => {} };
+    const dfuTransport = new DfuTransport(adapter);
 
     it('should not resume transfer if there is no data on the device (offset is 0)', () => {
         const data = [1, 2, 3];
@@ -233,4 +233,3 @@ describe('_canResumePartiallyWrittenObject', () => {
         expect(dfuTransport._canResumePartiallyWrittenObject(data, offset, crc32)).toEqual(true);
     });
 });
-
