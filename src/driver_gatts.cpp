@@ -45,7 +45,6 @@
 #include <iostream>
 
 static name_map_t gatts_op_map = {
-	NAME_MAP_ENTRY(BLE_GATTS_OP_INVALID),
 	NAME_MAP_ENTRY(BLE_GATTS_OP_WRITE_REQ),
 	NAME_MAP_ENTRY(BLE_GATTS_OP_WRITE_CMD),
 	NAME_MAP_ENTRY(BLE_GATTS_OP_SIGN_WRITE_CMD),
@@ -371,6 +370,19 @@ v8::Local<v8::Object> GattsTimeoutEvent::ToJs()
 
     return scope.Escape(obj);
 }
+
+#if NRF_SD_BLE_API_VERSION >= 3
+v8::Local<v8::Object> GattsExchangeMtuRequestEvent::ToJs()
+{
+	Nan::EscapableHandleScope scope;
+	v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+	BleDriverGattsEvent::ToJs(obj);
+
+	Utility::Set(obj, "client_rx_mtu", ConversionUtility::toJsNumber(evt->client_rx_mtu));
+
+	return scope.Escape(obj);
+}
+#endif
 
 NAN_METHOD(Adapter::GattsAddService)
 {
@@ -1091,6 +1103,8 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GATTS_EVT_HVC);                             /**< Handle Value Confirmation. @ref ble_gatts_evt_hvc_t */
         NODE_DEFINE_CONSTANT(target, BLE_GATTS_EVT_SC_CONFIRM);                      /**< Service Changed Confirmation. No additional event structure applies. */
         NODE_DEFINE_CONSTANT(target, BLE_GATTS_EVT_TIMEOUT);                         /**< Timeout. @ref ble_gatts_evt_timeout_t */
-
+#if NRF_SD_BLE_API_VERSION >= 3
+        NODE_DEFINE_CONSTANT(target, BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST);            /**< Exchange MTU Request. Reply with @ref sd_ble_gatts_exchange_mtu_reply. @ref ble_gatts_evt_exchange_mtu_request_t. */
+#endif
     }
 }

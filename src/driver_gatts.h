@@ -219,6 +219,17 @@ public:
     v8::Local<v8::Object> ToJs();
 };
 
+#if NRF_SD_BLE_API_VERSION >= 3
+class GattsExchangeMtuRequestEvent : BleDriverGattsEvent<ble_gatts_evt_exchange_mtu_request_t>
+{
+public:
+	GattsExchangeMtuRequestEvent(std::string timestamp, uint16_t conn_handle, ble_gatts_evt_exchange_mtu_request_t *evt)
+		: BleDriverGattsEvent<ble_gatts_evt_exchange_mtu_request_t>(BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST, timestamp, conn_handle, evt) {}
+	
+	v8::Local<v8::Object> ToJs();
+};
+#endif
+
 struct GattsAddServiceBaton : public Baton {
 public:
     BATON_CONSTRUCTOR(GattsAddServiceBaton);

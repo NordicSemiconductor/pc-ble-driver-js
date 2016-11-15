@@ -50,10 +50,14 @@ static name_map_t gattc_svcs_type_map = {
     NAME_MAP_ENTRY(SD_BLE_GATTC_READ),
     NAME_MAP_ENTRY(SD_BLE_GATTC_CHAR_VALUES_READ),
     NAME_MAP_ENTRY(SD_BLE_GATTC_WRITE),
-    NAME_MAP_ENTRY(SD_BLE_GATTC_HV_CONFIRM)
+    NAME_MAP_ENTRY(SD_BLE_GATTC_HV_CONFIRM),
+    NAME_MAP_ENTRY(SD_BLE_GATTC_WRITE)
 };
 
 static name_map_t gattc_evts_type_map = {
+#if NRF_SD_BLE_API_VERSION >= 3
+    NAME_MAP_ENTRY(BLE_GATTC_EVT_EXCHANGE_MTU_RSP),
+#endif
     NAME_MAP_ENTRY(BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP),
     NAME_MAP_ENTRY(BLE_GATTC_EVT_REL_DISC_RSP),
     NAME_MAP_ENTRY(BLE_GATTC_EVT_CHAR_DISC_RSP),
@@ -63,7 +67,7 @@ static name_map_t gattc_evts_type_map = {
     NAME_MAP_ENTRY(BLE_GATTC_EVT_CHAR_VALS_READ_RSP),
     NAME_MAP_ENTRY(BLE_GATTC_EVT_WRITE_RSP),
     NAME_MAP_ENTRY(BLE_GATTC_EVT_HVX),
-    NAME_MAP_ENTRY(BLE_GATTC_EVT_TIMEOUT)
+    NAME_MAP_ENTRY(BLE_GATTC_EVT_TIMEOUT),
 };
 
 //
@@ -395,6 +399,19 @@ v8::Local<v8::Object> GattcTimeoutEvent::ToJs()
 
     return scope.Escape(obj);
 }
+
+#if NRF_SD_BLE_API_VERSION >= 3
+v8::Local<v8::Object> GattcExchangeMtuResponseEvent::ToJs()
+{
+	Nan::EscapableHandleScope scope;
+	v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+	BleDriverGattcEvent::ToJs(obj);
+
+	Utility::Set(obj, "server_rx_mtu", evt->server_rx_mtu);
+
+	return scope.Escape(obj);
+}
+#endif
 
 NAN_METHOD(Adapter::GattcDiscoverPrimaryServices)
 {
@@ -1097,5 +1114,8 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GATTC_EVT_WRITE_RSP);                                /**< Write Response event. @ref ble_gattc_evt_write_rsp_t */
         NODE_DEFINE_CONSTANT(target, BLE_GATTC_EVT_HVX);                                      /**< Handle Value Notification or Indication event. @ref ble_gattc_evt_hvx_t */
         NODE_DEFINE_CONSTANT(target, BLE_GATTC_EVT_TIMEOUT);                                  /**< Timeout event. @ref ble_gattc_evt_timeout_t */
+#if NRF_SD_BLE_API_VERSION >= 3
+        NODE_DEFINE_CONSTANT(target, BLE_GATTC_EVT_EXCHANGE_MTU_RSP);                         /**< Exchange MTU Response event. @ref ble_gattc_evt_exchange_mtu_rsp_t. */
+#endif
     }
 }

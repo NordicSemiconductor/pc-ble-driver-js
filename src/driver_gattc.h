@@ -238,6 +238,17 @@ public:
     v8::Local<v8::Object> ToJs();
 };
 
+#if NRF_SD_BLE_API_VERSION >= 3
+class GattcExchangeMtuResponseEvent : BleDriverGattcEvent < ble_gattc_evt_exchange_mtu_rsp_t >
+{
+public:
+	GattcExchangeMtuResponseEvent(std::string timestamp, uint16_t conn_handle, uint16_t gatt_status, uint16_t error_handle, ble_gattc_evt_exchange_mtu_rsp_t *evt)
+		: BleDriverGattcEvent<ble_gattc_evt_exchange_mtu_rsp_t>(BLE_GATTC_EVT_EXCHANGE_MTU_RSP, timestamp, conn_handle, gatt_status, error_handle, evt) {}
+
+	v8::Local<v8::Object> ToJs();
+};
+#endif
+
 ///// Start GATTC Batons //////////////////////////////////////////////////////////////////////////////////
 
 struct GattcDiscoverPrimaryServicesBaton : public Baton {
