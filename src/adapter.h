@@ -199,6 +199,9 @@ private:
     ADAPTER_METHOD_DEFINITIONS(GattsSetValue);
     ADAPTER_METHOD_DEFINITIONS(GattsGetValue);
     ADAPTER_METHOD_DEFINITIONS(GattsReplyReadWriteAuthorize);
+#if NRF_SD_BLE_API_VERSION >= 3
+    ADAPTER_METHOD_DEFINITIONS(GattsExchangeMtuReply);
+#endif
 
     static void initGeneric(v8::Local<v8::FunctionTemplate> tpl);
     static void initGap(v8::Local<v8::FunctionTemplate> tpl);

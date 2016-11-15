@@ -294,6 +294,15 @@ public:
     ble_gatts_rw_authorize_reply_params_t *p_rw_authorize_reply_params;
 };
 
+#if NRF_SD_BLE_API_VERSION >= 3
+struct GattsExchangeMtuReplyBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GattsExchangeMtuReplyBaton);
+    uint16_t conn_handle;
+    uint16_t server_rx_mtu;
+};
+#endif
+
 extern "C" {
     void init_gatts(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 }
