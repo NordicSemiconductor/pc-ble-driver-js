@@ -186,6 +186,9 @@ private:
     ADAPTER_METHOD_DEFINITIONS(GattcReadCharacteristicValues);
     ADAPTER_METHOD_DEFINITIONS(GattcWrite);
     ADAPTER_METHOD_DEFINITIONS(GattcConfirmHandleValue);
+#if NRF_SD_BLE_API_VERSION >= 3
+    ADAPTER_METHOD_DEFINITIONS(GattcExchangeMtuRequest);
+#endif
 
     // Gatts async mehtods
     ADAPTER_METHOD_DEFINITIONS(GattsAddService);

@@ -318,6 +318,13 @@ public:
     uint16_t handle;
 };
 
+struct GattcExchangeMtuRequestBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GattcExchangeMtuRequestBaton);
+    uint16_t conn_handle;
+    uint16_t client_rx_mtu;
+};
+
 ///// End GATTC Batons //////////////////////////////////////////////////////////////////////////////////
 
 extern "C" {
