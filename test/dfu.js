@@ -52,7 +52,7 @@ function runTests(adapter) {
 }
 
 function getManifestOK() {
-    const dfu = new api.Dfu();
+    const dfu = new api.Dfu(true, true);
     const zipPath = "./dfu/dfu_test_softdevice_bootloader_s132.zip";
     dfu.getManifest(zipPath, (err, manifest) => { console.log(manifest) } );
 }
@@ -131,7 +131,13 @@ function setupAdapter(adapter, name, address, addressType, callback) {
 }
 
 function listServices(adapter) {
-    const dfu = new api.Dfu();
+    const transportParameters = {
+        adapter: adapter,
+        targetAddress: 'FC:EC:28:81:8B:84',
+        targetAddressType: 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC',
+    };
+    const dfu = new api.Dfu('bleTransport', transportParameters);
+
 //    const zipPath = "./dfu/dfu_test_softdevice_bootloader_s132.zip";
 //    const zipPath = "./dfu/dfu_test_softdevice_s132.zip";
 //    const zipPath = "./dfu/dfu_test_bootloader_s132.zip";
@@ -167,12 +173,7 @@ function listServices(adapter) {
 
 //        connect(adapter, { address: 'FC:EC:28:81:8B:84', type: 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC' }, () => {
 //            console.log('Inside connect callback.');
-            const transportParameters = {
-                adapter: adapter,
-                targetAddress: 'FC:EC:28:81:8B:84',
-                targetAddressType: 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC',
-            }
-            dfu.performDFU(zipPath, 'bleTransport', transportParameters, (err) => {
+            dfu.performDFU(zipPath, (err) => {
                 if (err) {
                     console.log('  performDFU failed: ', err);
                 }

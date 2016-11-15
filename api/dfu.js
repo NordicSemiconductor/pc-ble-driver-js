@@ -46,44 +46,55 @@ const { ErrorCode } = require('./dfu/dfuConstants');
 const DfuTransportFactory = require('./dfu/dfuTransportFactory');
 const DfuSpeedometer = require('./dfu/dfuSpeedometer');
 
+const DfuState = Object.freeze({
+    READY: 0,
+    IN_PROGRESS: 1,
+    ABORTING: 2,
+});
+
 /**
  * Class that provides Dfu controller functionality
  * @class
  */
 class Dfu extends EventEmitter {
 
-    constructor() {
+    constructor(transportType, transportParameters) {
         super();
 
-        this._zipFilePath = null;
-        this._transportType = null;
-        this._transportParameters = null;
-        this._transport = null;
-        this._speedometer = null;
-        this._handleProgressUpdate = _.throttle(this._handleProgressUpdate.bind(this), 1000);
-    }
-
-    // Run the entire DFU process
-    performDFU(zipFilePath, transportType, transportParameters, callback) {
-        this._zipFilePath = zipFilePath;
-        this._transportType = transportType;
-        this._transportParameters = transportParameters;
-
-        if (!this._zipFilePath) {
-            throw new Error('No zipFilePath provided.');
-        }
-        if (!this._transportType) {
+        if (!transportType) {
             throw new Error('No transport type provided.');
         }
-        if (!this._transportParameters) {
+        if (!transportParameters) {
             throw new Error('No transport parameters provided.');
         }
 
-        this._fetchUpdates(this._zipFilePath)
+        this._transportType = transportType;
+        this._transportParameters = transportParameters;
+        this._transport = null;
+        this._speedometer = null;
+        this._handleProgressUpdate = _.throttle(this._handleProgressUpdate.bind(this), 1000);
+
+        this._setState(DfuState.READY);
+    }
+
+    // Run the entire DFU process
+    performDFU(zipFilePath, callback) {
+        if (this._state !== DfuState.READY) {
+            throw new Error('Not in READY state. DFU in progress or aborting.');
+        }
+        if (!zipFilePath) {
+            throw new Error('No zipFilePath provided.');
+        }
+
+        this._setState(DfuState.IN_PROGRESS);
+
+        this._fetchUpdates(zipFilePath)
             .then(updates => this._performUpdates(updates))
+            .then(() => this._setState(DfuState.READY))
             .then(() => callback && callback())
             .catch(err => {
                 if (err.code === ErrorCode.ABORTED) {
+                    this._setState(DfuState.READY);
                     const aborted = true;
                     if (callback) { callback(null, aborted); }
                 } else {
@@ -93,10 +104,19 @@ class Dfu extends EventEmitter {
     }
 
     abort() {
+        this._setState(DfuState.ABORTING);
         if (this._transport) {
             this._transport.abort();
         } else {
+            // TODO Should stop either way. Not throw error. Aborting should not rely on having a transport.
             throw new Error('Abort called, but no transport is in progress.');
+        }
+    }
+
+    _setState(state) {
+        if (this._state !== state) {
+            this._state = state;
+            this.emit('stateChanged', state);
         }
     }
 
@@ -127,8 +147,8 @@ class Dfu extends EventEmitter {
     }
 
     _closeDfuTransport() {
-        this._transport.removeListener('progressUpdate', this._handleProgressUpdate);
         return Promise.resolve()
+            .then(() => this._transport.removeListener('progressUpdate', this._handleProgressUpdate))
             .then(() => this._transport.destroy())
             .then(() => this._transport = null );
     }
