@@ -783,7 +783,7 @@ class Adapter extends EventEmitter {
 
         services.forEach(service => {
             const handle = service.handle_range.start_handle;
-            let uuid = this._numberTo16BitUuid(service.uuid.uuid);
+            let uuid = Adapter._numberTo16BitUuid(service.uuid.uuid);
 
             if (service.uuid.type >= this._bleDriver.BLE_UUID_TYPE_VENDOR_BEGIN) {
                 uuid = this._converter.lookupVsUuid(service.uuid);
@@ -859,7 +859,7 @@ class Adapter extends EventEmitter {
         characteristics.forEach(characteristic => {
             const declarationHandle = characteristic.handle_decl;
             const valueHandle = characteristic.handle_value;
-            let uuid = this._numberTo16BitUuid(characteristic.uuid.uuid);
+            let uuid = Adapter._numberTo16BitUuid(characteristic.uuid.uuid);
 
             if (characteristic.uuid.type >= this._bleDriver.BLE_UUID_TYPE_VENDOR_BEGIN) {
                 uuid = this._converter.lookupVsUuid(characteristic.uuid);
@@ -953,7 +953,7 @@ class Adapter extends EventEmitter {
             }
 
             const handle = descriptor.handle;
-            let uuid = this._numberTo16BitUuid(descriptor.uuid.uuid);
+            let uuid = Adapter._numberTo16BitUuid(descriptor.uuid.uuid);
 
             if (descriptor.uuid.type >= this._bleDriver.BLE_UUID_TYPE_VENDOR_BEGIN) {
                 uuid = this._converter.lookupVsUuid(descriptor.uuid);
@@ -1029,7 +1029,7 @@ class Adapter extends EventEmitter {
 
             if (attribute instanceof Service) {
                 // TODO: Translate from uuid to name?
-                attribute.uuid = this._arrayTo128BitUuid(data);
+                attribute.uuid = Adapter._arrayTo128BitUuid(data);
                 addVsUuidToDriver(attribute.uuid).then();
                 this.emit('serviceAdded', attribute);
 
@@ -1047,7 +1047,7 @@ class Adapter extends EventEmitter {
             } else if (attribute instanceof Characteristic) {
                 // TODO: Translate from uuid to name?
                 if (handle === attribute.declarationHandle) {
-                    attribute.uuid = this._arrayTo128BitUuid(data.slice(3));
+                    attribute.uuid = Adapter._arrayTo128BitUuid(data.slice(3));
                     addVsUuidToDriver(attribute.uuid).then();
                 } else if (handle === attribute.valueHandle) {
                     attribute.value = data;
@@ -1105,7 +1105,7 @@ class Adapter extends EventEmitter {
         } else {
             if (event.gatt_status !== this._bleDriver.BLE_GATT_STATUS_SUCCESS) {
                 delete this._gattOperationsMap[device.instanceId];
-                gattOperation.callback(_makeError(`Read operation failed: ${event.gatt_status_name} (0x${this._toHexString(event.gatt_status)})`));
+                gattOperation.callback(_makeError(`Read operation failed: ${event.gatt_status_name} (0x${Adapter._toHexString(event.gatt_status)})`));
                 return;
             }
 
@@ -1206,7 +1206,7 @@ class Adapter extends EventEmitter {
             gattOperation.attribute.value = gattOperation.value;
             delete this._gattOperationsMap[device.instanceId];
             if (event.gatt_status !== this._bleDriver.BLE_GATT_STATUS_SUCCESS) {
-                gattOperation.callback(_makeError(`Write operation failed: ${event.gatt_status_name} (0x${this._toHexString(event.gatt_status)})`));
+                gattOperation.callback(_makeError(`Write operation failed: ${event.gatt_status_name} (0x${Adapter._toHexString(event.gatt_status)})`));
                 return;
             }
         }
