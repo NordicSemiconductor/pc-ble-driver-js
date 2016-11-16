@@ -461,7 +461,9 @@ struct GapAddressSetBaton : Baton {
 public:
     BATON_CONSTRUCTOR(GapAddressSetBaton);
     ble_gap_addr_t *address;
+#if NRF_SD_BLE_API_VERSION <= 2
     uint8_t addr_cycle_mode;
+#endif
 };
 
 struct GapAddressGetBaton : Baton {
