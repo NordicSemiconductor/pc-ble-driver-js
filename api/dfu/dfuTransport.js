@@ -24,12 +24,11 @@ class DfuTransport extends EventEmitter {
      * @param controlPointCharacteristicId the DFU control point characteristic ID for the device
      * @param packetCharacteristicId the DFU packet characteristic ID for the device
      */
-    constructor(adapter, targetAddress, targetAddressType) {
+    constructor(transportParameters) {
         super();
 
-        this._adapter = adapter;
-        this._targetAddress = targetAddress;
-        this._targetAddressType = targetAddressType;
+        this._adapter = transportParameters.adapter;
+        this._transportParameters = transportParameters;
 
         this._deviceInstanceId = null;
 
@@ -55,6 +54,8 @@ class DfuTransport extends EventEmitter {
                 this._objectWriter.on('packetWritten', progress => this._emitTransferEvent(progress.offset, progress.type));
             })
             .then(() => this._startCharacteristicsNotifications())
+            .then(() => this._transportParameters.prnValue ? this.setPrn(this._transportParameters.prnValue) : null)
+            .then(() => this._transportParameters.mtuSize ? this.setMtuSize(this._transportParameters.mtuSize) : null)
             .then(() => this._isInitialized = true);
     }
 
@@ -92,10 +93,10 @@ class DfuTransport extends EventEmitter {
      * @returns Promise resolving (to nothing) when connected to the device.
      * @private
      */
-    _connectIfNeeded(adapter, targetAddress, targetAddressType) {
+    _connectIfNeeded() {
         // if connected
-        if (this._adapter && this._adapter._getDeviceByAddress(targetAddress)
-                && this._adapter._getDeviceByAddress(targetAddress).connected) {
+        if (this._adapter && this._adapter._getDeviceByAddress(this._transportParameters.targetAddress)
+                && this._adapter._getDeviceByAddress(this._transportParameters.targetAddress).connected) {
             return Promise.resolve();
         // not connected
         } else {
@@ -142,7 +143,7 @@ class DfuTransport extends EventEmitter {
             this._adapter.once('connectTimedOut', rejectOnCompleted);
 
             this._adapter.connect(
-                { address: this._targetAddress, type: this._targetAddressType },
+                { address: this._transportParameters.targetAddress, type: this._transportParameters.targetAddressType },
                 options,
                 (err, device) => {
                     if (err) {

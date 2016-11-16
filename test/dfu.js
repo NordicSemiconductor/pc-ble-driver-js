@@ -156,11 +156,6 @@ function listServices(adapter) {
         console.log('#1 deviceConnected: ' + JSON.stringify(device));
         deviceID = device._instanceId;
     });
-//    adapter.on('connParamUpdateRequest', (device, connParams) => console.log('-> connParamUpdateRequest: ', connParams, device));
-
-//    adapter.on('characteristicValueChanged', characteristic => { console.log('characteristicValueChanged: ', characteristic); });
-//    adapter.on('descriptorValueChanged', descriptor => console.log('descriptorValueChanged: ', descriptor));
-//    adapter.on('characteristicValueChanged', characteristic => console.log('Value changed to: ', characteristic.value));
 
     dfu.on('initialized', () => console.log('DFU initialized!'));
     dfu.on('controlPointResponse', (response) => console.log('controlPointResponse: ', response));
@@ -169,16 +164,11 @@ function listServices(adapter) {
     dfu.on('initialized', () => console.log('DFU is initialized.'));
 
     setupAdapter(adapter, 'Adapter', 'FF:11:22:33:AA:BF', 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC', () => {
-        console.log('Inside setupAdapter callback.');
-
-//        connect(adapter, { address: 'FC:EC:28:81:8B:84', type: 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC' }, () => {
-//            console.log('Inside connect callback.');
-            dfu.performDFU(zipPath, (err) => {
-                if (err) {
-                    console.log('  performDFU failed: ', err);
-                }
-            });
-//        });
+        dfu.performDFU(zipPath, (err) => {
+            if (err) {
+                console.log('  performDFU failed: ', err);
+            }
+        });
     });
 }
 

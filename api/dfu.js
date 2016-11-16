@@ -43,7 +43,7 @@ const fs = require('fs');
 const EventEmitter = require('events');
 
 const { ErrorCode } = require('./dfu/dfuConstants');
-const DfuTransportFactory = require('./dfu/dfuTransportFactory');
+const DfuTransport = require('./dfu/dfuTransport');
 const DfuSpeedometer = require('./dfu/dfuSpeedometer');
 
 const DfuState = Object.freeze({
@@ -127,26 +127,25 @@ class Dfu extends EventEmitter {
     }
 
     _performSingleUpdate(datFile, binFile) {
-        return this._initializeDfuTransport()
+        return this._createDfuTransport()
             .then(() => this._transferInitPacket(datFile))
             .then(() => this._transferFirmware(binFile))
             .then(() => this._transport.waitForDisconnection())
-            .then(() => this._closeDfuTransport())
+            .then(() => this._destroyDfuTransport())
             .catch(err => {
-                this._closeDfuTransport();
+                this._destroyDfuTransport();
                 throw err;
             });
     }
 
-    _initializeDfuTransport() {
-        return DfuTransportFactory.create(this._transportParameters)
-            .then(transport => {
-                this._transport = transport;
-                this._transport.on('progressUpdate', this._handleProgressUpdate);
-            });
+    _createDfuTransport() {
+        return Promise.resolve()
+            .then(() => this._transport = new DfuTransport(this._transportParameters))
+            .then(() => this._transport.init())
+            .then(() => this._transport.on('progressUpdate', this._handleProgressUpdate));
     }
 
-    _closeDfuTransport() {
+    _destroyDfuTransport() {
         return Promise.resolve()
             .then(() => this._transport.removeListener('progressUpdate', this._handleProgressUpdate))
             .then(() => this._transport.destroy())
