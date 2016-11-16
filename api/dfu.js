@@ -42,7 +42,7 @@ const JSZip = require('jszip');
 const fs = require('fs');
 const EventEmitter = require('events');
 
-const { ErrorCode } = require('./dfu/dfuConstants');
+const { ErrorCode, createError } = require('./dfu/dfuConstants');
 const DfuTransport = require('./dfu/dfuTransport');
 const DfuSpeedometer = require('./dfu/dfuSpeedometer');
 
@@ -107,9 +107,6 @@ class Dfu extends EventEmitter {
         this._setState(DfuState.ABORTING);
         if (this._transport) {
             this._transport.abort();
-        } else {
-            // TODO Should stop either way. Not throw error. Aborting should not rely on having a transport.
-            throw new Error('Abort called, but no transport is in progress.');
         }
     }
 
@@ -128,6 +125,7 @@ class Dfu extends EventEmitter {
 
     _performSingleUpdate(datFile, binFile) {
         return this._createDfuTransport()
+            .then(() => this._checkAbortState())
             .then(() => this._transferInitPacket(datFile))
             .then(() => this._transferFirmware(binFile))
             .then(() => this._transport.waitForDisconnection())
@@ -136,6 +134,16 @@ class Dfu extends EventEmitter {
                 this._destroyDfuTransport();
                 throw err;
             });
+    }
+
+    _checkAbortState() {
+        return new Promise((resolve, reject) => {
+            if (this._state === DfuState.ABORTING) {
+                reject(createError(ErrorCode.ABORTED, 'Abort was triggered.'));
+            } else {
+                resolve();
+            }
+        })
     }
 
     _createDfuTransport() {
