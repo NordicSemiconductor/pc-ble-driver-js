@@ -17,50 +17,74 @@ const DFU_PACKET_UUID = '8EC90002F3154F609FB8838830DAEA50';
 class DfuTransport extends EventEmitter {
 
     /**
-     * Creates a DfuTransport object with an adapter, plus control point and packet
-     * characteristic IDs for the device to perform DFU on.
+     * Creates a DfuTransport by using the supplied transport parameters.
      *
-     * @param adapter a connected adapter instance
-     * @param controlPointCharacteristicId the DFU control point characteristic ID for the device
-     * @param packetCharacteristicId the DFU packet characteristic ID for the device
+     * Available transport parameters:
+     * - adapter:           An instance of adapter (required)
+     * - targetAddress:     The target address to connect to (required)
+     * - targetAddressType: The target address type (required)
+     * - prnValue:          Packet receipt notification number (optional)
+     * - mtuSize:           Maximum transmission unit number (optional)
+     *
+     * @param transportParameters configuration parameters
      */
     constructor(transportParameters) {
         super();
 
+        if (!transportParameters.adapter) {
+            throw new Error('Required transport parameter "adapter" was not provided');
+        }
+        if (!transportParameters.targetAddress) {
+            throw new Error('Required transport parameter "targetAddress" was not provided');
+        }
+
         this._adapter = transportParameters.adapter;
         this._transportParameters = transportParameters;
 
-        this._deviceInstanceId = null;
-
         this._handleConnParamUpdateRequest = this._handleConnParamUpdateRequest.bind(this);
-
         this._adapter.on('connParamUpdateRequest', this._handleConnParamUpdateRequest);
-
         this._isInitialized = false;
     }
 
+    /**
+     * Initializes the transport. Connects to the device and sets it up according
+     * to the configured transport parameters.
+     *
+     * @returns Promise that resolves when initialized
+     */
     init() {
         if (this._isInitialized) {
             return Promise.resolve();
         }
-        return this._connectIfNeeded()
-            .then(() => this._getCharacteristicIds())
-            .then(characteristicIds => {
-                this._controlPointCharacteristicId = characteristicIds.controlPoint;
-                this._packetCharacteristicId = characteristicIds.packet;
+        const targetAddress = this._transportParameters.targetAddress;
+        const targetAddressType = this._transportParameters.targetAddressType;
+        const prnValue = this._transportParameters.prnValue;
+        const mtuSize = this._transportParameters.mtuSize;
 
-                this._controlPointService = new ControlPointService(this._adapter, characteristicIds.controlPoint);
-                this._objectWriter = new DfuObjectWriter(this._adapter, characteristicIds.controlPoint, characteristicIds.packet);
-                this._objectWriter.on('packetWritten', progress => this._emitTransferEvent(progress.offset, progress.type));
+        return this._connectIfNeeded(targetAddress, targetAddressType)
+            .then(deviceInstanceId => {
+                this._deviceInstanceId = deviceInstanceId;
+                return this._getCharacteristicIds(deviceInstanceId);
             })
-            .then(() => this._startCharacteristicsNotifications())
-            .then(() => this._transportParameters.prnValue ? this.setPrn(this._transportParameters.prnValue) : null)
-            .then(() => this._transportParameters.mtuSize ? this.setMtuSize(this._transportParameters.mtuSize) : null)
+            .then(characteristicIds => {
+                this._controlPointService = new ControlPointService(this._adapter, characteristicIds.controlPointId);
+                this._objectWriter = new DfuObjectWriter(this._adapter, characteristicIds.controlPointId, characteristicIds.packetId);
+                this._objectWriter.on('packetWritten', progress => this._emitTransferEvent(progress.offset, progress.type));
+                return this._startCharacteristicsNotifications(characteristicIds.controlPointId);
+            })
+            .then(() => prnValue ? this._setPrn(prnValue) : null)
+            .then(() => mtuSize ? this._setMtuSize(mtuSize) : null)
             .then(() => this._isInitialized = true);
     }
 
+    /**
+     * Destroys the transport. Removes all listeners, so that the transport can
+     * be garbage collected.
+     */
     destroy() {
-        this._objectWriter.removeAllListeners();
+        if (this._objectWriter) {
+            this._objectWriter.removeAllListeners();
+        }
         this._adapter.removeListener('connParamUpdateRequest', this._handleConnParamUpdateRequest);
     }
 
@@ -68,18 +92,18 @@ class DfuTransport extends EventEmitter {
     /**
      * Find the control point and dfu packet characteristic IDs.
      *
-     * @returns { controlPointCharacteristicId, packetCharacteristicId }
+     * @returns { controlPointId, packetId }
      * @private
      */
-    _getCharacteristicIds() {
-        const deviceInfoService = new DeviceInfoService(this._adapter, this._deviceInstanceId);
+    _getCharacteristicIds(deviceInstanceId) {
+        const deviceInfoService = new DeviceInfoService(this._adapter, deviceInstanceId);
         return deviceInfoService.getCharacteristicId(SERVICE_UUID, DFU_CONTROL_POINT_UUID)
             .then(controlPointCharacteristicId => {
                 return deviceInfoService.getCharacteristicId(SERVICE_UUID, DFU_PACKET_UUID)
                     .then(packetCharacteristicId => {
                         return {
-                            controlPoint: controlPointCharacteristicId,
-                            packet: packetCharacteristicId
+                            controlPointId: controlPointCharacteristicId,
+                            packetId: packetCharacteristicId
                         };
                     });
             });
@@ -87,20 +111,19 @@ class DfuTransport extends EventEmitter {
 
 
     /**
-     * If not connected to the target device: Connect.
-     * If already connected: Do nothing.
+     * Connect to the target device if not already connected.
      *
-     * @returns Promise resolving (to nothing) when connected to the device.
+     * @param targetAddress the address to connect to
+     * @param targetAddressType the target address type
+     * @returns Promise that resolves with device instance id when connected
      * @private
      */
-    _connectIfNeeded() {
-        // if connected
-        if (this._adapter && this._adapter._getDeviceByAddress(this._transportParameters.targetAddress)
-                && this._adapter._getDeviceByAddress(this._transportParameters.targetAddress).connected) {
-            return Promise.resolve();
-        // not connected
+    _connectIfNeeded(targetAddress, targetAddressType) {
+        const device = this._adapter._getDeviceByAddress(targetAddress);
+        if (device && device.connected) {
+            return Promise.resolve(device._instanceId);
         } else {
-            return this._connect();
+            return this._connect(targetAddress, targetAddressType);
         }
     }
 
@@ -108,56 +131,40 @@ class DfuTransport extends EventEmitter {
     /**
      * Connect to the target device.
      *
-     * @returns Promise resolving to the device ID when connected to the device.
+     * @param targetAddress the address to connect to
+     * @param targetAddressType the target address type
+     * @returns Promise that resolves with device instance id when connected
      * @private
      */
-    _connect() {
-        const rejectOnCompleted = () => Promise.reject('Timed out while trying to connect.');
-        const resolveOnCompleted = device => Promise.resolve(device._instanceId);
+    _connect(targetAddress, targetAddressType) {
+        const connectionParameters = {
+            min_conn_interval: 7.5,
+            max_conn_interval: 7.5,
+            slave_latency: 0,
+            conn_sup_timeout: 4000,
+        };
+
+        const scanParameters = {
+            active: true,
+            interval: 100,
+            window: 50,
+            timeout: 20,
+        };
+
+        const options = {
+            scanParams: scanParameters,
+            connParams: connectionParameters,
+        };
+
+        const addressParameters = {
+            address: targetAddress,
+            type: targetAddressType,
+        };
 
         return new Promise((resolve, reject) => {
-            if (this._adapter === null) {
-                reject('Adapter not provided.');
-            }
-
-            const connectionParameters = {
-                min_conn_interval: 7.5,
-                max_conn_interval: 7.5,
-                slave_latency: 0,
-                conn_sup_timeout: 4000,
-            };
-
-            const scanParameters = {
-                active: true,
-                interval: 100,
-                window: 50,
-                timeout: 20,
-            };
-
-            const options = {
-                scanParams: scanParameters,
-                connParams: connectionParameters,
-            };
-
-            this._adapter.once('deviceConnected', resolveOnCompleted);
-            this._adapter.once('connectTimedOut', rejectOnCompleted);
-
-            this._adapter.connect(
-                { address: this._transportParameters.targetAddress, type: this._transportParameters.targetAddressType },
-                options,
-                (err, device) => {
-                    if (err) {
-                        this._adapter.removeListener('deviceConnected', resolveOnCompleted);
-                        this._adapter.removeListener('connectTimedOut', rejectOnCompleted);
-                        reject(err);
-                    }
-                    this._deviceInstanceId = device._instanceId;
-                    resolve();
-                }
-            );
-        }).then(() => {
-            this._adapter.removeListener('deviceConnected', resolveOnCompleted);
-            this._adapter.removeListener('connectTimedOut', rejectOnCompleted);
+            this._adapter.connect(addressParameters, options, (err, device) => {
+                err ? reject(err) : resolve(device._instanceId);
+            });
         });
     }
 
@@ -167,7 +174,7 @@ class DfuTransport extends EventEmitter {
      * already been sent, then the transfer is resumed.
      *
      * @param data byte array to send to the device
-     * @return promise with empty response
+     * @return Promise with empty response
      */
     sendInitPacket(data) {
         this._emitInitializeEvent(ObjectType.COMMAND);
@@ -185,7 +192,7 @@ class DfuTransport extends EventEmitter {
      * been sent, then the transfer is resumed.
      *
      * @param data byte array to send to the device
-     * @returns promise with empty response
+     * @returns Promise with empty response
      */
     sendFirmware(data) {
         this._emitInitializeEvent(ObjectType.DATA);
@@ -206,7 +213,7 @@ class DfuTransport extends EventEmitter {
     /**
      * Wait for the connection to the DFU target to break.
      *
-     * @returns promise resolving when the target device is disconnected
+     * @returns Promise resolving when the target device is disconnected
      */
     waitForDisconnection() {
         return new Promise((resolve, reject) => {
@@ -214,8 +221,7 @@ class DfuTransport extends EventEmitter {
 
             // Handler resolving on disconnect from the DFU target.
             const disconnectionHandler = (device => {
-                if (device._instanceId === this._deviceInstanceId)
-                {
+                if (device._instanceId === this._deviceInstanceId) {
                     this._adapter.removeListener('deviceDisconnected', disconnectionHandler);
                     resolve();
                 }
@@ -223,8 +229,8 @@ class DfuTransport extends EventEmitter {
             this._adapter.on('deviceDisconnected', disconnectionHandler);
 
             // Check if already disconnected.
-            if (!this._adapter.getDevice(this._deviceInstanceId)
-              || !this._adapter.getDevice(this._deviceInstanceId).connected) {
+            if (!this._adapter.getDevice(this._deviceInstanceId) ||
+                !this._adapter.getDevice(this._deviceInstanceId).connected) {
                 this._adapter.removeListener('deviceDisconnected', disconnectionHandler);
                 resolve();
             }
@@ -241,7 +247,7 @@ class DfuTransport extends EventEmitter {
      * Returns the current init packet transfer state.
      *
      * @param data the complete init packet byte array
-     * @returns promise that returns an instance of InitPacketState
+     * @returns Promise that returns an instance of InitPacketState
      */
     getInitPacketState(data) {
         return this.init()
@@ -253,7 +259,7 @@ class DfuTransport extends EventEmitter {
      * Returns the current firmware transfer state.
      *
      * @param data the complete firmware byte array
-     * @returns promise that returns an instance of FirmwareState
+     * @returns Promise that returns an instance of FirmwareState
      */
     getFirmwareState(data) {
         return this.init()
@@ -275,9 +281,10 @@ class DfuTransport extends EventEmitter {
      * packages should be sent before receiving receipt.
      *
      * @param prn the PRN value (disabled if 0)
-     * @returns promise with empty response
+     * @returns Promise with empty response
+     * @private
      */
-    setPrn(prn) {
+    _setPrn(prn) {
         return this.init()
             .then(() => this._controlPointService.setPRN(prn))
             .then(() => this._objectWriter.setPrn(prn));
@@ -288,24 +295,23 @@ class DfuTransport extends EventEmitter {
      * packets that are transferred to the device. Default is 20.
      *
      * @param mtuSize the MTU size
+     * @private
      */
-    setMtuSize(mtuSize) {
+    _setMtuSize(mtuSize) {
         this._objectWriter.setMtuSize(mtuSize);
     }
 
 
     /**
-     * Instructs the device to start notifying about changes to the DFU control
-     * point characteristic. Private method - not intended to be used outside
-     * of the class.
+     * Instructs the device to start notifying about changes to the given characteristic id.
      *
-     * @returns promise with empty response
+     * @returns Promise with empty response
      * @private
      */
-    _startCharacteristicsNotifications() {
+    _startCharacteristicsNotifications(characteristicId) {
         return new Promise((resolve, reject) => {
             const ack = false;
-            this._adapter.startCharacteristicsNotifications(this._controlPointCharacteristicId, ack, error => {
+            this._adapter.startCharacteristicsNotifications(characteristicId, ack, error => {
                 if (error) {
                     reject(createError(ErrorCode.NOTIFICATION_START_ERROR, error.message));
                 } else {
@@ -315,6 +321,13 @@ class DfuTransport extends EventEmitter {
         });
     }
 
+    /**
+     * Handle connection parameter update requests from the target device.
+     *
+     * @param device the device that requested connection parameter update
+     * @param connectionParameters connection parameters from device
+     * @private
+     */
     _handleConnParamUpdateRequest(device, connectionParameters) {
         if (device._instanceId === this._deviceInstanceId) {
             this._adapter.updateConnectionParameters(this._deviceInstanceId, connectionParameters, err => {
@@ -326,8 +339,14 @@ class DfuTransport extends EventEmitter {
     }
 
     /**
+     * Write an array of objects with the given type, starting at the given
+     * offset and crc32.
      *
-     *
+     * @param objects array of objects (array of byte arrays)
+     * @param type the ObjectType to write
+     * @param offset the offset to start from
+     * @param crc32 the crc32 to start from
+     * @return Promise that resolves when the objects have been created and written
      * @private
      */
     _createAndWriteObjects(objects, type, offset, crc32) {
@@ -339,8 +358,14 @@ class DfuTransport extends EventEmitter {
     }
 
     /**
+     * Create and write one object with the given type, starting at the
+     * given offset and crc32.
      *
-     *
+     * @param data the object data to write (byte array)
+     * @param type the ObjectType to write
+     * @param offset the offset to start from
+     * @param crc32 the crc32 to start from
+     * @return Promise that resolves when the object has been created and written
      * @private
      */
     _createAndWriteObject(data, type, offset, crc32) {
@@ -364,8 +389,14 @@ class DfuTransport extends EventEmitter {
     }
 
     /**
+     * Write one object with the given type, starting at the given offset
+     * and crc32.
      *
-     *
+     * @param data the object data to write (byte array)
+     * @param type the ObjectType to write
+     * @param offset the offset to start from
+     * @param crc32 the crc32 to start from
+     * @return Promise that resolves when the object has been written
      * @private
      */
     _writeObject(data, type, offset, crc32) {
@@ -377,11 +408,6 @@ class DfuTransport extends EventEmitter {
             });
     }
 
-    /**
-     *
-     *
-     * @private
-     */
     _shouldRetry(attempts, error) {
         if (attempts < MAX_RETRIES &&
             error.code !== ErrorCode.ABORTED &&
@@ -391,11 +417,6 @@ class DfuTransport extends EventEmitter {
         return false;
     }
 
-    /**
-     *
-     *
-     * @private
-     */
     _validateProgress(progressInfo) {
         return this._controlPointService.calculateChecksum()
             .then(response => {
@@ -411,11 +432,6 @@ class DfuTransport extends EventEmitter {
             });
     }
 
-    /**
-     *
-     *
-     * @private
-     */
     _emitTransferEvent(offset, type) {
         const event = {
             stage: `Transferring ${this._getObjectTypeString(type)}`
@@ -426,22 +442,12 @@ class DfuTransport extends EventEmitter {
         this.emit('progressUpdate', event);
     }
 
-    /**
-     *
-     *
-     * @private
-     */
     _emitInitializeEvent(type) {
         this.emit('progressUpdate', {
             stage: `Initializing ${this._getObjectTypeString(type)}`
         });
     }
 
-    /**
-     *
-     *
-     * @private
-     */
     _getObjectTypeString(type) {
         switch (type) {
             case ObjectType.COMMAND:
