@@ -37,6 +37,9 @@ class DfuTransport extends EventEmitter {
         if (!transportParameters.targetAddress) {
             throw new Error('Required transport parameter "targetAddress" was not provided');
         }
+        if (!transportParameters.targetAddressType) {
+            throw new Error('Required transport parameter "targetAddressType" was not provided');
+        }
 
         this._adapter = transportParameters.adapter;
         this._transportParameters = transportParameters;
