@@ -143,21 +143,25 @@ class Dfu extends EventEmitter {
             } else {
                 resolve();
             }
-        })
+        });
     }
 
     _createDfuTransport() {
         return Promise.resolve()
-            .then(() => this._transport = new DfuTransport(this._transportParameters))
-            .then(() => this._transport.init())
+            .then(() => {
+                this._transport = new DfuTransport(this._transportParameters);
+                return this._transport.init();
+            })
             .then(() => this._transport.on('progressUpdate', this._handleProgressUpdate));
     }
 
     _destroyDfuTransport() {
         return Promise.resolve()
-            .then(() => this._transport.removeListener('progressUpdate', this._handleProgressUpdate))
-            .then(() => this._transport.destroy())
-            .then(() => this._transport = null );
+            .then(() => {
+                this._transport.removeListener('progressUpdate', this._handleProgressUpdate);
+                this._transport.destroy();
+                this._transport = null;
+            });
     }
 
     _transferInitPacket(file) {
