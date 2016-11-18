@@ -1,5 +1,4 @@
-
-import {intToArray, arrayToInt} from '../intArrayConv';
+const { intToArray, arrayToInt } = require('../intArrayConv');
 
 describe('Integer/array conversions', () => {
 

@@ -1,7 +1,7 @@
 jest.mock('fs', () => {});
 jest.mock('jszip', () => {});
+const Dfu = require('../dfu');
 
-import Dfu from '../dfu';
 
 describe('performDFU', () => {
 
