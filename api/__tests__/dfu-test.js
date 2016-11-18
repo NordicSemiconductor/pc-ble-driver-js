@@ -1,32 +1,19 @@
-jest.mock('fs', () => {});
-jest.mock('jszip', () => {});
 const Dfu = require('../dfu');
 
+describe('constructor', () => {
 
-describe('performDFU', () => {
+    const transportType = 'someType';
+    const transportParameters = {};
 
-    let dfu;
-
-    beforeEach(() => {
-        dfu = new Dfu();
+    it('throws error if transportType is not provided', () => {
+        expect(() => new Dfu(null, transportParameters)).toThrow();
     });
 
-    describe('when started without zip file path', () => {
-        it('throws missing zip file path error', () => {
-            expect(() => dfu.performDFU(undefined, "adapter", "instance")).toThrow();
-        });
+    it('throws error if transportParameters is not provided', () => {
+        expect(() => new Dfu(transportType, null)).toThrow();
     });
 
-    describe('when started without adapter', () => {
-        it('throws missing adapter error', () => {
-            expect(() => dfu.performDFU("path", undefined, "instance")).toThrow();
-        });
+    it('creates instance if all required parameters are provided', () => {
+        expect(new Dfu(transportType, transportParameters)).toBeDefined();
     });
-
-    describe('when started without instance ID', () => {
-        it('throws missing instance ID error', () => {
-            expect(() => dfu.performDFU("path", "adapter", undefined)).toThrow();
-        });
-    });
-
 });
