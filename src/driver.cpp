@@ -1306,6 +1306,9 @@ v8::Local<v8::Object> EnableParameters::ToJs()
     Utility::Set(obj, "common_enable_params", CommonEnableParameters(&native->common_enable_params).ToJs());
     Utility::Set(obj, "gap_enable_params", GapEnableParameters(&native->gap_enable_params).ToJs());
     Utility::Set(obj, "gatts_enable_params", GattsEnableParameters(&native->gatts_enable_params).ToJs());
+#if NRF_SD_BLE_API_VERSION >= 3
+    Utility::Set(obj, "gatt_enable_params", GattEnableParameters(&native->gatt_enable_params).ToJs());
+#endif
 
     return scope.Escape(obj);
 }
@@ -1316,6 +1319,9 @@ ble_enable_params_t *EnableParameters::ToNative()
     enable_params->common_enable_params = CommonEnableParameters(ConversionUtility::getJsObject(jsobj, "common_enable_params"));
     enable_params->gap_enable_params = GapEnableParameters(ConversionUtility::getJsObject(jsobj, "gap_enable_params"));
     enable_params->gatts_enable_params = GattsEnableParameters(ConversionUtility::getJsObjectOrNull(jsobj, "gatts_enable_params"));
+#if NRF_SD_BLE_API_VERSION >= 3
+    enable_params->gatt_enable_params = GattEnableParameters(ConversionUtility::getJsObjectOrNull(jsobj, "gatt_enable_params"));
+#endif
     return enable_params;
 }
 
