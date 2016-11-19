@@ -3790,6 +3790,9 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GAP_TIMEOUT_SRC_SECURITY_REQUEST); //Security request timeout.
         NODE_DEFINE_CONSTANT(target, BLE_GAP_TIMEOUT_SRC_SCAN); //Scanning timeout.
         NODE_DEFINE_CONSTANT(target, BLE_GAP_TIMEOUT_SRC_CONN); //Connection timeout.
+#if NRF_SD_BLE_API_VERSION >= 3
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_TIMEOUT_SRC_AUTH_PAYLOAD); //Authenticated payload timeout
+#endif
 
         /* BLE_GAP_ADDR_TYPES GAP Address types */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_ADDR_TYPE_PUBLIC); //Public address.

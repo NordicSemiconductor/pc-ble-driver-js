@@ -276,6 +276,7 @@ void Adapter::initGeneric(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "encodeUUID", EncodeUUID);
     Nan::SetPrototypeMethod(tpl, "decodeUUID", DecodeUUID);
     Nan::SetPrototypeMethod(tpl, "replyUserMemory", ReplyUserMemory);
+    Nan::SetPrototypeMethod(tpl, "setBleOption", SetBleOption);
 
     Nan::SetPrototypeMethod(tpl, "getStats", GetStats);
 }
@@ -327,6 +328,9 @@ void Adapter::initGattC(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "gattcReadCharacteristicValues", GattcReadCharacteristicValues);
     Nan::SetPrototypeMethod(tpl, "gattcWrite", GattcWrite);
     Nan::SetPrototypeMethod(tpl, "gattcConfirmHandleValue", GattcConfirmHandleValue);
+#if NRF_SD_BLE_API_VERSION >= 3
+    Nan::SetPrototypeMethod(tpl, "gattcExchangeMtuRequest", GattcExchangeMtuRequest);
+#endif
 }
 
 void Adapter::initGattS(v8::Local<v8::FunctionTemplate> tpl)
@@ -339,6 +343,9 @@ void Adapter::initGattS(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "gattsSetValue", GattsSetValue);
     Nan::SetPrototypeMethod(tpl, "gattsGetValue", GattsGetValue);
     Nan::SetPrototypeMethod(tpl, "gattsReplyReadWriteAuthorize", GattsReplyReadWriteAuthorize);
+#if NRF_SD_BLE_API_VERSION >= 3
+    Nan::SetPrototypeMethod(tpl, "gattsExchangeMtuReply", gattsExchangeMtuReply);
+#endif
 }
 
 Adapter::Adapter()

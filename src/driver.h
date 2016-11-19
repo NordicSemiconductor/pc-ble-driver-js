@@ -279,6 +279,13 @@ public:
     ble_user_mem_block_t *p_block;
 };
 
+class SetBleOptionBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(SetBleOptionBaton);
+    uint32_t opt_id;
+    ble_opt_t *p_opt;
+};
+
 ///// End Batons ////////////////////////////////////////
 
 

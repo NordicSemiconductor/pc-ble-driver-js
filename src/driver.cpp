@@ -562,7 +562,6 @@ void Adapter::AfterEnableBLE(uv_work_t *req)
     delete baton;
 }
 
-
 // This function runs in the Main Thread
 NAN_METHOD(Adapter::Open)
 {
@@ -1209,6 +1208,84 @@ void Adapter::AfterReplyUserMemory(uv_work_t *req)
 }
 
 #pragma region BandwidthCountParameters
+
+#pragma region SetBleOption
+
+// This function runs in the Main Thread
+NAN_METHOD(Adapter::SetBleOption)
+{
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    uint32_t optionId;
+    v8::Local<v8::Object> optionObject;
+    v8::Local<v8::Function> callback;
+    auto argumentcount = 0;
+
+    try
+    {
+        optionId = ConversionUtility::getNativeUint32(info[argumentcount]);
+        argumentcount++;
+
+        optionObject = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (std::string error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    auto baton = new SetBleOptionBaton(callback);
+    baton->adapter = obj->adapter;
+    baton->opt_id = optionId;
+
+    try
+    {
+        baton->p_opt = BleOption(optionObject);
+    }
+    catch (std::string error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("BLE Option", error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    uv_queue_work(uv_default_loop(), baton->req, SetBleOption, reinterpret_cast<uv_after_work_cb>(AfterSetBleOption));
+}
+
+// This runs in a worker thread (not Main Thread)
+void Adapter::SetBleOption(uv_work_t *req)
+{
+    auto baton = static_cast<SetBleOptionBaton *>(req->data);
+    baton->result = sd_ble_opt_set(baton->adapter, baton->opt_id, baton->p_opt);
+}
+
+// This runs in  Main Thread
+void Adapter::AfterSetBleOption(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+    auto baton = static_cast<EnableBLEBaton *>(req->data);
+
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "setting BLE option");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(3, argv);
+    delete baton->enable_params;
+    delete baton;
+}
+
+#pragma endregion SetBleOption
 
 v8::Local<v8::Object> BandwidthCountParameters::ToJs()
 {
