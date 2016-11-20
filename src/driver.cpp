@@ -1278,8 +1278,7 @@ void Adapter::AfterSetBleOption(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(3, argv);
-    delete baton->enable_params;
+    baton->callback->Call(1, argv);
     delete baton;
 }
 
@@ -1590,6 +1589,8 @@ ble_opt_t *BleOpt::ToNative()
 
     return ble_opt;
 }
+
+
 
 #pragma endregion BleOpt
 

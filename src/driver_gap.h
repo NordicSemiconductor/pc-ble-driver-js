@@ -455,7 +455,6 @@ class GapOpt : public BleToJs<ble_gap_opt_t>
 public:
     GapOpt(ble_gap_opt_t *gap_opt) : BleToJs<ble_gap_opt_t>(gap_opt) {}
     GapOpt(v8::Local<v8::Object> js) : BleToJs<ble_gap_opt_t>(js) {}
-    v8::Local<v8::Object> ToJs();
     ble_gap_opt_t *ToNative();
 };
 
@@ -465,7 +464,6 @@ class GapOptExtLen : public BleToJs<ble_gap_opt_ext_len_t>
 public:
     GapOptExtLen(ble_gap_opt_ext_len_t *ext_len) : BleToJs<ble_gap_opt_ext_len_t>(ext_len) {}
     GapOptExtLen(v8::Local<v8::Object> js) : BleToJs<ble_gap_opt_ext_len_t>(js) {}
-    v8::Local<v8::Object> ToJs();
     ble_gap_opt_ext_len_t *ToNative();
 };
 #endif

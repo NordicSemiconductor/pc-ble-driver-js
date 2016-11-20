@@ -155,8 +155,8 @@ public:
     explicit BleOpt(v8::Local<v8::Object> js) : BleToJs<ble_opt_t>(js) {}
     virtual ~BleOpt() {}
 
-    v8::Local<v8::Object> ToJs();
-    ble_opt_t *ToNative();
+    //v8::Local<v8::Object> ToJs() override;
+    ble_opt_t *ToNative() override;
 };
 
 #pragma region BleDriverCommonEvent
