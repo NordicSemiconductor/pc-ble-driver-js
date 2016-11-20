@@ -344,7 +344,7 @@ void Adapter::initGattS(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "gattsGetValue", GattsGetValue);
     Nan::SetPrototypeMethod(tpl, "gattsReplyReadWriteAuthorize", GattsReplyReadWriteAuthorize);
 #if NRF_SD_BLE_API_VERSION >= 3
-    Nan::SetPrototypeMethod(tpl, "gattsExchangeMtuReply", gattsExchangeMtuReply);
+    Nan::SetPrototypeMethod(tpl, "gattsExchangeMtuReply", GattsExchangeMtuReply);
 #endif
 }
 

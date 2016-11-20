@@ -1207,8 +1207,6 @@ void Adapter::AfterReplyUserMemory(uv_work_t *req)
     delete baton;
 }
 
-#pragma region BandwidthCountParameters
-
 #pragma region SetBleOption
 
 // This function runs in the Main Thread
@@ -1244,7 +1242,7 @@ NAN_METHOD(Adapter::SetBleOption)
 
     try
     {
-        baton->p_opt = BleOption(optionObject);
+        baton->p_opt = BleOpt(optionObject);
     }
     catch (std::string error)
     {
@@ -1286,6 +1284,8 @@ void Adapter::AfterSetBleOption(uv_work_t *req)
 }
 
 #pragma endregion SetBleOption
+
+#pragma region BandwidthCountParameters
 
 v8::Local<v8::Object> BandwidthCountParameters::ToJs()
 {
@@ -1569,6 +1569,29 @@ ble_uuid128_t *BleUUID128::ToNative()
 }
 
 #pragma endregion UUID128
+
+#pragma region BleOpt
+
+ble_opt_t *BleOpt::ToNative()
+{
+    auto ble_opt = new ble_opt_t();
+    memset(&ble_opt, 0, sizeof(ble_opt_t));
+
+    if (Utility::Has(jsobj, "common_opt")) {
+        //TODO: Implement common_opt
+        //auto common_opt_obj = ConversionUtility::getJsObjectOrNull(jsobj, "common_opt");
+        //ble_opt->common_opt = CommonOpt(common_opt_obj);
+    }
+    else if (Utility::Has(jsobj, "gap_opt"))
+    {
+        auto gap_opt_obj = ConversionUtility::getJsObject(jsobj, "gap_opt");
+        ble_opt->gap_opt = GapOpt(gap_opt_obj);
+    }
+
+    return ble_opt;
+}
+
+#pragma endregion BleOpt
 
 extern "C" {
     void init_adapter_list(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);

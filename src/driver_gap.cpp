@@ -389,6 +389,50 @@ ble_gap_conn_sec_t *GapConnSec::ToNative()
 
 #pragma endregion GapConnSec
 
+#pragma region GapOpt
+
+ble_gap_opt_t *GapOpt::ToNative()
+{
+    auto gap_opt = new ble_gap_opt_t();
+    memset(gap_opt, 0, sizeof(gap_opt));
+
+#if NRF_SD_BLE_API_VERSION >= 3
+    if (Utility::Has(jsobj, "ext_len")) {
+        auto ext_len_obj = ConversionUtility::getJsObject(jsobj, "ext_len");
+        gap_opt->ext_len = GapOptExtLen(ext_len_obj);
+    }
+#endif
+    //TODO: Add rest of gap_opt types
+
+    return gap_opt;
+}
+
+#pragma endregion GapOpt
+
+#pragma region GapOptExtLen
+
+#if NRF_SD_BLE_API_VERSION >= 3
+v8::Local<v8::Object> GapOptExtLen::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    Utility::Set(obj, "rxtx_max_pdu_payload_size", native->rxtx_max_pdu_payload_size);
+    return scope.Escape(obj);
+}
+
+ble_gap_opt_ext_len_t *GapOptExtLen::ToNative()
+{
+    auto ext_len = new ble_gap_opt_ext_len_t();
+    memset(ext_len, 0, sizeof(ble_gap_opt_ext_len_t));
+
+    ext_len->rxtx_max_pdu_payload_size = ConversionUtility::getNativeUint8(jsobj, "rxtx_max_pdu_payload_size");
+
+    return ext_len;
+}
+#endif
+
+#pragma endregion GapOptExtLen
+
 #pragma region GapIrk
 
 v8::Local<v8::Object> GapIrk::ToJs()

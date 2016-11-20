@@ -450,6 +450,25 @@ public:
     ble_gap_conn_sec_t *ToNative();
 };
 
+class GapOpt : public BleToJs<ble_gap_opt_t>
+{
+public:
+    GapOpt(ble_gap_opt_t *gap_opt) : BleToJs<ble_gap_opt_t>(gap_opt) {}
+    GapOpt(v8::Local<v8::Object> js) : BleToJs<ble_gap_opt_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_opt_t *ToNative();
+};
+
+#if NRF_SD_BLE_API_VERSION >= 3
+class GapOptExtLen : public BleToJs<ble_gap_opt_ext_len_t>
+{
+public:
+    GapOptExtLen(ble_gap_opt_ext_len_t *ext_len) : BleToJs<ble_gap_opt_ext_len_t>(ext_len) {}
+    GapOptExtLen(v8::Local<v8::Object> js) : BleToJs<ble_gap_opt_ext_len_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_opt_ext_len_t *ToNative();
+};
+#endif
 
 // Gap structs -- END --
 #pragma endregion Gap structs
