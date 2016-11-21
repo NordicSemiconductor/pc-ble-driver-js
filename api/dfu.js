@@ -42,6 +42,7 @@ const JSZip = require('jszip');
 const fs = require('fs');
 const EventEmitter = require('events');
 
+const logLevel = require('./util/logLevel');
 const { ErrorCode, createError } = require('./dfu/dfuConstants');
 const DfuTransport = require('./dfu/dfuTransport');
 const DfuSpeedometer = require('./dfu/dfuSpeedometer');
@@ -72,12 +73,16 @@ class Dfu extends EventEmitter {
         this._transportParameters = transportParameters;
         this._transport = null;
         this._speedometer = null;
-        this._handleProgressUpdate = _.throttle(this._handleProgressUpdate.bind(this), 1000);
-
         this._setState(DfuState.READY);
     }
 
-    // Run the entire DFU process
+    /**
+     * Perform DFU with the given zip file. Successful when callback is invoked
+     * with no arguments.
+     *
+     * @param zipFilePath path to DFU zip file
+     * @param callback signature: (err, abort) => {}
+     */
     performDFU(zipFilePath, callback) {
         if (this._state !== DfuState.READY) {
             throw new Error('Not in READY state. DFU in progress or aborting.');
@@ -85,25 +90,34 @@ class Dfu extends EventEmitter {
         if (!zipFilePath) {
             throw new Error('No zipFilePath provided.');
         }
+        if (!callback) {
+            throw new Error('No callback function provided.');
+        }
 
+        this._log(logLevel.INFO, `Performing DFU with file: ${zipFilePath}`);
         this._setState(DfuState.IN_PROGRESS);
 
         this._fetchUpdates(zipFilePath)
             .then(updates => this._performUpdates(updates))
-            .then(() => this._setState(DfuState.READY))
-            .then(() => callback && callback())
+            .then(() => {
+                this._log(logLevel.INFO, 'DFU completed successfully.');
+                this._setState(DfuState.READY);
+                callback();
+            })
             .catch(err => {
                 if (err.code === ErrorCode.ABORTED) {
-                    const aborted = true;
-                    if (callback) { callback(null, aborted); }
+                    this._log(logLevel.INFO, 'DFU aborted.');
+                    callback(null, true);
                 } else {
-                    if (callback) { callback(err); }
+                    this._log(logLevel.ERROR, `DFU failed with error: ${err.message}.`);
+                    callback(err);
                 }
                 this._setState(DfuState.READY);
             });
     }
 
     abort() {
+        this._log(logLevel.INFO, 'Aborting DFU.');
         this._setState(DfuState.ABORTING);
         if (this._transport) {
             this._transport.abort();
@@ -137,31 +151,50 @@ class Dfu extends EventEmitter {
     }
 
     _checkAbortState() {
-        return new Promise((resolve, reject) => {
-            if (this._state === DfuState.ABORTING) {
-                reject(createError(ErrorCode.ABORTED, 'Abort was triggered.'));
-            } else {
-                resolve();
-            }
-        });
+        if (this._state === DfuState.ABORTING) {
+            return Promise.reject(createError(ErrorCode.ABORTED, 'Abort was triggered.'));
+        }
+        return Promise.resolve();
     }
 
     _createDfuTransport() {
         return Promise.resolve()
             .then(() => {
+                this._log(logLevel.DEBUG, 'Creating DFU transport.');
                 this._transport = new DfuTransport(this._transportParameters);
+                this._setupTransportListeners();
                 return this._transport.init();
-            })
-            .then(() => this._transport.on('progressUpdate', this._handleProgressUpdate));
+            });
     }
 
     _destroyDfuTransport() {
-        return Promise.resolve()
-            .then(() => {
-                this._transport.removeListener('progressUpdate', this._handleProgressUpdate);
-                this._transport.destroy();
-                this._transport = null;
-            });
+        if (this._transport) {
+            this._log(logLevel.DEBUG, 'Destroying DFU transport.');
+            this._removeTransportListeners();
+            this._transport.destroy();
+            this._transport = null;
+        } else {
+            this._log(logLevel.DEBUG, 'No DFU transport exists, so nothing to clean up.');
+        }
+    }
+
+    _setupTransportListeners() {
+        const progressInterval = 1000;
+        const onProgressUpdate = _.throttle(progressUpdate => {
+            this._handleProgressUpdate(progressUpdate);
+        }, progressInterval);
+
+        const onLogMessage = (level, message) => {
+            this._log(level, message);
+        };
+
+        this._transport.on('progressUpdate', onProgressUpdate);
+        this._transport.on('logMessage', onLogMessage);
+    }
+
+    _removeTransportListeners() {
+        this._transport.removeAllListeners('progressUpdate');
+        this._transport.removeAllListeners('logMessage');
     }
 
     _transferInitPacket(file) {
@@ -214,11 +247,7 @@ class Dfu extends EventEmitter {
     _getManifestAsync(zipFilePath) {
         return new Promise((resolve, reject) => {
             this.getManifest(zipFilePath, (err, manifest) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(manifest);
-                }
+                err ? reject(err) : resolve(manifest);
             });
         });
     }
@@ -234,11 +263,7 @@ class Dfu extends EventEmitter {
     _loadZipAsync(zipFilePath) {
         return new Promise ((resolve, reject) => {
             this._loadZip(zipFilePath, (err, zip) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(zip);
-                }
+                err ? reject(err) : resolve(zip);
             });
         });
     }
@@ -258,13 +283,13 @@ class Dfu extends EventEmitter {
      * }, ... ]
      *
      * The sorting is such that the application update is put last.
-     * Each promise resolves with the contents of the given file.
      *
      * @param zipFilePath path of the zip file containing the updates
      * @returns Promise resolves to an array of updates
      * @private
      */
     _fetchUpdates(zipFilePath) {
+        this._log(logLevel.DEBUG, `Loading zip file: ${zipFilePath}`);
         return Promise.all([
             this._loadZipAsync(zipFilePath),
             this._getManifestAsync(zipFilePath)
@@ -273,6 +298,7 @@ class Dfu extends EventEmitter {
                 const firmwareUpdate = manifest[type];
                 const datFileName = firmwareUpdate['dat_file'];
                 const binFileName = firmwareUpdate['bin_file'];
+                this._log(logLevel.DEBUG, `Found ${type} files: ${datFileName}, ${binFileName}`);
                 return {
                     datFile: {
                         name: datFileName,
@@ -304,7 +330,6 @@ class Dfu extends EventEmitter {
      * @private
      */
     _loadZip(zipFilePath, callback) {
-        // Read zip file
         fs.readFile(zipFilePath, (err, data) => {
             if (err) {
                 return callback(err);
@@ -312,25 +337,44 @@ class Dfu extends EventEmitter {
 
             // Get and return zip object
             JSZip.loadAsync(data)
-            .then((zip) => {
-                callback(undefined, zip);
-            })
-            .catch((err) => {
-                return callback(err);
-            })
+                .then(zip => {
+                    callback(undefined, zip);
+                })
+                .catch(err => {
+                    return callback(err);
+                });
         })
     }
 
     /**
-     * Get and return manifest.json from the given zip file.
+     * Get and return manifest object from the given zip file.
      *
-     * @param zipFilePath path of the zip file
+     * The manifest object has one or more of the following properties:
+     * {
+     *   application: {},
+     *   bootloader: {},
+     *   softdevice: {},
+     *   softdevice_bootloader: {},
+     * }
+     *
+     * Each of the above properties have the following:
+     * {
+     *   bin_file: <string>, // Firmware filename
+     *   dat_file: <string>, // Init packet filename
+     * }
+     *
+     * The softdevice_bootloader property also has:
+     * info_read_only_metadata: {
+     *   bl_size: <integer>, // Bootloader size
+     *   sd_size: <integer>, // Softdevice size
+     * }
+     *
+     * @param zipFilePath path to the zip file
      * @param callback signature: (err, manifest) => {}
      */
     getManifest(zipFilePath, callback) {
-        if (zipFilePath === undefined) { throw new Error('Missing argument zipFilePath.'); }
-        if ((typeof zipFilePath !== "string") || (!zipFilePath.length)) {
-            throw new Error('zipFilePath must be a non-empty string.');
+        if (!zipFilePath) {
+            throw new Error('No zipFilePath provided.');
         }
 
         // Fetch zip object
@@ -340,37 +384,24 @@ class Dfu extends EventEmitter {
             }
             // Read out manifest from zip
             zip.file("manifest.json")
-            .async("string")
-            .then((data) => {
-                let manifest;
-                try {
-                    // Parse manifest as JASON
-                    manifest = JSON.parse(data)['manifest'];
-                } catch (err) {
-                    return callback(err);
-                }
-                // Return manifest
-                return callback(undefined, manifest);
-            }, (err) => {
-                return callback(err);
-            });
+                .async("string")
+                .then(data => {
+                    let manifest;
+                    try {
+                        // Parse manifest as JSON
+                        manifest = JSON.parse(data)['manifest'];
+                    } catch (err) {
+                        return callback(err);
+                    }
+                    // Return manifest
+                    return callback(undefined, manifest);
+                });
         })
     }
 
-    /* Manifest object format:
-    Consists of one or more properties whose name is one of:
-        application
-        bootloader
-        softdevice
-        softdevice_bootloader
-    Each of the above properties is a firmware object, on the format:
-        {bin_file: <binfile>,   // Name of file containing firmware.
-         dat_file: <datfile>}   // Name of file containing init packet.
-    A firmware object named softdevice_bootloader has one additional property:
-        info_read_only_metadata: {
-            bl_size: <blsize>,    // Size of bootloader.
-            sd_size: <sdsize>}    // Size of softdevice.
-    */
+    _log(logLevel, message) {
+        this.emit('logMessage', logLevel, message);
+    }
 }
 
 module.exports = Dfu;

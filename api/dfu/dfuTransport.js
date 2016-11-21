@@ -1,5 +1,6 @@
 'use strict';
 
+const logLevel = require('../util/logLevel');
 const DfuObjectWriter = require('./dfuObjectWriter');
 const DeviceInfoService = require('./deviceInfoService');
 const ControlPointService = require('./controlPointService');
@@ -56,10 +57,13 @@ class DfuTransport extends EventEmitter {
         if (this._isInitialized) {
             return Promise.resolve();
         }
+
         const targetAddress = this._transportParameters.targetAddress;
         const targetAddressType = this._transportParameters.targetAddressType;
         const prnValue = this._transportParameters.prnValue;
         const mtuSize = this._transportParameters.mtuSize;
+        this._debug(`Initializing DFU transport with targetAddress: ${targetAddress}, ` +
+            `targetAddressType: ${targetAddressType}, prnValue: ${prnValue}, mtuSize: ${mtuSize}.`);
 
         return this._connectIfNeeded(targetAddress, targetAddressType)
             .then(deviceInstanceId => {
@@ -101,6 +105,8 @@ class DfuTransport extends EventEmitter {
             .then(controlPointCharacteristicId => {
                 return deviceInfoService.getCharacteristicId(SERVICE_UUID, DFU_PACKET_UUID)
                     .then(packetCharacteristicId => {
+                        this._debug(`Found controlPointCharacteristicId: ${controlPointCharacteristicId}, ` +
+                            `packetCharacteristicId: ${packetCharacteristicId}`);
                         return {
                             controlPointId: controlPointCharacteristicId,
                             packetId: packetCharacteristicId
@@ -123,6 +129,7 @@ class DfuTransport extends EventEmitter {
         if (device && device.connected) {
             return Promise.resolve(device._instanceId);
         } else {
+            this._debug(`Connecting to address: ${targetAddress}, type: ${targetAddressType}.`);
             return this._connect(targetAddress, targetAddressType);
         }
     }
@@ -181,8 +188,11 @@ class DfuTransport extends EventEmitter {
         return this.getInitPacketState(data)
             .then(state => {
                 if (state.isResumable) {
+                    this._debug(`Resuming init packet: ${state.toString()}`);
                     return this._writeObject(state.remainingData, ObjectType.COMMAND, state.offset, state.crc32);
                 }
+
+                this._debug(`Sending new init packet: ${state.toString()}`);
                 return this._createAndWriteObject(state.remainingData, ObjectType.COMMAND);
             });
     }
@@ -201,11 +211,16 @@ class DfuTransport extends EventEmitter {
                 const offset = state.offset;
                 const crc32 = state.crc32;
                 const objects = state.remainingObjects;
+
                 if (state.isResumable) {
                     const partialObject = state.remainingPartialObject;
+
+                    this._debug(`Completing partial firmware object before proceeding: ${state.toString()}`);
                     return this._writeObject(partialObject, ObjectType.DATA, offset, crc32).then(progress =>
                         this._createAndWriteObjects(objects, ObjectType.DATA, progress.offset, progress.crc32));
                 }
+
+                this._debug(`Sending remaining firmware objects: ${state.toString()}`);
                 return this._createAndWriteObjects(objects, ObjectType.DATA, offset, crc32);
         });
     }
@@ -216,6 +231,8 @@ class DfuTransport extends EventEmitter {
      * @returns Promise resolving when the target device is disconnected
      */
     waitForDisconnection() {
+        this._debug(`Waiting for device ${this._deviceInstanceId} to disconnect.`);
+
         return new Promise((resolve, reject) => {
             const TIMEOUT_MS = 10000;
 
@@ -252,7 +269,12 @@ class DfuTransport extends EventEmitter {
     getInitPacketState(data) {
         return this.init()
             .then(() => this._controlPointService.selectObject(ObjectType.COMMAND))
-            .then(response => new InitPacketState(data, response));
+            .then(response => {
+                this._debug(`Got init packet state from target. Offset: ${response.offset}, ` +
+                    `crc32: ${response.crc32}, maximumSize: ${response.maximumSize}.`);
+
+                return new InitPacketState(data, response);
+            });
     }
 
     /**
@@ -264,7 +286,12 @@ class DfuTransport extends EventEmitter {
     getFirmwareState(data) {
         return this.init()
             .then(() => this._controlPointService.selectObject(ObjectType.DATA))
-            .then(response => new FirmwareState(data, response));
+            .then(response => {
+                this._debug(`Got firmware state from target. Offset: ${response.offset}, ` +
+                    `crc32: ${response.crc32}, maximumSize: ${response.maximumSize}.`);
+
+                return new FirmwareState(data, response);
+            });
     }
 
     /**
@@ -330,6 +357,7 @@ class DfuTransport extends EventEmitter {
      */
     _handleConnParamUpdateRequest(device, connectionParameters) {
         if (device._instanceId === this._deviceInstanceId) {
+            this._debug(`Received connection parameter update request from device: ${this._deviceInstanceId}.`);
             this._adapter.updateConnectionParameters(this._deviceInstanceId, connectionParameters, err => {
                 if (err) {
                     throw err;
@@ -456,6 +484,10 @@ class DfuTransport extends EventEmitter {
                 return 'firmware';
         }
         return 'unknown object';
+    }
+
+    _debug(message) {
+        this.emit('logMessage', logLevel.DEBUG, message);
     }
 }
 
