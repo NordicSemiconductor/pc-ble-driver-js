@@ -94,12 +94,12 @@ class Dfu extends EventEmitter {
             .then(() => callback && callback())
             .catch(err => {
                 if (err.code === ErrorCode.ABORTED) {
-                    this._setState(DfuState.READY);
                     const aborted = true;
                     if (callback) { callback(null, aborted); }
                 } else {
                     if (callback) { callback(err); }
                 }
+                this._setState(DfuState.READY);
             });
     }
 
