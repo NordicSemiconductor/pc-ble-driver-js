@@ -241,7 +241,7 @@ class DfuTransport extends EventEmitter {
             // Fallback: time out.
             setTimeout(() => {
                 this._adapter.removeListener('deviceDisconnected', disconnectionHandler);
-                reject('Timed out waiting for target device disconnection.');
+                reject('Timed out waiting for DFU Target to disconnect.');
             }, TIMEOUT_MS);
         });
     }

@@ -41,7 +41,13 @@ class DfuPacketWriter {
             const value = packet;
             const ack = false;
             this._adapter.writeCharacteristicValue(characteristicId, value, ack, error => {
-                error ? reject(createError(ErrorCode.WRITE_ERROR, error.message)) : resolve();
+                if (error) {
+                    const message = 'When writing data to DFU Packet ' +
+                      'Characteristic on DFU Target: ' + error.message;
+                    reject(createError(ErrorCode.WRITE_ERROR, message));
+                } else {
+                    resolve();
+                }
             });
         });
     }

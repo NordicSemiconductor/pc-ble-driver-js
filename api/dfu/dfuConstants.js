@@ -3,12 +3,12 @@
 // Control point operation codes for DFU BLE transport.
 // (Not to be confused with "NRF DFU Object codes".)
 const ControlPointOpcode = Object.freeze({
-    CREATE: 0x01,
-    SET_PRN: 0x02, // Set Packet Receipt Notification
-    CALCULATE_CRC: 0x03, // Calculate CRC checksum
-    EXECUTE: 0x04,
-    SELECT: 0x06,
-    RESPONSE: 0x60, // Response command, only returned by the DFU target
+    CREATE: 0x01, 0x01: 'Create',
+    SET_PRN: 0x02, 0x02: 'Set Packet Receipt Notification (PRN) value', // Set Packet Receipt Notification
+    CALCULATE_CRC: 0x03, 0x03: 'Calculate checksum', // Calculate CRC checksum
+    EXECUTE: 0x04, 0x04: 'Execute',
+    SELECT: 0x06, 0x06: 'Select',
+    RESPONSE: 0x60, 0x60: 'Response Code', // Response command, only returned by the DFU target
 });
 
 // Return codes (result codes) for Control Point operations.
@@ -30,6 +30,7 @@ const ObjectType = Object.freeze({
     DATA: 0x02,
 });
 
+// Error codes returned from DFU module.
 const ErrorCode = Object.freeze({
     ABORTED: 0x01,
     NOTIFICATION_TIMEOUT: 0x02,

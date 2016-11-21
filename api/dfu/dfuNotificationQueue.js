@@ -46,8 +46,9 @@ class DfuNotificationQueue {
         const pollInterval = 0;
         const timeoutPromise = new Promise((resolve, reject) => {
             setTimeout(() => {
-                reject(createError(ErrorCode.NOTIFICATION_TIMEOUT, `Timed out when waiting for ` +
-                    `response to operation ${opCode}`));
+                reject(createError(ErrorCode.NOTIFICATION_TIMEOUT,
+                    `Timed out while waiting for response from DFU Target ` +
+                    `to operation code ${opCode} "${ControlPointOpcode[opCode]}".`));
             }, timeout);
         });
         return Promise.race([
@@ -93,13 +94,16 @@ class DfuNotificationQueue {
                 if (value[2] === ResultCode.SUCCESS) {
                     return value;
                 } else {
-                    throw createError(ErrorCode.COMMAND_ERROR, `Operation ` +
-                        `${opCode} returned error code ${value[2]}`);
+                    throw createError(ErrorCode.COMMAND_ERROR,
+                        `Operation code ${opCode} "${ControlPointOpcode[opCode]}" ` +
+                        `failed on DFU Target. ` +
+                        `Result code ${value[2]} "${ResultCode[value[2]]}"`);
                 }
             } else {
-                throw createError(ErrorCode.UNEXPECTED_NOTIFICATION, `Got unexpected ` +
-                    `response. Expected code ${ControlPointOpcode.RESPONSE}, but got ` +
-                    `code ${value[1]}.`);
+                throw createError(ErrorCode.UNEXPECTED_NOTIFICATION,
+                    `Got unexpected response from DFU Target. ` +
+                    `Expected response to opcode ${opCode} "${ControlPointOpcode[opCode]}", ` +
+                    `but got response to opcode ${value[1]} "${ControlPointOpcode[value[1]]}".`);
             }
         }
         return null;
