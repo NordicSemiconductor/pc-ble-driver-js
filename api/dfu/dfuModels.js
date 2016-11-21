@@ -52,6 +52,11 @@ class InitPacketState {
                 `is larger than max size (${deviceMaxSize})`);
         }
     }
+
+    toString() {
+        return `{ isResumable: ${this.isResumable}, offset: ${this.offset}, crc32: ${this.crc32}, ` +
+            `remainingData.length: ${this.remainingData.length} }`;
+    }
 }
 
 class FirmwareState {
@@ -103,6 +108,12 @@ class FirmwareState {
 
     get isResumable() {
         return this._isResumable;
+    }
+
+    toString() {
+        return `{ isResumable: ${this.isResumable}, offset: ${this.offset}, crc32: ${this.crc32}, ` +
+            `remainingPartialObject.length: ${this.remainingPartialObject.length}, ` +
+            `remainingObjects.length: ${this.remainingObjects.length}, totalSize: ${this.totalSize} }`;
     }
 }
 
