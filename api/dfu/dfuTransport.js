@@ -67,7 +67,7 @@ class DfuTransport extends EventEmitter {
             `targetAddressType: ${targetAddressType}, prnValue: ${prnValue}, mtuSize: ${mtuSize}.`);
 
         return this._connectIfNeeded(targetAddress, targetAddressType)
-            .then(deviceInstanceId => this._getCharacteristicIds(deviceInstanceId))
+            .then(device => this._getCharacteristicIds(device))
             .then(characteristicIds => {
                 const controlPointId = characteristicIds.controlPointId;
                 const packetId = characteristicIds.packetId;
@@ -98,12 +98,13 @@ class DfuTransport extends EventEmitter {
     /**
      * Find the DFU control point and packet characteristic IDs.
      *
+     * @param device the device to find characteristic IDs for
      * @returns { controlPointId, packetId }
      * @private
      */
-    _getCharacteristicIds(deviceInstanceId) {
-        const deviceInfoService = new DeviceInfoService(this._adapter, deviceInstanceId);
         return deviceInfoService.getCharacteristicId(SERVICE_UUID, DFU_CONTROL_POINT_UUID)
+    _getCharacteristicIds(device) {
+        const deviceInfoService = new DeviceInfoService(this._adapter, device.instanceId);
             .then(controlPointCharacteristicId => {
                 return deviceInfoService.getCharacteristicId(SERVICE_UUID, DFU_PACKET_UUID)
                     .then(packetCharacteristicId => {
@@ -123,13 +124,13 @@ class DfuTransport extends EventEmitter {
      *
      * @param targetAddress the address to connect to
      * @param targetAddressType the target address type
-     * @returns Promise that resolves with device instance id when connected
+     * @returns Promise that resolves with device when connected
      * @private
      */
     _connectIfNeeded(targetAddress, targetAddressType) {
         const device = this._getConnectedDevice(targetAddress);
         if (device) {
-            return Promise.resolve(device.instanceId);
+            return Promise.resolve(device);
         } else {
             this._debug(`Connecting to address: ${targetAddress}, type: ${targetAddressType}.`);
             return this._connect(targetAddress, targetAddressType);
@@ -162,7 +163,7 @@ class DfuTransport extends EventEmitter {
      *
      * @param targetAddress the address to connect to
      * @param targetAddressType the target address type
-     * @returns Promise that resolves with device instance id when connected
+     * @returns Promise that resolves with device when connected
      * @private
      */
     _connect(targetAddress, targetAddressType) {
@@ -192,7 +193,7 @@ class DfuTransport extends EventEmitter {
 
         return new Promise((resolve, reject) => {
             this._adapter.connect(addressParameters, options, (err, device) => {
-                err ? reject(err) : resolve(device.instanceId);
+                err ? reject(err) : resolve(device);
             });
         });
     }
