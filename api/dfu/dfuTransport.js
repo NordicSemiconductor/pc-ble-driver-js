@@ -247,11 +247,10 @@ class DfuTransport extends EventEmitter {
         this._emitInitializeEvent(ObjectType.COMMAND);
         return this.getInitPacketState(data)
             .then(state => {
+                this._debug(`Sending init packet: ${state.toString()}`);
                 if (state.isResumable) {
-                    this._debug(`Resuming init packet: ${state.toString()}`);
                     return this._writeObject(state.remainingData, ObjectType.COMMAND, state.offset, state.crc32);
                 }
-                this._debug(`Sending new init packet: ${state.toString()}`);
                 return this._createAndWriteObject(state.remainingData, ObjectType.COMMAND);
             });
     }
@@ -267,19 +266,14 @@ class DfuTransport extends EventEmitter {
         this._emitInitializeEvent(ObjectType.DATA);
         return this.getFirmwareState(data)
             .then(state => {
-                const offset = state.offset;
-                const crc32 = state.crc32;
+                this._debug(`Sending firmware: ${state.toString()}`);
                 const objects = state.remainingObjects;
-
                 if (state.isResumable) {
                     const partialObject = state.remainingPartialObject;
-
-                    this._debug(`Completing partial firmware object before proceeding: ${state.toString()}`);
-                    return this._writeObject(partialObject, ObjectType.DATA, offset, crc32).then(progress =>
+                    return this._writeObject(partialObject, ObjectType.DATA, state.offset, state.crc32).then(progress =>
                         this._createAndWriteObjects(objects, ObjectType.DATA, progress.offset, progress.crc32));
                 }
-                this._debug(`Sending remaining firmware objects: ${state.toString()}`);
-                return this._createAndWriteObjects(objects, ObjectType.DATA, offset, crc32);
+                return this._createAndWriteObjects(objects, ObjectType.DATA, state.offset, state.crc32);
         });
     }
 
