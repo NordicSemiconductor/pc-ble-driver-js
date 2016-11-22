@@ -157,11 +157,10 @@ function listServices(adapter) {
         deviceID = device._instanceId;
     });
 
-    dfu.on('initialized', () => console.log('DFU initialized!'));
-    dfu.on('controlPointResponse', (response) => console.log('controlPointResponse: ', response));
+    dfu.on('logMessage', (severity, message) => console.log(message));
     dfu.on('progressUpdate', progressUpdate => console.log(`${progressUpdate.stage}: ${progressUpdate.percentCompleted} % (${progressUpdate.completedBytes} / ${progressUpdate.totalBytes})`));
-
-    dfu.on('initialized', () => console.log('DFU is initialized.'));
+    dfu.on('transferStart', fileName => console.log('Sending file:', fileName));
+    dfu.on('transferComplete', fileName => console.log('Completed file:', fileName));
 
     setupAdapter(adapter, 'Adapter', 'FF:11:22:33:AA:BF', 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC', () => {
         dfu.performDFU(zipPath, (err) => {
