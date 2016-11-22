@@ -44,6 +44,7 @@ const ErrorCode = Object.freeze({
     NOTIFICATION_STOP_ERROR: 0x11,
     INIT_PACKET_TOO_LARGE: 0x12,
     DISCONNECTION_TIMEOUT: 0x13,
+    CONNECTION_PARAM_ERROR: 0x14,
 });
 
 function createError(code, message) {

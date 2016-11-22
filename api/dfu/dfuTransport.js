@@ -62,19 +62,21 @@ class DfuTransport extends EventEmitter {
         const targetAddressType = this._transportParameters.targetAddressType;
         const prnValue = this._transportParameters.prnValue;
         const mtuSize = this._transportParameters.mtuSize;
+
         this._debug(`Initializing DFU transport with targetAddress: ${targetAddress}, ` +
             `targetAddressType: ${targetAddressType}, prnValue: ${prnValue}, mtuSize: ${mtuSize}.`);
 
         return this._connectIfNeeded(targetAddress, targetAddressType)
-            .then(deviceInstanceId => {
-                this._deviceInstanceId = deviceInstanceId;
-                return this._getCharacteristicIds(deviceInstanceId);
-            })
+            .then(deviceInstanceId => this._getCharacteristicIds(deviceInstanceId))
             .then(characteristicIds => {
-                this._controlPointService = new ControlPointService(this._adapter, characteristicIds.controlPointId);
-                this._objectWriter = new DfuObjectWriter(this._adapter, characteristicIds.controlPointId, characteristicIds.packetId);
-                this._objectWriter.on('packetWritten', progress => this._emitTransferEvent(progress.offset, progress.type));
-                return this._startCharacteristicsNotifications(characteristicIds.controlPointId);
+                const controlPointId = characteristicIds.controlPointId;
+                const packetId = characteristicIds.packetId;
+                this._controlPointService = new ControlPointService(this._adapter, controlPointId);
+                this._objectWriter = new DfuObjectWriter(this._adapter, controlPointId, packetId);
+                this._objectWriter.on('packetWritten', progress => {
+                    this._emitTransferEvent(progress.offset, progress.type);
+                });
+                return this._startCharacteristicsNotifications(controlPointId);
             })
             .then(() => prnValue ? this._setPrn(prnValue) : null)
             .then(() => mtuSize ? this._setMtuSize(mtuSize) : null)
@@ -94,7 +96,7 @@ class DfuTransport extends EventEmitter {
 
 
     /**
-     * Find the control point and dfu packet characteristic IDs.
+     * Find the DFU control point and packet characteristic IDs.
      *
      * @returns { controlPointId, packetId }
      * @private
@@ -125,9 +127,9 @@ class DfuTransport extends EventEmitter {
      * @private
      */
     _connectIfNeeded(targetAddress, targetAddressType) {
-        const device = this._adapter._getDeviceByAddress(targetAddress);
-        if (device && device.connected) {
-            return Promise.resolve(device._instanceId);
+        const device = this._getConnectedDevice(targetAddress);
+        if (device) {
+            return Promise.resolve(device.instanceId);
         } else {
             this._debug(`Connecting to address: ${targetAddress}, type: ${targetAddressType}.`);
             return this._connect(targetAddress, targetAddressType);
@@ -249,7 +251,6 @@ class DfuTransport extends EventEmitter {
                     this._debug(`Resuming init packet: ${state.toString()}`);
                     return this._writeObject(state.remainingData, ObjectType.COMMAND, state.offset, state.crc32);
                 }
-
                 this._debug(`Sending new init packet: ${state.toString()}`);
                 return this._createAndWriteObject(state.remainingData, ObjectType.COMMAND);
             });
@@ -379,11 +380,12 @@ class DfuTransport extends EventEmitter {
      * @private
      */
     _handleConnParamUpdateRequest(device, connectionParameters) {
-        if (device._instanceId === this._deviceInstanceId) {
-            this._debug(`Received connection parameter update request from device: ${this._deviceInstanceId}.`);
-            this._adapter.updateConnectionParameters(this._deviceInstanceId, connectionParameters, err => {
+        const connectedDevice = this._getConnectedDevice(this._transportParameters.targetAddress);
+        if (connectedDevice && connectedDevice.instanceId === device.instanceId) {
+            this._debug('Received connection parameter update request from target device.');
+            this._adapter.updateConnectionParameters(device.instanceId, connectionParameters, err => {
                 if (err) {
-                    throw err;
+                    throw createError(ErrorCode.CONNECTION_PARAM_ERROR, err.message);
                 }
             });
         }
