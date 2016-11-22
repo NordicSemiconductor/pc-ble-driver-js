@@ -136,6 +136,26 @@ class DfuTransport extends EventEmitter {
 
 
     /**
+     * Returns connected device for the given address. If there is no connected
+     * device for the address, then null is returned.
+     *
+     * @param targetAddress the address to get connected device for
+     * @returns connected device
+     * @private
+     */
+    _getConnectedDevice(targetAddress) {
+        const devices = this._adapter.getDevices();
+        const deviceId = Object.keys(devices).find(deviceId => {
+            return devices[deviceId].address === targetAddress;
+        });
+        if (deviceId && devices[deviceId].connected) {
+            return devices[deviceId];
+        }
+        return null;
+    }
+
+
+    /**
      * Connect to the target device.
      *
      * @param targetAddress the address to connect to
@@ -170,8 +190,46 @@ class DfuTransport extends EventEmitter {
 
         return new Promise((resolve, reject) => {
             this._adapter.connect(addressParameters, options, (err, device) => {
-                err ? reject(err) : resolve(device._instanceId);
+                err ? reject(err) : resolve(device.instanceId);
             });
+        });
+    }
+
+
+    /**
+     * Wait for the connection to the DFU target to break. Times out with an
+     * error if the target is not disconnected within 10 seconds.
+     *
+     * @returns Promise resolving when the target device is disconnected
+     */
+    waitForDisconnection() {
+        this._debug('Waiting for target device to disconnect.');
+        const TIMEOUT_MS = 10000;
+
+        return new Promise((resolve, reject) => {
+            const connectedDevice = this._getConnectedDevice(this._transportParameters.targetAddress);
+            if (!connectedDevice) {
+                this._debug('Already disconnected from target device.');
+                return resolve();
+            }
+
+            let timeout;
+            const disconnectionHandler = device => {
+                if (device.instanceId === connectedDevice.instanceId) {
+                    clearTimeout(timeout);
+                    this._debug('Received disconnection event for target device.');
+                    this._adapter.removeListener('deviceDisconnected', disconnectionHandler);
+                    resolve();
+                }
+            };
+
+            timeout = setTimeout(() => {
+                this._adapter.removeListener('deviceDisconnected', disconnectionHandler);
+                reject(createError(ErrorCode.DISCONNECTION_TIMEOUT,
+                    'Timed out when waiting for target device to disconnect.'));
+            }, TIMEOUT_MS);
+
+            this._adapter.on('deviceDisconnected', disconnectionHandler);
         });
     }
 
@@ -219,46 +277,11 @@ class DfuTransport extends EventEmitter {
                     return this._writeObject(partialObject, ObjectType.DATA, offset, crc32).then(progress =>
                         this._createAndWriteObjects(objects, ObjectType.DATA, progress.offset, progress.crc32));
                 }
-
                 this._debug(`Sending remaining firmware objects: ${state.toString()}`);
                 return this._createAndWriteObjects(objects, ObjectType.DATA, offset, crc32);
         });
     }
 
-    /**
-     * Wait for the connection to the DFU target to break.
-     *
-     * @returns Promise resolving when the target device is disconnected
-     */
-    waitForDisconnection() {
-        this._debug(`Waiting for device ${this._deviceInstanceId} to disconnect.`);
-
-        return new Promise((resolve, reject) => {
-            const TIMEOUT_MS = 10000;
-
-            // Handler resolving on disconnect from the DFU target.
-            const disconnectionHandler = (device => {
-                if (device._instanceId === this._deviceInstanceId) {
-                    this._adapter.removeListener('deviceDisconnected', disconnectionHandler);
-                    resolve();
-                }
-            });
-            this._adapter.on('deviceDisconnected', disconnectionHandler);
-
-            // Check if already disconnected.
-            if (!this._adapter.getDevice(this._deviceInstanceId) ||
-                !this._adapter.getDevice(this._deviceInstanceId).connected) {
-                this._adapter.removeListener('deviceDisconnected', disconnectionHandler);
-                resolve();
-            }
-
-            // Fallback: time out.
-            setTimeout(() => {
-                this._adapter.removeListener('deviceDisconnected', disconnectionHandler);
-                reject('Timed out waiting for target device disconnection.');
-            }, TIMEOUT_MS);
-        });
-    }
 
     /**
      * Returns the current init packet transfer state.
