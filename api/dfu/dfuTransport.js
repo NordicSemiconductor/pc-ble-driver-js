@@ -10,9 +10,22 @@ const EventEmitter = require('events');
 
 const MAX_RETRIES = 3;
 
-const SERVICE_UUID = 'FE59';
+const DFU_SERVICE_UUID = 'FE59';
 const DFU_CONTROL_POINT_UUID = '8EC90001F3154F609FB8838830DAEA50';
 const DFU_PACKET_UUID = '8EC90002F3154F609FB8838830DAEA50';
+
+const DEFAULT_CONNECTION_PARAMS = {
+    min_conn_interval: 7.5,
+    max_conn_interval: 7.5,
+    slave_latency: 0,
+    conn_sup_timeout: 4000,
+};
+const DEFAULT_SCAN_PARAMS = {
+    active: true,
+    interval: 100,
+    window: 50,
+    timeout: 20,
+};
 
 
 class DfuTransport extends EventEmitter {
@@ -102,11 +115,11 @@ class DfuTransport extends EventEmitter {
      * @returns { controlPointId, packetId }
      * @private
      */
-        return deviceInfoService.getCharacteristicId(SERVICE_UUID, DFU_CONTROL_POINT_UUID)
     _getCharacteristicIds(device) {
         const deviceInfoService = new DeviceInfoService(this._adapter, device.instanceId);
+        return deviceInfoService.getCharacteristicId(DFU_SERVICE_UUID, DFU_CONTROL_POINT_UUID)
             .then(controlPointCharacteristicId => {
-                return deviceInfoService.getCharacteristicId(SERVICE_UUID, DFU_PACKET_UUID)
+                return deviceInfoService.getCharacteristicId(DFU_SERVICE_UUID, DFU_PACKET_UUID)
                     .then(packetCharacteristicId => {
                         this._debug(`Found controlPointCharacteristicId: ${controlPointCharacteristicId}, ` +
                             `packetCharacteristicId: ${packetCharacteristicId}`);
@@ -167,32 +180,18 @@ class DfuTransport extends EventEmitter {
      * @private
      */
     _connect(targetAddress, targetAddressType) {
-        const connectionParameters = {
-            min_conn_interval: 7.5,
-            max_conn_interval: 7.5,
-            slave_latency: 0,
-            conn_sup_timeout: 4000,
-        };
-
-        const scanParameters = {
-            active: true,
-            interval: 100,
-            window: 50,
-            timeout: 20,
-        };
-
         const options = {
-            scanParams: scanParameters,
-            connParams: connectionParameters,
+            scanParams: DEFAULT_SCAN_PARAMS,
+            connParams: DEFAULT_CONNECTION_PARAMS,
         };
 
-        const addressParameters = {
+        const addressParams = {
             address: targetAddress,
             type: targetAddressType,
         };
 
         return new Promise((resolve, reject) => {
-            this._adapter.connect(addressParameters, options, (err, device) => {
+            this._adapter.connect(addressParams, options, (err, device) => {
                 err ? reject(err) : resolve(device);
             });
         });
