@@ -248,7 +248,7 @@ class DfuTransport extends EventEmitter {
         return this.getInitPacketState(data)
             .then(state => {
                 this._debug(`Sending init packet: ${state.toString()}`);
-                if (state.isResumable) {
+                if (state.hasResumablePartialObject) {
                     return this._writeObject(state.remainingData, ObjectType.COMMAND, state.offset, state.crc32);
                 }
                 return this._createAndWriteObject(state.remainingData, ObjectType.COMMAND);
@@ -268,7 +268,7 @@ class DfuTransport extends EventEmitter {
             .then(state => {
                 this._debug(`Sending firmware: ${state.toString()}`);
                 const objects = state.remainingObjects;
-                if (state.isResumable) {
+                if (state.hasResumablePartialObject) {
                     const partialObject = state.remainingPartialObject;
                     return this._writeObject(partialObject, ObjectType.DATA, state.offset, state.crc32).then(progress =>
                         this._createAndWriteObjects(objects, ObjectType.DATA, progress.offset, progress.crc32));

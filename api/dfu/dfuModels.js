@@ -18,32 +18,32 @@ class InitPacketState {
         this._validateSize(data.length, deviceState.maximumSize);
         this._deviceState = deviceState;
         this._data = data;
-        this._isResumable = _canResumeWriting(this._data, deviceState.offset, deviceState.crc32);
+        this._hasResumablePartialObject = _canResumeWriting(this._data, deviceState.offset, deviceState.crc32);
     }
 
     get offset() {
-        if (this._isResumable) {
+        if (this._hasResumablePartialObject) {
             return this._deviceState.offset;
         }
         return 0;
     }
 
     get crc32() {
-        if (this._isResumable) {
+        if (this._hasResumablePartialObject) {
             return this._deviceState.crc32;
         }
         return 0;
     }
 
     get remainingData() {
-        if (this._isResumable) {
+        if (this._hasResumablePartialObject) {
             return this._data.slice(this._deviceState.offset);
         }
         return this._data;
     }
 
-    get isResumable() {
-        return this._isResumable;
+    get hasResumablePartialObject() {
+        return this._hasResumablePartialObject;
     }
 
     _validateSize(size, deviceMaxSize) {
@@ -54,8 +54,8 @@ class InitPacketState {
     }
 
     toString() {
-        return `{ isResumable: ${this.isResumable}, offset: ${this.offset}, crc32: ${this.crc32}, ` +
-            `remainingData.length: ${this.remainingData.length} }`;
+        return `{ hasResumablePartialObject: ${this.hasResumablePartialObject}, offset: ${this.offset}, ` +
+            `crc32: ${this.crc32}, remainingData.length: ${this.remainingData.length} }`;
     }
 }
 
@@ -72,11 +72,11 @@ class FirmwareState {
         this._data = data;
         this._deviceState = deviceState;
         this._partialObject = _getRemainingPartialObject(this._data, deviceState.maximumSize, deviceState.offset);
-        this._isResumable = _canResumeWriting(this._data, deviceState.offset, deviceState.crc32);
+        this._hasResumablePartialObject = _canResumeWriting(this._data, deviceState.offset, deviceState.crc32);
     }
 
     get offset() {
-        if (this._partialObject.length > 0 && !this._isResumable) {
+        if (this._partialObject.length > 0 && !this._hasResumablePartialObject) {
             // There is a partial object on the device, but crc32 is invalid.
             // Object must be re-created, so return offset at the beginning of object.
             return this._deviceState.offset - this._deviceState.maximumSize + this._partialObject.length;
@@ -85,7 +85,7 @@ class FirmwareState {
     }
 
     get crc32() {
-        if (this._partialObject.length > 0 && !this._isResumable) {
+        if (this._partialObject.length > 0 && !this._hasResumablePartialObject) {
             // There is a partial object on the device, but crc32 is invalid.
             // Object must be re-created, so clear the crc32 value.
             return 0;
@@ -103,16 +103,16 @@ class FirmwareState {
     }
 
     get remainingPartialObject() {
-        return this._isResumable ? this._partialObject : [];
+        return this._hasResumablePartialObject ? this._partialObject : [];
     }
 
-    get isResumable() {
-        return this._isResumable;
+    get hasResumablePartialObject() {
+        return this._hasResumablePartialObject;
     }
 
     toString() {
-        return `{ isResumable: ${this.isResumable}, offset: ${this.offset}, crc32: ${this.crc32}, ` +
-            `remainingPartialObject.length: ${this.remainingPartialObject.length}, ` +
+        return `{ hasResumablePartialObject: ${this.hasResumablePartialObject}, offset: ${this.offset}, ` +
+            `crc32: ${this.crc32}, remainingPartialObject.length: ${this.remainingPartialObject.length}, ` +
             `remainingObjects.length: ${this.remainingObjects.length}, totalSize: ${this.totalSize} }`;
     }
 }

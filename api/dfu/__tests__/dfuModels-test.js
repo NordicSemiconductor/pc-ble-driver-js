@@ -35,8 +35,8 @@ describe('InitPacketState', () => {
             expect(initPacketState.remainingData).toEqual(data);
         });
 
-        it('should not be resumable', () => {
-            expect(initPacketState.isResumable).toEqual(false);
+        it('should not have resumable partial object', () => {
+            expect(initPacketState.hasResumablePartialObject).toEqual(false);
         });
     });
 
@@ -63,8 +63,8 @@ describe('InitPacketState', () => {
             expect(initPacketState.remainingData).toEqual(data);
         });
 
-        it('should not be resumable', () => {
-            expect(initPacketState.isResumable).toEqual(false);
+        it('should not have resumable partial object', () => {
+            expect(initPacketState.hasResumablePartialObject).toEqual(false);
         });
     });
 
@@ -90,8 +90,8 @@ describe('InitPacketState', () => {
             expect(initPacketState.remainingData).toEqual([3]);
         });
 
-        it('should be resumable', () => {
-            expect(initPacketState.isResumable).toEqual(true);
+        it('should have resumable partial object', () => {
+            expect(initPacketState.hasResumablePartialObject).toEqual(true);
         });
     });
 });
@@ -123,8 +123,8 @@ describe('FirmwareState', () => {
             expect(firmwareState.remainingPartialObject).toEqual([]);
         });
 
-        it('should not be resumable', () => {
-            expect(firmwareState.isResumable).toEqual(false);
+        it('should not have resumable partial object', () => {
+            expect(firmwareState.hasResumablePartialObject).toEqual(false);
         });
     });
 
@@ -155,12 +155,12 @@ describe('FirmwareState', () => {
             expect(firmwareState.remainingPartialObject).toEqual([]);
         });
 
-        it('should not be resumable', () => {
-            expect(firmwareState.isResumable).toEqual(false);
+        it('should not have resumable partial object', () => {
+            expect(firmwareState.hasResumablePartialObject).toEqual(false);
         });
     });
 
-    describe('when transfer can be resumed, and there is a partially transferred object', () => {
+    describe('when offset is in the middle of partially transferred object, and crc32 is valid', () => {
         const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         const offset = 5;
         const deviceState = {
@@ -186,12 +186,12 @@ describe('FirmwareState', () => {
             expect(firmwareState.remainingPartialObject).toEqual([6, 7, 8]);
         });
 
-        it('should be resumable', () => {
-            expect(firmwareState.isResumable).toEqual(true);
+        it('should have resumable partial object', () => {
+            expect(firmwareState.hasResumablePartialObject).toEqual(true);
         });
     });
 
-    describe('when data exists on device, and there is a fully transferred object that has not been executed', () => {
+    describe('when there is a fully transferred object that has not been executed', () => {
 
         const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         const offset = 8;
@@ -218,8 +218,8 @@ describe('FirmwareState', () => {
             expect(firmwareState.remainingPartialObject).toEqual([]);
         });
 
-        it('should be resumable', () => {
-            expect(firmwareState.isResumable).toEqual(true);
+        it('should have resumable partial object', () => {
+            expect(firmwareState.hasResumablePartialObject).toEqual(true);
         });
     });
 });
