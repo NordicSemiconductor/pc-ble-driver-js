@@ -1473,7 +1473,11 @@ NAN_METHOD(Adapter::GapSetAddress)
 
     try
     {
-        address_cycle_mode = ConversionUtility::getNativeUint8(info[argumentcount]);
+        // Check validity of argument as cycle_modeMode is only applicable in SD API v2
+        if (info[argumentcount]->IsInt32())
+        {
+            address_cycle_mode = ConversionUtility::getNativeUint8(info[argumentcount]);
+        }
         argumentcount++;
 
         addressObject = ConversionUtility::getJsObject(info[argumentcount]);

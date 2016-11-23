@@ -168,7 +168,7 @@ ble_gatt_enable_params_t *GattEnableParameters::ToNative()
 {
     auto enableParams = new ble_gatt_enable_params_t();
 
-        enableParams->att_mtu = ConversionUtility::getNativeUint16(jsobj, "att_mtu");
+    enableParams->att_mtu = ConversionUtility::getNativeUint16(jsobj, "att_mtu");
 
     return enableParams;
 }
