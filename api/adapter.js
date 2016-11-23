@@ -330,7 +330,7 @@ class Adapter extends EventEmitter {
             options = {
                 gap_enable_params: {
                     periph_conn_count: 1,
-                    central_conn_count: 7,
+                    central_conn_count: 3,
                     central_sec_count: 1,
                 },
                 gatts_enable_params: {
@@ -339,7 +339,10 @@ class Adapter extends EventEmitter {
                 },
                 common_enable_params: {
                     conn_bw_counts: null, // tell SD to use default
-                    vs_uuid_count: 10,
+                    vs_uuid_count: 5,
+                },
+                gatt_enable_params: {
+                    att_mtu: this._bleDriver.GATT_MTU_SIZE_DEFAULT,
                 },
             };
         }
