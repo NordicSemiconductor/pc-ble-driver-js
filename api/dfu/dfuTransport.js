@@ -51,6 +51,9 @@ class DfuTransport extends EventEmitter {
         if (!transportParameters.targetAddress) {
             throw new Error('Required transport parameter "targetAddress" was not provided');
         }
+        if (!transportParameters.targetAddressType) {
+            throw new Error('Required transport parameter "targetAddressType" was not provided');
+        }
 
         this._adapter = transportParameters.adapter;
         this._transportParameters = transportParameters;
@@ -276,7 +279,6 @@ class DfuTransport extends EventEmitter {
                 return this._createAndWriteObjects(objects, ObjectType.DATA, state.offset, state.crc32);
         });
     }
-
 
     /**
      * Returns the current init packet transfer state.

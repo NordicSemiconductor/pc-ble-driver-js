@@ -45,7 +45,6 @@
 #include <iostream>
 
 static name_map_t gatts_op_map = {
-	NAME_MAP_ENTRY(BLE_GATTS_OP_INVALID),
 	NAME_MAP_ENTRY(BLE_GATTS_OP_WRITE_REQ),
 	NAME_MAP_ENTRY(BLE_GATTS_OP_WRITE_CMD),
 	NAME_MAP_ENTRY(BLE_GATTS_OP_SIGN_WRITE_CMD),
@@ -371,6 +370,19 @@ v8::Local<v8::Object> GattsTimeoutEvent::ToJs()
 
     return scope.Escape(obj);
 }
+
+#if NRF_SD_BLE_API_VERSION >= 3
+v8::Local<v8::Object> GattsExchangeMtuRequestEvent::ToJs()
+{
+	Nan::EscapableHandleScope scope;
+	v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+	BleDriverGattsEvent::ToJs(obj);
+
+	Utility::Set(obj, "client_rx_mtu", ConversionUtility::toJsNumber(evt->client_rx_mtu));
+
+	return scope.Escape(obj);
+}
+#endif
 
 NAN_METHOD(Adapter::GattsAddService)
 {
@@ -1018,6 +1030,69 @@ void Adapter::AfterGattsReplyReadWriteAuthorize(uv_work_t *req)
     delete baton;
 }
 
+#if NRF_SD_BLE_API_VERSION >= 3
+NAN_METHOD(Adapter::GattsExchangeMtuReply)
+{
+    uint16_t conn_handle;
+    uint16_t server_rx_mtu;
+    v8::Local<v8::Function> callback;
+    auto argumentcount = 0;
+
+    try
+    {
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        server_rx_mtu = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (std::string error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto baton = new GattsExchangeMtuReplyBaton(callback);
+    baton->adapter = obj->adapter;
+    baton->conn_handle = conn_handle;
+    baton->server_rx_mtu = server_rx_mtu;
+
+    uv_queue_work(uv_default_loop(), baton->req, GattsExchangeMtuReply, reinterpret_cast<uv_after_work_cb>(AfterGattsExchangeMtuReply));
+}
+
+// This runs in a worker thread (not Main Thread)
+void Adapter::GattsExchangeMtuReply(uv_work_t *req)
+{
+    auto baton = static_cast<GattsExchangeMtuReplyBaton *>(req->data);
+    baton->result = sd_ble_gatts_exchange_mtu_reply(baton->adapter, baton->conn_handle, baton->server_rx_mtu);
+}
+
+// This runs in Main Thread
+void Adapter::AfterGattsExchangeMtuReply(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+
+    auto baton = static_cast<GattsExchangeMtuReplyBaton *>(req->data);
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "replying MTU exchange");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+    delete baton;
+}
+#endif
 
 extern "C" {
     void init_gatts(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
@@ -1084,6 +1159,9 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTS_RW_AUTHORIZE_REPLY);               /**< Reply to an authorization request for a read or write operation on one or more attributes. */
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTS_SYS_ATTR_SET);                     /**< Set the persistent system attributes for a connection. */
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTS_SYS_ATTR_GET);                     /**< Retrieve the persistent system attributes. */
+#if NRF_SD_BLE_API_VERSION >= 3
+        NODE_DEFINE_CONSTANT(target, SD_BLE_GATTS_EXCHANGE_MTU_REPLY);               /**< Reply to an ATT_MTU exchange request by sending an Exchange MTU Response to the client. */
+#endif
 
         NODE_DEFINE_CONSTANT(target, BLE_GATTS_EVT_WRITE);                           /**< Write operation performed. @ref ble_gatts_evt_write_t */
         NODE_DEFINE_CONSTANT(target, BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST);            /**< Read/Write Authorization request.@ref ble_gatts_evt_rw_authorize_request_t */
@@ -1091,6 +1169,8 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GATTS_EVT_HVC);                             /**< Handle Value Confirmation. @ref ble_gatts_evt_hvc_t */
         NODE_DEFINE_CONSTANT(target, BLE_GATTS_EVT_SC_CONFIRM);                      /**< Service Changed Confirmation. No additional event structure applies. */
         NODE_DEFINE_CONSTANT(target, BLE_GATTS_EVT_TIMEOUT);                         /**< Timeout. @ref ble_gatts_evt_timeout_t */
-
+#if NRF_SD_BLE_API_VERSION >= 3
+        NODE_DEFINE_CONSTANT(target, BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST);            /**< Exchange MTU Request. Reply with @ref sd_ble_gatts_exchange_mtu_reply. @ref ble_gatts_evt_exchange_mtu_request_t. */
+#endif
     }
 }

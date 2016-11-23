@@ -155,9 +155,10 @@ extern "C" {
         /* Default MTU size. */
         NODE_DEFINE_CONSTANT(target, GATT_MTU_SIZE_DEFAULT);
 
-        /* Only the default MTU size of 23 is currently supported. */
+#if NRF_SD_BLE_API_VERSION <= 2
+		/* Only the default MTU size of 23 is currently supported. */
         NODE_DEFINE_CONSTANT(target, GATT_RX_MTU);
-
+#endif
 
         /* Invalid Attribute Handle. */
         NODE_DEFINE_CONSTANT(target, BLE_GATT_HANDLE_INVALID);

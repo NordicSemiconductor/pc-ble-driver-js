@@ -36,13 +36,16 @@ class ControlPointService {
         this._notificationQueue.startListening();
         return this._writeCharacteristicValue(command)
             .then(() => this._notificationQueue.readNext(command[0]))
-            .then(response => this.parseResponse(response))
+            .then(response => ControlPointService.parseResponse(response))
             .then(response => {
                 this._notificationQueue.stopListening();
                 return response;
             })
             .catch(error => {
                 this._notificationQueue.stopListening();
+                error.message = `When writing "${ControlPointOpcode[command[0]]}" ` +
+                  `command ([${command}]) to Control Point Characteristic ` +
+                  `of DFU Target: ` + error.message;
                 throw error;
             });
     }
@@ -50,12 +53,19 @@ class ControlPointService {
     _writeCharacteristicValue(command) {
         return new Promise((resolve, reject) => {
             this._adapter.writeCharacteristicValue(this._controlPointCharacteristicId, command, true, error => {
-                error ? reject(createError(ErrorCode.WRITE_ERROR, error.message)) : resolve();
+                if (error) {
+                    let message = `Could not write operation code ${command[0]} ` +
+                      `"${ControlPointOpcode[command[0]]}" to DFU Target: ` +
+                      `\`\`${error.message}''`;
+                    reject(createError(ErrorCode.WRITE_ERROR, message));
+                } else {
+                    resolve();
+                }
             });
         })
     }
 
-    parseCommand(command) {
+    static parseCommand(command) {
         let commandObject = {};
         commandObject.command = command[0];
 
@@ -75,17 +85,19 @@ class ControlPointService {
                 commandObject.type = command[1];
                 break;
             case ControlPointOpcode.RESPONSE:
-                return this.parseResponse(command);
+                return ControlPointService.parseResponse(command);
                 break;
         }
 
         return commandObject;
     }
 
-    parseResponse(response) {
+    static parseResponse(response) {
         if (response[0] !== ControlPointOpcode.RESPONSE) {
             throw createError(ErrorCode.UNEXPECTED_NOTIFICATION,
-                `Expected ${ControlPointOpcode.RESPONSE} but got ${response[0]}`);
+              `Trying to parse response command (opcode ${ControlPointOpcode.RESPONSE} ` +
+                `"${ControlPointOpcode[ControlPointOpcode.RESPONSE]}"), ` +
+                `but command is opcode ${response[0]} "${ControlPointOpcode[response[0]]}"`);
         }
 
         let responseObject = {};
