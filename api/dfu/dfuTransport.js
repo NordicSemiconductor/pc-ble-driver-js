@@ -61,8 +61,8 @@ class DfuTransport extends EventEmitter {
     }
 
     /**
-     * Initializes the transport. Connects to the device and sets it up according
-     * to the configured transport parameters.
+     * Initializes the transport. Connects to the target device and sets up the transport
+     * according to the configured transport parameters.
      *
      * @returns Promise that resolves when initialized
      */
@@ -406,13 +406,15 @@ class DfuTransport extends EventEmitter {
 
     /**
      * Create and write one object with the given type, starting at the
-     * given offset and crc32.
+     * given offset and crc32. If something fails, the operation will be retried
+     * up to MAX_RETRIES times before returning error.
      *
      * @param data the object data to write (byte array)
      * @param type the ObjectType to write
      * @param offset the offset to start from
      * @param crc32 the crc32 to start from
-     * @return Promise that resolves when the object has been created and written
+     * @return Promise that resolves with updated progress ({ offset, crc32 })
+     *         after the object has been written
      * @private
      */
     _createAndWriteObject(data, type, offset, crc32) {
@@ -443,7 +445,8 @@ class DfuTransport extends EventEmitter {
      * @param type the ObjectType to write
      * @param offset the offset to start from
      * @param crc32 the crc32 to start from
-     * @return Promise that resolves when the object has been written
+     * @return Promise that resolves with updated progress ({ offset, crc32 })
+     *         after the object has been written
      * @private
      */
     _writeObject(data, type, offset, crc32) {
