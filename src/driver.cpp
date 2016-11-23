@@ -688,7 +688,17 @@ void Adapter::Open(uv_work_t *req)
     baton->mainObject->eventCallbackBatchEventTotalCount = 0;
     baton->mainObject->eventCallbackBatchNumber = 0;
 
-    auto error_code = sd_rpc_open(adapter, sd_rpc_on_status, sd_rpc_on_event, sd_rpc_on_log_event);
+    // Set the log level
+    auto error_code = sd_rpc_log_handler_severity_filter_set(adapter, baton->log_level);
+
+    if (error_code != NRF_SUCCESS)
+    {
+        std::cerr << std::endl << "Failed to set log severity filter." << std::endl;
+        baton->result = error_code;
+        return;
+    }
+
+    error_code = sd_rpc_open(adapter, sd_rpc_on_status, sd_rpc_on_event, sd_rpc_on_log_event);
 
     // Let the normal log handling handle the rest of the log calls
     adapterBeingOpened = nullptr;
