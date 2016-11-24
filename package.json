@@ -6,7 +6,8 @@
     "scripts": {
         "lint": "jshint api/ test/ && jscs api/ test/",
         "install": "node build.js",
-        "test": "jest"
+        "test": "jest --config config/jest-unit.config",
+        "test:system": "jest --config config/jest-system.config"
     },
     "repository": {
         "type": "git",
