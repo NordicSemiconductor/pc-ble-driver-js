@@ -358,6 +358,26 @@ class Adapter extends EventEmitter {
             });
     }
 
+    /**
+     * Enable longer data packets (Data Length Extension).
+     *
+     * @note A maxPduSize of 0 will result in the default minimum payload size of 27.
+     * @note Not supported by SD_BLE_API_VERSION <= 2.
+     *
+     * @param {number} maxPduSize - Max PDU payload size
+     */
+    setMaxPduSize(maxPduSize, callback) {
+        if (this._bleDriver.NRF_SD_BLE_API_VERSION <= 2) {
+            if (callback) callback(_makeError('This option is not supported on this device. Requirement: SD_BLE_API_VERSION >= 3'));
+            return;
+        }
+
+        const optId = this._bleDriver.BLE_GAP_OPT_EXT_LEN;
+        const bleOpt = { gap_opt: { ext_len: { rxtx_max_pdu_payload_size: maxPduSize } } };
+
+        this._adapter.setBleOption(optId, bleOpt, callback);
+    }
+
     _statusCallback(status) {
         switch (status.id) {
             case this._bleDriver.RESET_PERFORMED:
@@ -498,6 +518,9 @@ class Adapter extends EventEmitter {
                     break;
                 case this._bleDriver.BLE_EVT_TX_COMPLETE:
                     // No need to handle tx_complete, for now.
+                    break;
+                case (this._bleDriver.NRF_SD_BLE_API_VERSION >= 3 ? this.bleDriver.BLE_EVT_DATA_LENGTH_CHANGED : -1):
+                    this._parseDataLengthChanged(event);
                     break;
                 default:
                     this.emit('logMessage', logLevel.INFO, `Unsupported event received from SoftDevice: ${event.id} - ${event.name}`);
@@ -1492,6 +1515,10 @@ class Adapter extends EventEmitter {
                 }
             });
         }
+    }
+
+    _parseDataLengthChanged(event) {
+        this.emit('logMessage', logLevel.DEBUG, `${JSON.stringify(event)}`);
     }
 
     _setAttributeValueWithOffset(attribute, value, offset) {
