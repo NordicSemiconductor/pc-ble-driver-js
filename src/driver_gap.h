@@ -468,6 +468,14 @@ public:
 };
 #endif
 
+class GapOptScanReqReport : public BleToJs<ble_gap_opt_scan_req_report_t>
+{
+public:
+    GapOptScanReqReport(ble_gap_opt_scan_req_report_t *req_report) : BleToJs<ble_gap_opt_scan_req_report_t>(req_report) {}
+    GapOptScanReqReport(v8::Local<v8::Object> js) : BleToJs<ble_gap_opt_scan_req_report_t>(js) {}
+    ble_gap_opt_scan_req_report_t *ToNative();
+};
+
 // Gap structs -- END --
 #pragma endregion Gap structs
 

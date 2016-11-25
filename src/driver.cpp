@@ -1246,7 +1246,7 @@ NAN_METHOD(Adapter::SetBleOption)
         return;
     }
 
-    auto baton = new SetBleOptionBaton(callback);
+    auto baton = new BleOptionBaton(callback);
     baton->adapter = obj->adapter;
     baton->opt_id = optionId;
 
@@ -1267,7 +1267,7 @@ NAN_METHOD(Adapter::SetBleOption)
 // This runs in a worker thread (not Main Thread)
 void Adapter::SetBleOption(uv_work_t *req)
 {
-    auto baton = static_cast<SetBleOptionBaton *>(req->data);
+    auto baton = static_cast<BleOptionBaton *>(req->data);
     baton->result = sd_ble_opt_set(baton->adapter, baton->opt_id, baton->p_opt);
 }
 
@@ -1275,7 +1275,7 @@ void Adapter::SetBleOption(uv_work_t *req)
 void Adapter::AfterSetBleOption(uv_work_t *req)
 {
     Nan::HandleScope scope;
-    auto baton = static_cast<EnableBLEBaton *>(req->data);
+    auto baton = static_cast<BleOptionBaton *>(req->data);
 
     v8::Local<v8::Value> argv[1];
 
@@ -1293,6 +1293,83 @@ void Adapter::AfterSetBleOption(uv_work_t *req)
 }
 
 #pragma endregion SetBleOption
+
+#pragma region GetBleOption
+
+// This function runs in the Main Thread
+NAN_METHOD(Adapter::GetBleOption)
+{
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    uint32_t optionId;
+    v8::Local<v8::Function> callback;
+    auto argumentcount = 0;
+
+    try
+    {
+        optionId = ConversionUtility::getNativeUint32(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (std::string error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    auto baton = new BleOptionBaton(callback);
+    baton->adapter = obj->adapter;
+    baton->opt_id = optionId;
+    baton->p_opt = new ble_opt_t();
+
+    uv_queue_work(uv_default_loop(), baton->req, GetBleOption, reinterpret_cast<uv_after_work_cb>(AfterGetBleOption));
+}
+
+// This runs in a worker thread (not Main Thread)
+void Adapter::GetBleOption(uv_work_t *req)
+{
+    auto baton = static_cast<BleOptionBaton *>(req->data);
+    baton->result = sd_ble_opt_get(baton->adapter, baton->opt_id, baton->p_opt);
+}
+
+// This runs in  Main Thread
+void Adapter::AfterGetBleOption(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+    auto baton = static_cast<BleOptionBaton *>(req->data);
+    v8::Local<v8::Value> optionValue = Nan::Undefined();
+
+    // TODO: Implement support through BleOpt ToJs for all required options
+    if (baton->opt_id == BLE_GAP_OPT_SCAN_REQ_REPORT)
+    {
+        optionValue = ConversionUtility::toJsBool(baton->p_opt->gap_opt.scan_req_report.enable);
+    }
+#if NRF_SD_BLE_API_VERSION >= 3
+    else if (baton->opt_id == BLE_GAP_OPT_EXT_LEN) {
+        optionValue = ConversionUtility::toJsNumber(baton->p_opt->gap_opt.ext_len.rxtx_max_pdu_payload_size);
+    }
+#endif
+
+    v8::Local<v8::Value> argv[2];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "getting BLE option");
+        argv[1] = Nan::Undefined();
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+        argv[1] = optionValue;
+    }
+
+    baton->callback->Call(2, argv);
+    delete baton;
+}
+
+#pragma endregion GetBleOption
 
 #pragma region BandwidthCountParameters
 
@@ -1584,7 +1661,7 @@ ble_uuid128_t *BleUUID128::ToNative()
 ble_opt_t *BleOpt::ToNative()
 {
     auto ble_opt = new ble_opt_t();
-    memset(&ble_opt, 0, sizeof(ble_opt_t));
+    //memset(&ble_opt, 0, sizeof(ble_opt_t));
 
     if (Utility::Has(jsobj, "common_opt")) {
         //TODO: Implement common_opt
@@ -1648,6 +1725,9 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, SD_RPC_LOG_WARNING);
         NODE_DEFINE_CONSTANT(target, SD_RPC_LOG_ERROR);
         NODE_DEFINE_CONSTANT(target, SD_RPC_LOG_FATAL);
+
+        // Constant used for identification of the SD API version
+        NODE_DEFINE_CONSTANT(target, NRF_SD_BLE_API_VERSION);
     }
 
     void init_types(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)

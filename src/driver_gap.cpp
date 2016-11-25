@@ -396,8 +396,12 @@ ble_gap_opt_t *GapOpt::ToNative()
     auto gap_opt = new ble_gap_opt_t();
     memset(gap_opt, 0, sizeof(gap_opt));
 
+    if (Utility::Has(jsobj, "scan_req_report")) {
+        auto scan_req_obj = ConversionUtility::getJsObject(jsobj, "scan_req_report");
+        gap_opt->scan_req_report = GapOptScanReqReport(scan_req_obj);
+    }
 #if NRF_SD_BLE_API_VERSION >= 3
-    if (Utility::Has(jsobj, "ext_len")) {
+    else if (Utility::Has(jsobj, "ext_len")) {
         auto ext_len_obj = ConversionUtility::getJsObject(jsobj, "ext_len");
         gap_opt->ext_len = GapOptExtLen(ext_len_obj);
     }
@@ -425,6 +429,20 @@ ble_gap_opt_ext_len_t *GapOptExtLen::ToNative()
 #endif
 
 #pragma endregion GapOptExtLen
+
+#pragma region GapOptScanReqReport
+
+ble_gap_opt_scan_req_report_t *GapOptScanReqReport::ToNative()
+{
+    auto req_report_opt = new ble_gap_opt_scan_req_report_t();
+    memset(req_report_opt, 0, sizeof(ble_gap_opt_scan_req_report_t));
+
+    req_report_opt->enable = ConversionUtility::getNativeBool(jsobj, "enable");
+
+    return req_report_opt;
+}
+
+#pragma endregion GapOptScanReqReport
 
 #pragma region GapIrk
 
@@ -3813,6 +3831,18 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GAP_EVT_SEC_REQUEST);
         NODE_DEFINE_CONSTANT(target, BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST);
         NODE_DEFINE_CONSTANT(target, BLE_GAP_EVT_SCAN_REQ_REPORT);
+
+        /* GAP Option IDs */
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_CH_MAP);
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_LOCAL_CONN_LATENCY);
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_PASSKEY);
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_SCAN_REQ_REPORT);
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_COMPAT_MODE);
+
+#if NRF_SD_BLE_API_VERSION >= 3
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_AUTH_PAYLOAD_TIMEOUT);
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_EXT_LEN);
+#endif
 
         /* BLE_ERRORS_GAP SVC return values specific to GAP */
         NODE_DEFINE_CONSTANT(target, BLE_ERROR_GAP_UUID_LIST_MISMATCH); //UUID list does not contain an integral number of UUIDs.
