@@ -72,10 +72,11 @@ function addAdapterListener(adapter, prefix) {
         console.log(`${prefix} error: ${JSON.stringify(error, null, 1)}`);
         assert(false);
     });
+    //adapter.on('stateChanged', state => { console.log(`${prefix} stateChanged: ${JSON.stringify(state)}`); });
 
     adapter.on('deviceConnected', device => { console.log(`${prefix} deviceConnected: ${device.address}`); });
     adapter.on('deviceDisconnected', device => { console.log(`${prefix} deviceDisconnected: ${JSON.stringify(device, null, 1)}`); });
-    adapter.on('deviceDiscovered', device => { console.log(`${prefix} deviceDiscovered: ${JSON.stringify(device, null, 1)}`); });
+    adapter.on('deviceDiscovered', device => { console.log(`${prefix} deviceDiscovered: ${JSON.stringify(device)}`); });
 }
 
 function connect(adapter, connectToAddress, callback) {
@@ -162,31 +163,40 @@ function startAdvertising(adapter, callback) {
     );
 }
 
+function startScan(adapter, callback) {
+    const scanParameters = {
+        active: true,
+        interval: 100,
+        window: 50,
+        timeout: 5,
+    };
+
+    adapter.startScan(scanParameters, error => {
+        assert(!error);
+    });
+}
+
+function setupBleOption(adapter, callback) {
+    if (adapter.driver.NRF_SD_BLE_API_VERSION >= 3)
+    {
+        const maxPduSize = 54;
+        adapter.setMaxPduSize(maxPduSize, err => {
+            console.log(`maxPduSize was set on ${JSON.stringify(adapter.instanceId)}`);
+            assert(!err);
+            callback(err);
+            return;
+        });
+    } else {
+        callback();
+    }
+}
+
 function runTests(centralAdapter, peripheralAdapter) {
     addAdapterListener(centralAdapter, '#CENTRAL');
     addAdapterListener(peripheralAdapter, '#PERIPH');
 
     setupAdapter(centralAdapter, 'centralAdapter', centralDeviceAddress, centralDeviceAddressType, adapter => {
-    });
-
-    setupAdapter(peripheralAdapter, 'peripheralAdapter', peripheralDeviceAddress, peripheralDeviceAddressType, adapter => {
-        startAdvertising(peripheralAdapter, () => {
-            console.log('Advertising started');
-        });
-
-        centralAdapter.once('deviceConnected', peripheralDevice => {
-            console.log('CONNECTED!');
-        });
-
-        connect(centralAdapter, { address: peripheralDeviceAddress, type: peripheralDeviceAddressType });
-    });
-}
-
-function runFailedTests(centralAdapter, peripheralAdapter) {
-    addAdapterListener(centralAdapter, '#CENTRAL');
-    addAdapterListener(peripheralAdapter, '#PERIPH');
-
-    setupAdapter(centralAdapter, 'centralAdapter', centralDeviceAddress, centralDeviceAddressType, adapter => {
+        setupBleOption(centralAdapter, err => {});
     });
 
     setupAdapter(peripheralAdapter, 'peripheralAdapter', peripheralDeviceAddress, peripheralDeviceAddressType, adapter => {
@@ -201,7 +211,10 @@ function runFailedTests(centralAdapter, peripheralAdapter) {
         centralAdapter.once('deviceConnected', peripheralDevice => {
         });
 
-        connect(centralAdapter, { address: peripheralDeviceAddress, type: peripheralDeviceAddressType });
+        setupBleOption(peripheralAdapter, err => {
+            connect(centralAdapter, { address: peripheralDeviceAddress, type: peripheralDeviceAddressType });
+        });
+
     });
 }
 
@@ -212,5 +225,4 @@ adapterFactory.getAdapters((error, adapters) => {
     assert(Object.keys(adapters).length == 2, 'The number of attached devices to computer must exactly 2');
 
     runTests(adapters[Object.keys(adapters)[0]], adapters[Object.keys(adapters)[1]]);
-    //runFailedTests(adapters[Object.keys(adapters)[0]], adapters[Object.keys(adapters)[1]]);
 });
