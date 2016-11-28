@@ -7,9 +7,10 @@ const spawnSync = require('child_process').spawnSync;
  * This way of getting a public address is basically what the SoftDevice does.
  *
  * @param seggerSerialNumber segger serial number of the device to read from
+ * @param addOne Boolean switch for adding one to the read address, used for DFU
  * @return the default public BLE address of the device
  */
-function getAddressFromFICR (seggerSerialNumber) {
+function getAddressFromFICR (seggerSerialNumber, addOne = false) {
     const FICR_BASE = 0x10000000;
     const DEVICEADDRTYPE = FICR_BASE + 0xA0;
     const DEVICEADDR0 = FICR_BASE + 0xA4;
@@ -19,9 +20,24 @@ function getAddressFromFICR (seggerSerialNumber) {
     const addr1 = _readMemory(seggerSerialNumber, DEVICEADDR1);
 
     let address = addr1.slice(-4) + addr0;
+    if (addOne) {
+        address = _addOneTo(address)
+    }
     address = _xorFirstByte0xC0(address);
     address = _colonSplit(address);
     return address;
+}
+
+/**
+ * Increments raw address by 1, used for DFU address.
+ *
+ * @param rawAddress Address as hexadecimal string (without colons)
+ * @return Hexadecimal string of the address plus one
+ */
+function _addOneTo(rawAddress) {
+    let addressValue = parseInt(rawAddress, 16);
+    addressValue += 1;
+    return addressValue.toString(16).toUpperCase();
 }
 
 /**
