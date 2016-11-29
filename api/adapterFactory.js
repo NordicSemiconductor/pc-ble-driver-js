@@ -128,6 +128,9 @@ class AdapterFactory extends EventEmitter {
                 case 2:
                     sdVersion = 'v3';
                     break;
+                case 3:
+                    sdVersion = 'v3';
+                    break;
                 default:
                     throw new Error('Unsupported nRF5 development kit.');
             }

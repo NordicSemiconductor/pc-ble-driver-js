@@ -137,6 +137,8 @@ private:
     ADAPTER_METHOD_DEFINITIONS(EncodeUUID);
     ADAPTER_METHOD_DEFINITIONS(DecodeUUID);
     ADAPTER_METHOD_DEFINITIONS(ReplyUserMemory);
+    ADAPTER_METHOD_DEFINITIONS(SetBleOption);
+    ADAPTER_METHOD_DEFINITIONS(GetBleOption);
 
     // General sync methods
     static NAN_METHOD(GetStats);
