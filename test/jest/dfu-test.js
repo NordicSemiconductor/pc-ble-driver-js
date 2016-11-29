@@ -1,8 +1,9 @@
 'use strict';
 
 const spawnSync = require('child_process').spawnSync;
-const adapterFactory = require('./setup').adapterFactory;
-const Dfu = require('../api/dfu');
+const adapterFactory = require('../setup').adapterFactory;
+const Dfu = require('../../api/dfu');
+const getAddressFromFICR = require('../getAddress').getAddressFromFICR;
 
 
 /*
@@ -70,7 +71,7 @@ describe('DFU module', () => {
 
                 const transportParameters = {
                     adapter: centralAdapter,
-                    targetAddress: 'CC:2A:37:BB:55:D9', // TODO: Find this with 'nrfjprog --memrd'
+                    targetAddress: getAddressFromFICR(getSerialNumber(peripheralAdapter), true),
                     targetAddressType: 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC',
                 };
 
@@ -80,7 +81,8 @@ describe('DFU module', () => {
                     .then(() => programAdapter(centralAdapter, centralFamily, connectivityHexFile))
                     .then(() => programAdapter(peripheralAdapter, peripheralFamily, dfuBootloaderHexFile))
                     .then(() => openAdapter(centralAdapter))
-                    .then(() => performDfu(dfuZipFile, transportParameters));
+                    .then(() => performDfu(dfuZipFile, transportParameters))
+                    .then(() => closeAdapter(centralAdapter));
             });
 
     }, DFU_MAX_COMPLETION_TIME);
