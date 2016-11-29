@@ -35,24 +35,24 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-const bindings = require('bindings');
-
 function build(debug) {
-    var cmakeJS = require('cmake-js');
-    var os = require('os');
+    const cmakeJS = require('cmake-js');
+    const os = require('os');
+    const path = require('path');
+    const fs = require('fs');
 
-    var defaultRuntime = 'node';
-    var defaultRuntimeVersion = process.version.substr(1);
-    var defaultWinArch = os.arch();
+    const defaultRuntime = 'node';
+    const defaultRuntimeVersion = process.version.substr(1);
+    const defaultWinArch = os.arch();
 
-    var options = {
+    const options = {
         runtime: process.env.npm_config_runtime || undefined,
         runtimeVersion: process.env.npm_config_target || undefined,
         arch: process.env.npm_config_arch || undefined,
         debug: debug,
     };
 
-    var buildSystem = new cmakeJS.BuildSystem(options);
+    const buildSystem = new cmakeJS.BuildSystem(options);
 
     if (buildSystem.options.runtime === undefined) {
         buildSystem.options.runtime = defaultRuntime;
@@ -62,47 +62,51 @@ function build(debug) {
         buildSystem.options.runtimeVersion = defaultRuntimeVersion;
     }
 
-    if (buildSystem.options.arch === undefined && process.platform == 'win32') {
+    if (buildSystem.options.arch === undefined) {
         buildSystem.options.arch = defaultWinArch;
     }
 
-    buildSystem.rebuild();
+    // Check if binary is already built
+    const precompiledPath = path.join(
+        process.cwd(),
+        'compiled',
+        buildSystem.options.runtime,
+        buildSystem.options.runtimeVersion,
+        process.platform,
+        buildSystem.options.arch
+    );
+
+    const precompiledExists = fs.existsSync(precompiledPath);
+
+    console.log(`Compiled version of addon${precompiledExists ? '' : ' DOES NOT'} exist in directory ${precompiledPath}.`);
+
+    if (!precompiledExists) {
+        buildSystem.rebuild();
+    }
 }
 
-var times = 0;
+let times = 0;
 
 function begin(args) {
-    var debug = false;
+    let debug = false;
 
-    var length = args.length >>> 0;
+    const length = args.length >>> 0;
 
-    for (var i = 0; i < length; i++) {
+    for (let i = 0; i < length; i++) {
         if (args[i] === '--debug') debug = true;
     }
 
-    // Check if module is already available (prebuilt)
-    let preBuilt = true;
-
     try {
-        bindings('pc-ble-driver-js');
+        build(debug);
     } catch (e) {
-        console.log(e);
-        preBuilt = false;
-    }
-
-    if (!preBuilt) {
-        try {
-            build(debug);
-        } catch (e) {
-            if (e.code == 'MODULE_NOT_FOUND') {
-                if (times++ == 5) {
-                    throw e;
-                } else {
-                    setTimeout(begin, 2000);
-                }
-            } else {
+        if (e.code == 'MODULE_NOT_FOUND') {
+            if (times++ == 5) {
                 throw e;
+            } else {
+                setTimeout(begin, 2000);
             }
+        } else {
+            throw e;
         }
     }
 }
