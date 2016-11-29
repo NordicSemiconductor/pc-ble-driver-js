@@ -562,7 +562,6 @@ void Adapter::AfterEnableBLE(uv_work_t *req)
     delete baton;
 }
 
-
 // This function runs in the Main Thread
 NAN_METHOD(Adapter::Open)
 {
@@ -691,7 +690,17 @@ void Adapter::Open(uv_work_t *req)
     baton->mainObject->eventCallbackBatchEventTotalCount = 0;
     baton->mainObject->eventCallbackBatchNumber = 0;
 
-    auto error_code = sd_rpc_open(adapter, sd_rpc_on_status, sd_rpc_on_event, sd_rpc_on_log_event);
+    // Set the log level
+    auto error_code = sd_rpc_log_handler_severity_filter_set(adapter, baton->log_level);
+
+    if (error_code != NRF_SUCCESS)
+    {
+        std::cerr << std::endl << "Failed to set log severity filter." << std::endl;
+        baton->result = error_code;
+        return;
+    }
+
+    error_code = sd_rpc_open(adapter, sd_rpc_on_status, sd_rpc_on_event, sd_rpc_on_log_event);
 
     // Let the normal log handling handle the rest of the log calls
     adapterBeingOpened = nullptr;
@@ -1210,6 +1219,160 @@ void Adapter::AfterReplyUserMemory(uv_work_t *req)
     delete baton;
 }
 
+#pragma region SetBleOption
+
+// This function runs in the Main Thread
+NAN_METHOD(Adapter::SetBleOption)
+{
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    uint32_t optionId;
+    v8::Local<v8::Object> optionObject;
+    v8::Local<v8::Function> callback;
+    auto argumentcount = 0;
+
+    try
+    {
+        optionId = ConversionUtility::getNativeUint32(info[argumentcount]);
+        argumentcount++;
+
+        optionObject = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (std::string error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    auto baton = new BleOptionBaton(callback);
+    baton->adapter = obj->adapter;
+    baton->opt_id = optionId;
+
+    try
+    {
+        baton->p_opt = BleOpt(optionObject);
+    }
+    catch (std::string error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("BLE Option", error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    uv_queue_work(uv_default_loop(), baton->req, SetBleOption, reinterpret_cast<uv_after_work_cb>(AfterSetBleOption));
+}
+
+// This runs in a worker thread (not Main Thread)
+void Adapter::SetBleOption(uv_work_t *req)
+{
+    auto baton = static_cast<BleOptionBaton *>(req->data);
+    baton->result = sd_ble_opt_set(baton->adapter, baton->opt_id, baton->p_opt);
+}
+
+// This runs in  Main Thread
+void Adapter::AfterSetBleOption(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+    auto baton = static_cast<BleOptionBaton *>(req->data);
+
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "setting BLE option");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+    delete baton;
+}
+
+#pragma endregion SetBleOption
+
+#pragma region GetBleOption
+
+// This function runs in the Main Thread
+NAN_METHOD(Adapter::GetBleOption)
+{
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    uint32_t optionId;
+    v8::Local<v8::Function> callback;
+    auto argumentcount = 0;
+
+    try
+    {
+        optionId = ConversionUtility::getNativeUint32(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (std::string error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    auto baton = new BleOptionBaton(callback);
+    baton->adapter = obj->adapter;
+    baton->opt_id = optionId;
+    baton->p_opt = new ble_opt_t();
+
+    uv_queue_work(uv_default_loop(), baton->req, GetBleOption, reinterpret_cast<uv_after_work_cb>(AfterGetBleOption));
+}
+
+// This runs in a worker thread (not Main Thread)
+void Adapter::GetBleOption(uv_work_t *req)
+{
+    auto baton = static_cast<BleOptionBaton *>(req->data);
+    baton->result = sd_ble_opt_get(baton->adapter, baton->opt_id, baton->p_opt);
+}
+
+// This runs in  Main Thread
+void Adapter::AfterGetBleOption(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+    auto baton = static_cast<BleOptionBaton *>(req->data);
+    v8::Local<v8::Value> optionValue = Nan::Undefined();
+
+    // TODO: Implement support through BleOpt ToJs for all required options
+    if (baton->opt_id == BLE_GAP_OPT_SCAN_REQ_REPORT)
+    {
+        optionValue = ConversionUtility::toJsBool(baton->p_opt->gap_opt.scan_req_report.enable);
+    }
+#if NRF_SD_BLE_API_VERSION >= 3
+    else if (baton->opt_id == BLE_GAP_OPT_EXT_LEN) {
+        optionValue = ConversionUtility::toJsNumber(baton->p_opt->gap_opt.ext_len.rxtx_max_pdu_payload_size);
+    }
+#endif
+
+    v8::Local<v8::Value> argv[2];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "getting BLE option");
+        argv[1] = Nan::Undefined();
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+        argv[1] = optionValue;
+    }
+
+    baton->callback->Call(2, argv);
+    delete baton;
+}
+
+#pragma endregion GetBleOption
+
 #pragma region BandwidthCountParameters
 
 v8::Local<v8::Object> BandwidthCountParameters::ToJs()
@@ -1308,6 +1471,9 @@ v8::Local<v8::Object> EnableParameters::ToJs()
     Utility::Set(obj, "common_enable_params", CommonEnableParameters(&native->common_enable_params).ToJs());
     Utility::Set(obj, "gap_enable_params", GapEnableParameters(&native->gap_enable_params).ToJs());
     Utility::Set(obj, "gatts_enable_params", GattsEnableParameters(&native->gatts_enable_params).ToJs());
+#if NRF_SD_BLE_API_VERSION >= 3
+    Utility::Set(obj, "gatt_enable_params", GattEnableParameters(&native->gatt_enable_params).ToJs());
+#endif
 
     return scope.Escape(obj);
 }
@@ -1318,6 +1484,9 @@ ble_enable_params_t *EnableParameters::ToNative()
     enable_params->common_enable_params = CommonEnableParameters(ConversionUtility::getJsObject(jsobj, "common_enable_params"));
     enable_params->gap_enable_params = GapEnableParameters(ConversionUtility::getJsObject(jsobj, "gap_enable_params"));
     enable_params->gatts_enable_params = GattsEnableParameters(ConversionUtility::getJsObjectOrNull(jsobj, "gatts_enable_params"));
+#if NRF_SD_BLE_API_VERSION >= 3
+    enable_params->gatt_enable_params = GattEnableParameters(ConversionUtility::getJsObjectOrNull(jsobj, "gatt_enable_params"));
+#endif
     return enable_params;
 }
 
@@ -1489,6 +1658,31 @@ ble_uuid128_t *BleUUID128::ToNative()
 
 #pragma endregion UUID128
 
+#pragma region BleOpt
+
+ble_opt_t *BleOpt::ToNative()
+{
+    auto ble_opt = new ble_opt_t();
+    //memset(&ble_opt, 0, sizeof(ble_opt_t));
+
+    if (Utility::Has(jsobj, "common_opt")) {
+        //TODO: Implement common_opt
+        //auto common_opt_obj = ConversionUtility::getJsObjectOrNull(jsobj, "common_opt");
+        //ble_opt->common_opt = CommonOpt(common_opt_obj);
+    }
+    else if (Utility::Has(jsobj, "gap_opt"))
+    {
+        auto gap_opt_obj = ConversionUtility::getJsObject(jsobj, "gap_opt");
+        ble_opt->gap_opt = GapOpt(gap_opt_obj);
+    }
+
+    return ble_opt;
+}
+
+
+
+#pragma endregion BleOpt
+
 extern "C" {
     void init_adapter_list(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
     void init_driver(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
@@ -1533,6 +1727,9 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, SD_RPC_LOG_WARNING);
         NODE_DEFINE_CONSTANT(target, SD_RPC_LOG_ERROR);
         NODE_DEFINE_CONSTANT(target, SD_RPC_LOG_FATAL);
+
+        // Constant used for identification of the SD API version
+        NODE_DEFINE_CONSTANT(target, NRF_SD_BLE_API_VERSION);
     }
 
     void init_types(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)

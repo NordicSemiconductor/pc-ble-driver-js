@@ -147,6 +147,20 @@ public:
     ble_uuid128_t *ToNative() override;
 };
 
+
+class BleOpt : public BleToJs<ble_opt_t>
+{
+public:
+    explicit BleOpt(ble_opt_t *ble_opt) : BleToJs<ble_opt_t>(ble_opt) {}
+    explicit BleOpt(v8::Local<v8::Object> js) : BleToJs<ble_opt_t>(js) {}
+    virtual ~BleOpt() {}
+
+    //v8::Local<v8::Object> ToJs() override;
+    ble_opt_t *ToNative() override;
+};
+
+#pragma region BleDriverCommonEvent
+
 template<typename EventType>
 class BleDriverCommonEvent : public BleDriverEvent<EventType>
 {
@@ -199,6 +213,7 @@ public:
     v8::Local<v8::Object> ToJs();
 };
 
+#pragma endregion BleDriverCommonEvent
 
 ///// Start Batons ////////////////////////////////////////
 
@@ -277,6 +292,13 @@ public:
     BATON_CONSTRUCTOR(BleUserMemReplyBaton);
     uint16_t conn_handle;
     ble_user_mem_block_t *p_block;
+};
+
+class BleOptionBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(BleOptionBaton);
+    uint32_t opt_id;
+    ble_opt_t *p_opt;
 };
 
 ///// End Batons ////////////////////////////////////////
