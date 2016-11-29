@@ -81,7 +81,8 @@ describe('DFU module', () => {
                     .then(() => programAdapter(centralAdapter, centralFamily, connectivityHexFile))
                     .then(() => programAdapter(peripheralAdapter, peripheralFamily, dfuBootloaderHexFile))
                     .then(() => openAdapter(centralAdapter))
-                    .then(() => performDfu(dfuZipFile, transportParameters));
+                    .then(() => performDfu(dfuZipFile, transportParameters))
+                    .then(() => closeAdapter(centralAdapter));
             });
 
     }, DFU_MAX_COMPLETION_TIME);
