@@ -31,6 +31,7 @@
         "jshint": "^2.8.0",
         "keypress": "0.2.1",
         "mocha": "^2.3.3",
+        "pc-nrfjprog-js": "https://github.com/NordicSemiconductor/pc-nrfjprog-js.git",
         "proxyquire": "^1.7.3",
         "sinon": "^1.17.1",
         "yargs": "^3.29.0"
