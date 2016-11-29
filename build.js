@@ -86,6 +86,7 @@ function begin(args) {
     try {
         bindings('pc-ble-driver-js');
     } catch (e) {
+        console.log(e);
         preBuilt = false;
     }
 
