@@ -35,8 +35,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-function build(debug)
-{
+const bindings = require('bindings');
+
+function build(debug) {
     var cmakeJS = require('cmake-js');
     var os = require('os');
 
@@ -79,17 +80,28 @@ function begin(args) {
         if (args[i] === '--debug') debug = true;
     }
 
+    // Check if module is already available (prebuilt)
+    let preBuilt = true;
+
     try {
-        build(debug);
+        bindings('pc-ble-driver-js');
     } catch (e) {
-        if (e.code == 'MODULE_NOT_FOUND') {
-            if (times++ == 5) {
-                throw e;
+        preBuilt = false;
+    }
+
+    if (!preBuilt) {
+        try {
+            build(debug);
+        } catch (e) {
+            if (e.code == 'MODULE_NOT_FOUND') {
+                if (times++ == 5) {
+                    throw e;
+                } else {
+                    setTimeout(begin, 2000);
+                }
             } else {
-                setTimeout(begin, 2000);
+                throw e;
             }
-        } else {
-            throw e;
         }
     }
 }
