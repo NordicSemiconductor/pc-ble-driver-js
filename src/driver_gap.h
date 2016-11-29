@@ -450,6 +450,31 @@ public:
     ble_gap_conn_sec_t *ToNative();
 };
 
+class GapOpt : public BleToJs<ble_gap_opt_t>
+{
+public:
+    GapOpt(ble_gap_opt_t *gap_opt) : BleToJs<ble_gap_opt_t>(gap_opt) {}
+    GapOpt(v8::Local<v8::Object> js) : BleToJs<ble_gap_opt_t>(js) {}
+    ble_gap_opt_t *ToNative();
+};
+
+#if NRF_SD_BLE_API_VERSION >= 3
+class GapOptExtLen : public BleToJs<ble_gap_opt_ext_len_t>
+{
+public:
+    GapOptExtLen(ble_gap_opt_ext_len_t *ext_len) : BleToJs<ble_gap_opt_ext_len_t>(ext_len) {}
+    GapOptExtLen(v8::Local<v8::Object> js) : BleToJs<ble_gap_opt_ext_len_t>(js) {}
+    ble_gap_opt_ext_len_t *ToNative();
+};
+#endif
+
+class GapOptScanReqReport : public BleToJs<ble_gap_opt_scan_req_report_t>
+{
+public:
+    GapOptScanReqReport(ble_gap_opt_scan_req_report_t *req_report) : BleToJs<ble_gap_opt_scan_req_report_t>(req_report) {}
+    GapOptScanReqReport(v8::Local<v8::Object> js) : BleToJs<ble_gap_opt_scan_req_report_t>(js) {}
+    ble_gap_opt_scan_req_report_t *ToNative();
+};
 
 // Gap structs -- END --
 #pragma endregion Gap structs

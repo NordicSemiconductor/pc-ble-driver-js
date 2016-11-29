@@ -330,7 +330,7 @@ class Adapter extends EventEmitter {
             options = {
                 gap_enable_params: {
                     periph_conn_count: 1,
-                    central_conn_count: 7,
+                    central_conn_count: 3,
                     central_sec_count: 1,
                 },
                 gatts_enable_params: {
@@ -339,7 +339,10 @@ class Adapter extends EventEmitter {
                 },
                 common_enable_params: {
                     conn_bw_counts: null, // tell SD to use default
-                    vs_uuid_count: 10,
+                    vs_uuid_count: 5,
+                },
+                gatt_enable_params: {
+                    att_mtu: this._bleDriver.GATT_MTU_SIZE_DEFAULT,
                 },
             };
         }
@@ -353,6 +356,26 @@ class Adapter extends EventEmitter {
                     callback(err, parameters, app_ram_base);
                 }
             });
+    }
+
+    /**
+     * Enable longer data packets (Data Length Extension).
+     *
+     * @note A maxPduSize of 0 will result in the default minimum payload size of 27.
+     * @note Not supported by SD_BLE_API_VERSION <= 2.
+     *
+     * @param {number} maxPduSize - Max PDU payload size
+     */
+    setMaxPduSize(maxPduSize, callback) {
+        if (this._bleDriver.NRF_SD_BLE_API_VERSION <= 2) {
+            if (callback) callback(_makeError('This option is not supported on this device. Requirement: SD_BLE_API_VERSION >= 3'));
+            return;
+        }
+
+        const optId = this._bleDriver.BLE_GAP_OPT_EXT_LEN;
+        const bleOpt = { gap_opt: { ext_len: { rxtx_max_pdu_payload_size: maxPduSize } } };
+
+        this._adapter.setBleOption(optId, bleOpt, callback);
     }
 
     _statusCallback(status) {
@@ -495,6 +518,9 @@ class Adapter extends EventEmitter {
                     break;
                 case this._bleDriver.BLE_EVT_TX_COMPLETE:
                     this._parseTxCompleteEvent(event);
+                    break;
+                case (this._bleDriver.NRF_SD_BLE_API_VERSION >= 3 ? this.bleDriver.BLE_EVT_DATA_LENGTH_CHANGED : -1):
+                    this._parseDataLengthChanged(event);
                     break;
                 default:
                     this.emit('logMessage', logLevel.INFO, `Unsupported event received from SoftDevice: ${event.id} - ${event.name}`);
@@ -1494,6 +1520,10 @@ class Adapter extends EventEmitter {
     _parseTxCompleteEvent(event) {
         const remoteDevice = this._getDeviceByConnectionHandle(event.conn_handle);
         this.emit('txComplete', remoteDevice, event.count);
+    }
+
+    _parseDataLengthChanged(event) {
+        this.emit('logMessage', logLevel.DEBUG, `${JSON.stringify(event)}`);
     }
 
     _setAttributeValueWithOffset(attribute, value, offset) {
