@@ -1,9 +1,9 @@
 'use strict';
 
 const spawnSync = require('child_process').spawnSync;
-const adapterFactory = require('./setup').adapterFactory;
-const Dfu = require('../api/dfu');
-const getAddressFromFICR = require('./getAddress').getAddressFromFICR;
+const adapterFactory = require('../setup').adapterFactory;
+const Dfu = require('../../api/dfu');
+const getAddressFromFICR = require('../getAddress').getAddressFromFICR;
 
 
 /*
