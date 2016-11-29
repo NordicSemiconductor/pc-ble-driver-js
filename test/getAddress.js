@@ -10,7 +10,7 @@ const nrfjprog = require('pc-nrfjprog-js');
  * @param addOne Boolean switch for adding one to the read address, used for DFU
  * @return Promise for the default public BLE address of the device
  */
-function getAddressFromFICR(seggerSerialNumber, addOne = false) {
+function getAddressFromFICR(seggerSerialNumber, addOneToLSB = false) {
     const FICR_BASE = 0x10000000;
     const DEVICEADDRTYPE = FICR_BASE + 0xA0;
     const DEVICEADDR0 = FICR_BASE + 0xA4;
@@ -23,8 +23,8 @@ function getAddressFromFICR(seggerSerialNumber, addOne = false) {
                 reject(err);
             }
 
-            if (addOne) {
-                data = _addOneTo(data);
+            if (addOneToLSB) {
+                data[0] = (data[0] + 1) % 0x100;
             }
 
             data[5] |= 0xC0; // A public address has the two most significant bits set..
@@ -36,39 +36,6 @@ function getAddressFromFICR(seggerSerialNumber, addOne = false) {
             resolve(address.slice(0, -1)); // slice to remove trailing colon
         });
     });
-}
-
-/**
- * Convenience function for debug, left for convenience.
- * Prints the array to console, both as numbers and in hex.
- */
-function _printBytes(data) {
-    console.log(data);
-    let bytes = [];
-    for (let byte of data) {
-        bytes.push(byte.toString(16));
-    }
-    console.log(bytes);
-}
-
-/**
- * Increments the address by one. The address is represented as an array of
- * 8 bit integers in little endian order. One is added to the LSB. Any carry
- * is carried to the next byte, i.e. the full array is treated as one integer.
- *
- * @param data An array of 8 bit integers, in little endian order.
- * @return One added to the input array.
- */
-function _addOneTo(data) {
-    for (let i = 0; i < data.length; ++i) {
-        data[i] += 1;
-        if (data[i] === 256) {
-            data[i] = 0;
-            continue;
-        }
-        break;
-    }
-    return data;
 }
 
 module.exports = {
