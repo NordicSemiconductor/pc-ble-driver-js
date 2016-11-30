@@ -50,7 +50,32 @@ describe('DFU module', () => {
         });
     });
 
-    it('performs a complete DFU, given 2 available adapters', () => {
+    it('reads addresses from available adapters', () => {
+        return getAdapterInfo()
+            .then(adapterInfo => {
+                if (adapterInfo.adapters.length === 0) {
+                    throw Error('No available adapters');
+                }
+
+                adapterInfo.adapters.forEach((adapter, index) => {
+                    const address = adapterInfo.addresses[index];
+                    expect(address).toBeDefined();
+                    expect(address.length).toEqual(17);
+                });
+            });
+    });
+
+    it.skip('opens an adapter and closes it without error', () => {
+        return getAdapterInfo()
+            .then(adapterInfo => {
+                const adapter = adapterInfo.adapters[0];
+                return Promise.resolve()
+                    .then(() => openAdapter(adapter))
+                    .then(() => closeAdapter(adapter));
+            });
+    });
+
+    it.skip('performs a complete DFU, given 2 available adapters', () => {
 
         return getAdapterInfo()
             .then(adapterInfo => {
@@ -58,6 +83,8 @@ describe('DFU module', () => {
                 const peripheralAdapter = adapterInfo.adapters[1];
                 const centralFamily = adapterInfo.families[0];
                 const peripheralFamily = adapterInfo.families[1];
+                const centralAddress = adapterInfo.addresses[0];
+                const peripheralAddress = adapterInfo.addresses[1];
 
                 console.log(`Found 2 adapters. Central: ${NRF_FAMILY[centralFamily]}, ` +
                     `peripheral: ${NRF_FAMILY[peripheralFamily]}`);
@@ -71,7 +98,7 @@ describe('DFU module', () => {
 
                 const transportParameters = {
                     adapter: centralAdapter,
-                    targetAddress: getAddressFromFICR(getSerialNumber(peripheralAdapter), true),
+                    targetAddress: peripheralAddress,
                     targetAddressType: 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC',
                 };
 
@@ -139,13 +166,23 @@ function getAdapterInfo() {
         const familyPromises = adapters.map(adapter => {
             return getDeviceFamily(getSerialNumber(adapter));
         });
+        const addressPromises = adapters.map(adapter => {
+            return getAddress(getSerialNumber(adapter));
+        });
         return Promise.all(familyPromises)
-            .then(families => ({adapters, families}));
+            .then(families => {
+                return Promise.all(addressPromises)
+                    .then(addresses => ({adapters, families, addresses}));
+            });
     });
 }
 
 function getSerialNumber(adapter) {
     return parseInt(adapter.state.serialNumber, 10);
+}
+
+function getAddress(serialNumber) {
+    return getAddressFromFICR(serialNumber, true);
 }
 
 function openAdapter(adapter) {
