@@ -15,7 +15,7 @@
     "author": "",
     "license": "modified BSD",
     "dependencies": {
-        "bindings": "https://github.com/kenr/node-bindings.git",
+        "bindings": "git+https://github.com/kenr/node-bindings.git",
         "change-case": "2.3.0",
         "cmake-js": "1.1.0",
         "nan": "2.3.3",
