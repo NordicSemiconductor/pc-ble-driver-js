@@ -161,20 +161,27 @@ function getAdapters() {
     });
 }
 
+// FIXME: This can be refactored into something less ugly,
+//        not hard coded for two and only two adapters.
+// NOTE: nrfjprog must be used sequentially for not to crash.
 function getAdapterInfo() {
-    return getAdapters().then(adapters => {
-        const familyPromises = adapters.map(adapter => {
-            return getDeviceFamily(getSerialNumber(adapter));
-        });
-        const addressPromises = adapters.map(adapter => {
-            return getAddress(getSerialNumber(adapter));
-        });
-        return Promise.all(familyPromises)
-            .then(families => {
-                return Promise.all(addressPromises)
-                    .then(addresses => ({adapters, families, addresses}));
-            });
-    });
+    let adapters = [];
+    let families = [];
+    let addresses = [];
+    return getAdapters()
+      .then(a => adapters = a)
+      // Info from adapter 0
+      .then(() => getDeviceFamily(getSerialNumber(adapters[0])))
+      .then(family => families[0] = family)
+      .then(() => getAddress(getSerialNumber(adapters[0])))
+      .then(address => addresses[0] = address)
+      // Info from adapter 1
+      .then(() => getDeviceFamily(getSerialNumber(adapters[1])))
+      .then(family => families[1] = family)
+      .then(() => getAddress(getSerialNumber(adapters[1])))
+      .then(address => addresses[1] = address)
+      // Format return value
+      .then(() => ({adapters, families, addresses}));
 }
 
 function getSerialNumber(adapter) {
