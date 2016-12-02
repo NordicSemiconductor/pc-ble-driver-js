@@ -5,7 +5,7 @@ const DfuObjectWriter = require('./dfuObjectWriter');
 const DeviceInfoService = require('./deviceInfoService');
 const ControlPointService = require('./controlPointService');
 const { InitPacketState, FirmwareState } = require('./dfuModels');
-const { ObjectType, ErrorCode, createError } = require('./dfuConstants');
+const { ObjectType, ErrorCode, ResultCode, createError } = require('./dfuConstants');
 const EventEmitter = require('events');
 
 const MAX_RETRIES = 3;
@@ -252,7 +252,8 @@ class DfuTransport extends EventEmitter {
             .then(state => {
                 this._debug(`Sending init packet: ${state.toString()}`);
                 if (state.hasResumablePartialObject) {
-                    return this._writeObject(state.remainingData, ObjectType.COMMAND, state.offset, state.crc32);
+                    const object = state.remainingData;
+                    return this._resumeWriteObject(object, ObjectType.COMMAND, state.offset, state.crc32);
                 }
                 return this._createAndWriteObject(state.remainingData, ObjectType.COMMAND);
             });
@@ -272,8 +273,8 @@ class DfuTransport extends EventEmitter {
                 this._debug(`Sending firmware: ${state.toString()}`);
                 const objects = state.remainingObjects;
                 if (state.hasResumablePartialObject) {
-                    const partialObject = state.remainingPartialObject;
-                    return this._writeObject(partialObject, ObjectType.DATA, state.offset, state.crc32).then(progress =>
+                    const object = state.remainingPartialObject;
+                    return this._resumeWriteObject(object, ObjectType.DATA, state.offset, state.crc32).then(progress =>
                         this._createAndWriteObjects(objects, ObjectType.DATA, progress.offset, progress.crc32));
                 }
                 return this._createAndWriteObjects(objects, ObjectType.DATA, state.offset, state.crc32);
@@ -441,7 +442,8 @@ class DfuTransport extends EventEmitter {
 
     /**
      * Write one object with the given type, starting at the given offset
-     * and crc32.
+     * and crc32. Sends execute when the object has been written, and
+     * returns updated progress (offset, crc32).
      *
      * @param data the object data to write (byte array)
      * @param type the ObjectType to write
@@ -458,6 +460,41 @@ class DfuTransport extends EventEmitter {
                     .then(() => this._controlPointService.execute())
                     .then(() => progress);
             });
+    }
+
+    /**
+     * Resume writing object data, starting at the given offset and crc32.
+     * If an empty data array is given, then the writing will be skipped, and
+     * it will jump straight to execute. We do not know if execute has already
+     * been done or not. If execute has been done and we try to execute again,
+     * the target device will respond with 'operation not permitted', so we
+     * need to catch and ignore that error.
+     *
+     * @param data the remaining object data to write (byte array)
+     * @param type the ObjectType to write
+     * @param offset the offset to start from
+     * @param crc32 the crc32 to start from
+     * @return Promise that resolves with updated progress ({ offset, crc32 })
+     *         after the object has been written
+     * @private
+     */
+    _resumeWriteObject(data, type, offset, crc32) {
+        if (data.length === 0) {
+            const progress = {offset, crc32};
+            return this._controlPointService.execute()
+                .catch(error => {
+                    if (error.code === ErrorCode.COMMAND_ERROR &&
+                        error.commandErrorCode === ResultCode.OPERATION_NOT_PERMITTED) {
+                        this._debug('Received OPERATION_NOT_PERMITTED when resuming and trying to execute. ' +
+                            'This indicates that execute has already been done, so ignoring this.');
+                    } else {
+                        throw error;
+                    }
+                })
+                .then(() => progress);
+        } else {
+            return this._writeObject(data, type, offset, crc32);
+        }
     }
 
     _shouldRetry(attempts, error) {

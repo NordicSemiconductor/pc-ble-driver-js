@@ -191,7 +191,7 @@ describe('FirmwareState', () => {
         });
     });
 
-    describe('when there is a fully transferred object that has not been executed', () => {
+    describe('when there is a fully transferred object that may not have been executed', () => {
 
         const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         const offset = 8;

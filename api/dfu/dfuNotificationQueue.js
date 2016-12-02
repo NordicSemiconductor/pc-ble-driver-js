@@ -94,10 +94,12 @@ class DfuNotificationQueue {
                 if (value[2] === ResultCode.SUCCESS) {
                     return value;
                 } else {
-                    throw createError(ErrorCode.COMMAND_ERROR,
+                    const error = createError(ErrorCode.COMMAND_ERROR,
                         `Operation code ${opCode} "${ControlPointOpcode[opCode]}" ` +
                         `failed on DFU Target. ` +
                         `Result code ${value[2]} "${ResultCode[value[2]]}"`);
+                    error.commandErrorCode = value[2];
+                    throw error;
                 }
             } else {
                 throw createError(ErrorCode.UNEXPECTED_NOTIFICATION,
