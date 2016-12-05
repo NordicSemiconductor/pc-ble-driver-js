@@ -1,15 +1,15 @@
 'use strict';
 
-const DfuNotificationQueue = require('./dfuNotificationQueue');
-const { ControlPointOpcode, ResultCode, ErrorCode, createError } = require('./dfuConstants');
-const {intToArray, arrayToInt} = require('../util/intArrayConv');
+const NotificationQueue = require('./notificationQueue');
+const { ControlPointOpcode, ResultCode, ErrorCode, createError } = require('../dfuConstants');
+const {intToArray, arrayToInt} = require('../../util/intArrayConv');
 
 class ControlPointService {
 
     constructor(adapter, controlPointCharacteristicId) {
         this._adapter = adapter;
         this._controlPointCharacteristicId = controlPointCharacteristicId;
-        this._notificationQueue = new DfuNotificationQueue(adapter, controlPointCharacteristicId);
+        this._notificationQueue = new NotificationQueue(adapter, controlPointCharacteristicId);
     }
 
     execute() {

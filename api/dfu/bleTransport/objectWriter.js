@@ -1,21 +1,21 @@
 'use strict';
 
 const EventEmitter = require('events');
-const { splitArray } = require('../util/arrayUtil');
-const { arrayToInt } = require('../util/intArrayConv');
-const { ControlPointOpcode, ErrorCode, createError } = require('./dfuConstants');
-const DfuNotificationQueue = require('./dfuNotificationQueue');
-const DfuPacketWriter = require('./dfuPacketWriter');
+const { splitArray } = require('../../util/arrayUtil');
+const { arrayToInt } = require('../../util/intArrayConv');
+const { ControlPointOpcode, ErrorCode, createError } = require('../dfuConstants');
+const NotificationQueue = require('./notificationQueue');
+const PacketWriter = require('./packetWriter');
 
 const DEFAULT_MTU_SIZE = 20;
 
-class DfuObjectWriter extends EventEmitter {
+class ObjectWriter extends EventEmitter {
 
     constructor(adapter, controlPointCharacteristicId, packetCharacteristicId) {
         super();
         this._adapter = adapter;
         this._packetCharacteristicId = packetCharacteristicId;
-        this._notificationQueue = new DfuNotificationQueue(adapter, controlPointCharacteristicId);
+        this._notificationQueue = new NotificationQueue(adapter, controlPointCharacteristicId);
         this._mtuSize = DEFAULT_MTU_SIZE;
         this._abort = false;
     }
@@ -95,7 +95,7 @@ class DfuObjectWriter extends EventEmitter {
     }
 
     _createPacketWriter(offset, crc32) {
-        const writer = new DfuPacketWriter(this._adapter, this._packetCharacteristicId);
+        const writer = new PacketWriter(this._adapter, this._packetCharacteristicId);
         writer.setOffset(offset);
         writer.setCrc32(crc32);
         writer.setPrn(this._prn);
@@ -136,4 +136,4 @@ class DfuObjectWriter extends EventEmitter {
     }
 }
 
-module.exports = DfuObjectWriter;
+module.exports = ObjectWriter;

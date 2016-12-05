@@ -1,13 +1,13 @@
 'use strict';
 
-const { ControlPointOpcode, ResultCode, ErrorCode, createError } = require('./dfuConstants');
+const { ControlPointOpcode, ResultCode, ErrorCode, createError } = require('../dfuConstants');
 
 /**
  * Listens to notifications for the given control point characteristic,
  * and keeps them in an internal queue. It is the callers responsibility
  * to read from the queue when it expects a notification.
  */
-class DfuNotificationQueue {
+class NotificationQueue {
 
     constructor(adapter, controlPointCharacteristicId) {
         this._adapter = adapter;
@@ -112,4 +112,4 @@ class DfuNotificationQueue {
     }
 }
 
-module.exports = DfuNotificationQueue;
+module.exports = NotificationQueue;

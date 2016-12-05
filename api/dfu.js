@@ -44,7 +44,7 @@ const EventEmitter = require('events');
 
 const logLevel = require('./util/logLevel');
 const { ErrorCode, createError } = require('./dfu/dfuConstants');
-const DfuTransport = require('./dfu/dfuTransport');
+const BleTransport = require('./dfu/bleTransport');
 const DfuSpeedometer = require('./dfu/dfuSpeedometer');
 
 const DfuState = Object.freeze({
@@ -138,14 +138,14 @@ class Dfu extends EventEmitter {
     }
 
     _performSingleUpdate(datFile, binFile) {
-        return this._createDfuTransport()
+        return this._createBleTransport()
             .then(() => this._checkAbortState())
             .then(() => this._transferInitPacket(datFile))
             .then(() => this._transferFirmware(binFile))
             .then(() => this._transport.waitForDisconnection())
-            .then(() => this._destroyDfuTransport())
+            .then(() => this._destroyBleTransport())
             .catch(err => {
-                this._destroyDfuTransport();
+                this._destroyBleTransport();
                 throw err;
             });
     }
@@ -157,17 +157,17 @@ class Dfu extends EventEmitter {
         return Promise.resolve();
     }
 
-    _createDfuTransport() {
+    _createBleTransport() {
         return Promise.resolve()
             .then(() => {
                 this._log(logLevel.DEBUG, 'Creating DFU transport.');
-                this._transport = new DfuTransport(this._transportParameters);
+                this._transport = new BleTransport(this._transportParameters);
                 this._setupTransportListeners();
                 return this._transport.init();
             });
     }
 
-    _destroyDfuTransport() {
+    _destroyBleTransport() {
         if (this._transport) {
             this._log(logLevel.DEBUG, 'Destroying DFU transport.');
             this._removeTransportListeners();

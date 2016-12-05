@@ -1,6 +1,6 @@
 'use strict';
 
-const { ErrorCode, createError } = require('./dfuConstants');
+const { ErrorCode, createError } = require('../dfuConstants');
 
 class DeviceInfoService {
 

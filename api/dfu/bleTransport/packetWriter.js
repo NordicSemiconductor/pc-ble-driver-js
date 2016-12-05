@@ -1,7 +1,7 @@
 'use strict';
 
 const crc = require('crc');
-const { ErrorCode, createError } = require('./dfuConstants');
+const { ErrorCode, createError } = require('../dfuConstants');
 
 const DEFAULT_OFFSET = 0;
 const DEFAULT_CRC32 = undefined;
@@ -10,7 +10,7 @@ const DEFAULT_PRN = 0;
 /**
  * Writes packets to the given packet characteristic.
  */
-class DfuPacketWriter {
+class PacketWriter {
 
     constructor(adapter, packetCharacteristicId) {
         this._adapter = adapter;
@@ -102,4 +102,4 @@ class DfuPacketWriter {
 
 }
 
-module.exports = DfuPacketWriter;
+module.exports = PacketWriter;

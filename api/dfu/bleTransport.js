@@ -1,9 +1,9 @@
 'use strict';
 
 const logLevel = require('../util/logLevel');
-const DfuObjectWriter = require('./dfuObjectWriter');
-const DeviceInfoService = require('./deviceInfoService');
-const ControlPointService = require('./controlPointService');
+const ObjectWriter = require('./bleTransport/objectWriter');
+const DeviceInfoService = require('./bleTransport/deviceInfoService');
+const ControlPointService = require('./bleTransport/controlPointService');
 const { InitPacketState, FirmwareState } = require('./dfuModels');
 const { ObjectType, ErrorCode, ResultCode, createError } = require('./dfuConstants');
 const EventEmitter = require('events');
@@ -88,7 +88,7 @@ class DfuTransport extends EventEmitter {
                 const controlPointId = characteristicIds.controlPointId;
                 const packetId = characteristicIds.packetId;
                 this._controlPointService = new ControlPointService(this._adapter, controlPointId);
-                this._objectWriter = new DfuObjectWriter(this._adapter, controlPointId, packetId);
+                this._objectWriter = new ObjectWriter(this._adapter, controlPointId, packetId);
                 this._objectWriter.on('packetWritten', progress => {
                     this._emitTransferEvent(progress.offset, progress.type);
                 });
