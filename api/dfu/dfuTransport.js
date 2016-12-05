@@ -28,6 +28,19 @@ const DEFAULT_SCAN_PARAMS = {
 };
 
 
+/**
+ * Implementation of Secure DFU transport according to the following specification:
+ * https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v12.0.0%2Flib_dfu_transport_ble.html
+ *
+ * The transport requires an open adapter instance and a target address to perform
+ * DFU on. After being initialized, sendInitPacket() and sendFirmware() can be
+ * invoked to perform DFU. The target will disconnect after sending firmware. When
+ * being done with the transport, destroy() should be invoked to free up resources.
+ *
+ * In the future, other DFU transports may be needed. In that case it is probably
+ * a good idea to introduce a transport factory that is responsible for creating
+ * transports. The transports must then implement the same public methods and events.
+ */
 class DfuTransport extends EventEmitter {
 
     /**
