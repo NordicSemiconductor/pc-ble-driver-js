@@ -32,10 +32,13 @@ const DEFAULT_SCAN_PARAMS = {
  * Implementation of Secure DFU transport according to the following specification:
  * https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v12.0.0%2Flib_dfu_transport_ble.html
  *
- * The transport requires an open adapter instance and a target address to perform
- * DFU on. After being initialized, sendInitPacket() and sendFirmware() can be
- * invoked to perform DFU. The target will disconnect after sending firmware. When
- * being done with the transport, destroy() should be invoked to free up resources.
+ * This transport requires an open adapter instance, and the BLE address for the
+ * target device.
+ *
+ * After using init() for initialization, sendInitPacket() and sendFirmware() can
+ * be invoked to perform DFU. The target disconnects after sending firmware is
+ * finished. Waiting for the disconnect is done through waitForDisconnection().
+ * When done with the transport, destroy() should be invoked to free up resources.
  *
  * In the future, other DFU transports may be needed. In that case it is probably
  * a good idea to introduce a transport factory that is responsible for creating
@@ -217,6 +220,11 @@ class DfuTransport extends EventEmitter {
     /**
      * Wait for the connection to the DFU target to break. Times out with an
      * error if the target is not disconnected within 10 seconds.
+     *
+     * Used to ensure that the next update does not start using the old
+     * connection. Losing the connection is expected behaviour after the call
+     * to sendFirmware(), as the DFU target should reset after the last
+     * firmware object is successfully executed.
      *
      * @returns Promise resolving when the target device is disconnected
      */
