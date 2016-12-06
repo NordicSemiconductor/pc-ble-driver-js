@@ -1,8 +1,8 @@
 'use strict';
 
 const EventEmitter = require('events');
-const DfuNotificationQueue = require('../dfuNotificationQueue');
-const { ControlPointOpcode, ResultCode, ErrorCode } = require('../dfuConstants');
+const NotificationQueue = require('../notificationQueue');
+const { ControlPointOpcode, ResultCode, ErrorCode } = require('../../dfuConstants');
 
 describe('listening', () => {
 
@@ -14,7 +14,7 @@ describe('listening', () => {
             on: jest.fn(),
             removeListener: jest.fn()
         };
-        notificationQueue = new DfuNotificationQueue(adapter);
+        notificationQueue = new NotificationQueue(adapter);
     });
 
     describe('when startListening is called', () => {
@@ -56,7 +56,7 @@ describe('readNext', () => {
 
     beforeEach(() => {
         adapter = new EventEmitter();
-        notificationQueue = new DfuNotificationQueue(adapter, characteristicId);
+        notificationQueue = new NotificationQueue(adapter, characteristicId);
         notificationQueue.startListening();
     });
 
@@ -190,4 +190,3 @@ describe('readNext', () => {
         });
     });
 });
-

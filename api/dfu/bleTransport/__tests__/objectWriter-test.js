@@ -1,7 +1,7 @@
 'use strict';
 
-const { ControlPointOpcode, ResultCode, ErrorCode } = require('../dfuConstants');
-const DfuObjectWriter = require('../dfuObjectWriter');
+const { ControlPointOpcode, ResultCode, ErrorCode } = require('../../dfuConstants');
+const ObjectWriter = require('../objectWriter');
 
 describe('writeObject', () => {
 
@@ -15,7 +15,7 @@ describe('writeObject', () => {
             stopListening: jest.fn(),
             readNext: jest.fn()
         };
-        objectWriter = new DfuObjectWriter(adapter);
+        objectWriter = new ObjectWriter(adapter);
         objectWriter._notificationQueue = notificationQueue;
     });
 

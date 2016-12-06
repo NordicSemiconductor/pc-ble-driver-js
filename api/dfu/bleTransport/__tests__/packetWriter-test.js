@@ -1,14 +1,14 @@
 'use strict';
 
-const { ErrorCode } = require('../dfuConstants');
-const DfuPacketWriter = require('../dfuPacketWriter');
+const { ErrorCode } = require('../../dfuConstants');
+const PacketWriter = require('../packetWriter');
 const crc = require('crc');
 
 describe('writePacket', () => {
 
     const characteristicId = 123;
     const createWriter = (adapter) => {
-        return new DfuPacketWriter(adapter, characteristicId);
+        return new PacketWriter(adapter, characteristicId);
     };
 
     describe('when adapter returns error', () => {
