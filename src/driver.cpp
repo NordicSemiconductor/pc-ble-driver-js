@@ -271,9 +271,12 @@ void Adapter::onRpcEvent(uv_async_t *handle)
         {
             switch (event->header.evt_id)
             {
-                COMMON_EVT_CASE(TX_COMPLETE,      TXComplete, tx_complete,      array, arrayIndex, eventEntry);
-                COMMON_EVT_CASE(USER_MEM_REQUEST, MemRequest, user_mem_request, array, arrayIndex, eventEntry);
-                COMMON_EVT_CASE(USER_MEM_RELEASE, MemRelease, user_mem_release, array, arrayIndex, eventEntry);
+                COMMON_EVT_CASE(TX_COMPLETE,            TXComplete,         tx_complete,            array, arrayIndex, eventEntry);
+                COMMON_EVT_CASE(USER_MEM_REQUEST,       MemRequest,         user_mem_request,       array, arrayIndex, eventEntry);
+                COMMON_EVT_CASE(USER_MEM_RELEASE,       MemRelease,         user_mem_release,       array, arrayIndex, eventEntry);
+#if NRF_SD_BLE_API_VERSION >= 3
+                COMMON_EVT_CASE(DATA_LENGTH_CHANGED,    DataLengthChanged,  data_length_changed,    array, arrayIndex, eventEntry);
+#endif
 
                 GAP_EVT_CASE(CONNECTED,                 Connected,              connected,                  array, arrayIndex, eventEntry);
                 GAP_EVT_CASE(DISCONNECTED,              Disconnected,           disconnected,               array, arrayIndex, eventEntry);
@@ -457,6 +460,22 @@ v8::Local<v8::Object> CommonMemReleaseEvent::ToJs()
     return scope.Escape(obj);
 }
 
+#if NRF_SD_BLE_API_VERSION >= 3
+v8::Local<v8::Object> CommonDataLengthChangedEvent::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New <v8::Object>();
+    BleDriverCommonEvent::ToJs(obj);
+
+    Utility::Set(obj, "max_tx_octets", ConversionUtility::toJsNumber(evt->max_tx_octets));
+    Utility::Set(obj, "max_tx_time", ConversionUtility::toJsNumber(evt->max_tx_time));
+    Utility::Set(obj, "max_rx_octets", ConversionUtility::toJsNumber(evt->max_rx_octets));
+    Utility::Set(obj, "max_rx_time", ConversionUtility::toJsNumber(evt->max_rx_time));
+
+    return scope.Escape(obj);
+}
+#endif
+
 // Class private method that is only used by the class to activate the SoftDevice in the Adapter
 uint32_t Adapter::enableBLE(adapter_t *adapter)
 {
@@ -477,16 +496,25 @@ uint32_t Adapter::enableBLE(adapter_t *adapter)
     ble_enable_params.common_enable_params.vs_uuid_count = 5;
     /* this application requires 1 connection as a peripheral */
     ble_enable_params.gap_enable_params.periph_conn_count = 1;
-    /* this application requires 3 connections as a central */
-    ble_enable_params.gap_enable_params.central_conn_count = 3;
     /* this application only needs to be able to pair in one central link at a time */
     ble_enable_params.gap_enable_params.central_sec_count = 1;
     /* we require the Service Changed characteristic */
     ble_enable_params.gatts_enable_params.service_changed = false;
-    /* the default Attribute Table size is appropriate for our application */
+    /* this application only needs to be able to pair in one central link at a time */
     ble_enable_params.gatts_enable_params.attr_tab_size = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
+#if NRF_SD_BLE_API_VERSION <= 2
+    /* set max number of central connections */
+    ble_enable_params.gap_enable_params.central_conn_count = 3;
+    /* set the start address of the application RAM region */
+    uint32_t app_ram_base = 0;
+#elif NRF_SD_BLE_API_VERSION >= 3
+    /* set max number of central connections */
+    ble_enable_params.gap_enable_params.central_conn_count = 7;
+    /* set the start address of the application RAM region */
+    uint32_t app_ram_base = 0x2000BCC0;
+#endif
 
-    return sd_ble_enable(adapter, &ble_enable_params, 0);
+    return sd_ble_enable(adapter, &ble_enable_params, &app_ram_base);
 }
 
 // This function runs in the Main Thread
@@ -494,12 +522,16 @@ NAN_METHOD(Adapter::EnableBLE)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Object> enableObject;
+    uint32_t appRamBase = 0;
     v8::Local<v8::Function> callback;
     auto argumentcount = 0;
 
     try
     {
         enableObject = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        appRamBase = ConversionUtility::getNativeUint32(info[argumentcount]);
         argumentcount++;
 
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
@@ -1873,6 +1905,9 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_EVT_TX_COMPLETE);                      /**< Transmission Complete. @ref ble_evt_tx_complete_t */
         NODE_DEFINE_CONSTANT(target, BLE_EVT_USER_MEM_REQUEST);                 /**< User Memory request. @ref ble_evt_user_mem_request_t */
         NODE_DEFINE_CONSTANT(target, BLE_EVT_USER_MEM_RELEASE);                 /**< User Memory release. @ref ble_evt_user_mem_release_t */
+#if NRF_SD_BLE_API_VERSION >= 3
+        NODE_DEFINE_CONSTANT(target, BLE_EVT_DATA_LENGTH_CHANGED);              /** Link layer PDU length changed. @ref ble_evt_data_length_changed_t */
+#endif
     }
 
     void init_hci(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
