@@ -176,19 +176,13 @@ function startScan(adapter, callback) {
     });
 }
 
-function setupBleOption(adapter, callback) {
-    if (adapter.driver.NRF_SD_BLE_API_VERSION >= 3)
-    {
-        const maxPduSize = 54;
-        adapter.setMaxPduSize(maxPduSize, err => {
-            console.log(`maxPduSize was set on ${JSON.stringify(adapter.instanceId)}`);
-            assert(!err);
-            callback(err);
-            return;
-        });
-    } else {
-        callback();
-    }
+function requestAttMtu(adapter, peerDevice, callback) {
+    const mtu = 150;
+
+    adapter.requestAttMtu(peerDevice.instanceId, mtu, err => {
+        assert(!err);
+        if (callback) callback();
+    });
 }
 
 function runTests(centralAdapter, peripheralAdapter) {
@@ -196,7 +190,6 @@ function runTests(centralAdapter, peripheralAdapter) {
     addAdapterListener(peripheralAdapter, '#PERIPH');
 
     setupAdapter(centralAdapter, 'centralAdapter', centralDeviceAddress, centralDeviceAddressType, adapter => {
-        setupBleOption(centralAdapter, err => {});
     });
 
     setupAdapter(peripheralAdapter, 'peripheralAdapter', peripheralDeviceAddress, peripheralDeviceAddressType, adapter => {
@@ -209,12 +202,14 @@ function runTests(centralAdapter, peripheralAdapter) {
         });
 
         centralAdapter.once('deviceConnected', peripheralDevice => {
+            requestAttMtu(centralAdapter, peripheralDevice);
         });
 
-        setupBleOption(peripheralAdapter, err => {
-            connect(centralAdapter, { address: peripheralDeviceAddress, type: peripheralDeviceAddressType });
+        centralAdapter.once('dataLengthChanged', (peripheralDevice, dataLength) => {
+            console.log(`New data length is ${dataLength}`);
         });
 
+        connect(centralAdapter, { address: peripheralDeviceAddress, type: peripheralDeviceAddressType });
     });
 }
 
