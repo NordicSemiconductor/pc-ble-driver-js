@@ -1,8 +1,9 @@
 'use strict';
 
 const crc = require('crc');
-const { createError, ErrorCode } = require('./dfuConstants');
-const { splitArray } = require('../util/arrayUtil');
+const createError = require('./dfuConstants').createError;
+const ErrorCode = require('./dfuConstants').ErrorCode;
+const splitArray = require('../util/arrayUtil').splitArray;
 
 
 class InitPacketState {

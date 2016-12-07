@@ -1,7 +1,8 @@
 'use strict';
 
 const crc = require('crc');
-const { ErrorCode, createError } = require('../dfuConstants');
+const ErrorCode = require('../dfuConstants').ErrorCode;
+const createError = require('../dfuConstants').createError;
 
 const DEFAULT_OFFSET = 0;
 const DEFAULT_CRC32 = undefined;

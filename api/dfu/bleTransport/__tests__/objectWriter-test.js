@@ -1,6 +1,8 @@
 'use strict';
 
-const { ControlPointOpcode, ResultCode, ErrorCode } = require('../../dfuConstants');
+const ControlPointOpcode = require('../../dfuConstants').ControlPointOpcode;
+const ResultCode = require('../../dfuConstants').ResultCode;
+const ErrorCode = require('../../dfuConstants').ErrorCode;
 const ObjectWriter = require('../objectWriter');
 
 describe('writeObject', () => {

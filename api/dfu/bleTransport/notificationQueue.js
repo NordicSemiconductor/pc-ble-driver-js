@@ -1,6 +1,9 @@
 'use strict';
 
-const { ControlPointOpcode, ResultCode, ErrorCode, createError } = require('../dfuConstants');
+const ControlPointOpcode = require('../dfuConstants').ControlPointOpcode;
+const ResultCode = require('../dfuConstants').ResultCode;
+const ErrorCode = require('../dfuConstants').ErrorCode;
+const createError = require('../dfuConstants').createError;
 
 /**
  * Listens to notifications for the given control point characteristic,

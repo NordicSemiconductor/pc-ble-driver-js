@@ -1,6 +1,6 @@
 'use strict';
 
-const { ErrorCode } = require('../../dfuConstants');
+const ErrorCode = require('../../dfuConstants').ErrorCode;
 const PacketWriter = require('../packetWriter');
 const crc = require('crc');
 

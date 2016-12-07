@@ -1,8 +1,12 @@
 'use strict';
 
 const NotificationQueue = require('./notificationQueue');
-const { ControlPointOpcode, ResultCode, ErrorCode, createError } = require('../dfuConstants');
-const {intToArray, arrayToInt} = require('../../util/intArrayConv');
+const ControlPointOpcode = require('../dfuConstants').ControlPointOpcode;
+const ResultCode = require('../dfuConstants').ResultCode;
+const ErrorCode = require('../dfuConstants').ErrorCode;
+const createError = require('../dfuConstants').createError;
+const intToArray = require('../../util/intArrayConv').intToArray;
+const arrayToInt = require('../../util/intArrayConv').arrayToInt;
 
 class ControlPointService {
 

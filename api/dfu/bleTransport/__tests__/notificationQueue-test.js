@@ -2,7 +2,9 @@
 
 const EventEmitter = require('events');
 const NotificationQueue = require('../notificationQueue');
-const { ControlPointOpcode, ResultCode, ErrorCode } = require('../../dfuConstants');
+const ControlPointOpcode = require('../../dfuConstants').ControlPointOpcode;
+const ResultCode = require('../../dfuConstants').ResultCode;
+const ErrorCode = require('../../dfuConstants').ErrorCode;
 
 describe('listening', () => {
 

@@ -4,8 +4,12 @@ const logLevel = require('../util/logLevel');
 const ObjectWriter = require('./bleTransport/objectWriter');
 const DeviceInfoService = require('./bleTransport/deviceInfoService');
 const ControlPointService = require('./bleTransport/controlPointService');
-const { InitPacketState, FirmwareState } = require('./dfuModels');
-const { ObjectType, ErrorCode, ResultCode, createError } = require('./dfuConstants');
+const InitPacketState = require('./dfuModels').InitPacketState;
+const FirmwareState = require('./dfuModels').FirmwareState;
+const ObjectType = require('./dfuConstants').ObjectType;
+const ErrorCode = require('./dfuConstants').ErrorCode;
+const ResultCode = require('./dfuConstants').ResultCode;
+const createError = require('./dfuConstants').createError;
 const EventEmitter = require('events');
 
 const MAX_RETRIES = 3;

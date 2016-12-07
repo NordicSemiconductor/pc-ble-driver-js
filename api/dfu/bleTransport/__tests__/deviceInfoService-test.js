@@ -1,6 +1,6 @@
 'use strict';
 
-const { ErrorCode } = require('../../dfuConstants');
+const ErrorCode = require('../../dfuConstants').ErrorCode;
 const DeviceInfoService = require('../deviceInfoService');
 
 describe('getCharacteristicId', () => {

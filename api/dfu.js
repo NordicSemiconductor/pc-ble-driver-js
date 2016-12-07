@@ -43,7 +43,8 @@ const fs = require('fs');
 const EventEmitter = require('events');
 
 const logLevel = require('./util/logLevel');
-const { ErrorCode, createError } = require('./dfu/dfuConstants');
+const ErrorCode = require('./dfu/dfuConstants').ErrorCode;
+const createError = require('./dfu/dfuConstants').createError;
 const BleTransport = require('./dfu/bleTransport');
 const DfuSpeedometer = require('./dfu/dfuSpeedometer');
 

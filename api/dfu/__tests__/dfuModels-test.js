@@ -1,6 +1,7 @@
 'use strict';
 
-const { InitPacketState, FirmwareState } = require('../dfuModels');
+const InitPacketState = require('../dfuModels').InitPacketState;
+const FirmwareState = require('../dfuModels').FirmwareState;
 const crc = require('crc');
 
 describe('InitPacketState', () => {

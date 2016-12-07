@@ -1,9 +1,11 @@
 'use strict';
 
 const EventEmitter = require('events');
-const { splitArray } = require('../../util/arrayUtil');
-const { arrayToInt } = require('../../util/intArrayConv');
-const { ControlPointOpcode, ErrorCode, createError } = require('../dfuConstants');
+const splitArray = require('../../util/arrayUtil').splitArray;
+const arrayToInt = require('../../util/intArrayConv').arrayToInt;
+const ControlPointOpcode = require('../dfuConstants').ControlPointOpcode;
+const ErrorCode = require('../dfuConstants').ErrorCode;
+const createError = require('../dfuConstants').createError;
 const NotificationQueue = require('./notificationQueue');
 const PacketWriter = require('./packetWriter');
 

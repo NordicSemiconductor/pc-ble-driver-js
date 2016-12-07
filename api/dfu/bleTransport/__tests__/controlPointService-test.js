@@ -1,7 +1,8 @@
 'use strict';
 
 const ControlPointService = require('../controlPointService');
-const { ErrorCode, createError } = require('../../dfuConstants');
+const ErrorCode = require('../../dfuConstants').ErrorCode;
+const createError = require('../../dfuConstants').createError;
 
 describe('_sendCommand', () => {
 
