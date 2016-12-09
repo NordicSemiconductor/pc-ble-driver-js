@@ -248,7 +248,7 @@ function setupAuthLegacyJustWorks(
         mitm: false,
         lesc: false,
         keypress: false,
-        io_caps: peripheralAdapter.BLE_GAP_IO_CAPS_NONE,
+        io_caps: peripheralAdapter.driver.BLE_GAP_IO_CAPS_NONE,
         oob: false,
         min_key_size: 7,
         max_key_size: 16,
@@ -807,7 +807,7 @@ function setupAuthLESCOOB(
                 assert(!err);
                 centralOobData = _ownOobData;
 
-                centralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, null, secKeyset, (err, keyset) => {
+                centralAdapter.replySecParams(device.instanceId, centralAdapter.driver.BLE_GAP_SEC_STATUS_SUCCESS, null, secKeyset, (err, keyset) => {
                     assert(!err);
                 });
             });
