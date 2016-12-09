@@ -881,8 +881,8 @@ v8::Local<v8::Object> GapConnected::ToJs()
     Utility::Set(obj, "role", ConversionUtility::valueToJsString(evt->role, gap_role_map));
     Utility::Set(obj, "conn_params", GapConnParams(&(evt->conn_params)).ToJs());
 #if NRF_SD_BLE_API_VERSION <= 2
-	Utility::Set(obj, "own_addr", GapAddr(&(evt->own_addr)).ToJs());
-	Utility::Set(obj, "irk_match", ConversionUtility::toJsBool(evt->irk_match));
+    Utility::Set(obj, "own_addr", GapAddr(&(evt->own_addr)).ToJs());
+    Utility::Set(obj, "irk_match", ConversionUtility::toJsBool(evt->irk_match));
 
     if (evt->irk_match == 1)
     {
@@ -3873,7 +3873,7 @@ extern "C" {
 
         /* BLE_GAP_ADDR_CYCLE_MODES GAP Address cycle modes */
 #if NRF_SD_BLE_API_VERSION <= 2
-		NODE_DEFINE_CONSTANT(target, BLE_GAP_ADDR_CYCLE_MODE_NONE); //Set addresses directly, no automatic address cycling.
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_ADDR_CYCLE_MODE_NONE); //Set addresses directly, no automatic address cycling.
         NODE_DEFINE_CONSTANT(target, BLE_GAP_ADDR_CYCLE_MODE_AUTO); //Automatically generate and update private addresses.
 #endif
         /* The default interval in seconds at which a private address is refreshed when address cycle mode is @ref BLE_GAP_ADDR_CYCLE_MODE_AUTO.  */
@@ -4018,7 +4018,11 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GAP_CP_CONN_SUP_TIMEOUT_MIN); //Lowest supervision timeout permitted, in units of 10 ms, i.e. 100 ms.
         NODE_DEFINE_CONSTANT(target, BLE_GAP_CP_CONN_SUP_TIMEOUT_MAX); //Highest supervision timeout permitted, in units of 10 ms, i.e. 32 s.
 
-        /* GAP device name maximum length. */
+#if NRF_SD_BLE_API_VERSION >= 3
+        /* Default number of octets in device name. */
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_DEVNAME_DEFAULT_LEN);
+#endif
+        /* Maximum number of octets in device name. */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_DEVNAME_MAX_LEN);
 
         /* Disable RSSI events for connections */
@@ -4037,9 +4041,12 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GAP_WHITELIST_ADDR_MAX_COUNT);
 
 #if NRF_SD_BLE_API_VERSION <= 2
-		/* Maximum amount of IRKs in a whitelist.
+        /* Maximum amount of IRKs in a whitelist.
         * @note  The number of IRKs is limited to 8, even if the hardware supports more. */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_WHITELIST_IRK_MAX_COUNT);
+#elif NRF_SD_BLE_API_VERSION >= 3
+        /* Maximum amount of identities in the device identities list. */
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_DEVICE_IDENTITIES_MAX_COUNT);
 #endif
 
         /* GAP_SEC_MODES GAP Security Modes */

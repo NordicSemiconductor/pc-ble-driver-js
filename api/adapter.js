@@ -479,7 +479,7 @@ class Adapter extends EventEmitter {
                     this._parseGattTimeoutEvent(event);
                     break;
                 case (this._bleDriver.NRF_SD_BLE_API_VERSION >= 3 ? this._bleDriver.BLE_GATTC_EVT_EXCHANGE_MTU_RSP : -1):
-                    // No action required
+                    this._parseGattcExchangeMtuResponseEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_WRITE:
                     this._parseGattsWriteEvent(event);
@@ -500,16 +500,16 @@ class Adapter extends EventEmitter {
                     this._parseGattTimeoutEvent(event);
                     break;
                 case (this._bleDriver.NRF_SD_BLE_API_VERSION >= 3 ? this._bleDriver.BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST : -1):
-                    this._parseGattsExchangeMtuRequest(event);
+                    this._parseGattsExchangeMtuRequestEvent(event);
                     break;
                 case this._bleDriver.BLE_EVT_USER_MEM_REQUEST:
-                    this._parseMemoryRequest(event);
+                    this._parseMemoryRequestEvent(event);
                     break;
                 case this._bleDriver.BLE_EVT_TX_COMPLETE:
                     // No need to handle tx_complete, for now.
                     break;
                 case (this._bleDriver.NRF_SD_BLE_API_VERSION >= 3 ? this._bleDriver.BLE_EVT_DATA_LENGTH_CHANGED : -1):
-                    this._parseDataLengthChanged(event);
+                    this._parseDataLengthChangedEvent(event);
                     break;
                 default:
                     this.emit('logMessage', logLevel.INFO, `Unsupported event received from SoftDevice: ${event.id} - ${event.name}`);
@@ -1326,6 +1326,20 @@ class Adapter extends EventEmitter {
         this.emit('characteristicValueChanged', characteristic);
     }
 
+    _parseGattcExchangeMtuResponseEvent(event) {
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
+        const gattOperation = this._gattOperationsMap[device.instanceId];
+
+        const newMtu = Math.min(event.server_rx_mtu, gattOperation.clientRxMtu);
+
+        if (gattOperation && gattOperation.callback) {
+
+            gattOperation.callback(null, newMtu);
+
+            delete this._gattOperationsMap[device.instanceId];
+        }
+    }
+
     _parseGattTimeoutEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const gattOperation = this._gattOperationsMap[device.instanceId];
@@ -1496,7 +1510,7 @@ class Adapter extends EventEmitter {
         }
     }
 
-    _parseGattsExchangeMtuRequest(event) {
+    _parseGattsExchangeMtuRequestEvent(event) {
         this._adapter.gattsExchangeMtuReply(event.conn_handle, event.client_rx_mtu, error => {
             if (error) {
                 this.emit('error', _makeError('Failed to call gattsExchangeMtuReply', error));
@@ -1504,7 +1518,7 @@ class Adapter extends EventEmitter {
         });
     }
 
-    _parseMemoryRequest(event) {
+    _parseMemoryRequestEvent(event) {
         if (event.type === this._bleDriver.BLE_USER_MEM_TYPE_GATTS_QUEUED_WRITES) {
             this._adapter.replyUserMemory(event.conn_handle, null, error => {
                 if (error) {
@@ -1514,7 +1528,7 @@ class Adapter extends EventEmitter {
         }
     }
 
-    _parseDataLengthChanged(event) {
+    _parseDataLengthChangedEvent(event) {
         const remoteDevice = this._getDeviceByConnectionHandle(event.conn_handle);
         this.emit('dataLengthChanged', remoteDevice, event.max_tx_octets);
     }
@@ -1928,19 +1942,15 @@ class Adapter extends EventEmitter {
     }
 
     /**
-     * Request a change in the ATT_MTU
-     *
-     * @note Not supported by SD_BLE_API_VERSION <= 2.
-     * @note If the procedure succeeds and results in change of data length PDU, a dataChanged
-     *          event will be emitted.
+     * Request a change in the ATT_MTU. The resulting mtu will be returned in the callback.
      *
      * @param {string} deviceInstanceId
      * @param {number} mtu - requested ATT_MTU. Default ATT_MTU is 23. Valid range is between 24 and 247.
-     * @param {function} callback - signature (err)
+     * @param {function} callback - signature (err, mtu)
      */
      requestAttMtu(deviceInstanceId, mtu, callback) {
         if (this._bleDriver.NRF_SD_BLE_API_VERSION <= 2) {
-            if (callback) callback(_makeError('requestAttMtu is not supported on this device. Requirement: SD_BLE_API_VERSION >= 3'));
+            if (callback) callback(null, this._bleDriver.GATT_MTU_SIZE_DEFAULT);
             return;
         }
 
@@ -1950,16 +1960,21 @@ class Adapter extends EventEmitter {
             const errorObject = _makeError('Failed to request att mtu', 'Failed to find device with id ' + deviceInstanceId);
             if (callback) callback(errorObject);
             return;
+        }
 
+        if (this._gattOperationsMap[device.instanceId]) {
+            this.emit('error', _makeError('Failed to get services, a GATT operation already in progress'));
+            return;
         }
 
         this._adapter.gattcExchangeMtuRequest(device.connectionHandle, mtu, err => {
             if (err) {
                 const errorObject = _makeError('Failed to request att mtu', err);
                 if (callback) callback(errorObject);
+                return;
             }
 
-            if (callback) callback();
+            this._gattOperationsMap[device.instanceId] = { callback: callback, clientRxMtu: mtu };
         });
     }
 

@@ -179,8 +179,9 @@ function startScan(adapter, callback) {
 function requestAttMtu(adapter, peerDevice, callback) {
     const mtu = 150;
 
-    adapter.requestAttMtu(peerDevice.instanceId, mtu, err => {
+    adapter.requestAttMtu(peerDevice.instanceId, mtu, (err, newMtu) => {
         assert(!err);
+        console.log(`ATT_MTU is ${newMtu}`);
         if (callback) callback();
     });
 }
