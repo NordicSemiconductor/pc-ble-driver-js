@@ -46,6 +46,7 @@ const ErrorCode = Object.freeze({
     INIT_PACKET_TOO_LARGE: 0x12,
     DISCONNECTION_TIMEOUT: 0x13,
     CONNECTION_PARAM_ERROR: 0x14,
+    ATT_MTU_ERROR: 0x15,
 });
 
 function createError(code, message) {

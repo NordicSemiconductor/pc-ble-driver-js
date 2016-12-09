@@ -30,6 +30,9 @@ const DEFAULT_SCAN_PARAMS = {
     window: 50,
     timeout: 20,
 };
+const PACKET_HEADER_SIZE = 3;
+const DEFAULT_MTU_SIZE = 147;
+const DEFAULT_PRN = 0;
 
 
 /**
@@ -96,8 +99,8 @@ class DfuTransport extends EventEmitter {
 
         const targetAddress = this._transportParameters.targetAddress;
         const targetAddressType = this._transportParameters.targetAddressType;
-        const prnValue = this._transportParameters.prnValue;
-        const mtuSize = this._transportParameters.mtuSize;
+        const prnValue = this._transportParameters.prnValue || DEFAULT_PRN;
+        const mtuSize = this._transportParameters.mtuSize || DEFAULT_MTU_SIZE;
 
         this._debug(`Initializing DFU transport with targetAddress: ${targetAddress}, ` +
             `targetAddressType: ${targetAddressType}, prnValue: ${prnValue}, mtuSize: ${mtuSize}.`);
@@ -114,8 +117,8 @@ class DfuTransport extends EventEmitter {
                 });
                 return this._startCharacteristicsNotifications(controlPointId);
             })
-            .then(() => prnValue ? this._setPrn(prnValue) : null)
-            .then(() => mtuSize ? this._setMtuSize(mtuSize) : null)
+            .then(() => this._setPrn(prnValue))
+            .then(() => this._setMtuSize(mtuSize))
             .then(() => this._isInitialized = true);
     }
 
@@ -358,8 +361,7 @@ class DfuTransport extends EventEmitter {
      * @private
      */
     _setPrn(prn) {
-        return this.init()
-            .then(() => this._controlPointService.setPRN(prn))
+        return this._controlPointService.setPRN(prn)
             .then(() => this._objectWriter.setPrn(prn));
     }
 
@@ -371,7 +373,27 @@ class DfuTransport extends EventEmitter {
      * @private
      */
     _setMtuSize(mtuSize) {
-        this._objectWriter.setMtuSize(mtuSize);
+        const targetAddress = this._transportParameters.targetAddress;
+        const connectedDevice = this._getConnectedDevice(targetAddress);
+        if (!connectedDevice) {
+            return Promise.reject(createError(ErrorCode.ATT_MTU_ERROR, `Tried to set ATT MTU, but not ` +
+                `connected to target address ${targetAddress}.`));
+        }
+        return new Promise((resolve, reject) => {
+            this._adapter.requestAttMtu(connectedDevice.instanceId, mtuSize, (error, acceptedMtu) => {
+                if (error) {
+                    reject(createError(ErrorCode.ATT_MTU_ERROR), `Tried to set ATT MTU ${mtuSize} for ` +
+                        `target address ${targetAddress}, but got error: ${error.message}`);
+                } else if (!acceptedMtu) {
+                    reject(createError(ErrorCode.ATT_MTU_ERROR), `Tried to set ATT MTU ${mtuSize} for ` +
+                        `target address ${targetAddress}, but got invalid ATT MTU back: ${acceptedMtu}`);
+                } else {
+                    this._debug(`Setting MTU to ${acceptedMtu}`);
+                    this._objectWriter.setMtuSize(acceptedMtu - PACKET_HEADER_SIZE);
+                    resolve();
+                }
+            });
+        });
     }
 
 
