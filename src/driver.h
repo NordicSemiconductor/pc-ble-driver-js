@@ -52,6 +52,9 @@ static name_map_t common_event_name_map = {
     NAME_MAP_ENTRY(BLE_EVT_TX_COMPLETE),
     NAME_MAP_ENTRY(BLE_EVT_USER_MEM_REQUEST),
     NAME_MAP_ENTRY(BLE_EVT_USER_MEM_RELEASE),
+#if NRF_SD_BLE_API_VERSION >= 3
+    NAME_MAP_ENTRY(BLE_EVT_DATA_LENGTH_CHANGED),
+#endif
 };
 
 NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& str);
@@ -212,6 +215,17 @@ public:
 
     v8::Local<v8::Object> ToJs();
 };
+
+#if NRF_SD_BLE_API_VERSION >= 3
+class CommonDataLengthChangedEvent : BleDriverCommonEvent<ble_evt_data_length_changed_t>
+{
+public:
+    CommonDataLengthChangedEvent(std::string timestamp, uint16_t conn_handle, ble_evt_data_length_changed_t *evt)
+        : BleDriverCommonEvent<ble_evt_data_length_changed_t>(BLE_EVT_DATA_LENGTH_CHANGED, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs();
+};
+#endif
 
 #pragma endregion BleDriverCommonEvent
 
