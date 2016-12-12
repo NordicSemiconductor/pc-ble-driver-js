@@ -35,8 +35,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-function build(debug)
-{
+function getBuildSystem(debug) {
     var cmakeJS = require('cmake-js');
     var os = require('os');
 
@@ -65,7 +64,7 @@ function build(debug)
         buildSystem.options.arch = defaultWinArch;
     }
 
-    buildSystem.rebuild();
+    return buildSystem;
 }
 
 var times = 0;
@@ -79,8 +78,9 @@ function begin(args) {
         if (args[i] === '--debug') debug = true;
     }
 
+    var buildSystem;
     try {
-        build(debug);
+        buildSystem = getBuildSystem(debug);
     } catch (e) {
         if (e.code == 'MODULE_NOT_FOUND') {
             if (times++ == 5) {
@@ -92,6 +92,10 @@ function begin(args) {
             throw e;
         }
     }
+
+    buildSystem.rebuild().catch(e => {
+        process.exit(1);
+    });
 }
 
 begin(process.argv);
