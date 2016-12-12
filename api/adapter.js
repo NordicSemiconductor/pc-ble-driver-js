@@ -347,11 +347,8 @@ class Adapter extends EventEmitter {
             };
         }
 
-        const appRamBase = this._bleDriver.NRF_SD_BLE_API_VERSION >= 3 ? 0x2000BCC0 : 0;
-
         this._adapter.enableBLE(
             options,
-            appRamBase,
             (err, parameters, app_ram_base) => {
                 if (this._checkAndPropagateError(err, 'Enabling BLE failed.', callback)) { return; }
 

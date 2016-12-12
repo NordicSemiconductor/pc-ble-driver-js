@@ -502,19 +502,10 @@ uint32_t Adapter::enableBLE(adapter_t *adapter)
     ble_enable_params.gatts_enable_params.service_changed = false;
     /* this application only needs to be able to pair in one central link at a time */
     ble_enable_params.gatts_enable_params.attr_tab_size = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
-#if NRF_SD_BLE_API_VERSION <= 2
-    /* set max number of central connections */
-    ble_enable_params.gap_enable_params.central_conn_count = 3;
-    /* set the start address of the application RAM region */
-    uint32_t app_ram_base = 0;
-#elif NRF_SD_BLE_API_VERSION >= 3
     /* set max number of central connections */
     ble_enable_params.gap_enable_params.central_conn_count = 7;
-    /* set the start address of the application RAM region */
-    uint32_t app_ram_base = 0x2000BCC0;
-#endif
 
-    return sd_ble_enable(adapter, &ble_enable_params, &app_ram_base);
+    return sd_ble_enable(adapter, &ble_enable_params, 0);
 }
 
 // This function runs in the Main Thread
@@ -522,16 +513,12 @@ NAN_METHOD(Adapter::EnableBLE)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Object> enableObject;
-    uint32_t appRamBase = 0;
     v8::Local<v8::Function> callback;
     auto argumentcount = 0;
 
     try
     {
         enableObject = ConversionUtility::getJsObject(info[argumentcount]);
-        argumentcount++;
-
-        appRamBase = ConversionUtility::getNativeUint32(info[argumentcount]);
         argumentcount++;
 
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
