@@ -97,10 +97,8 @@ class Adapter extends EventEmitter {
         this._security = new Security(this._bleDriver);
         this._notSupportedMessage = notSupportedMessage;
 
-        this._maxReadPayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 1;
-        this._maxShortWritePayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 3;
-        this._maxLongWritePayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 5;
         this._keys = null;
+        this._attMtu = {};
 
         this._init();
     }
@@ -166,7 +164,20 @@ class Adapter extends EventEmitter {
         return this._notSupportedMessage;
     }
 
-    _generateKeyPair() {
+    
+    _maxReadPayloadSize(deviceInstanceId) {
+        return this.getCurrentAttMtu(deviceInstanceId) - 1;
+    }
+
+    _maxShortWritePayloadSize(deviceInstanceId) {
+        return this.getCurrentAttMtu(deviceInstanceId) - 3;
+    }
+
+    _maxLongWritePayloadSize(deviceInstanceId) {
+        return getCurrentAttMtu(deviceInstanceId) - 5;
+    }
+ 
+     _generateKeyPair() {
         if (this._keys === null) {
             this._keys = this._security.generateKeyPair();
         }
@@ -347,11 +358,8 @@ class Adapter extends EventEmitter {
             };
         }
 
-        const appRamBase = this._bleDriver.NRF_SD_BLE_API_VERSION >= 3 ? 0x2000BCC0 : 0;
-
         this._adapter.enableBLE(
             options,
-            appRamBase,
             (err, parameters, app_ram_base) => {
                 if (this._checkAndPropagateError(err, 'Enabling BLE failed.', callback)) { return; }
 
@@ -543,6 +551,8 @@ class Adapter extends EventEmitter {
         device.connected = true;
         this._devices[device.instanceId] = device;
 
+        this._attMtu[device.instanceId] = this.driver.GATT_MTU_SIZE_DEFAULT;
+
         this._changeState({ connecting: false });
 
         if (deviceRole === 'central') {
@@ -573,6 +583,8 @@ class Adapter extends EventEmitter {
 
         device.connected = false;
 
+        if (device.instanceId in this._attMtu) delete this._attMtu[device.instanceId]; 
+        
         // TODO: Delete all operations for this device.
 
         if (this._gapOperationsMap[device.instanceId]) {
@@ -1126,10 +1138,10 @@ class Adapter extends EventEmitter {
 
             gattOperation.readBytes = gattOperation.readBytes ? gattOperation.readBytes.concat(event.data) : event.data;
 
-            if (event.data.length < this._maxReadPayloadSize) {
+            if (event.data.length < this._maxReadPayloadSize(device.instanceId)) {
                 delete this._gattOperationsMap[device.instanceId];
                 gattOperation.callback(undefined, gattOperation.readBytes);
-            } else if (event.data.length === this._maxReadPayloadSize) {
+            } else if (event.data.length === this._maxReadPayloadSize(device.instanceId)) {
                 // We need to read more:
                 this._adapter.gattcRead(event.conn_handle, event.handle, gattOperation.readBytes.length, err => {
                     if (err) {
@@ -1180,7 +1192,7 @@ class Adapter extends EventEmitter {
             };
 
             if (gattOperation.bytesWritten < gattOperation.value.length) {
-                const value = gattOperation.value.slice(gattOperation.bytesWritten, gattOperation.bytesWritten + this._maxLongWritePayloadSize);
+                const value = gattOperation.value.slice(gattOperation.bytesWritten, gattOperation.bytesWritten + this._maxLongWritePayloadSize(device.instanceId));
 
                 writeParameters.write_op = this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ;
                 writeParameters.handle = handle;
@@ -1331,6 +1343,8 @@ class Adapter extends EventEmitter {
         const gattOperation = this._gattOperationsMap[device.instanceId];
 
         const newMtu = Math.min(event.server_rx_mtu, gattOperation.clientRxMtu);
+
+        this._attMtu[device.instanceId] = newMtu;
 
         if (gattOperation && gattOperation.callback) {
 
@@ -1511,9 +1525,13 @@ class Adapter extends EventEmitter {
     }
 
     _parseGattsExchangeMtuRequestEvent(event) {
+        const remoteDevice = this._getDeviceByConnectionHandle(event.conn_handle);
+
         this._adapter.gattsExchangeMtuReply(event.conn_handle, event.client_rx_mtu, error => {
             if (error) {
                 this.emit('error', _makeError('Failed to call gattsExchangeMtuReply', error));
+            } else {
+                this._attMtu[remoteDevice.instanceId] = event.client_rx_mtu;  
             }
         });
     }
@@ -1944,6 +1962,14 @@ class Adapter extends EventEmitter {
 
             if (callback) { callback(err); }
         });
+    }
+
+    getCurrentAttMtu(deviceInstanceId) {
+        if (!(deviceInstanceId in this._attMtu)) {
+            return;
+        }
+
+        return this._attMtu[deviceInstanceId];
     }
 
     /**
@@ -2715,7 +2741,7 @@ class Adapter extends EventEmitter {
 
         this._gattOperationsMap[device.instanceId] = { callback: completeCallback, bytesWritten: 0, value: value.slice(), attribute: characteristic };
 
-        if (value.length > this._maxShortWritePayloadSize) {
+        if (value.length > this._maxShortWritePayloadSize(device.instanceId)) {
             if (!ack) {
                 throw new Error('Long writes do not support BLE_GATT_OP_WRITE_CMD');
             }
@@ -2827,7 +2853,7 @@ class Adapter extends EventEmitter {
 
         this._gattOperationsMap[device.instanceId] = { callback: callback, bytesWritten: 0, value: value.slice(), attribute: descriptor };
 
-        if (value.length > this._maxShortWritePayloadSize) {
+        if (value.length > this._maxShortWritePayloadSize(device.instanceId)) {
             if (!ack) {
                 throw new Error('Long writes do not support BLE_GATT_OP_WRITE_CMD');
             }
@@ -2889,8 +2915,8 @@ class Adapter extends EventEmitter {
     }
 
     _longWrite(device, attribute, value, callback) {
-        if (value.length < this._maxShortWritePayloadSize) {
-            throw new Error('Wrong write method. Use regular write for payload sizes < ' + this._maxShortWritePayloadSize);
+        if (value.length < this._maxShortWritePayloadSize(device.instanceId)) {
+            throw new Error('Wrong write method. Use regular write for payload sizes < ' + this._maxShortWritePayloadSize(device.instanceId));
         }
 
         const writeParameters = {
