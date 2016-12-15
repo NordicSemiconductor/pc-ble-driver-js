@@ -164,7 +164,7 @@ class Adapter extends EventEmitter {
         return this._notSupportedMessage;
     }
 
-    
+
     _maxReadPayloadSize(deviceInstanceId) {
         return this.getCurrentAttMtu(deviceInstanceId) - 1;
     }
@@ -176,7 +176,7 @@ class Adapter extends EventEmitter {
     _maxLongWritePayloadSize(deviceInstanceId) {
         return getCurrentAttMtu(deviceInstanceId) - 5;
     }
- 
+
      _generateKeyPair() {
         if (this._keys === null) {
             this._keys = this._security.generateKeyPair();
@@ -583,8 +583,8 @@ class Adapter extends EventEmitter {
 
         device.connected = false;
 
-        if (device.instanceId in this._attMtu) delete this._attMtu[device.instanceId]; 
-        
+        if (device.instanceId in this._attMtu) delete this._attMtu[device.instanceId];
+
         // TODO: Delete all operations for this device.
 
         if (this._gapOperationsMap[device.instanceId]) {
@@ -1531,7 +1531,7 @@ class Adapter extends EventEmitter {
             if (error) {
                 this.emit('error', _makeError('Failed to call gattsExchangeMtuReply', error));
             } else {
-                this._attMtu[remoteDevice.instanceId] = event.client_rx_mtu;  
+                this._attMtu[remoteDevice.instanceId] = event.client_rx_mtu;
             }
         });
     }
