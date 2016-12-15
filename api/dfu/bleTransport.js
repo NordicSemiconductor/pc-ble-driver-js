@@ -30,8 +30,8 @@ const DEFAULT_SCAN_PARAMS = {
     window: 50,
     timeout: 20,
 };
-const PACKET_HEADER_SIZE = 3;
-const DEFAULT_MTU_SIZE = 247;
+const ATT_WRITE_COMMAND_HEADER_SIZE = 3;
+const MAX_SUPPORTED_MTU_SIZE = 247;
 const DEFAULT_PRN = 0;
 
 
@@ -100,7 +100,7 @@ class DfuTransport extends EventEmitter {
         const targetAddress = this._transportParameters.targetAddress;
         const targetAddressType = this._transportParameters.targetAddressType;
         const prnValue = this._transportParameters.prnValue || DEFAULT_PRN;
-        const mtuSize = this._transportParameters.mtuSize || DEFAULT_MTU_SIZE;
+        const mtuSize = this._transportParameters.mtuSize || MAX_SUPPORTED_MTU_SIZE;
 
         this._debug(`Initializing DFU transport with targetAddress: ${targetAddress}, ` +
             `targetAddressType: ${targetAddressType}, prnValue: ${prnValue}, mtuSize: ${mtuSize}.`);
@@ -388,8 +388,8 @@ class DfuTransport extends EventEmitter {
                     reject(createError(ErrorCode.ATT_MTU_ERROR), `Tried to set ATT MTU ${mtuSize} for ` +
                         `target address ${targetAddress}, but got invalid ATT MTU back: ${acceptedMtu}`);
                 } else {
-                    this._debug(`Setting MTU to ${acceptedMtu}`);
-                    this._objectWriter.setMtuSize(acceptedMtu - PACKET_HEADER_SIZE);
+                    this._debug(`Setting MTU to ${acceptedMtu} (MTU of ${mtuSize} was requested)`);
+                    this._objectWriter.setMtuSize(acceptedMtu - ATT_WRITE_COMMAND_HEADER_SIZE);
                     resolve();
                 }
             });
