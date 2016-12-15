@@ -31,7 +31,7 @@ const DEFAULT_SCAN_PARAMS = {
     timeout: 20,
 };
 const PACKET_HEADER_SIZE = 3;
-const DEFAULT_MTU_SIZE = 147;
+const DEFAULT_MTU_SIZE = 247;
 const DEFAULT_PRN = 0;
 
 
