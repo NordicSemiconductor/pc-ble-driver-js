@@ -134,6 +134,7 @@ function setupAdapter(adapter, name, address, addressType, callback) {
             flowControl: 'none',
             enableBLE: false,
             eventInterval: 0,
+            logLevel: 'info',
         },
         error => {
             assert(!error);
@@ -331,15 +332,15 @@ function setupAuthLegacyOOB(
         max_key_size: 16,
         kdist_own: {
             enc: true,   /**< Long Term Key and Master Identification. */
-            id: true,    /**< Identity Resolving Key and Identity Address Information. */
+            id: false,    /**< Identity Resolving Key and Identity Address Information. */
             sign: false,  /**< Connection Signature Resolving Key. */
-            link: true,  /**< Derive the Link Key from the LTK. */
+            link: false,  /**< Derive the Link Key from the LTK. */
         },
         kdist_peer: {
             enc: true,   /**< Long Term Key and Master Identification. */
-            id: true,    /**< Identity Resolving Key and Identity Address Information. */
+            id: false,    /**< Identity Resolving Key and Identity Address Information. */
             sign: false,  /**< Connection Signature Resolving Key. */
-            link: true,  /**< Derive the Link Key from the LTK. */
+            link: false,  /**< Derive the Link Key from the LTK. */
         },
     };
 
@@ -354,15 +355,15 @@ function setupAuthLegacyOOB(
         max_key_size: 16,
         kdist_own: {
             enc: true,   /**< Long Term Key and Master Identification. */
-            id: true,    /**< Identity Resolving Key and Identity Address Information. */
+            id: false,    /**< Identity Resolving Key and Identity Address Information. */
             sign: false,  /**< Connection Signature Resolving Key. */
-            link: true,  /**< Derive the Link Key from the LTK. */
+            link: false,  /**< Derive the Link Key from the LTK. */
         },
         kdist_peer: {
             enc: true,   /**< Long Term Key and Master Identification. */
-            id: true,    /**< Identity Resolving Key and Identity Address Information. */
+            id: false,    /**< Identity Resolving Key and Identity Address Information. */
             sign: false,  /**< Connection Signature Resolving Key. */
-            link: true,  /**< Derive the Link Key from the LTK. */
+            link: false,  /**< Derive the Link Key from the LTK. */
         },
     };
 
@@ -901,15 +902,15 @@ function setupAuthLegacyPasskey(
         max_key_size: 16,
         kdist_own: {
             enc: true,   /**< Long Term Key and Master Identification. */
-            id: true,    /**< Identity Resolving Key and Identity Address Information. */
+            id: false,    /**< Identity Resolving Key and Identity Address Information. */
             sign: false,  /**< Connection Signature Resolving Key. */
-            link: true,  /**< Derive the Link Key from the LTK. */
+            link: false,  /**< Derive the Link Key from the LTK. */
         },
         kdist_peer: {
             enc: true,   /**< Long Term Key and Master Identification. */
-            id: true,    /**< Identity Resolving Key and Identity Address Information. */
+            id: false,    /**< Identity Resolving Key and Identity Address Information. */
             sign: false,  /**< Connection Signature Resolving Key. */
-            link: true,  /**< Derive the Link Key from the LTK. */
+            link: false,  /**< Derive the Link Key from the LTK. */
         },
     };
 
