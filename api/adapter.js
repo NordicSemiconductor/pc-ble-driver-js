@@ -1330,7 +1330,7 @@ class Adapter extends EventEmitter {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const characteristic = this._getCharacteristicByValueHandle(device.instanceId, event.handle);
         if (!characteristic) {
-            this.emit('error', _makeError('Cannot handle HVX event', 'No characteristic has a value descriptor with handle: ' + event.handle));
+            this.emit('logMessage', logLevel.DEBUG, `Cannot handle HVX event. No characteristic value with handle ${event.handle} found.`);
             return;
         }
 
