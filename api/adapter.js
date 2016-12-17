@@ -1225,11 +1225,8 @@ class Adapter extends EventEmitter {
             }
 
             return;
-        } else if (event.write_op === this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ) {
-            // TODO: Need to check if gattOperation.bytesWritten is equal to gattOperation.value length?
-            gattOperation.attribute.value = gattOperation.value;
-            delete this._gattOperationsMap[device.instanceId];
-        } else if (event.write_op === this._bleDriver.BLE_GATT_OP_WRITE_REQ) {
+        } else if (event.write_op === this._bleDriver.BLE_GATT_OP_WRITE_REQ ||
+                   event.write_op === this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ) {
             gattOperation.attribute.value = gattOperation.value;
             delete this._gattOperationsMap[device.instanceId];
             if (event.gatt_status !== this._bleDriver.BLE_GATT_STATUS_SUCCESS) {
