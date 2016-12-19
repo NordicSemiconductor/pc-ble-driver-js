@@ -494,7 +494,7 @@ v8::Handle<v8::Value> ConversionUtility::toJsValueArray(const uint8_t *nativeDat
 
 v8::Handle<v8::Value> ConversionUtility::toJsString(const char *cString)
 {
-    return ConversionUtility::toJsString(cString, strlen(cString));
+    return ConversionUtility::toJsString(cString, static_cast<uint16_t>(strlen(cString)));
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsString(const char *cString, uint16_t length)
