@@ -164,7 +164,6 @@ class Adapter extends EventEmitter {
         return this._notSupportedMessage;
     }
 
-
     _maxReadPayloadSize(deviceInstanceId) {
         return this.getCurrentAttMtu(deviceInstanceId) - 1;
     }
@@ -174,7 +173,7 @@ class Adapter extends EventEmitter {
     }
 
     _maxLongWritePayloadSize(deviceInstanceId) {
-        return getCurrentAttMtu(deviceInstanceId) - 5;
+        return this.getCurrentAttMtu(deviceInstanceId) - 5;
     }
 
      _generateKeyPair() {
@@ -2743,7 +2742,7 @@ class Adapter extends EventEmitter {
                 throw new Error('Long writes do not support BLE_GATT_OP_WRITE_CMD');
             }
 
-            this._gattOperationsMap[device.instanceId].bytesWritten = this._maxLongWritePayloadSize;
+            this._gattOperationsMap[device.instanceId].bytesWritten = this._maxLongWritePayloadSize(device.instanceId);
             this._longWrite(device, characteristic, value, completeCallback);
         } else {
             this._gattOperationsMap[device.instanceId].bytesWritten = value.length;
@@ -2855,7 +2854,7 @@ class Adapter extends EventEmitter {
                 throw new Error('Long writes do not support BLE_GATT_OP_WRITE_CMD');
             }
 
-            this._gattOperationsMap[device.instanceId].bytesWritten = this._maxLongWritePayloadSize;
+            this._gattOperationsMap[device.instanceId].bytesWritten = this._maxLongWritePayloadSize(device.instanceId);
             this._longWrite(device, descriptor, value, callback);
         } else {
             this._gattOperationsMap[device.instanceId].bytesWritten = value.length;
@@ -2920,8 +2919,8 @@ class Adapter extends EventEmitter {
             flags: this._bleDriver.BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE,
             handle: attribute.handle,
             offset: 0,
-            len: this._maxLongWritePayloadSize,
-            value: value.slice(0, this._maxLongWritePayloadSize),
+            len: this._maxLongWritePayloadSize(device.instanceId),
+            value: value.slice(0, this._maxLongWritePayloadSize(device.instanceId)),
         };
 
         this._adapter.gattcWrite(device.connectionHandle, writeParameters, err => {
