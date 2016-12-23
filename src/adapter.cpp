@@ -391,6 +391,7 @@ Adapter::~Adapter()
     cleanUpV8Resources();
 
     uv_mutex_destroy(adapterCloseMutex);
+    delete adapterCloseMutex;
 }
 
 NAN_METHOD(Adapter::New)
