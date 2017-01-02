@@ -178,6 +178,7 @@ public:
 
     ~Baton()
     {
+        delete req;
         delete callback;
     }
 
