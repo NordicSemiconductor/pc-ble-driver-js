@@ -756,7 +756,6 @@ void Adapter::AfterOpen(uv_work_t *req)
 {
     Nan::HandleScope scope;
     auto baton = static_cast<OpenBaton *>(req->data);
-    delete req;
 
     v8::Local<v8::Value> argv[1];
 

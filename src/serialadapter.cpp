@@ -96,5 +96,4 @@ void AfterGetAdapterList(uv_work_t* req)
     }
 
     delete baton;
-    delete req;
 }
