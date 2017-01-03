@@ -1338,9 +1338,14 @@ class Adapter extends EventEmitter {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const gattOperation = this._gattOperationsMap[device.instanceId];
 
+        const previousMtu = this._attMtu[device.instanceId];
         const newMtu = Math.min(event.server_rx_mtu, gattOperation.clientRxMtu);
 
         this._attMtu[device.instanceId] = newMtu;
+
+        if (newMtu !== previousMtu) {
+            this.emit('attMtuChanged', device, newMtu);
+        }
 
         if (gattOperation && gattOperation.callback) {
 
@@ -1526,9 +1531,15 @@ class Adapter extends EventEmitter {
         this._adapter.gattsExchangeMtuReply(event.conn_handle, event.client_rx_mtu, error => {
             if (error) {
                 this.emit('error', _makeError('Failed to call gattsExchangeMtuReply', error));
-            } else {
-                this._attMtu[remoteDevice.instanceId] = event.client_rx_mtu;
+                return;
             }
+
+            const previousMtu = this._attMtu[remoteDevice.instanceId];
+            const newMtu = event.client_rx_mtu;
+            this._attMtu[remoteDevice.instanceId] = newMtu;
+
+            if (newMtu !== previousMtu);
+            this.emit('attMtuChanged', remoteDevice, event.client_rx_mtu);
         });
     }
 

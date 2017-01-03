@@ -108,7 +108,7 @@ function connect(adapter, connectToAddress, callback) {
 function setupAdapter(adapter, name, address, addressType, callback) {
     adapter.open(
         {
-            baudRate: 115200,
+            baudRate: 1000000,
             parity: 'none',
             flowControl: 'none',
             enableBLE: false,
@@ -209,6 +209,14 @@ function runTests(centralAdapter, peripheralAdapter) {
         centralAdapter.once('dataLengthChanged', (peripheralDevice, dataLength) => {
             console.log(`New data length is ${dataLength}`);
         });
+
+        centralAdapter.once('attMtuChanged', (peripheralDevice, attMtu) => {
+            console.log(`ATT MTU changed to ${attMtu}`);
+        })
+
+        peripheralAdapter.once('attMtuChanged', (centralDevice, attMtu) => {
+            console.log(`ATT MTU changed to ${attMtu}`);
+        })
 
         connect(centralAdapter, { address: peripheralDeviceAddress, type: peripheralDeviceAddressType });
     });
