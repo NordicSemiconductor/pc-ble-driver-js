@@ -115,6 +115,7 @@ export class Adapter extends EventEmitter {
   getDevice(deviceInstanceId: string): Device;
   updateConnectionParameters(deviceInstanceId: string, options: ConnectionParameters, callback?: (err: any) => void): void;
   rejectConnParams(deviceInstanceId: string, callback?: (err: any) => void): void;
+  requestAttMtu(deviceInstanceId: string, mtu: number, callback?: (err: any, value: number) => void): void;
 }
 
 export class AdapterFactory extends EventEmitter {
