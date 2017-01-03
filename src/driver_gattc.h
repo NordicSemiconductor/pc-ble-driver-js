@@ -44,6 +44,9 @@
 extern name_map_t gatt_status_map;
 
 static name_map_t gattc_event_name_map = {
+#if NRF_SD_BLE_API_VERSION >= 3
+    NAME_MAP_ENTRY(BLE_GATTC_EVT_EXCHANGE_MTU_RSP),
+#endif
     NAME_MAP_ENTRY(BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP),
     NAME_MAP_ENTRY(BLE_GATTC_EVT_REL_DISC_RSP),
     NAME_MAP_ENTRY(BLE_GATTC_EVT_CHAR_DISC_RSP),
