@@ -497,7 +497,7 @@ NAN_METHOD(Adapter::GattsAddCharacteristic)
     {
         baton->p_char_md = GattsCharacteristicMetadata(metadata);
     }
-    catch (char const *err)
+    catch (std::string err)
     {
         Nan::ThrowTypeError(ErrorMessage::getStructErrorMessage("char_md", err));
         return;
@@ -507,7 +507,7 @@ NAN_METHOD(Adapter::GattsAddCharacteristic)
     {
         baton->p_attr_char_value = GattsAttribute(attributeStructure);
     }
-    catch (char const *err)
+    catch (std::string err)
     {
         Nan::ThrowTypeError(ErrorMessage::getStructErrorMessage("attr_char_value", err));
         return;
