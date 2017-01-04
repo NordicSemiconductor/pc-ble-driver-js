@@ -2763,7 +2763,7 @@ NAN_METHOD(Adapter::GapReplySecurityParameters)
 
         obj->createSecurityKeyStorage(conn_handle, keyset);
     }
-    catch (char const *)
+    catch (std::string)
     {
         Nan::ThrowTypeError("The provided keyset can not be parsed.");
         return;
