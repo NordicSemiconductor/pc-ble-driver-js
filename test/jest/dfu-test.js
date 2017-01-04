@@ -18,8 +18,8 @@ const NRF_FAMILY = {
 };
 
 const CONNECTIVITY_HEX_FILES = {
-    0: './pc-ble-driver/hex/sd_api_v2/connectivity_1.0.1_115k2_with_s130_2.0.1.hex',
-    1: './pc-ble-driver/hex/sd_api_v3/connectivity_1.0.1_115k2_with_s132_3.0.hex',
+    0: './pc-ble-driver/hex/sd_api_v2/connectivity_1.1.0_115k2_with_s130_2.0.1.hex',
+    1: './pc-ble-driver/hex/sd_api_v3/connectivity_1.1.0_1m_with_s132_3.0.hex',
 };
 
 const DFU_BOOTLOADER_HEX_FILES = {
@@ -64,6 +64,12 @@ describe('DFU module', () => {
                 });
             });
     });
+
+    /*
+     * NOTE: There is a bug (core dump) when closing adapter, which makes the
+     *       tests below fail at the last step. Because of this, we are skipping
+     *       these by default. To enable, replace "it.skip" with "it".
+     */
 
     it.skip('opens an adapter and closes it without error', () => {
         return getAdapterInfo()
