@@ -340,7 +340,7 @@ class Adapter extends EventEmitter {
             options = {
                 gap_enable_params: {
                     periph_conn_count: 1,
-                    central_conn_count: this._bleDriver.NRF_SD_BLE_API_VERSION <= 2 ? 3 : 7,
+                    central_conn_count: 7,
                     central_sec_count: 1,
                 },
                 gatts_enable_params: {
