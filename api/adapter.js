@@ -2910,10 +2910,10 @@ class Adapter extends EventEmitter {
                     if (err.errno === BLE_ERROR_NO_TX_PACKETS && attempts++ <= MAX_ATTEMPTS) {
                         setTimeout(() => tryWrite(), RETRY_DELAY);
                     } else {
-                        callback(err);
+                        if (callback) callback(err);
                     }
                 } else {
-                    callback();
+                    if (callback) callback();
                 }
             });
         };
