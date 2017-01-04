@@ -349,7 +349,7 @@ class Adapter extends EventEmitter {
                 },
                 common_enable_params: {
                     conn_bw_counts: null, // tell SD to use default
-                    vs_uuid_count: 5,
+                    vs_uuid_count: 10,
                 },
                 gatt_enable_params: {
                     att_mtu: 247, // 247 is max att mtu size
