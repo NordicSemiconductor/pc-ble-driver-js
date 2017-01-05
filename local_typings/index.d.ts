@@ -92,6 +92,7 @@ declare class EventEmitter {
 
 export class Adapter extends EventEmitter {
   instanceId: string;
+  driver: any;
   state: AdapterState;
   open(options?: AdapterOpenOptions, callback?: (err: any) => void): void;
   close(callback?: (err: any) => void): void;
@@ -114,6 +115,8 @@ export class Adapter extends EventEmitter {
   getDevice(deviceInstanceId: string): Device;
   updateConnectionParameters(deviceInstanceId: string, options: ConnectionParameters, callback?: (err: any) => void): void;
   rejectConnParams(deviceInstanceId: string, callback?: (err: any) => void): void;
+  requestAttMtu(deviceInstanceId: string, mtu: number, callback?: (err: any, value: number) => void): void;
+  getCurrentAttMtu(deviceInstanceId: string): number;
 }
 
 export class AdapterFactory extends EventEmitter {

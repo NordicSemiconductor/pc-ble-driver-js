@@ -41,7 +41,6 @@ const assert = require('assert');
 
 const setup = require('./setup');
 const adapterFactory = setup.adapterFactory;
-const driver = setup.driver;
 
 const peripheralDeviceAddress = 'FF:11:22:33:AA:BE';
 const peripheralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
@@ -64,42 +63,22 @@ function addAdapterFactoryListeners() {
 }
 
 function addAdapterListener(adapter, prefix) {
-    adapter.on('logMessage', (severity, message) => { if (severity > 1) console.log(`${severity} ${prefix} logMessage: ${message}`)});
-    adapter.on('status', status => { console.log(`${prefix} status: ${JSON.stringify(status, null, 1)}`); });
+    adapter.on('logMessage', (severity, message) => {
+        if (severity > 1) console.log(`${severity} ${prefix} logMessage: ${message}`);
+    });
+
+    adapter.on('status', status => {
+        console.log(`${prefix} status: ${JSON.stringify(status, null, 1)}`);
+    });
+
     adapter.on('error', error => {
         console.log(`${prefix} error: ${JSON.stringify(error, null, 1)}`);
         assert(false);
     });
 
-    adapter.on('deviceDiscovered', device =>  {
+    adapter.on('deviceDiscovered', device => {
         console.log(`${prefix} deviceDiscovered: ${device.address}`);
     });
-}
-
-function connect(adapter, connectToAddress, callback) {
-    const options = {
-        scanParams: {
-            active: false,
-            interval: 100,
-            window: 50,
-            timeout: 20,
-        },
-        connParams: {
-            min_conn_interval: 7.5,
-            max_conn_interval: 7.5,
-            slave_latency: 0,
-            conn_sup_timeout: 4000,
-        },
-    };
-
-    adapter.connect(
-        connectToAddress,
-        options,
-        error => {
-            assert(!error);
-            if (callback) callback();
-        }
-    );
 }
 
 function setupAdapter(adapter, name, address, addressType, callback) {
@@ -140,8 +119,7 @@ function tearDownAdapter(adapter, callback) {
     });
 }
 
-function startScan(adapter, callback)
-{
+function startScan(adapter, callback) {
     const scanParameters = {
         active: true,
         interval: 100,

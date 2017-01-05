@@ -35,18 +35,18 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-var driver = require('bindings')('pc-ble-driver-js');
-var Adapter = require('./api/adapter');
-var AdapterFactory = require('./api/adapterFactory');
-var AdapterState = require('./api/adapterState');
-var Characteristic = require('./api/characteristic');
-var Descriptor = require('./api/descriptor');
-var Device = require('./api/device');
-var Security = require('./api/security');
-var Service = require('./api/service');
-var ServiceFactory = require('./api/serviceFactory');
+//var driver = require('bindings')('pc-ble-driver-js');
+const Adapter = require('./api/adapter');
+const AdapterFactory = require('./api/adapterFactory');
+const AdapterState = require('./api/adapterState');
+const Characteristic = require('./api/characteristic');
+const Descriptor = require('./api/descriptor');
+const Device = require('./api/device');
+const Security = require('./api/security');
+const Service = require('./api/service');
+const ServiceFactory = require('./api/serviceFactory');
+const Dfu = require('./api/dfu');
 
-module.exports.driver = driver;
 module.exports.api = {
     Adapter,
     AdapterFactory,
@@ -57,4 +57,5 @@ module.exports.api = {
     Security,
     Service,
     ServiceFactory,
+    Dfu,
 };

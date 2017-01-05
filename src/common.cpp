@@ -48,7 +48,7 @@
 try { \
     return (method); \
 } \
-catch(char const *error) \
+catch(std::string error) \
 { \
     std::cout << "Exception: " << name << ":" << error << std::endl; \
     std::stringstream ex; \
@@ -292,7 +292,7 @@ uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Value> js)
 {
     if (!js->IsArray())
     {
-        throw "array";
+        throw std::string("array");
     }
 
     v8::Local<v8::Array> jsarray = v8::Local<v8::Array>::Cast(js);
@@ -336,7 +336,7 @@ v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Value>js)
 {
     if (!js->IsObject())
     {
-        throw "object";
+        throw std::string("object");
     }
 
     return js->ToObject();
@@ -363,7 +363,7 @@ v8::Local<v8::Object> ConversionUtility::getJsObjectOrNull(v8::Local<v8::Value>j
         return ConversionUtility::getJsObject(js);
     }
 
-    throw "object or null";
+    throw std::string("object or null");
 }
 
 v8::Local<v8::Object> ConversionUtility::getJsObjectOrNull(v8::Local<v8::Object>js, const char *name)
@@ -403,7 +403,7 @@ std::string ConversionUtility::getNativeString(v8::Local<v8::Value> js)
 {
     if (!js->IsString())
     {
-        throw "string";
+        throw std::string("string");
     }
 
     return std::string(*Nan::Utf8String(js));
@@ -494,7 +494,7 @@ v8::Handle<v8::Value> ConversionUtility::toJsValueArray(const uint8_t *nativeDat
 
 v8::Handle<v8::Value> ConversionUtility::toJsString(const char *cString)
 {
-    return ConversionUtility::toJsString(cString, strlen(cString));
+    return ConversionUtility::toJsString(cString, static_cast<uint16_t>(strlen(cString)));
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsString(const char *cString, uint16_t length)
@@ -562,7 +562,7 @@ v8::Local<v8::Function> ConversionUtility::getCallbackFunction(v8::Local<v8::Val
     Nan::EscapableHandleScope scope;
     if (!js->IsFunction())
     {
-        throw "function";
+        throw std::string("function");
     }
     return scope.Escape(js.As<v8::Function>());
 }

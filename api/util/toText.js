@@ -161,7 +161,7 @@ class ToText {
 
             if (key == 'name') { continue; }
 
-            let value = eval(`obj.${key}`);
+            let value = obj[key];
 
             key = rewriter(key);
 

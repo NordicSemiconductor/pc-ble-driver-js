@@ -37,15 +37,36 @@
 
 'use strict';
 
-const driver = require('../index.js').driver;
+function numberToHexString(value) {
+    if (typeof (value) !== 'number') {
+        return '';
+    }
 
-driver.eccInit();
+    const hexValue = value.toString(16);
+    return ('0' + hexValue).slice(-Math.ceil(hexValue.length / 2) * 2).toUpperCase();
+}
 
-const keys = driver.eccGenerateKeypair();
-console.log(keys);
+function numberTo16BitUuid(uuid16Bit) {
+    let byteString = uuid16Bit.toString(16);
+    byteString = ('000' + byteString).slice(-4);
 
-const publicKey = driver.eccComputePublicKey(keys.sk);
-console.log(publicKey);
+    return byteString.toUpperCase();
+}
 
-const ssKey = driver.eccComputeSharedSecret(keys.sk, publicKey.pk);
-console.log(ssKey);
+function arrayTo128BitUuid(array) {
+    let string = '';
+
+    for (let i = array.length - 1; i >= 0; i--) {
+        let byteString = array[i].toString(16);
+        byteString = ('0' + byteString).slice(-2);
+        string += byteString;
+    }
+
+    return string.toUpperCase();
+}
+
+module.exports = {
+    numberToHexString,
+    numberTo16BitUuid,
+    arrayTo128BitUuid,
+};

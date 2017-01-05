@@ -43,22 +43,22 @@ const setup = require('./setup');
 const adapterFactory = setup.adapterFactory;
 
 const connectionParameters = {
-           min_conn_interval: 7.5,
-           max_conn_interval: 7.5,
-           slave_latency: 0,
-           conn_sup_timeout: 4000,
-       };
+    min_conn_interval: 7.5,
+    max_conn_interval: 7.5,
+    slave_latency: 0,
+    conn_sup_timeout: 4000,
+};
 
 const scanParameters = {
-   active: true,
-   interval: 100,
-   window: 50,
-   timeout: 5,
+    active: true,
+    interval: 100,
+    window: 50,
+    timeout: 5,
 };
 
 const options = {
-   scanParams: scanParameters,
-   connParams: connectionParameters,
+    scanParams: scanParameters,
+    connParams: connectionParameters,
 };
 
 const advOptions = {
@@ -67,11 +67,11 @@ const advOptions = {
 };
 
 const openOptions = {
-            baudRate: 115200,
-            parity: 'none',
-            flowControl: 'none',
-            enableBLE: true,
-            eventInterval: 0,
+    baudRate: 115200,
+    parity: 'none',
+    flowControl: 'none',
+    enableBLE: true,
+    eventInterval: 0,
 };
 
 let listenersAdded = false;
@@ -80,9 +80,10 @@ function runTests(adapterOne) {
     let connect_in_progress = false;
 
     if (!listenersAdded) {
-        adapterOne.on('logMessage', (severity, message) => { if (severity > 1) console.log(`#1 logMessage: ${message}`)});
-        adapterOne.on('status', (status) => {
-            console.log(`#1 status: ${JSON.stringify(status)}`); });
+        adapterOne.on('logMessage', (severity, message) => { if (severity > 1) console.log(`#1 logMessage: ${message}`); });
+        adapterOne.on('status', status => {
+            console.log(`#1 status: ${JSON.stringify(status)}`);
+        });
         adapterOne.on('error', error => { console.log('#1 error: ' + JSON.stringify(error, null, 1)); });
         adapterOne.on('stateChanged', state => {
             console.log('#1 stateChanged: ' + JSON.stringify(state));
@@ -111,12 +112,11 @@ function runTests(adapterOne) {
                 assert(!error);
                 console.log(JSON.stringify(state));
 
-                //console.log('Setting name');
                 adapterOne.setName('adapterOne', error => {
                     assert(!error);
 
                     console.log('Starting scan');
-                    adapterOne.startScan(scanParameters, (error) => {
+                    adapterOne.startScan(scanParameters, error => {
                         assert(!error);
                     });
                 });
@@ -128,7 +128,7 @@ let adapterOne;
 
 adapterFactory.on('added', adapter => {
     console.log(`onAdded: Adapter added. Adapter: ${adapter.instanceId}`);
-    adapterOne  = adapter;
+    adapterOne = adapter;
 });
 
 adapterFactory.on('removed', adapter => {
@@ -145,15 +145,14 @@ console.log('c: close adapter');
 
 process.stdin.setRawMode(true);
 process.stdin.resume();
-process.stdin.on('data', (data) => {
-    if (data == 's')
-    {
+process.stdin.on('data', data => {
+    if (data == 's') {
         console.log('s pressed');
         adapterFactory.getAdapters((error, adapters) => {
             assert(!error);
             runTests(adapters[Object.keys(adapters)[0]]);
         });
-        console.log('Running tests')
+        console.log('Running tests');
     } else if (data == 'c') {
         if (adapterOne !== undefined) {
             console.log('Closing adapter');

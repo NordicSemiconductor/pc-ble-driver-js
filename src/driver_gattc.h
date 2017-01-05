@@ -44,6 +44,9 @@
 extern name_map_t gatt_status_map;
 
 static name_map_t gattc_event_name_map = {
+#if NRF_SD_BLE_API_VERSION >= 3
+    NAME_MAP_ENTRY(BLE_GATTC_EVT_EXCHANGE_MTU_RSP),
+#endif
     NAME_MAP_ENTRY(BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP),
     NAME_MAP_ENTRY(BLE_GATTC_EVT_REL_DISC_RSP),
     NAME_MAP_ENTRY(BLE_GATTC_EVT_CHAR_DISC_RSP),
@@ -238,6 +241,17 @@ public:
     v8::Local<v8::Object> ToJs();
 };
 
+#if NRF_SD_BLE_API_VERSION >= 3
+class GattcExchangeMtuResponseEvent : BleDriverGattcEvent < ble_gattc_evt_exchange_mtu_rsp_t >
+{
+public:
+	GattcExchangeMtuResponseEvent(std::string timestamp, uint16_t conn_handle, uint16_t gatt_status, uint16_t error_handle, ble_gattc_evt_exchange_mtu_rsp_t *evt)
+		: BleDriverGattcEvent<ble_gattc_evt_exchange_mtu_rsp_t>(BLE_GATTC_EVT_EXCHANGE_MTU_RSP, timestamp, conn_handle, gatt_status, error_handle, evt) {}
+
+	v8::Local<v8::Object> ToJs();
+};
+#endif
+
 ///// Start GATTC Batons //////////////////////////////////////////////////////////////////////////////////
 
 struct GattcDiscoverPrimaryServicesBaton : public Baton {
@@ -305,6 +319,13 @@ public:
     BATON_CONSTRUCTOR(GattcConfirmHandleValueBaton);
     uint16_t conn_handle;
     uint16_t handle;
+};
+
+struct GattcExchangeMtuRequestBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GattcExchangeMtuRequestBaton);
+    uint16_t conn_handle;
+    uint16_t client_rx_mtu;
 };
 
 ///// End GATTC Batons //////////////////////////////////////////////////////////////////////////////////

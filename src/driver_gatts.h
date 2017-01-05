@@ -42,6 +42,9 @@
 #include "ble_gatts.h"
 
 static name_map_t gatts_event_name_map = {
+#if NRF_SD_BLE_API_VERSION >= 3
+    NAME_MAP_ENTRY(BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST),
+#endif
     NAME_MAP_ENTRY(BLE_GATTS_EVT_WRITE),
     NAME_MAP_ENTRY(BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST),
     NAME_MAP_ENTRY(BLE_GATTS_EVT_SYS_ATTR_MISSING),
@@ -219,6 +222,17 @@ public:
     v8::Local<v8::Object> ToJs();
 };
 
+#if NRF_SD_BLE_API_VERSION >= 3
+class GattsExchangeMtuRequestEvent : BleDriverGattsEvent<ble_gatts_evt_exchange_mtu_request_t>
+{
+public:
+	GattsExchangeMtuRequestEvent(std::string timestamp, uint16_t conn_handle, ble_gatts_evt_exchange_mtu_request_t *evt)
+		: BleDriverGattsEvent<ble_gatts_evt_exchange_mtu_request_t>(BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST, timestamp, conn_handle, evt) {}
+	
+	v8::Local<v8::Object> ToJs();
+};
+#endif
+
 struct GattsAddServiceBaton : public Baton {
 public:
     BATON_CONSTRUCTOR(GattsAddServiceBaton);
@@ -282,6 +296,15 @@ public:
     uint16_t conn_handle;
     ble_gatts_rw_authorize_reply_params_t *p_rw_authorize_reply_params;
 };
+
+#if NRF_SD_BLE_API_VERSION >= 3
+struct GattsExchangeMtuReplyBaton : public Baton {
+public:
+    BATON_CONSTRUCTOR(GattsExchangeMtuReplyBaton);
+    uint16_t conn_handle;
+    uint16_t server_rx_mtu;
+};
+#endif
 
 extern "C" {
     void init_gatts(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
