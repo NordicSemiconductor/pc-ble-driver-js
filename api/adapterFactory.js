@@ -108,7 +108,7 @@ class AdapterFactory extends EventEmitter {
         // How about moving id generation and equality check within adapter class?
         const instanceId = this._getInstanceId(adapter);
 
-        let addOnAdapter; // = new this._bleDrivers.Adapter();
+        let addOnAdapter;
         let selectedDriver;
 
         // TODO: get adapters from one driver
