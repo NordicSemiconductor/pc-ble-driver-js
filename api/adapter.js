@@ -268,7 +268,7 @@ class Adapter extends EventEmitter {
             if (!options.logLevel) options.logLevel = 'info';
             if (!options.retransmissionInterval) options.retransmissionInterval = 100;
             if (!options.responseTimeout) options.responseTimeout = 750;
-            if ((typeof options.enableBLE) === 'undefined') options.enableBLE = true;
+            if (options.enableBLE === undefined) options.enableBLE = true;
         }
 
         this._changeState({ baudRate: options.baudRate, parity: options.parity, flowControl: options.flowControl });
