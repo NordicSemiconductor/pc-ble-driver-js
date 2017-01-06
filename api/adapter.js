@@ -458,7 +458,7 @@ class Adapter extends EventEmitter {
                 case this._bleDriver.BLE_GATTC_EVT_TIMEOUT:
                     this._parseGattTimeoutEvent(event);
                     break;
-                case (this._bleDriver.NRF_SD_BLE_API_VERSION >= 3 ? this._bleDriver.BLE_GATTC_EVT_EXCHANGE_MTU_RSP : -1):
+                case this._bleDriver.BLE_GATTC_EVT_EXCHANGE_MTU_RSP:
                     this._parseGattcExchangeMtuResponseEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_WRITE:
@@ -479,7 +479,7 @@ class Adapter extends EventEmitter {
                 case this._bleDriver.BLE_GATTS_EVT_TIMEOUT:
                     this._parseGattTimeoutEvent(event);
                     break;
-                case (this._bleDriver.NRF_SD_BLE_API_VERSION >= 3 ? this._bleDriver.BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST : -1):
+                case this._bleDriver.BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST:
                     this._parseGattsExchangeMtuRequestEvent(event);
                     break;
                 case this._bleDriver.BLE_EVT_USER_MEM_REQUEST:
@@ -488,7 +488,7 @@ class Adapter extends EventEmitter {
                 case this._bleDriver.BLE_EVT_TX_COMPLETE:
                     this._parseTxCompleteEvent(event);
                     break;
-                case (this._bleDriver.NRF_SD_BLE_API_VERSION >= 3 ? this._bleDriver.BLE_EVT_DATA_LENGTH_CHANGED : -1):
+                case this._bleDriver.BLE_EVT_DATA_LENGTH_CHANGED:
                     this._parseDataLengthChangedEvent(event);
                     break;
                 default:
