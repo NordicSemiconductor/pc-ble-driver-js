@@ -99,7 +99,7 @@ class Adapter extends EventEmitter {
         this._notSupportedMessage = notSupportedMessage;
 
         this._keys = null;
-        this._attMtu = {};
+        this._attMtuMap = {};
 
         this._init();
     }
@@ -523,7 +523,7 @@ class Adapter extends EventEmitter {
         device.connected = true;
         this._devices[device.instanceId] = device;
 
-        this._attMtu[device.instanceId] = this.driver.GATT_MTU_SIZE_DEFAULT;
+        this._attMtuMap[device.instanceId] = this.driver.GATT_MTU_SIZE_DEFAULT;
 
         this._changeState({ connecting: false });
 
@@ -555,7 +555,7 @@ class Adapter extends EventEmitter {
 
         device.connected = false;
 
-        if (device.instanceId in this._attMtu) delete this._attMtu[device.instanceId];
+        if (device.instanceId in this._attMtuMap) delete this._attMtuMap[device.instanceId];
 
         // TODO: Delete all operations for this device.
 
@@ -1311,10 +1311,10 @@ class Adapter extends EventEmitter {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const gattOperation = this._gattOperationsMap[device.instanceId];
 
-        const previousMtu = this._attMtu[device.instanceId];
+        const previousMtu = this._attMtuMap[device.instanceId];
         const newMtu = Math.min(event.server_rx_mtu, gattOperation.clientRxMtu);
 
-        this._attMtu[device.instanceId] = newMtu;
+        this._attMtuMap[device.instanceId] = newMtu;
 
         if (newMtu !== previousMtu) {
             this.emit('attMtuChanged', device, newMtu);
@@ -1507,9 +1507,9 @@ class Adapter extends EventEmitter {
                 return;
             }
 
-            const previousMtu = this._attMtu[remoteDevice.instanceId];
+            const previousMtu = this._attMtuMap[remoteDevice.instanceId];
             const newMtu = event.client_rx_mtu;
-            this._attMtu[remoteDevice.instanceId] = newMtu;
+            this._attMtuMap[remoteDevice.instanceId] = newMtu;
 
             if (newMtu !== previousMtu);
             this.emit('attMtuChanged', remoteDevice, event.client_rx_mtu);
@@ -1945,11 +1945,11 @@ class Adapter extends EventEmitter {
     }
 
     getCurrentAttMtu(deviceInstanceId) {
-        if (!(deviceInstanceId in this._attMtu)) {
+        if (!(deviceInstanceId in this._attMtuMap)) {
             return;
         }
 
-        return this._attMtu[deviceInstanceId];
+        return this._attMtuMap[deviceInstanceId];
     }
 
     /**
