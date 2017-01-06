@@ -5,6 +5,7 @@ const ControlPointOpcode = require('../dfuConstants').ControlPointOpcode;
 const ResultCode = require('../dfuConstants').ResultCode;
 const ErrorCode = require('../dfuConstants').ErrorCode;
 const createError = require('../dfuConstants').createError;
+const getOpCodeName = require('../dfuConstants').getOpCodeName;
 const intToArray = require('../../util/intArrayConv').intToArray;
 const arrayToInt = require('../../util/intArrayConv').arrayToInt;
 
@@ -47,21 +48,19 @@ class ControlPointService {
             })
             .catch(error => {
                 this._notificationQueue.stopListening();
-                error.message = `When writing "${ControlPointOpcode[command[0]]}" ` +
-                  `command ([${command}]) to Control Point Characteristic ` +
-                  `of DFU Target: ` + error.message;
+                error.message = `When writing '${getOpCodeName(command[0])}' ` +
+                  `command to Control Point Characteristic of DFU Target: ` + error.message;
                 throw error;
             });
     }
 
     _writeCharacteristicValue(command) {
         return new Promise((resolve, reject) => {
-            this._adapter.writeCharacteristicValue(this._controlPointCharacteristicId, command, true, error => {
+            const characteristicId = this._controlPointCharacteristicId;
+            this._adapter.writeCharacteristicValue(characteristicId, command, true, error => {
                 if (error) {
-                    let message = `Could not write operation code ${command[0]} ` +
-                      `"${ControlPointOpcode[command[0]]}" to DFU Target: ` +
-                      `\`\`${error.message}''`;
-                    reject(createError(ErrorCode.WRITE_ERROR, message));
+                    reject(createError(ErrorCode.WRITE_ERROR, `Could not write ` +
+                        `${getOpCodeName(command[0])} command: ${error.message}`));
                 } else {
                     resolve();
                 }
@@ -70,45 +69,46 @@ class ControlPointService {
     }
 
     static parseCommand(command) {
-        let commandObject = {};
-        commandObject.command = command[0];
+        const returnObject = {
+            command: command[0]
+        };
 
         switch(command[0]) {
             case ControlPointOpcode.CREATE:
-                commandObject.type = command[1];
-                commandObject.size = arrayToInt(command.slice(2, 6));
+                returnObject.type = command[1];
+                returnObject.size = arrayToInt(command.slice(2, 6));
                 break;
             case ControlPointOpcode.SET_PRN:
-                commandObject.value = arrayToInt(command.slice(1, 3));
+                returnObject.value = arrayToInt(command.slice(1, 3));
                 break;
             case ControlPointOpcode.CALCULATE_CRC:
                 break;
             case ControlPointOpcode.EXECUTE:
                 break;
             case ControlPointOpcode.SELECT:
-                commandObject.type = command[1];
+                returnObject.type = command[1];
                 break;
             case ControlPointOpcode.RESPONSE:
                 return ControlPointService.parseResponse(command);
                 break;
         }
 
-        return commandObject;
+        return returnObject;
     }
 
     static parseResponse(response) {
         if (response[0] !== ControlPointOpcode.RESPONSE) {
-            throw createError(ErrorCode.UNEXPECTED_NOTIFICATION,
-              `Trying to parse response command (opcode ${ControlPointOpcode.RESPONSE} ` +
-                `"${ControlPointOpcode[ControlPointOpcode.RESPONSE]}"), ` +
-                `but command is opcode ${response[0]} "${ControlPointOpcode[response[0]]}"`);
+            throw createError(ErrorCode.UNEXPECTED_NOTIFICATION, `When parsing response, expected ` +
+                `operation code ${ControlPointOpcode.RESPONSE} ` +
+                `(${getOpCodeName(ControlPointOpcode.RESPONSE)}) ` +
+                `but got operation code ${response[0]} (${getOpCodeName(response[0])})`);
         }
 
-        let responseObject = {};
-
-        responseObject.command = response[0];
-        responseObject.requestOpcode = response[1];
-        responseObject.resultCode = response[2];
+        const returnObject = {
+            command: response[0],
+            requestOpcode: response[1],
+            resultCode: response[2],
+        };
 
         if (response[2] === ResultCode.SUCCESS) {
             switch(response[1]) {
@@ -117,19 +117,19 @@ class ControlPointService {
                 case ControlPointOpcode.SET_PRN:
                     break;
                 case ControlPointOpcode.CALCULATE_CRC:
-                    responseObject.offset = arrayToInt(response.slice(3, 7));
-                    responseObject.crc32 = arrayToInt(response.slice(7, 11));
+                    returnObject.offset = arrayToInt(response.slice(3, 7));
+                    returnObject.crc32 = arrayToInt(response.slice(7, 11));
                     break;
                 case ControlPointOpcode.EXECUTE:
                     break;
                 case ControlPointOpcode.SELECT:
-                    responseObject.maximumSize = arrayToInt(response.slice(3, 7));
-                    responseObject.offset = arrayToInt(response.slice(7, 11));
-                    responseObject.crc32 = arrayToInt(response.slice(11, 15));
+                    returnObject.maximumSize = arrayToInt(response.slice(3, 7));
+                    returnObject.offset = arrayToInt(response.slice(7, 11));
+                    returnObject.crc32 = arrayToInt(response.slice(11, 15));
                     break;
             }
         }
-        return responseObject;
+        return returnObject;
     }
 }
 

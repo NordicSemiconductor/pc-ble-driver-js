@@ -1,6 +1,7 @@
 'use strict';
 
 const ControlPointService = require('../controlPointService');
+const ControlPointOpcode = require('../../dfuConstants').ControlPointOpcode;
 const ErrorCode = require('../../dfuConstants').ErrorCode;
 const createError = require('../../dfuConstants').createError;
 
@@ -15,7 +16,7 @@ describe('_sendCommand', () => {
         beforeEach(() => {
             adapter = {
                 writeCharacteristicValue: (id, command, ack, callback) => {
-                    callback(new Error());
+                    callback(new Error('Write failed'));
                 }
             };
             notificationQueue = {
@@ -26,9 +27,10 @@ describe('_sendCommand', () => {
             controlPointService._notificationQueue = notificationQueue;
         });
 
-        it('should return error', () => {
-            return controlPointService._sendCommand({}).catch(error => {
+        it('should return error with message', () => {
+            return controlPointService._sendCommand([ControlPointOpcode.CREATE]).catch(error => {
                 expect(error.code).toEqual(ErrorCode.WRITE_ERROR);
+                expect(error.message).toContain('Could not write CREATE command: Write failed');
             });
         });
 
@@ -45,6 +47,7 @@ describe('_sendCommand', () => {
         let adapter;
         let controlPointService;
         let notificationQueue;
+        const errorMessage = 'Error from notification queue';
 
         beforeEach(() => {
             adapter = {
@@ -55,15 +58,15 @@ describe('_sendCommand', () => {
             notificationQueue = {
                 startListening: jest.fn(),
                 stopListening: jest.fn(),
-                readNext: () => Promise.reject({message: 'Some error'})
+                readNext: () => Promise.reject({message: errorMessage})
             };
             controlPointService = new ControlPointService(adapter);
             controlPointService._notificationQueue = notificationQueue;
         });
 
-        it('should re-throw error', () => {
-            return controlPointService._sendCommand({}).catch(error => {
-                expect(error).toBeDefined();
+        it('should propagate error message', () => {
+            return controlPointService._sendCommand([ControlPointOpcode.CREATE]).catch(error => {
+                expect(error.message).toContain(errorMessage);
             });
         });
 

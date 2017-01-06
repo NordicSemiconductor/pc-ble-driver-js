@@ -4,6 +4,8 @@ const ControlPointOpcode = require('../dfuConstants').ControlPointOpcode;
 const ResultCode = require('../dfuConstants').ResultCode;
 const ErrorCode = require('../dfuConstants').ErrorCode;
 const createError = require('../dfuConstants').createError;
+const getOpCodeName = require('../dfuConstants').getOpCodeName;
+const getResultCodeName = require('../dfuConstants').getResultCodeName;
 
 /**
  * Listens to notifications for the given control point characteristic,
@@ -27,7 +29,7 @@ class NotificationQueue {
     }
 
     /**
-     * Stops listening to notifications. Also clears the store.
+     * Stops listening to notifications. Also clears the queue.
      */
     stopListening() {
         this._notifications = [];
@@ -50,8 +52,8 @@ class NotificationQueue {
         const timeoutPromise = new Promise((resolve, reject) => {
             setTimeout(() => {
                 reject(createError(ErrorCode.NOTIFICATION_TIMEOUT,
-                    `Timed out while waiting for response from DFU Target ` +
-                    `to operation code ${opCode} "${ControlPointOpcode[opCode]}".`));
+                    `Timed out while waiting for response to operation code ${opCode} ` +
+                    `(${getOpCodeName(opCode)})`));
             }, timeout);
         });
         return Promise.race([
@@ -98,17 +100,17 @@ class NotificationQueue {
                     return value;
                 } else {
                     const error = createError(ErrorCode.COMMAND_ERROR,
-                        `Operation code ${opCode} "${ControlPointOpcode[opCode]}" ` +
+                        `Operation code ${opCode} (${getOpCodeName(opCode)}) ` +
                         `failed on DFU Target. ` +
-                        `Result code ${value[2]} "${ResultCode[value[2]]}"`);
+                        `Result code ${value[2]} (${getResultCodeName(value[2])})`);
                     error.commandErrorCode = value[2];
                     throw error;
                 }
             } else {
                 throw createError(ErrorCode.UNEXPECTED_NOTIFICATION,
                     `Got unexpected response from DFU Target. ` +
-                    `Expected response to opcode ${opCode} "${ControlPointOpcode[opCode]}", ` +
-                    `but got response to opcode ${value[1]} "${ControlPointOpcode[value[1]]}".`);
+                    `Expected response to operation code ${opCode} (${getOpCodeName(opCode)}), ` +
+                    `but got response to operation code ${value[1]} (${getOpCodeName(value[1])})`);
             }
         }
         return null;

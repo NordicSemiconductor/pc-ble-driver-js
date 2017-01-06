@@ -70,10 +70,12 @@ describe('readNext', () => {
 
         describe('when no notifications emitted', () => {
 
-            it('should time out', () => {
+            it('should time out with error code and message', () => {
                 jest.useFakeTimers();
                 const promise = notificationQueue.readNext(ControlPointOpcode.CALCULATE_CRC).catch(error => {
                     expect(error.code).toEqual(ErrorCode.NOTIFICATION_TIMEOUT);
+                    expect(error.message).toEqual(`Timed out while waiting for response ` +
+                        `to operation code ${ControlPointOpcode.CALCULATE_CRC} (CALCULATE_CRC)`);
                 });
                 jest.runOnlyPendingTimers();
                 return promise;
@@ -125,10 +127,13 @@ describe('readNext', () => {
                 value: [ControlPointOpcode.RESPONSE, ControlPointOpcode.SELECT]
             };
 
-            it('should return error', () => {
+            it('should return error code and message', () => {
                 jest.useFakeTimers();
                 const promise = notificationQueue.readNext(ControlPointOpcode.CALCULATE_CRC).catch(error => {
                     expect(error.code).toEqual(ErrorCode.UNEXPECTED_NOTIFICATION);
+                    expect(error.message).toEqual(`Got unexpected response from DFU Target. ` +
+                        `Expected response to operation code ${ControlPointOpcode.CALCULATE_CRC} ` +
+                        `(CALCULATE_CRC), but got response to operation code ${ControlPointOpcode.SELECT} (SELECT)`);
                 });
                 adapter.emit('characteristicValueChanged', notification);
                 jest.runOnlyPendingTimers();
@@ -144,10 +149,13 @@ describe('readNext', () => {
                 value: [ControlPointOpcode.RESPONSE, ControlPointOpcode.CALCULATE_CRC, ResultCode.OPERATION_FAILED]
             };
 
-            it('should return error', () => {
+            it('should return error code and message', () => {
                 jest.useFakeTimers();
                 const promise = notificationQueue.readNext(ControlPointOpcode.CALCULATE_CRC).catch(error => {
                     expect(error.code).toEqual(ErrorCode.COMMAND_ERROR);
+                    expect(error.message).toEqual(`Operation code ${ControlPointOpcode.CALCULATE_CRC} ` +
+                        `(CALCULATE_CRC) failed on DFU Target. Result code ${ResultCode.OPERATION_FAILED} ` +
+                        `(OPERATION_FAILED)`);
                 });
                 adapter.emit('characteristicValueChanged', notification);
                 jest.runOnlyPendingTimers();
