@@ -479,10 +479,9 @@ v8::Local<v8::Object> CommonDataLengthChangedEvent::ToJs()
 // Class private method that is only used by the class to activate the SoftDevice in the Adapter
 uint32_t Adapter::enableBLE(adapter_t *adapter)
 {
-    // If the this->adapter have not been set yet it is because the Adapter::Open call has not set
-    // an adapter_t instance. The SoftDevice is started in Adapter::Open call and we do not have to take care of it
-    // here.
-
+    // If the this->adapter has not been set yet it is because the Adapter::Open call has not set
+    // an adapter_t instance. The SoftDevice is started in Adapter::Open call and we do not have to
+    // take care of it here.
     if (adapter == nullptr)
     {
         return NRF_ERROR_INVALID_PARAM;
@@ -492,17 +491,11 @@ uint32_t Adapter::enableBLE(adapter_t *adapter)
 
     memset(&ble_enable_params, 0, sizeof(ble_enable_params));
 
-    /* set the number of Vendor Specific UUIDs to 5 */
     ble_enable_params.common_enable_params.vs_uuid_count = 5;
-    /* this application requires 1 connection as a peripheral */
     ble_enable_params.gap_enable_params.periph_conn_count = 1;
-    /* this application only needs to be able to pair in one central link at a time */
     ble_enable_params.gap_enable_params.central_sec_count = 1;
-    /* we require the Service Changed characteristic */
     ble_enable_params.gatts_enable_params.service_changed = false;
-    /* this application only needs to be able to pair in one central link at a time */
     ble_enable_params.gatts_enable_params.attr_tab_size = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
-    /* set max number of central connections */
     ble_enable_params.gap_enable_params.central_conn_count = 7;
 
     return sd_ble_enable(adapter, &ble_enable_params, 0);
