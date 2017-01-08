@@ -39,7 +39,6 @@
 
 
 function intToArray(integer, sizeInBytes) {
-    // TODO: Check that integer is an integer.
     let array = [];
     for (let i = 0; i < sizeInBytes; i++) {
         array[i] = integer % 0x100;
