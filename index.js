@@ -35,7 +35,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-//var driver = require('bindings')('pc-ble-driver-js');
 const Adapter = require('./api/adapter');
 const AdapterFactory = require('./api/adapterFactory');
 const AdapterState = require('./api/adapterState');
