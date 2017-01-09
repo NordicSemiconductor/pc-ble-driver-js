@@ -1379,6 +1379,7 @@ void Adapter::AfterGetBleOption(uv_work_t *req)
     }
 
     baton->callback->Call(2, argv);
+    delete baton->p_opt;
     delete baton;
 }
 
