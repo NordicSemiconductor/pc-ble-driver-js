@@ -73,7 +73,8 @@ static bool isEccInitialized = false;
 
 NAN_METHOD(ECCInit)
 {
-    if (!isEccInitialized) {
+    if (!isEccInitialized)
+    {
         srand ((unsigned int)time(NULL));
         uECC_set_rng(rng);
         isEccInitialized = true;

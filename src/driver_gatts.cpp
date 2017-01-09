@@ -44,7 +44,8 @@
 
 #include <iostream>
 
-static name_map_t gatts_op_map = {
+static name_map_t gatts_op_map =
+{
 	NAME_MAP_ENTRY(BLE_GATTS_OP_WRITE_REQ),
 	NAME_MAP_ENTRY(BLE_GATTS_OP_WRITE_CMD),
 	NAME_MAP_ENTRY(BLE_GATTS_OP_SIGN_WRITE_CMD),

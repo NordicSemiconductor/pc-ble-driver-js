@@ -231,7 +231,8 @@ public:
 
 ///// Start Batons ////////////////////////////////////////
 
-struct OpenBaton : public Baton {
+struct OpenBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(OpenBaton)
     //char path[PATH_STRING_SIZE];
@@ -257,13 +258,15 @@ public:
     Adapter *mainObject;
 };
 
-struct CloseBaton : public Baton {
+struct CloseBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(CloseBaton)
     Adapter *mainObject;
 };
 
-struct EnableBLEBaton : public Baton {
+struct EnableBLEBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(EnableBLEBaton)
     ble_enable_params_t *enable_params;
@@ -271,21 +274,24 @@ public:
 };
 
 
-struct GetVersionBaton : public Baton {
+struct GetVersionBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GetVersionBaton);
     ble_version_t *version;
 
 };
 
-class BleAddVendorSpcificUUIDBaton : public Baton {
+class BleAddVendorSpcificUUIDBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(BleAddVendorSpcificUUIDBaton);
     ble_uuid128_t *p_vs_uuid;
     uint8_t p_uuid_type;
 };
 
-class BleUUIDEncodeBaton : public Baton {
+class BleUUIDEncodeBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(BleUUIDEncodeBaton);
     ble_uuid_t *p_uuid;
@@ -293,7 +299,8 @@ public:
     uint8_t *uuid_le;
 };
 
-class BleUUIDDecodeBaton : public Baton {
+class BleUUIDDecodeBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(BleUUIDDecodeBaton);
     uint8_t uuid_le_len;
@@ -301,14 +308,16 @@ public:
     uint8_t *uuid_le;
 };
 
-class BleUserMemReplyBaton : public Baton {
+class BleUserMemReplyBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(BleUserMemReplyBaton);
     uint16_t conn_handle;
     ble_user_mem_block_t *p_block;
 };
 
-class BleOptionBaton : public Baton {
+class BleOptionBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(BleOptionBaton);
     uint32_t opt_id;

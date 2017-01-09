@@ -41,7 +41,8 @@
 #include "driver.h"
 #include "driver_gatt.h"
 
-static name_map_t gattc_svcs_type_map = {
+static name_map_t gattc_svcs_type_map =
+{
     NAME_MAP_ENTRY(SD_BLE_GATTC_PRIMARY_SERVICES_DISCOVER),
     NAME_MAP_ENTRY(SD_BLE_GATTC_RELATIONSHIPS_DISCOVER),
     NAME_MAP_ENTRY(SD_BLE_GATTC_CHARACTERISTICS_DISCOVER),

@@ -133,8 +133,9 @@ void sd_rpc_on_log_event(adapter_t *adapter, sd_rpc_log_severity_t severity, con
 
 void Adapter::appendLog(LogEntry *log)
 {
-    if (asyncLog != nullptr) {
-    logQueue.push(log);
+    if (asyncLog != nullptr)
+    {
+        logQueue.push(log);
         uv_async_send(asyncLog);
     }
 }
@@ -256,13 +257,15 @@ void Adapter::onRpcEvent(uv_async_t *handle)
         EventEntry *eventEntry = nullptr;
         eventQueue.pop(eventEntry);
 
-        if (eventEntry == nullptr) {
+        if (eventEntry == nullptr)
+        {
             std::cerr << "eventEntry from queue is null. Illegal state, terminating." << std::endl;
             std::terminate();
         }
 
         auto event = eventEntry->event;
-        if (eventEntry == nullptr) {
+        if (eventEntry == nullptr)
+        {
             std::cerr << "event from eventEntry is null. Illegal state, terminating." << std::endl;
             std::terminate();
         }
@@ -479,10 +482,9 @@ v8::Local<v8::Object> CommonDataLengthChangedEvent::ToJs()
 // Class private method that is only used by the class to activate the SoftDevice in the Adapter
 uint32_t Adapter::enableBLE(adapter_t *adapter)
 {
-    // If the this->adapter have not been set yet it is because the Adapter::Open call has not set
-    // an adapter_t instance. The SoftDevice is started in Adapter::Open call and we do not have to take care of it
-    // here.
-
+    // If the this->adapter has not been set yet it is because the Adapter::Open call has not set
+    // an adapter_t instance. The SoftDevice is started in Adapter::Open call and we do not have to
+    // take care of it here.
     if (adapter == nullptr)
     {
         return NRF_ERROR_INVALID_PARAM;
@@ -492,17 +494,11 @@ uint32_t Adapter::enableBLE(adapter_t *adapter)
 
     memset(&ble_enable_params, 0, sizeof(ble_enable_params));
 
-    /* set the number of Vendor Specific UUIDs to 5 */
     ble_enable_params.common_enable_params.vs_uuid_count = 5;
-    /* this application requires 1 connection as a peripheral */
     ble_enable_params.gap_enable_params.periph_conn_count = 1;
-    /* this application only needs to be able to pair in one central link at a time */
     ble_enable_params.gap_enable_params.central_sec_count = 1;
-    /* we require the Service Changed characteristic */
     ble_enable_params.gatts_enable_params.service_changed = false;
-    /* this application only needs to be able to pair in one central link at a time */
     ble_enable_params.gatts_enable_params.attr_tab_size = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
-    /* set max number of central connections */
     ble_enable_params.gap_enable_params.central_conn_count = 7;
 
     return sd_ble_enable(adapter, &ble_enable_params, 0);
@@ -1641,7 +1637,8 @@ ble_uuid128_t *BleUUID128::ToNative()
     size_t uuid_len = uuidString->Length() + 1;
     auto uuidPtr = static_cast<char*>(malloc(uuid_len));
 
-    if (uuidPtr == nullptr) {
+    if (uuidPtr == nullptr)
+    {
         std::cerr << "uuidPtr is null. Illegal state, terminating." << std::endl;
         std::terminate();
     }
@@ -1659,7 +1656,8 @@ ble_uuid128_t *BleUUID128::ToNative()
         &(ptr[3]), &(ptr[2]),
         &(ptr[1]), &(ptr[0]));
 
-    if (scan_count != 16) {
+    if (scan_count != 16)
+    {
         std::cerr << "scan_count is not 16, illegal state, terminating." << std::endl;
         std::terminate();
     }

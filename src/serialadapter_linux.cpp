@@ -22,7 +22,8 @@
 
 using namespace std;
 
-typedef struct serial_device_t {
+typedef struct serial_device_t
+{
     char port[MAXPATHLEN];
     char locationId[MAXPATHLEN];
     char vendorId[MAXPATHLEN];
@@ -71,7 +72,7 @@ static adapter_list_t* GetAdapters()
         const char *idVendor = udev_device_get_sysattr_value(udev_dev, "idVendor");
 
         // Only add SEGGER and ARM (even though VENDOR_ID is NXPs...) devices to list
-        if(idVendor != NULL && ((strcmp(idVendor, SEGGER_VENDOR_ID) == 0) || (strcmp(idVendor, NXP_VENDOR_ID) == 0)))
+        if (idVendor != NULL && ((strcmp(idVendor, SEGGER_VENDOR_ID) == 0) || (strcmp(idVendor, NXP_VENDOR_ID) == 0)))
         {
             serial_device_t *serial_device = (serial_device_t*)malloc(sizeof(serial_device_t));
             memset(serial_device, 0, sizeof(serial_device_t));
@@ -101,9 +102,9 @@ void GetAdapterList(uv_work_t* req)
 
     adapter_list_t* devices = GetAdapters();
 
-    for(auto device : *devices)
+    for (auto device : *devices)
     {
-        if((strcmp(device->manufacturer,"SEGGER") == 0)
+        if ((strcmp(device->manufacturer,"SEGGER") == 0)
             || (strcasecmp(device->manufacturer, "arm") == 0)
             || (strcasecmp(device->manufacturer, "mbed") == 0))
         {
@@ -111,23 +112,28 @@ void GetAdapterList(uv_work_t* req)
 
             resultItem->comName = device->port;
 
-            if (device->locationId != NULL) {
+            if (device->locationId != NULL)
+            {
                 resultItem->locationId = device->locationId;
             }
 
-            if (device->vendorId != NULL) {
+            if (device->vendorId != NULL)
+            {
                 resultItem->vendorId = device->vendorId;
             }
 
-            if (device->productId != NULL) {
+            if (device->productId != NULL)
+            {
                 resultItem->productId = device->productId;
             }
 
-            if (device->manufacturer != NULL) {
+            if (device->manufacturer != NULL)
+            {
                 resultItem->manufacturer = device->manufacturer;
             }
 
-            if (device->serialNumber != NULL) {
+            if (device->serialNumber != NULL)
+            {
                 resultItem->serialNumber = device->serialNumber;
             }
 
