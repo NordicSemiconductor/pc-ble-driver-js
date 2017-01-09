@@ -382,11 +382,11 @@ class DfuTransport extends EventEmitter {
         return new Promise((resolve, reject) => {
             this._adapter.requestAttMtu(connectedDevice.instanceId, mtuSize, (error, acceptedMtu) => {
                 if (error) {
-                    reject(createError(ErrorCode.ATT_MTU_ERROR), `Tried to set ATT MTU ${mtuSize} for ` +
-                        `target address ${targetAddress}, but got error: ${error.message}`);
+                    reject(createError(ErrorCode.ATT_MTU_ERROR, `Tried to set ATT MTU ${mtuSize} for ` +
+                        `target address ${targetAddress}, but got error: ${error.message}`));
                 } else if (!acceptedMtu) {
-                    reject(createError(ErrorCode.ATT_MTU_ERROR), `Tried to set ATT MTU ${mtuSize} for ` +
-                        `target address ${targetAddress}, but got invalid ATT MTU back: ${acceptedMtu}`);
+                    reject(createError(ErrorCode.ATT_MTU_ERROR, `Tried to set ATT MTU ${mtuSize} for ` +
+                        `target address ${targetAddress}, but got invalid ATT MTU back: ${acceptedMtu}`));
                 } else {
                     this._debug(`Setting MTU to ${acceptedMtu} (MTU of ${mtuSize} was requested)`);
                     this._objectWriter.setMtuSize(acceptedMtu - ATT_WRITE_COMMAND_HEADER_SIZE);
