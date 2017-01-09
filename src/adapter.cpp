@@ -128,10 +128,11 @@ void Adapter::initEventHandling(Nan::Callback *callback, uint32_t interval)
     eventCallback = callback;
     asyncEvent->data = static_cast<void *>(this);
 
-    if (uv_async_init(uv_default_loop(), asyncEvent, event_handler) != 0) {
-            std::cerr << "Not able to create a new async event handler." << std::endl;
-            std::terminate();
-        }
+    if (uv_async_init(uv_default_loop(), asyncEvent, event_handler) != 0)
+    {
+        std::cerr << "Not able to create a new async event handler." << std::endl;
+        std::terminate();
+    }
 
     if (eventInterval == 0)
     {
@@ -146,12 +147,14 @@ void Adapter::initEventHandling(Nan::Callback *callback, uint32_t interval)
     // Setup event interval functionality
     eventIntervalTimer->data = static_cast<void *>(this);
 
-    if (uv_timer_init(uv_default_loop(), eventIntervalTimer) != 0) {
+    if (uv_timer_init(uv_default_loop(), eventIntervalTimer) != 0)
+    {
         std::cerr << "Not able to create a new async event interval timer." << std::endl;
         std::terminate();
     }
 
-    if (uv_timer_start(eventIntervalTimer, event_interval_handler, eventInterval, eventInterval) != 0) {
+    if (uv_timer_start(eventIntervalTimer, event_interval_handler, eventInterval, eventInterval) != 0)
+    {
         std::cerr << "Not able to create a new event interval handler." << std::endl;
         std::terminate();
     }
@@ -180,16 +183,17 @@ void Adapter::initLogHandling(Nan::Callback *callback)
     logCallback = callback;
     asyncLog->data = static_cast<void *>(this);
 
-    if (asyncLog == nullptr)  {
+    if (asyncLog == nullptr)
+    {
         std::cerr << "asyncLog is null, terminating." << std::endl;
         std::terminate();
     }
 
     if (uv_async_init(uv_default_loop(), asyncLog, log_handler) != 0)
-        {
-            std::cerr << "Not able to create a new event log handler." << std::endl;
-            std::terminate();
-        }
+    {
+        std::cerr << "Not able to create a new event log handler." << std::endl;
+        std::terminate();
+    }
 }
 
 extern "C" {
@@ -216,17 +220,18 @@ void Adapter::initStatusHandling(Nan::Callback *callback)
     asyncStatus->data = static_cast<void *>(this);
 
     if (uv_async_init(uv_default_loop(), asyncStatus, status_handler) != 0)
-        {
-            std::cerr << "Not able to create a new status handler." << std::endl;
-            std::terminate();
-        }
+    {
+        std::cerr << "Not able to create a new status handler." << std::endl;
+        std::terminate();
+    }
 }
 
 void Adapter::cleanUpV8Resources()
 {
     uv_mutex_lock(adapterCloseMutex);
 
-    if (asyncStatus != nullptr) {
+    if (asyncStatus != nullptr)
+    {
         auto handle = reinterpret_cast<uv_handle_t *>(asyncStatus);
         uv_close(handle, [](uv_handle_t *handle) {
             free(handle);
@@ -235,7 +240,8 @@ void Adapter::cleanUpV8Resources()
         asyncStatus = nullptr;
     }
 
-    if (eventIntervalTimer != nullptr) {
+    if (eventIntervalTimer != nullptr)
+    {
         // Deallocate resources related to the event handling interval timer
         if (uv_timer_stop(eventIntervalTimer) != 0)
         {
@@ -243,26 +249,31 @@ void Adapter::cleanUpV8Resources()
         }
 
         auto handle = reinterpret_cast<uv_handle_t *>(eventIntervalTimer);
-        uv_close(handle, [](uv_handle_t *handle) {
+        uv_close(handle, [](uv_handle_t *handle)
+        {
             free(handle);
         });
 
         eventIntervalTimer = nullptr;
     }
 
-    if (asyncEvent != nullptr) {
+    if (asyncEvent != nullptr)
+    {
         auto handle = reinterpret_cast<uv_handle_t *>(asyncEvent);
 
-        uv_close(handle, [](uv_handle_t *handle) {
+        uv_close(handle, [](uv_handle_t *handle)
+        {
             free(handle);
         });
 
         asyncEvent = nullptr;
     }
 
-    if (asyncLog != nullptr) {
+    if (asyncLog != nullptr)
+    {
         auto logHandle = reinterpret_cast<uv_handle_t *>(asyncLog);
-        uv_close(logHandle, [](uv_handle_t *handle) {
+        uv_close(logHandle, [](uv_handle_t *handle)
+        {
             free(handle);
         });
 
@@ -373,6 +384,7 @@ Adapter::Adapter()
     asyncStatus = nullptr;
 
     adapterCloseMutex = new uv_mutex_t();
+
     if (uv_mutex_init(adapterCloseMutex) != 0)
     {
         std::cerr << "Not able to create adapterCloseMutex! Terminating." << std::endl;
@@ -396,11 +408,14 @@ Adapter::~Adapter()
 
 NAN_METHOD(Adapter::New)
 {
-    if (info.IsConstructCall()) {
+    if (info.IsConstructCall())
+    {
         auto obj = new Adapter();
         obj->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
-    } else {
+    }
+    else
+    {
         v8::Local<v8::Function> cons = Nan::New(constructor);
         info.GetReturnValue().Set(cons->NewInstance());
     }

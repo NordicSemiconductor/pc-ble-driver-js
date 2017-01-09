@@ -45,7 +45,8 @@
 #include "ble_hci.h"
 
 #define RETURN_VALUE_OR_THROW_EXCEPTION(method) \
-try { \
+try \
+{ \
     return (method); \
 } \
 catch(std::string error) \
@@ -56,7 +57,8 @@ catch(std::string error) \
     throw ex.str(); \
 }
 
-static name_map_t error_message_name_map = {
+static name_map_t error_message_name_map =
+{
     // Generic errors
     NAME_MAP_ENTRY(NRF_SUCCESS),
     NAME_MAP_ENTRY(NRF_ERROR_SVC_HANDLER_MISSING),
@@ -95,7 +97,8 @@ static name_map_t error_message_name_map = {
     NAME_MAP_ENTRY(BLE_ERROR_GATTS_SYS_ATTR_MISSING),
 };
 
-static name_map_t sd_rpc_app_status_map = {
+static name_map_t sd_rpc_app_status_map =
+{
     NAME_MAP_ENTRY(PKT_SEND_MAX_RETRIES_REACHED),
     NAME_MAP_ENTRY(PKT_UNEXPECTED),
     NAME_MAP_ENTRY(PKT_ENCODE_ERROR),

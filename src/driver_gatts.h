@@ -41,7 +41,8 @@
 #include "common.h"
 #include "ble_gatts.h"
 
-static name_map_t gatts_event_name_map = {
+static name_map_t gatts_event_name_map =
+{
 #if NRF_SD_BLE_API_VERSION >= 3
     NAME_MAP_ENTRY(BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST),
 #endif
@@ -233,7 +234,8 @@ public:
 };
 #endif
 
-struct GattsAddServiceBaton : public Baton {
+struct GattsAddServiceBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GattsAddServiceBaton);
     uint8_t type;
@@ -241,7 +243,8 @@ public:
     uint16_t p_handle;
 };
 
-struct GattsAddCharacteristicBaton : public Baton {
+struct GattsAddCharacteristicBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GattsAddCharacteristicBaton);
     uint16_t service_handle;
@@ -250,7 +253,8 @@ public:
     ble_gatts_char_handles_t *p_handles;
 };
 
-struct GattsAddDescriptorBaton : public Baton {
+struct GattsAddDescriptorBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GattsAddDescriptorBaton);
     uint16_t char_handle;
@@ -258,14 +262,16 @@ public:
     uint16_t p_handle;
 };
 
-struct GattsHVXBaton : public Baton {
+struct GattsHVXBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GattsHVXBaton);
     uint16_t conn_handle;
     ble_gatts_hvx_params_t *p_hvx_params;
 };
 
-struct GattsSystemAttributeSetBaton : public Baton {
+struct GattsSystemAttributeSetBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GattsSystemAttributeSetBaton);
     uint16_t conn_handle;
@@ -274,7 +280,8 @@ public:
     uint32_t flags;
 };
 
-struct GattsSetValueBaton : public Baton {
+struct GattsSetValueBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GattsSetValueBaton);
     uint16_t conn_handle;
@@ -282,7 +289,8 @@ public:
     ble_gatts_value_t *p_value;
 };
 
-struct GattsGetValueBaton : public Baton {
+struct GattsGetValueBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GattsGetValueBaton);
     uint16_t conn_handle;
@@ -290,7 +298,8 @@ public:
     ble_gatts_value_t *p_value;
 };
 
-struct GattsReplyReadWriteAuthorizeBaton : public Baton {
+struct GattsReplyReadWriteAuthorizeBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GattsReplyReadWriteAuthorizeBaton);
     uint16_t conn_handle;
@@ -298,7 +307,8 @@ public:
 };
 
 #if NRF_SD_BLE_API_VERSION >= 3
-struct GattsExchangeMtuReplyBaton : public Baton {
+struct GattsExchangeMtuReplyBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GattsExchangeMtuReplyBaton);
     uint16_t conn_handle;

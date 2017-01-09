@@ -133,8 +133,9 @@ void sd_rpc_on_log_event(adapter_t *adapter, sd_rpc_log_severity_t severity, con
 
 void Adapter::appendLog(LogEntry *log)
 {
-    if (asyncLog != nullptr) {
-    logQueue.push(log);
+    if (asyncLog != nullptr)
+    {
+        logQueue.push(log);
         uv_async_send(asyncLog);
     }
 }
@@ -256,13 +257,15 @@ void Adapter::onRpcEvent(uv_async_t *handle)
         EventEntry *eventEntry = nullptr;
         eventQueue.pop(eventEntry);
 
-        if (eventEntry == nullptr) {
+        if (eventEntry == nullptr)
+        {
             std::cerr << "eventEntry from queue is null. Illegal state, terminating." << std::endl;
             std::terminate();
         }
 
         auto event = eventEntry->event;
-        if (eventEntry == nullptr) {
+        if (eventEntry == nullptr)
+        {
             std::cerr << "event from eventEntry is null. Illegal state, terminating." << std::endl;
             std::terminate();
         }
@@ -1635,7 +1638,8 @@ ble_uuid128_t *BleUUID128::ToNative()
     size_t uuid_len = uuidString->Length() + 1;
     auto uuidPtr = static_cast<char*>(malloc(uuid_len));
 
-    if (uuidPtr == nullptr) {
+    if (uuidPtr == nullptr)
+    {
         std::cerr << "uuidPtr is null. Illegal state, terminating." << std::endl;
         std::terminate();
     }
@@ -1653,7 +1657,8 @@ ble_uuid128_t *BleUUID128::ToNative()
         &(ptr[3]), &(ptr[2]),
         &(ptr[1]), &(ptr[0]));
 
-    if (scan_count != 16) {
+    if (scan_count != 16)
+    {
         std::cerr << "scan_count is not 16, illegal state, terminating." << std::endl;
         std::terminate();
     }

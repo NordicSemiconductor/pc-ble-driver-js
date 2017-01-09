@@ -20,9 +20,11 @@
 
 #include <atomic>
 #include <cstddef>
-namespace memory_relaxed_aquire_release {
+namespace memory_relaxed_aquire_release
+{
     template<typename Element, size_t Size>
-    class CircularFifo{
+    class CircularFifo
+    {
     public:
         enum { Capacity = Size + 1 };
 

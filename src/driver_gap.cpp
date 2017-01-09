@@ -59,14 +59,16 @@ extern int adapterCount;
 
 #pragma region Name Map entries to enable constants (value and name) from C in JavaScript
 
-static name_map_t gap_adv_type_map = {
+static name_map_t gap_adv_type_map =
+{
     NAME_MAP_ENTRY(BLE_GAP_ADV_TYPE_ADV_IND),
     NAME_MAP_ENTRY(BLE_GAP_ADV_TYPE_ADV_DIRECT_IND),
     NAME_MAP_ENTRY(BLE_GAP_ADV_TYPE_ADV_SCAN_IND),
     NAME_MAP_ENTRY(BLE_GAP_ADV_TYPE_ADV_NONCONN_IND)
 };
 
-static name_map_t gap_role_map = {
+static name_map_t gap_role_map =
+{
     NAME_MAP_ENTRY(BLE_GAP_ROLE_INVALID),
     NAME_MAP_ENTRY(BLE_GAP_ROLE_PERIPH),
     NAME_MAP_ENTRY(BLE_GAP_ROLE_CENTRAL)
@@ -396,12 +398,14 @@ ble_gap_opt_t *GapOpt::ToNative()
     auto gap_opt = new ble_gap_opt_t();
     memset(gap_opt, 0, sizeof(gap_opt));
 
-    if (Utility::Has(jsobj, "scan_req_report")) {
+    if (Utility::Has(jsobj, "scan_req_report"))
+    {
         auto scan_req_obj = ConversionUtility::getJsObject(jsobj, "scan_req_report");
         gap_opt->scan_req_report = GapOptScanReqReport(scan_req_obj);
     }
 #if NRF_SD_BLE_API_VERSION >= 3
-    else if (Utility::Has(jsobj, "ext_len")) {
+    else if (Utility::Has(jsobj, "ext_len"))
+    {
         auto ext_len_obj = ConversionUtility::getJsObject(jsobj, "ext_len");
         gap_opt->ext_len = GapOptExtLen(ext_len_obj);
     }

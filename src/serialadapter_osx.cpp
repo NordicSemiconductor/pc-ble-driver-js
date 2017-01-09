@@ -59,7 +59,8 @@ const char* TTY_PATH_PREFIX = "/dev/tty.";
 
 using namespace std;
 
-typedef struct SerialDevice {
+typedef struct SerialDevice
+{
     char port[MAXPATHLEN];
     char locationId[MAXPATHLEN];
     char vendorId[MAXPATHLEN];
@@ -245,7 +246,8 @@ static adapter_list_t* GetAdapters()
 
             io_registry_entry_t device = GetUsbDevice(bsdPath);
 
-            if (device) {
+            if (device)
+            {
                 CFStringRef manufacturerAsCFString = (CFStringRef) IORegistryEntrySearchCFProperty(device,
                                       kIOServicePlane,
                                       CFSTR(kUSBVendorString),
@@ -263,7 +265,8 @@ static adapter_list_t* GetAdapters()
                                                 sizeof(manufacturer),
                                                 kCFStringEncodingUTF8);
 
-                    if (result) {
+                    if (result)
+                    {
                         strcpy(serial_device->manufacturer, manufacturer);
                     }
 
@@ -287,8 +290,9 @@ static adapter_list_t* GetAdapters()
                                                 sizeof(serialNumber),
                                                 kCFStringEncodingUTF8);
 
-                    if (result) {
-                      strcpy(serial_device->serialNumber, serialNumber);
+                    if (result)
+                    {
+                        strcpy(serial_device->serialNumber, serialNumber);
                     }
 
                     CFRelease(serialNumberAsCFString);
@@ -319,7 +323,8 @@ static adapter_list_t* GetAdapters()
                 // Now done with the plugin interface.
                 (*plugInInterface)->Release(plugInInterface);
 
-                if (res || deviceInterface == NULL) {
+                if (res || deviceInterface == NULL)
+                {
                     continue;
                 }
 
@@ -351,7 +356,7 @@ static adapter_list_t* GetAdapters()
 }
 
 void GetAdapterList(uv_work_t* req) {
-    if(!lockInitialised)
+    if (!lockInitialised)
     {
         uv_mutex_init(&list_mutex);
         lockInitialised = TRUE;
@@ -360,9 +365,9 @@ void GetAdapterList(uv_work_t* req) {
     AdapterListBaton* data = static_cast<AdapterListBaton*>(req->data);
     adapter_list_t* devices = GetAdapters();
 
-    for(auto device : *devices)
+    for (auto device : *devices)
     {
-        if((strcmp(device->manufacturer,"SEGGER") == 0)
+        if ((strcmp(device->manufacturer,"SEGGER") == 0)
             || (strcasecmp(device->manufacturer, "arm") == 0)
             || (strcasecmp(device->manufacturer, "mbed") == 0))
         {
@@ -370,23 +375,28 @@ void GetAdapterList(uv_work_t* req) {
 
             resultItem->comName = device->port;
 
-            if (device->locationId != NULL) {
+            if (device->locationId != NULL)
+            {
                 resultItem->locationId = device->locationId;
             }
 
-            if (device->vendorId != NULL) {
+            if (device->vendorId != NULL)
+            {
                 resultItem->vendorId = device->vendorId;
             }
 
-            if (device->productId != NULL) {
+            if (device->productId != NULL)
+            {
                 resultItem->productId = device->productId;
             }
 
-            if (device->manufacturer != NULL) {
+            if (device->manufacturer != NULL)
+            {
                 resultItem->manufacturer = device->manufacturer;
             }
 
-            if (device->serialNumber != NULL) {
+            if (device->serialNumber != NULL)
+            {
                 resultItem->serialNumber = device->serialNumber;
             }
 
