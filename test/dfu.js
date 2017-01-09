@@ -56,7 +56,7 @@ const adapterFactory = require('./setup').adapterFactory;
 
 function setupAdapter(adapter, callback) {
     const options = {
-        baudRate: 115200,
+        baudRate: 1000000,
         parity: 'none',
         flowControl: 'none',
         enableBLE: true,
@@ -86,6 +86,7 @@ function addLogListeners(adapter, dfu) {
         if (progressUpdate.percentCompleted) {
             output += `: ${progressUpdate.percentCompleted}%`;
             output += `, completed bytes: ${progressUpdate.completedBytes}, total: ${progressUpdate.totalBytes}`;
+            output += `, B/s: ${progressUpdate.bytesPerSecond}, average B/s: ${progressUpdate.averageBytesPerSecond}`;
         }
         console.log(output);
     });
