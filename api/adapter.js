@@ -2874,7 +2874,7 @@ class Adapter extends EventEmitter {
 
     _gattcWriteWithRetries(connectionHandle, writeParameters, callback) {
         let attempts = 0;
-        const MAX_ATTEMPTS = 10;
+        const MAX_ATTEMPTS = 20;
         const RETRY_DELAY = 5;
         const BLE_ERROR_NO_TX_PACKETS = 0x3004;
         const tryWrite = () => {
