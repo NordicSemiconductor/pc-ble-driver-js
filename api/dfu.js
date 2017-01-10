@@ -220,15 +220,14 @@ class Dfu extends EventEmitter {
 
     _handleProgressUpdate(progressUpdate) {
         if (progressUpdate.offset) {
-            this._speedometer.setCompletedBytes(progressUpdate.offset);
+            this._speedometer.updateState(progressUpdate.offset);
             this.emit('progressUpdate', {
                 stage: progressUpdate.stage,
-                offset: progressUpdate.offset,
-                percentCompleted: this._speedometer.getPercentCompleted(),
-                bytesPerSecond: this._speedometer.getBytesPerSecond(),
-                averageBytesPerSecond: this._speedometer.getAverageBytesPerSecond(),
-                completedBytes: this._speedometer.getCompletedBytes(),
-                totalBytes: this._speedometer.getTotalBytes(),
+                completedBytes: progressUpdate.offset,
+                totalBytes: this._speedometer.totalBytes,
+                bytesPerSecond: this._speedometer.calculateBytesPerSecond(),
+                averageBytesPerSecond: this._speedometer.calculateAverageBytesPerSecond(),
+                percentCompleted: this._speedometer.calculatePercentCompleted(),
             });
         } else {
             this.emit('progressUpdate', {

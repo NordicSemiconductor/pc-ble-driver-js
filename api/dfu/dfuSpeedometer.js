@@ -2,60 +2,71 @@
 
 class DfuSpeedometer {
 
-    constructor(totalBytes, completedBytes, percentRange) {
-        this._startTime = new Date();
-        this._lastUpdatedTime = this._startTime;
+    /**
+     * Create speedometer that keeps track of speed and progress of
+     * DFU transfer.
+     *
+     * @param totalBytes total number of bytes to transfer
+     * @param completedBytes number of bytes that have already been transferred
+     * @param startTime Date instance representing the current time (optional)
+     */
+    constructor(totalBytes, completedBytes, startTime) {
+        this._startTime = startTime || new Date();
+        this._prevUpdatedTime = this._startTime;
+        this._updatedTime = this._startTime;
         this._totalBytes = totalBytes;
+        this._prevCompletedBytes = completedBytes || 0;
         this._completedBytes = completedBytes || 0;
         this._initialBytes = completedBytes || 0;
-        this._percentRange = percentRange || { min: 0, max: 100 };
-        this._bytesPerSecond = 0;
     }
 
-    getStartTime() {
+    get startTime() {
         return this._startTime;
     }
 
-    getTotalBytes() {
+    get totalBytes() {
         return this._totalBytes;
     }
 
-    getCompletedBytes() {
-        return this._completedBytes;
-    }
-
-    getBytesPerSecond() {
-        return this._bytesPerSecond;
-    }
-
-    getPercentCompleted() {
-        const range = this._percentRange;
-        const percent = range.min + (this._completedBytes / this._totalBytes * (range.max - range.min));
-        return Math.floor(percent);
-    }
-
-    getAverageBytesPerSecond() {
-        const byteDifference = this._completedBytes - this._initialBytes;
-        const currentTime = new Date();
-        return DfuSpeedometer.calculateBytesPerSecond(byteDifference, this._startTime, currentTime);
-    }
-
-    setCompletedBytes(completedBytes) {
-        const byteDifference = completedBytes - this._completedBytes;
-        const currentTime = new Date();
-        this._bytesPerSecond = DfuSpeedometer.calculateBytesPerSecond(byteDifference, this._lastUpdatedTime, currentTime);
-        this._lastUpdatedTime = currentTime;
+    /**
+     * Update the number of bytes that have been transferred and keep
+     * the current time, so that we can calculate transfer speed.
+     *
+     * @param completedBytes number of bytes that have been transferred
+     * @param currentTime Date instance representing the current time (optional)
+     */
+    updateState(completedBytes, currentTime) {
+        this._prevUpdatedTime = this._updatedTime;
+        this._updatedTime = currentTime || new Date();
+        this._prevCompletedBytes = this._completedBytes;
         this._completedBytes = completedBytes;
     }
 
-    static calculateBytesPerSecond(numBytes, lastUpdatedTime, currentTime) {
-        if (numBytes < 0) {
-            return 0;
-        }
-        const msSinceLastCalled = currentTime.getTime() - lastUpdatedTime.getTime();
-        const bytesPerSecond = numBytes / msSinceLastCalled * 1000;
-        return +bytesPerSecond.toFixed(2);
+    calculateBytesPerSecond() {
+        const byteDifference = this._completedBytes - this._prevCompletedBytes;
+        return calculateBytesPerSecond(byteDifference, this._prevUpdatedTime, this._updatedTime);
     }
+
+    calculateAverageBytesPerSecond() {
+        const byteDifference = this._completedBytes - this._initialBytes;
+        return calculateBytesPerSecond(byteDifference, this._startTime, this._updatedTime);
+    }
+
+    calculatePercentCompleted() {
+        if (this._totalBytes > 0) {
+            return Math.floor((this._completedBytes / this._totalBytes) * 100);
+        }
+        return 0;
+    }
+}
+
+function calculateBytesPerSecond(numBytes, beginTime, endTime) {
+    const msTimeDifference = endTime.getTime() - beginTime.getTime();
+    if (numBytes < 0 || msTimeDifference <= 0) {
+        return 0;
+    }
+    const bytesPerSecond = numBytes / msTimeDifference * 1000;
+    return +bytesPerSecond.toFixed(2);
 }
 
 module.exports = DfuSpeedometer;

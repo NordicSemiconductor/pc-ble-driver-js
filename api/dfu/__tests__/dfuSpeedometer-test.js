@@ -2,101 +2,156 @@
 
 const DfuSpeedometer = require('../dfuSpeedometer');
 
-describe('when initialized with total bytes 102400, and completed bytes 0', () => {
+describe('when initialized with total bytes 0 and completed bytes 0', () => {
+    const totalBytes = 0;
+    const completedBytes = 0;
+    const speedometer = new DfuSpeedometer(totalBytes, completedBytes);
 
-    const totalBytes = 102400;
-    let speedometer;
-
-    beforeEach(() => {
-        speedometer = new DfuSpeedometer(totalBytes);
+    it('should have been automatically given a start time', () => {
+        expect(speedometer.startTime).toBeDefined();
     });
 
-    it('should have start time', () => {
-        expect(speedometer.getStartTime()).toBeDefined();
+    it('should have the given total bytes', () => {
+        expect(speedometer.totalBytes).toBe(totalBytes);
     });
 
-    it('should have total size', () => {
-        expect(speedometer.getTotalBytes()).toBe(totalBytes);
+    it('should have 0 bytes per second', () => {
+        expect(speedometer.calculateBytesPerSecond()).toBe(0);
     });
 
-    it('should have zero completed size', () => {
-        expect(speedometer.getCompletedBytes()).toBe(0);
+    it('should have 0 average bytes per second', () => {
+        expect(speedometer.calculateAverageBytesPerSecond()).toBe(0);
     });
 
-    it('should have zero perecent completed', () => {
-        expect(speedometer.getPercentCompleted()).toBe(0);
-    });
-
-    describe('when completed bytes has been set to 10000', () => {
-
-        beforeEach(() => {
-            speedometer.setCompletedBytes(10000);
-        });
-
-        it('should have updated completed bytes to 10000', () => {
-            expect(speedometer.getCompletedBytes()).toBe(10000);
-        });
-
-        it('should return a bytesPerSecond value larger than zero', () => {
-            expect(speedometer.getBytesPerSecond()).toBeGreaterThan(0);
-        });
-
-        it('should return percentCompleted value 9', () => {
-            expect(speedometer.getPercentCompleted()).toBe(9);
-        });
+    it('should be 0% completed', () => {
+        expect(speedometer.calculatePercentCompleted()).toBe(0);
     });
 });
 
-describe('when initialized with total bytes 102400, completed bytes 0, and percent range 10-20', () => {
+describe('when initialized with total bytes 100 and completed bytes 100', () => {
+    const totalBytes = 100;
+    const completedBytes = 100;
+    const speedometer = new DfuSpeedometer(totalBytes, completedBytes);
 
+    it('should have 0 bytes per second', () => {
+        expect(speedometer.calculateBytesPerSecond()).toBe(0);
+    });
+
+    it('should have 0 average bytes per second', () => {
+        expect(speedometer.calculateAverageBytesPerSecond()).toBe(0);
+    });
+
+    it('should be 100% completed', () => {
+        expect(speedometer.calculatePercentCompleted()).toBe(100);
+    });
+});
+
+describe('when initialized with total bytes 102400 and completed bytes 0', () => {
     const totalBytes = 102400;
     const completedBytes = 0;
-    const percentRange = { min: 10, max: 20 };
-    let speedometer;
+    const speedometer = new DfuSpeedometer(totalBytes, completedBytes);
 
-    beforeEach(() => {
-        speedometer = new DfuSpeedometer(totalBytes, completedBytes, percentRange);
+    it('should have the given total bytes', () => {
+        expect(speedometer.totalBytes).toBe(totalBytes);
     });
 
-    describe('when completed bytes has been set to 10000', () => {
+    it('should have 0 bytes per second', () => {
+        expect(speedometer.calculateBytesPerSecond()).toBe(0);
+    });
 
+    it('should have 0 average bytes per second', () => {
+        expect(speedometer.calculateAverageBytesPerSecond()).toBe(0);
+    });
+
+    it('should be 0% completed', () => {
+        expect(speedometer.calculatePercentCompleted()).toBe(0);
+    });
+
+    describe('when setting completed bytes to 10000', () => {
+        const completedBytes = 10000;
         beforeEach(() => {
-            speedometer.setCompletedBytes(50000);
+            speedometer.updateState(completedBytes);
         });
 
-        it('should return percentCompleted value 14 with no decimals', () => {
-            expect(speedometer.getPercentCompleted()).toBe(14);
+        it('should have bytes per second larger than zero', () => {
+            expect(speedometer.calculateBytesPerSecond()).toBeGreaterThan(0);
+        });
+
+        it('should have average bytes per second larger than zero', () => {
+            expect(speedometer.calculateAverageBytesPerSecond()).toBeGreaterThan(0);
+        });
+
+        it('should be 9% completed', () => {
+            expect(speedometer.calculatePercentCompleted()).toBe(9);
         });
     });
 });
 
-describe('when calculating bytes per second', () => {
+describe('when initialized with total bytes 102400, completed bytes 1000, and start time', () => {
+    const totalBytes = 102400;
+    const completedBytes = 10000;
+    const startTime = new Date(2016, 10, 1, 10, 0, 0, 0);
+    let speedometer;
 
-    const calculate = (numBytes, lastUpdatedTime, currentTime) => {
-        return DfuSpeedometer.calculateBytesPerSecond(numBytes, lastUpdatedTime, currentTime);
-    };
-
-    it('should return zero if byte count is negative', () => {
-        const lastUpdatedTime = new Date();
-        const currentTime = new Date();
-        const byteCount = -1;
-
-        expect(calculate(byteCount, lastUpdatedTime, currentTime)).toEqual(0);
+    beforeEach(() => {
+        speedometer = new DfuSpeedometer(totalBytes, completedBytes, startTime);
     });
 
-    it('should return 20 if 10 bytes have been written in 500 milliseconds', () => {
-        const lastUpdatedTime = new Date(2016, 10, 1, 10, 0, 0, 0);
-        const currentTime = new Date(2016, 10, 1, 10, 0, 0, 500);
-        const byteCount = 10;
-
-        expect(calculate(byteCount, lastUpdatedTime, currentTime)).toEqual(20);
+    it('should have the given start time', () => {
+        expect(speedometer.startTime).toBe(startTime);
     });
 
-    it('should return 20.08 (round to two decimals) if 10 bytes have been written in 498 milliseconds', () => {
-        const lastUpdatedTime = new Date(2016, 10, 1, 10, 0, 0, 0);
-        const currentTime = new Date(2016, 10, 1, 10, 0, 0, 498);
-        const byteCount = 10;
+    it('should have 0 bytes per second', () => {
+        expect(speedometer.calculateBytesPerSecond()).toBe(0);
+    });
 
-        expect(calculate(byteCount, lastUpdatedTime, currentTime)).toEqual(20.08);
+    it('should have 0 average bytes per second', () => {
+        expect(speedometer.calculateAverageBytesPerSecond()).toBe(0);
+    });
+
+    it('should be 9% completed', () => {
+        expect(speedometer.calculatePercentCompleted()).toBe(9);
+    });
+
+    describe('when updating completed bytes to 12000 after 500 milliseconds', () => {
+        const completedBytes = 12000;
+        const time500Ms = new Date(startTime.getTime() + 500);
+
+        beforeEach(() => {
+            speedometer.updateState(completedBytes, time500Ms);
+        });
+
+        it('should have 4000 bytes per second', () => {
+            expect(speedometer.calculateBytesPerSecond()).toBe(4000);
+        });
+
+        it('should have 4000 average bytes per second', () => {
+            expect(speedometer.calculateAverageBytesPerSecond()).toBe(4000);
+        });
+
+        it('should be 11% completed', () => {
+            expect(speedometer.calculatePercentCompleted()).toBe(11);
+        });
+
+        describe('when updating completed bytes to 13990 after 555 milliseconds', () => {
+            const completedBytes = 13990;
+            const time501Ms = new Date(time500Ms.getTime() + 555);
+
+            beforeEach(() => {
+                speedometer.updateState(completedBytes, time501Ms);
+            });
+
+            it('should have 3585.59 bytes per second', () => {
+                expect(speedometer.calculateBytesPerSecond()).toBe(3585.59);
+            });
+
+            it('should have 3781.99 average bytes per second', () => {
+                expect(speedometer.calculateAverageBytesPerSecond()).toBe(3781.99);
+            });
+
+            it('should be 13% completed', () => {
+                expect(speedometer.calculatePercentCompleted()).toBe(13);
+            });
+        });
     });
 });
