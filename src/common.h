@@ -77,6 +77,7 @@ protected:
 
     v8::Local<v8::Object> jsobj;
     NativeType *native;
+
 public:
     BleToJs(v8::Local<v8::Object> js) : jsobj(js) {}
     BleToJs(NativeType *native) : native(native) {}
@@ -168,9 +169,11 @@ public:
     virtual const char *getEventName() = 0;
 };
 
-struct Baton {
+struct Baton
+{
 public:
-    explicit Baton(v8::Local<v8::Function> cb) {
+    explicit Baton(v8::Local<v8::Function> cb)
+    {
         req = new uv_work_t();
         callback = new Nan::Callback(cb);
         req->data = static_cast<void*>(this);
@@ -178,6 +181,7 @@ public:
 
     ~Baton()
     {
+        delete req;
         delete callback;
     }
 
@@ -203,7 +207,7 @@ public:
     {
         if (!js->IsNumber())
         {
-            throw "number";
+            throw std::string("number");
         }
 
         return static_cast<NativeType>(js->ToUint32()->Uint32Value());
@@ -213,7 +217,7 @@ public:
     {
         if (!js->IsNumber())
         {
-            throw "number";
+            throw std::string("number");
         }
 
         return static_cast<NativeType>(js->ToInt32()->Int32Value());
@@ -223,7 +227,7 @@ public:
     {
         if (!js->IsNumber())
         {
-            throw "number";
+            throw std::string("number");
         }
 
         return static_cast<NativeType>(js->ToNumber()->NumberValue());
@@ -233,7 +237,7 @@ public:
     {
         if (!js->IsBoolean())
         {
-            throw "bool";
+            throw std::string("bool");
         }
 
         return static_cast<NativeType>(js->ToBoolean()->BooleanValue());
@@ -263,7 +267,8 @@ public:
 class ConversionUtility
 {
 public:
-    enum ConversionUnits {
+    enum ConversionUnits
+    {
         ConversionUnit625ms = 625,
         ConversionUnit1250ms = 1250,
         ConversionUnit10000ms = 10000,

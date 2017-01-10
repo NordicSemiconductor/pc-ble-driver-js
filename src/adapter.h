@@ -55,13 +55,15 @@ const auto STATUS_QUEUE_SIZE = 64;
     static void MainName(uv_work_t *req); \
     static void After##MainName(uv_work_t *req);
 
-struct LogEntry {
+struct LogEntry
+{
 public:
     sd_rpc_log_severity_t severity;
     std::string message;
 };
 
-struct EventEntry {
+struct EventEntry
+{
 public:
     ble_evt_t *event;
     std::string timestamp;
@@ -83,7 +85,8 @@ typedef CircularFifo<EventEntry *, EVENT_QUEUE_SIZE> EventQueue;
 typedef CircularFifo<LogEntry *, LOG_QUEUE_SIZE> LogQueue;
 typedef CircularFifo<StatusEntry *, STATUS_QUEUE_SIZE> StatusQueue;
 
-class Adapter : public Nan::ObjectWrap {
+class Adapter : public Nan::ObjectWrap
+{
 public:
     static NAN_MODULE_INIT(Init);
 
@@ -137,6 +140,8 @@ private:
     ADAPTER_METHOD_DEFINITIONS(EncodeUUID);
     ADAPTER_METHOD_DEFINITIONS(DecodeUUID);
     ADAPTER_METHOD_DEFINITIONS(ReplyUserMemory);
+    ADAPTER_METHOD_DEFINITIONS(SetBleOption);
+    ADAPTER_METHOD_DEFINITIONS(GetBleOption);
 
     // General sync methods
     static NAN_METHOD(GetStats);
@@ -186,6 +191,9 @@ private:
     ADAPTER_METHOD_DEFINITIONS(GattcReadCharacteristicValues);
     ADAPTER_METHOD_DEFINITIONS(GattcWrite);
     ADAPTER_METHOD_DEFINITIONS(GattcConfirmHandleValue);
+#if NRF_SD_BLE_API_VERSION >= 3
+    ADAPTER_METHOD_DEFINITIONS(GattcExchangeMtuRequest);
+#endif
 
     // Gatts async mehtods
     ADAPTER_METHOD_DEFINITIONS(GattsAddService);
@@ -196,6 +204,9 @@ private:
     ADAPTER_METHOD_DEFINITIONS(GattsSetValue);
     ADAPTER_METHOD_DEFINITIONS(GattsGetValue);
     ADAPTER_METHOD_DEFINITIONS(GattsReplyReadWriteAuthorize);
+#if NRF_SD_BLE_API_VERSION >= 3
+    ADAPTER_METHOD_DEFINITIONS(GattsExchangeMtuReply);
+#endif
 
     static void initGeneric(v8::Local<v8::FunctionTemplate> tpl);
     static void initGap(v8::Local<v8::FunctionTemplate> tpl);

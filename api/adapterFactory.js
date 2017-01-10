@@ -37,10 +37,14 @@
 
 'use strict';
 
-const _bleDriver = require('bindings')('pc-ble-driver-js');
 const os = require('os');
 
-var  Adapter = require('./adapter');
+const _bleDriverV2 = require('bindings')('pc-ble-driver-js-sd_api_v2');
+const _bleDriverV3 = require('bindings')('pc-ble-driver-js-sd_api_v3');
+
+const _bleDrivers = { v2: _bleDriverV2, v3: _bleDriverV3 };
+
+const Adapter = require('./adapter');
 const EventEmitter = require('events');
 
 let _singleton = Symbol();
@@ -58,13 +62,13 @@ class AdapterFactory extends EventEmitter {
     * Constructor that shall not be used by developer.
     * @private
     */
-    constructor(singletonToken, bleDriver) {
+    constructor(singletonToken, bleDrivers) {
         if (_singleton !== singletonToken)
             throw new Error('Cannot instantiate directly.');
 
         // TODO: Should adapters be updated on this.getAdapters call or by time interval? time interval
         super();
-        this._bleDriver = bleDriver;
+        this._bleDrivers = bleDrivers;
         this._adapters = {};
         this.updateInterval = setInterval(this._updateAdapterList.bind(this), UPDATE_INTERVAL);
     }
@@ -74,12 +78,12 @@ class AdapterFactory extends EventEmitter {
      *
      * This is a singleton class that uses the pc-ble-driver-js AddOn to get devices.
      */
-    static getInstance(bleDriver) {
-        if (bleDriver === undefined)
-            bleDriver = _bleDriver;
+    static getInstance(bleDrivers) {
+        if (bleDrivers === undefined)
+            bleDrivers = _bleDrivers;
 
         if (!this[_singleton])
-            this[_singleton] = new AdapterFactory(_singleton, bleDriver);
+            this[_singleton] = new AdapterFactory(_singleton, bleDrivers);
 
         return this[_singleton];
     }
@@ -103,7 +107,39 @@ class AdapterFactory extends EventEmitter {
     _parseAndCreateAdapter(adapter) {
         // How about moving id generation and equality check within adapter class?
         const instanceId = this._getInstanceId(adapter);
-        const addOnAdapter = new this._bleDriver.Adapter();
+
+        let addOnAdapter;
+        let selectedDriver;
+
+        // TODO: get adapters from one driver
+        // TODO: Figure out what device it is (nRF51 or nRF52). Perhaps serial number can be used?
+
+        const seggerSerialNumber = /^.*68([0-3]{1})[0-9]{6}$/;
+
+        if (seggerSerialNumber.test(instanceId)) {
+            const developmentKit = parseInt(seggerSerialNumber.exec(instanceId)[1], 10);
+            let sdVersion;
+
+            switch (developmentKit) {
+                case 0:
+                case 1:
+                    sdVersion = 'v2';
+                    break;
+                case 2:
+                    sdVersion = 'v3';
+                    break;
+                case 3:
+                    sdVersion = 'v3';
+                    break;
+                default:
+                    throw new Error('Unsupported nRF5 development kit.');
+            }
+
+            selectedDriver = this._bleDrivers[sdVersion];
+            addOnAdapter = new selectedDriver.Adapter();
+        } else {
+            throw new Error('Not able to determine version of pc-ble-driver to use.');
+        }
 
         if (addOnAdapter === undefined) { throw new Error('Missing argument adapter.'); }
 
@@ -115,12 +151,13 @@ class AdapterFactory extends EventEmitter {
             notSupportedMessage = 'Note: Adapters with Segger JLink debug probe requires MSD to be disabled to function properly on OSX. Please visit www.nordicsemi.com/nRFConnectOSXfix for further instructions.';
         }
 
-        const parsedAdapter = new Adapter(this._bleDriver, addOnAdapter, instanceId, adapter.comName, adapter.serialNumber, notSupportedMessage);
-        return parsedAdapter;
+        return new Adapter(selectedDriver, addOnAdapter, instanceId, adapter.comName, adapter.serialNumber, notSupportedMessage);
     }
 
     _updateAdapterList(callback) {
-        this._bleDriver.getAdapters((err, adapters) => {
+        // For getting the adapters we use v2
+        // TODO: create a separate npm module that gets connected adapters and information about them
+        this._bleDrivers.v2.getAdapters((err, adapters) => {
             if (err) {
                 this.emit('error', err);
                 if (callback && (typeof callback === 'function')) {

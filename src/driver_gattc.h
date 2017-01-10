@@ -43,7 +43,11 @@
 
 extern name_map_t gatt_status_map;
 
-static name_map_t gattc_event_name_map = {
+static name_map_t gattc_event_name_map =
+{
+#if NRF_SD_BLE_API_VERSION >= 3
+    NAME_MAP_ENTRY(BLE_GATTC_EVT_EXCHANGE_MTU_RSP),
+#endif
     NAME_MAP_ENTRY(BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP),
     NAME_MAP_ENTRY(BLE_GATTC_EVT_REL_DISC_RSP),
     NAME_MAP_ENTRY(BLE_GATTC_EVT_CHAR_DISC_RSP),
@@ -238,9 +242,21 @@ public:
     v8::Local<v8::Object> ToJs();
 };
 
+#if NRF_SD_BLE_API_VERSION >= 3
+class GattcExchangeMtuResponseEvent : BleDriverGattcEvent < ble_gattc_evt_exchange_mtu_rsp_t >
+{
+public:
+	GattcExchangeMtuResponseEvent(std::string timestamp, uint16_t conn_handle, uint16_t gatt_status, uint16_t error_handle, ble_gattc_evt_exchange_mtu_rsp_t *evt)
+		: BleDriverGattcEvent<ble_gattc_evt_exchange_mtu_rsp_t>(BLE_GATTC_EVT_EXCHANGE_MTU_RSP, timestamp, conn_handle, gatt_status, error_handle, evt) {}
+
+	v8::Local<v8::Object> ToJs();
+};
+#endif
+
 ///// Start GATTC Batons //////////////////////////////////////////////////////////////////////////////////
 
-struct GattcDiscoverPrimaryServicesBaton : public Baton {
+struct GattcDiscoverPrimaryServicesBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GattcDiscoverPrimaryServicesBaton);
     uint16_t conn_handle;
@@ -248,28 +264,32 @@ public:
     ble_uuid_t *p_srvc_uuid;
 };
 
-struct GattcDiscoverRelationshipBaton : public Baton {
+struct GattcDiscoverRelationshipBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GattcDiscoverRelationshipBaton);
     uint16_t conn_handle;
     ble_gattc_handle_range_t *p_handle_range;
 };
 
-struct GattcDiscoverCharacteristicsBaton : public Baton {
+struct GattcDiscoverCharacteristicsBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GattcDiscoverCharacteristicsBaton);
     uint16_t conn_handle;
     ble_gattc_handle_range_t *p_handle_range;
 };
 
-struct GattcDiscoverDescriptorsBaton : public Baton {
+struct GattcDiscoverDescriptorsBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GattcDiscoverDescriptorsBaton);
     uint16_t conn_handle;
     ble_gattc_handle_range_t *p_handle_range;
 };
 
-struct GattcCharacteristicByUUIDReadBaton : public Baton {
+struct GattcCharacteristicByUUIDReadBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GattcCharacteristicByUUIDReadBaton);
     uint16_t conn_handle;
@@ -277,7 +297,8 @@ public:
     ble_gattc_handle_range_t *p_handle_range;
 };
 
-struct GattcReadBaton : public Baton {
+struct GattcReadBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GattcReadBaton);
     uint16_t conn_handle;
@@ -285,7 +306,8 @@ public:
     uint16_t offset;
 };
 
-struct GattcReadCharacteristicValuesBaton : public Baton {
+struct GattcReadCharacteristicValuesBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GattcReadCharacteristicValuesBaton);
     uint16_t conn_handle;
@@ -293,18 +315,28 @@ public:
     uint16_t handle_count;
 };
 
-struct GattcWriteBaton : public Baton {
+struct GattcWriteBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GattcWriteBaton);
     uint16_t conn_handle;
     ble_gattc_write_params_t *p_write_params;
 };
 
-struct GattcConfirmHandleValueBaton : public Baton {
+struct GattcConfirmHandleValueBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GattcConfirmHandleValueBaton);
     uint16_t conn_handle;
     uint16_t handle;
+};
+
+struct GattcExchangeMtuRequestBaton : public Baton
+{
+public:
+    BATON_CONSTRUCTOR(GattcExchangeMtuRequestBaton);
+    uint16_t conn_handle;
+    uint16_t client_rx_mtu;
 };
 
 ///// End GATTC Batons //////////////////////////////////////////////////////////////////////////////////

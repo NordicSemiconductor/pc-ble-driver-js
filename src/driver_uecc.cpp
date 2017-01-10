@@ -69,10 +69,16 @@ static void reverse(uint8_t* p_dst, uint8_t* p_src, uint32_t len)
     }
 }
 
+static bool isEccInitialized = false;
+
 NAN_METHOD(ECCInit)
 {
-    srand ((unsigned int)time(NULL));
-    uECC_set_rng(rng);
+    if (!isEccInitialized)
+    {
+        srand ((unsigned int)time(NULL));
+        uECC_set_rng(rng);
+        isEccInitialized = true;
+    }
 }
 
 NAN_METHOD(ECCP256GenerateKeypair)

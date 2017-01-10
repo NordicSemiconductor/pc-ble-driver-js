@@ -45,10 +45,11 @@
 #include "ble_hci.h"
 
 #define RETURN_VALUE_OR_THROW_EXCEPTION(method) \
-try { \
+try \
+{ \
     return (method); \
 } \
-catch(char const *error) \
+catch(std::string error) \
 { \
     std::cout << "Exception: " << name << ":" << error << std::endl; \
     std::stringstream ex; \
@@ -56,7 +57,8 @@ catch(char const *error) \
     throw ex.str(); \
 }
 
-static name_map_t error_message_name_map = {
+static name_map_t error_message_name_map =
+{
     // Generic errors
     NAME_MAP_ENTRY(NRF_SUCCESS),
     NAME_MAP_ENTRY(NRF_ERROR_SVC_HANDLER_MISSING),
@@ -95,7 +97,8 @@ static name_map_t error_message_name_map = {
     NAME_MAP_ENTRY(BLE_ERROR_GATTS_SYS_ATTR_MISSING),
 };
 
-static name_map_t sd_rpc_app_status_map = {
+static name_map_t sd_rpc_app_status_map =
+{
     NAME_MAP_ENTRY(PKT_SEND_MAX_RETRIES_REACHED),
     NAME_MAP_ENTRY(PKT_UNEXPECTED),
     NAME_MAP_ENTRY(PKT_ENCODE_ERROR),
@@ -292,7 +295,7 @@ uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Value> js)
 {
     if (!js->IsArray())
     {
-        throw "array";
+        throw std::string("array");
     }
 
     v8::Local<v8::Array> jsarray = v8::Local<v8::Array>::Cast(js);
@@ -336,7 +339,7 @@ v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Value>js)
 {
     if (!js->IsObject())
     {
-        throw "object";
+        throw std::string("object");
     }
 
     return js->ToObject();
@@ -363,7 +366,7 @@ v8::Local<v8::Object> ConversionUtility::getJsObjectOrNull(v8::Local<v8::Value>j
         return ConversionUtility::getJsObject(js);
     }
 
-    throw "object or null";
+    throw std::string("object or null");
 }
 
 v8::Local<v8::Object> ConversionUtility::getJsObjectOrNull(v8::Local<v8::Object>js, const char *name)
@@ -403,7 +406,7 @@ std::string ConversionUtility::getNativeString(v8::Local<v8::Value> js)
 {
     if (!js->IsString())
     {
-        throw "string";
+        throw std::string("string");
     }
 
     return std::string(*Nan::Utf8String(js));
@@ -494,7 +497,7 @@ v8::Handle<v8::Value> ConversionUtility::toJsValueArray(const uint8_t *nativeDat
 
 v8::Handle<v8::Value> ConversionUtility::toJsString(const char *cString)
 {
-    return ConversionUtility::toJsString(cString, strlen(cString));
+    return ConversionUtility::toJsString(cString, static_cast<uint16_t>(strlen(cString)));
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsString(const char *cString, uint16_t length)
@@ -562,7 +565,7 @@ v8::Local<v8::Function> ConversionUtility::getCallbackFunction(v8::Local<v8::Val
     Nan::EscapableHandleScope scope;
     if (!js->IsFunction())
     {
-        throw "function";
+        throw std::string("function");
     }
     return scope.Escape(js.As<v8::Function>());
 }

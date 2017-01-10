@@ -42,9 +42,7 @@ NAN_METHOD(GetAdapterList)
     auto baton = new AdapterListBaton(callback);
     strcpy(baton->errorString, "");
 
-    auto req = new uv_work_t();
-    req->data = baton;
-    uv_queue_work(uv_default_loop(), req, GetAdapterList, reinterpret_cast<uv_after_work_cb>(AfterGetAdapterList));
+    uv_queue_work(uv_default_loop(), baton->req, GetAdapterList, reinterpret_cast<uv_after_work_cb>(AfterGetAdapterList));
 }
 
 void GetAdapterList(uv_work_t *req)
@@ -56,7 +54,7 @@ void GetAdapterList(uv_work_t *req)
 
 void AfterGetAdapterList(uv_work_t* req) 
 {
-	Nan::HandleScope scope;
+    Nan::HandleScope scope;
     auto baton = static_cast<AdapterListBaton*>(req->data);
 
     v8::Local<v8::Value> argv[2];
@@ -96,5 +94,4 @@ void AfterGetAdapterList(uv_work_t* req)
     }
 
     delete baton;
-    delete req;
 }

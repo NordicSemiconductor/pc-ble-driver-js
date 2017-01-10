@@ -6,7 +6,8 @@
     "scripts": {
         "lint": "jshint api/ test/ && jscs api/ test/",
         "install": "node build.js",
-        "test": "mocha --es_staging --recursive test/api"
+        "test": "jest --config config/jest-unit.config",
+        "test:system": "jest --config config/jest-system.config"
     },
     "repository": {
         "type": "git",
@@ -18,15 +19,19 @@
         "bindings": "^1.2.1",
         "change-case": "2.3.0",
         "cmake-js": "1.1.0",
+        "crc": "^3.4.0",
+        "jszip": "^3.1.2",
         "nan": "2.3.3",
         "underscore": "^1.8.3"
     },
     "devDependencies": {
         "chai": "3.3.0",
+        "jest": "^17.0.3",
         "jscs": "^2.3.5",
         "jshint": "^2.8.0",
         "keypress": "0.2.1",
         "mocha": "^2.3.3",
+        "pc-nrfjprog-js": "https://github.com/NordicSemiconductor/pc-nrfjprog-js.git",
         "proxyquire": "^1.7.3",
         "sinon": "^1.17.1",
         "yargs": "^3.29.0"

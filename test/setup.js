@@ -38,9 +38,9 @@
 'use strict';
 
 const api = require('../index').api;
-const driver = require('../index').driver;
+
 const adapterFactory = api.AdapterFactory.getInstance();
-const ServiceFactory = new api.ServiceFactory;
+const ServiceFactory = new api.ServiceFactory();
 
 adapterFactory.on('added', adapter => {
     console.log(`onAdded: ${adapter.instanceId}`);
@@ -55,7 +55,6 @@ adapterFactory.on('error', error => {
 });
 
 module.exports = {
-    adapterFactory: adapterFactory,
-    ServiceFactory: ServiceFactory,
-    driver: driver,
+    adapterFactory,
+    ServiceFactory,
 };

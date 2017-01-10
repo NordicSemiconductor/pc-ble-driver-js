@@ -52,6 +52,9 @@ static name_map_t common_event_name_map = {
     NAME_MAP_ENTRY(BLE_EVT_TX_COMPLETE),
     NAME_MAP_ENTRY(BLE_EVT_USER_MEM_REQUEST),
     NAME_MAP_ENTRY(BLE_EVT_USER_MEM_RELEASE),
+#if NRF_SD_BLE_API_VERSION >= 3
+    NAME_MAP_ENTRY(BLE_EVT_DATA_LENGTH_CHANGED),
+#endif
 };
 
 NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& str);
@@ -147,6 +150,20 @@ public:
     ble_uuid128_t *ToNative() override;
 };
 
+
+class BleOpt : public BleToJs<ble_opt_t>
+{
+public:
+    explicit BleOpt(ble_opt_t *ble_opt) : BleToJs<ble_opt_t>(ble_opt) {}
+    explicit BleOpt(v8::Local<v8::Object> js) : BleToJs<ble_opt_t>(js) {}
+    virtual ~BleOpt() {}
+
+    //v8::Local<v8::Object> ToJs() override;
+    ble_opt_t *ToNative() override;
+};
+
+#pragma region BleDriverCommonEvent
+
 template<typename EventType>
 class BleDriverCommonEvent : public BleDriverEvent<EventType>
 {
@@ -199,10 +216,23 @@ public:
     v8::Local<v8::Object> ToJs();
 };
 
+#if NRF_SD_BLE_API_VERSION >= 3
+class CommonDataLengthChangedEvent : BleDriverCommonEvent<ble_evt_data_length_changed_t>
+{
+public:
+    CommonDataLengthChangedEvent(std::string timestamp, uint16_t conn_handle, ble_evt_data_length_changed_t *evt)
+        : BleDriverCommonEvent<ble_evt_data_length_changed_t>(BLE_EVT_DATA_LENGTH_CHANGED, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs();
+};
+#endif
+
+#pragma endregion BleDriverCommonEvent
 
 ///// Start Batons ////////////////////////////////////////
 
-struct OpenBaton : public Baton {
+struct OpenBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(OpenBaton)
     //char path[PATH_STRING_SIZE];
@@ -228,13 +258,15 @@ public:
     Adapter *mainObject;
 };
 
-struct CloseBaton : public Baton {
+struct CloseBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(CloseBaton)
     Adapter *mainObject;
 };
 
-struct EnableBLEBaton : public Baton {
+struct EnableBLEBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(EnableBLEBaton)
     ble_enable_params_t *enable_params;
@@ -242,21 +274,24 @@ public:
 };
 
 
-struct GetVersionBaton : public Baton {
+struct GetVersionBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GetVersionBaton);
     ble_version_t *version;
 
 };
 
-class BleAddVendorSpcificUUIDBaton : public Baton {
+class BleAddVendorSpcificUUIDBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(BleAddVendorSpcificUUIDBaton);
     ble_uuid128_t *p_vs_uuid;
     uint8_t p_uuid_type;
 };
 
-class BleUUIDEncodeBaton : public Baton {
+class BleUUIDEncodeBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(BleUUIDEncodeBaton);
     ble_uuid_t *p_uuid;
@@ -264,7 +299,8 @@ public:
     uint8_t *uuid_le;
 };
 
-class BleUUIDDecodeBaton : public Baton {
+class BleUUIDDecodeBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(BleUUIDDecodeBaton);
     uint8_t uuid_le_len;
@@ -272,11 +308,20 @@ public:
     uint8_t *uuid_le;
 };
 
-class BleUserMemReplyBaton : public Baton {
+class BleUserMemReplyBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(BleUserMemReplyBaton);
     uint16_t conn_handle;
     ble_user_mem_block_t *p_block;
+};
+
+class BleOptionBaton : public Baton
+{
+public:
+    BATON_CONSTRUCTOR(BleOptionBaton);
+    uint32_t opt_id;
+    ble_opt_t *p_opt;
 };
 
 ///// End Batons ////////////////////////////////////////

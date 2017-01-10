@@ -306,8 +306,8 @@ class SoftDeviceConverter {
         props.indicate = characteristic.properties.indicate || false;
         props.auth_signed_wr = characteristic.properties.authSignedWr || false;
 
-        retval.metadata.char_ext_props.reliable_wr = characteristic.properties.reliableWrite || false;
-        retval.metadata.char_ext_props.wr_aux = false;
+        retval.metadata.char_ext_props.reliable_wr = characteristic.properties.reliableWr || false;
+        retval.metadata.char_ext_props.wr_aux = characteristic.properties.wrAux || false;
 
         retval.metadata.char_user_desc_max_size = 0; // TODO: check what this is used for
         retval.metadata.char_user_desc_size = 0; // TODO: check what this is used for

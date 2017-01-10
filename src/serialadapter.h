@@ -41,7 +41,8 @@
 
 METHOD_DEFINITIONS(GetAdapterList);
 
-struct AdapterListBaton : Baton {
+struct AdapterListBaton : Baton
+{
 public:
     BATON_CONSTRUCTOR(AdapterListBaton)
         std::list<SerialPortDesc*> results;

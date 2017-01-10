@@ -10,7 +10,12 @@ add_subdirectory(pc-ble-driver)
 set(UECC_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/uECC)
 # Essential include files to build a node addon,
 # you should add this line in every CMake.js based project.
+
 include_directories(${CMAKE_JS_INC} ${PC_BLE_DRIVER_INCLUDE_DIR} ${UECC_INCLUDE_DIR})
+include_directories(${PC_BLE_DRIVER_INCLUDE_DIR}/common)
+include_directories(${PC_BLE_DRIVER_INCLUDE_DIR}/common/sdk_compat)
+include_directories(${PC_BLE_DRIVER_INCLUDE_DIR}/common/internal)
+include_directories(${PC_BLE_DRIVER_INCLUDE_DIR}/common/internal/transport)
 
 # Specify source files
 file (GLOB SOURCE_FILES
@@ -30,12 +35,6 @@ file (GLOB UECC_SOURCE_FILES
     "src/uECC/*.c"
 )
 
-if(WIN32)
-elseif(APPLE)
-else()
-    # Assume Linux
-endif()
-
 # Force .c files to be compiled with the C++ compiler
 set_source_files_properties(
     ${UECC_SOURCE_FILES}
@@ -43,34 +42,41 @@ set_source_files_properties(
     LANGUAGE CXX
 )
 
-# This line will tell CMake that we're building a shared library
-# named after the project's name
-add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES} ${UECC_SOURCE_FILES} ${PLATFORM_SOURCE_FILES})
-
-# This line will give our library file a .node extension without any "lib" prefix
-set_target_properties(${PROJECT_NAME}
-    PROPERTIES
-    COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -DBUILDING_NODE_EXTENSION"
-    PREFIX ""
-    SUFFIX ".node")
-
 # Build the pc-ble-driver as a static library
 add_definitions(
     -DPC_BLE_DRIVER_STATIC
 )
 
-if(WIN32)
-    include_directories("${CMAKE_JS_INC}/win")
-    set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
-elseif(APPLE)
-    target_link_libraries(${PROJECT_NAME} "-framework CoreFoundation")
-    target_link_libraries(${PROJECT_NAME} "-framework IOKit")
-    set_property(TARGET ${PROJECT_NAME} PROPERTY MACOSX_RPATH ON)
-else()
-    # Assume Linux
-    target_link_libraries(${PROJECT_NAME} "udev")
-endif()
+foreach(SD_API_VER ${SD_API_VERS})
+    string(TOLOWER ${SD_API_VER} SD_API_VER_L)
+    set(CURRENT_TARGET pc-ble-driver-js-${SD_API_VER_L})
 
-# Essential library files to link to a node addon,
-# you should add this line in every CMake.js based project.
-target_link_libraries(${PROJECT_NAME} ${CMAKE_JS_LIB} ${PC_BLE_DRIVER_STATIC_LIB})
+    add_library(${CURRENT_TARGET} SHARED ${SOURCE_FILES} ${UECC_SOURCE_FILES} ${LIB_PLATFORM_SRC_FILES})
+
+    # This line will give our library file a .node extension without any "lib" prefix
+    set_target_properties(${CURRENT_TARGET}
+        PROPERTIES
+        COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -DBUILDING_NODE_EXTENSION"
+        PREFIX ""
+        SUFFIX ".node")
+
+	string(REGEX MATCH "[0-9]+$" _SD_API_VER_NUM "${SD_API_VER}")
+	set_target_properties(${CURRENT_TARGET} PROPERTIES COMPILE_OPTIONS -DNRF_SD_BLE_API_VERSION=${_SD_API_VER_NUM})
+
+    target_include_directories(${CURRENT_TARGET} PRIVATE ${PC_BLE_DRIVER_${SD_API_VER}_PUBLIC_INCLUDE_DIRS})
+	
+    if(WIN32)
+        target_include_directories(${CURRENT_TARGET} PRIVATE "${CMAKE_JS_INC}/win")
+        set_target_properties(${CURRENT_TARGET} PROPERTIES COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
+    elseif(APPLE)
+        target_link_libraries(${CURRENT_TARGET} "-framework CoreFoundation")
+        target_link_libraries(${CURRENT_TARGET} "-framework IOKit")
+        set_property(TARGET ${CURRENT_TARGET} PROPERTY MACOSX_RPATH ON)
+    else()
+        # Assume Linux
+        target_link_libraries(${CURRENT_TARGET} "udev")
+    endif()
+
+    # actual shared and static libraries built from the same object files
+    target_link_libraries(${CURRENT_TARGET} ${CMAKE_JS_LIB} ${PC_BLE_DRIVER_${SD_API_VER}_STATIC_LIB})
+endforeach(SD_API_VER)
