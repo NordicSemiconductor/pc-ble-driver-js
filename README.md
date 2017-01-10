@@ -67,6 +67,10 @@ Examples/system tests require one or more development kits to be connected to yo
 
     node test/simpleScanTest.js
 
+# Contributing
+
+We are currently working on a Contributor License Agreement (CLA), which will allow third party contributions to this project. We do not accept pull requests for the time being, but feel free to file code related issues on [GitHub Issues](https://github.com/NordicSemiconductor/pc-ble-driver-js/issues).
+
 # License
 
 See the [license file](LICENSE) for details.
