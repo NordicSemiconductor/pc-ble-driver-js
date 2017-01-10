@@ -2,8 +2,6 @@
 
 pc-ble-driver-js is a Node.js AddOn for the [pc-ble-driver  library](https://github.com/NordicSemiconductor/pc-ble-driver). It depends on the pc-ble-driver repository referenced as a submodule.
 
-The AddOn does not support all of the functions in the pc-ble-driver library. This is a very early implementation, we are working on making the AddOn production quality. When production quality is reached we will probably publish it on npmjs. Stay with us!
-
 # Installation procedure
 
 To run the AddOn you will need to set up your boards to be able to communicate with your computer.
