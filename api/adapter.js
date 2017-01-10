@@ -2859,7 +2859,7 @@ class Adapter extends EventEmitter {
         this._gattcWriteWithRetries(device.connectionHandle, writeParameters, err => {
             if (err) {
                 delete this._gattOperationsMap[device.instanceId];
-                this.emit('error', 'Failed to write to attribute with handle: ' + attribute.handle);
+                this.emit('error', _makeError('Failed to write to attribute with handle: ' + attribute.handle, err));
                 if (callback) callback(err);
                 return;
             }
