@@ -295,7 +295,9 @@ class Dfu extends EventEmitter {
         return Promise.all([
             this._loadZipAsync(zipFilePath),
             this._getManifestAsync(zipFilePath)
-        ]).then(([zip, manifest]) => {
+        ]).then(result => {
+            const zip = result[0];
+            const manifest = result[1];
             return this._getFirmwareTypes(manifest).map(type => {
                 const firmwareUpdate = manifest[type];
                 const datFileName = firmwareUpdate['dat_file'];
