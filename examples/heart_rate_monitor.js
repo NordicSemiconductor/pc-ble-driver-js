@@ -46,6 +46,7 @@
  */
 'use strict';
 
+const assert = require('assert');
 const api = require('../index').api;
 
 const adapterFactory = api.AdapterFactory.getInstance();
@@ -53,10 +54,16 @@ const serviceFactory = new api.ServiceFactory();
 
 const BAUD_RATE = 115200; /**< The baud rate to be used for serial communication with nRF5 device. */
 
+const ADVERTISING_INTERVAL_40_MS = 40;
+const ADVERTISING_TIMEOUT_3_MIN  = 180;
+
 const BLE_UUID_HEART_RATE_SERVICE = '180d'; /**< Heart Rate service UUID. */
 const BLE_UUID_HEART_RATE_MEASUREMENT_CHAR = '2a37'; /**< Heart Rate Measurement characteristic UUID. */
 
 const DEVICE_NAME = 'Nordic_HRM'; /**< Name device advertises as over Bluetooth. */
+
+let heartRateService;
+let heartRateMeasurementCharacteristic;
 
 
 adapterFactory.on('added', adapter => {
@@ -86,17 +93,41 @@ adapterFactory.getAdapters((err, adapters) => {
 
     const adapter = adapters[Object.keys(adapters)[0]];
 
-    adapter.on('error', error => {
-        console.log(`adapter.onError: ${JSON.stringify(error, null, 1)}.`)
-    });
+    function addAdapterListener(adapter, prefix) {
+        adapter.on('logMessage', (severity, message) => { console.log(`${prefix} logMessage: ${message}`); });
+        adapter.on('status', status => { console.log(`${prefix} status: ${JSON.stringify(status, null, 1)}`); });
+        adapter.on('error', error => {
+            console.log(`${prefix} error: ${JSON.stringify(error, null, 1)}`);
+            assert(false);
+        });
+        //adapter.on('stateChanged', state => { console.log(`${prefix} stateChanged: ${JSON.stringify(state)}`); });
 
-    adapter.on('stateChanged', state => {
-        console.log(`Adapter state changed: ${JSON.stringify(state)}.`);
-    });
+        adapter.on('deviceConnected', device => {
+            console.log(`${prefix} deviceConnected: ${device.address}`);
+        });
 
-    adapter.on('deviceDisconnected', device => {
-        console.log(`adapter.deviceDisconnected: ${JSON.stringify(device)}.`);
-    });
+        adapter.on('deviceDisconnected', device => { console.log(`${prefix} deviceDisconnected: ${JSON.stringify(device, null, 1)}`); });
+        adapter.on('deviceDiscovered', device => { console.log(`${prefix} deviceDiscovered: ${JSON.stringify(device)}`); });
+
+        adapter.on('descriptorValueChanged', attribute => {
+            console.log(`${prefix} descriptorValueChanged: ${JSON.stringify(attribute)}.`);
+
+            let heartRate = 65;
+            setInterval(() => {
+                heartRate += 3;
+                if (heartRate >= 190) {
+                    heartRate = 65;
+                }
+                console.log('Notifying on heart rate measurement characteristic.');
+                adapter.writeCharacteristicValue(heartRateMeasurementCharacteristic._instanceId,
+                    [heartRate], false, err => { assert(!err); }, (device, attribute) => {
+                        console.log('Notified.');
+                    });
+            }, 1000);
+        });
+    }
+
+    addAdapterListener(adapter, '#PERIPH');
 
     console.log(`Opening adapter with ID: ${adapter} and baud rate: ${BAUD_RATE}.`);
     adapter.open(
@@ -113,24 +144,36 @@ adapterFactory.getAdapters((err, adapters) => {
 
         console.log('Adapter opened.');
 
-        const heartRateService = serviceFactory.createService(BLE_UUID_HEART_RATE_SERVICE);
-        const heartRateMeasurementCharacteristic = serviceFactory.createCharacteristic(
+        heartRateService = serviceFactory.createService(BLE_UUID_HEART_RATE_SERVICE);
+        heartRateMeasurementCharacteristic = serviceFactory.createCharacteristic(
             heartRateService,
             BLE_UUID_HEART_RATE_MEASUREMENT_CHAR,
             [0, 0],
             {
                 broadcast: false,
-                read: true,
-                write: true,
+                read: false,
+                write: false,
                 writeWoResp: false,
-                reliableWrite: false, /* extended property in MCP ? */
+                reliableWrite: false,
                 notify: true,
-                indicate: false, /* notify/indicate is cccd, therefore it must be set */
+                indicate: false,
             },
             {
-                maxLength: 3,
+                maxLength: 2,
                 readPerm: ['open'],
                 writePerm: ['open'],
+            }
+        );
+
+        const cccdDescriptor = serviceFactory.createDescriptor(
+            heartRateMeasurementCharacteristic,
+            '2902',
+            [0, 0],
+            {
+                maxLength: 2,
+                readPerm: ['open'],
+                writePerm: ['open'],
+                variableLength: false,
             }
         );
 
@@ -144,29 +187,26 @@ adapterFactory.getAdapters((err, adapters) => {
             console.log('Setting advertisement data.');
 
             const advertisingData = {
-                shortenedLocalName: DEVICE_NAME,
+                completeLocalName: DEVICE_NAME,
                 flags: ['leGeneralDiscMode', 'brEdrNotSupported'],
                 txPowerLevel: -10,
             };
 
-            const scanResponseData = {
-                completeLocalName: DEVICE_NAME,
-            };
-
             const options = {
-                interval: 40,
-                timeout: 180,
+                interval: ADVERTISING_INTERVAL_40_MS,
+                timeout: ADVERTISING_TIMEOUT_3_MIN,
                 connectable: true,
                 scannable: false,
             };
 
-            adapter.setAdvertisingData(advertisingData, scanResponseData, err => {
+            adapter.setAdvertisingData(advertisingData, null, err => {
                 if (err) {
-                    console.log(`Error setting advertising data. ${err}.`);
+                    console.log(`Error setting advertising data: ${err}.`);
+                    process.exit(1);
                 }
             });
 
-            adapter.startAdvertising( options, function(err) {
+            adapter.startAdvertising( options, err => {
                 if (err) {
                     console.log(`Error starting advertising: ${err}.`);
                     process.exit(1);
