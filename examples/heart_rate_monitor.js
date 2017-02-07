@@ -47,8 +47,8 @@
 
 'use strict';
 
-const assert = require('assert');
 const _ = require('underscore');
+
 const api = require('../index').api;
 
 
@@ -62,7 +62,7 @@ const ADVERTISING_TIMEOUT_3_MIN  = 180;
 
 const BLE_UUID_HEART_RATE_SERVICE = '180d'; /**< Heart Rate service UUID. */
 const BLE_UUID_HEART_RATE_MEASUREMENT_CHAR = '2a37'; /**< Heart Rate Measurement characteristic UUID. */
-const BLE_UUID_CCCD = '2902';
+const BLE_UUID_CCCD = '2902'; /**< Client characteristic descriptor UUID. */
 
 const DEVICE_NAME = 'Nordic_HRM'; /**< Name device advertises as over Bluetooth. */
 
@@ -86,7 +86,6 @@ adapterFactory.getAdapters((err, adapters) => {
     }
 
     console.log('Found the following adapters: ');
-
     for (let adapter in adapters) {
         console.log(adapters[adapter].instanceId);
     }
@@ -181,7 +180,6 @@ adapterFactory.getAdapters((err, adapters) => {
         }
 
         console.log('Adapter opened.');
-
         heartRateService = serviceFactory.createService(BLE_UUID_HEART_RATE_SERVICE);
         heartRateMeasurementCharacteristic = serviceFactory.createCharacteristic(
             heartRateService,
