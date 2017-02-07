@@ -44,10 +44,13 @@
  * This service exposes heart rate data from a Heart Rate Sensor intended for fitness applications.
  * https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.heart_rate.xml
  */
+
 'use strict';
 
 const assert = require('assert');
+const _ = require('underscore');
 const api = require('../index').api;
+
 
 const adapterFactory = api.AdapterFactory.getInstance();
 const serviceFactory = new api.ServiceFactory();
@@ -59,26 +62,23 @@ const ADVERTISING_TIMEOUT_3_MIN  = 180;
 
 const BLE_UUID_HEART_RATE_SERVICE = '180d'; /**< Heart Rate service UUID. */
 const BLE_UUID_HEART_RATE_MEASUREMENT_CHAR = '2a37'; /**< Heart Rate Measurement characteristic UUID. */
+const BLE_UUID_CCCD = '2902';
 
 const DEVICE_NAME = 'Nordic_HRM'; /**< Name device advertises as over Bluetooth. */
 
+
+/* State */
 let heartRateService;
 let heartRateMeasurementCharacteristic;
+let heartRateInterval;
+let cccdDescriptor;
 
 
-adapterFactory.on('added', adapter => {
-    console.log(`onAdded: Adapter added: ${adapter.instanceId}`);
-});
+adapterFactory.on('added', adapter => { console.log(`onAdded: Adapter added: ${adapter.instanceId}.`); });
+adapterFactory.on('removed', adapter => { console.log(`onRemoved: Adapter removed: ${adapter.instanceId}.`); });
+adapterFactory.on('error', error => { console.log(`onError: ${JSON.stringify(error, null, 1)}.`); });
 
-adapterFactory.on('removed', adapter => {
-    console.log(`onRemoved: Adapter removed: ${adapter.instanceId}`);
-});
-
-adapterFactory.on('error', error => {
-    console.log(`onError: ${JSON.stringify(error, null, 1)}`);
-});
-
-console.log('Searching for connected adapters...');
+console.log('Searching for connected adapters.');
 adapterFactory.getAdapters((err, adapters) => {
     if (err) {
         console.log(`Error: ${err}.`);
@@ -91,43 +91,81 @@ adapterFactory.getAdapters((err, adapters) => {
         console.log(adapters[adapter].instanceId);
     }
 
-    const adapter = adapters[Object.keys(adapters)[0]];
+    const adapter = adapters[Object.keys(adapters)[0]]; // pick the first adapter we find
 
     function addAdapterListener(adapter, prefix) {
         adapter.on('logMessage', (severity, message) => { console.log(`${prefix} logMessage: ${message}`); });
         adapter.on('status', status => { console.log(`${prefix} status: ${JSON.stringify(status, null, 1)}`); });
         adapter.on('error', error => {
             console.log(`${prefix} error: ${JSON.stringify(error, null, 1)}`);
-            assert(false);
-        });
-        //adapter.on('stateChanged', state => { console.log(`${prefix} stateChanged: ${JSON.stringify(state)}`); });
-
-        adapter.on('deviceConnected', device => {
-            console.log(`${prefix} deviceConnected: ${device.address}`);
         });
 
-        adapter.on('deviceDisconnected', device => { console.log(`${prefix} deviceDisconnected: ${JSON.stringify(device, null, 1)}`); });
-        adapter.on('deviceDiscovered', device => { console.log(`${prefix} deviceDiscovered: ${JSON.stringify(device)}`); });
+        adapter.on('deviceConnected', device => { console.log(`${prefix} deviceConnected: ${device.address}`); });
+
+        adapter.on('deviceDisconnected', device => {
+            console.log(`${prefix} deviceDisconnected:${JSON.stringify(device)}`);
+        });
+
+        adapter.on('secParamsRequest', device => {
+            console.log(`${prefix} secParamsRequest:${JSON.stringify(device)}`);
+        });
+
+        adapter.on('deviceDiscovered', device => {
+            console.log(`${prefix} deviceDiscovered: ${JSON.stringify(device)}`);
+        });
 
         adapter.on('descriptorValueChanged', attribute => {
             console.log(`${prefix} descriptorValueChanged: ${JSON.stringify(attribute)}.`);
 
-            let heartRate = 65;
-            setInterval(() => {
-                heartRate += 3;
-                if (heartRate >= 190) {
-                    heartRate = 65;
+            const descriptorHandle = adapter._getCCCDOfCharacteristic(
+                heartRateMeasurementCharacteristic.instanceId).handle;
+
+            if (descriptorHandle === cccdDescriptor.handle) {
+                const value = attribute.value[Object.keys(attribute.value)[0]];
+
+                if (_.isEmpty(value)) {
+                    return;
                 }
-                console.log('Notifying on heart rate measurement characteristic.');
-                adapter.writeCharacteristicValue(heartRateMeasurementCharacteristic._instanceId,
-                    [heartRate], false, err => { assert(!err); }, (device, attribute) => {
-                        console.log('Notified.');
-                    });
-            }, 1000);
+
+                if (value[1] === 1) { // indications enabled
+                    console.log('Warning, indications not supported.');
+                }
+
+                if (value[0] === 1) { // notifications enabled
+                    let heartRate = 65;
+
+                    if (heartRateInterval === null) {
+                        console.log('Enabling notifications on heart rate measurement characteristic.');
+
+                        heartRateInterval = setInterval(() => {
+                            heartRate += 3;
+                            if (heartRate >= 190) {
+                                heartRate = 65;
+                            }
+                            adapter.writeCharacteristicValue(heartRateMeasurementCharacteristic._instanceId,
+                                [heartRate], false, err => {
+                                    if (err) {
+                                        console.log(`Error writing heartRateMeasurementCharacteristic: ${err}.`);
+                                        process.exit(1);
+                                    }
+                                }, (device, attribute) => {
+                                    console.log('Successful notification on heart rate measurement characteristic.');
+                            });
+                        }, 1000);
+                    }
+                } else if (value[0] === 0) { // notifications disabled
+                    if (heartRateInterval !== null) {
+                        console.log('Disabling notifications on heart rate measurement characteristic.');
+
+                        clearInterval(heartRateInterval);
+                        heartRateInterval = null;
+                    }
+                }
+            }
         });
     }
 
-    addAdapterListener(adapter, '#PERIPH');
+    addAdapterListener(adapter, '#PERIPHERAL: ');
 
     console.log(`Opening adapter with ID: ${adapter} and baud rate: ${BAUD_RATE}.`);
     adapter.open(
@@ -165,9 +203,9 @@ adapterFactory.getAdapters((err, adapters) => {
             }
         );
 
-        const cccdDescriptor = serviceFactory.createDescriptor(
+        cccdDescriptor = serviceFactory.createDescriptor(
             heartRateMeasurementCharacteristic,
-            '2902',
+            BLE_UUID_CCCD,
             [0, 0],
             {
                 maxLength: 2,
@@ -177,10 +215,10 @@ adapterFactory.getAdapters((err, adapters) => {
             }
         );
 
-        console.log('Setting services.');
+        console.log('Initializing services that will be used by the application.');
         adapter.setServices([heartRateService], err => {
             if (err) {
-                console.log(`Error setting services: '${JSON.stringify(err, null, 1)}'.`);
+                console.log(`Error initializing services: ${JSON.stringify(err, null, 1)}'.`);
                 process.exit(1);
             }
 
@@ -192,6 +230,10 @@ adapterFactory.getAdapters((err, adapters) => {
                 txPowerLevel: -10,
             };
 
+            const scanResponseData = {
+                completeListOf16BitServiceUuids: [BLE_UUID_HEART_RATE_SERVICE],
+            };
+
             const options = {
                 interval: ADVERTISING_INTERVAL_40_MS,
                 timeout: ADVERTISING_TIMEOUT_3_MIN,
@@ -199,14 +241,14 @@ adapterFactory.getAdapters((err, adapters) => {
                 scannable: false,
             };
 
-            adapter.setAdvertisingData(advertisingData, null, err => {
+            adapter.setAdvertisingData(advertisingData, scanResponseData, err => {
                 if (err) {
-                    console.log(`Error setting advertising data: ${err}.`);
+                    console.log(`Error initializing the advertising functionality: ${err}.`);
                     process.exit(1);
                 }
             });
 
-            adapter.startAdvertising( options, err => {
+            adapter.startAdvertising(options, err => {
                 if (err) {
                     console.log(`Error starting advertising: ${err}.`);
                     process.exit(1);
