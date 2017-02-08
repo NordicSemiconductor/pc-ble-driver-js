@@ -257,7 +257,7 @@ function characteristicsInit() {
         BLE_UUID_CCCD,
         [0, 0],
         {
-            maxLength: 2, // FIXME: see Bluetooth SIG doc
+            maxLength: 2,
             readPerm: ['open'],
             writePerm: ['open'],
             variableLength: false,
