@@ -285,7 +285,7 @@ function connect(adapter, connectToAddress) {
  */
 function heartRateServiceDiscover(adapter, device) {
     return new Promise((resolve, reject) => {
-        adapter.getServices(device._instanceId, (err, services) => {
+        adapter.getServices(device.instanceId, (err, services) => {
             if (err) {
                 reject(Error(`Error discovering the heart rate service: ${err}.`));
             }
@@ -310,7 +310,7 @@ function heartRateServiceDiscover(adapter, device) {
  */
 function hrmCharacteristicDiscover(adapter) {
     return new Promise((resolve, reject) => {
-        adapter.getCharacteristics(heartRateService._instanceId, (err, characteristics) => {
+        adapter.getCharacteristics(heartRateService.instanceId, (err, characteristics) => {
             if (err) {
                 reject(Error(`Error discovering the heart rate service's characteristics: ${err}.`));
             }
@@ -336,7 +336,7 @@ function hrmCharacteristicDiscover(adapter) {
  */
 function hrmCharCCCDDiscover(adapter) {
     return new Promise((resolve, reject) => {
-        adapter.getDescriptors(heartRateMeasurementCharacteristic._instanceId, (err, descriptors) => {
+        adapter.getDescriptors(heartRateMeasurementCharacteristic.instanceId, (err, descriptors) => {
             if (err) {
                 reject(Error(`Error discovering the heart rate characteristic's CCCD: ${err}.`));
             }
@@ -382,7 +382,7 @@ function addUserInputListener(adapter) {
                 console.log('Enabling notifications on the heart rate measurement characteristic.');
             }
 
-            adapter.writeDescriptorValue(cccdDescriptor._instanceId, notificationsEnabled, false, err => {
+            adapter.writeDescriptorValue(cccdDescriptor.instanceId, notificationsEnabled, false, err => {
                 if (err) {
                     console.log(`Error enabling notifications on the hrm characteristic: ${err}.`);
                     process.exit(1);
