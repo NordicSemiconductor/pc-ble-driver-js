@@ -58,7 +58,7 @@ const serviceFactory = new api.ServiceFactory();
 const BAUD_RATE = 115200; /**< The baud rate to be used for serial communication with nRF5 device. */
 
 const ADVERTISING_INTERVAL_40_MS = 40;
-const ADVERTISING_TIMEOUT_3_MIN  = 180;
+const ADVERTISING_TIMEOUT_3_MIN = 180;
 
 const BLE_UUID_HEART_RATE_SERVICE = '180d'; /**< Heart Rate service UUID. */
 const BLE_UUID_HEART_RATE_MEASUREMENT_CHAR = '2a37'; /**< Heart Rate Measurement characteristic UUID. */
@@ -159,11 +159,11 @@ function openAdapter(adapter) {
         console.log(`Opening adapter with ID: ${adapter.instanceId} and baud rate: ${BAUD_RATE}...`);
 
         adapter.open({ baudRate: BAUD_RATE, }, err => {
-                if (err) {
-                    reject(Error(`Error opening adapter: ${err}.`));
-                }
+            if (err) {
+                reject(Error(`Error opening adapter: ${err}.`));
+            }
 
-                resolve();
+            resolve();
         });
     });
 }
@@ -250,20 +250,18 @@ function characteristicsInit() {
             maxLength: 2,
             readPerm: ['open'],
             writePerm: ['open'],
-        }
-    );
+        });
 
     cccdDescriptor = serviceFactory.createDescriptor(
         heartRateMeasurementCharacteristic,
         BLE_UUID_CCCD,
         [0, 0],
         {
-            maxLength: 2, // FIXME: see Bluetooth SIG doc
+            maxLength: 2,
             readPerm: ['open'],
             writePerm: ['open'],
             variableLength: false,
-        }
-    );
+        });
 }
 
 /**
@@ -289,7 +287,6 @@ function servicesInit(adapter) {
 
             resolve();
         });
-
     });
 }
 
@@ -310,7 +307,7 @@ function heartRateMeasurementSend(adapter, encodedHeartRate) {
                 if (err) {
                     reject(Error(`Error writing heartRateMeasurementCharacteristic: ${err}.`));
                 }
-            }, (device, attribute) => {
+            }, () => {
                 resolve();
             });
     });
@@ -418,20 +415,21 @@ getAdapter().then(adapter => {
     console.log(`Connected to adapter: ${adapter.instanceId}.`);
     addAdapterListener(adapter, '#BLE_PERIPHERAL: ');
 
-    openAdapter(adapter).then(() => {
+    return openAdapter(adapter)
+    .then(() => {
         console.log('Opened adapter.');
-
-        servicesInit(adapter).then(() => {
-            console.log('Initialized the heart rate service and its characteristics/descriptors.');
-
-            advertisementDataSet(adapter).then(() => {
-                console.log('Set advertisement data.');
-
-                advertisingStart(adapter).then(() => {
-                    console.log('Started advertising.');
-                });
-            });
-        })
+        return servicesInit(adapter);
+    })
+    .then(() => {
+        console.log('Initialized the heart rate service and its characteristics/descriptors.');
+        return advertisementDataSet(adapter);
+    })
+    .then(() => {
+        console.log('Set advertisement data.');
+        return advertisingStart(adapter);
+    })
+    .then(() => {
+        console.log('Started advertising.');
     });
 }).catch(error => {
     console.log(error);
