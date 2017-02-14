@@ -54,23 +54,9 @@ const api = require('../index').api;
 
 const adapterFactory = api.AdapterFactory.getInstance();
 
-const BAUD_RATE = 115200; /**< The baud rate to be used for serial communication with nRF5 device. */
-
-const SCAN_INTERVAL = 100; /**< Determines scan interval in units of 0.625 milliseconds. */
-const SCAN_WINDOW  = 50; /**< Determines scan window in units of 0.625 milliseconds. */
-const SCAN_TIMEOUT = 0; /**< Scan timeout between 0x01 and 0xFFFF in seconds, 0 disables timeout. */
-
-const MIN_CONNECTION_INTERVAL = 7.5; /**< Determines minimum connection interval in milliseconds. */
-const MAX_CONNECTION_INTERVAL = 7.5; /**< Determines maximum connection interval in milliseconds. */
-const SLAVE_LATENCY = 0; /**< Slave Latency in number of connection events. */
-const CONNECTION_SUPERVISION_TIMEOUT = 4000; /**< Determines supervision time-out in units of milliseconds. */
-
 const BLE_UUID_HEART_RATE_SERVICE = '180D'; /**< Heart Rate service UUID. */
 const BLE_UUID_HEART_RATE_MEASUREMENT_CHAR = '2A37'; /**< Heart Rate Measurement characteristic UUID. */
 const BLE_UUID_CCCD = '2902'; /**< Client characteristic descriptor UUID. */
-
-const TARGET_DEV_NAME = 'Nordic_HRM'; /**< Connect to a peripheral using a given advertising name here. */
-
 
 /* State */
 let heartRateService;
@@ -102,16 +88,16 @@ function addAdapterListener(adapter, prefix) {
     adapter.on('deviceConnected', device => {
         console.log(`${prefix} deviceConnected: ${JSON.stringify(device)}.`);
 
-        heartRateServiceDiscover(adapter, device).then(service => {
+        discoverHeartRateService(adapter, device).then(service => {
             console.log('Discovered the heart rate service.');
             heartRateService = service;
 
-            return hrmCharacteristicDiscover(adapter)
+            return discoverHRMCharacteristic(adapter)
             .then(characteristic => {
                 console.log('Discovered the heart rate measurement characteristic.');
                 heartRateMeasurementCharacteristic = characteristic;
 
-                return hrmCharCCCDDiscover(adapter);
+                return discoverHRMCharCCCD(adapter);
             })
             .then(descriptor => {
                 console.log('Discovered the heart rate measurement characteristic\'s CCCD.');
@@ -130,7 +116,7 @@ function addAdapterListener(adapter, prefix) {
     adapter.on('deviceDisconnected', device => {
         console.log(`${prefix} deviceDisconnected:${JSON.stringify(device)}.`);
 
-        scanStart(adapter).then(() => {
+        startScan(adapter).then(() => {
             console.log('Successfully initiated the scanning procedure.');
         }).catch(error => {
             console.log(error);
@@ -140,7 +126,7 @@ function addAdapterListener(adapter, prefix) {
     adapter.on('deviceDiscovered', device => {
         console.log(`${prefix} deviceDiscovered: ${JSON.stringify(device)}.`);
 
-        if (device.name === TARGET_DEV_NAME) {
+        if (device.name === 'Nordic_HRM') {
             connect(adapter, device.address).then(() => {
                 // no need to do anything here
             }).catch(error => {
@@ -174,11 +160,11 @@ function getAdapter() {
 
         adapterFactory.getAdapters((err, adapters) => {
             if (err) {
-                reject(Error(err));
+                return reject(Error(err));
             }
 
             if (_.isEmpty(adapters)) {
-                reject(Error('getAdapter() found no connected adapters.'));
+                return reject(Error('getAdapter() found no connected adapters.'));
             }
 
             console.log('Found the following adapters: ');
@@ -192,7 +178,7 @@ function getAdapter() {
 }
 
 /**
- * Opens adapter for use with the defined BAUD_RATE and default options.
+ * Opens adapter for use with the default options.
  *
  * @param adapter Adapter to be opened.
  * @returns {Promise} Resolves if the adapter is opened successfully.
@@ -200,11 +186,12 @@ function getAdapter() {
  */
 function openAdapter(adapter) {
     return new Promise((resolve, reject) => {
-        console.log(`Opening adapter with ID: ${adapter.instanceId} and baud rate: ${BAUD_RATE}...`);
+        const baudRate = 115200;
+        console.log(`Opening adapter with ID: ${adapter.instanceId} and baud rate: ${baudRate}...`);
 
-        adapter.open({ baudRate: BAUD_RATE, }, err => {
+        adapter.open({ baudRate: baudRate, }, err => {
             if (err) {
-                reject(Error(`Error opening adapter: ${err}.`));
+                return reject(Error(`Error opening adapter: ${err}.`));
             }
 
             resolve();
@@ -219,19 +206,19 @@ function openAdapter(adapter) {
  * @returns {Promise} Resolves on successfully initiating the scanning procedure.
  *                    If an error occurs, rejects with the corresponding error.
  */
-function scanStart(adapter) {
+function startScan(adapter) {
     return new Promise((resolve, reject) => {
         console.log('Started scanning...');
 
         const scanParameters = {
             active: true,
-            interval: SCAN_INTERVAL,
-            window: SCAN_WINDOW,
-            timeout: SCAN_TIMEOUT,
+            interval: 100,
+            window: 50,
+            timeout: 0,
         };
 
         adapter.startScan(scanParameters, err => {
-            reject(Error(`Error starting scanning: ${err}.`));
+            return reject(Error(`Error starting scanning: ${err}.`));
         });
 
         resolve();
@@ -253,21 +240,21 @@ function connect(adapter, connectToAddress) {
         const options = {
             scanParams: {
                 active: false,
-                interval: SCAN_INTERVAL,
-                window: SCAN_WINDOW,
-                timeout: SCAN_TIMEOUT,
+                interval: 100,
+                window: 50,
+                timeout: 0,
             },
             connParams: {
-                min_conn_interval: MIN_CONNECTION_INTERVAL,
-                max_conn_interval: MAX_CONNECTION_INTERVAL,
-                slave_latency: SLAVE_LATENCY,
-                conn_sup_timeout: CONNECTION_SUPERVISION_TIMEOUT,
+                min_conn_interval: 7.5,
+                max_conn_interval: 7.5,
+                slave_latency: 0,
+                conn_sup_timeout: 4000,
             },
         };
 
         adapter.connect(connectToAddress, options, err => {
             if (err) {
-                reject(Error(`Error connecting to target device: ${err}.`));
+                return reject(Error(`Error connecting to target device: ${err}.`));
             }
 
             resolve();
@@ -276,78 +263,78 @@ function connect(adapter, connectToAddress) {
 }
 
 /**
- * Discovers the heart rate service in the BLE peripheral's GATT.
+ * Discovers the heart rate service in the BLE peripheral's GATT attribute table.
  *
  * @param adapter Adapter being used.
  * @param device Bluetooth central device being used.
  * @returns {Promise} Resolves on successfully discovering the heart rate service.
  *                    If an error occurs, rejects with the corresponding error.
  */
-function heartRateServiceDiscover(adapter, device) {
+function discoverHeartRateService(adapter, device) {
     return new Promise((resolve, reject) => {
         adapter.getServices(device.instanceId, (err, services) => {
             if (err) {
-                reject(Error(`Error discovering the heart rate service: ${err}.`));
+                return reject(Error(`Error discovering the heart rate service: ${err}.`));
             }
 
             for (let service in services) {
                 if (services[service].uuid == BLE_UUID_HEART_RATE_SERVICE) {
-                    resolve(services[service]);
+                    return resolve(services[service]);
                 }
             }
 
-            reject(Error('Did not discover the heart rate service in peripheral\'s GATT.'));
+            reject(Error('Did not discover the heart rate service in peripheral\'s GATT attribute table.'));
         });
     });
 }
 
 /**
- * Discovers the heart rate measurement characteristic in the BLE peripheral's GATT.
+ * Discovers the heart rate measurement characteristic in the BLE peripheral's GATT attribute table.
  *
  * @param adapter Adapter being used.
  * @returns {Promise} Resolves on successfully discovering the heart rate measurement characteristic.
  *                    If an error occurs, rejects with the corresponding error.
  */
-function hrmCharacteristicDiscover(adapter) {
+function discoverHRMCharacteristic(adapter) {
     return new Promise((resolve, reject) => {
         adapter.getCharacteristics(heartRateService.instanceId, (err, characteristics) => {
             if (err) {
-                reject(Error(`Error discovering the heart rate service's characteristics: ${err}.`));
+                return reject(Error(`Error discovering the heart rate service's characteristics: ${err}.`));
             }
 
             for (let characteristic in characteristics) {
                 console.log(JSON.stringify(characteristics[characteristic]));
                 if (characteristics[characteristic].uuid == BLE_UUID_HEART_RATE_MEASUREMENT_CHAR) {
-                    resolve(characteristics[characteristic]);
+                    return resolve(characteristics[characteristic]);
                 }
             }
 
-            reject(Error('Did not discover the heart rate measurement characteristic in peripheral\'s GATT.'));
+            reject(Error('Did not discover the heart rate measurement chars in peripheral\'s GATT attribute table.'));
         });
     });
 }
 
 /**
- * Discovers the heart rate measurement characteristic's CCCD in the BLE peripheral's GATT.
+ * Discovers the heart rate measurement characteristic's CCCD in the BLE peripheral's GATT attribute table.
  *
  * @param adapter Adapter being used.
  * @returns {Promise} Resolves on successfully discovering the heart rate measurement characteristic's CCCD.
  *                    If an error occurs, rejects with the corresponding error.
  */
-function hrmCharCCCDDiscover(adapter) {
+function discoverHRMCharCCCD(adapter) {
     return new Promise((resolve, reject) => {
         adapter.getDescriptors(heartRateMeasurementCharacteristic.instanceId, (err, descriptors) => {
             if (err) {
-                reject(Error(`Error discovering the heart rate characteristic's CCCD: ${err}.`));
+                return reject(Error(`Error discovering the heart rate characteristic's CCCD: ${err}.`));
             }
 
             for (let descriptor in descriptors) {
                 if (descriptors[descriptor].uuid == BLE_UUID_CCCD) {
-                    resolve(descriptors[descriptor]);
+                    return resolve(descriptors[descriptor]);
                 }
             }
 
-            reject(Error('Did not discover the heart rate measurement characteristic\s CCCD in peripheral\'s GATT.'));
+            reject(Error('Did not discover the hrm chars CCCD in peripheral\'s GATT attribute table.'));
         });
     });
 }
@@ -404,7 +391,7 @@ getAdapter().then(adapter => {
     return openAdapter(adapter)
         .then(() => {
             console.log('Opened adapter.');
-            return scanStart(adapter);
+            return startScan(adapter);
         })
         .then(() => {
             console.log('Scanning.');

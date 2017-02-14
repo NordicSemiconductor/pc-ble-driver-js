@@ -55,17 +55,9 @@ const api = require('../index').api;
 const adapterFactory = api.AdapterFactory.getInstance();
 const serviceFactory = new api.ServiceFactory();
 
-const BAUD_RATE = 115200; /**< The baud rate to be used for serial communication with nRF5 device. */
-
-const ADVERTISING_INTERVAL_40_MS = 40;
-const ADVERTISING_TIMEOUT_3_MIN = 180;
-
 const BLE_UUID_HEART_RATE_SERVICE = '180d'; /**< Heart Rate service UUID. */
 const BLE_UUID_HEART_RATE_MEASUREMENT_CHAR = '2a37'; /**< Heart Rate Measurement characteristic UUID. */
 const BLE_UUID_CCCD = '2902'; /**< Client characteristic descriptor UUID. */
-
-const DEVICE_NAME = 'Nordic_HRM'; /**< Name device advertises as over Bluetooth. */
-
 
 /* State */
 let heartRateService;
@@ -130,11 +122,11 @@ function getAdapter() {
 
         adapterFactory.getAdapters((err, adapters) => {
             if (err) {
-                reject(Error(err));
+                return reject(Error(err));
             }
 
             if (_.isEmpty(adapters)) {
-                reject(Error('getAdapter() found no connected adapters.'));
+                return reject(Error('getAdapter() found no connected adapters.'));
             }
 
             console.log('Found the following adapters: ');
@@ -148,7 +140,7 @@ function getAdapter() {
 }
 
 /**
- * Opens adapter for use with the defined BAUD_RATE and default options.
+ * Opens adapter for use with the default options.
  *
  * @param adapter Adapter to be opened.
  * @returns {Promise} Resolves if the adapter is opened successfully.
@@ -156,11 +148,12 @@ function getAdapter() {
  */
 function openAdapter(adapter) {
     return new Promise((resolve, reject) => {
-        console.log(`Opening adapter with ID: ${adapter.instanceId} and baud rate: ${BAUD_RATE}...`);
+        const baudRate = 115200;
+        console.log(`Opening adapter with ID: ${adapter.instanceId} and baud rate: ${baudRate}...`);
 
-        adapter.open({ baudRate: BAUD_RATE, }, err => {
+        adapter.open({ baudRate: baudRate, }, err => {
             if (err) {
-                reject(Error(`Error opening adapter: ${err}.`));
+                return reject(Error(`Error opening adapter: ${err}.`));
             }
 
             resolve();
@@ -182,7 +175,7 @@ function advertisementDataSet(adapter) {
         console.log('Setting advertisement data...');
 
         const advertisingData = {
-            completeLocalName: DEVICE_NAME,
+            completeLocalName: 'Nordic_HRM',
             flags: ['leGeneralDiscMode', 'brEdrNotSupported'],
             txPowerLevel: -10,
         };
@@ -193,7 +186,7 @@ function advertisementDataSet(adapter) {
 
         adapter.setAdvertisingData(advertisingData, scanResponseData, err => {
             if (err) {
-                reject(Error(`Error initializing the advertising functionality: ${err}.`));
+                return reject(Error(`Error initializing the advertising functionality: ${err}.`));
             }
 
             resolve();
@@ -213,15 +206,15 @@ function advertisingStart(adapter) {
         console.log('Starting advertising...');
 
         const options = {
-            interval: ADVERTISING_INTERVAL_40_MS,
-            timeout: ADVERTISING_TIMEOUT_3_MIN,
+            interval: 40,
+            timeout: 180,
             connectable: true,
             scannable: false,
         };
 
         adapter.startAdvertising(options, err => {
             if (err) {
-                reject(Error(`Error starting advertising: ${err}.`));
+                return reject(Error(`Error starting advertising: ${err}.`));
             }
 
             resolve();
@@ -282,7 +275,7 @@ function servicesInit(adapter) {
 
         adapter.setServices([heartRateService], err => {
             if (err) {
-                reject(Error(`Error initializing services: ${JSON.stringify(err, null, 1)}'.`));
+                return reject(Error(`Error initializing services: ${JSON.stringify(err, null, 1)}'.`));
             }
 
             resolve();
@@ -305,7 +298,7 @@ function heartRateMeasurementSend(adapter, encodedHeartRate) {
         adapter.writeCharacteristicValue(heartRateMeasurementCharacteristic.instanceId, encodedHeartRate, false,
             err => {
                 if (err) {
-                    reject(Error(`Error writing heartRateMeasurementCharacteristic: ${err}.`));
+                    return reject(Error(`Error writing heartRateMeasurementCharacteristic: ${err}.`));
                 }
             }, () => {
                 resolve();
