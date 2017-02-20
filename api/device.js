@@ -39,7 +39,16 @@
 
 'use strict';
 
+/**
+ * Class representing a Bluetooth device.
+ */
 class Device {
+    /**
+     * Create a Bluetooth device.
+     *
+     * @param address {string|Object} The local Bluetooth identity address.
+     * @param role {string} The BLE role of this device.
+     */
     constructor(address, role) {
         this._instanceId = null;
         this._address = {};
@@ -71,41 +80,73 @@ class Device {
         this.connectionSupervisionTimeout = null;
 
         this.paired = false;
-        this.ownPeriphInitiatedPairingPending = false; // Local adapter peripheral initiated a pairing procedure
+
+        // local adapter peripheral initiated a pairing procedure
+        this.ownPeriphInitiatedPairingPending = false;
     }
 
-    // null if not connected
+    /**
+     * Get the instanceId of this device.
+     * @returns {null|string} Unique ID of this device. null if not connected.
+     */
     get instanceId() {
         return this._instanceId;
     }
 
-    // Get the BLE address. 'local.server': local/adapter, non-'local.server': other device
+    /**
+     * Get the bluetooth address of this device. 'local.server': local/adapter, non-'local.server': other device.
+     * @returns {string} Bluetooth address of this device.
+     */
     get address() {
         return this._address;
     }
 
-    // Get the BLE address type. 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC' is default type.
+    /**
+     * Get the BLE address type. 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC' (default) or `BLE_GAP_ADDR_TYPE_PUBLIC`.
+     * @returns {string} BLE address type of this device.
+     */
     get addressType() {
         return this._addressType;
     }
 
-    // 'peripheral', 'central'
+    /**
+     * Get the BLE role of this device. `BLE_GAP_ROLE_CENTRAL` or `BLE_GAP_ROLE_PERIPH`.
+     * @returns {string} BLE role of this device.
+     */
     get role() {
         return this._role;
     }
 
+    /**
+     * Get the BLE connection handle of this device.
+     * @returns {string|null} BLE connection handle of this device. null if not connected.
+     */
     get connectionHandle() {
         return this._connectionHandle;
     }
 
+    /**
+     * Method that sets `_connectionHandle` and `_instanceId` upon establishing a BLE connection.
+     *
+     * Called on `BLE_GAP_EVT_CONNECTED`.
+     *
+     * @param connectionHandle {string} The BLE connection handle of the device.
+     */
     set connectionHandle(connectionHandle) {
         // TODO: possible to set connectionHandle to undefined? will instanceID be correct?
         this._connectionHandle = connectionHandle;
 
-        //TODO: Should instanceId involve role or is that handled by connectionHandle?
-        this._instanceId = this._address + '.' + connectionHandle;
+        // TODO: should instanceId involve role or is that handled by connectionHandle?
+        this._instanceId = `${this._address}.${connectionHandle}`;
     }
 
+    /**
+     * Method that initializes `Device` as a discovered BLE peripheral.
+     *
+     * Called on `BLE_GAP_EVT_ADV_REPORT`.
+     *
+     * @param event {Object} Advertising report event received from SoftDevice.
+     */
     processEventData(event) {
         this.adData = event.data;
         this.time = new Date(event.time);
@@ -128,9 +169,7 @@ class Device {
             } else if (advertisingData.BLE_GAP_AD_TYPE_COMPLETE_LOCAL_NAME) {
                 this.name = advertisingData.BLE_GAP_AD_TYPE_COMPLETE_LOCAL_NAME;
             }
-        }
-
-        if (!this.name) {
+        } else {
             this.name = '';
         }
     }
@@ -196,14 +235,14 @@ function camelCaseFlag(flag) {
     const advFlagsPrefix = 'BLE_GAP_ADV_FLAG';
 
     if (flag.indexOf(advFlagsPrefix) === 0) {
-        // Remove not needed prefix and lowercase the string
-        var flagCamelCase = flag.replace(
+        // remove unnecessary prefix and lowercase the string
+        const flagCamelCase = flag.replace(
             /^BLE_GAP_ADV_FLAG[S]?_(.*)/g,
-            function ($1, $2) {
+            ($1, $2) => {
                 return $2.toLowerCase()
                 .replace(/(\_[a-z])/g,
-                    function ($1) {
-                        var camelCase = $1.toUpperCase().replace('_', '');
+                    $1 => {
+                        const camelCase = $1.toUpperCase().replace('_', '');
                         return camelCase[0].toUpperCase() + camelCase.slice(1);
                     });
             });
