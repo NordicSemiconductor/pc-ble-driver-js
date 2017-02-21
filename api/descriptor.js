@@ -43,7 +43,7 @@ let i = 1;
 
 class Descriptor {
     /**
-     *
+     * Create a descriptor in the Bluetooth `Device's` GATT attribute table.
      *
      * @constructor
      * @param {string} characteristicInstanceId The `Characteristic` instanceID this descriptor is to be added to.
