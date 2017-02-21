@@ -51,14 +51,13 @@ class Characteristic {
      * @param {array} value The initial value of this characteristic.
      * @param {Object} properties This GATT characteristic's metadata.
      * @param {Object} options This GATT characteristic's attribute's metadata.
-     * @returns {Characteristic} A newly created `Characteristic` instance.
      */
     constructor(serviceInstanceId, uuid, value, properties, options) {
         if (!serviceInstanceId) throw new Error('serviceInstanceId must be provided.');
         if (!value) throw new Error('value must be provided.');
         if (!properties) throw new Error('properties must be provided.');
 
-        // increment global so `deviceInstanceId` is unique for each created service.
+        // increment global so `characteristicInstanceId` is unique for each created service.
         i += 1;
 
         this._instanceId = `${serviceInstanceId}.${(i).toString()}`;

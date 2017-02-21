@@ -57,7 +57,7 @@ class Service {
      * @param {string} type The server service type. 'primary' or `secondary`.
      */
     constructor(deviceInstanceId, uuid, type) {
-        // increment global so `deviceInstanceId` is unique for each created service.
+        // increment global so `serviceInstanceId` is unique for each created service.
         i += 1;
 
         this._instanceId = `${deviceInstanceId}.${(i).toString()}`;
