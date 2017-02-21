@@ -28,7 +28,12 @@
         "max-len": "off",
         "strict": "off",
         "no-console": "off",
-        "no-restricted-syntax": "off"
+        "no-restricted-syntax": "off",
+        "valid-jsdoc": [2, {
+            "prefer": {
+                "return": "returns"
+            }
+        }]
     },
     "no-undef": 1,
     "no-unused-vars": 1,
