@@ -39,15 +39,29 @@
 
 'use strict';
 
-var i = 1;
+let i = 1;
 
 class Characteristic {
+    /**
+     * Create a characteristic in the Bluetooth `Device's` GATT attribute table.
+     *
+     * @constructor
+     * @param {string} serviceInstanceId The `Service` instanceID this characteristic is to be added to.
+     * @param {string} uuid A 128-bit or 16-bit unique identifier for this characteristic.
+     * @param {array} value The initial value of this characteristic.
+     * @param {Object} properties This GATT characteristic's metadata.
+     * @param {Object} options This GATT characteristic's attribute's metadata.
+     * @returns {Characteristic} A newly created `Characteristic` instance.
+     */
     constructor(serviceInstanceId, uuid, value, properties, options) {
         if (!serviceInstanceId) throw new Error('serviceInstanceId must be provided.');
         if (!value) throw new Error('value must be provided.');
         if (!properties) throw new Error('properties must be provided.');
 
-        this._instanceId = serviceInstanceId + '.' + (i++).toString();
+        // increment global so `deviceInstanceId` is unique for each created service.
+        i += 1;
+
+        this._instanceId = `${serviceInstanceId}.${(i).toString()}`;
         this._serviceInstanceId = serviceInstanceId;
         this.uuid = uuid;
 
@@ -60,7 +74,7 @@ class Characteristic {
         this.value = value;
         this.properties = properties;
 
-        for (let option in options) {
+        for (const option in options) {
             if (option === 'readPerm') {
                 this.readPerm = options.readPerm;
             } else if (option === 'writePerm') {
@@ -73,15 +87,26 @@ class Characteristic {
         }
     }
 
+    /**
+     * Get the instanceId of this characteristic (since uuid is not enough to separate between characteristics).
+     * @returns {string} Unique ID of this characteristic.
+     */
     get instanceId() {
         return this._instanceId;
     }
 
-    // The GATT service this characteristic belongs to
+    /**
+     * Get the instance Id of the GATT service that this characteristic belongs to.
+     * @returns {string} Unique Id of the service that this characteristic belongs to.
+     */
     get serviceInstanceId() {
         return this._serviceInstanceId;
     }
 
+    /**
+     * Get the handle of this characteristic in the `Device's` GATT attribute table.
+     * @returns {string} The handle of this characteristic in the `Device's` GATT attribute table.
+     */
     get handle() {
         return this.valueHandle;
     }
