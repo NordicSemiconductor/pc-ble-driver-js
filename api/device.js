@@ -39,6 +39,28 @@
 
 'use strict';
 
+function _camelCaseFlag(flag) {
+    const advFlagsPrefix = 'BLE_GAP_ADV_FLAG';
+
+    if (flag.indexOf(advFlagsPrefix) === 0) {
+        // remove unnecessary prefix and lowercase the string
+        const flagCamelCase = flag.replace(
+            /^BLE_GAP_ADV_FLAG[S]?_(.*)/g,
+            ($1, $2) => {
+                return $2.toLowerCase()
+                    .replace(/(_[a-z])/g,
+                        $3 => {
+                            const camelCase = $3.toUpperCase().replace('_', '');
+                            return camelCase[0].toUpperCase() + camelCase.slice(1);
+                        });
+            });
+
+        return flagCamelCase[0].toUpperCase() + flagCamelCase.slice(1);
+    }
+
+    return `NOT_ABLE_TO_CAMELCASE_THIS_FLAG: ${flag}`;
+}
+
 /**
  * Class representing a Bluetooth device.
  */
@@ -46,8 +68,9 @@ class Device {
     /**
      * Create a Bluetooth device.
      *
-     * @param address {string|Object} The local Bluetooth identity address.
-     * @param role {string} The BLE role of this device.
+     * @constructor
+     * @param {string|Object} address The local Bluetooth identity address.
+     * @param {string} role The BLE role of this device.
      */
     constructor(address, role) {
         this._instanceId = null;
@@ -130,7 +153,7 @@ class Device {
      *
      * Called on `BLE_GAP_EVT_CONNECTED`.
      *
-     * @param connectionHandle {string} The BLE connection handle of the device.
+     * @param {string} connectionHandle The BLE connection handle of the device.
      */
     set connectionHandle(connectionHandle) {
         // TODO: possible to set connectionHandle to undefined? will instanceID be correct?
@@ -145,7 +168,8 @@ class Device {
      *
      * Called on `BLE_GAP_EVT_ADV_REPORT`.
      *
-     * @param event {Object} Advertising report event received from SoftDevice.
+     * @param {Object} event Advertising report event received from SoftDevice.
+     * @returns {void}
      */
     processEventData(event) {
         this.adData = event.data;
@@ -176,7 +200,7 @@ class Device {
 
     _processFlagsFromAdvertisingData(advertisingData) {
         if (advertisingData && advertisingData.BLE_GAP_AD_TYPE_FLAGS) {
-            this.flags = advertisingData.BLE_GAP_AD_TYPE_FLAGS.map(flag => camelCaseFlag(flag));
+            this.flags = advertisingData.BLE_GAP_AD_TYPE_FLAGS.map(flag => _camelCaseFlag(flag));
         }
     }
 
@@ -221,35 +245,13 @@ class Device {
         const MAX_RSSI = -45;
 
         function mapRange(n, fromMin, fromMax, toMin, toMax) {
-            //scale number n from the range [fromMin, fromMax] to [toMin, toMax]
-            n = toMin + ((toMax - toMin) / (fromMax - fromMin)) * (n - fromMin);
-            n = Math.round(n);
-            return Math.max(toMin, Math.min(toMax, n));
+            // scale number n from the range [fromMin, fromMax] to [toMin, toMax]
+            let scaledN = toMin + (((toMax - toMin) / (fromMax - fromMin)) * (n - fromMin));
+            scaledN = Math.round(scaledN);
+            return Math.max(toMin, Math.min(toMax, scaledN));
         }
 
         this.rssi_level = mapRange(this.rssi, MIN_RSSI, MAX_RSSI, 4, 20);
-    }
-}
-
-function camelCaseFlag(flag) {
-    const advFlagsPrefix = 'BLE_GAP_ADV_FLAG';
-
-    if (flag.indexOf(advFlagsPrefix) === 0) {
-        // remove unnecessary prefix and lowercase the string
-        const flagCamelCase = flag.replace(
-            /^BLE_GAP_ADV_FLAG[S]?_(.*)/g,
-            ($1, $2) => {
-                return $2.toLowerCase()
-                .replace(/(\_[a-z])/g,
-                    $1 => {
-                        const camelCase = $1.toUpperCase().replace('_', '');
-                        return camelCase[0].toUpperCase() + camelCase.slice(1);
-                    });
-            });
-
-        return flagCamelCase[0].toUpperCase() + flagCamelCase.slice(1);
-    } else {
-        return 'NOT_ABLE_TO_CAMELCASE_THIS_FLAG: ' + flag;
     }
 }
 
