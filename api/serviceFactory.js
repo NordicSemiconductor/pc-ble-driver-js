@@ -44,16 +44,29 @@ const Characteristic = require('./characteristic');
 const Descriptor = require('./descriptor');
 
 class ServiceFactory {
-    constructor() {}
-
-    createService(uuid, serviceType) {
-        if (!serviceType) serviceType = 'primary';
+    /**
+     * Factory method to create a service in the Bluetooth 'local.server' `Device's` GATT attribute table.
+     *
+     * @param {string} uuid A 128-bit or 16-bit unique identifier for this service.
+     * @param {string} serviceType The server service type. 'primary' (default) or `secondary`.
+     * @returns {Service} A newly created `Service` instance.
+     */
+    static createService(uuid, serviceType = 'primary') {
         return new Service('local.server', uuid, serviceType);
     }
 
-    // returns Characteristic
-    createCharacteristic(service, uuid, value, properties, options) {
-        if (!service) throw new Error('Service to add characteritics to must be provided.');
+    /**
+     * Factory method to create a characteristic in the Bluetooth `Device's` GATT attribute table.
+     *
+     * @param {string} service The `Service` instance this characteristic is to be added to.
+     * @param {string} uuid A 128-bit or 16-bit unique identifier for this characteristic.
+     * @param {array} value The initial value of this characteristic.
+     * @param {Object} properties This GATT characteristic's metadata.
+     * @param {Object} options This GATT characteristic's attribute's metadata.
+     * @returns {Characteristic} A newly created `Characteristic` instance.
+     */
+    static createCharacteristic(service, uuid, value, properties, options) {
+        if (!service) throw new Error('Service to add characteristics to must be provided.');
 
         if (service._factory_characteristics === undefined) {
             service._factory_characteristics = [];
@@ -70,7 +83,16 @@ class ServiceFactory {
         return characteristic;
     }
 
-    createDescriptor(characteristic, uuid, value, options) {
+    /**
+     * Factory method to create a descriptor in the Bluetooth `Device's` GATT attribute table.
+     *
+     * @param {string} characteristic The `Characteristic` instance this descriptor is to be added to.
+     * @param {string} uuid A 128-bit or 16-bit unique identifier for this descriptor.
+     * @param {array} value The initial value of this descriptor.
+     * @param {Object} options This GATT descriptor's attribute's metadata.
+     * @returns {Descriptor} A newly created `Descriptor` instance.
+     */
+    static createDescriptor(characteristic, uuid, value, options) {
         if (!characteristic) throw new Error('Characteristic to add descriptor to must be provided.');
 
         if (characteristic._factory_descriptors === undefined) {
