@@ -49,24 +49,27 @@ const _bleDrivers = { v2: _bleDriverV2, v3: _bleDriverV3 };
 const Adapter = require('./adapter');
 const EventEmitter = require('events');
 
-let _singleton = Symbol();
+const _singleton = Symbol('Ensure that only one instance of AdapterFactory ever exists.');
 
-/** Constants that decides how often the PC shall be checked for new adapters */
-const UPDATE_INTERVAL = 2000; // Update interval in seconds
+/** @constant {number} Update interval, in seconds, at which PC shall be checked for new connected adapters. */
+const UPDATE_INTERVAL = 2000;
 
 /**
- * Class that provides Adapters through the use of pc-ble-driver AddOn
- * @class
+ * Class that provides Adapters through the use of pc-ble-driver AddOn.
  */
-
 class AdapterFactory extends EventEmitter {
     /**
-    * Constructor that shall not be used by developer.
-    * @private
-    */
+     * Shall not be called by user. Called by `this.getInstance()`.
+     *
+     * @private
+     * @constructor
+     * @param {Symbol} singletonToken Symbol to ensure that only one instance of AdapterFactory ever exists.
+     * @param {Object} bleDrivers Object mapping version to pc-ble-driver AddOn.
+     */
     constructor(singletonToken, bleDrivers) {
-        if (_singleton !== singletonToken)
+        if (_singleton !== singletonToken) {
             throw new Error('Cannot instantiate directly.');
+        }
 
         // TODO: Should adapters be updated on this.getAdapters call or by time interval? time interval
         super();
@@ -76,23 +79,19 @@ class AdapterFactory extends EventEmitter {
     }
 
     /**
-     * Get the AdapterFactory instance.
+     * Get the singleton `AdapterFactory` instance.
      *
-     * This is a singleton class that uses the pc-ble-driver-js AddOn to get devices.
+     * @param {null|Object} bleDrivers Optional object mapping version to pc-ble-driver AddOn.
+     * @returns {AdapterFactory} The singleton `AdapterFactory` instance.
      */
-    static getInstance(bleDrivers) {
-        if (bleDrivers === undefined)
-            bleDrivers = _bleDrivers;
-
-        if (!this[_singleton])
+    static getInstance(bleDrivers = _bleDrivers) {
+        if (!this[_singleton]) {
             this[_singleton] = new AdapterFactory(_singleton, bleDrivers);
+        }
 
         return this[_singleton];
     }
 
-    /**
-     * @private
-     */
     _getInstanceId(adapter) {
         // TODO: Better idea?
         if (adapter.serialNumber) {
@@ -171,7 +170,7 @@ class AdapterFactory extends EventEmitter {
 
             const removedAdapters = Object.assign({}, this._adapters);
 
-            for (let adapter of adapters) {
+            for (const adapter of adapters) {
                 const adapterInstanceId = this._getInstanceId(adapter);
 
                 if (this._adapters[adapterInstanceId]) {
@@ -187,11 +186,14 @@ class AdapterFactory extends EventEmitter {
                 }
             }
 
-            for (let adapterId in removedAdapters) {
-                const removedAdapter = this._adapters[adapterId];
-                removedAdapter.removeAllListeners('opened');
-                delete this._adapters[adapterId];
-                this.emit('removed', removedAdapter);
+            for (const adapterId in removedAdapters) {
+                if (Object.prototype.hasOwnProperty.call(removedAdapters, adapterId) ||
+                    {}.hasOwnProperty.call(removedAdapters, adapterId)) {
+                    const removedAdapter = this._adapters[adapterId];
+                    removedAdapter.removeAllListeners('opened');
+                    delete this._adapters[adapterId];
+                    this.emit('removed', removedAdapter);
+                }
             }
 
             if (callback && (typeof callback === 'function')) {
@@ -209,12 +211,18 @@ class AdapterFactory extends EventEmitter {
         });
     }
 
+    /**
+     * Method to get connected adapters.
+     *
+     * @param {null|Function} callback Optional function to be called with (error, adapters) upon completion.
+     * @returns {void}
+     */
     getAdapters(callback) {
         this._updateAdapterList((error, adapters) => {
             if (error) {
                 callback(error);
-            } else {
-                if (callback && (typeof callback === 'function')) callback(undefined, adapters);
+            } else if (callback && (typeof callback === 'function')) {
+                callback(undefined, adapters);
             }
         });
     }
