@@ -39,17 +39,28 @@
 
 'use strict';
 
-var i = 1;
+let i = 1;
 
-var assertValidType = function (type) {
+function _assertValidType(type) {
     if (type !== 'primary' && type !== 'secondary') {
         throw new Error(`Type can only be 'primary' or 'secondary', not '${type}'.`);
     }
-};
+}
 
 class Service {
+    /**
+     * Create a service in the Bluetooth `Device's` GATT attribute table.
+     *
+     * @constructor
+     * @param {string} deviceInstanceId The unique ID of the Bluetooth device to add `Service` to.
+     * @param {string} uuid A 128-bit or 16-bit unique identifier for this service.
+     * @param {string} type The server service type. 'primary' or `secondary`.
+     */
     constructor(deviceInstanceId, uuid, type) {
-        this._instanceId = deviceInstanceId + '.' + (i++).toString();
+        // increment global so `deviceInstanceId` is unique for each created service.
+        i += 1;
+
+        this._instanceId = `${deviceInstanceId}.${(i).toString()}`;
         this._deviceInstanceId = deviceInstanceId;
         this.uuid = uuid;
 
@@ -58,7 +69,7 @@ class Service {
         }
 
         if (type !== undefined) {
-            assertValidType(type);
+            _assertValidType(type);
             this._type = type;
         } else {
             this._type = null;
@@ -68,21 +79,38 @@ class Service {
         this.endHandle = null;
     }
 
-    // unique ID for the service (since uuid is not enough to separate between services)
+    /**
+     * Get the instanceId of this service (since uuid is not enough to separate between services).
+     * @returns {string} Unique ID of this service.
+     */
     get instanceId() {
         return this._instanceId;
     }
 
-    // device address of the remote peripheral that the GATT service belongs to. 'local.server' when local.
+    /**
+     * Get the Bluetooth address of the device that this service belongs to.
+     * 'local.server': local/adapter, non-'local.server': remote peripheral.
+     * @returns {string} Bluetooth address of the device that this service belongs to.
+     */
     get deviceInstanceId() {
         return this._deviceInstanceId;
     }
 
+    /**
+     * Method that sets the `type` of this service.
+     *
+     * @param {string} type The type of this service. 'primary' or `secondary`.
+     * @returns {void}
+     */
     set type(type) {
-        assertValidType(type);
+        _assertValidType(type);
         this._type = type;
     }
 
+    /**
+     * Get the type of this service. 'primary' or `secondary`.
+     * @returns {string} type The type of this service.
+     */
     get type() {
         return this._type;
     }
