@@ -51,7 +51,7 @@ class ServiceFactory {
      * @param {string} serviceType The server service type. 'primary' (default) or `secondary`.
      * @returns {Service} A newly created `Service` instance.
      */
-    static createService(uuid, serviceType = 'primary') {
+    createService(uuid, serviceType = 'primary') {
         return new Service('local.server', uuid, serviceType);
     }
 
@@ -65,7 +65,7 @@ class ServiceFactory {
      * @param {Object} options This GATT characteristic's attribute's metadata.
      * @returns {Characteristic} A newly created `Characteristic` instance.
      */
-    static createCharacteristic(service, uuid, value, properties, options) {
+    createCharacteristic(service, uuid, value, properties, options) {
         if (!service) throw new Error('Service to add characteristics to must be provided.');
 
         if (service._factory_characteristics === undefined) {
@@ -92,7 +92,7 @@ class ServiceFactory {
      * @param {Object} options This GATT descriptor's attribute's metadata.
      * @returns {Descriptor} A newly created `Descriptor` instance.
      */
-    static createDescriptor(characteristic, uuid, value, options) {
+    createDescriptor(characteristic, uuid, value, options) {
         if (!characteristic) throw new Error('Characteristic to add descriptor to must be provided.');
 
         if (characteristic._factory_descriptors === undefined) {
