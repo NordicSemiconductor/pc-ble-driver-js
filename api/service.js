@@ -91,9 +91,9 @@ class Service {
     }
 
     /**
-     * Get the Bluetooth address of the device that this service belongs to.
+     * Get the Id of the Bluetooth device that this service belongs to.
      * 'local.server': local/adapter, non-'local.server': remote peripheral.
-     * @returns {string} Bluetooth address of the device that this service belongs to.
+     * @returns {string} The unique Id of the Bluetooth device that this service belongs to.
      */
     get deviceInstanceId() {
         return this._deviceInstanceId;
