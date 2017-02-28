@@ -39,6 +39,9 @@
 
 'use strict';
 
+/**
+ * Class that provides security functionality through the pc-ble-driver-js AddOn.
+ */
 class Security {
     /**
      * Create a wrapper to the security functionality of the underlying BLE driver.

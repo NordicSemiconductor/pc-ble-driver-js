@@ -59,8 +59,6 @@ const DfuState = Object.freeze({
 
 /**
  * Class that provides Dfu controller functionality.
- *
- * @class
  */
 class Dfu extends EventEmitter {
     /**
