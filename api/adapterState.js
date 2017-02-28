@@ -39,12 +39,15 @@
 
 'use strict';
 
+/**
+ * Class that provides state management for an `Adapter`.
+ */
 class AdapterState {
     /**
      * Create an object to store `Adapter's` state.
      *
      * @constructor
-     * @param {string }instanceId The unique id of this adapter.
+     * @param {string} instanceId The unique Id of this adapter.
      * @param {string} port The port this adapter uses. For example it can be 'COM1', '/dev/ttyUSB0' or similar.
      * @param {Number} serialNumber The serial number of the hardware device being controlled by this adapter.
      */
@@ -70,7 +73,7 @@ class AdapterState {
 
     /**
      * Get the instanceId of this adapter.
-     * @returns {string} Unique ID of this adapter.
+     * @returns {string} Unique Id of this adapter.
      */
     get instanceId() {
         return this._instanceId;

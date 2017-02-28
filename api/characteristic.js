@@ -41,6 +41,9 @@
 
 let i = 1;
 
+/**
+ * Class that represents a GATT characteristic.
+ */
 class Characteristic {
     /**
      * Create a characteristic in the Bluetooth `Device's` GATT attribute table.
@@ -53,9 +56,15 @@ class Characteristic {
      * @param {Object} options This GATT characteristic's attribute's metadata.
      */
     constructor(serviceInstanceId, uuid, value, properties, options) {
-        if (!serviceInstanceId) throw new Error('serviceInstanceId must be provided.');
-        if (!value) throw new Error('value must be provided.');
-        if (!properties) throw new Error('properties must be provided.');
+        if (!serviceInstanceId) {
+            throw new Error('serviceInstanceId must be provided.');
+        }
+        if (!value) {
+            throw new Error('value must be provided.');
+        }
+        if (!properties) {
+            throw new Error('properties must be provided.');
+        }
 
         // increment global so `characteristicInstanceId` is unique for each created service.
         i += 1;

@@ -43,6 +43,9 @@ const Service = require('./service');
 const Characteristic = require('./characteristic');
 const Descriptor = require('./descriptor');
 
+/**
+ * Class that provides factory methods for creating `Service`, `Characteristic` and `Descriptor` instances.
+ */
 class ServiceFactory {
     /**
      * Factory method to create a service in the Bluetooth `Device's` 'local.server' GATT attribute table.
@@ -72,7 +75,6 @@ class ServiceFactory {
      * - {boolean} indicate: Indications of the value permitted.
      * - {boolean} authSignedWr: Writing the value with Signed Write Command permitted.
      * - {boolean} wrAux: Writing the Characteristic User Description descriptor permitted.
-     *
      * @param {Object} properties This GATT characteristic's metadata.
      *
      * Available characteristic options:
@@ -87,6 +89,8 @@ class ServiceFactory {
      * @returns {Characteristic} A newly created `Characteristic` instance.
      */
     createCharacteristic(service, uuid, value, properties, options) {
+        // TODO: we are mutating the service parameter here. May want to re-work this method.
+
         if (!service) {
             throw new Error('Service to add characteristics to must be provided.');
         }
@@ -120,6 +124,8 @@ class ServiceFactory {
      * @returns {Descriptor} A newly created `Descriptor` instance.
      */
     createDescriptor(characteristic, uuid, value, options) {
+        // TODO: we are mutating the characteristic parameter here. May want to re-work this method.
+
         if (!characteristic) {
             throw new Error('Characteristic to add descriptor to must be provided.');
         }

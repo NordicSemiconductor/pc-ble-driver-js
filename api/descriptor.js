@@ -41,6 +41,9 @@
 
 let i = 1;
 
+/**
+ * Class that represents a GATT descriptor.
+ */
 class Descriptor {
     /**
      * Create a descriptor in the Bluetooth `Device's` GATT attribute table.
@@ -52,8 +55,12 @@ class Descriptor {
      * @param {Object} options This GATT descriptor's attribute's metadata.
      */
     constructor(characteristicInstanceId, uuid, value, options) {
-        if (!characteristicInstanceId) throw new Error('characteristicInstanceId must be provided.');
-        if (!uuid) throw new Error('uuid must be provided.');
+        if (!characteristicInstanceId) {
+            throw new Error('characteristicInstanceId must be provided.');
+        }
+        if (!uuid) {
+            throw new Error('uuid must be provided.');
+        }
 
         // if (!value) throw new Error('value must be provided.');
 

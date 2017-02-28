@@ -47,6 +47,9 @@ function _assertValidType(type) {
     }
 }
 
+/**
+ * Class that represents a GATT service.
+ */
 class Service {
     /**
      * Create a service in the Bluetooth `Device's` GATT attribute table.
@@ -80,7 +83,7 @@ class Service {
     }
 
     /**
-     * Get the instanceId of this service (since uuid is not enough to separate between services).
+     * Get the instanceId of this service (since uuid is not enough to differentiate services).
      * @returns {string} Unique ID of this service.
      */
     get instanceId() {
