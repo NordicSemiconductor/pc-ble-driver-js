@@ -50,8 +50,8 @@ const EventEmitter = require('events');
 const _bleDrivers = { v2: _bleDriverV2, v3: _bleDriverV3 };
 const _singleton = Symbol('Ensure that only one instance of AdapterFactory ever exists.');
 
-/** @constant {number} Update interval, in seconds, at which PC shall be checked for new connected adapters. */
-const UPDATE_INTERVAL = 2000;
+/** @constant {number} Update interval, in milliseconds, at which PC shall be checked for new connected adapters. */
+const UPDATE_INTERVAL_MS = 2000;
 
 /**
  * Class that provides Adapters through the use of the pc-ble-driver AddOn and the internal `Adapter` class.
@@ -75,7 +75,7 @@ class AdapterFactory extends EventEmitter {
         this._adapters = {};
 
         // TODO: should adapters be updated on this.getAdapters call or on an interval? Time interval for now.
-        this.updateInterval = setInterval(this._updateAdapterList.bind(this), UPDATE_INTERVAL);
+        this.updateInterval = setInterval(this._updateAdapterList.bind(this), UPDATE_INTERVAL_MS);
     }
 
     /**
