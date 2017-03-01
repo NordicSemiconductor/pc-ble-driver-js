@@ -336,7 +336,7 @@ class Dfu extends EventEmitter {
         });
     }
 
-     _getFirmwareTypes(manifest) {
+    _getFirmwareTypes(manifest) {
         return [
             'softdevice',
             'bootloader',
@@ -353,7 +353,7 @@ class Dfu extends EventEmitter {
      * @returns {void}
      * @private
      */
-     _loadZip(zipFilePath, callback) {
+    _loadZip(zipFilePath, callback) {
         fs.readFile(zipFilePath, (err, data) => {
             if (err) {
                 return callback(err);
