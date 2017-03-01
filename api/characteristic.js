@@ -69,7 +69,7 @@ class Characteristic {
         // increment global so `characteristicInstanceId` is unique for each created service.
         i += 1;
 
-        this._instanceId = `${serviceInstanceId}.${(i).toString()}`;
+        this._instanceId = `${serviceInstanceId}.${i}`;
         this._serviceInstanceId = serviceInstanceId;
         this.uuid = uuid;
 

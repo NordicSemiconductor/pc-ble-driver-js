@@ -63,7 +63,7 @@ class Service {
         // increment global so `serviceInstanceId` is unique for each created service.
         i += 1;
 
-        this._instanceId = `${deviceInstanceId}.${(i).toString()}`;
+        this._instanceId = `${deviceInstanceId}.${i}`;
         this._deviceInstanceId = deviceInstanceId;
         this.uuid = uuid;
 

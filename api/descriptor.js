@@ -67,7 +67,7 @@ class Descriptor {
         // increment global so `descriptorInstanceId` is unique for each created service.
         i += 1;
 
-        this._instanceId = `${characteristicInstanceId}.${(i).toString()}`;
+        this._instanceId = `${characteristicInstanceId}.${i}`;
         this._characteristicInstanceId = characteristicInstanceId;
         this.uuid = uuid;
 
