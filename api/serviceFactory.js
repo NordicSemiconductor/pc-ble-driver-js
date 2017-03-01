@@ -54,7 +54,8 @@ class ServiceFactory {
      * @param {string} serviceType The server service type. 'primary' (default) or `secondary`.
      * @returns {Service} A newly created `Service` instance.
      */
-    createService(uuid, serviceType = 'primary') {
+    createService(uuid, serviceType) {
+        serviceType = typeof serviceType !== 'undefined' ? serviceType : 'primary';
         return new Service('local.server', uuid, serviceType);
     }
 

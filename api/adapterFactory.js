@@ -84,7 +84,9 @@ class AdapterFactory extends EventEmitter {
      * @param {null|Object} bleDrivers Optional object mapping version to pc-ble-driver AddOn.
      * @returns {AdapterFactory} The singleton `AdapterFactory` instance.
      */
-    static getInstance(bleDrivers = _bleDrivers) {
+    static getInstance(bleDrivers) {
+        bleDrivers = typeof bleDrivers !== 'undefined' ? bleDrivers : _bleDrivers;
+
         if (!this[_singleton]) {
             this[_singleton] = new AdapterFactory(_singleton, bleDrivers);
         }
