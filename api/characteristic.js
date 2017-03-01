@@ -82,16 +82,11 @@ class Characteristic {
         this.value = value;
         this.properties = properties;
 
-        for (const option in options) {
-            if (option === 'readPerm') {
-                this.readPerm = options.readPerm;
-            } else if (option === 'writePerm') {
-                this.writePerm = options.writePerm;
-            } else if (option === 'variableLength') {
-                this.variableLength = options.variableLength;
-            } else if (option === 'maxLength') {
-                this.maxLength = options.maxLength;
-            }
+        if (options) {
+            this.readPerm = options.readPerm;
+            this.writePerm = options.writePerm;
+            this.variableLength = options.variableLength;
+            this.maxLength = options.maxLength;
         }
     }
 

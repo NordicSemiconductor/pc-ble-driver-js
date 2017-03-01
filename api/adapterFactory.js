@@ -200,15 +200,12 @@ class AdapterFactory extends EventEmitter {
                 }
             }
 
-            for (const adapterId in removedAdapters) {
-                if (Object.prototype.hasOwnProperty.call(removedAdapters, adapterId) ||
-                    {}.hasOwnProperty.call(removedAdapters, adapterId)) {
-                    const removedAdapter = this._adapters[adapterId];
-                    removedAdapter.removeAllListeners('opened');
-                    delete this._adapters[adapterId];
-                    this.emit('removed', removedAdapter);
-                }
-            }
+            Object.keys(removedAdapters).forEach(adapterId => {
+                const removedAdapter = this._adapters[adapterId];
+                removedAdapter.removeAllListeners('opened');
+                delete this._adapters[adapterId];
+                this.emit('removed', removedAdapter);
+            });
 
             if (isCallback) {
                 callback(undefined, this._adapters);
