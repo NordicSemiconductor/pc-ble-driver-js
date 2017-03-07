@@ -1784,7 +1784,7 @@ class Adapter extends EventEmitter {
 
     /**
      * Get this adapter's connected device/devices.
-     * @returns {[Device]} An array of this adapter's connected device/devices.
+     * @returns {Device[]} An array of this adapter's connected device/devices.
      */
     getDevices() {
         return this._devices;
@@ -2566,7 +2566,7 @@ class Adapter extends EventEmitter {
     /**
      * Set the services in the BLE peripheral device's GATT attribute table.
      *
-     * @param {[Service]} services An array of `Service` objects to be set.
+     * @param {Service[]} services An array of `Service` objects to be set.
      * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
@@ -2823,7 +2823,7 @@ class Adapter extends EventEmitter {
      * Initiate or continue a GATT Primary Service Discovery procedure.
      *
      * @param {string} deviceInstanceId The device's unique Id.
-     * @param {function(Error, [Service])} [callback] Callback signature: (err, services) => {} where `services` is an
+     * @param {function(Error, Service[])} [callback] Callback signature: (err, services) => {} where `services` is an
      *                                              array of `Service` instances corresponding to the discovered GATT 
      *                                              primary services.
      * @returns {void}
@@ -2872,7 +2872,7 @@ class Adapter extends EventEmitter {
      *
      *
      * @param {string} serviceId Unique ID of of the GATT service.
-     * @param {function(Error, [Characteristic])} [callback] Callback signature: (err, characteristics) => {} where 
+     * @param {function(Error, Characteristic[])} [callback] Callback signature: (err, characteristics) => {} where 
      *                                            `characteristics` is an array of `Characteristic` instances 
      *                                             corresponding to the discovered GATT characteristics attached to
      *                                             the service.
@@ -2995,7 +2995,7 @@ class Adapter extends EventEmitter {
      * Initiate or continue a GATT Characteristic Descriptor Discovery procedure.
      *
      * @param {string} characteristicId Unique ID of of the GATT characteristic.
-     * @param {function(Error, [Descriptor])} [callback] Callback signature: (err, descriptors) => {} where 
+     * @param {function(Error, Descriptor[])} [callback] Callback signature: (err, descriptors) => {} where 
      *                                        `descriptors` is an array of `Descriptor` instances corresponding to the 
      *                                        discovered GATT descriptors attached to the characteristic.
      * @returns {void}
@@ -3126,7 +3126,7 @@ class Adapter extends EventEmitter {
      * Reads the value of a GATT characteristic.
      *
      * @param {string} characteristicId Unique ID of of the GATT characteristic.
-     * @param {function(Error, [number])} [callback] Callback signature: (err, readBytes) => {} where `readBytes` is an
+     * @param {function(Error, number[])} [callback] Callback signature: (err, readBytes) => {} where `readBytes` is an
      *                                             array of numbers corresponding to the value of the GATT 
      *                                             characteristic.
      * @returns {void}
@@ -3255,7 +3255,7 @@ class Adapter extends EventEmitter {
      * Reads the value of a GATT descriptor.
      *
      * @param {string} descriptorId Unique ID of of the GATT descriptor.
-     * @param {function(Error, [number])} [callback] Callback signature: (err, readBytes) => {} where `readBytes` is an
+     * @param {function(Error, number[])} [callback] Callback signature: (err, readBytes) => {} where `readBytes` is an
      *                                             array of numbers corresponding to the value of the GATT 
      *                                             descriptor.
      * @returns {void}
