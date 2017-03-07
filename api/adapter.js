@@ -87,8 +87,8 @@ class Adapter extends EventEmitter {
      * @param {Object} adapter The adapter to use. The adapter is an object received from the pc-ble-driver-js AddOn.
      * @param {string} instanceId The unique Id that identifies this Adapter instance.
      * @param {string} port The port this adapter uses. For example it can be 'COM1', '/dev/ttyUSB0' or similar.
-     * @param {string} serialNumber The serial number of hardware device this adapter is controlling via serial.
-     * @param {string} notSupportedMessage Message displayed to developer if this adapter is not supported on platform.
+     * @param {string} [serialNumber] The serial number of hardware device this adapter is controlling via serial.
+     * @param {string} [notSupportedMessage] Message displayed to developer if this adapter is not supported on platform.
      *
      */
     constructor(bleDriver, adapter, instanceId, port, serialNumber, notSupportedMessage) {
@@ -199,7 +199,7 @@ class Adapter extends EventEmitter {
     /**
      * Compute shared secret.
      *
-     * @param {string} peerPublicKey Optional peer public key.
+     * @param {string} [peerPublicKey] Peer public key.
      * @returns {string} The computed shared secret generated from this adapter's key-pair.
      */
     computeSharedSecret(peerPublicKey) {
@@ -225,7 +225,9 @@ class Adapter extends EventEmitter {
     }
 
     /**
-     * Sets this adapter's `_keys` property to null. `this._generateKeyPair()` will generate a new key-pair now.
+     * Deletes any previously generated key-pair. 
+     * 
+     * The next time `computeSharedSecret` or `computePublicKey` is invoked, a new key-pair will be generated and used.
      * @returns {void}
      */
     deleteKeys() {
@@ -275,18 +277,18 @@ class Adapter extends EventEmitter {
      *
      * The serial port will be attempted to be opened with the configured serial port settings in `adapterOptions`.
      * Available adapter open options:
-     * - {number} baudRate: The baud rate this adapter's serial port should be configured with.
-     * - {string} parity: The parity this adapter's serial port should be configured with.
-     * - {string} flowControl: Whether flow control should be configured with this adapter's serial port.
-     * - {number} eventInterval: Interval to use for sending BLE driver events to JavaScript.
-     *                           If 0 events will be sent as soon as they are received from the BLE driver.
-     * - {string} logLevel: The verbosity of logging the developer wants with this adapter.
-     * - {number} retransmissionInterval:
-     * - {number} responseTimeout: Response timeout of the data link layer.
-     * - {boolean} enableBLE: Whether the BLE stack should be initialized and enabled.
-     * @param {AdapterOpenOptions} adapterOptions Options to initialize/open this adapter with.
+     * - {number} [baudRate=115200]: The baud rate this adapter's serial port should be configured with.
+     * - {string} [parity='none']: The parity this adapter's serial port should be configured with.
+     * - {string} [flowControl='none']: Whether flow control should be configured with this adapter's serial port.
+     * - {number} [eventInterval=0]: Interval to use for sending BLE driver events to JavaScript.
+     *                               If `0`, events will be sent as soon as they are received from the BLE driver.
+     * - {string} [logLevel='info']: The verbosity of logging the developer wants with this adapter.
+     * - {number} [retransmissionInterval=100]: The time interval to wait between retransmitted packets.
+     * - {number} [responseTimeout=750]: Response timeout of the data link layer.
+     * - {boolean} [enableBLE=true]: Whether the BLE stack should be initialized and enabled.
+     * @param {Object} options Options to initialize/open this adapter with.
      *
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     open(options, callback) {
@@ -344,7 +346,7 @@ class Adapter extends EventEmitter {
      *
      * This function will close the serial port, release allocated resources and remove event listeners.
      *
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     close(callback) {
@@ -356,7 +358,11 @@ class Adapter extends EventEmitter {
     }
 
     /**
-     * Get this adapters stats.
+     * This function is for debugging purposes. It will return an object with these members:
+     * - {number} eventCallbackTotalTime
+     * - {number} eventCallbackTotalCount
+     * - {number} eventCallbackBatchMaxCount
+     * - {number} eventCallbackBatchAvgCount
      * @returns {Object} This adapters stats.
      */
     getStats() {
@@ -383,9 +389,14 @@ class Adapter extends EventEmitter {
      *                - {number} att_mtu: Maximum size of ATT packet the SoftDevice can send or receive.
      *                                    If it is 0 then @ref GATT_MTU_SIZE_DEFAULT will be used.
      *                                    Otherwise @ref GATT_MTU_SIZE_DEFAULT is the minimum value.
-     * @param {Object} options BLE Initialization parameters.
+     * @param {Object} [options] BLE Initialization parameters. If `undefined` or `null` the BLE stack will be
+     *                           initialized with default options (see code for `enableBLE()` below for default values).
      *
-     * @param {function} callback Callback signature: (err, parameters, app_ram_base) => {}.
+     * @param {function(Error, Object, number)} [callback] Callback signature: (err, parameters, app_ram_base) => {}
+     *                                                   where `parameters` is the BLE initialization parameters as
+     *                                                   described above and `app_ram_base` is the minimum start address 
+     *                                                   of the application RAM region required by the SoftDevice for 
+     *                                                   this configuration.
      * @returns {void}
      */
     enableBLE(options, callback) {
@@ -1623,7 +1634,9 @@ class Adapter extends EventEmitter {
     /**
      * Gets and updates this adapter's state.
      *
-     * @param {function} callback Callback signature: (err, state) => {}.
+     * @param {function(Error, AdapterState)} [callback] Callback signature: (err, state) => {} where `state` is an
+     *                                                 instance of `AdapterState` corresponding to this adapter's
+     *                                                 stored state.
      * @returns {void}
      */
     getState(callback) {
@@ -1665,7 +1678,7 @@ class Adapter extends EventEmitter {
      * Sets this adapter's BLE device's GAP name.
      *
      * @param {string} name GAP device name.
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     setName(name, callback) {
@@ -1695,7 +1708,7 @@ class Adapter extends EventEmitter {
      *
      * @param {string} address The local Bluetooth identity address.
      * @param {string} type The address type. 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC' or `BLE_GAP_ADDR_TYPE_PUBLIC`.
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     setAddress(address, type, callback) {
@@ -1815,7 +1828,7 @@ class Adapter extends EventEmitter {
      *                           device identity list. A report will be generated even if the peer is not in the whitelist.
      * @param {Object} options The GAP scanning parameters.
      *
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     startScan(options, callback) {
@@ -1833,7 +1846,7 @@ class Adapter extends EventEmitter {
     /**
      * Stop scanning (GAP Discovery procedure, Observer Procedure).
      *
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     stopScan(callback) {
@@ -1854,7 +1867,10 @@ class Adapter extends EventEmitter {
      *
      * If a scanning procedure is currently in progress it will be automatically stopped when calling this function.
      *
-     * @param {string} deviceAddress The peer address. If the use_whitelist bit is set in scanParams, then this is ignored.
+     * @param {string|Object} deviceAddress The peer address. If the use_whitelist bit is set in scanParams, 
+     *                                      then this is ignored. If given as a string, 
+     *                                      `address.type='BLE_GAP_ADDR_TYPE_RANDOM_STATIC'` by default. Else,
+     *                                      an Object with members: { address: {string}, type: {string} } must be given.
      *
      * Available options:
      * - {Object} scanParams:
@@ -1873,7 +1889,7 @@ class Adapter extends EventEmitter {
      *                - {number} conn_sup_timeout: Connection Supervision Timeout in 10 ms units.
      * @param {Object} options The scan and connection parameters.
      *
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     connect(deviceAddress, options, callback) {
@@ -1913,7 +1929,7 @@ class Adapter extends EventEmitter {
     /**
      * Cancel a connection establishment.
      *
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     cancelConnect(callback) {
@@ -2011,7 +2027,7 @@ class Adapter extends EventEmitter {
      * - {boolean} scannable: GAP Advertising type scannable. Default: The device is undirected.
      * @param {Object} options GAP advertising parameters.
      *
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     startAdvertising(options, callback) {
@@ -2039,7 +2055,7 @@ class Adapter extends EventEmitter {
      * @param {Object} advData Advertising packet
      * @param {Object} scanRespData Scan response packet.
      *
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     setAdvertisingData(advData, scanRespData, callback) {
@@ -2059,7 +2075,7 @@ class Adapter extends EventEmitter {
     /**
      * Stop advertising (GAP Discoverable, Connectable modes, Broadcast Procedure).
      *
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     stopAdvertising(callback) {
@@ -2077,7 +2093,7 @@ class Adapter extends EventEmitter {
      * with a `BLE_GAP_EVT_DISCONNECTED` event upon which `callback` will be called.
      *
      * @param {string} deviceInstanceId The device's unique Id.
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     disconnect(deviceInstanceId, callback) {
@@ -2131,7 +2147,7 @@ class Adapter extends EventEmitter {
      * - {number} conn_sup_timeout: Connection Supervision Timeout in 10 ms units.
      * @param {Object} options GAP Connection Parameters.
      *
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     updateConnectionParameters(deviceInstanceId, options, callback) {
@@ -2158,7 +2174,7 @@ class Adapter extends EventEmitter {
      * Reject a GAP connection parameters update request.
      *
      * @param {string} deviceInstanceId The device's unique Id.
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     rejectConnParams(deviceInstanceId, callback) {
@@ -2199,7 +2215,8 @@ class Adapter extends EventEmitter {
      *
      * @param {string} deviceInstanceId The device's unique Id.
      * @param {number} mtu Requested ATT_MTU. Default ATT_MTU is 23. Valid range is between 24 and 247.
-     * @param {function} callback Callback signature: (err, mtu) => {}.
+     * @param {function(Error, number)} [callback] Callback signature: (err, mtu) => {} where `mtu` is the updated
+     *                                           ATT_MTU value.
      * @returns {void}
      */
      requestAttMtu(deviceInstanceId, mtu, callback) {
@@ -2259,7 +2276,7 @@ class Adapter extends EventEmitter {
      *                           In the peripheral role, only the bond, mitm, lesc and keypress fields of this Object are used.
      *                           In the central role, this pointer may be NULL to reject a Security Request.
      *
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     authenticate(deviceInstanceId, secParams, callback) {
@@ -2308,7 +2325,8 @@ class Adapter extends EventEmitter {
      *                - {boolean} link Derive the Link Key from the LTK.
      *            - {Object} kdist_peer Key distribution bitmap: keys that the remote device will distribute.
      *                - ^^ Same as properties as `kdist_own` above. ^^
-     * @param {function} callback Callback signature: (err, secKeyset) => {}.
+     * @param {function(Error, Object)} [callback] Callback signature: (err, secKeyset) => {} where `secKeyset` is a
+     *                                           security key set object as described above.
      * @returns {void}
      */
     replySecParams(deviceInstanceId, secStatus, secParams, secKeyset, callback) {
@@ -2339,7 +2357,7 @@ class Adapter extends EventEmitter {
      *                            If key type is `BLE_GAP_AUTH_KEY_TYPE_PASSKEY`, then a 6-byte array (digit 0..9 only)
      *                                or null when confirming LE Secure Connections Numeric Comparison.
      *                            If key type is `BLE_GAP_AUTH_KEY_TYPE_OOB`, then a 16-byte OOB key value in Little Endian format.
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     replyAuthKey(deviceInstanceId, keyType, key, callback) {
@@ -2371,7 +2389,7 @@ class Adapter extends EventEmitter {
      *
      * @param {string} deviceInstanceId The device's unique Id.
      * @param {Object} dhkey LE Secure Connections DHKey.
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     replyLescDhkey(deviceInstanceId, dhkey, callback) {
@@ -2397,7 +2415,7 @@ class Adapter extends EventEmitter {
      *
      * @param {string} deviceInstanceId The device's unique Id.
      * @param {number} notificationType See `adapter.driver.BLE_GAP_KP_NOT_TYPES`.
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     notifyKeypress(deviceInstanceId, notificationType, callback) {
@@ -2424,7 +2442,7 @@ class Adapter extends EventEmitter {
      *
      * @param {string} deviceInstanceId The device's unique Id.
      * @param {string} ownPublicKey LE Secure Connections local P-256 Public Key.
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     getLescOobData(deviceInstanceId, ownPublicKey, callback) {
@@ -2458,7 +2476,7 @@ class Adapter extends EventEmitter {
      * @param {string} deviceInstanceId The device's unique Id.
      * @param {string} ownOobData The OOB data sent out of band to a peer or NULL if none sent.
      * @param {string} peerOobData The OOB data received out of band from a peer or NULL if none received.
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     setLescOobData(deviceInstanceId, ownOobData, peerOobData, callback) {
@@ -2486,7 +2504,7 @@ class Adapter extends EventEmitter {
      * @param {string} deviceInstanceId The device's unique Id.
      * @param {Object} masterId Master identification structure. TODO
      * @param {Object} encInfo Encryption information structure. TODO
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     encrypt(deviceInstanceId, masterId, encInfo, callback) {
@@ -2521,7 +2539,7 @@ class Adapter extends EventEmitter {
      * @param {Object} encInfo Encryption information structure. May be null to signal none is available.
      * @param {Object} idInfo Identity information structure. May be null to signal none is available.
      * @param {Object} signInfo Pointer to a signing information structure. May be null to signal none is available.
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     secInfoReply(deviceInstanceId, encInfo, idInfo, signInfo, callback) {
@@ -2549,7 +2567,7 @@ class Adapter extends EventEmitter {
      * Set the services in the BLE peripheral device's GATT attribute table.
      *
      * @param {[Service]} services An array of `Service` objects to be set.
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     setServices(services, callback) {
@@ -2805,7 +2823,9 @@ class Adapter extends EventEmitter {
      * Initiate or continue a GATT Primary Service Discovery procedure.
      *
      * @param {string} deviceInstanceId The device's unique Id.
-     * @param {function} callback Callback signature: (err, services) => {}.
+     * @param {function(Error, [Service])} [callback] Callback signature: (err, services) => {} where `services` is an
+     *                                              array of `Service` instances corresponding to the discovered GATT 
+     *                                              primary services.
      * @returns {void}
      */
     getServices(deviceInstanceId, callback) {
@@ -2852,7 +2872,10 @@ class Adapter extends EventEmitter {
      *
      *
      * @param {string} serviceId Unique ID of of the GATT service.
-     * @param {function} callback Callback signature: (err, characteristics) => {}.
+     * @param {function(Error, [Characteristic])} [callback] Callback signature: (err, characteristics) => {} where 
+     *                                            `characteristics` is an array of `Characteristic` instances 
+     *                                             corresponding to the discovered GATT characteristics attached to
+     *                                             the service.
      * @returns {void}
      */
     getCharacteristics(serviceId, callback) {
@@ -2972,7 +2995,9 @@ class Adapter extends EventEmitter {
      * Initiate or continue a GATT Characteristic Descriptor Discovery procedure.
      *
      * @param {string} characteristicId Unique ID of of the GATT characteristic.
-     * @param {function} callback Callback signature: (err, descriptors) => {}.
+     * @param {function(Error, [Descriptor])} [callback] Callback signature: (err, descriptors) => {} where 
+     *                                        `descriptors` is an array of `Descriptor` instances corresponding to the 
+     *                                        discovered GATT descriptors attached to the characteristic.
      * @returns {void}
      */
     getDescriptors(characteristicId, callback) {
@@ -3072,7 +3097,9 @@ class Adapter extends EventEmitter {
      * Discovers information about a range of attributes on a GATT server.
      *
      * @param {string} deviceInstanceId The device's unique Id.
-     * @param {function} callback Callback signature: (err, attributes) => {}.
+     * @param {function(Error, Object)} [callback] Callback signature: (err, attributes) => {} where `attributes` contains
+     *                                           the device's GATT attributes (services, characteristics and 
+     *                                           descriptors).
      * @returns {void}
      */
     getAttributes(deviceInstanceId, callback) {
@@ -3099,7 +3126,9 @@ class Adapter extends EventEmitter {
      * Reads the value of a GATT characteristic.
      *
      * @param {string} characteristicId Unique ID of of the GATT characteristic.
-     * @param {function} callback Callback signature: (err, readBytes) => {}.
+     * @param {function(Error, [number])} [callback] Callback signature: (err, readBytes) => {} where `readBytes` is an
+     *                                             array of numbers corresponding to the value of the GATT 
+     *                                             characteristic.
      * @returns {void}
      */
     readCharacteristicValue(characteristicId, callback) {
@@ -3137,7 +3166,7 @@ class Adapter extends EventEmitter {
      * @param {string} characteristicId Unique ID of the GATT characteristic.
      * @param {array} value The value (array of bytes) to be written.
      * @param {boolean} ack Require acknowledge from device, irrelevant in GATTS role.
-     * @param {function} completeCallback Callback signature: err => {}
+     * @param {function(Error)} completeCallback Callback signature: err => {}
      * @param {function} deviceNotifiedOrIndicated TODO
      * @returns {void}
      */
@@ -3226,7 +3255,9 @@ class Adapter extends EventEmitter {
      * Reads the value of a GATT descriptor.
      *
      * @param {string} descriptorId Unique ID of of the GATT descriptor.
-     * @param {function} callback Callback signature: (err, readBytes) => {}.
+     * @param {function(Error, [number])} [callback] Callback signature: (err, readBytes) => {} where `readBytes` is an
+     *                                             array of numbers corresponding to the value of the GATT 
+     *                                             descriptor.
      * @returns {void}
      */
     readDescriptorValue(descriptorId, callback) {
@@ -3264,8 +3295,9 @@ class Adapter extends EventEmitter {
      * @param {string} descriptorId Unique ID of the GATT descriptor.
      * @param {array} value The value (array of bytes) to be written.
      * @param {boolean} ack Require acknowledge from device, irrelevant in GATTS role.
-     * @param {function} callback Callback signature: err => {}. (not called until ack is received if `requireAck`).
-     *                            options: {ack, long, offset}
+     * @param {function(Error)} [callback] Callback signature: err => {}. 
+     *                                   (not called until ack is received if `requireAck`).
+     *                                   options: {ack, long, offset}
      * @returns {void}
      */
     writeDescriptorValue(descriptorId, value, ack, callback) {
@@ -3583,7 +3615,8 @@ class Adapter extends EventEmitter {
      *
      * @param {string} characteristicId Unique ID of the GATT characteristic.
      * @param {boolean} requireAck Require all notifications to ack.
-     * @param {function} callback Callback signature: err => {} (not called until ack is received if `requireAck`).
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     *                                   (not called until ack is received if `requireAck`).
      * @returns {void}
      */
     startCharacteristicsNotifications(characteristicId, requireAck, callback) {
@@ -3612,7 +3645,7 @@ class Adapter extends EventEmitter {
      * Disables notifications on a GATT characteristic.
      *
      * @param {string} characteristicId Unique ID of the GATT characteristic.
-     * @param {function} callback Callback signature: err => {}.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
     stopCharacteristicsNotifications(characteristicId, callback) {
