@@ -39,20 +39,47 @@
 
 'use strict';
 
+/**
+ * Class that provides security functionality through the pc-ble-driver-js AddOn.
+ */
 class Security {
+    /**
+     * Create a wrapper to the security functionality of the underlying BLE driver.
+     *
+     * @constructor
+     * @param bleDriver The underlying BLE driver `pc-ble-driver-js-sd_api_v<X>` called with bindings.
+     */
     constructor(bleDriver) {
         this._bleDriver = bleDriver;
         this._bleDriver.eccInit();
     }
 
+    /**
+     * Method that generates a public/private key pair where the public key is to be distributed.
+     *
+     * @returns {Object} The public private key pair. TODO: double check this.
+     */
     generateKeyPair() {
         return this._bleDriver.eccGenerateKeypair();
     }
 
+    /**
+     * Method that generates a public key.
+     *
+     * @param {string} privateKey The private key that should be used to generate the public key.
+     * @returns {string} The generated public key.
+     */
     generatePublicKey(privateKey) {
         return this._bleDriver.eccComputePublicKey(privateKey);
     }
 
+    /**
+     * Method that generates a shared secret.
+     *
+     * @param {string} privateKey The private key that should be used to generate the shared secret.
+     * @param {string} publicKey The public key that should be used to generate the shared secret.
+     * @returns {string} The generated shared secret.
+     */
     generateSharedSecret(privateKey, publicKey) {
         return this._bleDriver.eccComputeSharedSecret(privateKey, publicKey);
     }

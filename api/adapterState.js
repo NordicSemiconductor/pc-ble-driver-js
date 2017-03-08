@@ -39,9 +39,20 @@
 
 'use strict';
 
+/**
+ * Class that provides state management for an `Adapter`.
+ */
 class AdapterState {
+    /**
+     * Create an object to store `Adapter's` state.
+     *
+     * @constructor
+     * @param {string} instanceId The unique Id of this adapter.
+     * @param {string} port The port this adapter uses. For example it can be 'COM1', '/dev/ttyUSB0' or similar.
+     * @param {Number} serialNumber The serial number of the hardware device being controlled by this adapter.
+     */
     constructor(instanceId, port, serialNumber) {
-        this._instanceId = instanceId + '.' + port;
+        this._instanceId = `${instanceId}.${port}`;
         this._port = port;
         this._serialNumber = serialNumber;
 
@@ -60,14 +71,26 @@ class AdapterState {
         this.firmwareVersion = null;
     }
 
+    /**
+     * Get the instanceId of this adapter.
+     * @returns {string} Unique Id of this adapter.
+     */
     get instanceId() {
         return this._instanceId;
     }
 
+    /**
+     * Get the port this adapter uses.
+     * @returns {string} The port this adapter uses. For example it can be 'COM1', '/dev/ttyUSB0' or similar.
+     */
     get port() {
         return this._port;
     }
 
+    /**
+     * Get the serial number of the hardware device this adapter controls.
+     * @returns {Number} The serial number of the hardware device being controlled by this adapter.
+     */
     get serialNumber() {
         return this._serialNumber;
     }
@@ -76,10 +99,18 @@ class AdapterState {
         // TODO: ?
     }
 
+    /**
+     * Get the Bluetooth address.
+     * @returns {null|string} The Bluetooth address of the Bluetooth device this adapter controls.
+     */
     get address() {
         return this._address;
     }
 
+    /**
+     * Set the Bluetooth address.
+     * @param {string} address The new Bluetooth address of the Bluetooth device this adapter controls.
+     */
     set address(address) {
         if (typeof address === 'string') {
             this._address = address;
@@ -90,6 +121,10 @@ class AdapterState {
         }
     }
 
+    /**
+     * Get the BLE address type. 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC' or `BLE_GAP_ADDR_TYPE_PUBLIC`.
+     * @returns {null|string} BLE address type of the device adapter controls.
+     */
     get addressType() {
         return this._addressType;
     }

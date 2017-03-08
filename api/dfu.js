@@ -40,16 +40,17 @@
 'use strict';
 
 const _ = require('underscore');
-const JSZip = require('jszip');
-const fs = require('fs');
 const EventEmitter = require('events');
+const fs = require('fs');
+const JSZip = require('jszip');
 
-const logLevel = require('./util/logLevel');
-const ErrorCode = require('./dfu/dfuConstants').ErrorCode;
-const createError = require('./dfu/dfuConstants').createError;
 const BleTransport = require('./dfu/bleTransport');
+const createError = require('./dfu/dfuConstants').createError;
+const ErrorCode = require('./dfu/dfuConstants').ErrorCode;
 const DfuSpeedometer = require('./dfu/dfuSpeedometer');
+const logLevel = require('./util/logLevel');
 
+/** @constant Enumeration of the Dfu controllers's possible states. */
 const DfuState = Object.freeze({
     READY: 0,
     IN_PROGRESS: 1,
@@ -57,11 +58,23 @@ const DfuState = Object.freeze({
 });
 
 /**
- * Class that provides Dfu controller functionality
- * @class
+ * Class that provides Dfu controller functionality.
  */
 class Dfu extends EventEmitter {
-
+    /**
+     * Initializes the Dfu controller.
+     *
+     * @constructor
+     * @param {string} transportType TODO: is this used anywhere?
+     *
+     * Available transport parameters:
+     * - adapter:           An instance of adapter (required)
+     * - targetAddress:     The target address to connect to (required)
+     * - targetAddressType: The target address type (required)
+     * - prnValue:          Packet receipt notification number (optional)
+     * - mtuSize:           Maximum transmission unit number (optional)
+     * @param {Object} transportParameters Configuration parameters.
+     */
     constructor(transportType, transportParameters) {
         super();
 
@@ -80,11 +93,11 @@ class Dfu extends EventEmitter {
     }
 
     /**
-     * Perform DFU with the given zip file. Successful when callback is invoked
-     * with no arguments.
+     * Perform DFU with the given zip file. Successful when callback is invoked with no arguments.
      *
-     * @param zipFilePath path to DFU zip file
-     * @param callback signature: (err, abort) => {}
+     * @param {string} zipFilePath Path to zip file containing data for Dfu.
+     * @param {function} callback Signature: (err, abort) => {}.
+     * @returns {void}
      */
     performDFU(zipFilePath, callback) {
         if (this._state !== DfuState.READY) {
@@ -119,6 +132,11 @@ class Dfu extends EventEmitter {
             });
     }
 
+    /**
+     * Abort the Dfu procedure.
+     *
+     * @returns {void}
+     */
     abort() {
         this._log(logLevel.INFO, 'Aborting DFU.');
         this._setState(DfuState.ABORTING);
@@ -242,8 +260,8 @@ class Dfu extends EventEmitter {
     * Get promise for manifest.json from the given zip file.
     * This function is a wrapper for getManifest().
     *
-    * @param zipFilePath path of the zip file
-    * @returns Promise for manifest.json
+    * @param {string} zipFilePath Path of the zip file.
+    * @returns {Promise} For manifest.json
     * @private
     */
     _getManifestAsync(zipFilePath) {
@@ -258,12 +276,12 @@ class Dfu extends EventEmitter {
      * Get promise for JSZip zip object of the given zip file.
      * This function is a wrapper for _loadZip().
      *
-     * @param zipFilePath path of the zip file
-     * @returns Promise for JSZip zip object
+     * @param {string} zipFilePath path of the zip file
+     * @returns {Promise} for JSZip zip object
      * @private
      */
     _loadZipAsync(zipFilePath) {
-        return new Promise ((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             this._loadZip(zipFilePath, (err, zip) => {
                 err ? reject(err) : resolve(zip);
             });
@@ -286,22 +304,23 @@ class Dfu extends EventEmitter {
      *
      * The sorting is such that the application update is put last.
      *
-     * @param zipFilePath path of the zip file containing the updates
-     * @returns Promise resolves to an array of updates
+     * @param {string} zipFilePath path of the zip file containing the updates
+     * @returns {Promise} resolves to an array of updates
+     * @returns {void}
      * @private
      */
     _fetchUpdates(zipFilePath) {
         this._log(logLevel.DEBUG, `Loading zip file: ${zipFilePath}`);
         return Promise.all([
             this._loadZipAsync(zipFilePath),
-            this._getManifestAsync(zipFilePath)
+            this._getManifestAsync(zipFilePath),
         ]).then(result => {
             const zip = result[0];
             const manifest = result[1];
             return this._getFirmwareTypes(manifest).map(type => {
                 const firmwareUpdate = manifest[type];
-                const datFileName = firmwareUpdate['dat_file'];
-                const binFileName = firmwareUpdate['bin_file'];
+                const datFileName = firmwareUpdate.dat_file;
+                const binFileName = firmwareUpdate.bin_file;
                 this._log(logLevel.DEBUG, `Found ${type} files: ${datFileName}, ${binFileName}`);
                 return {
                     datFile: {
@@ -322,15 +341,16 @@ class Dfu extends EventEmitter {
             'softdevice',
             'bootloader',
             'softdevice_bootloader',
-            'application'
-        ].filter(type => manifest[type] ? true : false);
+            'application',
+        ].filter(type => !!manifest[type]);
     }
 
     /**
      * Get JSZip zip object of the given zip file.
      *
-     * @param zipFilePath path of the zip file
-     * @param callback signature: (err, zip) => {}
+     * @param {string} zipFilePath Path of the zip file.
+     * @param {function} callback Signature: (err, zip) => {}.
+     * @returns {void}
      * @private
      */
     _loadZip(zipFilePath, callback) {
@@ -344,10 +364,10 @@ class Dfu extends EventEmitter {
                 .then(zip => {
                     callback(undefined, zip);
                 })
-                .catch(err => {
-                    return callback(err);
+                .catch(error => {
+                    callback(error);
                 });
-        })
+        });
     }
 
     /**
@@ -373,8 +393,9 @@ class Dfu extends EventEmitter {
      *   sd_size: <integer>, // Softdevice size
      * }
      *
-     * @param zipFilePath path to the zip file
-     * @param callback signature: (err, manifest) => {}
+     * @param {string} zipFilePath Path to the zip file.
+     * @param {function} callback Signature: (err, manifest) => {}.
+     * @returns {void}
      */
     getManifest(zipFilePath, callback) {
         if (!zipFilePath) {
@@ -387,24 +408,24 @@ class Dfu extends EventEmitter {
                 return callback(err);
             }
             // Read out manifest from zip
-            zip.file("manifest.json")
-                .async("string")
+            zip.file('manifest.json')
+                .async('string')
                 .then(data => {
                     let manifest;
                     try {
                         // Parse manifest as JSON
-                        manifest = JSON.parse(data)['manifest'];
-                    } catch (err) {
-                        return callback(err);
+                        manifest = JSON.parse(data).manifest;
+                    } catch (error) {
+                        return callback(error);
                     }
                     // Return manifest
                     return callback(undefined, manifest);
                 });
-        })
+        });
     }
 
-    _log(logLevel, message) {
-        this.emit('logMessage', logLevel, message);
+    _log(level, message) {
+        this.emit('logMessage', level, message);
     }
 }
 

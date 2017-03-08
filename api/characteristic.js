@@ -39,15 +39,37 @@
 
 'use strict';
 
-var i = 1;
+let i = 1;
 
+/**
+ * Class that represents a GATT characteristic.
+ */
 class Characteristic {
+    /**
+     * Create a characteristic in the Bluetooth `Device's` GATT attribute table.
+     *
+     * @constructor
+     * @param {string} serviceInstanceId The `Service` instanceID this characteristic is to be added to.
+     * @param {string} uuid A 128-bit or 16-bit unique identifier for this characteristic.
+     * @param {array} value The initial value of this characteristic.
+     * @param {Object} properties This GATT characteristic's metadata.
+     * @param {Object} options This GATT characteristic's attribute's metadata.
+     */
     constructor(serviceInstanceId, uuid, value, properties, options) {
-        if (!serviceInstanceId) throw new Error('serviceInstanceId must be provided.');
-        if (!value) throw new Error('value must be provided.');
-        if (!properties) throw new Error('properties must be provided.');
+        if (!serviceInstanceId) {
+            throw new Error('serviceInstanceId must be provided.');
+        }
+        if (!value) {
+            throw new Error('value must be provided.');
+        }
+        if (!properties) {
+            throw new Error('properties must be provided.');
+        }
 
-        this._instanceId = serviceInstanceId + '.' + (i++).toString();
+        // increment global so `characteristicInstanceId` is unique for each created service.
+        i += 1;
+
+        this._instanceId = `${serviceInstanceId}.${i}`;
         this._serviceInstanceId = serviceInstanceId;
         this.uuid = uuid;
 
@@ -60,28 +82,34 @@ class Characteristic {
         this.value = value;
         this.properties = properties;
 
-        for (let option in options) {
-            if (option === 'readPerm') {
-                this.readPerm = options.readPerm;
-            } else if (option === 'writePerm') {
-                this.writePerm = options.writePerm;
-            } else if (option === 'variableLength') {
-                this.variableLength = options.variableLength;
-            } else if (option === 'maxLength') {
-                this.maxLength = options.maxLength;
-            }
+        if (options) {
+            this.readPerm = options.readPerm;
+            this.writePerm = options.writePerm;
+            this.variableLength = options.variableLength;
+            this.maxLength = options.maxLength;
         }
     }
 
+    /**
+     * Get the instanceId of this characteristic (since uuid is not enough to separate between characteristics).
+     * @returns {string} Unique ID of this characteristic.
+     */
     get instanceId() {
         return this._instanceId;
     }
 
-    // The GATT service this characteristic belongs to
+    /**
+     * Get the instance Id of the GATT service that this characteristic belongs to.
+     * @returns {string} Unique Id of the service that this characteristic belongs to.
+     */
     get serviceInstanceId() {
         return this._serviceInstanceId;
     }
 
+    /**
+     * Get the handle of this characteristic in the `Device's` GATT attribute table.
+     * @returns {string} The handle of this characteristic in the `Device's` GATT attribute table.
+     */
     get handle() {
         return this.valueHandle;
     }
