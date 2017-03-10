@@ -8,7 +8,7 @@
     "install": "node build.js",
     "test": "jest --config config/jest-unit.config",
     "test:system": "jest --config config/jest-system.config",
-    "docs": "./node_modules/.bin/jsdoc ./api/ -d ./docs/ && git add ./docs/"
+    "docs": "if git diff --cached --name-only | grep --quiet \"api/\"; then ./node_modules/.bin/jsdoc ./api/ -d ./docs/ && git add ./docs/; fi"
   },
   "repository": {
     "type": "git",

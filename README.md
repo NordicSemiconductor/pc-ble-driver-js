@@ -1,6 +1,6 @@
 # pc-ble-driver-js
 
-`pc-ble-driver-js` provides a Node.js interface to the C/C++ [pc-ble-driver](https://github.com/NordicSemiconductor/pc-ble-driver) library. API Docs: https://mjdietzx.github.io/pc-ble-driver-js/.
+`pc-ble-driver-js` provides a Node.js interface to the C/C++ [pc-ble-driver](https://github.com/NordicSemiconductor/pc-ble-driver) library.
 
 ## Overview
 
@@ -35,7 +35,7 @@ Follow the [examples](./examples) and [integration tests](./test) for high-level
 
 ## API Docs
 
-https://mjdietzx.github.io/pc-ble-driver-js/
+https://NordicSemiconductor.github.io/pc-ble-driver-js/
 
 ## Contributing
 
