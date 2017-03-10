@@ -8,52 +8,7 @@
 
 ## Installing
 
-To run `pc-ble-driver-js` you will first need to set up your nRF5 connectivity chip. You can find additional information here: [Hardware Setup](https://github.com/NordicSemiconductor/pc-ble-driver#hardware-setup).
-
-Before installing `pc-ble-driver-js` you will need to have [Boost](http://www.boost.org/) installed. To install and compile Boost, please follow the instructions here: [Building Boost](https://github.com/NordicSemiconductor/pc-ble-driver#building-boost). Make sure you have built the Boost libraries for the architecture (32 or 64-bit) required by your Node installation.
-
-### Submodule
-
-This repository refers to the [pc-ble-driver](https://github.com/NordicSemiconductor/pc-ble-driver) library as a submodule. To ensure the submodule is downloaded when cloning `pc-ble-driver-js`, use:
-
-    git clone --recursive <repository-url>
-
-Or if you have already cloned the repository:
-
-    git submodule update --init --recursive
-
-### Dependencies
-
-In addition to the dependencies and steps described above, the following is required:
-* Node.js (>=4.4.7)
-* npm (>=3.7.0)
-
-### Platform specific notes
-
-#### Windows
-
-Configure cmake-js:
-
-    npm config set cmake_CMAKE_GENERATOR:INTERNAL="Visual Studio 14 2015"
-    npm config set cmake_BOOST_ROOT=c:\path\to\boost_x_xx_x
-
-#### Ubuntu Linux and OS X/macOS
-
-Configure cmake-js:
-
-    npm config set cmake_BOOST_ROOT=/path/to/boost_x_xx_x
-
-### Installation
-
-Now you are ready to build and install `pc-ble-driver-js` by running:
-
-    npm install pc-ble-driver-js
-
-## Unit tests
-
-To run unit tests:
-
-    npm test
+Installing `pc-ble-driver-js` requires a bit more than the usual `$ npm install` because of it's C/C++ `pc-ble-driver` dependency. For detailed guidelines on building and installing `pc-ble-driver-js` and it's dependencies see [Installation.md](./Installation.md).
 
 ## Examples/system tests
 
