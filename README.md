@@ -10,11 +10,11 @@
 
 Installing `pc-ble-driver-js` requires a bit more than the usual `$ npm install` because of it's C/C++ `pc-ble-driver` dependency. For detailed guidelines on building and installing `pc-ble-driver-js` and it's dependencies see [Installation.md](./Installation.md).
 
-## Examples/system tests
+## Getting started
 
-Examples/system tests require one or more development kits to be connected to your computer. These tests can be found in the `test` directory, and have to be run manually. F.ex. to test scanning, run:
+The [examples](./examples) and [integration tests](./test) serve as a great starting point for development with `pc-ble-driver-js`. Examples include a [heart rate monitor](./examples/heart_rate_monitor.js) (BLE peripheral) and [heart rate collector](./examples/heart_rate_collector.js) (BLE master) and show the basic structure of an application built on `pc-ble-driver-js`. To run the heart rate monitor example, verify your nRF5 connectivity chip is set-up and connected to your PC and run:
 
-    node test/simpleScanTest.js
+    $ node examples/heart_rate_monitory.js
 
 ## Contributing
 
