@@ -1,6 +1,6 @@
 # pc-ble-driver-js
 
-`pc-ble-driver-js` provides a Node.js interface to the C/C++ [pc-ble-driver](https://github.com/NordicSemiconductor/pc-ble-driver) library. 
+`pc-ble-driver-js` provides a Node.js interface to the C/C++ [pc-ble-driver](https://github.com/NordicSemiconductor/pc-ble-driver) library. API Docs: https://mjdietzx.github.io/pc-ble-driver-js/.
 
 ## Overview
 
@@ -20,7 +20,7 @@ The [examples](./examples) and [integration tests](./test) serve as a great star
 
 All functionality of `pc-ble-driver-js` is exposed through it's [api](./api/). Other directories in `pc-ble-driver-js/` are for building, binding to C/C++, and testing, and a developer building an application on top of `pc-ble-driver-js` need not concern themselves with these details.
 
-[Adapter](./adapter.js) is the core component of `pc-ble-driver-js`'s api. An `Adapter` sends serialized commands to the nRF5 connectivity chip, which in-turn executes the corresponding SoftDevice functionality. Any events the nRF5 connectivity chip receives from the SoftDevice are serialized and forwarded to the `Adapter`, which parses and handles these events.
+[Adapter](./api/adapter.js) is the core component of `pc-ble-driver-js`'s api. An `Adapter` sends serialized commands to the nRF5 connectivity chip, which in-turn executes the corresponding SoftDevice functionality. Any events the nRF5 connectivity chip receives from the SoftDevice are serialized and forwarded to the `Adapter`, which parses and handles these events.
 
 An `Adapter`:
 
@@ -31,7 +31,11 @@ An `Adapter`:
 
 An `Adapter` does all this with a 'convention over configuration' approach, and this leads to a high-level api exposed to the developer. SoftDevice functionality is exposed by `Adapter` through a set of methods that often have default or optional parameters. Events are parsed and errors are checked for/handled by `Adapter` before being emitted for the application's use. BLE related state is maintained by `Adapter` and provided to the application through a simplified interface. This makes life easy for the developer, but in the (hopefully rare) case where finer control of the SoftDevice is required, this approach may be limiting. In this case the developer may need to create an issue, modify or extend `api/`, or if it makes sense, move to using [pc-ble-driver](https://github.com/NordicSemiconductor/pc-ble-driver) directly in a C/C++ environment.
 
-Follow the [examples](./examples) and [integration tests](./test) for best-practice use of `pc-ble-driver-js` and for more info see the [api docs](TODO).
+Follow the [examples](./examples) and [integration tests](./test) for high-level best-practice use of `pc-ble-driver-js`.
+
+## API Docs
+
+https://mjdietzx.github.io/pc-ble-driver-js/
 
 ## Contributing
 
