@@ -66,14 +66,15 @@ class Dfu extends EventEmitter {
      *
      * @constructor
      * @param {string} transportType TODO: is this used anywhere?
-     *
-     * Available transport parameters:
-     * - adapter:           An instance of adapter (required)
-     * - targetAddress:     The target address to connect to (required)
-     * - targetAddressType: The target address type (required)
-     * - prnValue:          Packet receipt notification number (optional)
-     * - mtuSize:           Maximum transmission unit number (optional)
      * @param {Object} transportParameters Configuration parameters.
+     * Available transport parameters:
+     *  <ul>
+     *  <li>{Object} adapter: An instance of adapter.
+     *  <li>{string} targetAddress: The target address to connect to.
+     *  <li>{string} targetAddressType: The target address type.
+     *  <li>{number} [prnValue]: Packet receipt notification number.
+     *  <li>{number} [mtuSize]: Maximum transmission unit number.
+     *  </ul>
      */
     constructor(transportType, transportParameters) {
         super();

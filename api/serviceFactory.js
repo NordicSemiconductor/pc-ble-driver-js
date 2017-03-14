@@ -65,28 +65,30 @@ class ServiceFactory {
      * @param {Service} service The `Service` instance this characteristic is to be added to.
      * @param {string} uuid A 128-bit or 16-bit unique identifier for this characteristic.
      * @param {array} value The initial value of this characteristic.
-     *
-     * Available characteristic properties:
-     * - {boolean} broadcast: Broadcasting of the value permitted.
-     * - {boolean} read: Reading the value permitted.
-     * - {boolean} write: Writing the value with Write Request permitted.
-     * - {boolean} writeWoResp: Writing the value with Write Command permitted.
-     * - {boolean} reliableWrite: Writing the value with Queued Write operations permitted.
-     * - {boolean} notify: Notications of the value permitted.
-     * - {boolean} indicate: Indications of the value permitted.
-     * - {boolean} authSignedWr: Writing the value with Signed Write Command permitted.
-     * - {boolean} wrAux: Writing the Characteristic User Description descriptor permitted.
      * @param {Object} properties This GATT characteristic's metadata.
-     *
-     * Available characteristic options:
-     * - {string} readPerm: Read permissions.
-     * - {string} writePerm: Write permissions.
-     * - {boolean} variableLength: Variable length attribute.
-     * - {number} maxLength: Maximum attribute value length in bytes, see ref BLE_GATTS_ATTR_LENS_MAX for maximum values.
-     * - {boolean} readAuth: Read authorization and value will be requested from the application on every read operation.
-     * - {boolean} writeAuth: Write authorization will be requested from the application on every Write Request operation (but not Write Command).
-     * Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
+     * Available characteristic properties:
+     *  <ul>
+     *  <li>{boolean} broadcast: Broadcasting of the value permitted.
+     *  <li>{boolean} read: Reading the value permitted.
+     *  <li>{boolean} write: Writing the value with Write Request permitted.
+     *  <li>{boolean} writeWoResp: Writing the value with Write Command permitted.
+     *  <li>{boolean} reliableWrite: Writing the value with Queued Write operations permitted.
+     *  <li>{boolean} notify: Notications of the value permitted.
+     *  <li>{boolean} indicate: Indications of the value permitted.
+     *  <li>{boolean} authSignedWr: Writing the value with Signed Write Command permitted.
+     *  <li>{boolean} wrAux: Writing the Characteristic User Description descriptor permitted.
+     *  </ul>
      * @param {Object} options This GATT characteristic's attribute's metadata.
+     * Available characteristic options:
+     *  <ul>
+     *  <li>{string} readPerm: Read permissions.
+     *  <li>{string} writePerm: Write permissions.
+     *  <li>{boolean} variableLength: Variable length attribute.
+     *  <li>{number} maxLength: Maximum attribute value length in bytes, see ref BLE_GATTS_ATTR_LENS_MAX for maximum values.
+     *  <li>{boolean} readAuth: Read authorization and value will be requested from the application on every read operation.
+     *  <li>{boolean} writeAuth: Write authorization will be requested from the application on every Write Request operation (but not Write Command).
+     *  <li>Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
+     *  </ul>
      * @returns {Characteristic} A newly created `Characteristic` instance.
      */
     createCharacteristic(service, uuid, value, properties, options) {
@@ -112,16 +114,17 @@ class ServiceFactory {
      * @param {Characteristic} characteristic The `Characteristic` instance this descriptor is to be added to.
      * @param {string} uuid A 128-bit or 16-bit unique identifier for this descriptor.
      * @param {array} value The initial value of this descriptor.
-     *
-     * Available descriptor options:
-     * - {string} readPerm: Read permissions.
-     * - {string} writePerm: Write permissions.
-     * - {boolean} variableLength: Variable length attribute.
-     * - {number} maxLength: Maximum attribute value length in bytes, see ref BLE_GATTS_ATTR_LENS_MAX for maximum values.
-     * - {boolean} readAuth: Read authorization and value will be requested from the application on every read operation.
-     * - {boolean} writeAuth: Write authorization will be requested from the application on every Write Request operation (but not Write Command).
-     * Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
      * @param {Object} options This GATT descriptor's attribute's metadata.
+     * Available descriptor options:
+     * <ul>
+     * <li>{string} readPerm: Read permissions.
+     * <li>{string} writePerm: Write permissions.
+     * <li>{boolean} variableLength: Variable length attribute.
+     * <li>{number} maxLength: Maximum attribute value length in bytes, see ref BLE_GATTS_ATTR_LENS_MAX for maximum values.
+     * <li>{boolean} readAuth: Read authorization and value will be requested from the application on every read operation.
+     * <li>{boolean} writeAuth: Write authorization will be requested from the application on every Write Request operation (but not Write Command).
+     * <li>Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
+     * </ul>
      * @returns {Descriptor} A newly created `Descriptor` instance.
      */
     createDescriptor(characteristic, uuid, value, options) {

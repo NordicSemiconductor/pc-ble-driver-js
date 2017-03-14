@@ -140,7 +140,7 @@
 
     
 
-    <h4 class="name" id="createCharacteristic"><span class="type-signature"></span>createCharacteristic<span class="signature">(service, uuid, value, properties, options)</span><span class="type-signature"> &rarr; {<a href="Characteristic.html">Characteristic</a>}</span></h4>
+    <h4 class="name" id="createCharacteristic"><span class="type-signature"></span>createCharacteristic<span class="signature">(service, uuid, value, properties, options)</span><span class="type-signature"> &rarr; {Characteristic}</span></h4>
 
     
 
@@ -189,7 +189,7 @@
             <td class="type">
             
                 
-<span class="param-type"><a href="Service.html">Service</a></span>
+<span class="param-type">Service</span>
 
 
             
@@ -245,18 +245,7 @@
 
             
 
-            <td class="description last">The initial value of this characteristic.
-
-Available characteristic properties:
-- {boolean} broadcast: Broadcasting of the value permitted.
-- {boolean} read: Reading the value permitted.
-- {boolean} write: Writing the value with Write Request permitted.
-- {boolean} writeWoResp: Writing the value with Write Command permitted.
-- {boolean} reliableWrite: Writing the value with Queued Write operations permitted.
-- {boolean} notify: Notications of the value permitted.
-- {boolean} indicate: Indications of the value permitted.
-- {boolean} authSignedWr: Writing the value with Signed Write Command permitted.
-- {boolean} wrAux: Writing the Characteristic User Description descriptor permitted.</td>
+            <td class="description last">The initial value of this characteristic.</td>
         </tr>
 
     
@@ -280,15 +269,18 @@ Available characteristic properties:
             
 
             <td class="description last">This GATT characteristic's metadata.
-
-Available characteristic options:
-- {string} readPerm: Read permissions.
-- {string} writePerm: Write permissions.
-- {boolean} variableLength: Variable length attribute.
-- {number} maxLength: Maximum attribute value length in bytes, see ref BLE_GATTS_ATTR_LENS_MAX for maximum values.
-- {boolean} readAuth: Read authorization and value will be requested from the application on every read operation.
-- {boolean} writeAuth: Write authorization will be requested from the application on every Write Request operation (but not Write Command).
-Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.</td>
+Available characteristic properties:
+ <ul>
+ <li>{boolean} broadcast: Broadcasting of the value permitted.
+ <li>{boolean} read: Reading the value permitted.
+ <li>{boolean} write: Writing the value with Write Request permitted.
+ <li>{boolean} writeWoResp: Writing the value with Write Command permitted.
+ <li>{boolean} reliableWrite: Writing the value with Queued Write operations permitted.
+ <li>{boolean} notify: Notications of the value permitted.
+ <li>{boolean} indicate: Indications of the value permitted.
+ <li>{boolean} authSignedWr: Writing the value with Signed Write Command permitted.
+ <li>{boolean} wrAux: Writing the Characteristic User Description descriptor permitted.
+ </ul></td>
         </tr>
 
     
@@ -311,7 +303,17 @@ Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located
 
             
 
-            <td class="description last">This GATT characteristic's attribute's metadata.</td>
+            <td class="description last">This GATT characteristic's attribute's metadata.
+Available characteristic options:
+ <ul>
+ <li>{string} readPerm: Read permissions.
+ <li>{string} writePerm: Write permissions.
+ <li>{boolean} variableLength: Variable length attribute.
+ <li>{number} maxLength: Maximum attribute value length in bytes, see ref BLE_GATTS_ATTR_LENS_MAX for maximum values.
+ <li>{boolean} readAuth: Read authorization and value will be requested from the application on every read operation.
+ <li>{boolean} writeAuth: Write authorization will be requested from the application on every Write Request operation (but not Write Command).
+ <li>Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
+ </ul></td>
         </tr>
 
     
@@ -352,7 +354,7 @@ Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="serviceFactory.js.html">serviceFactory.js</a>, <a href="serviceFactory.js.html#line92">line 92</a>
+        <a href="serviceFactory.js.html">serviceFactory.js</a>, <a href="serviceFactory.js.html#line94">line 94</a>
     </li></ul></dd>
     
 
@@ -390,7 +392,7 @@ Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located
     </dt>
     <dd>
         
-<span class="param-type"><a href="Characteristic.html">Characteristic</a></span>
+<span class="param-type">Characteristic</span>
 
 
     </dd>
@@ -405,7 +407,7 @@ Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located
 
     
 
-    <h4 class="name" id="createDescriptor"><span class="type-signature"></span>createDescriptor<span class="signature">(characteristic, uuid, value, options)</span><span class="type-signature"> &rarr; {<a href="Descriptor.html">Descriptor</a>}</span></h4>
+    <h4 class="name" id="createDescriptor"><span class="type-signature"></span>createDescriptor<span class="signature">(characteristic, uuid, value, options)</span><span class="type-signature"> &rarr; {Descriptor}</span></h4>
 
     
 
@@ -454,7 +456,7 @@ Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located
             <td class="type">
             
                 
-<span class="param-type"><a href="Characteristic.html">Characteristic</a></span>
+<span class="param-type">Characteristic</span>
 
 
             
@@ -510,16 +512,7 @@ Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located
 
             
 
-            <td class="description last">The initial value of this descriptor.
-
-Available descriptor options:
-- {string} readPerm: Read permissions.
-- {string} writePerm: Write permissions.
-- {boolean} variableLength: Variable length attribute.
-- {number} maxLength: Maximum attribute value length in bytes, see ref BLE_GATTS_ATTR_LENS_MAX for maximum values.
-- {boolean} readAuth: Read authorization and value will be requested from the application on every read operation.
-- {boolean} writeAuth: Write authorization will be requested from the application on every Write Request operation (but not Write Command).
-Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.</td>
+            <td class="description last">The initial value of this descriptor.</td>
         </tr>
 
     
@@ -542,7 +535,17 @@ Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located
 
             
 
-            <td class="description last">This GATT descriptor's attribute's metadata.</td>
+            <td class="description last">This GATT descriptor's attribute's metadata.
+Available descriptor options:
+<ul>
+<li>{string} readPerm: Read permissions.
+<li>{string} writePerm: Write permissions.
+<li>{boolean} variableLength: Variable length attribute.
+<li>{number} maxLength: Maximum attribute value length in bytes, see ref BLE_GATTS_ATTR_LENS_MAX for maximum values.
+<li>{boolean} readAuth: Read authorization and value will be requested from the application on every read operation.
+<li>{boolean} writeAuth: Write authorization will be requested from the application on every Write Request operation (but not Write Command).
+<li>Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
+</ul></td>
         </tr>
 
     
@@ -583,7 +586,7 @@ Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="serviceFactory.js.html">serviceFactory.js</a>, <a href="serviceFactory.js.html#line127">line 127</a>
+        <a href="serviceFactory.js.html">serviceFactory.js</a>, <a href="serviceFactory.js.html#line130">line 130</a>
     </li></ul></dd>
     
 
@@ -621,7 +624,7 @@ Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located
     </dt>
     <dd>
         
-<span class="param-type"><a href="Descriptor.html">Descriptor</a></span>
+<span class="param-type">Descriptor</span>
 
 
     </dd>
@@ -636,7 +639,7 @@ Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located
 
     
 
-    <h4 class="name" id="createService"><span class="type-signature"></span>createService<span class="signature">(uuid, serviceType)</span><span class="type-signature"> &rarr; {<a href="Service.html">Service</a>}</span></h4>
+    <h4 class="name" id="createService"><span class="type-signature"></span>createService<span class="signature">(uuid, serviceType)</span><span class="type-signature"> &rarr; {Service}</span></h4>
 
     
 
@@ -797,7 +800,7 @@ Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located
     </dt>
     <dd>
         
-<span class="param-type"><a href="Service.html">Service</a></span>
+<span class="param-type">Service</span>
 
 
     </dd>
@@ -823,13 +826,13 @@ Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="AdapterFactory.html">AdapterFactory</a></li><li><a href="AdapterState.html">AdapterState</a></li><li><a href="Characteristic.html">Characteristic</a></li><li><a href="Descriptor.html">Descriptor</a></li><li><a href="Device.html">Device</a></li><li><a href="Dfu.html">Dfu</a></li><li><a href="Error.html">Error</a></li><li><a href="Security.html">Security</a></li><li><a href="Service.html">Service</a></li><li><a href="ServiceFactory.html">ServiceFactory</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Enumeration">Enumeration</a></li><li><a href="global.html#Update">Update</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="ServiceFactory.html">ServiceFactory</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Fri Mar 10 2017 12:40:21 GMT-0600 (CST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue Mar 14 2017 11:28:54 GMT-0500 (CDT)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -273,21 +273,21 @@ class Adapter extends EventEmitter {
     }
 
     /**
-     * @summary Initialize the adapter.
+     * @summary Initialize the adapter. The serial port will be attempted to be opened with the configured serial port settings in `adapterOptions`.
      *
-     * The serial port will be attempted to be opened with the configured serial port settings in `adapterOptions`.
-     * Available adapter open options:
-     * - {number} [baudRate=115200]: The baud rate this adapter's serial port should be configured with.
-     * - {string} [parity='none']: The parity this adapter's serial port should be configured with.
-     * - {string} [flowControl='none']: Whether flow control should be configured with this adapter's serial port.
-     * - {number} [eventInterval=0]: Interval to use for sending BLE driver events to JavaScript.
-     *                               If `0`, events will be sent as soon as they are received from the BLE driver.
-     * - {string} [logLevel='info']: The verbosity of logging the developer wants with this adapter.
-     * - {number} [retransmissionInterval=100]: The time interval to wait between retransmitted packets.
-     * - {number} [responseTimeout=750]: Response timeout of the data link layer.
-     * - {boolean} [enableBLE=true]: Whether the BLE stack should be initialized and enabled.
      * @param {Object} options Options to initialize/open this adapter with.
-     *
+     * Available adapter open options:
+     * <ul>
+     * <li>{number} [baudRate=115200]: The baud rate this adapter's serial port should be configured with.
+     * <li>{string} [parity='none']: The parity this adapter's serial port should be configured with.
+     * <li>{string} [flowControl='none']: Whether flow control should be configured with this adapter's serial port.
+     * <li>{number} [eventInterval=0]: Interval to use for sending BLE driver events to JavaScript.
+     *                                 If `0`, events will be sent as soon as they are received from the BLE driver.
+     * <li>{string} [logLevel='info']: The verbosity of logging the developer wants with this adapter.
+     * <li>{number} [retransmissionInterval=100]: The time interval to wait between retransmitted packets.
+     * <li>{number} [responseTimeout=750]: Response timeout of the data link layer.
+     * <li>{boolean} [enableBLE=true]: Whether the BLE stack should be initialized and enabled.
+     * </ul>
      * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
@@ -370,28 +370,37 @@ class Adapter extends EventEmitter {
     }
 
     /**
-     * @summary Enable the BLE stack
+     * @summary Enable the BLE stack.
      *
      * This call initializes the BLE stack, no other BLE related function can be called before this one.
      *
-     * Available BLE enable parameters:
-     * - {Object} gap_enable_params: GAP init parameters
-     *                - {number} periph_conn_count: Number of connections acting as a peripheral.
-     *                - {number} central_conn_count: Number of connections acting as a central.
-     *                - {number} central_sec_count: Number of SMP instances for all connections acting as a central..
-     * - {Object} gatts_enable_params: GATTS init parameters
-     *                - {boolean} service_changed: Include the Service Changed characteristic in the Attribute Table.
-     *                - {number} attr_tab_size: Attribute Table size in bytes. The size must be a multiple of 4.
-     * - {Object} common_enable_params: Common init parameters
-     *                - {null|number} conn_bw_counts: Bandwidth configuration parameters or null for defaults.
-     *                - {number} vs_uuid_count: Maximum number of 128-bit, Vendor Specific UUID bases to allocate.
-     * - {Object} gatt_enable_params: GATT init parameters
-     *                - {number} att_mtu: Maximum size of ATT packet the SoftDevice can send or receive.
-     *                                    If it is 0 then @ref GATT_MTU_SIZE_DEFAULT will be used.
-     *                                    Otherwise @ref GATT_MTU_SIZE_DEFAULT is the minimum value.
      * @param {Object} [options] BLE Initialization parameters. If `undefined` or `null` the BLE stack will be
      *                           initialized with default options (see code for `enableBLE()` below for default values).
-     *
+     * Available BLE enable parameters:
+     * <ul>
+     * <li>{Object} gap_enable_params: GAP init parameters
+     *                <ul>
+     *                <li>{number} periph_conn_count: Number of connections acting as a peripheral.
+     *                <li>{number} central_conn_count: Number of connections acting as a central.
+     *                <li>{number} central_sec_count: Number of SMP instances for all connections acting as a central.
+     *                </ul>
+     * <li>{Object} gatts_enable_params: GATTS init parameters
+     *                <ul>
+     *                <li>{boolean} service_changed: Include the Service Changed characteristic in the Attribute Table.
+     *                <li>{number} attr_tab_size: Attribute Table size in bytes. The size must be a multiple of 4.
+     *                </ul>
+     * <li>{Object} common_enable_params: Common init parameters
+     *                <ul>
+     *                <li>{null|number} conn_bw_counts: Bandwidth configuration parameters or null for defaults.
+     *                <li>{number} vs_uuid_count: Maximum number of 128-bit, Vendor Specific UUID bases to allocate.
+     *                </ul>
+     * <li>{Object} gatt_enable_params: GATT init parameters
+     *                <ul>
+     *                <li>{number} att_mtu: Maximum size of ATT packet the SoftDevice can send or receive.
+     *                                      If it is 0 then @ref GATT_MTU_SIZE_DEFAULT will be used.
+     *                                      Otherwise @ref GATT_MTU_SIZE_DEFAULT is the minimum value.
+     *                </ul>
+     * </ul>
      * @param {function(Error, Object, number)} [callback] Callback signature: (err, parameters, app_ram_base) => {}
      *                                                   where `parameters` is the BLE initialization parameters as
      *                                                   described above and `app_ram_base` is the minimum start address 
@@ -1817,17 +1826,18 @@ class Adapter extends EventEmitter {
     /**
      * @summary Start scanning (GAP Discovery procedure, Observer Procedure).
      *
-     * Available scan parameters:
-     * - {boolean} active If 1, perform active scanning (scan requests).
-     * - {number} interval Scan interval between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
-     * - {number} window Scan window between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
-     * - {number} timeout Scan timeout between 0x0001 and 0xFFFF in seconds, 0x0000 disables timeout.
-     * - {number} use_whitelist If 1, filter advertisers using current active whitelist.
-     * - {number} adv_dir_report If 1, also report directed advertisements where the initiator field is set to a
-     *                           private resolvable address, even if the address did not resolve to an entry in the
-     *                           device identity list. A report will be generated even if the peer is not in the whitelist.
      * @param {Object} options The GAP scanning parameters.
-     *
+     * Available scan parameters:
+     * <ul>
+     * <li>{boolean} active If 1, perform active scanning (scan requests).
+     * <li>{number} interval Scan interval between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
+     * <li>{number} window Scan window between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
+     * <li>{number} timeout Scan timeout between 0x0001 and 0xFFFF in seconds, 0x0000 disables timeout.
+     * <li>{number} use_whitelist If 1, filter advertisers using current active whitelist.
+     * <li>{number} adv_dir_report If 1, also report directed advertisements where the initiator field is set to a
+     *                             private resolvable address, even if the address did not resolve to an entry in the
+     *                             device identity list. A report will be generated even if the peer is not in the whitelist.
+     * </ul>
      * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
@@ -1871,24 +1881,28 @@ class Adapter extends EventEmitter {
      *                                      then this is ignored. If given as a string, 
      *                                      `address.type='BLE_GAP_ADDR_TYPE_RANDOM_STATIC'` by default. Else,
      *                                      an Object with members: { address: {string}, type: {string} } must be given.
-     *
-     * Available options:
-     * - {Object} scanParams:
-     *                - {boolean} active: If 1, perform active scanning (scan requests).
-     *                - {number} interval: Scan interval between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
-     *                - {number} window: Scan window between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
-     *                - {number} timeout: Scan timeout between 0x0001 and 0xFFFF in seconds, 0x0000 disables timeout.
-     *                - {number} use_whitelist: If 1, filter advertisers using current active whitelist.
-     *                - {number} adv_dir_report: If 1, also report directed advertisements where the initiator field is set to a
-     *                                          private resolvable address, even if the address did not resolve to an entry in the
-     *                                          device identity list. A report will be generated even if the peer is not in the whitelist.
-     * - {Object} connParams:
-     *                - {number} min_conn_interval: Minimum Connection Interval in 1.25 ms units.
-     *                - {number} max_conn_interval:  Maximum Connection Interval in 1.25 ms units.
-     *                - {number} slave_latency: Slave Latency in number of connection events.
-     *                - {number} conn_sup_timeout: Connection Supervision Timeout in 10 ms units.
      * @param {Object} options The scan and connection parameters.
-     *
+     * Available options:
+     * <ul>
+     * <li>{Object} scanParams:
+     *                <ul>
+     *                <li>{boolean} active: If 1, perform active scanning (scan requests).
+     *                <li>{number} interval: Scan interval between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
+     *                <li>{number} window: Scan window between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
+     *                <li>{number} timeout: Scan timeout between 0x0001 and 0xFFFF in seconds, 0x0000 disables timeout.
+     *                <li>{number} use_whitelist: If 1, filter advertisers using current active whitelist.
+     *                <li>{number} adv_dir_report: If 1, also report directed advertisements where the initiator field is set to a
+     *                                             private resolvable address, even if the address did not resolve to an entry in the
+     *                                             device identity list. A report will be generated even if the peer is not in the whitelist.
+     *                </ul>
+     * <li>{Object} connParams:
+     *                <ul>
+     *                <li>{number} min_conn_interval: Minimum Connection Interval in 1.25 ms units.
+     *                <li>{number} max_conn_interval:  Maximum Connection Interval in 1.25 ms units.
+     *                <li>{number} slave_latency: Slave Latency in number of connection events.
+     *                <li>{number} conn_sup_timeout: Connection Supervision Timeout in 10 ms units.
+     *                </ul>
+     * </ul>
      * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
@@ -2015,18 +2029,19 @@ class Adapter extends EventEmitter {
      * is active. After a BLE_GAP_EVT_CONNECTED event is received, this function may therefore
      * be called to start a broadcast advertising procedure. The advertising procedure
      * cannot however be connectable (it must be of type BLE_GAP_ADV_TYPE_ADV_SCAN_IND or
-     *  BLE_GAP_ADV_TYPE_ADV_NONCONN_IND).
+     * BLE_GAP_ADV_TYPE_ADV_NONCONN_IND).
      *
      * Only one advertiser may be active at any time.
-     *
-     * Available GAP advertising parameters:
-     * - {number} channelMask: Channel mask for RF channels used in advertising. Default: all channels on.
-     * - {number} interval: GAP Advertising interval. Required: an interval must be provided.
-     * - {number} timeout: Maximum advertising time in limited discoverable mode. Required: a timeout must be provided.
-     * - {boolean} connectable: GAP Advertising type connectable. Default: The device is connectable.
-     * - {boolean} scannable: GAP Advertising type scannable. Default: The device is undirected.
+
      * @param {Object} options GAP advertising parameters.
-     *
+     * Available GAP advertising parameters:
+     * <ul>
+     * <li>{number} channelMask: Channel mask for RF channels used in advertising. Default: all channels on.
+     * <li>{number} interval: GAP Advertising interval. Required: an interval must be provided.
+     * <li>{number} timeout: Maximum advertising time in limited discoverable mode. Required: a timeout must be provided.
+     * <li>{boolean} connectable: GAP Advertising type connectable. Default: The device is connectable.
+     * <li>{boolean} scannable: GAP Advertising type scannable. Default: The device is undirected.
+     * </ul>
      * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
@@ -2139,14 +2154,14 @@ class Adapter extends EventEmitter {
      * will be informed of the result with a `BLE_GAP_EVT_CONN_PARAM_UPDATE` event.
      *
      * @param {string} deviceInstanceId The device's unique Id.
-     *
-     * Available GAP Connection Parameters:
-     * - {number} min_conn_interval: Minimum Connection Interval in 1.25 ms units.
-     * - {number} max_conn_interval:  Maximum Connection Interval in 1.25 ms units.
-     * - {number} slave_latency: Slave Latency in number of connection events.
-     * - {number} conn_sup_timeout: Connection Supervision Timeout in 10 ms units.
      * @param {Object} options GAP Connection Parameters.
-     *
+     * Available GAP Connection Parameters:
+     * <ul>
+     * <li>{number} min_conn_interval: Minimum Connection Interval in 1.25 ms units.
+     * <li>{number} max_conn_interval:  Maximum Connection Interval in 1.25 ms units.
+     * <li>{number} slave_latency: Slave Latency in number of connection events.
+     * <li>{number} conn_sup_timeout: Connection Supervision Timeout in 10 ms units.
+     * </ul>
      * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
@@ -2208,8 +2223,10 @@ class Adapter extends EventEmitter {
      * @summary Start an ATT_MTU exchange by sending an Exchange MTU Request to the server.
      *
      * The SoftDevice sets ATT_MTU to the minimum of:
-     *     - The Client RX MTU value, and
-     *     - The Server RX MTU value from `BLE_GATTC_EVT_EXCHANGE_MTU_RSP`.
+     * <ul>
+     *     <li>The Client RX MTU value, and
+     *     <li>The Server RX MTU value from `BLE_GATTC_EVT_EXCHANGE_MTU_RSP`.
+     * </ul>
      *
      *     However, the SoftDevice never sets ATT_MTU lower than `GATT_MTU_SIZE_DEFAULT` == 23.
      *
@@ -2256,26 +2273,30 @@ class Adapter extends EventEmitter {
      * otherwise in the peripheral role, an SMP Security Request will be sent.
      *
      * @param {string} deviceInstanceId The device's unique Id.
-     *
-     * Available GAP security parameters:
-     * - {boolean} bond Perform bonding.
-     * - {boolean} lesc Enable LE Secure Connection pairing.
-     * - {boolean} keypress Enable generation of keypress notifications.
-     * - {Object} io_caps IO capabilities, see @ref BLE_GAP_IO_CAPS.
-     * - {boolean} oob Out Of Band data available.
-     * - {number} min_key_size Minimum encryption key size in octets between 7 and 16. If 0 then not applicable in this instance.
-     * - {number} max_key_size Maximum encryption key size in octets between min_key_size and 16.
-     * - {Object} kdist_own Key distribution bitmap: keys that the local device will distribute.
-     *                - {boolean} enc Long Term Key and Master Identification.
-     *                - {boolean} id Identity Resolving Key and Identity Address Information.
-     *                - {boolean} sign Connection Signature Resolving Key.
-     *                - {boolean} link Derive the Link Key from the LTK.
-     * - {Object} kdist_peer Key distribution bitmap: keys that the remote device will distribute.
-     *                - ^^ Same as properties as `kdist_own` above. ^^
      * @param {object} secParams The security parameters to be used during the pairing or bonding procedure.
      *                           In the peripheral role, only the bond, mitm, lesc and keypress fields of this Object are used.
      *                           In the central role, this pointer may be NULL to reject a Security Request.
-     *
+     * Available GAP security parameters:
+     * <ul>
+     * <li>{boolean} bond Perform bonding.
+     * <li>{boolean} lesc Enable LE Secure Connection pairing.
+     * <li>{boolean} keypress Enable generation of keypress notifications.
+     * <li>{Object} io_caps IO capabilities, see @ref BLE_GAP_IO_CAPS.
+     * <li>{boolean} oob Out Of Band data available.
+     * <li>{number} min_key_size Minimum encryption key size in octets between 7 and 16. If 0 then not applicable in this instance.
+     * <li>{number} max_key_size Maximum encryption key size in octets between min_key_size and 16.
+     * <li>{Object} kdist_own Key distribution bitmap: keys that the local device will distribute.
+     *                <ul>
+     *                <li>{boolean} enc Long Term Key and Master Identification.
+     *                <li>{boolean} id Identity Resolving Key and Identity Address Information.
+     *                <li>{boolean} sign Connection Signature Resolving Key.
+     *                <li>{boolean} link Derive the Link Key from the LTK.
+     *                </ul>
+     * <li>{Object} kdist_peer Key distribution bitmap: keys that the remote device will distribute.
+     *                <ul>
+     *                <li>^^ Same as properties as `kdist_own` above. ^^
+     *                </ul>
+     * </ul>
      * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
@@ -2318,13 +2339,19 @@ class Adapter extends EventEmitter {
      * @param {Object} secParams Security parameters object. In the central role this must be set to null, as the parameters have
      *                           already been provided during a previous call to `this.authenticate()`.
      * @param {Object} secKeyset security key set object.
-     *            - {Object} kdist_own Key distribution bitmap: keys that the local device will distribute.
-     *                - {boolean} enc Long Term Key and Master Identification.
-     *                - {boolean} id Identity Resolving Key and Identity Address Information.
-     *                - {boolean} sign Connection Signature Resolving Key.
-     *                - {boolean} link Derive the Link Key from the LTK.
-     *            - {Object} kdist_peer Key distribution bitmap: keys that the remote device will distribute.
-     *                - ^^ Same as properties as `kdist_own` above. ^^
+     * <ul>
+     *            <li>{Object} kdist_own Key distribution bitmap: keys that the local device will distribute.
+     *                <ul>
+     *                <li>{boolean} enc Long Term Key and Master Identification.
+     *                <li>{boolean} id Identity Resolving Key and Identity Address Information.
+     *                <li>{boolean} sign Connection Signature Resolving Key.
+     *                <li>{boolean} link Derive the Link Key from the LTK.
+     *                </ul>
+     *            <li>{Object} kdist_peer Key distribution bitmap: keys that the remote device will distribute.
+     *                <ul>
+     *                <li>^^ Same as properties as `kdist_own` above. ^^
+     *                </ul>
+     * </ul>
      * @param {function(Error, Object)} [callback] Callback signature: (err, secKeyset) => {} where `secKeyset` is a
      *                                           security key set object as described above.
      * @returns {void}
