@@ -1,4 +1,32 @@
-/* Copyright (c) 2016, Nordic Semiconductor ASA
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: adapter.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: adapter.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* Copyright (c) 2016, Nordic Semiconductor ASA
  *
  * All rights reserved.
  *
@@ -277,17 +305,17 @@ class Adapter extends EventEmitter {
      *
      * @param {Object} options Options to initialize/open this adapter with.
      * Available adapter open options:
-     * <ul>
-     * <li>{number} [baudRate=115200]: The baud rate this adapter's serial port should be configured with.
-     * <li>{string} [parity='none']: The parity this adapter's serial port should be configured with.
-     * <li>{string} [flowControl='none']: Whether flow control should be configured with this adapter's serial port.
-     * <li>{number} [eventInterval=0]: Interval to use for sending BLE driver events to JavaScript.
+     * &lt;ul>
+     * &lt;li>{number} [baudRate=115200]: The baud rate this adapter's serial port should be configured with.
+     * &lt;li>{string} [parity='none']: The parity this adapter's serial port should be configured with.
+     * &lt;li>{string} [flowControl='none']: Whether flow control should be configured with this adapter's serial port.
+     * &lt;li>{number} [eventInterval=0]: Interval to use for sending BLE driver events to JavaScript.
      *                                 If `0`, events will be sent as soon as they are received from the BLE driver.
-     * <li>{string} [logLevel='info']: The verbosity of logging the developer wants with this adapter.
-     * <li>{number} [retransmissionInterval=100]: The time interval to wait between retransmitted packets.
-     * <li>{number} [responseTimeout=750]: Response timeout of the data link layer.
-     * <li>{boolean} [enableBLE=true]: Whether the BLE stack should be initialized and enabled.
-     * </ul>
+     * &lt;li>{string} [logLevel='info']: The verbosity of logging the developer wants with this adapter.
+     * &lt;li>{number} [retransmissionInterval=100]: The time interval to wait between retransmitted packets.
+     * &lt;li>{number} [responseTimeout=750]: Response timeout of the data link layer.
+     * &lt;li>{boolean} [enableBLE=true]: Whether the BLE stack should be initialized and enabled.
+     * &lt;/ul>
      * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
@@ -377,30 +405,30 @@ class Adapter extends EventEmitter {
      * @param {Object} [options] BLE Initialization parameters. If `undefined` or `null` the BLE stack will be
      *                           initialized with default options (see code for `enableBLE()` below for default values).
      * Available BLE enable parameters:
-     * <ul>
-     * <li>{Object} gap_enable_params: GAP init parameters
-     *                <ul>
-     *                <li>{number} periph_conn_count: Number of connections acting as a peripheral.
-     *                <li>{number} central_conn_count: Number of connections acting as a central.
-     *                <li>{number} central_sec_count: Number of SMP instances for all connections acting as a central.
-     *                </ul>
-     * <li>{Object} gatts_enable_params: GATTS init parameters
-     *                <ul>
-     *                <li>{boolean} service_changed: Include the Service Changed characteristic in the Attribute Table.
-     *                <li>{number} attr_tab_size: Attribute Table size in bytes. The size must be a multiple of 4.
-     *                </ul>
-     * <li>{Object} common_enable_params: Common init parameters
-     *                <ul>
-     *                <li>{null|number} conn_bw_counts: Bandwidth configuration parameters or null for defaults.
-     *                <li>{number} vs_uuid_count: Maximum number of 128-bit, Vendor Specific UUID bases to allocate.
-     *                </ul>
-     * <li>{Object} gatt_enable_params: GATT init parameters
-     *                <ul>
-     *                <li>{number} att_mtu: Maximum size of ATT packet the SoftDevice can send or receive.
+     * &lt;ul>
+     * &lt;li>{Object} gap_enable_params: GAP init parameters
+     *                &lt;ul>
+     *                &lt;li>{number} periph_conn_count: Number of connections acting as a peripheral.
+     *                &lt;li>{number} central_conn_count: Number of connections acting as a central.
+     *                &lt;li>{number} central_sec_count: Number of SMP instances for all connections acting as a central.
+     *                &lt;/ul>
+     * &lt;li>{Object} gatts_enable_params: GATTS init parameters
+     *                &lt;ul>
+     *                &lt;li>{boolean} service_changed: Include the Service Changed characteristic in the Attribute Table.
+     *                &lt;li>{number} attr_tab_size: Attribute Table size in bytes. The size must be a multiple of 4.
+     *                &lt;/ul>
+     * &lt;li>{Object} common_enable_params: Common init parameters
+     *                &lt;ul>
+     *                &lt;li>{null|number} conn_bw_counts: Bandwidth configuration parameters or null for defaults.
+     *                &lt;li>{number} vs_uuid_count: Maximum number of 128-bit, Vendor Specific UUID bases to allocate.
+     *                &lt;/ul>
+     * &lt;li>{Object} gatt_enable_params: GATT init parameters
+     *                &lt;ul>
+     *                &lt;li>{number} att_mtu: Maximum size of ATT packet the SoftDevice can send or receive.
      *                                      If it is 0 then @ref GATT_MTU_SIZE_DEFAULT will be used.
      *                                      Otherwise @ref GATT_MTU_SIZE_DEFAULT is the minimum value.
-     *                </ul>
-     * </ul>
+     *                &lt;/ul>
+     * &lt;/ul>
      * @param {function(Error, Object, number)} [callback] Callback signature: (err, parameters, app_ram_base) => {}
      *                                                   where `parameters` is the BLE initialization parameters as
      *                                                   described above and `app_ram_base` is the minimum start address 
@@ -986,7 +1014,7 @@ class Adapter extends EventEmitter {
         const nextStartHandle = characteristics[characteristics.length - 1].handle_decl + 1;
         const handleRange = { start_handle: nextStartHandle, end_handle: service.endHandle };
 
-        if (service.endHandle <= nextStartHandle) {
+        if (service.endHandle &lt;= nextStartHandle) {
             finishCharacteristicDiscovery();
             return;
         }
@@ -1084,7 +1112,7 @@ class Adapter extends EventEmitter {
         const service = this._services[gattOperation.parent.serviceInstanceId];
         const nextStartHandle = descriptors[descriptors.length - 1].handle + 1;
 
-        if (service.endHandle < nextStartHandle) {
+        if (service.endHandle &lt; nextStartHandle) {
             finishDescriptorDiscovery();
             return;
         }
@@ -1102,7 +1130,7 @@ class Adapter extends EventEmitter {
         const data = event.data;
         const gattOperation = this._gattOperationsMap[device.instanceId];
 
-        if (gattOperation && gattOperation.pendingHandleReads && !_.isEmpty(gattOperation.pendingHandleReads)) {
+        if (gattOperation &amp;&amp; gattOperation.pendingHandleReads &amp;&amp; !_.isEmpty(gattOperation.pendingHandleReads)) {
             const pendingHandleReads = gattOperation.pendingHandleReads;
             const attribute = pendingHandleReads[handle];
 
@@ -1152,7 +1180,7 @@ class Adapter extends EventEmitter {
                     attribute.value = data;
                 }
 
-                if (attribute.uuid && attribute.value) {
+                if (attribute.uuid &amp;&amp; attribute.value) {
                     this.emit('characteristicAdded', attribute);
                 }
 
@@ -1171,7 +1199,7 @@ class Adapter extends EventEmitter {
             } else if (attribute instanceof Descriptor) {
                 attribute.value = data;
 
-                if (attribute.uuid && attribute.value) {
+                if (attribute.uuid &amp;&amp; attribute.value) {
                     this.emit('descriptorAdded', attribute);
                 }
 
@@ -1210,7 +1238,7 @@ class Adapter extends EventEmitter {
 
             gattOperation.readBytes = gattOperation.readBytes ? gattOperation.readBytes.concat(event.data) : event.data;
 
-            if (event.data.length < this._maxReadPayloadSize(device.instanceId)) {
+            if (event.data.length &lt; this._maxReadPayloadSize(device.instanceId)) {
                 delete this._gattOperationsMap[device.instanceId];
                 gattOperation.callback(undefined, gattOperation.readBytes);
             } else if (event.data.length === this._maxReadPayloadSize(device.instanceId)) {
@@ -1263,7 +1291,7 @@ class Adapter extends EventEmitter {
                 value: [],
             };
 
-            if (gattOperation.bytesWritten < gattOperation.value.length) {
+            if (gattOperation.bytesWritten &lt; gattOperation.value.length) {
                 const value = gattOperation.value.slice(gattOperation.bytesWritten, gattOperation.bytesWritten + this._maxLongWritePayloadSize(device.instanceId));
 
                 writeParameters.write_op = this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ;
@@ -1322,7 +1350,7 @@ class Adapter extends EventEmitter {
                 continue;
             }
 
-            if (service.startHandle <= handle && (!foundService || foundService.startHandle <= service.startHandle)) {
+            if (service.startHandle &lt;= handle &amp;&amp; (!foundService || foundService.startHandle &lt;= service.startHandle)) {
                 foundService = service;
             }
         }
@@ -1342,7 +1370,7 @@ class Adapter extends EventEmitter {
                 continue;
             }
 
-            if (characteristic.declarationHandle <= handle && (!foundCharacteristic || foundCharacteristic.declarationHandle < characteristic.declarationHandle)) {
+            if (characteristic.declarationHandle &lt;= handle &amp;&amp; (!foundCharacteristic || foundCharacteristic.declarationHandle &lt; characteristic.declarationHandle)) {
                 foundCharacteristic = characteristic;
             }
         }
@@ -1351,7 +1379,7 @@ class Adapter extends EventEmitter {
     }
 
     _getCharacteristicByValueHandle(devinceInstanceId, valueHandle) {
-        return _.find(this._characteristics, characteristic => this._services[characteristic.serviceInstanceId].deviceInstanceId === devinceInstanceId && characteristic.valueHandle === valueHandle);
+        return _.find(this._characteristics, characteristic => this._services[characteristic.serviceInstanceId].deviceInstanceId === devinceInstanceId &amp;&amp; characteristic.valueHandle === valueHandle);
     }
 
     _getDescriptorByHandle(deviceInstanceId, handle) {
@@ -1420,7 +1448,7 @@ class Adapter extends EventEmitter {
             this.emit('attMtuChanged', device, newMtu);
         }
 
-        if (gattOperation && gattOperation.callback) {
+        if (gattOperation &amp;&amp; gattOperation.callback) {
 
             gattOperation.callback(null, newMtu);
 
@@ -1451,7 +1479,7 @@ class Adapter extends EventEmitter {
 
         if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ ||
             event.op === this._bleDriver.BLE_GATTS_OP_WRITE_CMD) {
-            if (this._instanceIdIsOnLocalDevice(attribute.instanceId) && this._isCCCDDescriptor(attribute.instanceId)) {
+            if (this._instanceIdIsOnLocalDevice(attribute.instanceId) &amp;&amp; this._isCCCDDescriptor(attribute.instanceId)) {
                 this._setDescriptorValue(attribute, event.data, device.instanceId);
                 this._emitAttributeValueChanged(attribute);
             } else {
@@ -1765,7 +1793,7 @@ class Adapter extends EventEmitter {
     }
 
     _setAppearanceFromArray(valueArray, callback) {
-        const appearanceValue = valueArray[0] + (valueArray[1] << 8);
+        const appearanceValue = valueArray[0] + (valueArray[1] &lt;&lt; 8);
         this._setAppearance(appearanceValue, callback);
     }
 
@@ -1782,10 +1810,10 @@ class Adapter extends EventEmitter {
     _setPPCPFromArray(valueArray, callback) {
         // TODO: Fix addon parameter check to also accept arrays? Atleast avoid converting twice
         const ppcpParameter = {
-            min_conn_interval: (valueArray[0] + (valueArray[1] << 8)) * (1250 / 1000),
-            max_conn_interval: (valueArray[2] + (valueArray[3] << 8)) * (1250 / 1000),
-            slave_latency: (valueArray[4] + (valueArray[5] << 8)),
-            conn_sup_timeout: (valueArray[6] + (valueArray[7] << 8)) * (10000 / 1000),
+            min_conn_interval: (valueArray[0] + (valueArray[1] &lt;&lt; 8)) * (1250 / 1000),
+            max_conn_interval: (valueArray[2] + (valueArray[3] &lt;&lt; 8)) * (1250 / 1000),
+            slave_latency: (valueArray[4] + (valueArray[5] &lt;&lt; 8)),
+            conn_sup_timeout: (valueArray[6] + (valueArray[7] &lt;&lt; 8)) * (10000 / 1000),
         };
 
         this._setPPCP(ppcpParameter, callback);
@@ -1828,16 +1856,16 @@ class Adapter extends EventEmitter {
      *
      * @param {Object} options The GAP scanning parameters.
      * Available scan parameters:
-     * <ul>
-     * <li>{boolean} active If 1, perform active scanning (scan requests).
-     * <li>{number} interval Scan interval between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
-     * <li>{number} window Scan window between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
-     * <li>{number} timeout Scan timeout between 0x0001 and 0xFFFF in seconds, 0x0000 disables timeout.
-     * <li>{number} use_whitelist If 1, filter advertisers using current active whitelist.
-     * <li>{number} adv_dir_report If 1, also report directed advertisements where the initiator field is set to a
+     * &lt;ul>
+     * &lt;li>{boolean} active If 1, perform active scanning (scan requests).
+     * &lt;li>{number} interval Scan interval between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
+     * &lt;li>{number} window Scan window between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
+     * &lt;li>{number} timeout Scan timeout between 0x0001 and 0xFFFF in seconds, 0x0000 disables timeout.
+     * &lt;li>{number} use_whitelist If 1, filter advertisers using current active whitelist.
+     * &lt;li>{number} adv_dir_report If 1, also report directed advertisements where the initiator field is set to a
      *                             private resolvable address, even if the address did not resolve to an entry in the
      *                             device identity list. A report will be generated even if the peer is not in the whitelist.
-     * </ul>
+     * &lt;/ul>
      * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
@@ -1883,26 +1911,26 @@ class Adapter extends EventEmitter {
      *                                      an Object with members: { address: {string}, type: {string} } must be given.
      * @param {Object} options The scan and connection parameters.
      * Available options:
-     * <ul>
-     * <li>{Object} scanParams:
-     *                <ul>
-     *                <li>{boolean} active: If 1, perform active scanning (scan requests).
-     *                <li>{number} interval: Scan interval between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
-     *                <li>{number} window: Scan window between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
-     *                <li>{number} timeout: Scan timeout between 0x0001 and 0xFFFF in seconds, 0x0000 disables timeout.
-     *                <li>{number} use_whitelist: If 1, filter advertisers using current active whitelist.
-     *                <li>{number} adv_dir_report: If 1, also report directed advertisements where the initiator field is set to a
+     * &lt;ul>
+     * &lt;li>{Object} scanParams:
+     *                &lt;ul>
+     *                &lt;li>{boolean} active: If 1, perform active scanning (scan requests).
+     *                &lt;li>{number} interval: Scan interval between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
+     *                &lt;li>{number} window: Scan window between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
+     *                &lt;li>{number} timeout: Scan timeout between 0x0001 and 0xFFFF in seconds, 0x0000 disables timeout.
+     *                &lt;li>{number} use_whitelist: If 1, filter advertisers using current active whitelist.
+     *                &lt;li>{number} adv_dir_report: If 1, also report directed advertisements where the initiator field is set to a
      *                                             private resolvable address, even if the address did not resolve to an entry in the
      *                                             device identity list. A report will be generated even if the peer is not in the whitelist.
-     *                </ul>
-     * <li>{Object} connParams:
-     *                <ul>
-     *                <li>{number} min_conn_interval: Minimum Connection Interval in 1.25 ms units.
-     *                <li>{number} max_conn_interval:  Maximum Connection Interval in 1.25 ms units.
-     *                <li>{number} slave_latency: Slave Latency in number of connection events.
-     *                <li>{number} conn_sup_timeout: Connection Supervision Timeout in 10 ms units.
-     *                </ul>
-     * </ul>
+     *                &lt;/ul>
+     * &lt;li>{Object} connParams:
+     *                &lt;ul>
+     *                &lt;li>{number} min_conn_interval: Minimum Connection Interval in 1.25 ms units.
+     *                &lt;li>{number} max_conn_interval:  Maximum Connection Interval in 1.25 ms units.
+     *                &lt;li>{number} slave_latency: Slave Latency in number of connection events.
+     *                &lt;li>{number} conn_sup_timeout: Connection Supervision Timeout in 10 ms units.
+     *                &lt;/ul>
+     * &lt;/ul>
      * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
@@ -2035,13 +2063,13 @@ class Adapter extends EventEmitter {
 
      * @param {Object} options GAP advertising parameters.
      * Available GAP advertising parameters:
-     * <ul>
-     * <li>{number} channelMask: Channel mask for RF channels used in advertising. Default: all channels on.
-     * <li>{number} interval: GAP Advertising interval. Required: an interval must be provided.
-     * <li>{number} timeout: Maximum advertising time in limited discoverable mode. Required: a timeout must be provided.
-     * <li>{boolean} connectable: GAP Advertising type connectable. Default: The device is connectable.
-     * <li>{boolean} scannable: GAP Advertising type scannable. Default: The device is undirected.
-     * </ul>
+     * &lt;ul>
+     * &lt;li>{number} channelMask: Channel mask for RF channels used in advertising. Default: all channels on.
+     * &lt;li>{number} interval: GAP Advertising interval. Required: an interval must be provided.
+     * &lt;li>{number} timeout: Maximum advertising time in limited discoverable mode. Required: a timeout must be provided.
+     * &lt;li>{boolean} connectable: GAP Advertising type connectable. Default: The device is connectable.
+     * &lt;li>{boolean} scannable: GAP Advertising type scannable. Default: The device is undirected.
+     * &lt;/ul>
      * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
@@ -2156,12 +2184,12 @@ class Adapter extends EventEmitter {
      * @param {string} deviceInstanceId The device's unique Id.
      * @param {Object} options GAP Connection Parameters.
      * Available GAP Connection Parameters:
-     * <ul>
-     * <li>{number} min_conn_interval: Minimum Connection Interval in 1.25 ms units.
-     * <li>{number} max_conn_interval:  Maximum Connection Interval in 1.25 ms units.
-     * <li>{number} slave_latency: Slave Latency in number of connection events.
-     * <li>{number} conn_sup_timeout: Connection Supervision Timeout in 10 ms units.
-     * </ul>
+     * &lt;ul>
+     * &lt;li>{number} min_conn_interval: Minimum Connection Interval in 1.25 ms units.
+     * &lt;li>{number} max_conn_interval:  Maximum Connection Interval in 1.25 ms units.
+     * &lt;li>{number} slave_latency: Slave Latency in number of connection events.
+     * &lt;li>{number} conn_sup_timeout: Connection Supervision Timeout in 10 ms units.
+     * &lt;/ul>
      * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
@@ -2223,10 +2251,10 @@ class Adapter extends EventEmitter {
      * @summary Start an ATT_MTU exchange by sending an Exchange MTU Request to the server.
      *
      * The SoftDevice sets ATT_MTU to the minimum of:
-     * <ul>
-     *     <li>The Client RX MTU value, and
-     *     <li>The Server RX MTU value from `BLE_GATTC_EVT_EXCHANGE_MTU_RSP`.
-     * </ul>
+     * &lt;ul>
+     *     &lt;li>The Client RX MTU value, and
+     *     &lt;li>The Server RX MTU value from `BLE_GATTC_EVT_EXCHANGE_MTU_RSP`.
+     * &lt;/ul>
      *
      *     However, the SoftDevice never sets ATT_MTU lower than `GATT_MTU_SIZE_DEFAULT` == 23.
      *
@@ -2237,7 +2265,7 @@ class Adapter extends EventEmitter {
      * @returns {void}
      */
      requestAttMtu(deviceInstanceId, mtu, callback) {
-        if (this._bleDriver.NRF_SD_BLE_API_VERSION <= 2) {
+        if (this._bleDriver.NRF_SD_BLE_API_VERSION &lt;= 2) {
             if (callback) callback(null, this._bleDriver.GATT_MTU_SIZE_DEFAULT);
             return;
         }
@@ -2277,26 +2305,26 @@ class Adapter extends EventEmitter {
      *                           In the peripheral role, only the bond, mitm, lesc and keypress fields of this Object are used.
      *                           In the central role, this pointer may be NULL to reject a Security Request.
      * Available GAP security parameters:
-     * <ul>
-     * <li>{boolean} bond Perform bonding.
-     * <li>{boolean} lesc Enable LE Secure Connection pairing.
-     * <li>{boolean} keypress Enable generation of keypress notifications.
-     * <li>{Object} io_caps IO capabilities, see @ref BLE_GAP_IO_CAPS.
-     * <li>{boolean} oob Out Of Band data available.
-     * <li>{number} min_key_size Minimum encryption key size in octets between 7 and 16. If 0 then not applicable in this instance.
-     * <li>{number} max_key_size Maximum encryption key size in octets between min_key_size and 16.
-     * <li>{Object} kdist_own Key distribution bitmap: keys that the local device will distribute.
-     *                <ul>
-     *                <li>{boolean} enc Long Term Key and Master Identification.
-     *                <li>{boolean} id Identity Resolving Key and Identity Address Information.
-     *                <li>{boolean} sign Connection Signature Resolving Key.
-     *                <li>{boolean} link Derive the Link Key from the LTK.
-     *                </ul>
-     * <li>{Object} kdist_peer Key distribution bitmap: keys that the remote device will distribute.
-     *                <ul>
-     *                <li>^^ Same as properties as `kdist_own` above. ^^
-     *                </ul>
-     * </ul>
+     * &lt;ul>
+     * &lt;li>{boolean} bond Perform bonding.
+     * &lt;li>{boolean} lesc Enable LE Secure Connection pairing.
+     * &lt;li>{boolean} keypress Enable generation of keypress notifications.
+     * &lt;li>{Object} io_caps IO capabilities, see @ref BLE_GAP_IO_CAPS.
+     * &lt;li>{boolean} oob Out Of Band data available.
+     * &lt;li>{number} min_key_size Minimum encryption key size in octets between 7 and 16. If 0 then not applicable in this instance.
+     * &lt;li>{number} max_key_size Maximum encryption key size in octets between min_key_size and 16.
+     * &lt;li>{Object} kdist_own Key distribution bitmap: keys that the local device will distribute.
+     *                &lt;ul>
+     *                &lt;li>{boolean} enc Long Term Key and Master Identification.
+     *                &lt;li>{boolean} id Identity Resolving Key and Identity Address Information.
+     *                &lt;li>{boolean} sign Connection Signature Resolving Key.
+     *                &lt;li>{boolean} link Derive the Link Key from the LTK.
+     *                &lt;/ul>
+     * &lt;li>{Object} kdist_peer Key distribution bitmap: keys that the remote device will distribute.
+     *                &lt;ul>
+     *                &lt;li>^^ Same as properties as `kdist_own` above. ^^
+     *                &lt;/ul>
+     * &lt;/ul>
      * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
      */
@@ -2339,19 +2367,19 @@ class Adapter extends EventEmitter {
      * @param {Object} secParams Security parameters object. In the central role this must be set to null, as the parameters have
      *                           already been provided during a previous call to `this.authenticate()`.
      * @param {Object} secKeyset security key set object.
-     * <ul>
-     *            <li>{Object} kdist_own Key distribution bitmap: keys that the local device will distribute.
-     *                <ul>
-     *                <li>{boolean} enc Long Term Key and Master Identification.
-     *                <li>{boolean} id Identity Resolving Key and Identity Address Information.
-     *                <li>{boolean} sign Connection Signature Resolving Key.
-     *                <li>{boolean} link Derive the Link Key from the LTK.
-     *                </ul>
-     *            <li>{Object} kdist_peer Key distribution bitmap: keys that the remote device will distribute.
-     *                <ul>
-     *                <li>^^ Same as properties as `kdist_own` above. ^^
-     *                </ul>
-     * </ul>
+     * &lt;ul>
+     *            &lt;li>{Object} kdist_own Key distribution bitmap: keys that the local device will distribute.
+     *                &lt;ul>
+     *                &lt;li>{boolean} enc Long Term Key and Master Identification.
+     *                &lt;li>{boolean} id Identity Resolving Key and Identity Address Information.
+     *                &lt;li>{boolean} sign Connection Signature Resolving Key.
+     *                &lt;li>{boolean} link Derive the Link Key from the LTK.
+     *                &lt;/ul>
+     *            &lt;li>{Object} kdist_peer Key distribution bitmap: keys that the remote device will distribute.
+     *                &lt;ul>
+     *                &lt;li>^^ Same as properties as `kdist_own` above. ^^
+     *                &lt;/ul>
+     * &lt;/ul>
      * @param {function(Error, Object)} [callback] Callback signature: (err, secKeyset) => {} where `secKeyset` is a
      *                                           security key set object as described above.
      * @returns {void}
@@ -2398,7 +2426,7 @@ class Adapter extends EventEmitter {
         }
 
         // If the key is a string we split it into an array before we call gapReplyAuthKey
-        if (key && key.constructor === String) {
+        if (key &amp;&amp; key.constructor === String) {
             key = Array.from(key);
         }
 
@@ -2606,7 +2634,7 @@ class Adapter extends EventEmitter {
                     if (err) {
                         // If the UUID is not found it is a 128-bit UUID
                         // so we have to add it to the SD and try again
-                        if (err.errno === this._bleDriver.NRF_ERROR_NOT_FOUND && length === 16) {
+                        if (err.errno === this._bleDriver.NRF_ERROR_NOT_FOUND &amp;&amp; length === 16) {
                             this._adapter.addVendorspecificUUID(
                                 { uuid128: uuid },
                                 (err, type) => {
@@ -2981,7 +3009,7 @@ class Adapter extends EventEmitter {
     _addDeviceToAllPerConnectionValues(deviceId) {
         for (const descriptorInstanceId in this._descriptors) {
             const descriptor = this._descriptors[descriptorInstanceId];
-            if (this._instanceIdIsOnLocalDevice(descriptorInstanceId) &&
+            if (this._instanceIdIsOnLocalDevice(descriptorInstanceId) &amp;&amp;
                 this._isDescriptorPerConnectionBased(descriptor)) {
                 this._setDescriptorValue(descriptor, [0, 0], deviceId);
                 this.emit('descriptorValueChanged', descriptor);
@@ -2992,7 +3020,7 @@ class Adapter extends EventEmitter {
     _clearDeviceFromAllPerConnectionValues(deviceId) {
         for (const descriptorInstanceId in this._descriptors) {
             const descriptor = this._descriptors[descriptorInstanceId];
-            if (this._instanceIdIsOnLocalDevice(descriptorInstanceId) &&
+            if (this._instanceIdIsOnLocalDevice(descriptorInstanceId) &amp;&amp;
                 this._isDescriptorPerConnectionBased(descriptor)) {
                 delete descriptor.value[deviceId];
                 this.emit('descriptorValueChanged', descriptor);
@@ -3001,9 +3029,9 @@ class Adapter extends EventEmitter {
     }
 
     _clearDeviceFromDiscoveredServices(deviceId) {
-        this._services = this._filterObject(this._services, value => value.indexOf(deviceId) < 0);
-        this._characteristics = this._filterObject(this._characteristics, value => value.indexOf(deviceId) < 0);
-        this._descriptors = this._filterObject(this._descriptors, value => value.indexOf(deviceId) < 0);
+        this._services = this._filterObject(this._services, value => value.indexOf(deviceId) &lt; 0);
+        this._characteristics = this._filterObject(this._characteristics, value => value.indexOf(deviceId) &lt; 0);
+        this._descriptors = this._filterObject(this._descriptors, value => value.indexOf(deviceId) &lt; 0);
     }
 
     _filterObject(collection, predicate) {
@@ -3262,14 +3290,14 @@ class Adapter extends EventEmitter {
 
     _isCCCDDescriptor(descriptorId) {
         const descriptor = this._descriptors[descriptorId];
-        return descriptor &&
+        return descriptor &amp;&amp;
             ((descriptor.uuid === '0000290200001000800000805F9B34FB') ||
                 (descriptor.uuid === '2902'));
     }
 
     _getCCCDOfCharacteristic(characteristicId) {
         return _.find(this._descriptors, descriptor => {
-            return (descriptor.characteristicInstanceId === characteristicId) &&
+            return (descriptor.characteristicInstanceId === characteristicId) &amp;&amp;
                 (this._isCCCDDescriptor(descriptor.instanceId));
         });
     }
@@ -3397,7 +3425,7 @@ class Adapter extends EventEmitter {
         const tryWrite = () => {
             this._adapter.gattcWrite(connectionHandle, writeParameters, err => {
                 if (err) {
-                    if (err.errno === BLE_ERROR_NO_TX_PACKETS && attempts++ <= MAX_ATTEMPTS) {
+                    if (err.errno === BLE_ERROR_NO_TX_PACKETS &amp;&amp; attempts++ &lt;= MAX_ATTEMPTS) {
                         setTimeout(() => tryWrite(), RETRY_DELAY);
                     } else {
                         if (callback) callback(err);
@@ -3411,8 +3439,8 @@ class Adapter extends EventEmitter {
     }
 
     _longWrite(device, attribute, value, callback) {
-        if (value.length < this._maxShortWritePayloadSize(device.instanceId)) {
-            throw new Error('Wrong write method. Use regular write for payload sizes < ' + this._maxShortWritePayloadSize(device.instanceId));
+        if (value.length &lt; this._maxShortWritePayloadSize(device.instanceId)) {
+            throw new Error('Wrong write method. Use regular write for payload sizes &lt; ' + this._maxShortWritePayloadSize(device.instanceId));
         }
 
         const writeParameters = {
@@ -3459,8 +3487,8 @@ class Adapter extends EventEmitter {
     }
 
     _sendingNotificationsAndIndicationsComplete() {
-        return this._pendingNotificationsAndIndications.sentAllNotificationsAndIndications &&
-            this._pendingNotificationsAndIndications.remainingNotificationCallbacks === 0 &&
+        return this._pendingNotificationsAndIndications.sentAllNotificationsAndIndications &amp;&amp;
+            this._pendingNotificationsAndIndications.remainingNotificationCallbacks === 0 &amp;&amp;
             this._pendingNotificationsAndIndications.remainingIndicationConfirmations === 0;
     }
 
@@ -3533,8 +3561,8 @@ class Adapter extends EventEmitter {
 
             for (let deviceInstanceId in this._devices) {
                 const cccdValue = cccdDescriptor.value[deviceInstanceId][0];
-                const sendIndication = cccdValue & 2;
-                const sendNotification = !sendIndication && (cccdValue & 1);
+                const sendIndication = cccdValue &amp; 2;
+                const sendNotification = !sendIndication &amp;&amp; (cccdValue &amp; 1);
 
                 if (sendNotification || sendIndication) {
                     const device = this._devices[deviceInstanceId];
@@ -3699,3 +3727,26 @@ class Adapter extends EventEmitter {
 }
 
 module.exports = Adapter;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="AdapterFactory.html">AdapterFactory</a></li><li><a href="AdapterState.html">AdapterState</a></li><li><a href="Characteristic.html">Characteristic</a></li><li><a href="Descriptor.html">Descriptor</a></li><li><a href="Device.html">Device</a></li><li><a href="Dfu.html">Dfu</a></li><li><a href="Error.html">Error</a></li><li><a href="Security.html">Security</a></li><li><a href="Service.html">Service</a></li><li><a href="ServiceFactory.html">ServiceFactory</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Enumeration">Enumeration</a></li><li><a href="global.html#Update">Update</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue Mar 14 2017 11:35:00 GMT-0500 (CDT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

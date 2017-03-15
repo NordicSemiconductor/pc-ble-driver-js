@@ -1,4 +1,32 @@
-/* Copyright (c) 2016, Nordic Semiconductor ASA
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: serviceFactory.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: serviceFactory.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* Copyright (c) 2016, Nordic Semiconductor ASA
  *
  * All rights reserved.
  *
@@ -67,28 +95,28 @@ class ServiceFactory {
      * @param {array} value The initial value of this characteristic.
      * @param {Object} properties This GATT characteristic's metadata.
      * Available characteristic properties:
-     *  <ul>
-     *  <li>{boolean} broadcast: Broadcasting of the value permitted.
-     *  <li>{boolean} read: Reading the value permitted.
-     *  <li>{boolean} write: Writing the value with Write Request permitted.
-     *  <li>{boolean} writeWoResp: Writing the value with Write Command permitted.
-     *  <li>{boolean} reliableWrite: Writing the value with Queued Write operations permitted.
-     *  <li>{boolean} notify: Notications of the value permitted.
-     *  <li>{boolean} indicate: Indications of the value permitted.
-     *  <li>{boolean} authSignedWr: Writing the value with Signed Write Command permitted.
-     *  <li>{boolean} wrAux: Writing the Characteristic User Description descriptor permitted.
-     *  </ul>
+     *  &lt;ul>
+     *  &lt;li>{boolean} broadcast: Broadcasting of the value permitted.
+     *  &lt;li>{boolean} read: Reading the value permitted.
+     *  &lt;li>{boolean} write: Writing the value with Write Request permitted.
+     *  &lt;li>{boolean} writeWoResp: Writing the value with Write Command permitted.
+     *  &lt;li>{boolean} reliableWrite: Writing the value with Queued Write operations permitted.
+     *  &lt;li>{boolean} notify: Notications of the value permitted.
+     *  &lt;li>{boolean} indicate: Indications of the value permitted.
+     *  &lt;li>{boolean} authSignedWr: Writing the value with Signed Write Command permitted.
+     *  &lt;li>{boolean} wrAux: Writing the Characteristic User Description descriptor permitted.
+     *  &lt;/ul>
      * @param {Object} options This GATT characteristic's attribute's metadata.
      * Available characteristic options:
-     *  <ul>
-     *  <li>{string} readPerm: Read permissions.
-     *  <li>{string} writePerm: Write permissions.
-     *  <li>{boolean} variableLength: Variable length attribute.
-     *  <li>{number} maxLength: Maximum attribute value length in bytes, see ref BLE_GATTS_ATTR_LENS_MAX for maximum values.
-     *  <li>{boolean} readAuth: Read authorization and value will be requested from the application on every read operation.
-     *  <li>{boolean} writeAuth: Write authorization will be requested from the application on every Write Request operation (but not Write Command).
-     *  <li>Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
-     *  </ul>
+     *  &lt;ul>
+     *  &lt;li>{string} readPerm: Read permissions.
+     *  &lt;li>{string} writePerm: Write permissions.
+     *  &lt;li>{boolean} variableLength: Variable length attribute.
+     *  &lt;li>{number} maxLength: Maximum attribute value length in bytes, see ref BLE_GATTS_ATTR_LENS_MAX for maximum values.
+     *  &lt;li>{boolean} readAuth: Read authorization and value will be requested from the application on every read operation.
+     *  &lt;li>{boolean} writeAuth: Write authorization will be requested from the application on every Write Request operation (but not Write Command).
+     *  &lt;li>Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
+     *  &lt;/ul>
      * @returns {Characteristic} A newly created `Characteristic` instance.
      */
     createCharacteristic(service, uuid, value, properties, options) {
@@ -116,15 +144,15 @@ class ServiceFactory {
      * @param {array} value The initial value of this descriptor.
      * @param {Object} options This GATT descriptor's attribute's metadata.
      * Available descriptor options:
-     * <ul>
-     * <li>{string} readPerm: Read permissions.
-     * <li>{string} writePerm: Write permissions.
-     * <li>{boolean} variableLength: Variable length attribute.
-     * <li>{number} maxLength: Maximum attribute value length in bytes, see ref BLE_GATTS_ATTR_LENS_MAX for maximum values.
-     * <li>{boolean} readAuth: Read authorization and value will be requested from the application on every read operation.
-     * <li>{boolean} writeAuth: Write authorization will be requested from the application on every Write Request operation (but not Write Command).
-     * <li>Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
-     * </ul>
+     * &lt;ul>
+     * &lt;li>{string} readPerm: Read permissions.
+     * &lt;li>{string} writePerm: Write permissions.
+     * &lt;li>{boolean} variableLength: Variable length attribute.
+     * &lt;li>{number} maxLength: Maximum attribute value length in bytes, see ref BLE_GATTS_ATTR_LENS_MAX for maximum values.
+     * &lt;li>{boolean} readAuth: Read authorization and value will be requested from the application on every read operation.
+     * &lt;li>{boolean} writeAuth: Write authorization will be requested from the application on every Write Request operation (but not Write Command).
+     * &lt;li>Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
+     * &lt;/ul>
      * @returns {Descriptor} A newly created `Descriptor` instance.
      */
     createDescriptor(characteristic, uuid, value, options) {
@@ -146,3 +174,26 @@ class ServiceFactory {
 }
 
 module.exports = ServiceFactory;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="AdapterFactory.html">AdapterFactory</a></li><li><a href="AdapterState.html">AdapterState</a></li><li><a href="Characteristic.html">Characteristic</a></li><li><a href="Descriptor.html">Descriptor</a></li><li><a href="Device.html">Device</a></li><li><a href="Dfu.html">Dfu</a></li><li><a href="Error.html">Error</a></li><li><a href="Security.html">Security</a></li><li><a href="Service.html">Service</a></li><li><a href="ServiceFactory.html">ServiceFactory</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Enumeration">Enumeration</a></li><li><a href="global.html#Update">Update</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue Mar 14 2017 11:35:00 GMT-0500 (CDT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

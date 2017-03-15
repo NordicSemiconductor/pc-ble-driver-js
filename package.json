@@ -7,7 +7,8 @@
     "lint": "jshint api/ test/ && jscs api/ test/",
     "install": "node build.js",
     "test": "jest --config config/jest-unit.config",
-    "test:system": "jest --config config/jest-system.config"
+    "test:system": "jest --config config/jest-system.config",
+    "docs": "node pre-commit.js"
   },
   "repository": {
     "type": "git",
@@ -34,13 +35,16 @@
     "eslint-plugin-react": "^6.10.0",
     "jest": "^17.0.3",
     "jscs": "^2.3.5",
+    "jsdoc": "^3.4.3",
     "jshint": "^2.8.0",
     "keypress": "0.2.1",
     "mocha": "^2.3.3",
     "pc-nrfjprog-js": "https://github.com/NordicSemiconductor/pc-nrfjprog-js.git",
+    "pre-commit": "^1.2.2",
     "proxyquire": "^1.7.3",
     "sinon": "^1.17.1",
     "yargs": "^3.29.0"
   },
-  "typings": "local_typings/index.d.ts"
+  "typings": "local_typings/index.d.ts",
+  "pre-commit": "docs"
 }
