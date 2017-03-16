@@ -808,7 +808,7 @@ Available GAP security parameters:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2303">line 2303</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2594">line 2594</a>
     </li></ul></dd>
     
 
@@ -969,7 +969,7 @@ Available GAP security parameters:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1949">line 1949</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2240">line 2240</a>
     </li></ul></dd>
     
 
@@ -1130,7 +1130,7 @@ This function will close the serial port, release allocated resources and remove
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line352">line 352</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line386">line 386</a>
     </li></ul></dd>
     
 
@@ -1453,7 +1453,9 @@ This function will close the serial port, release allocated resources and remove
     
     <p class="summary">Create a connection (GAP Link Establishment).
 
-If a scanning procedure is currently in progress it will be automatically stopped when calling this function.</p>
+If a scanning procedure is currently in progress it will be automatically stopped when calling this function.
+
+The application will be informed of a connection being established with a event:DeviceConnectedEvent.</p>
     
 
 
@@ -1520,8 +1522,8 @@ If a scanning procedure is currently in progress it will be automatically stoppe
 
             
 
-            <td class="description last">The peer address. If the use_whitelist bit is set in scanParams, 
-                                     then this is ignored. If given as a string, 
+            <td class="description last">The peer address. If the use_whitelist bit is set in scanParams,
+                                     then this is ignored. If given as a string,
                                      `address.type='BLE_GAP_ADDR_TYPE_RANDOM_STATIC'` by default. Else,
                                      an Object with members: { address: {string}, type: {string} } must be given.</td>
         </tr>
@@ -1649,7 +1651,7 @@ Available options:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1909">line 1909</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2200">line 2200</a>
     </li></ul></dd>
     
 
@@ -1705,7 +1707,7 @@ Available options:
 
 
 <div class="description">
-    Deletes any previously generated key-pair. 
+    Deletes any previously generated key-pair.
 
 The next time `computeSharedSecret` or `computePublicKey` is invoked, a new key-pair will be generated and used.
 </div>
@@ -1943,7 +1945,7 @@ with a `BLE_GAP_EVT_DISCONNECTED` event upon which `callback` will be called.</p
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2114">line 2114</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2405">line 2405</a>
     </li></ul></dd>
     
 
@@ -2124,8 +2126,8 @@ Available BLE enable parameters:
 
             <td class="description last">Callback signature: (err, parameters, app_ram_base) => {}
                                                   where `parameters` is the BLE initialization parameters as
-                                                  described above and `app_ram_base` is the minimum start address 
-                                                  of the application RAM region required by the SoftDevice for 
+                                                  described above and `app_ram_base` is the minimum start address
+                                                  of the application RAM region required by the SoftDevice for
                                                   this configuration.</td>
         </tr>
 
@@ -2167,7 +2169,7 @@ Available BLE enable parameters:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line411">line 411</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line455">line 455</a>
     </li></ul></dd>
     
 
@@ -2421,7 +2423,7 @@ In the central role, this function will initiate the encryption procedure using 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2537">line 2537</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2828">line 2828</a>
     </li></ul></dd>
     
 
@@ -2573,7 +2575,7 @@ In the central role, this function will initiate the encryption procedure using 
             
 
             <td class="description last">Callback signature: (err, attributes) => {} where `attributes` contains
-                                          the device's GATT attributes (services, characteristics and 
+                                          the device's GATT attributes (services, characteristics and
                                           descriptors).</td>
         </tr>
 
@@ -2615,7 +2617,7 @@ In the central role, this function will initiate the encryption procedure using 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3132">line 3132</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3423">line 3423</a>
     </li></ul></dd>
     
 
@@ -2764,7 +2766,7 @@ In the central role, this function will initiate the encryption procedure using 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2893">line 2893</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3184">line 3184</a>
     </li></ul></dd>
     
 
@@ -2919,8 +2921,8 @@ In the central role, this function will initiate the encryption procedure using 
 
             
 
-            <td class="description last">Callback signature: (err, characteristics) => {} where 
-                                           `characteristics` is an array of `Characteristic` instances 
+            <td class="description last">Callback signature: (err, characteristics) => {} where
+                                           `characteristics` is an array of `Characteristic` instances
                                             corresponding to the discovered GATT characteristics attached to
                                             the service.</td>
         </tr>
@@ -2963,7 +2965,7 @@ In the central role, this function will initiate the encryption procedure using 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2908">line 2908</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3199">line 3199</a>
     </li></ul></dd>
     
 
@@ -3112,7 +3114,7 @@ In the central role, this function will initiate the encryption procedure using 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2214">line 2214</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2505">line 2505</a>
     </li></ul></dd>
     
 
@@ -3268,7 +3270,7 @@ In the central role, this function will initiate the encryption procedure using 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2957">line 2957</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3248">line 3248</a>
     </li></ul></dd>
     
 
@@ -3423,8 +3425,8 @@ In the central role, this function will initiate the encryption procedure using 
 
             
 
-            <td class="description last">Callback signature: (err, descriptors) => {} where 
-                                       `descriptors` is an array of `Descriptor` instances corresponding to the 
+            <td class="description last">Callback signature: (err, descriptors) => {} where
+                                       `descriptors` is an array of `Descriptor` instances corresponding to the
                                        discovered GATT descriptors attached to the characteristic.</td>
         </tr>
 
@@ -3466,7 +3468,7 @@ In the central role, this function will initiate the encryption procedure using 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3030">line 3030</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3321">line 3321</a>
     </li></ul></dd>
     
 
@@ -3615,7 +3617,7 @@ In the central role, this function will initiate the encryption procedure using 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1808">line 1808</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2097">line 2097</a>
     </li></ul></dd>
     
 
@@ -3722,7 +3724,7 @@ In the central role, this function will initiate the encryption procedure using 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1798">line 1798</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2087">line 2087</a>
     </li></ul></dd>
     
 
@@ -3950,7 +3952,7 @@ the one used during connection setup). The application may manually overwrite it
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2475">line 2475</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2766">line 2766</a>
     </li></ul></dd>
     
 
@@ -4099,7 +4101,7 @@ the one used during connection setup). The application may manually overwrite it
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2844">line 2844</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3135">line 3135</a>
     </li></ul></dd>
     
 
@@ -4255,7 +4257,7 @@ the one used during connection setup). The application may manually overwrite it
             
 
             <td class="description last">Callback signature: (err, services) => {} where `services` is an
-                                             array of `Service` instances corresponding to the discovered GATT 
+                                             array of `Service` instances corresponding to the discovered GATT
                                              primary services.</td>
         </tr>
 
@@ -4297,7 +4299,7 @@ the one used during connection setup). The application may manually overwrite it
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2858">line 2858</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3149">line 3149</a>
     </li></ul></dd>
     
 
@@ -4460,7 +4462,7 @@ the one used during connection setup). The application may manually overwrite it
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1651">line 1651</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1940">line 1940</a>
     </li></ul></dd>
     
 
@@ -4517,10 +4519,12 @@ the one used during connection setup). The application may manually overwrite it
 
 <div class="description">
     This function is for debugging purposes. It will return an object with these members:
-- {number} eventCallbackTotalTime
-- {number} eventCallbackTotalCount
-- {number} eventCallbackBatchMaxCount
-- {number} eventCallbackBatchAvgCount
+<ul>
+<li>{number} eventCallbackTotalTime
+<li>{number} eventCallbackTotalCount
+<li>{number} eventCallbackBatchMaxCount
+<li>{number} eventCallbackBatchAvgCount
+</ul>
 </div>
 
 
@@ -4564,7 +4568,7 @@ the one used during connection setup). The application may manually overwrite it
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line368">line 368</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line412">line 412</a>
     </li></ul></dd>
     
 
@@ -4791,7 +4795,7 @@ This function can only be used when an authentication procedure using LE Secure 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2448">line 2448</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2739">line 2739</a>
     </li></ul></dd>
     
 
@@ -4843,7 +4847,10 @@ This function can only be used when an authentication procedure using LE Secure 
     <h4 class="name" id="open"><span class="type-signature"></span>open<span class="signature">(options, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Initialize the adapter. The serial port will be attempted to be opened with the configured serial port settings in `adapterOptions`.</p>
+    <p class="summary">Initialize the adapter.
+
+The serial port will be attempted to be opened with the configured serial port settings in
+<code>adapterOptions</code>.</p>
     
 
 
@@ -4993,7 +5000,7 @@ Available adapter open options:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line294">line 294</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line312">line 312</a>
     </li></ul></dd>
     
 
@@ -5145,7 +5152,7 @@ Available adapter open options:
             
 
             <td class="description last">Callback signature: (err, readBytes) => {} where `readBytes` is an
-                                            array of numbers corresponding to the value of the GATT 
+                                            array of numbers corresponding to the value of the GATT
                                             characteristic.</td>
         </tr>
 
@@ -5187,7 +5194,7 @@ Available adapter open options:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3161">line 3161</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3452">line 3452</a>
     </li></ul></dd>
     
 
@@ -5339,7 +5346,7 @@ Available adapter open options:
             
 
             <td class="description last">Callback signature: (err, readBytes) => {} where `readBytes` is an
-                                            array of numbers corresponding to the value of the GATT 
+                                            array of numbers corresponding to the value of the GATT
                                             descriptor.</td>
         </tr>
 
@@ -5381,7 +5388,7 @@ Available adapter open options:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3290">line 3290</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3581">line 3581</a>
     </li></ul></dd>
     
 
@@ -5573,7 +5580,7 @@ Available adapter open options:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2195">line 2195</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2486">line 2486</a>
     </li></ul></dd>
     
 
@@ -5837,7 +5844,7 @@ If the call returns an error code, the request is still pending, and the reply c
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2390">line 2390</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2681">line 2681</a>
     </li></ul></dd>
     
 
@@ -6061,7 +6068,7 @@ If the call returns an error code, the request is still pending, and the reply c
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2422">line 2422</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2713">line 2713</a>
     </li></ul></dd>
     
 
@@ -6362,7 +6369,7 @@ If the call returns an error code, the request is still pending, and the reply c
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2359">line 2359</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2650">line 2650</a>
     </li></ul></dd>
     
 
@@ -6592,7 +6599,7 @@ The SoftDevice sets ATT_MTU to the minimum of:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2239">line 2239</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2530">line 2530</a>
     </li></ul></dd>
     
 
@@ -6879,7 +6886,7 @@ Data signing is not yet supported, and signInfo must therefore be null.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2572">line 2572</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2863">line 2863</a>
     </li></ul></dd>
     
 
@@ -7104,7 +7111,7 @@ The identity address cannot be changed while roles are running.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1723">line 1723</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2012">line 2012</a>
     </li></ul></dd>
     
 
@@ -7334,7 +7341,7 @@ See @ref: ./util/adType.js for possible advertisement object parameters.</p>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2076">line 2076</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2367">line 2367</a>
     </li></ul></dd>
     
 
@@ -7590,7 +7597,7 @@ A `BLE_GAP_EVT_LESC_DHKEY_REQUEST` event with the oobd_req set to 1 must have be
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2509">line 2509</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2800">line 2800</a>
     </li></ul></dd>
     
 
@@ -7782,7 +7789,7 @@ A `BLE_GAP_EVT_LESC_DHKEY_REQUEST` event with the oobd_req set to 1 must have be
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1693">line 1693</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1982">line 1982</a>
     </li></ul></dd>
     
 
@@ -7974,7 +7981,7 @@ A `BLE_GAP_EVT_LESC_DHKEY_REQUEST` event with the oobd_req set to 1 must have be
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2600">line 2600</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2891">line 2891</a>
     </li></ul></dd>
     
 
@@ -8180,7 +8187,7 @@ Available GAP advertising parameters:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2048">line 2048</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2339">line 2339</a>
     </li></ul></dd>
     
 
@@ -8406,7 +8413,7 @@ Only for GATT central role.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3649">line 3649</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3940">line 3940</a>
     </li></ul></dd>
     
 
@@ -8607,7 +8614,7 @@ Available scan parameters:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1844">line 1844</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2133">line 2133</a>
     </li></ul></dd>
     
 
@@ -8768,7 +8775,7 @@ Available scan parameters:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2096">line 2096</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2387">line 2387</a>
     </li></ul></dd>
     
 
@@ -8960,7 +8967,7 @@ Available scan parameters:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3678">line 3678</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3969">line 3969</a>
     </li></ul></dd>
     
 
@@ -9121,7 +9128,7 @@ Available scan parameters:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1862">line 1862</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2151">line 2151</a>
     </li></ul></dd>
     
 
@@ -9178,7 +9185,7 @@ Available scan parameters:
 In the central role this will initiate a Link Layer connection parameter update procedure,
 otherwise in the peripheral role, this will send the corresponding L2CAP request and wait for
 the central to perform the procedure. In both cases, and regardless of success or failure, the application
-will be informed of the result with a `BLE_GAP_EVT_CONN_PARAM_UPDATE` event.</p>
+will be informed of the result with a event:connParamUpdateEvent.</p>
     
 
 
@@ -9354,7 +9361,7 @@ Available GAP Connection Parameters:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2168">line 2168</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line2459">line 2459</a>
     </li></ul></dd>
     
 
@@ -9595,7 +9602,7 @@ Available GAP Connection Parameters:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3200">line 3200</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3491">line 3491</a>
     </li></ul></dd>
     
 
@@ -9808,7 +9815,7 @@ Available GAP Connection Parameters:
 
             
 
-            <td class="description last">Callback signature: err => {}. 
+            <td class="description last">Callback signature: err => {}.
                                   (not called until ack is received if `requireAck`).
                                   options: {ack, long, offset}</td>
         </tr>
@@ -9851,7 +9858,7 @@ Available GAP Connection Parameters:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3330">line 3330</a>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line3621">line 3621</a>
     </li></ul></dd>
     
 
@@ -9901,6 +9908,5434 @@ Available GAP Connection Parameters:
     
 
     
+        <h3 class="subsection-title">Events</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:advertiseTimedOut">advertiseTimedOut</h4>
+
+    
+
+
+
+<div class="description">
+    BLE peripheral timed out advertising.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1002">line 1002</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:attMtuChanged">attMtuChanged</h4>
+
+    
+
+
+
+<div class="description">
+    Exchange MTU Response event.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>device</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we've connected to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>newMtu</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Server RX MTU size.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1676">line 1676</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:authKeyRequest">authKeyRequest</h4>
+
+    
+
+
+
+<div class="description">
+    Request to provide an authentication key.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>device</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we're connected to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>event.key_type</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The GAP Authentication Key Types.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line890">line 890</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:authStatus">authStatus</h4>
+
+    
+
+
+
+<div class="description">
+    Authentication procedure completed with status.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>device</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we're connected to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>_</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Authentication status and corresponding parameters.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line846">line 846</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:characteristicAdded">characteristicAdded</h4>
+
+    
+
+
+
+<div class="description">
+    Characteristic was successfully added to the <code>Adapter</code>'s GATT attribute table.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>attribute</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Service.html">Service</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The new added characteristic.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1384">line 1384</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:characteristicValueChanged">characteristicValueChanged</h4>
+
+    
+
+
+
+<div class="description">
+    The value of a characteristic in the <code>Adapter</code>'s GATT attribute table changed.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>attribute</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Characteristic.html">Characteristic</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The changed characteristic.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1626">line 1626</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:closed">closed</h4>
+
+    
+
+
+
+<div class="description">
+    Adapter closed event.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>this</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Adapter.html">Adapter</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">An instance of the closed <code>Adapter</code>.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line389">line 389</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:connectTimedOut">connectTimedOut</h4>
+
+    
+
+
+
+<div class="description">
+    BLE peer timed out in connection.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>deviceAddress</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The device address of the BLE peer our connection timed-out with.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1029">line 1029</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:connParamUpdate">connParamUpdate</h4>
+
+    
+
+
+
+<div class="description">
+    Connection parameter update event.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>device</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we're connected to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>connectionParameters</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The updated connection parameters.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line788">line 788</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:connParamUpdateRequest">connParamUpdateRequest</h4>
+
+    
+
+
+
+<div class="description">
+    Connection Parameter Update Request.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>device</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we're connected to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>connectionParameters</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">GAP Connection Parameters.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line969">line 969</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:connSecUpdate">connSecUpdate</h4>
+
+    
+
+
+
+<div class="description">
+    Connection security updated.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>device</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we're connected to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>event.conn_sec</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Connection security level.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line816">line 816</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:dataLengthChanged">dataLengthChanged</h4>
+
+    
+
+
+
+<div class="description">
+    Link layer PDU length changed.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>remoteDevice</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we've connected to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>event.max_tx_octets</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The maximum number of payload octets in a Link Layer Data Channel
+                                         PDU that the local Controller will send. Range: 27-251</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1916">line 1916</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:descriptorAdded">descriptorAdded</h4>
+
+    
+
+
+
+<div class="description">
+    Descriptor was successfully added to the <code>Adapter</code>'s GATT attribute table.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>attribute</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Service.html">Service</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The new added descriptor.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1410">line 1410</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:descriptorValueChanged">descriptorValueChanged</h4>
+
+    
+
+
+
+<div class="description">
+    The value of a descriptor in the <code>Adapter</code>'s GATT attribute table changed.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>attribute</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Descriptor.html">Descriptor</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The changed descriptor.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1635">line 1635</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:deviceConnected">deviceConnected</h4>
+
+    
+
+
+
+<div class="description">
+    Connection established.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>device</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we've connected to.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line693">line 693</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:deviceDisconnected">deviceDisconnected</h4>
+
+    
+
+
+
+<div class="description">
+    Disconnected from peer.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>device</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we've disconnected
+                            from.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>event.reason_name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Human-readable reason for disconnection.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>event.reason</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">HCI status code.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line746">line 746</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:deviceDiscovered">deviceDiscovered</h4>
+
+    
+
+
+
+<div class="description">
+    Discovered a peripheral BLE device.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>discoveredDevice</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we've
+                                      discovered.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line986">line 986</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:deviceNotifiedOrIndicated">deviceNotifiedOrIndicated</h4>
+
+    
+
+
+
+<div class="description">
+    Handle Value Notification or Indication event.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>remoteDevice</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we've connected to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>characteristic</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Characteristic.html">Characteristic</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Characteristic to which the HVx operation applies.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1856">line 1856</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:error">error</h4>
+
+    
+
+
+
+<div class="description">
+    Error event.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>error</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Error.html">Error</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Provides information related to an error that occurred.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line250">line 250</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:keyPressed">keyPressed</h4>
+
+    
+
+
+
+<div class="description">
+    Notify of a key press during an authentication procedure.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>device</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we're connected to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>event.kp_not</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The Key press notification type.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line904">line 904</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:lescDhkeyRequest">lescDhkeyRequest</h4>
+
+    
+
+
+
+<div class="description">
+    Request to calculate an LE Secure Connections DHKey.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>device</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we're connected to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>event.pk_peer</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">LE Secure Connections remote P-256 Public Key.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>event.oobd_req</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">LESC OOB data required. A call to <code>replyLescDhkey</code> is
+                                    required to complete the procedure.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line918">line 918</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:logMessage">logMessage</h4>
+
+    
+
+
+
+<div class="description">
+    Log message event.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>severity</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Severity of the log event.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>message</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Human-readable log message.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line521">line 521</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:opened">opened</h4>
+
+    
+
+
+
+<div class="description">
+    Adapter opened event.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>this</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Adapter.html">Adapter</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">An instance of the opened <code>Adapter</code>.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line359">line 359</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:passkeyDisplay">passkeyDisplay</h4>
+
+    
+
+
+
+<div class="description">
+    Request to display a passkey to the user.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>device</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we're connected to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>event.match_request</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">If 1 requires the application to report the match using
+                                                    <code>replyAuthKey</code>.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>event.passkey</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">6 digit passkey in ASCII ('0'-'9' digits only).</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line874">line 874</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:scanTimedOut">scanTimedOut</h4>
+
+    
+
+
+
+<div class="description">
+    BLE central timed out scanning.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1013">line 1013</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:secInfoRequest">secInfoRequest</h4>
+
+    
+
+
+
+<div class="description">
+    Request to provide security information.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>device</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we're connected to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>event</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Security Information Request Event Parameters</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line934">line 934</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:secParamsRequest">secParamsRequest</h4>
+
+    
+
+
+
+<div class="description">
+    Request to provide security parameters.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>device</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we're connected to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>event.peer_params</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Initiator Security Parameters.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line802">line 802</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:securityChanged">securityChanged</h4>
+
+    
+
+
+
+<div class="description">
+    Connection security updated.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>device</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we're connected to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>authParamters</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Connection security level.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line831">line 831</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:securityRequest">securityRequest</h4>
+
+    
+
+
+
+<div class="description">
+    Security Request.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>device</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we're connected to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>event</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Security Request Event Parameters.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line948">line 948</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:securityRequestTimedOut">securityRequestTimedOut</h4>
+
+    
+
+
+
+<div class="description">
+    BLE peer timed out while waiting for a security request response.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>device</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we're connected to.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1041">line 1041</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:serviceAdded">serviceAdded</h4>
+
+    
+
+
+
+<div class="description">
+    Service was successfully added to the <code>Adapter</code>'s GATT attribute table.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>newService</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Service.html">Service</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The new added service.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1122">line 1122</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:stateChanged">stateChanged</h4>
+
+    
+
+
+
+<div class="description">
+    Adapter state changed event.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>this._state</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="AdapterState.html">AdapterState</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The updated adapter's state store.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line279">line 279</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:status">status</h4>
+
+    
+
+
+
+<div class="description">
+    Status event.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>status</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Human-readable status message.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line510">line 510</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:txComplete">txComplete</h4>
+
+    
+
+
+
+<div class="description">
+    Transmission Complete.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>remoteDevice</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Device.html">Device</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we've connected to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>event.count</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Number of packets transmitted.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line1903">line 1903</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:warning">warning</h4>
+
+    
+
+
+
+<div class="description">
+    Warning event.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>error</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Error.html">Error</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">A non fatal Error.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="adapter.js.html">adapter.js</a>, <a href="adapter.js.html#line316">line 316</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+    
 </article>
 
 </section>
@@ -9911,13 +15346,13 @@ Available GAP Connection Parameters:
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="AdapterFactory.html">AdapterFactory</a></li><li><a href="AdapterState.html">AdapterState</a></li><li><a href="Characteristic.html">Characteristic</a></li><li><a href="Descriptor.html">Descriptor</a></li><li><a href="Device.html">Device</a></li><li><a href="Dfu.html">Dfu</a></li><li><a href="Error.html">Error</a></li><li><a href="Security.html">Security</a></li><li><a href="Service.html">Service</a></li><li><a href="ServiceFactory.html">ServiceFactory</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Enumeration">Enumeration</a></li><li><a href="global.html#Update">Update</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="AdapterFactory.html">AdapterFactory</a></li><li><a href="AdapterState.html">AdapterState</a></li><li><a href="Characteristic.html">Characteristic</a></li><li><a href="Descriptor.html">Descriptor</a></li><li><a href="Device.html">Device</a></li><li><a href="Dfu.html">Dfu</a></li><li><a href="Error.html">Error</a></li><li><a href="Security.html">Security</a></li><li><a href="Service.html">Service</a></li><li><a href="ServiceFactory.html">ServiceFactory</a></li></ul><h3>Events</h3><ul><li><a href="Adapter.html#event:advertiseTimedOut">advertiseTimedOut</a></li><li><a href="Adapter.html#event:attMtuChanged">attMtuChanged</a></li><li><a href="Adapter.html#event:authKeyRequest">authKeyRequest</a></li><li><a href="Adapter.html#event:authStatus">authStatus</a></li><li><a href="Adapter.html#event:characteristicAdded">characteristicAdded</a></li><li><a href="Adapter.html#event:characteristicValueChanged">characteristicValueChanged</a></li><li><a href="Adapter.html#event:closed">closed</a></li><li><a href="Adapter.html#event:connectTimedOut">connectTimedOut</a></li><li><a href="Adapter.html#event:connParamUpdate">connParamUpdate</a></li><li><a href="Adapter.html#event:connParamUpdateRequest">connParamUpdateRequest</a></li><li><a href="Adapter.html#event:connSecUpdate">connSecUpdate</a></li><li><a href="Adapter.html#event:dataLengthChanged">dataLengthChanged</a></li><li><a href="Adapter.html#event:descriptorAdded">descriptorAdded</a></li><li><a href="Adapter.html#event:descriptorValueChanged">descriptorValueChanged</a></li><li><a href="Adapter.html#event:deviceConnected">deviceConnected</a></li><li><a href="Adapter.html#event:deviceDisconnected">deviceDisconnected</a></li><li><a href="Adapter.html#event:deviceDiscovered">deviceDiscovered</a></li><li><a href="Adapter.html#event:deviceNotifiedOrIndicated">deviceNotifiedOrIndicated</a></li><li><a href="Adapter.html#event:error">error</a></li><li><a href="Adapter.html#event:keyPressed">keyPressed</a></li><li><a href="Adapter.html#event:lescDhkeyRequest">lescDhkeyRequest</a></li><li><a href="Adapter.html#event:logMessage">logMessage</a></li><li><a href="Adapter.html#event:opened">opened</a></li><li><a href="Adapter.html#event:passkeyDisplay">passkeyDisplay</a></li><li><a href="Adapter.html#event:scanTimedOut">scanTimedOut</a></li><li><a href="Adapter.html#event:secInfoRequest">secInfoRequest</a></li><li><a href="Adapter.html#event:secParamsRequest">secParamsRequest</a></li><li><a href="Adapter.html#event:securityChanged">securityChanged</a></li><li><a href="Adapter.html#event:securityRequest">securityRequest</a></li><li><a href="Adapter.html#event:securityRequestTimedOut">securityRequestTimedOut</a></li><li><a href="Adapter.html#event:serviceAdded">serviceAdded</a></li><li><a href="Adapter.html#event:stateChanged">stateChanged</a></li><li><a href="Adapter.html#event:status">status</a></li><li><a href="Adapter.html#event:txComplete">txComplete</a></li><li><a href="Adapter.html#event:warning">warning</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Enumeration">Enumeration</a></li><li><a href="global.html#Update">Update</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Tue Mar 14 2017 11:35:00 GMT-0500 (CDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
 </footer>
 
 <script> prettyPrint(); </script>
