@@ -175,7 +175,7 @@ Available transport parameters:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line63">line 63</a>
+        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line69">line 69</a>
     </li></ul></dd>
     
 
@@ -189,6 +189,19 @@ Available transport parameters:
 
 
 
+
+<h5>Fires:</h5>
+<ul>
+    <li><a href="Adapter.html#event:stateChanged">Adapter#event:stateChanged</a></li>
+
+    <li><a href="Dfu.html#event:transferStart">Dfu#event:transferStart</a></li>
+
+    <li><a href="Dfu.html#event:transferComplete">Dfu#event:transferComplete</a></li>
+
+    <li><a href="Dfu.html#event:progressUpdate">Dfu#event:progressUpdate</a></li>
+
+    <li><a href="Adapter.html#event:logMessage">Adapter#event:logMessage</a></li>
+</ul>
 
 
 
@@ -275,7 +288,7 @@ Available transport parameters:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line141">line 141</a>
+        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line147">line 147</a>
     </li></ul></dd>
     
 
@@ -467,7 +480,7 @@ info_read_only_metadata: {
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line401">line 401</a>
+        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line430">line 430</a>
     </li></ul></dd>
     
 
@@ -639,7 +652,7 @@ info_read_only_metadata: {
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line103">line 103</a>
+        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line109">line 109</a>
     </li></ul></dd>
     
 
@@ -689,6 +702,442 @@ info_read_only_metadata: {
     
 
     
+        <h3 class="subsection-title">Events</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:progressUpdate">progressUpdate</h4>
+
+    
+
+
+
+<div class="description">
+    DFU progress update event.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>_</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Progress meta-data.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line267">line 267</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:transferComplete">transferComplete</h4>
+
+    
+
+
+
+<div class="description">
+    DFU transfer complete event.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>file.name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The name of the file that was transferred.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line252">line 252</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="event:transferStart">transferStart</h4>
+
+    
+
+
+
+<div class="description">
+    DFU transfer start event.
+</div>
+
+
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Object</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>file.name</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The name of the file being transferred.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line229">line 229</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+    
 </article>
 
 </section>
@@ -699,7 +1148,7 @@ info_read_only_metadata: {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="AdapterFactory.html">AdapterFactory</a></li><li><a href="AdapterState.html">AdapterState</a></li><li><a href="Characteristic.html">Characteristic</a></li><li><a href="Descriptor.html">Descriptor</a></li><li><a href="Device.html">Device</a></li><li><a href="Dfu.html">Dfu</a></li><li><a href="Error.html">Error</a></li><li><a href="Security.html">Security</a></li><li><a href="Service.html">Service</a></li><li><a href="ServiceFactory.html">ServiceFactory</a></li></ul><h3>Events</h3><ul><li><a href="Adapter.html#event:advertiseTimedOut">advertiseTimedOut</a></li><li><a href="Adapter.html#event:attMtuChanged">attMtuChanged</a></li><li><a href="Adapter.html#event:authKeyRequest">authKeyRequest</a></li><li><a href="Adapter.html#event:authStatus">authStatus</a></li><li><a href="Adapter.html#event:characteristicAdded">characteristicAdded</a></li><li><a href="Adapter.html#event:characteristicValueChanged">characteristicValueChanged</a></li><li><a href="Adapter.html#event:closed">closed</a></li><li><a href="Adapter.html#event:connectTimedOut">connectTimedOut</a></li><li><a href="Adapter.html#event:connParamUpdate">connParamUpdate</a></li><li><a href="Adapter.html#event:connParamUpdateRequest">connParamUpdateRequest</a></li><li><a href="Adapter.html#event:connSecUpdate">connSecUpdate</a></li><li><a href="Adapter.html#event:dataLengthChanged">dataLengthChanged</a></li><li><a href="Adapter.html#event:descriptorAdded">descriptorAdded</a></li><li><a href="Adapter.html#event:descriptorValueChanged">descriptorValueChanged</a></li><li><a href="Adapter.html#event:deviceConnected">deviceConnected</a></li><li><a href="Adapter.html#event:deviceDisconnected">deviceDisconnected</a></li><li><a href="Adapter.html#event:deviceDiscovered">deviceDiscovered</a></li><li><a href="Adapter.html#event:deviceNotifiedOrIndicated">deviceNotifiedOrIndicated</a></li><li><a href="Adapter.html#event:error">error</a></li><li><a href="Adapter.html#event:keyPressed">keyPressed</a></li><li><a href="Adapter.html#event:lescDhkeyRequest">lescDhkeyRequest</a></li><li><a href="Adapter.html#event:logMessage">logMessage</a></li><li><a href="Adapter.html#event:opened">opened</a></li><li><a href="Adapter.html#event:passkeyDisplay">passkeyDisplay</a></li><li><a href="Adapter.html#event:scanTimedOut">scanTimedOut</a></li><li><a href="Adapter.html#event:secInfoRequest">secInfoRequest</a></li><li><a href="Adapter.html#event:secParamsRequest">secParamsRequest</a></li><li><a href="Adapter.html#event:securityChanged">securityChanged</a></li><li><a href="Adapter.html#event:securityRequest">securityRequest</a></li><li><a href="Adapter.html#event:securityRequestTimedOut">securityRequestTimedOut</a></li><li><a href="Adapter.html#event:serviceAdded">serviceAdded</a></li><li><a href="Adapter.html#event:stateChanged">stateChanged</a></li><li><a href="Adapter.html#event:status">status</a></li><li><a href="Adapter.html#event:txComplete">txComplete</a></li><li><a href="Adapter.html#event:warning">warning</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Enumeration">Enumeration</a></li><li><a href="global.html#Update">Update</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="AdapterFactory.html">AdapterFactory</a></li><li><a href="AdapterState.html">AdapterState</a></li><li><a href="Characteristic.html">Characteristic</a></li><li><a href="Descriptor.html">Descriptor</a></li><li><a href="Device.html">Device</a></li><li><a href="Dfu.html">Dfu</a></li><li><a href="Error.html">Error</a></li><li><a href="Security.html">Security</a></li><li><a href="Service.html">Service</a></li><li><a href="ServiceFactory.html">ServiceFactory</a></li></ul><h3>Events</h3><ul><li><a href="Adapter.html#event:advertiseTimedOut">advertiseTimedOut</a></li><li><a href="Adapter.html#event:attMtuChanged">attMtuChanged</a></li><li><a href="Adapter.html#event:authKeyRequest">authKeyRequest</a></li><li><a href="Adapter.html#event:authStatus">authStatus</a></li><li><a href="Adapter.html#event:characteristicAdded">characteristicAdded</a></li><li><a href="Adapter.html#event:characteristicValueChanged">characteristicValueChanged</a></li><li><a href="Adapter.html#event:closed">closed</a></li><li><a href="Adapter.html#event:connectTimedOut">connectTimedOut</a></li><li><a href="Adapter.html#event:connParamUpdate">connParamUpdate</a></li><li><a href="Adapter.html#event:connParamUpdateRequest">connParamUpdateRequest</a></li><li><a href="Adapter.html#event:connSecUpdate">connSecUpdate</a></li><li><a href="Adapter.html#event:dataLengthChanged">dataLengthChanged</a></li><li><a href="Adapter.html#event:descriptorAdded">descriptorAdded</a></li><li><a href="Adapter.html#event:descriptorValueChanged">descriptorValueChanged</a></li><li><a href="Adapter.html#event:deviceConnected">deviceConnected</a></li><li><a href="Adapter.html#event:deviceDisconnected">deviceDisconnected</a></li><li><a href="Adapter.html#event:deviceDiscovered">deviceDiscovered</a></li><li><a href="Adapter.html#event:deviceNotifiedOrIndicated">deviceNotifiedOrIndicated</a></li><li><a href="Adapter.html#event:error">error</a></li><li><a href="Adapter.html#event:keyPressed">keyPressed</a></li><li><a href="Adapter.html#event:lescDhkeyRequest">lescDhkeyRequest</a></li><li><a href="Adapter.html#event:logMessage">logMessage</a></li><li><a href="Adapter.html#event:opened">opened</a></li><li><a href="Adapter.html#event:passkeyDisplay">passkeyDisplay</a></li><li><a href="Adapter.html#event:scanTimedOut">scanTimedOut</a></li><li><a href="Adapter.html#event:secInfoRequest">secInfoRequest</a></li><li><a href="Adapter.html#event:secParamsRequest">secParamsRequest</a></li><li><a href="Adapter.html#event:securityChanged">securityChanged</a></li><li><a href="Adapter.html#event:securityRequest">securityRequest</a></li><li><a href="Adapter.html#event:securityRequestTimedOut">securityRequestTimedOut</a></li><li><a href="Adapter.html#event:serviceAdded">serviceAdded</a></li><li><a href="Adapter.html#event:stateChanged">stateChanged</a></li><li><a href="Adapter.html#event:status">status</a></li><li><a href="Adapter.html#event:txComplete">txComplete</a></li><li><a href="Adapter.html#event:warning">warning</a></li><li><a href="Dfu.html#event:progressUpdate">progressUpdate</a></li><li><a href="Dfu.html#event:transferComplete">transferComplete</a></li><li><a href="Dfu.html#event:transferStart">transferStart</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Enumeration">Enumeration</a></li><li><a href="global.html#Update">Update</a></li></ul>
 </nav>
 
 <br class="clear">
