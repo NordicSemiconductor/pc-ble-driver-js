@@ -103,6 +103,42 @@ const _makeError = function (userMessage, description) {
 
 /**
  * Class representing a transport adapter (SoftDevice RPC module).
+ *
+ * @fires Adapter#advertiseTimedOut
+ * @fires Adapter#attMtuChanged
+ * @fires Adapter#authKeyRequest
+ * @fires Adapter#authStatus
+ * @fires Adapter#characteristicAdded
+ * @fires Adapter#characteristicValueChanged
+ * @fires Adapter#closed
+ * @fires Adapter#connectTimedOut
+ * @fires Adapter#connParamUpdate
+ * @fires Adapter#connParamUpdateRequest
+ * @fires Adapter#connSecUpdate
+ * @fires Adapter#dataLengthChanged
+ * @fires Adapter#descriptorAdded
+ * @fires Adapter#descriptorValueChanged
+ * @fires Adapter#deviceConnected
+ * @fires Adapter#deviceDisconnected
+ * @fires Adapter#deviceDiscovered
+ * @fires Adapter#deviceNotifiedOrIndicated
+ * @fires Adapter#error
+ * @fires Adapter#keyPressed
+ * @fires Adapter#lescDhkeyRequest
+ * @fires Adapter#logMessage
+ * @fires Adapter#opened
+ * @fires Adapter#passkeyDisplay
+ * @fires Adapter#scanTimedOut
+ * @fires Adapter#secInfoRequest
+ * @fires Adapter#secParamsRequest
+ * @fires Adapter#securityChanged
+ * @fires Adapter#securityRequest
+ * @fires Adapter#securityRequestTimedOut
+ * @fires Adapter#serviceAdded
+ * @fires Adapter#stateChanged
+ * @fires Adapter#status
+ * @fires Adapter#txComplete
+ * @fires Adapter#warning
  */
 class Adapter extends EventEmitter {
     /**
