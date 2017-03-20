@@ -200,7 +200,7 @@ class Device {
 
     _processFlagsFromAdvertisingData(advertisingData) {
         if (advertisingData && advertisingData.BLE_GAP_AD_TYPE_FLAGS) {
-            this.flags = advertisingData.BLE_GAP_AD_TYPE_FLAGS.map(flag => _camelCaseFlag(flag));
+            this.flags = advertisingData.BLE_GAP_AD_TYPE_FLAGS.map(_camelCaseFlag);
         }
     }
 
