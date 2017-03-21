@@ -9,18 +9,17 @@ exec('git diff --cached --name-only', (error, stdout, stderr) => {
 
     const files = stdout.split(/\r?\n/);
     files.forEach(file => {
-        // generate docs for files that have been staged for commit in `./api`
-        // for now docs will not be generated for files in any of `./api`'s sub directories
-        if (file.startsWith('api/') && (file.split('/').length - 1 === 1)) {
-            console.log(`Generating docs for ${file} and adding them to this commit.`);
-            exec(`./node_modules/.bin/jsdoc ${file} -d docs/`, (error, stdout, stderr) => {
+        // if a .js file in api/ is staged for commit, update the auto-generated api docs
+        if (file.startsWith('api/') && file.endsWith('.js')) {
+            console.log('Generating docs for api/ and adding them to this commit.');
+            exec('node_modules/.bin/jsdoc api/ -d docs/ -c .jsdoc_conf.json', (error, stdout, stderr) => {
                 if (error) {
-                    console.log(`Generating docs for ${file} failed with error: ${error}.`);
+                    console.log(`Generating docs failed with error: ${error}.`);
                     console.log(stderr);
                     return 1;
                 }
 
-                exec(`git add docs/`, (error, stdout, stderr) => {
+                exec('git add docs/', (error, stdout, stderr) => {
                     if (error) {
                         console.log(`Adding generated docs to this commit failed with: ${error}.`);
                         console.log(stderr);
@@ -28,6 +27,8 @@ exec('git diff --cached --name-only', (error, stdout, stderr) => {
                     }
                 });
             });
+
+            return;
         }
     });
 });

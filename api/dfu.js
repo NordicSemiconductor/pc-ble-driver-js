@@ -59,6 +59,12 @@ const DfuState = Object.freeze({
 
 /**
  * Class that provides Dfu controller functionality.
+ *
+ * @fires Adapter#stateChanged
+ * @fires Dfu#transferStart
+ * @fires Dfu#transferComplete
+ * @fires Dfu#progressUpdate
+ * @fires Adapter#logMessage
  */
 class Dfu extends EventEmitter {
     /**
@@ -220,6 +226,13 @@ class Dfu extends EventEmitter {
     }
 
     _transferInitPacket(file) {
+        /**
+         * DFU transfer start event.
+         *
+         * @event Dfu#transferStart
+         * @type {Object}
+         * @property {string} file.name - The name of the file being transferred.
+         */
         this.emit('transferStart', file.name);
         return file.loadData().then(data => {
             return this._transport.sendInitPacket(data)
@@ -235,6 +248,14 @@ class Dfu extends EventEmitter {
                     this._speedometer = new DfuSpeedometer(data.length, state.offset);
                     return this._transport.sendFirmware(data);
                 })
+
+                /**
+                 * DFU transfer complete event.
+                 *
+                 * @event Dfu#transferComplete
+                 * @type {Object}
+                 * @property {string} file.name - The name of the file that was transferred.
+                 */
                 .then(() => this.emit('transferComplete', file.name));
         });
     }
@@ -242,6 +263,14 @@ class Dfu extends EventEmitter {
     _handleProgressUpdate(progressUpdate) {
         if (progressUpdate.offset) {
             this._speedometer.updateState(progressUpdate.offset);
+
+            /**
+             * DFU progress update event.
+             *
+             * @event Dfu#progressUpdate
+             * @type {Object}
+             * @property {Object} _ - Progress meta-data.
+             */
             this.emit('progressUpdate', {
                 stage: progressUpdate.stage,
                 completedBytes: progressUpdate.offset,

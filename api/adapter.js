@@ -75,6 +75,42 @@ const _makeError = function (userMessage, description) {
 
 /**
  * Class representing a transport adapter (SoftDevice RPC module).
+ *
+ * @fires Adapter#advertiseTimedOut
+ * @fires Adapter#attMtuChanged
+ * @fires Adapter#authKeyRequest
+ * @fires Adapter#authStatus
+ * @fires Adapter#characteristicAdded
+ * @fires Adapter#characteristicValueChanged
+ * @fires Adapter#closed
+ * @fires Adapter#connectTimedOut
+ * @fires Adapter#connParamUpdate
+ * @fires Adapter#connParamUpdateRequest
+ * @fires Adapter#connSecUpdate
+ * @fires Adapter#dataLengthChanged
+ * @fires Adapter#descriptorAdded
+ * @fires Adapter#descriptorValueChanged
+ * @fires Adapter#deviceConnected
+ * @fires Adapter#deviceDisconnected
+ * @fires Adapter#deviceDiscovered
+ * @fires Adapter#deviceNotifiedOrIndicated
+ * @fires Adapter#error
+ * @fires Adapter#keyPressed
+ * @fires Adapter#lescDhkeyRequest
+ * @fires Adapter#logMessage
+ * @fires Adapter#opened
+ * @fires Adapter#passkeyDisplay
+ * @fires Adapter#scanTimedOut
+ * @fires Adapter#secInfoRequest
+ * @fires Adapter#secParamsRequest
+ * @fires Adapter#securityChanged
+ * @fires Adapter#securityRequest
+ * @fires Adapter#securityRequestTimedOut
+ * @fires Adapter#serviceAdded
+ * @fires Adapter#stateChanged
+ * @fires Adapter#status
+ * @fires Adapter#txComplete
+ * @fires Adapter#warning
  */
 class Adapter extends EventEmitter {
     /**
@@ -225,8 +261,8 @@ class Adapter extends EventEmitter {
     }
 
     /**
-     * Deletes any previously generated key-pair. 
-     * 
+     * Deletes any previously generated key-pair.
+     *
      * The next time `computeSharedSecret` or `computePublicKey` is invoked, a new key-pair will be generated and used.
      * @returns {void}
      */
@@ -246,6 +282,14 @@ class Adapter extends EventEmitter {
 
     _emitError(err, userMessage) {
         const error = new Error(userMessage, err);
+
+        /**
+         * Error event.
+         *
+         * @event Adapter#error
+         * @type {Object}
+         * @property {Error} error - Provides information related to an error that occurred.
+         */
         this.emit('error', error);
     }
 
@@ -268,12 +312,22 @@ class Adapter extends EventEmitter {
         }
 
         if (changed) {
+            /**
+             * Adapter state changed event.
+             *
+             * @event Adapter#stateChanged
+             * @type {Object}
+             * @property {AdapterState} this._state - The updated adapter's state store.
+             */
             this.emit('stateChanged', this._state);
         }
     }
 
     /**
-     * @summary Initialize the adapter. The serial port will be attempted to be opened with the configured serial port settings in `adapterOptions`.
+     * @summary Initialize the adapter.
+     *
+     * The serial port will be attempted to be opened with the configured serial port settings in
+     * <code>adapterOptions</code>.
      *
      * @param {Object} options Options to initialize/open this adapter with.
      * Available adapter open options:
@@ -294,6 +348,14 @@ class Adapter extends EventEmitter {
     open(options, callback) {
         if (this.notSupportedMessage !== undefined) {
             const error = new Error(this.notSupportedMessage);
+
+            /**
+             * Warning event.
+             *
+             * @event Adapter#warning
+             * @type {Object}
+             * @property {Error} error - A non fatal Error.
+             */
             this.emit('warning', error);
         }
 
@@ -329,6 +391,14 @@ class Adapter extends EventEmitter {
             if (this._checkAndPropagateError(err, 'Error occurred opening serial port.', callback)) { return; }
 
             this._changeState({ available: true });
+
+            /**
+             * Adapter opened event.
+             *
+             * @event Adapter#opened
+             * @type {Object}
+             * @property {Adapter} this - An instance of the opened <code>Adapter</code>.
+             */
             this.emit('opened', this);
 
             if (options.enableBLE) {
@@ -352,6 +422,13 @@ class Adapter extends EventEmitter {
     close(callback) {
         this._changeState({ available: false });
         this._adapter.close(error => {
+            /**
+             * Adapter closed event.
+             *
+             * @event Adapter#closed
+             * @type {Object}
+             * @property {Adapter} this - An instance of the closed <code>Adapter</code>.
+             */
             this.emit('closed', this);
             if (callback) callback(error);
         });
@@ -359,10 +436,13 @@ class Adapter extends EventEmitter {
 
     /**
      * This function is for debugging purposes. It will return an object with these members:
-     * - {number} eventCallbackTotalTime
-     * - {number} eventCallbackTotalCount
-     * - {number} eventCallbackBatchMaxCount
-     * - {number} eventCallbackBatchAvgCount
+     * <ul>
+     * <li>{number} eventCallbackTotalTime
+     * <li>{number} eventCallbackTotalCount
+     * <li>{number} eventCallbackBatchMaxCount
+     * <li>{number} eventCallbackBatchAvgCount
+     * </ul>
+     *
      * @returns {Object} This adapters stats.
      */
     getStats() {
@@ -403,8 +483,8 @@ class Adapter extends EventEmitter {
      * </ul>
      * @param {function(Error, Object, number)} [callback] Callback signature: (err, parameters, app_ram_base) => {}
      *                                                   where `parameters` is the BLE initialization parameters as
-     *                                                   described above and `app_ram_base` is the minimum start address 
-     *                                                   of the application RAM region required by the SoftDevice for 
+     *                                                   described above and `app_ram_base` is the minimum start address
+     *                                                   of the application RAM region required by the SoftDevice for
      *                                                   this configuration.
      * @returns {void}
      */
@@ -463,10 +543,25 @@ class Adapter extends EventEmitter {
                 break;
         }
 
+        /**
+         * Status event.
+         *
+         * @event Adapter#status
+         * @type {Object}
+         * @property {string} status - Human-readable status message.
+         */
         this.emit('status', status);
     }
 
     _logCallback(severity, message) {
+        /**
+         * Log message event.
+         *
+         * @event Adapter#logMessage
+         * @type {Object}
+         * @property {string} severity - Severity of the log event.
+         * @property {string} message - Human-readable log message.
+         */
         this.emit('logMessage', severity, message);
     }
 
@@ -631,6 +726,13 @@ class Adapter extends EventEmitter {
             this._changeState({ advertising: false });
         }
 
+        /**
+         * Connection established.
+         *
+         * @event Adapter#deviceConnected
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we've connected to.
+         */
         this.emit('deviceConnected', device);
 
         this._addDeviceToAllPerConnectionValues(device.instanceId);
@@ -676,6 +778,17 @@ class Adapter extends EventEmitter {
         }
 
         delete this._devices[device.instanceId];
+
+        /**
+         * Disconnected from peer.
+         *
+         * @event Adapter#deviceDisconnected
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we've disconnected
+         *                             from.
+         * @property {string} event.reason_name - Human-readable reason for disconnection.
+         * @property {string} event.reason - HCI status code.
+         */
         this.emit('deviceDisconnected', device, event.reason_name, event.reason);
 
         this._clearDeviceFromAllPerConnectionValues(device.instanceId);
@@ -708,17 +821,42 @@ class Adapter extends EventEmitter {
             connectionSupervisionTimeout: event.conn_params.conn_sup_timeout,
         };
 
+        /**
+         * Connection parameter update event.
+         *
+         * @event Adapter#connParamUpdate
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {Object} connectionParameters - The updated connection parameters.
+         */
         this.emit('connParamUpdate', device, connectionParameters);
     }
 
     _parseSecParamsRequestEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
 
+        /**
+         * Request to provide security parameters.
+         *
+         * @event Adapter#secParamsRequest
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {Object} event.peer_params - Initiator Security Parameters.
+         */
         this.emit('secParamsRequest', device, event.peer_params);
     }
 
     _parseConnSecUpdateEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
+
+        /**
+         * Connection security updated.
+         *
+         * @event Adapter#connSecUpdate
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {Object} event.conn_sec - Connection security level.
+         */
         this.emit('connSecUpdate', device, event.conn_sec);
 
         const authParamters = {
@@ -726,6 +864,14 @@ class Adapter extends EventEmitter {
             securityLevel: event.conn_sec.sec_mode.lv,
         };
 
+        /**
+         * Connection security updated.
+         *
+         * @event Adapter#securityChanged
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {Object} authParamters - Connection security level.
+         */
         this.emit('securityChanged', device, authParamters);
     }
 
@@ -733,6 +879,14 @@ class Adapter extends EventEmitter {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         device.ownPeriphInitiatedPairingPending = false;
 
+        /**
+         * Authentication procedure completed with status.
+         *
+         * @event Adapter#authStatus
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {Object} _ - Authentication status and corresponding parameters.
+         */
         this.emit('authStatus',
             device,
             {
@@ -752,34 +906,89 @@ class Adapter extends EventEmitter {
 
     _parsePasskeyDisplayEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
+
+        /**
+         * Request to display a passkey to the user.
+         *
+         * @event Adapter#passkeyDisplay
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {number} event.match_request - If 1 requires the application to report the match using
+                                                    <code>replyAuthKey</code>.
+         * @property {string} event.passkey - 6 digit passkey in ASCII ('0'-'9' digits only).
+         */
         this.emit('passkeyDisplay', device, event.match_request, event.passkey);
     }
 
     _parseAuthKeyRequest(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
+
+        /**
+         * Request to provide an authentication key.
+         *
+         * @event Adapter#authKeyRequest
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {string} event.key_type - The GAP Authentication Key Types.
+         */
         this.emit('authKeyRequest', device, event.key_type);
     }
 
     _parseGapKeyPressedEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
+
+        /**
+         * Notify of a key press during an authentication procedure.
+         *
+         * @event Adapter#keyPressed
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {string} event.kp_not - The Key press notification type.
+         */
         this.emit('keyPressed', device, event.kp_not);
     }
 
     _parseLescDhkeyRequest(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
 
+        /**
+         * Request to calculate an LE Secure Connections DHKey.
+         *
+         * @event Adapter#lescDhkeyRequest
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {Object} event.pk_peer - LE Secure Connections remote P-256 Public Key.
+         * @property {Object} event.oobd_req - LESC OOB data required. A call to <code>replyLescDhkey</code> is
+         *                                     required to complete the procedure.
+         */
         this.emit('lescDhkeyRequest', device, event.pk_peer, event.oobd_req);
     }
 
     _parseSecInfoRequest(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
 
+        /**
+         * Request to provide security information.
+         *
+         * @event Adapter#secInfoRequest
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {Object} event - Security Information Request Event Parameters
+         */
         this.emit('secInfoRequest', device, event);
     }
 
     _parseGapSecurityRequestEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
 
+        /**
+         * Security Request.
+         *
+         * @event Adapter#securityRequest
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {Object} event - Security Request Event Parameters.
+         */
         this.emit('securityRequest', device, event);
     }
 
@@ -793,6 +1002,14 @@ class Adapter extends EventEmitter {
             connectionSupervisionTimeout: event.conn_params.conn_sup_timeout,
         };
 
+        /**
+         * Connection Parameter Update Request.
+         *
+         * @event Adapter#connParamUpdateRequest
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {Object} connectionParameters - GAP Connection Parameters.
+         */
         this.emit('connParamUpdateRequest', device, connectionParameters);
     }
 
@@ -800,6 +1017,16 @@ class Adapter extends EventEmitter {
         const address = event.peer_addr;
         const discoveredDevice = new Device(address, 'peripheral');
         discoveredDevice.processEventData(event);
+
+
+        /**
+         * Discovered a peripheral BLE device.
+         *
+         * @event Adapter#deviceDiscovered
+         * @type {Object}
+         * @property {Device} discoveredDevice - The <code>Device</code> instance representing the BLE peer we've
+         *                                       discovered.
+         */
         this.emit('deviceDiscovered', discoveredDevice);
     }
 
@@ -807,10 +1034,24 @@ class Adapter extends EventEmitter {
         switch (event.src) {
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_ADVERTISING:
                 this._changeState({ advertising: false });
+
+                /**
+                 * BLE peripheral timed out advertising.
+                 *
+                 * @event Adapter#advertiseTimedOut
+                 * @type {Object}
+                 */
                 this.emit('advertiseTimedOut');
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_SCAN:
                 this._changeState({ scanning: false });
+
+                /**
+                 * BLE central timed out scanning.
+                 *
+                 * @event Adapter#scanTimedOut
+                 * @type {Object}
+                 */
                 this.emit('scanTimedOut');
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_CONN:
@@ -820,10 +1061,26 @@ class Adapter extends EventEmitter {
                 if (callback) callback(errorObject);
                 delete this._gapOperationsMap.connecting;
                 this._changeState({ connecting: false });
+
+                /**
+                 * BLE peer timed out in connection.
+                 *
+                 * @event Adapter#connectTimedOut
+                 * @type {Object}
+                 * @property {Device} deviceAddress - The device address of the BLE peer our connection timed-out with.
+                 */
                 this.emit('connectTimedOut', deviceAddress);
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_SECURITY_REQUEST:
                 const device = this._getDeviceByConnectionHandle(event.conn_handle);
+
+                /**
+                 * BLE peer timed out while waiting for a security request response.
+                 *
+                 * @event Adapter#securityRequestTimedOut
+                 * @type {Object}
+                 * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+                 */
                 this.emit('securityRequestTimedOut', device);
                 this.emit('error', _makeError('Security request timed out.'));
                 break;
@@ -898,6 +1155,13 @@ class Adapter extends EventEmitter {
             if (uuid === null) {
                 gattOperation.pendingHandleReads[handle] = newService;
             } else {
+                /**
+                 * Service was successfully added to the <code>Adapter</code>'s GATT attribute table.
+                 *
+                 * @event Adapter#serviceAdded
+                 * @type {Object}
+                 * @property {Service} newService - The new added service.
+                 */
                 this.emit('serviceAdded', newService);
             }
         });
@@ -1153,6 +1417,13 @@ class Adapter extends EventEmitter {
                 }
 
                 if (attribute.uuid && attribute.value) {
+                    /**
+                     * Characteristic was successfully added to the <code>Adapter</code>'s GATT attribute table.
+                     *
+                     * @event Adapter#characteristicAdded
+                     * @type {Object}
+                     * @property {Service} attribute - The new added characteristic.
+                     */
                     this.emit('characteristicAdded', attribute);
                 }
 
@@ -1172,6 +1443,13 @@ class Adapter extends EventEmitter {
                 attribute.value = data;
 
                 if (attribute.uuid && attribute.value) {
+                    /**
+                     * Descriptor was successfully added to the <code>Adapter</code>'s GATT attribute table.
+                     *
+                     * @event Adapter#descriptorAdded
+                     * @type {Object}
+                     * @property {Service} attribute - The new added descriptor.
+                     */
                     this.emit('descriptorAdded', attribute);
                 }
 
@@ -1381,8 +1659,22 @@ class Adapter extends EventEmitter {
 
     _emitAttributeValueChanged(attribute) {
         if (attribute instanceof Characteristic) {
+            /**
+             * The value of a characteristic in the <code>Adapter</code>'s GATT attribute table changed.
+             *
+             * @event Adapter#characteristicValueChanged
+             * @type {Object}
+             * @property {Characteristic} attribute - The changed characteristic.
+             */
             this.emit('characteristicValueChanged', attribute);
         } else if (attribute instanceof Descriptor) {
+            /**
+             * The value of a descriptor in the <code>Adapter</code>'s GATT attribute table changed.
+             *
+             * @event Adapter#descriptorValueChanged
+             * @type {Object}
+             * @property {Descriptor} attribute - The changed descriptor.
+             */
             this.emit('descriptorValueChanged', attribute);
         }
     }
@@ -1417,6 +1709,14 @@ class Adapter extends EventEmitter {
         this._attMtuMap[device.instanceId] = newMtu;
 
         if (newMtu !== previousMtu) {
+            /**
+             * Exchange MTU Response event.
+             *
+             * @event Adapter#attMtuChanged
+             * @type {Object}
+             * @property {Device} device - The <code>Device</code> instance representing the BLE peer we've connected to.
+             * @property {number} newMtu - Server RX MTU size.
+             */
             this.emit('attMtuChanged', device, newMtu);
         }
 
@@ -1589,6 +1889,14 @@ class Adapter extends EventEmitter {
             this._pendingNotificationsAndIndications.deviceNotifiedOrIndicated(remoteDevice, characteristic);
         }
 
+        /**
+         * Handle Value Notification or Indication event.
+         *
+         * @event Adapter#deviceNotifiedOrIndicated
+         * @type {Object}
+         * @property {Device} remoteDevice - The <code>Device</code> instance representing the BLE peer we've connected to.
+         * @property {Characteristic} characteristic - Characteristic to which the HVx operation applies.
+         */
         this.emit('deviceNotifiedOrIndicated', remoteDevice, characteristic);
 
         this._pendingNotificationsAndIndications.remainingIndicationConfirmations--;
@@ -1628,11 +1936,28 @@ class Adapter extends EventEmitter {
 
     _parseTxCompleteEvent(event) {
         const remoteDevice = this._getDeviceByConnectionHandle(event.conn_handle);
+        /**
+         * Transmission Complete.
+         *
+         * @event Adapter#txComplete
+         * @type {Object}
+         * @property {Device} remoteDevice - The <code>Device</code> instance representing the BLE peer we've connected to.
+         * @property {number} event.count - Number of packets transmitted.
+         */
         this.emit('txComplete', remoteDevice, event.count);
     }
 
     _parseDataLengthChangedEvent(event) {
         const remoteDevice = this._getDeviceByConnectionHandle(event.conn_handle);
+        /**
+         * Link layer PDU length changed.
+         *
+         * @event Adapter#dataLengthChanged
+         * @type {Object}
+         * @property {Device} remoteDevice - The <code>Device</code> instance representing the BLE peer we've connected to.
+         * @property {number} event.max_tx_octets - The maximum number of payload octets in a Link Layer Data Channel
+         *                                          PDU that the local Controller will send. Range: 27-251
+         */
         this.emit('dataLengthChanged', remoteDevice, event.max_tx_octets);
     }
 
@@ -1877,8 +2202,10 @@ class Adapter extends EventEmitter {
      *
      * If a scanning procedure is currently in progress it will be automatically stopped when calling this function.
      *
-     * @param {string|Object} deviceAddress The peer address. If the use_whitelist bit is set in scanParams, 
-     *                                      then this is ignored. If given as a string, 
+     * The application will be informed of a connection being established with a event:DeviceConnectedEvent.
+     *
+     * @param {string|Object} deviceAddress The peer address. If the use_whitelist bit is set in scanParams,
+     *                                      then this is ignored. If given as a string,
      *                                      `address.type='BLE_GAP_ADDR_TYPE_RANDOM_STATIC'` by default. Else,
      *                                      an Object with members: { address: {string}, type: {string} } must be given.
      * @param {Object} options The scan and connection parameters.
@@ -2151,7 +2478,7 @@ class Adapter extends EventEmitter {
      * In the central role this will initiate a Link Layer connection parameter update procedure,
      * otherwise in the peripheral role, this will send the corresponding L2CAP request and wait for
      * the central to perform the procedure. In both cases, and regardless of success or failure, the application
-     * will be informed of the result with a `BLE_GAP_EVT_CONN_PARAM_UPDATE` event.
+     * will be informed of the result with a event:connParamUpdateEvent.
      *
      * @param {string} deviceInstanceId The device's unique Id.
      * @param {Object} options GAP Connection Parameters.
@@ -2851,7 +3178,7 @@ class Adapter extends EventEmitter {
      *
      * @param {string} deviceInstanceId The device's unique Id.
      * @param {function(Error, Service[])} [callback] Callback signature: (err, services) => {} where `services` is an
-     *                                              array of `Service` instances corresponding to the discovered GATT 
+     *                                              array of `Service` instances corresponding to the discovered GATT
      *                                              primary services.
      * @returns {void}
      */
@@ -2899,8 +3226,8 @@ class Adapter extends EventEmitter {
      *
      *
      * @param {string} serviceId Unique ID of of the GATT service.
-     * @param {function(Error, Characteristic[])} [callback] Callback signature: (err, characteristics) => {} where 
-     *                                            `characteristics` is an array of `Characteristic` instances 
+     * @param {function(Error, Characteristic[])} [callback] Callback signature: (err, characteristics) => {} where
+     *                                            `characteristics` is an array of `Characteristic` instances
      *                                             corresponding to the discovered GATT characteristics attached to
      *                                             the service.
      * @returns {void}
@@ -3022,8 +3349,8 @@ class Adapter extends EventEmitter {
      * Initiate or continue a GATT Characteristic Descriptor Discovery procedure.
      *
      * @param {string} characteristicId Unique ID of of the GATT characteristic.
-     * @param {function(Error, Descriptor[])} [callback] Callback signature: (err, descriptors) => {} where 
-     *                                        `descriptors` is an array of `Descriptor` instances corresponding to the 
+     * @param {function(Error, Descriptor[])} [callback] Callback signature: (err, descriptors) => {} where
+     *                                        `descriptors` is an array of `Descriptor` instances corresponding to the
      *                                        discovered GATT descriptors attached to the characteristic.
      * @returns {void}
      */
@@ -3125,7 +3452,7 @@ class Adapter extends EventEmitter {
      *
      * @param {string} deviceInstanceId The device's unique Id.
      * @param {function(Error, Object)} [callback] Callback signature: (err, attributes) => {} where `attributes` contains
-     *                                           the device's GATT attributes (services, characteristics and 
+     *                                           the device's GATT attributes (services, characteristics and
      *                                           descriptors).
      * @returns {void}
      */
@@ -3154,7 +3481,7 @@ class Adapter extends EventEmitter {
      *
      * @param {string} characteristicId Unique ID of of the GATT characteristic.
      * @param {function(Error, number[])} [callback] Callback signature: (err, readBytes) => {} where `readBytes` is an
-     *                                             array of numbers corresponding to the value of the GATT 
+     *                                             array of numbers corresponding to the value of the GATT
      *                                             characteristic.
      * @returns {void}
      */
@@ -3283,7 +3610,7 @@ class Adapter extends EventEmitter {
      *
      * @param {string} descriptorId Unique ID of of the GATT descriptor.
      * @param {function(Error, number[])} [callback] Callback signature: (err, readBytes) => {} where `readBytes` is an
-     *                                             array of numbers corresponding to the value of the GATT 
+     *                                             array of numbers corresponding to the value of the GATT
      *                                             descriptor.
      * @returns {void}
      */
@@ -3322,7 +3649,7 @@ class Adapter extends EventEmitter {
      * @param {string} descriptorId Unique ID of the GATT descriptor.
      * @param {array} value The value (array of bytes) to be written.
      * @param {boolean} ack Require acknowledge from device, irrelevant in GATTS role.
-     * @param {function(Error)} [callback] Callback signature: err => {}. 
+     * @param {function(Error)} [callback] Callback signature: err => {}.
      *                                   (not called until ack is received if `requireAck`).
      *                                   options: {ack, long, offset}
      * @returns {void}
