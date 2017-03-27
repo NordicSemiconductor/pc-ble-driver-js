@@ -39,7 +39,7 @@
 
 'use strict';
 
-const AD_PACKET_MAX_SIZE = 20;
+const AD_PACKET_MAX_SIZE = 31;
 
 // Remove hyphens and reverse byte ordering to little endian
 let cleanUpUuid = function (uuid) {
