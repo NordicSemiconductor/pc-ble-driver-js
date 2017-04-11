@@ -2281,9 +2281,12 @@ class Adapter extends EventEmitter {
                 this.emit('error', newError);
                 if (callback) { callback(newError); }
             } else {
+                const errorObject = _makeError('Connection canceled.');
+                const connectingCallback = this._gapOperationsMap.connecting.callback;
+                if (connectingCallback) connectingCallback(errorObject);
                 delete this._gapOperationsMap.connecting;
                 this._changeState({ connecting: false });
-                if (callback) { callback(undefined); }
+                if (callback) { callback(); }
             }
         });
     }
