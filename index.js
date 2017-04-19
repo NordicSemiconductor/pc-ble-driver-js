@@ -47,6 +47,7 @@ const Security = require('./api/security');
 const Service = require('./api/service');
 const ServiceFactory = require('./api/serviceFactory');
 const Dfu = require('./api/dfu');
+const getFirmwarePath = require('./api/firmware').getFirmwarePath;
 
 module.exports.api = {
     Adapter,
@@ -59,4 +60,5 @@ module.exports.api = {
     Service,
     ServiceFactory,
     Dfu,
+    getFirmwarePath,
 };
