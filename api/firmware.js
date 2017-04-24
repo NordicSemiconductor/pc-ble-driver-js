@@ -37,28 +37,45 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-const Adapter = require('./api/adapter');
-const AdapterFactory = require('./api/adapterFactory');
-const AdapterState = require('./api/adapterState');
-const Characteristic = require('./api/characteristic');
-const Descriptor = require('./api/descriptor');
-const Device = require('./api/device');
-const Security = require('./api/security');
-const Service = require('./api/service');
-const ServiceFactory = require('./api/serviceFactory');
-const Dfu = require('./api/dfu');
-const getFirmwarePath = require('./api/firmware').getFirmwarePath;
+'use strict';
 
-module.exports.api = {
-    Adapter,
-    AdapterFactory,
-    AdapterState,
-    Characteristic,
-    Descriptor,
-    Device,
-    Security,
-    Service,
-    ServiceFactory,
-    Dfu,
+const os = require('os');
+const path = require('path');
+
+const currentDir = require.resolve('./firmware');
+const hexDir = path.join(currentDir, '..', '..', 'pc-ble-driver', 'hex');
+const sdV2Dir = path.join(hexDir, 'sd_api_v2');
+const sdV3Dir = path.join(hexDir, 'sd_api_v3');
+
+const firmwareMap = {
+    nrf51: {
+        '115k2': path.join(sdV2Dir, 'connectivity_1.1.0_115k2_with_s130_2.0.1.hex'),
+        '1m': path.join(sdV2Dir, 'connectivity_1.1.0_1m_with_s130_2.0.1.hex'),
+    },
+    nrf52: {
+        '115k2': path.join(sdV3Dir, 'connectivity_1.1.0_115k2_with_s132_3.0.hex'),
+        '1m': path.join(sdV3Dir, 'connectivity_1.1.0_1m_with_s132_3.0.hex'),
+    },
+};
+
+/**
+ * Returns the absolute path to the connectivity hex file to use together with
+ * the given devkit family. The kit must be programmed with this hex file before
+ * opening the adapter.
+ *
+ * @param {string} family The devkit family; one of 'nrf51' or 'nrf52'.
+ * @returns {string} Absolute path to firmware hex file.
+ */
+function getFirmwarePath(family) {
+    if (!firmwareMap[family]) {
+        throw new Error(`Unknown family: ${family}. Expected one ` +
+            `of ${JSON.stringify(Object.keys(firmwareMap))}`);
+    }
+    return os.platform() === 'darwin' ?
+        firmwareMap[family]['115k2'] :
+        firmwareMap[family]['1m'];
+}
+
+module.exports = {
     getFirmwarePath,
 };
