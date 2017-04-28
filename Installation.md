@@ -40,7 +40,7 @@ Configure cmake-js:
 
 Now you are ready to install `pc-ble-driver-js`:
 
-    $ npm install pc-ble-driver-js
+    $ npm install
 
 ### Unit tests
 
