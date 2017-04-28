@@ -41,6 +41,7 @@
 
 const os = require('os');
 const path = require('path');
+const fs = require('fs');
 
 const currentDir = require.resolve('./firmware');
 const hexDir = path.join(currentDir, '..', '..', 'pc-ble-driver', 'hex');
@@ -65,6 +66,7 @@ const firmwareMap = {
  *
  * @param {string} family The devkit family; one of 'nrf51' or 'nrf52'.
  * @returns {string} Absolute path to firmware hex file.
+ * @see getFirmwareString
  */
 function getFirmwarePath(family) {
     if (!firmwareMap[family]) {
@@ -76,6 +78,19 @@ function getFirmwarePath(family) {
         firmwareMap[family]['1m'];
 }
 
+/**
+ * Returns the connectivity firmware for the given devkit family as a hex string.
+ *
+ * @param {string} family The devkit family; one of 'nrf51' or 'nrf52'.
+ * @returns {string} Firmware hex string.
+ * @see getFirmwarePath
+ */
+function getFirmwareString(family) {
+    const filePath = getFirmwarePath(family);
+    return fs.readFileSync(filePath, { encoding: 'utf8' });
+}
+
 module.exports = {
     getFirmwarePath,
+    getFirmwareString,
 };
