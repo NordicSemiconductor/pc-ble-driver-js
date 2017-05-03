@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2016 Nordic Semiconductor ASA
+/* Copyright (c) 2016, Nordic Semiconductor ASA
+ *
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -8,49 +8,49 @@
  *   1. Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *   2. Redistributions in binary form must reproduce the above copyright notice, this
- *   list of conditions and the following disclaimer in the documentation and/or
- *   other materials provided with the distribution.
+ *   2. Redistributions in binary form, except as embedded into a Nordic
+ *   Semiconductor ASA integrated circuit in a product or a software update for
+ *   such product, must reproduce the above copyright notice, this list of
+ *   conditions and the following disclaimer in the documentation and/or other
+ *   materials provided with the distribution.
  *
- *   3. Neither the name of Nordic Semiconductor ASA nor the names of other
- *   contributors to this software may be used to endorse or promote products
- *   derived from this software without specific prior written permission.
+ *   3. Neither the name of Nordic Semiconductor ASA nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
  *
- *   4. This software must only be used in or with a processor manufactured by Nordic
- *   Semiconductor ASA, or in or with a processor manufactured by a third party that
- *   is used in combination with a processor manufactured by Nordic Semiconductor.
+ *   4. This software, with or without modification, must only be used with a
+ *   Nordic Semiconductor ASA integrated circuit.
  *
- *   5. Any software provided in binary or object form under this license must not be
+ *   5. Any software provided in binary form under this license must not be
  *   reverse engineered, decompiled, modified and/or disassembled.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL NORDIC SEMICONDUCTOR ASA OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 'use strict';
 
 const assert = require('assert');
 const crypto = require('crypto');
-
 const setup = require('./setup');
-const adapterFactory = setup.adapterFactory;
-const driver = setup.driver;
-
 const os = require('os');
 
-let peripheralDeviceAddress = 'FF:11:22:33:AA:CE';
-let peripheralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
+const adapterFactory = setup.adapterFactory;
 
-let centralDeviceAddress = 'FF:11:22:33:AA:CF';
-let centralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
+const peripheralDeviceAddress = 'FF:11:22:33:AA:CE';
+const peripheralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
+
+const centralDeviceAddress = 'FF:11:22:33:AA:CF';
+const centralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
 let centralAsDevice;
 
@@ -69,17 +69,16 @@ function addAdapterFactoryListeners() {
 }
 
 function addAdapterListener(adapter, prefix) {
-    adapter.on('logMessage', (severity, message) => { console.log(`${prefix} logMessage: ${message}`)});
+    adapter.on('logMessage', (severity, message) => { console.log(`${prefix} logMessage: ${message}`); });
     adapter.on('status', status => { console.log(`${prefix} status: ${JSON.stringify(status, null, 1)}`); });
     adapter.on('error', error => {
         console.log(`${prefix} error: ${JSON.stringify(error, null, 1)}`);
         assert(false);
     });
-    // adapter.on('stateChanged', state => { console.log(`${prefix} stateChanged: ${JSON.stringify(state)}`); });
 
     adapter.on('deviceConnected', device => { console.log(`${prefix} deviceConnected: ${device.address}`); });
     adapter.on('deviceDisconnected', device => { console.log(`${prefix} deviceDisconnected: ${JSON.stringify(device, null, 1)}`); });
-    adapter.on('deviceDiscovered', device =>  { console.log(`${prefix} deviceDiscovered: ${JSON.stringify(device, null, 1)}`); });
+    adapter.on('deviceDiscovered', device => { console.log(`${prefix} deviceDiscovered: ${JSON.stringify(device, null, 1)}`); });
 
     adapter.on('connSecUpdate', (device, connSec) => {
         console.log(`${prefix} connSecUpdate`); // - ${JSON.stringify(connSec)}`);
@@ -137,6 +136,7 @@ function setupAdapter(adapter, name, address, addressType, callback) {
             flowControl: 'none',
             enableBLE: false,
             eventInterval: 0,
+            logLevel: 'info',
         },
         error => {
             assert(!error);
@@ -191,14 +191,14 @@ function setupSecurityRequest(
     centralAdapter,
     peripheralAdapter,
     peripheralAsDevice,
-    authenticatedCallback)
-{
+    authenticatedCallback) {
+
     const secParamsPeripheral = {
         bond: false,
         mitm: false,
         lesc: false,
         keypress: false,
-        io_caps: driver.BLE_GAP_IO_CAPS_NONE,
+        io_caps: peripheralAdapter.driver.BLE_GAP_IO_CAPS_NONE,
         oob: false,
         min_key_size: 7,
         max_key_size: 16,
@@ -244,14 +244,14 @@ function setupAuthLegacyJustWorks(
     centralAdapter,
     peripheralAdapter,
     peripheralAsDevice,
-    authenticatedCallback)
-{
+    authenticatedCallback) {
+
     const secParamsPeripheral = {
         bond: false,
         mitm: false,
         lesc: false,
         keypress: false,
-        io_caps: driver.BLE_GAP_IO_CAPS_NONE,
+        io_caps: peripheralAdapter.driver.BLE_GAP_IO_CAPS_NONE,
         oob: false,
         min_key_size: 7,
         max_key_size: 16,
@@ -274,7 +274,7 @@ function setupAuthLegacyJustWorks(
         mitm: false,
         lesc: false,
         keypress: false,
-        io_caps: driver.BLE_GAP_IO_CAPS_NONE,
+        io_caps: centralAdapter.driver.BLE_GAP_IO_CAPS_NONE,
         oob: false,
         min_key_size: 7,
         max_key_size: 16,
@@ -293,13 +293,13 @@ function setupAuthLegacyJustWorks(
     };
 
     peripheralAdapter.once('secParamsRequest', (device, _secParams) => {
-        peripheralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, secParamsPeripheral, null, (err, keyset) => {
+        peripheralAdapter.replySecParams(device.instanceId, peripheralAdapter.driver.BLE_GAP_SEC_STATUS_SUCCESS, secParamsPeripheral, null, (err, keyset) => {
             assert(!err);
         });
     });
 
     centralAdapter.once('secParamsRequest', (device, secParams) => {
-        centralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, null, null, err => {
+        centralAdapter.replySecParams(device.instanceId, centralAdapter.driver.BLE_GAP_SEC_STATUS_SUCCESS, null, null, err => {
             assert(!err);
         });
     });
@@ -322,28 +322,27 @@ function setupAuthLegacyOOB(
     centralAdapter,
     peripheralAdapter,
     peripheralAsDevice,
-    authenticatedCallback)
-{
+    authenticatedCallback) {
     const secParamsPeripheral = {
         bond: true,
         mitm: true,
         lesc: false,
         keypress: false,
-        io_caps: driver.BLE_GAP_IO_CAPS_NONE,
+        io_caps: peripheralAdapter.driver.BLE_GAP_IO_CAPS_NONE,
         oob: true,
         min_key_size: 7,
         max_key_size: 16,
         kdist_own: {
             enc: true,   /**< Long Term Key and Master Identification. */
-            id: true,    /**< Identity Resolving Key and Identity Address Information. */
+            id: false,    /**< Identity Resolving Key and Identity Address Information. */
             sign: false,  /**< Connection Signature Resolving Key. */
-            link: true,  /**< Derive the Link Key from the LTK. */
+            link: false,  /**< Derive the Link Key from the LTK. */
         },
         kdist_peer: {
             enc: true,   /**< Long Term Key and Master Identification. */
-            id: true,    /**< Identity Resolving Key and Identity Address Information. */
+            id: false,    /**< Identity Resolving Key and Identity Address Information. */
             sign: false,  /**< Connection Signature Resolving Key. */
-            link: true,  /**< Derive the Link Key from the LTK. */
+            link: false,  /**< Derive the Link Key from the LTK. */
         },
     };
 
@@ -352,28 +351,28 @@ function setupAuthLegacyOOB(
         mitm: true,
         lesc: false,
         keypress: false,
-        io_caps: driver.BLE_GAP_IO_CAPS_NONE,
+        io_caps: centralAdapter.driver.BLE_GAP_IO_CAPS_NONE,
         oob: true,
         min_key_size: 7,
         max_key_size: 16,
         kdist_own: {
             enc: true,   /**< Long Term Key and Master Identification. */
-            id: true,    /**< Identity Resolving Key and Identity Address Information. */
+            id: false,    /**< Identity Resolving Key and Identity Address Information. */
             sign: false,  /**< Connection Signature Resolving Key. */
-            link: true,  /**< Derive the Link Key from the LTK. */
+            link: false,  /**< Derive the Link Key from the LTK. */
         },
         kdist_peer: {
             enc: true,   /**< Long Term Key and Master Identification. */
-            id: true,    /**< Identity Resolving Key and Identity Address Information. */
+            id: false,    /**< Identity Resolving Key and Identity Address Information. */
             sign: false,  /**< Connection Signature Resolving Key. */
-            link: true,  /**< Derive the Link Key from the LTK. */
+            link: false,  /**< Derive the Link Key from the LTK. */
         },
     };
 
     peripheralAdapter.once('secParamsRequest', (device, _secParams) => {
-        peripheralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, secParamsPeripheral, null, (err, keyset) => {
+        peripheralAdapter.replySecParams(device.instanceId, peripheralAdapter.driver.BLE_GAP_SEC_STATUS_SUCCESS, secParamsPeripheral, null, (err, keyset) => {
             assert(!err);
-            console.log('#PERIPH replySecParams callback' ); //+ JSON.stringify(keyset));
+            console.log('#PERIPH replySecParams callback'); //+ JSON.stringify(keyset));
         });
     });
 
@@ -381,16 +380,16 @@ function setupAuthLegacyOOB(
 
     centralAdapter.once('authKeyRequest', (device, keyType) => {
         console.log('#CENTRAL Replying with auth key: ' + oob_data);
-        centralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_OOB, oob_data);
+        centralAdapter.replyAuthKey(device.instanceId, centralAdapter.driver.BLE_GAP_AUTH_KEY_TYPE_OOB, oob_data);
     });
 
     peripheralAdapter.once('authKeyRequest', (device, keyType) => {
         console.log('#PERIPH Replying with auth key: ' + oob_data);
-        peripheralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_OOB, oob_data);
+        peripheralAdapter.replyAuthKey(device.instanceId, peripheralAdapter.driver.BLE_GAP_AUTH_KEY_TYPE_OOB, oob_data);
     });
 
     centralAdapter.once('secParamsRequest', (device, secParams) => {
-        centralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, null, null, err => {
+        centralAdapter.replySecParams(device.instanceId, centralAdapter.driver.BLE_GAP_SEC_STATUS_SUCCESS, null, null, err => {
             assert(!err);
         });
     });
@@ -413,30 +412,29 @@ function setupAuthLESCJustWorks(
     centralAdapter,
     peripheralAdapter,
     peripheralAsDevice,
-    authenticatedCallback)
-{
+    authenticatedCallback) {
     const secParams = {
-         bond: false,
-         mitm: false,
-         lesc: true,
-         keypress: false,
-         io_caps: driver.BLE_GAP_IO_CAPS_NONE,
-         oob: false,
-         min_key_size: 7,
-         max_key_size: 16,
-         kdist_own: {
-             enc: false,   /**< Long Term Key and Master Identification. */
-             id: false,    /**< Identity Resolving Key and Identity Address Information. */
-             sign: false,  /**< Connection Signature Resolving Key. */
-             link: false,  /**< Derive the Link Key from the LTK. */
-         },
-         kdist_peer: {
-             enc: false,   /**< Long Term Key and Master Identification. */
-             id: false,    /**< Identity Resolving Key and Identity Address Information. */
-             sign: false,  /**< Connection Signature Resolving Key. */
-             link: false,  /**< Derive the Link Key from the LTK. */
-         },
-     };
+        bond: false,
+        mitm: false,
+        lesc: true,
+        keypress: false,
+        io_caps: centralAdapter.driver.BLE_GAP_IO_CAPS_NONE,
+        oob: false,
+        min_key_size: 7,
+        max_key_size: 16,
+        kdist_own: {
+            enc: false,   /**< Long Term Key and Master Identification. */
+            id: false,    /**< Identity Resolving Key and Identity Address Information. */
+            sign: false,  /**< Connection Signature Resolving Key. */
+            link: false,  /**< Derive the Link Key from the LTK. */
+        },
+        kdist_peer: {
+            enc: false,   /**< Long Term Key and Master Identification. */
+            id: false,    /**< Identity Resolving Key and Identity Address Information. */
+            sign: false,  /**< Connection Signature Resolving Key. */
+            link: false,  /**< Derive the Link Key from the LTK. */
+        },
+    };
 
     const centralEdch = crypto.createECDH('prime256v1');
     const perihperalEdch = crypto.createECDH('prime256v1');
@@ -445,7 +443,7 @@ function setupAuthLESCJustWorks(
     const debugPublicKey = '20b003d2f297be2c5e2c83a7e9f9a5b9eff49111acf4fddbcc0301480e359de6dc809c49652aeb6d63329abf5a52155c766345c28fed3024741c8ed01589d28b';
 
     let centralPublicKey = centralEdch.generateKeys();
-    let peripheralPublicKey = perihperalEdch.generateKeys();
+    const peripheralPublicKey = perihperalEdch.generateKeys();
 
     centralEdch.setPrivateKey(debugPrivateKey, 'hex');
     centralEdch.setPublicKey('04' + debugPublicKey, 'hex');
@@ -457,7 +455,8 @@ function setupAuthLESCJustWorks(
             enc_key: null,
             id_key: null,
             sign_key: null,
-            pk: { pk: Array.from(centralPublicKey.slice(1)),
+            pk: {
+                pk: Array.from(centralPublicKey.slice(1)),
             },
         },
         keys_peer: {
@@ -473,7 +472,8 @@ function setupAuthLESCJustWorks(
             enc_key: null,
             id_key: null,
             sign_key: null,
-            pk: { pk: Array.from(peripheralPublicKey.slice(1)),
+            pk: {
+                pk: Array.from(peripheralPublicKey.slice(1)),
             },
         },
         keys_peer: {
@@ -485,13 +485,13 @@ function setupAuthLESCJustWorks(
     };
 
     centralAdapter.once('secParamsRequest', (device, secParams) => {
-        centralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, null, centralSecKeyset, err => {
+        centralAdapter.replySecParams(device.instanceId, centralAdapter.driver.BLE_GAP_SEC_STATUS_SUCCESS, null, centralSecKeyset, err => {
             assert(!err);
         });
     });
 
     peripheralAdapter.once('secParamsRequest', (device, _secParams) => {
-        peripheralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, secParams, peripheralSecKeyset, (err, keyset) => {
+        peripheralAdapter.replySecParams(device.instanceId, peripheralAdapter.driver.BLE_GAP_SEC_STATUS_SUCCESS, secParams, peripheralSecKeyset, (err, keyset) => {
             assert(!err);
         });
     });
@@ -501,7 +501,9 @@ function setupAuthLESCJustWorks(
 
         const dhKey = centralEdch.computeSecret(Buffer([0x04].concat(pkPeer.pk)));
 
-        centralAdapter.replyLescDhkey(device.instanceId, Array.from(dhKey), err => { assert(!err); console.log('We are here 1'); });
+        centralAdapter.replyLescDhkey(device.instanceId, Array.from(dhKey), err => {
+            assert(!err); console.log('We are here 1');
+        });
     });
 
     peripheralAdapter.once('lescDhkeyRequest', (device, pkPeer, oobdReq) => {
@@ -509,7 +511,9 @@ function setupAuthLESCJustWorks(
 
         const dhKey = perihperalEdch.computeSecret(Buffer([0x04].concat(pkPeer.pk)));
 
-        peripheralAdapter.replyLescDhkey(device.instanceId, Array.from(dhKey), err => { assert(!err); console.log('We are here 2'); });
+        peripheralAdapter.replyLescDhkey(device.instanceId, Array.from(dhKey), err => {
+            assert(!err); console.log('We are here 2');
+        });
     });
 
     centralAdapter.once('authStatus', (device, status) => {
@@ -530,14 +534,14 @@ function setupAuthLESCPasskey(
     centralAdapter,
     peripheralAdapter,
     peripheralAsDevice,
-    authenticatedCallback)
-{
+    authenticatedCallback) {
+
     const secParamsPeripheral = {
         bond: false,
         mitm: true,
         lesc: true,
         keypress: true,
-        io_caps: driver.BLE_GAP_IO_CAPS_DISPLAY_ONLY,
+        io_caps: peripheralAdapter.driver.BLE_GAP_IO_CAPS_DISPLAY_ONLY,
         oob: false,
         min_key_size: 7,
         max_key_size: 16,
@@ -560,7 +564,7 @@ function setupAuthLESCPasskey(
         mitm: true,
         lesc: true,
         keypress: true,
-        io_caps: driver.BLE_GAP_IO_CAPS_KEYBOARD_ONLY,
+        io_caps: centralAdapter.driver.BLE_GAP_IO_CAPS_KEYBOARD_ONLY,
         oob: false,
         min_key_size: 7,
         max_key_size: 16,
@@ -583,15 +587,18 @@ function setupAuthLESCPasskey(
             enc_key: null,
             id_key: null,
             sign_key: null,
-            pk: { pk: [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
-                 0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
-                 0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
-                 0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6,
-                 0xdc, 0x80, 0x9c, 0x49, 0x65, 0x2a, 0xeb, 0x6d,
-                 0x63, 0x32, 0x9a, 0xbf, 0x5a, 0x52, 0x15, 0x5c,
-                 0x76, 0x63, 0x45, 0xc2, 0x8f, 0xed, 0x30, 0x24,
-                 0x74, 0x1c, 0x8e, 0xd0, 0x15, 0x89, 0xd2, 0x8b],
-                              },
+            pk: {
+                pk: [
+                    0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
+                    0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
+                    0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
+                    0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6,
+                    0xdc, 0x80, 0x9c, 0x49, 0x65, 0x2a, 0xeb, 0x6d,
+                    0x63, 0x32, 0x9a, 0xbf, 0x5a, 0x52, 0x15, 0x5c,
+                    0x76, 0x63, 0x45, 0xc2, 0x8f, 0xed, 0x30, 0x24,
+                    0x74, 0x1c, 0x8e, 0xd0, 0x15, 0x89, 0xd2, 0x8b,
+                ],
+            },
         },
         keys_peer: {
             enc_key: null,
@@ -608,11 +615,11 @@ function setupAuthLESCPasskey(
         'BLE_GAP_KP_NOT_TYPE_PASSKEY_DIGIT_IN',
         'BLE_GAP_KP_NOT_TYPE_PASSKEY_DIGIT_OUT',
         'BLE_GAP_KP_NOT_TYPE_PASSKEY_CLEAR',
-        'BLE_GAP_KP_NOT_TYPE_PASSKEY_END'
+        'BLE_GAP_KP_NOT_TYPE_PASSKEY_END',
     ];
 
     peripheralAdapter.once('secParamsRequest', (device, _secParams) => {
-        peripheralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, secParamsPeripheral, secKeyset, (err, keyset) => {
+        peripheralAdapter.replySecParams(device.instanceId, peripheralAdapter.driver.BLE_GAP_SEC_STATUS_SUCCESS, secParamsPeripheral, secKeyset, (err, keyset) => {
             assert(!err);
         });
     });
@@ -623,14 +630,14 @@ function setupAuthLESCPasskey(
         console.log('#CENTRAL Replying with auth key ' + passkey);
 
         setTimeout(() => {
-            centralAdapter.notifyKeypress(device.instanceId, driver.BLE_GAP_KP_NOT_TYPE_PASSKEY_START, () => {
-                centralAdapter.notifyKeypress(device.instanceId, driver.BLE_GAP_KP_NOT_TYPE_PASSKEY_DIGIT_IN, () => {
-                    centralAdapter.notifyKeypress(device.instanceId, driver.BLE_GAP_KP_NOT_TYPE_PASSKEY_DIGIT_IN, () => {
-                        centralAdapter.notifyKeypress(device.instanceId, driver.BLE_GAP_KP_NOT_TYPE_PASSKEY_DIGIT_OUT, () => {
-                            centralAdapter.notifyKeypress(device.instanceId, driver.BLE_GAP_KP_NOT_TYPE_PASSKEY_CLEAR, () => {
-                                centralAdapter.notifyKeypress(device.instanceId, driver.BLE_GAP_KP_NOT_TYPE_PASSKEY_END, () => {
+            centralAdapter.notifyKeypress(device.instanceId, centralAdapter.driver.BLE_GAP_KP_NOT_TYPE_PASSKEY_START, () => {
+                centralAdapter.notifyKeypress(device.instanceId, centralAdapter.driver.BLE_GAP_KP_NOT_TYPE_PASSKEY_DIGIT_IN, () => {
+                    centralAdapter.notifyKeypress(device.instanceId, centralAdapter.driver.BLE_GAP_KP_NOT_TYPE_PASSKEY_DIGIT_IN, () => {
+                        centralAdapter.notifyKeypress(device.instanceId, centralAdapter.driver.BLE_GAP_KP_NOT_TYPE_PASSKEY_DIGIT_OUT, () => {
+                            centralAdapter.notifyKeypress(device.instanceId, centralAdapter.driver.BLE_GAP_KP_NOT_TYPE_PASSKEY_CLEAR, () => {
+                                centralAdapter.notifyKeypress(device.instanceId, centralAdapter.driver.BLE_GAP_KP_NOT_TYPE_PASSKEY_END, () => {
                                     console.log('\n\n\n\nkeypressIndex is ' + keypressIndex);
-                                    centralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, passkey, err => {
+                                    centralAdapter.replyAuthKey(device.instanceId, centralAdapter.driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, passkey, err => {
                                         assert(!err);
                                     });
                                 });
@@ -654,28 +661,32 @@ function setupAuthLESCPasskey(
     });
 
     centralAdapter.once('secParamsRequest', (device, secParams) => {
-        centralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, null, secKeyset, (err, keyset) => {
+        centralAdapter.replySecParams(device.instanceId, centralAdapter.driver.BLE_GAP_SEC_STATUS_SUCCESS, null, secKeyset, (err, keyset) => {
             assert(!err);
             console.log('#CENTRAL replySecParams callback');
         });
     });
 
     centralAdapter.once('lescDhkeyRequest', (device, pkPeer, oobdReq) => {
-        centralAdapter.replyLescDhkey(device.instanceId, [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
+        centralAdapter.replyLescDhkey(device.instanceId, [
+            0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
             0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
             0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
-            0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6], err => {
-                assert(!err);
+            0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6,
+        ], err => {
+            assert(!err);
         });
     });
 
     peripheralAdapter.once('lescDhkeyRequest', (device, pkPeer, oobdReq) => {
-        peripheralAdapter.replyLescDhkey(device.instanceId, [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
+        peripheralAdapter.replyLescDhkey(device.instanceId, [
+            0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
             0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
             0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
-            0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6], err => {
-                assert(!err);
-            });
+            0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6,
+        ], err => {
+            assert(!err);
+        });
     });
 
     centralAdapter.once('authStatus', (device, status) => {
@@ -693,14 +704,13 @@ function setupAuthLESCOOB(
     centralAdapter,
     peripheralAdapter,
     peripheralAsDevice,
-    authenticatedCallback)
-{
+    authenticatedCallback) {
     const secParamsPeripheral = {
         bond: false,
         mitm: true,
         lesc: true,
         keypress: false,
-        io_caps: driver.BLE_GAP_IO_CAPS_NONE,
+        io_caps: peripheralAdapter.driver.BLE_GAP_IO_CAPS_NONE,
         oob: true,
         min_key_size: 7,
         max_key_size: 16,
@@ -723,7 +733,7 @@ function setupAuthLESCOOB(
         mitm: true,
         lesc: true,
         keypress: false,
-        io_caps: driver.BLE_GAP_IO_CAPS_NONE,
+        io_caps: centralAdapter.driver.BLE_GAP_IO_CAPS_NONE,
         oob: true,
         min_key_size: 7,
         max_key_size: 16,
@@ -746,15 +756,17 @@ function setupAuthLESCOOB(
             enc_key: null,
             id_key: null,
             sign_key: null,
-            pk: { pk: [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
-                 0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
-                 0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
-                 0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6,
-                 0xdc, 0x80, 0x9c, 0x49, 0x65, 0x2a, 0xeb, 0x6d,
-                 0x63, 0x32, 0x9a, 0xbf, 0x5a, 0x52, 0x15, 0x5c,
-                 0x76, 0x63, 0x45, 0xc2, 0x8f, 0xed, 0x30, 0x24,
-                 0x74, 0x1c, 0x8e, 0xd0, 0x15, 0x89, 0xd2, 0x8b],
-                              },
+            pk: {
+                pk: [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
+                    0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
+                    0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
+                    0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6,
+                    0xdc, 0x80, 0x9c, 0x49, 0x65, 0x2a, 0xeb, 0x6d,
+                    0x63, 0x32, 0x9a, 0xbf, 0x5a, 0x52, 0x15, 0x5c,
+                    0x76, 0x63, 0x45, 0xc2, 0x8f, 0xed, 0x30, 0x24,
+                    0x74, 0x1c, 0x8e, 0xd0, 0x15, 0x89, 0xd2, 0x8b,
+                ],
+            },
         },
         keys_peer: {
             enc_key: null,
@@ -770,33 +782,35 @@ function setupAuthLESCOOB(
     peripheralAdapter.once('secParamsRequest', (device, _secParams) => {
         peripheralAdapter.getLescOobData(device.instanceId,
             [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
-             0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
-             0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
-             0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6],
-             (err, _ownOobData) => {
-                 assert(!err);
+                0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
+                0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
+                0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6,
+            ],
+            (err, _ownOobData) => {
+                assert(!err);
 
-                 peripheralOobData = _ownOobData;
+                peripheralOobData = _ownOobData;
 
-                 console.log('\n\n\n\n\n\n#PERIPH OOB data:' + JSON.stringify(_ownOobData));
+                console.log('\n\n\n\n\n\n#PERIPH OOB data:' + JSON.stringify(_ownOobData));
 
-                 peripheralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, secParamsPeripheral, secKeyset, (err, keyset) => {
-                     assert(!err);
-                 });
-             });
+                peripheralAdapter.replySecParams(device.instanceId, peripheralAdapter.driver.BLE_GAP_SEC_STATUS_SUCCESS, secParamsPeripheral, secKeyset, (err, keyset) => {
+                    assert(!err);
+                });
+            });
     });
 
     centralAdapter.once('secParamsRequest', (device, secParams) => {
         centralAdapter.getLescOobData(device.instanceId,
             [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
-             0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
-             0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
-             0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6],
-             (err, _ownOobData) => {
-                 assert(!err);
-                 centralOobData = _ownOobData;
+                0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
+                0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
+                0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6,
+            ],
+            (err, _ownOobData) => {
+                assert(!err);
+                centralOobData = _ownOobData;
 
-                centralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, null, secKeyset, (err, keyset) => {
+                centralAdapter.replySecParams(device.instanceId, centralAdapter.driver.BLE_GAP_SEC_STATUS_SUCCESS, null, secKeyset, (err, keyset) => {
                     assert(!err);
                 });
             });
@@ -812,11 +826,12 @@ function setupAuthLESCOOB(
 
             centralAdapter.replyLescDhkey(device.instanceId,
                 [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
-                 0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
-                 0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
-                 0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6], err => {
-                     assert(!err);
-             });
+                    0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
+                    0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
+                    0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6,
+                ], err => {
+                    assert(!err);
+                });
         });
     });
 
@@ -829,11 +844,12 @@ function setupAuthLESCOOB(
 
             peripheralAdapter.replyLescDhkey(device.instanceId,
                 [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
-                 0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
-                 0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
-                 0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6], err => {
-                     assert(!err);
-             });
+                    0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
+                    0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
+                    0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6,
+                ], err => {
+                    assert(!err);
+                });
         });
     });
 
@@ -852,14 +868,14 @@ function setupAuthLegacyPasskey(
     centralAdapter,
     peripheralAdapter,
     peripheralAsDevice,
-    authenticatedCallback)
-{
+    authenticatedCallback) {
+
     const secParamsPeripheral = {
         bond: false,
         mitm: true,
         lesc: false,
         keypress: false,
-        io_caps: driver.BLE_GAP_IO_CAPS_DISPLAY_ONLY,
+        io_caps: peripheralAdapter.driver.BLE_GAP_IO_CAPS_DISPLAY_ONLY,
         oob: false,
         min_key_size: 7,
         max_key_size: 16,
@@ -882,26 +898,26 @@ function setupAuthLegacyPasskey(
         mitm: true,
         lesc: false,
         keypress: false,
-        io_caps: driver.BLE_GAP_IO_CAPS_KEYBOARD_ONLY,
+        io_caps: centralAdapter.driver.BLE_GAP_IO_CAPS_KEYBOARD_ONLY,
         oob: false,
         min_key_size: 7,
         max_key_size: 16,
         kdist_own: {
             enc: true,   /**< Long Term Key and Master Identification. */
-            id: true,    /**< Identity Resolving Key and Identity Address Information. */
+            id: false,    /**< Identity Resolving Key and Identity Address Information. */
             sign: false,  /**< Connection Signature Resolving Key. */
-            link: true,  /**< Derive the Link Key from the LTK. */
+            link: false,  /**< Derive the Link Key from the LTK. */
         },
         kdist_peer: {
             enc: true,   /**< Long Term Key and Master Identification. */
-            id: true,    /**< Identity Resolving Key and Identity Address Information. */
+            id: false,    /**< Identity Resolving Key and Identity Address Information. */
             sign: false,  /**< Connection Signature Resolving Key. */
-            link: true,  /**< Derive the Link Key from the LTK. */
+            link: false,  /**< Derive the Link Key from the LTK. */
         },
     };
 
     peripheralAdapter.once('secParamsRequest', (device, _secParams) => {
-        peripheralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, secParamsPeripheral, null, (err, keyset) => {
+        peripheralAdapter.replySecParams(device.instanceId, peripheralAdapter.driver.BLE_GAP_SEC_STATUS_SUCCESS, secParamsPeripheral, null, (err, keyset) => {
             assert(!err);
             console.log('#PERIPH replySecParams callback'); // + JSON.stringify(keyset));
         });
@@ -912,18 +928,18 @@ function setupAuthLegacyPasskey(
     centralAdapter.once('authKeyRequest', (device, keyType) => {
         console.log('Replying with auth key ' + passkey);
 
-        centralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, passkey, err => {
+        centralAdapter.replyAuthKey(device.instanceId, centralAdapter.driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, passkey, err => {
             assert(!err);
         });
     });
 
-    peripheralAdapter.once('passkeyDisplay',(device, matchRequest, _passkey) => {
+    peripheralAdapter.once('passkeyDisplay', (device, matchRequest, _passkey) => {
         console.log('#PERIPH passkeyDisplay - ' + _passkey);
         passkey = _passkey;
     });
 
     centralAdapter.once('secParamsRequest', (device, secParams) => {
-        centralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, null, null, (err, keyset) => {
+        centralAdapter.replySecParams(device.instanceId, centralAdapter.driver.BLE_GAP_SEC_STATUS_SUCCESS, null, null, (err, keyset) => {
             assert(!err);
             console.log('#CENTRAL replySecParams callback');// + JSON.stringify(keyset));
         });
@@ -944,14 +960,14 @@ function setupAuthLESCNumericComparisonExternal(
     centralAdapter,
     peripheralAdapter,
     peripheralDevice,
-    authenticatedCallback)
-{
+    authenticatedCallback) {
+
     const secParams = {
         bond: true,
         mitm: true,
         lesc: true,
         keypress: false,
-        io_caps: driver.BLE_GAP_IO_CAPS_KEYBOARD_DISPLAY,
+        io_caps: peripheralAdapter.driver.BLE_GAP_IO_CAPS_KEYBOARD_DISPLAY,
         oob: false,
         min_key_size: 7,
         max_key_size: 16,
@@ -1020,13 +1036,13 @@ function setupAuthLESCNumericComparisonExternal(
                     assert(_secParams.oob === false);
                     assert(_secParams.mitm === true);
 
-                    peripheralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, secParams, secKeyset, (err, keyset) => {
+                    peripheralAdapter.replySecParams(device.instanceId, peripheralAdapter.driver.BLE_GAP_SEC_STATUS_SUCCESS, secParams, secKeyset, (err, keyset) => {
                         assert(!err);
                     });
                 });
 
-                peripheralAdapter.once('passkeyDisplay',  (device, match_request, passkey) => {
-                    peripheralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
+                peripheralAdapter.once('passkeyDisplay', (device, match_request, passkey) => {
+                    peripheralAdapter.replyAuthKey(device.instanceId, peripheralAdapter.driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
                         assert(!err);
                     });
                 });
@@ -1047,19 +1063,18 @@ function setupAuthLESCNumericComparisonExternal(
     });
 }
 
-
 function setupAuthLESCNumericComparison(
     centralAdapter,
     peripheralAdapter,
     peripheralAsDevice,
-    authenticatedCallback)
-{
+    authenticatedCallback) {
+
     const secParams = {
         bond: true,
         mitm: true,
         lesc: true,
         keypress: false,
-        io_caps: driver.BLE_GAP_IO_CAPS_KEYBOARD_DISPLAY,
+        io_caps: centralAdapter.driver.BLE_GAP_IO_CAPS_KEYBOARD_DISPLAY,
         oob: false,
         min_key_size: 7,
         max_key_size: 16,
@@ -1082,15 +1097,18 @@ function setupAuthLESCNumericComparison(
             enc_key: null,
             id_key: null,
             sign_key: null,
-            pk: { pk: [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
-                 0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
-                 0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
-                 0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6,
-                 0xdc, 0x80, 0x9c, 0x49, 0x65, 0x2a, 0xeb, 0x6d,
-                 0x63, 0x32, 0x9a, 0xbf, 0x5a, 0x52, 0x15, 0x5c,
-                 0x76, 0x63, 0x45, 0xc2, 0x8f, 0xed, 0x30, 0x24,
-                 0x74, 0x1c, 0x8e, 0xd0, 0x15, 0x89, 0xd2, 0x8b],
-                              },
+            pk: {
+                pk: [
+                    0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
+                    0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
+                    0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
+                    0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6,
+                    0xdc, 0x80, 0x9c, 0x49, 0x65, 0x2a, 0xeb, 0x6d,
+                    0x63, 0x32, 0x9a, 0xbf, 0x5a, 0x52, 0x15, 0x5c,
+                    0x76, 0x63, 0x45, 0xc2, 0x8f, 0xed, 0x30, 0x24,
+                    0x74, 0x1c, 0x8e, 0xd0, 0x15, 0x89, 0xd2, 0x8b,
+                ],
+            },
         },
         keys_peer: {
             enc_key: null,
@@ -1101,26 +1119,28 @@ function setupAuthLESCNumericComparison(
     };
 
     peripheralAdapter.once('secParamsRequest', (device, _secParams) => {
-        peripheralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, secParams, secKeyset, (err, keyset) => {
+        peripheralAdapter.replySecParams(device.instanceId, peripheralAdapter.driver.BLE_GAP_SEC_STATUS_SUCCESS, secParams, secKeyset, (err, keyset) => {
             assert(!err);
         });
     });
 
     centralAdapter.once('secParamsRequest', (device, secParams) => {
-        centralAdapter.replySecParams(device.instanceId, driver.BLE_GAP_SEC_STATUS_SUCCESS, null, secKeyset, err => {
+        centralAdapter.replySecParams(device.instanceId, centralAdapter.driver.BLE_GAP_SEC_STATUS_SUCCESS, null, secKeyset, err => {
             assert(!err);
         });
     });
 
     centralAdapter.once('lescDhkeyRequest', (device, pkPeer, oobdReq) => {
-        centralAdapter.replyLescDhkey(device.instanceId, [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
-         0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
-         0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
-         0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6], err => { assert(!err); });
+        centralAdapter.replyLescDhkey(device.instanceId, [
+            0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
+            0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
+            0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
+            0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6,
+        ], err => { assert(!err); });
     });
 
-    centralAdapter.once('passkeyDisplay',  (device, match_request, passkey) => {
-        centralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
+    centralAdapter.once('passkeyDisplay', (device, match_request, passkey) => {
+        centralAdapter.replyAuthKey(device.instanceId, centralAdapter.driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
             assert(!err);
         });
     });
@@ -1131,14 +1151,16 @@ function setupAuthLESCNumericComparison(
     });
 
     peripheralAdapter.once('lescDhkeyRequest', (device, pkPeer, oobdReq) => {
-        peripheralAdapter.replyLescDhkey(device.instanceId, [0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
-                 0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
-                 0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
-                 0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6], err => { assert(!err); });
+        peripheralAdapter.replyLescDhkey(device.instanceId, [
+            0x20, 0xb0, 0x03, 0xd2, 0xf2, 0x97, 0xbe, 0x2c,
+            0x5e, 0x2c, 0x83, 0xa7, 0xe9, 0xf9, 0xa5, 0xb9,
+            0xef, 0xf4, 0x91, 0x11, 0xac, 0xf4, 0xfd, 0xdb,
+            0xcc, 0x03, 0x01, 0x48, 0x0e, 0x35, 0x9d, 0xe6,
+        ], err => { assert(!err); });
     });
 
-    peripheralAdapter.once('passkeyDisplay',  (device, match_request, passkey) => {
-        peripheralAdapter.replyAuthKey(device.instanceId, driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
+    peripheralAdapter.once('passkeyDisplay', (device, match_request, passkey) => {
+        peripheralAdapter.replyAuthKey(device.instanceId, peripheralAdapter.driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
             assert(!err);
         });
     });
@@ -1217,7 +1239,7 @@ function runTests(centralAdapter, peripheralAdapter) {
             });
         });
 
-        connect(centralAdapter, {address: peripheralDeviceAddress, type: peripheralDeviceAddressType});
+        connect(centralAdapter, { address: peripheralDeviceAddress, type: peripheralDeviceAddressType });
     });
 }
 
@@ -1246,7 +1268,7 @@ function runFailedTests(centralAdapter, peripheralAdapter) {
             });
         });
 
-        connect(centralAdapter, {address: peripheralDeviceAddress, type: peripheralDeviceAddressType});
+        connect(centralAdapter, { address: peripheralDeviceAddress, type: peripheralDeviceAddressType });
     });
 }
 

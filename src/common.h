@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2016 Nordic Semiconductor ASA
+/* Copyright (c) 2016, Nordic Semiconductor ASA
+ *
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -8,31 +8,33 @@
  *   1. Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *   2. Redistributions in binary form must reproduce the above copyright notice, this
- *   list of conditions and the following disclaimer in the documentation and/or
- *   other materials provided with the distribution.
+ *   2. Redistributions in binary form, except as embedded into a Nordic
+ *   Semiconductor ASA integrated circuit in a product or a software update for
+ *   such product, must reproduce the above copyright notice, this list of
+ *   conditions and the following disclaimer in the documentation and/or other
+ *   materials provided with the distribution.
  *
- *   3. Neither the name of Nordic Semiconductor ASA nor the names of other
- *   contributors to this software may be used to endorse or promote products
- *   derived from this software without specific prior written permission.
+ *   3. Neither the name of Nordic Semiconductor ASA nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
  *
- *   4. This software must only be used in or with a processor manufactured by Nordic
- *   Semiconductor ASA, or in or with a processor manufactured by a third party that
- *   is used in combination with a processor manufactured by Nordic Semiconductor.
+ *   4. This software, with or without modification, must only be used with a
+ *   Nordic Semiconductor ASA integrated circuit.
  *
- *   5. Any software provided in binary or object form under this license must not be
+ *   5. Any software provided in binary form under this license must not be
  *   reverse engineered, decompiled, modified and/or disassembled.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL NORDIC SEMICONDUCTOR ASA OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #ifndef SD_COMMON_H
@@ -77,6 +79,7 @@ protected:
 
     v8::Local<v8::Object> jsobj;
     NativeType *native;
+
 public:
     BleToJs(v8::Local<v8::Object> js) : jsobj(js) {}
     BleToJs(NativeType *native) : native(native) {}
@@ -168,9 +171,11 @@ public:
     virtual const char *getEventName() = 0;
 };
 
-struct Baton {
+struct Baton
+{
 public:
-    explicit Baton(v8::Local<v8::Function> cb) {
+    explicit Baton(v8::Local<v8::Function> cb)
+    {
         req = new uv_work_t();
         callback = new Nan::Callback(cb);
         req->data = static_cast<void*>(this);
@@ -178,6 +183,7 @@ public:
 
     ~Baton()
     {
+        delete req;
         delete callback;
     }
 
@@ -203,7 +209,7 @@ public:
     {
         if (!js->IsNumber())
         {
-            throw "number";
+            throw std::string("number");
         }
 
         return static_cast<NativeType>(js->ToUint32()->Uint32Value());
@@ -213,7 +219,7 @@ public:
     {
         if (!js->IsNumber())
         {
-            throw "number";
+            throw std::string("number");
         }
 
         return static_cast<NativeType>(js->ToInt32()->Int32Value());
@@ -223,7 +229,7 @@ public:
     {
         if (!js->IsNumber())
         {
-            throw "number";
+            throw std::string("number");
         }
 
         return static_cast<NativeType>(js->ToNumber()->NumberValue());
@@ -233,7 +239,7 @@ public:
     {
         if (!js->IsBoolean())
         {
-            throw "bool";
+            throw std::string("bool");
         }
 
         return static_cast<NativeType>(js->ToBoolean()->BooleanValue());
@@ -263,7 +269,8 @@ public:
 class ConversionUtility
 {
 public:
-    enum ConversionUnits {
+    enum ConversionUnits
+    {
         ConversionUnit625ms = 625,
         ConversionUnit1250ms = 1250,
         ConversionUnit10000ms = 10000,

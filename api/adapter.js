@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2016 Nordic Semiconductor ASA
+/* Copyright (c) 2016, Nordic Semiconductor ASA
+ *
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -8,31 +8,33 @@
  *   1. Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *   2. Redistributions in binary form must reproduce the above copyright notice, this
- *   list of conditions and the following disclaimer in the documentation and/or
- *   other materials provided with the distribution.
+ *   2. Redistributions in binary form, except as embedded into a Nordic
+ *   Semiconductor ASA integrated circuit in a product or a software update for
+ *   such product, must reproduce the above copyright notice, this list of
+ *   conditions and the following disclaimer in the documentation and/or other
+ *   materials provided with the distribution.
  *
- *   3. Neither the name of Nordic Semiconductor ASA nor the names of other
- *   contributors to this software may be used to endorse or promote products
- *   derived from this software without specific prior written permission.
+ *   3. Neither the name of Nordic Semiconductor ASA nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
  *
- *   4. This software must only be used in or with a processor manufactured by Nordic
- *   Semiconductor ASA, or in or with a processor manufactured by a third party that
- *   is used in combination with a processor manufactured by Nordic Semiconductor.
+ *   4. This software, with or without modification, must only be used with a
+ *   Nordic Semiconductor ASA integrated circuit.
  *
- *   5. Any software provided in binary or object form under this license must not be
+ *   5. Any software provided in binary form under this license must not be
  *   reverse engineered, decompiled, modified and/or disassembled.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL NORDIC SEMICONDUCTOR ASA OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 'use strict';
@@ -50,17 +52,18 @@ const Converter = require('./util/sdConv');
 const ToText = require('./util/toText');
 const logLevel = require('./util/logLevel');
 const Security = require('./security');
+const HexConv = require('./util/hexConv');
 
-/**
- * Class to mediate error conditions.
- */
+/** Class to mediate error conditions. */
 class Error {
+    /**
+     * Create an error object.
+     *
+     * @constructor
+     * @param {string} userMessage The message to display to the user.
+     * @param {string} description A detailed description of the error.
+     */
     constructor(userMessage, description) {
-        /**
-         * @type {Object}
-         * @property {string} message - Message to show to user
-         * @property {string} description - A detailed description of the error
-         */
         this.message = userMessage;
         this.description = description;
     }
@@ -70,37 +73,77 @@ const _makeError = function (userMessage, description) {
     return new Error(userMessage, description);
 };
 
+/**
+ * Class representing a transport adapter (SoftDevice RPC module).
+ *
+ * @fires Adapter#advertiseTimedOut
+ * @fires Adapter#attMtuChanged
+ * @fires Adapter#authKeyRequest
+ * @fires Adapter#authStatus
+ * @fires Adapter#characteristicAdded
+ * @fires Adapter#characteristicValueChanged
+ * @fires Adapter#closed
+ * @fires Adapter#connectTimedOut
+ * @fires Adapter#connParamUpdate
+ * @fires Adapter#connParamUpdateRequest
+ * @fires Adapter#connSecUpdate
+ * @fires Adapter#dataLengthChanged
+ * @fires Adapter#descriptorAdded
+ * @fires Adapter#descriptorValueChanged
+ * @fires Adapter#deviceConnected
+ * @fires Adapter#deviceDisconnected
+ * @fires Adapter#deviceDiscovered
+ * @fires Adapter#deviceNotifiedOrIndicated
+ * @fires Adapter#error
+ * @fires Adapter#keyPressed
+ * @fires Adapter#lescDhkeyRequest
+ * @fires Adapter#logMessage
+ * @fires Adapter#opened
+ * @fires Adapter#passkeyDisplay
+ * @fires Adapter#scanTimedOut
+ * @fires Adapter#secInfoRequest
+ * @fires Adapter#secParamsRequest
+ * @fires Adapter#securityChanged
+ * @fires Adapter#securityRequest
+ * @fires Adapter#securityRequestTimedOut
+ * @fires Adapter#serviceAdded
+ * @fires Adapter#stateChanged
+ * @fires Adapter#status
+ * @fires Adapter#txComplete
+ * @fires Adapter#warning
+ */
 class Adapter extends EventEmitter {
     /**
-     * Create an adapter, this constructor is used by the AdapterFactory and should not be necessary for the developer to use
-     * @param {object} bleDriver - The driver to use for getting constants from the pc-ble-driver-js AddOn
-     * @param {object} adapter - The adapter to use. The adapter is an object received from the pc-ble-driver-js AddOn
-     * @param {string} instanceId - A unique id that represents this Adapter instance
-     * @param {string} port - The port this adapter uses. For example it can be COM1, /dev/ttyUSB0 or similar
-     * @param {string} notSupportedMessage - Message given to developer if the adapter is not supported on this platform.
+     * @summary Create an object representing an adapter.
      *
-     * @emits {Error} Emitted when error occurs
+     * This constructor is called by `AdapterFactory` and it should not be necessary for the developer to call directly.
+     *
+     * @constructor
+     * @param {Object} bleDriver The driver to use for getting constants from the pc-ble-driver-js AddOn.
+     * @param {Object} adapter The adapter to use. The adapter is an object received from the pc-ble-driver-js AddOn.
+     * @param {string} instanceId The unique Id that identifies this Adapter instance.
+     * @param {string} port The port this adapter uses. For example it can be 'COM1', '/dev/ttyUSB0' or similar.
+     * @param {string} [serialNumber] The serial number of hardware device this adapter is controlling via serial.
+     * @param {string} [notSupportedMessage] Message displayed to developer if this adapter is not supported on platform.
      *
      */
     constructor(bleDriver, adapter, instanceId, port, serialNumber, notSupportedMessage) {
         super();
 
-        if (bleDriver === undefined) { throw new Error('Missing argument bleDriver.'); }
-        if (adapter === undefined) { throw new Error('Missing argument adapter.'); }
-        if (instanceId === undefined) { throw new Error('Missing argument instanceId.'); }
-        if (port === undefined) { throw new Error('Missing argument port.'); }
+        if (bleDriver === undefined) throw new Error('Missing argument bleDriver.');
+        if (adapter === undefined) throw new Error('Missing argument adapter.');
+        if (instanceId === undefined) throw new Error('Missing argument instanceId.');
+        if (port === undefined) throw new Error('Missing argument port.');
 
         this._bleDriver = bleDriver;
         this._adapter = adapter;
         this._instanceId = instanceId;
         this._state = new AdapterState(instanceId, port, serialNumber);
-        this._security = Security.getInstance(this._bleDriver);
+        this._security = new Security(this._bleDriver);
         this._notSupportedMessage = notSupportedMessage;
 
-        this._maxReadPayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 1;
-        this._maxShortWritePayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 3;
-        this._maxLongWritePayloadSize = this._bleDriver.GATT_MTU_SIZE_DEFAULT - 5;
         this._keys = null;
+        this._attMtuMap = {};
 
         this._init();
     }
@@ -122,7 +165,7 @@ class Adapter extends EventEmitter {
     }
 
     _getServiceType(service) {
-        var type;
+        let type;
 
         if (service.type) {
             if (service.type === 'primary') {
@@ -133,38 +176,68 @@ class Adapter extends EventEmitter {
                 throw new Error(`Service type ${service.type} is unknown to me. Must be 'primary' or 'secondary'.`);
             }
         } else {
-            throw new Error(`Service type is not specified. Must be 'primary' or 'secondary'.`);
+            throw new Error('Service type is not specified. Must be \'primary\' or \'secondary\'.');
         }
 
         return type;
     }
 
     /**
-     * Get the instaniceId for this Adapter
-     * @return {string} unique id for this Adapter
+     * Get the instanceId of this adapter.
+     * @returns {string} Unique Id of this adapter.
      */
     get instanceId() {
         return this._instanceId;
     }
 
     /**
-     * Get the state for this Adapter.
-     * @return {AdapterState} AdapterState for this Adapter.
+     * Get the state of this adapter. @ref: ./adapterState.js
+     * @returns {AdapterState} `AdapterState` store object of this adapter.
      */
     get state() {
         return this._state;
     }
 
-    get notSupportedMessage() {
-      return this._notSupportedMessage;
+    /**
+     * Get the driver of this adapter.
+     * @returns {Object} The pc-ble-driver to use for this adapter, from the pc-ble-driver-js add-on.
+     */
+    get driver() {
+        return this._bleDriver;
     }
 
-    _generateKeyPair() {
+    /**
+     * Get the `notSupportedMessage` of this adapter.
+     * @returns {string} The error message thrown if this adapter is not supported on the platform/hardware.
+     */
+    get notSupportedMessage() {
+        return this._notSupportedMessage;
+    }
+
+    _maxReadPayloadSize(deviceInstanceId) {
+        return this.getCurrentAttMtu(deviceInstanceId) - 1;
+    }
+
+    _maxShortWritePayloadSize(deviceInstanceId) {
+        return this.getCurrentAttMtu(deviceInstanceId) - 3;
+    }
+
+    _maxLongWritePayloadSize(deviceInstanceId) {
+        return this.getCurrentAttMtu(deviceInstanceId) - 5;
+    }
+
+     _generateKeyPair() {
         if (this._keys === null) {
             this._keys = this._security.generateKeyPair();
         }
     }
 
+    /**
+     * Compute shared secret.
+     *
+     * @param {string} [peerPublicKey] Peer public key.
+     * @returns {string} The computed shared secret generated from this adapter's key-pair.
+     */
     computeSharedSecret(peerPublicKey) {
         this._generateKeyPair();
 
@@ -177,11 +250,22 @@ class Adapter extends EventEmitter {
         return this._security.generateSharedSecret(this._keys.sk, publicKey.pk).ss;
     }
 
+    /**
+     * Compute public key.
+     *
+     * @returns {string} The public key generated from this adapter's key-pair.
+     */
     computePublicKey() {
         this._generateKeyPair();
         return this._security.generatePublicKey(this._keys.sk).pk;
     }
 
+    /**
+     * Deletes any previously generated key-pair.
+     *
+     * The next time `computeSharedSecret` or `computePublicKey` is invoked, a new key-pair will be generated and used.
+     * @returns {void}
+     */
     deleteKeys() {
         this._keys = null;
     }
@@ -189,7 +273,7 @@ class Adapter extends EventEmitter {
     _checkAndPropagateError(err, userMessage, callback) {
         if (err) {
             this._emitError(err, userMessage);
-            if (callback) { callback(err); }
+            if (callback) callback(err);
             return true;
         }
 
@@ -197,23 +281,22 @@ class Adapter extends EventEmitter {
     }
 
     _emitError(err, userMessage) {
-        let error = new Error(userMessage, err);
+        const error = new Error(userMessage, err);
+
+        /**
+         * Error event.
+         *
+         * @event Adapter#error
+         * @type {Object}
+         * @property {Error} error - Provides information related to an error that occurred.
+         */
         this.emit('error', error);
-    }
-
-    _toHexString(value) {
-        if (typeof (value) !== 'number') {
-            return '';
-        }
-
-        const hexValue = value.toString(16);
-        return ('0' + hexValue).slice(-Math.ceil(hexValue.length / 2) * 2).toUpperCase();
     }
 
     _changeState(changingStates, swallowEmit) {
         let changed = false;
 
-        for (let state in changingStates) {
+        for (const state in changingStates) {
             const newValue = changingStates[state];
             const previousValue = this._state[state];
 
@@ -229,33 +312,50 @@ class Adapter extends EventEmitter {
         }
 
         if (changed) {
+            /**
+             * Adapter state changed event.
+             *
+             * @event Adapter#stateChanged
+             * @type {Object}
+             * @property {AdapterState} this._state - The updated adapter's state store.
+             */
             this.emit('stateChanged', this._state);
         }
     }
 
-    _numberTo16BitUuid(uuid16Bit) {
-        let byteString = uuid16Bit.toString(16);
-        byteString = ('000' + byteString).slice(-4);
-
-        return byteString.toUpperCase();
-    }
-
-    _arrayTo128BitUuid(array) {
-        let string = '';
-
-        for (let i = array.length - 1; i >= 0; i--) {
-            let byteString = array[i].toString(16);
-            byteString = ('0' + byteString).slice(-2);
-            string += byteString;
-        }
-
-        return string.toUpperCase();
-    }
-
-    // Callback signature function(err) {}
+    /**
+     * @summary Initialize the adapter.
+     *
+     * The serial port will be attempted to be opened with the configured serial port settings in
+     * <code>adapterOptions</code>.
+     *
+     * @param {Object} options Options to initialize/open this adapter with.
+     * Available adapter open options:
+     * <ul>
+     * <li>{number} [baudRate=115200]: The baud rate this adapter's serial port should be configured with.
+     * <li>{string} [parity='none']: The parity this adapter's serial port should be configured with.
+     * <li>{string} [flowControl='none']: Whether flow control should be configured with this adapter's serial port.
+     * <li>{number} [eventInterval=0]: Interval to use for sending BLE driver events to JavaScript.
+     *                                 If `0`, events will be sent as soon as they are received from the BLE driver.
+     * <li>{string} [logLevel='info']: The verbosity of logging the developer wants with this adapter.
+     * <li>{number} [retransmissionInterval=100]: The time interval to wait between retransmitted packets.
+     * <li>{number} [responseTimeout=750]: Response timeout of the data link layer.
+     * <li>{boolean} [enableBLE=true]: Whether the BLE stack should be initialized and enabled.
+     * </ul>
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     open(options, callback) {
         if (this.notSupportedMessage !== undefined) {
-            let error = new Error(this.notSupportedMessage);
+            const error = new Error(this.notSupportedMessage);
+
+            /**
+             * Warning event.
+             *
+             * @event Adapter#warning
+             * @type {Object}
+             * @property {Error} error - A non fatal Error.
+             */
             this.emit('warning', error);
         }
 
@@ -278,10 +378,10 @@ class Adapter extends EventEmitter {
             if (!options.logLevel) options.logLevel = 'info';
             if (!options.retransmissionInterval) options.retransmissionInterval = 100;
             if (!options.responseTimeout) options.responseTimeout = 750;
-            if ((typeof options.enableBLE) == 'undefined') options.enableBLE = true;
+            if (options.enableBLE === undefined) options.enableBLE = true;
         }
 
-        this._changeState({baudRate: options.baudRate, parity: options.parity, flowControl: options.flowControl});
+        this._changeState({ baudRate: options.baudRate, parity: options.parity, flowControl: options.flowControl });
 
         options.logCallback = this._logCallback.bind(this);
         options.eventCallback = this._eventCallback.bind(this);
@@ -290,12 +390,20 @@ class Adapter extends EventEmitter {
         this._adapter.open(this._state.port, options, err => {
             if (this._checkAndPropagateError(err, 'Error occurred opening serial port.', callback)) { return; }
 
-            this._changeState({available: true});
+            this._changeState({ available: true });
+
+            /**
+             * Adapter opened event.
+             *
+             * @event Adapter#opened
+             * @type {Object}
+             * @property {Adapter} this - An instance of the opened <code>Adapter</code>.
+             */
             this.emit('opened', this);
 
             if (options.enableBLE) {
-                this.getState((err, state) => {
-                    if (this._checkAndPropagateError(err, 'Error retrieving adapter state.', callback)) { return; }
+                this.getState(getStateError => {
+                    if (this._checkAndPropagateError(getStateError, 'Error retrieving adapter state.', callback)) { return; }
                 });
             }
 
@@ -304,20 +412,82 @@ class Adapter extends EventEmitter {
     }
 
     /**
-     * Close Adapter communication and free resources related to the Adapter. The event listeners added to the Adapter are removed.
+     * @summary Close the adapter.
+     *
+     * This function will close the serial port, release allocated resources and remove event listeners.
+     *
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
      */
     close(callback) {
-        this._changeState({available: false});
+        this._changeState({ available: false });
         this._adapter.close(error => {
+            /**
+             * Adapter closed event.
+             *
+             * @event Adapter#closed
+             * @type {Object}
+             * @property {Adapter} this - An instance of the closed <code>Adapter</code>.
+             */
             this.emit('closed', this);
             if (callback) callback(error);
         });
     }
 
+    /**
+     * This function is for debugging purposes. It will return an object with these members:
+     * <ul>
+     * <li>{number} eventCallbackTotalTime
+     * <li>{number} eventCallbackTotalCount
+     * <li>{number} eventCallbackBatchMaxCount
+     * <li>{number} eventCallbackBatchAvgCount
+     * </ul>
+     *
+     * @returns {Object} This adapters stats.
+     */
     getStats() {
         return this._adapter.getStats();
     }
 
+    /**
+     * @summary Enable the BLE stack.
+     *
+     * This call initializes the BLE stack, no other BLE related function can be called before this one.
+     *
+     * @param {Object} [options] BLE Initialization parameters. If `undefined` or `null` the BLE stack will be
+     *                           initialized with default options (see code for `enableBLE()` below for default values).
+     * Available BLE enable parameters:
+     * <ul>
+     * <li>{Object} gap_enable_params: GAP init parameters
+     *                <ul>
+     *                <li>{number} periph_conn_count: Number of connections acting as a peripheral.
+     *                <li>{number} central_conn_count: Number of connections acting as a central.
+     *                <li>{number} central_sec_count: Number of SMP instances for all connections acting as a central.
+     *                </ul>
+     * <li>{Object} gatts_enable_params: GATTS init parameters
+     *                <ul>
+     *                <li>{boolean} service_changed: Include the Service Changed characteristic in the Attribute Table.
+     *                <li>{number} attr_tab_size: Attribute Table size in bytes. The size must be a multiple of 4.
+     *                </ul>
+     * <li>{Object} common_enable_params: Common init parameters
+     *                <ul>
+     *                <li>{null|number} conn_bw_counts: Bandwidth configuration parameters or null for defaults.
+     *                <li>{number} vs_uuid_count: Maximum number of 128-bit, Vendor Specific UUID bases to allocate.
+     *                </ul>
+     * <li>{Object} gatt_enable_params: GATT init parameters
+     *                <ul>
+     *                <li>{number} att_mtu: Maximum size of ATT packet the SoftDevice can send or receive.
+     *                                      If it is 0 then @ref GATT_MTU_SIZE_DEFAULT will be used.
+     *                                      Otherwise @ref GATT_MTU_SIZE_DEFAULT is the minimum value.
+     *                </ul>
+     * </ul>
+     * @param {function(Error, Object, number)} [callback] Callback signature: (err, parameters, app_ram_base) => {}
+     *                                                   where `parameters` is the BLE initialization parameters as
+     *                                                   described above and `app_ram_base` is the minimum start address
+     *                                                   of the application RAM region required by the SoftDevice for
+     *                                                   this configuration.
+     * @returns {void}
+     */
     enableBLE(options, callback) {
         if (options === undefined || options === null) {
             options = {
@@ -334,6 +504,9 @@ class Adapter extends EventEmitter {
                     conn_bw_counts: null, // tell SD to use default
                     vs_uuid_count: 10,
                 },
+                gatt_enable_params: {
+                    att_mtu: 247, // 247 is max att mtu size
+                },
             };
         }
 
@@ -345,7 +518,7 @@ class Adapter extends EventEmitter {
                 if (callback) {
                     callback(err, parameters, app_ram_base);
                 }
-        });
+            });
     }
 
     _statusCallback(status) {
@@ -370,10 +543,25 @@ class Adapter extends EventEmitter {
                 break;
         }
 
+        /**
+         * Status event.
+         *
+         * @event Adapter#status
+         * @type {Object}
+         * @property {string} status - Human-readable status message.
+         */
         this.emit('status', status);
     }
 
     _logCallback(severity, message) {
+        /**
+         * Log message event.
+         *
+         * @event Adapter#logMessage
+         * @type {Object}
+         * @property {string} severity - Severity of the log event.
+         * @property {string} message - Human-readable log message.
+         */
         this.emit('logMessage', severity, message);
     }
 
@@ -465,6 +653,9 @@ class Adapter extends EventEmitter {
                 case this._bleDriver.BLE_GATTC_EVT_TIMEOUT:
                     this._parseGattTimeoutEvent(event);
                     break;
+                case this._bleDriver.BLE_GATTC_EVT_EXCHANGE_MTU_RSP:
+                    this._parseGattcExchangeMtuResponseEvent(event);
+                    break;
                 case this._bleDriver.BLE_GATTS_EVT_WRITE:
                     this._parseGattsWriteEvent(event);
                     break;
@@ -483,11 +674,17 @@ class Adapter extends EventEmitter {
                 case this._bleDriver.BLE_GATTS_EVT_TIMEOUT:
                     this._parseGattTimeoutEvent(event);
                     break;
+                case this._bleDriver.BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST:
+                    this._parseGattsExchangeMtuRequestEvent(event);
+                    break;
                 case this._bleDriver.BLE_EVT_USER_MEM_REQUEST:
-                    this._parseMemoryRequest(event);
+                    this._parseMemoryRequestEvent(event);
                     break;
                 case this._bleDriver.BLE_EVT_TX_COMPLETE:
-                    // No need to handle tx_complete, for now.
+                    this._parseTxCompleteEvent(event);
+                    break;
+                case this._bleDriver.BLE_EVT_DATA_LENGTH_CHANGED:
+                    this._parseDataLengthChangedEvent(event);
                     break;
                 default:
                     this.emit('logMessage', logLevel.INFO, `Unsupported event received from SoftDevice: ${event.id} - ${event.name}`);
@@ -521,12 +718,21 @@ class Adapter extends EventEmitter {
         device.connected = true;
         this._devices[device.instanceId] = device;
 
-        this._changeState({connecting: false});
+        this._attMtuMap[device.instanceId] = this.driver.GATT_MTU_SIZE_DEFAULT;
+
+        this._changeState({ connecting: false });
 
         if (deviceRole === 'central') {
-            this._changeState({advertising: false});
+            this._changeState({ advertising: false });
         }
 
+        /**
+         * Connection established.
+         *
+         * @event Adapter#deviceConnected
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we've connected to.
+         */
         this.emit('deviceConnected', device);
 
         this._addDeviceToAllPerConnectionValues(device.instanceId);
@@ -551,6 +757,8 @@ class Adapter extends EventEmitter {
 
         device.connected = false;
 
+        if (device.instanceId in this._attMtuMap) delete this._attMtuMap[device.instanceId];
+
         // TODO: Delete all operations for this device.
 
         if (this._gapOperationsMap[device.instanceId]) {
@@ -570,6 +778,17 @@ class Adapter extends EventEmitter {
         }
 
         delete this._devices[device.instanceId];
+
+        /**
+         * Disconnected from peer.
+         *
+         * @event Adapter#deviceDisconnected
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we've disconnected
+         *                             from.
+         * @property {string} event.reason_name - Human-readable reason for disconnection.
+         * @property {string} event.reason - HCI status code.
+         */
         this.emit('deviceDisconnected', device, event.reason_name, event.reason);
 
         this._clearDeviceFromAllPerConnectionValues(device.instanceId);
@@ -602,17 +821,42 @@ class Adapter extends EventEmitter {
             connectionSupervisionTimeout: event.conn_params.conn_sup_timeout,
         };
 
+        /**
+         * Connection parameter update event.
+         *
+         * @event Adapter#connParamUpdate
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {Object} connectionParameters - The updated connection parameters.
+         */
         this.emit('connParamUpdate', device, connectionParameters);
     }
 
     _parseSecParamsRequestEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
 
+        /**
+         * Request to provide security parameters.
+         *
+         * @event Adapter#secParamsRequest
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {Object} event.peer_params - Initiator Security Parameters.
+         */
         this.emit('secParamsRequest', device, event.peer_params);
     }
 
     _parseConnSecUpdateEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
+
+        /**
+         * Connection security updated.
+         *
+         * @event Adapter#connSecUpdate
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {Object} event.conn_sec - Connection security level.
+         */
         this.emit('connSecUpdate', device, event.conn_sec);
 
         const authParamters = {
@@ -620,6 +864,14 @@ class Adapter extends EventEmitter {
             securityLevel: event.conn_sec.sec_mode.lv,
         };
 
+        /**
+         * Connection security updated.
+         *
+         * @event Adapter#securityChanged
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {Object} authParamters - Connection security level.
+         */
         this.emit('securityChanged', device, authParamters);
     }
 
@@ -627,6 +879,14 @@ class Adapter extends EventEmitter {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         device.ownPeriphInitiatedPairingPending = false;
 
+        /**
+         * Authentication procedure completed with status.
+         *
+         * @event Adapter#authStatus
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {Object} _ - Authentication status and corresponding parameters.
+         */
         this.emit('authStatus',
             device,
             {
@@ -646,34 +906,89 @@ class Adapter extends EventEmitter {
 
     _parsePasskeyDisplayEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
+
+        /**
+         * Request to display a passkey to the user.
+         *
+         * @event Adapter#passkeyDisplay
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {number} event.match_request - If 1 requires the application to report the match using
+                                                    <code>replyAuthKey</code>.
+         * @property {string} event.passkey - 6 digit passkey in ASCII ('0'-'9' digits only).
+         */
         this.emit('passkeyDisplay', device, event.match_request, event.passkey);
     }
 
     _parseAuthKeyRequest(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
+
+        /**
+         * Request to provide an authentication key.
+         *
+         * @event Adapter#authKeyRequest
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {string} event.key_type - The GAP Authentication Key Types.
+         */
         this.emit('authKeyRequest', device, event.key_type);
     }
 
     _parseGapKeyPressedEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
+
+        /**
+         * Notify of a key press during an authentication procedure.
+         *
+         * @event Adapter#keyPressed
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {string} event.kp_not - The Key press notification type.
+         */
         this.emit('keyPressed', device, event.kp_not);
     }
 
     _parseLescDhkeyRequest(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
 
+        /**
+         * Request to calculate an LE Secure Connections DHKey.
+         *
+         * @event Adapter#lescDhkeyRequest
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {Object} event.pk_peer - LE Secure Connections remote P-256 Public Key.
+         * @property {Object} event.oobd_req - LESC OOB data required. A call to <code>replyLescDhkey</code> is
+         *                                     required to complete the procedure.
+         */
         this.emit('lescDhkeyRequest', device, event.pk_peer, event.oobd_req);
     }
 
     _parseSecInfoRequest(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
 
+        /**
+         * Request to provide security information.
+         *
+         * @event Adapter#secInfoRequest
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {Object} event - Security Information Request Event Parameters
+         */
         this.emit('secInfoRequest', device, event);
     }
 
     _parseGapSecurityRequestEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
 
+        /**
+         * Security Request.
+         *
+         * @event Adapter#securityRequest
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {Object} event - Security Request Event Parameters.
+         */
         this.emit('securityRequest', device, event);
     }
 
@@ -687,6 +1002,14 @@ class Adapter extends EventEmitter {
             connectionSupervisionTimeout: event.conn_params.conn_sup_timeout,
         };
 
+        /**
+         * Connection Parameter Update Request.
+         *
+         * @event Adapter#connParamUpdateRequest
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {Object} connectionParameters - GAP Connection Parameters.
+         */
         this.emit('connParamUpdateRequest', device, connectionParameters);
     }
 
@@ -694,30 +1017,70 @@ class Adapter extends EventEmitter {
         const address = event.peer_addr;
         const discoveredDevice = new Device(address, 'peripheral');
         discoveredDevice.processEventData(event);
+
+
+        /**
+         * Discovered a peripheral BLE device.
+         *
+         * @event Adapter#deviceDiscovered
+         * @type {Object}
+         * @property {Device} discoveredDevice - The <code>Device</code> instance representing the BLE peer we've
+         *                                       discovered.
+         */
         this.emit('deviceDiscovered', discoveredDevice);
     }
 
     _parseGapTimeoutEvent(event) {
         switch (event.src) {
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_ADVERTISING:
-                this._changeState({advertising: false});
+                this._changeState({ advertising: false });
+
+                /**
+                 * BLE peripheral timed out advertising.
+                 *
+                 * @event Adapter#advertiseTimedOut
+                 * @type {Object}
+                 */
                 this.emit('advertiseTimedOut');
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_SCAN:
-                this._changeState({scanning: false});
+                this._changeState({ scanning: false });
+
+                /**
+                 * BLE central timed out scanning.
+                 *
+                 * @event Adapter#scanTimedOut
+                 * @type {Object}
+                 */
                 this.emit('scanTimedOut');
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_CONN:
                 const deviceAddress = this._gapOperationsMap.connecting.deviceAddress;
                 const callback = this._gapOperationsMap.connecting.callback;
                 const errorObject = _makeError('Could not connect. Connection procedure timed out.');
-                if (callback) { callback(errorObject); }
+                if (callback) callback(errorObject);
                 delete this._gapOperationsMap.connecting;
-                this._changeState({connecting: false});
+                this._changeState({ connecting: false });
+
+                /**
+                 * BLE peer timed out in connection.
+                 *
+                 * @event Adapter#connectTimedOut
+                 * @type {Object}
+                 * @property {Device} deviceAddress - The device address of the BLE peer our connection timed-out with.
+                 */
                 this.emit('connectTimedOut', deviceAddress);
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_SECURITY_REQUEST:
                 const device = this._getDeviceByConnectionHandle(event.conn_handle);
+
+                /**
+                 * BLE peer timed out while waiting for a security request response.
+                 *
+                 * @event Adapter#securityRequestTimedOut
+                 * @type {Object}
+                 * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+                 */
                 this.emit('securityRequestTimedOut', device);
                 this.emit('error', _makeError('Security request timed out.'));
                 break;
@@ -776,7 +1139,7 @@ class Adapter extends EventEmitter {
 
         services.forEach(service => {
             const handle = service.handle_range.start_handle;
-            let uuid = this._numberTo16BitUuid(service.uuid.uuid);
+            let uuid = HexConv.numberTo16BitUuid(service.uuid.uuid);
 
             if (service.uuid.type >= this._bleDriver.BLE_UUID_TYPE_VENDOR_BEGIN) {
                 uuid = this._converter.lookupVsUuid(service.uuid);
@@ -792,14 +1155,20 @@ class Adapter extends EventEmitter {
             if (uuid === null) {
                 gattOperation.pendingHandleReads[handle] = newService;
             } else {
+                /**
+                 * Service was successfully added to the <code>Adapter</code>'s GATT attribute table.
+                 *
+                 * @event Adapter#serviceAdded
+                 * @type {Object}
+                 * @property {Service} newService - The new added service.
+                 */
                 this.emit('serviceAdded', newService);
             }
         });
 
         const nextStartHandle = services[services.length - 1].handle_range.end_handle + 1;
 
-        if (nextStartHandle > 0xFFFF)
-        {
+        if (nextStartHandle > 0xFFFF) {
             finishServiceDiscovery();
             return;
         }
@@ -853,7 +1222,7 @@ class Adapter extends EventEmitter {
         characteristics.forEach(characteristic => {
             const declarationHandle = characteristic.handle_decl;
             const valueHandle = characteristic.handle_value;
-            let uuid = this._numberTo16BitUuid(characteristic.uuid.uuid);
+            let uuid = HexConv.numberTo16BitUuid(characteristic.uuid.uuid);
 
             if (characteristic.uuid.type >= this._bleDriver.BLE_UUID_TYPE_VENDOR_BEGIN) {
                 uuid = this._converter.lookupVsUuid(characteristic.uuid);
@@ -879,7 +1248,7 @@ class Adapter extends EventEmitter {
         });
 
         const nextStartHandle = characteristics[characteristics.length - 1].handle_decl + 1;
-        const handleRange = {start_handle: nextStartHandle, end_handle: service.endHandle};
+        const handleRange = { start_handle: nextStartHandle, end_handle: service.endHandle };
 
         if (service.endHandle <= nextStartHandle) {
             finishCharacteristicDiscovery();
@@ -947,7 +1316,7 @@ class Adapter extends EventEmitter {
             }
 
             const handle = descriptor.handle;
-            let uuid = this._numberTo16BitUuid(descriptor.uuid.uuid);
+            let uuid = HexConv.numberTo16BitUuid(descriptor.uuid.uuid);
 
             if (descriptor.uuid.type >= this._bleDriver.BLE_UUID_TYPE_VENDOR_BEGIN) {
                 uuid = this._converter.lookupVsUuid(descriptor.uuid);
@@ -956,7 +1325,7 @@ class Adapter extends EventEmitter {
             }
 
             // TODO: Fix magic number? Primary Service and Characteristic Declaration uuids
-            if (uuid === "2800" || uuid === "2803") {
+            if (uuid === '2800' || uuid === '2803') {
                 // Found a service or characteristic declaration
                 foundNextServiceOrCharacteristic = true;
                 return;
@@ -984,7 +1353,7 @@ class Adapter extends EventEmitter {
             return;
         }
 
-        const handleRange = {start_handle: nextStartHandle, end_handle: service.endHandle};
+        const handleRange = { start_handle: nextStartHandle, end_handle: service.endHandle };
 
         this._adapter.gattcDiscoverDescriptors(device.connectionHandle, handleRange, err => {
             this._checkAndPropagateError(err, 'Failed to get Descriptors');
@@ -1023,7 +1392,7 @@ class Adapter extends EventEmitter {
 
             if (attribute instanceof Service) {
                 // TODO: Translate from uuid to name?
-                attribute.uuid = this._arrayTo128BitUuid(data);
+                attribute.uuid = HexConv.arrayTo128BitUuid(data);
                 addVsUuidToDriver(attribute.uuid).then();
                 this.emit('serviceAdded', attribute);
 
@@ -1041,13 +1410,20 @@ class Adapter extends EventEmitter {
             } else if (attribute instanceof Characteristic) {
                 // TODO: Translate from uuid to name?
                 if (handle === attribute.declarationHandle) {
-                    attribute.uuid = this._arrayTo128BitUuid(data.slice(3));
+                    attribute.uuid = HexConv.arrayTo128BitUuid(data.slice(3));
                     addVsUuidToDriver(attribute.uuid).then();
                 } else if (handle === attribute.valueHandle) {
                     attribute.value = data;
                 }
 
                 if (attribute.uuid && attribute.value) {
+                    /**
+                     * Characteristic was successfully added to the <code>Adapter</code>'s GATT attribute table.
+                     *
+                     * @event Adapter#characteristicAdded
+                     * @type {Object}
+                     * @property {Service} attribute - The new added characteristic.
+                     */
                     this.emit('characteristicAdded', attribute);
                 }
 
@@ -1067,6 +1443,13 @@ class Adapter extends EventEmitter {
                 attribute.value = data;
 
                 if (attribute.uuid && attribute.value) {
+                    /**
+                     * Descriptor was successfully added to the <code>Adapter</code>'s GATT attribute table.
+                     *
+                     * @event Adapter#descriptorAdded
+                     * @type {Object}
+                     * @property {Service} attribute - The new added descriptor.
+                     */
                     this.emit('descriptorAdded', attribute);
                 }
 
@@ -1099,16 +1482,16 @@ class Adapter extends EventEmitter {
         } else {
             if (event.gatt_status !== this._bleDriver.BLE_GATT_STATUS_SUCCESS) {
                 delete this._gattOperationsMap[device.instanceId];
-                gattOperation.callback(_makeError(`Read operation failed: ${event.gatt_status_name} (0x${this._toHexString(event.gatt_status)})`));
+                gattOperation.callback(_makeError(`Read operation failed: ${event.gatt_status_name} (0x${HexConv.numberToHexString(event.gatt_status)})`));
                 return;
             }
 
-            gattOperation.readBytes = gattOperation.readBytes ? gattOperation.readBytes.concat(event.data): event.data;
+            gattOperation.readBytes = gattOperation.readBytes ? gattOperation.readBytes.concat(event.data) : event.data;
 
-            if (event.data.length < this._maxReadPayloadSize) {
+            if (event.data.length < this._maxReadPayloadSize(device.instanceId)) {
                 delete this._gattOperationsMap[device.instanceId];
                 gattOperation.callback(undefined, gattOperation.readBytes);
-            } else if (event.data.length === this._maxReadPayloadSize) {
+            } else if (event.data.length === this._maxReadPayloadSize(device.instanceId)) {
                 // We need to read more:
                 this._adapter.gattcRead(event.conn_handle, event.handle, gattOperation.readBytes.length, err => {
                     if (err) {
@@ -1159,7 +1542,7 @@ class Adapter extends EventEmitter {
             };
 
             if (gattOperation.bytesWritten < gattOperation.value.length) {
-                const value = gattOperation.value.slice(gattOperation.bytesWritten, gattOperation.bytesWritten + this._maxLongWritePayloadSize);
+                const value = gattOperation.value.slice(gattOperation.bytesWritten, gattOperation.bytesWritten + this._maxLongWritePayloadSize(device.instanceId));
 
                 writeParameters.write_op = this._bleDriver.BLE_GATT_OP_PREP_WRITE_REQ;
                 writeParameters.handle = handle;
@@ -1192,15 +1575,12 @@ class Adapter extends EventEmitter {
             }
 
             return;
-        } else if (event.write_op === this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ) {
-            // TODO: Need to check if gattOperation.bytesWritten is equal to gattOperation.value length?
-            gattOperation.attribute.value = gattOperation.value;
-            delete this._gattOperationsMap[device.instanceId];
-        } else if (event.write_op === this._bleDriver.BLE_GATT_OP_WRITE_REQ) {
+        } else if (event.write_op === this._bleDriver.BLE_GATT_OP_WRITE_REQ ||
+                   event.write_op === this._bleDriver.BLE_GATT_OP_EXEC_WRITE_REQ) {
             gattOperation.attribute.value = gattOperation.value;
             delete this._gattOperationsMap[device.instanceId];
             if (event.gatt_status !== this._bleDriver.BLE_GATT_STATUS_SUCCESS) {
-                gattOperation.callback(_makeError(`Write operation failed: ${event.gatt_status_name} (0x${this._toHexString(event.gatt_status)})`));
+                gattOperation.callback(_makeError(`Write operation failed: ${event.gatt_status_name} (0x${HexConv.numberToHexString(event.gatt_status)})`));
                 return;
             }
         }
@@ -1272,15 +1652,29 @@ class Adapter extends EventEmitter {
 
     _getAttributeByHandle(deviceInstanceId, handle) {
         return this._getDescriptorByHandle(deviceInstanceId, handle) ||
-               this._getCharacteristicByValueHandle(deviceInstanceId, handle) ||
-               this._getCharacteristicByHandle(deviceInstanceId, handle) ||
-               this._getServiceByHandle(deviceInstanceId, handle);
+            this._getCharacteristicByValueHandle(deviceInstanceId, handle) ||
+            this._getCharacteristicByHandle(deviceInstanceId, handle) ||
+            this._getServiceByHandle(deviceInstanceId, handle);
     }
 
     _emitAttributeValueChanged(attribute) {
         if (attribute instanceof Characteristic) {
+            /**
+             * The value of a characteristic in the <code>Adapter</code>'s GATT attribute table changed.
+             *
+             * @event Adapter#characteristicValueChanged
+             * @type {Object}
+             * @property {Characteristic} attribute - The changed characteristic.
+             */
             this.emit('characteristicValueChanged', attribute);
         } else if (attribute instanceof Descriptor) {
+            /**
+             * The value of a descriptor in the <code>Adapter</code>'s GATT attribute table changed.
+             *
+             * @event Adapter#descriptorValueChanged
+             * @type {Object}
+             * @property {Descriptor} attribute - The changed descriptor.
+             */
             this.emit('descriptorValueChanged', attribute);
         }
     }
@@ -1297,12 +1691,41 @@ class Adapter extends EventEmitter {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const characteristic = this._getCharacteristicByValueHandle(device.instanceId, event.handle);
         if (!characteristic) {
-            this.emit('error', _makeError('Cannot handle HVX event', 'No characteristic has a value descriptor with handle: ' + event.handle));
+            this.emit('logMessage', logLevel.DEBUG, `Cannot handle HVX event. No characteristic value with handle ${event.handle} found.`);
             return;
         }
 
         characteristic.value = event.data;
         this.emit('characteristicValueChanged', characteristic);
+    }
+
+    _parseGattcExchangeMtuResponseEvent(event) {
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
+        const gattOperation = this._gattOperationsMap[device.instanceId];
+
+        const previousMtu = this._attMtuMap[device.instanceId];
+        const newMtu = Math.min(event.server_rx_mtu, gattOperation.clientRxMtu);
+
+        this._attMtuMap[device.instanceId] = newMtu;
+
+        if (newMtu !== previousMtu) {
+            /**
+             * Exchange MTU Response event.
+             *
+             * @event Adapter#attMtuChanged
+             * @type {Object}
+             * @property {Device} device - The <code>Device</code> instance representing the BLE peer we've connected to.
+             * @property {number} newMtu - Server RX MTU size.
+             */
+            this.emit('attMtuChanged', device, newMtu);
+        }
+
+        if (gattOperation && gattOperation.callback) {
+
+            gattOperation.callback(null, newMtu);
+
+            delete this._gattOperationsMap[device.instanceId];
+        }
     }
 
     _parseGattTimeoutEvent(event) {
@@ -1466,6 +1889,14 @@ class Adapter extends EventEmitter {
             this._pendingNotificationsAndIndications.deviceNotifiedOrIndicated(remoteDevice, characteristic);
         }
 
+        /**
+         * Handle Value Notification or Indication event.
+         *
+         * @event Adapter#deviceNotifiedOrIndicated
+         * @type {Object}
+         * @property {Device} remoteDevice - The <code>Device</code> instance representing the BLE peer we've connected to.
+         * @property {Characteristic} characteristic - Characteristic to which the HVx operation applies.
+         */
         this.emit('deviceNotifiedOrIndicated', remoteDevice, characteristic);
 
         this._pendingNotificationsAndIndications.remainingIndicationConfirmations--;
@@ -1475,7 +1906,25 @@ class Adapter extends EventEmitter {
         }
     }
 
-    _parseMemoryRequest(event) {
+    _parseGattsExchangeMtuRequestEvent(event) {
+        const remoteDevice = this._getDeviceByConnectionHandle(event.conn_handle);
+
+        this._adapter.gattsExchangeMtuReply(event.conn_handle, event.client_rx_mtu, error => {
+            if (error) {
+                this.emit('error', _makeError('Failed to call gattsExchangeMtuReply', error));
+                return;
+            }
+
+            const previousMtu = this._attMtuMap[remoteDevice.instanceId];
+            const newMtu = event.client_rx_mtu;
+            this._attMtuMap[remoteDevice.instanceId] = newMtu;
+
+            if (newMtu !== previousMtu);
+            this.emit('attMtuChanged', remoteDevice, event.client_rx_mtu);
+        });
+    }
+
+    _parseMemoryRequestEvent(event) {
         if (event.type === this._bleDriver.BLE_USER_MEM_TYPE_GATTS_QUEUED_WRITES) {
             this._adapter.replyUserMemory(event.conn_handle, null, error => {
                 if (error) {
@@ -1485,11 +1934,45 @@ class Adapter extends EventEmitter {
         }
     }
 
+    _parseTxCompleteEvent(event) {
+        const remoteDevice = this._getDeviceByConnectionHandle(event.conn_handle);
+        /**
+         * Transmission Complete.
+         *
+         * @event Adapter#txComplete
+         * @type {Object}
+         * @property {Device} remoteDevice - The <code>Device</code> instance representing the BLE peer we've connected to.
+         * @property {number} event.count - Number of packets transmitted.
+         */
+        this.emit('txComplete', remoteDevice, event.count);
+    }
+
+    _parseDataLengthChangedEvent(event) {
+        const remoteDevice = this._getDeviceByConnectionHandle(event.conn_handle);
+        /**
+         * Link layer PDU length changed.
+         *
+         * @event Adapter#dataLengthChanged
+         * @type {Object}
+         * @property {Device} remoteDevice - The <code>Device</code> instance representing the BLE peer we've connected to.
+         * @property {number} event.max_tx_octets - The maximum number of payload octets in a Link Layer Data Channel
+         *                                          PDU that the local Controller will send. Range: 27-251
+         */
+        this.emit('dataLengthChanged', remoteDevice, event.max_tx_octets);
+    }
+
     _setAttributeValueWithOffset(attribute, value, offset) {
         attribute.value = attribute.value.slice(0, offset).concat(value);
     }
 
-    // Callback signature function(err, state) {}
+    /**
+     * Gets and updates this adapter's state.
+     *
+     * @param {function(Error, AdapterState)} [callback] Callback signature: (err, state) => {} where `state` is an
+     *                                                 instance of `AdapterState` corresponding to this adapter's
+     *                                                 stored state.
+     * @returns {void}
+     */
     getState(callback) {
         const changedStates = {};
 
@@ -1525,15 +2008,21 @@ class Adapter extends EventEmitter {
         });
     }
 
-    // Set GAP related information
+    /**
+     * Sets this adapter's BLE device's GAP name.
+     *
+     * @param {string} name GAP device name.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     setName(name, callback) {
         let _name = name.split();
-        this._adapter.gapSetDeviceName({sm: 0, lv: 0}, _name, err => {
+        this._adapter.gapSetDeviceName({ sm: 0, lv: 0 }, _name, err => {
             if (err) {
                 this.emit('error', _makeError('Failed to set name to adapter', err));
             } else if (this._state.name !== name) {
                 this._state.name = name;
-                this._changeState({name: name});
+                this._changeState({ name: name });
             }
 
             if (callback) { callback(err); }
@@ -1541,9 +2030,21 @@ class Adapter extends EventEmitter {
     }
 
     _getAddressStruct(address, type) {
-        return {address: address, type: type};
+        return { address: address, type: type };
     }
 
+    /**
+     * @summary Sets this adapter's BLE device's local Bluetooth identity address.
+     *
+     * The local Bluetooth identity address is the address that identifies this device to other peers.
+     * The address type must be either `BLE_GAP_ADDR_TYPE_PUBLIC` or 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC'.
+     * The identity address cannot be changed while roles are running.
+     *
+     * @param {string} address The local Bluetooth identity address.
+     * @param {string} type The address type. 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC' or `BLE_GAP_ADDR_TYPE_PUBLIC`.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     setAddress(address, type, callback) {
         // TODO: if privacy is active use this._bleDriver.BLE_GAP_ADDR_CYCLE_MODE_AUTO?
         const cycleMode = this._bleDriver.BLE_GAP_ADDR_CYCLE_MODE_NONE;
@@ -1554,7 +2055,7 @@ class Adapter extends EventEmitter {
             if (err) {
                 this.emit('error', _makeError('Failed to set address', err));
             } else if (this._state.address !== address) {
-                this._changeState({address: address});
+                this._changeState({ address: address });
             }
 
             if (callback) { callback(err); }
@@ -1615,12 +2116,20 @@ class Adapter extends EventEmitter {
         this._setPPCP(ppcpParameter, callback);
     }
 
-    // Get connected device/devices
-    // Callback signature function(devices : Device[]) {}
+    /**
+     * Get this adapter's connected device/devices.
+     * @returns {Device[]} An array of this adapter's connected device/devices.
+     */
     getDevices() {
         return this._devices;
     }
 
+    /**
+     * Get a device connected to this adapter by its instanceId.
+     *
+     * @param {string} deviceInstanceId The device's unique Id.
+     * @returns {null|Device} The device connected to this adapter corresponding to `deviceInstanceId`.
+     */
     getDevice(deviceInstanceId) {
         return this._devices[deviceInstanceId];
     }
@@ -1639,41 +2148,96 @@ class Adapter extends EventEmitter {
         return this._devices[foundDeviceId];
     }
 
-    // Only for central
-
-    // options: { active: x, interval: x, window: x timeout: x TODO: other params}. Callback signature function(err).
+    /**
+     * @summary Start scanning (GAP Discovery procedure, Observer Procedure).
+     *
+     * @param {Object} options The GAP scanning parameters.
+     * Available scan parameters:
+     * <ul>
+     * <li>{boolean} active If 1, perform active scanning (scan requests).
+     * <li>{number} interval Scan interval between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
+     * <li>{number} window Scan window between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
+     * <li>{number} timeout Scan timeout between 0x0001 and 0xFFFF in seconds, 0x0000 disables timeout.
+     * <li>{number} use_whitelist If 1, filter advertisers using current active whitelist.
+     * <li>{number} adv_dir_report If 1, also report directed advertisements where the initiator field is set to a
+     *                             private resolvable address, even if the address did not resolve to an entry in the
+     *                             device identity list. A report will be generated even if the peer is not in the whitelist.
+     * </ul>
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     startScan(options, callback) {
         this._adapter.gapStartScan(options, err => {
             if (err) {
                 this.emit('error', _makeError('Error occured when starting scan', err));
             } else {
-                this._changeState({scanning: true});
+                this._changeState({ scanning: true });
             }
 
             if (callback) { callback(err); }
         });
     }
 
-    // Callback signature function(err)
+    /**
+     * Stop scanning (GAP Discovery procedure, Observer Procedure).
+     *
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     stopScan(callback) {
         this._adapter.gapStopScan(err => {
             if (err) {
                 // TODO: probably is state already set to false, but should we make sure? if yes, emit stateChanged?
                 this.emit('error', _makeError('Error occured when stopping scanning', err));
             } else {
-                this._changeState({scanning: false});
+                this._changeState({ scanning: false });
             }
 
             if (callback) { callback(err); }
         });
     }
 
-    // options: scanParams, connParams, Callback signature function(err) {}. Do not start service discovery. Err if connection timed out, +++
+    /**
+     * @summary Create a connection (GAP Link Establishment).
+     *
+     * If a scanning procedure is currently in progress it will be automatically stopped when calling this function.
+     *
+     * The application will be informed of a connection being established with a event:DeviceConnectedEvent.
+     *
+     * @param {string|Object} deviceAddress The peer address. If the use_whitelist bit is set in scanParams,
+     *                                      then this is ignored. If given as a string,
+     *                                      `address.type='BLE_GAP_ADDR_TYPE_RANDOM_STATIC'` by default. Else,
+     *                                      an Object with members: { address: {string}, type: {string} } must be given.
+     * @param {Object} options The scan and connection parameters.
+     * Available options:
+     * <ul>
+     * <li>{Object} scanParams:
+     *                <ul>
+     *                <li>{boolean} active: If 1, perform active scanning (scan requests).
+     *                <li>{number} interval: Scan interval between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
+     *                <li>{number} window: Scan window between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
+     *                <li>{number} timeout: Scan timeout between 0x0001 and 0xFFFF in seconds, 0x0000 disables timeout.
+     *                <li>{number} use_whitelist: If 1, filter advertisers using current active whitelist.
+     *                <li>{number} adv_dir_report: If 1, also report directed advertisements where the initiator field is set to a
+     *                                             private resolvable address, even if the address did not resolve to an entry in the
+     *                                             device identity list. A report will be generated even if the peer is not in the whitelist.
+     *                </ul>
+     * <li>{Object} connParams:
+     *                <ul>
+     *                <li>{number} min_conn_interval: Minimum Connection Interval in 1.25 ms units.
+     *                <li>{number} max_conn_interval:  Maximum Connection Interval in 1.25 ms units.
+     *                <li>{number} slave_latency: Slave Latency in number of connection events.
+     *                <li>{number} conn_sup_timeout: Connection Supervision Timeout in 10 ms units.
+     *                </ul>
+     * </ul>
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     connect(deviceAddress, options, callback) {
         if (!_.isEmpty(this._gapOperationsMap)) {
             const errorObject = _makeError('Could not connect. Another connect is in progress.');
             this.emit('error', errorObject);
-            if (callback) { callback(errorObject); }
+            if (callback) callback(errorObject);
             return;
         }
 
@@ -1686,11 +2250,11 @@ class Adapter extends EventEmitter {
             address = deviceAddress;
         }
 
-        this._changeState({scanning: false, connecting: true});
+        this._changeState({ scanning: false, connecting: true });
 
         this._adapter.gapConnect(address, options.scanParams, options.connParams, err => {
             if (err) {
-                this._changeState({connecting: false});
+                this._changeState({ connecting: false });
                 const errorMsg = (err.errcode === 'NRF_ERROR_CONN_COUNT') ?
                     _makeError(`Could not connect. Max number of connections reached.`, err)
                     : _makeError(`Could not connect to ${deviceAddress.address}`, err);
@@ -1698,13 +2262,16 @@ class Adapter extends EventEmitter {
                 this.emit('error', errorMsg);
                 if (callback) { callback(errorMsg); }
             } else {
-                this._gapOperationsMap.connecting = {deviceAddress: address, callback: callback};
+                this._gapOperationsMap.connecting = { deviceAddress: address, callback: callback };
             }
         });
     }
 
     /**
-     * Cancel connection currently in progress.
+     * Cancel a connection establishment.
+     *
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
      */
     cancelConnect(callback) {
         this._adapter.gapCancelConnect(err => {
@@ -1714,15 +2281,17 @@ class Adapter extends EventEmitter {
                 this.emit('error', newError);
                 if (callback) { callback(newError); }
             } else {
+                const errorObject = _makeError('Connection canceled.');
+                const connectingCallback = this._gapOperationsMap.connecting.callback;
+                if (connectingCallback) connectingCallback(errorObject);
                 delete this._gapOperationsMap.connecting;
-                this._changeState({connecting: false});
-                if (callback) { callback(undefined); }
+                this._changeState({ connecting: false });
+                if (callback) { callback(); }
             }
         });
     }
 
     // Enable the client role and starts advertising
-
     _getAdvertisementParams(params) {
         var retval = {};
 
@@ -1783,19 +2352,56 @@ class Adapter extends EventEmitter {
         return retval;
     }
 
-    // Callback function signature: function(err) {}
+    /**
+     * @summary Start advertising (GAP Discoverable, Connectable modes, Broadcast Procedure).
+     *
+     * An application can start an advertising procedure for broadcasting purposes while a connection
+     * is active. After a BLE_GAP_EVT_CONNECTED event is received, this function may therefore
+     * be called to start a broadcast advertising procedure. The advertising procedure
+     * cannot however be connectable (it must be of type BLE_GAP_ADV_TYPE_ADV_SCAN_IND or
+     * BLE_GAP_ADV_TYPE_ADV_NONCONN_IND).
+     *
+     * Only one advertiser may be active at any time.
+
+     * @param {Object} options GAP advertising parameters.
+     * Available GAP advertising parameters:
+     * <ul>
+     * <li>{number} channelMask: Channel mask for RF channels used in advertising. Default: all channels on.
+     * <li>{number} interval: GAP Advertising interval. Required: an interval must be provided.
+     * <li>{number} timeout: Maximum advertising time in limited discoverable mode. Required: a timeout must be provided.
+     * <li>{boolean} connectable: GAP Advertising type connectable. Default: The device is connectable.
+     * <li>{boolean} scannable: GAP Advertising type scannable. Default: The device is undirected.
+     * </ul>
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     startAdvertising(options, callback) {
         const advParams = this._getAdvertisementParams(options);
 
         this._adapter.gapStartAdvertising(advParams, err => {
             if (this._checkAndPropagateError(err, 'Failed to start advertising.', callback)) return;
-            this._changeState({advertising: true});
+            this._changeState({ advertising: true });
             if (callback) { callback(); }
         });
     }
 
     /**
-     * Set the advertising data for this adapter. Callback function(err).
+     * @summary Set, clear or update advertising and scan response data.
+
+     * The format of the advertising data will be checked by this call to ensure interoperability.
+     * Limitations imposed by this API call to the data provided include having a flags data type in the scan response data and
+     * duplicating the local name in the advertising data and scan response data.
+     *
+     * To clear the advertising data and set it to a 0-length packet, simply provide a null `advData`/`scanRespData` parameter.
+     *
+     * The call will fail if `advData` and `scanRespData` are both null since this would have no effect.
+     *
+     * See @ref: ./util/adType.js for possible advertisement object parameters.
+     * @param {Object} advData Advertising packet
+     * @param {Object} scanRespData Scan response packet.
+     *
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
      */
     setAdvertisingData(advData, scanRespData, callback) {
         const advDataStruct = Array.from(AdType.convertToBuffer(advData));
@@ -1811,23 +2417,36 @@ class Adapter extends EventEmitter {
         );
     }
 
-    // Callback function signature: function(err) {}
+    /**
+     * Stop advertising (GAP Discoverable, Connectable modes, Broadcast Procedure).
+     *
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     stopAdvertising(callback) {
         this._adapter.gapStopAdvertising(err => {
             if (this._checkAndPropagateError(err, 'Failed to stop advertising.', callback)) return;
-            this._changeState({advertising: false});
+            this._changeState({ advertising: false });
             if (callback) { callback(); }
         });
     }
 
-    // Central/peripheral
+    /**
+     * @summary Disconnect (GAP Link Termination).
 
+     * This call initiates the disconnection procedure, and its completion will be communicated to the application
+     * with a `BLE_GAP_EVT_DISCONNECTED` event upon which `callback` will be called.
+     *
+     * @param {string} deviceInstanceId The device's unique Id.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     disconnect(deviceInstanceId, callback) {
         const device = this.getDevice(deviceInstanceId);
         if (!device) {
             const errorObject = _makeError('Failed to disconnect', 'Failed to find device with id ' + deviceInstanceId);
             this.emit('error', errorObject);
-            if (callback) { callback(errorObject); }
+            if (callback) callback(errorObject);
             return;
 
         }
@@ -1849,14 +2468,33 @@ class Adapter extends EventEmitter {
 
     _getConnectionUpdateParams(options) {
         return {
-                min_conn_interval: options.minConnectionInterval,
-                max_conn_interval: options.maxConnectionInterval,
-                slave_latency: options.slaveLatency,
-                conn_sup_timeout: options.connectionSupervisionTimeout,
-            };
+            min_conn_interval: options.minConnectionInterval,
+            max_conn_interval: options.maxConnectionInterval,
+            slave_latency: options.slaveLatency,
+            conn_sup_timeout: options.connectionSupervisionTimeout,
+        };
     }
 
-    // options: connParams, callback signature function(err) {} returns true/false
+    /**
+     * @summary Update connection parameters.
+     *
+     * In the central role this will initiate a Link Layer connection parameter update procedure,
+     * otherwise in the peripheral role, this will send the corresponding L2CAP request and wait for
+     * the central to perform the procedure. In both cases, and regardless of success or failure, the application
+     * will be informed of the result with a event:connParamUpdateEvent.
+     *
+     * @param {string} deviceInstanceId The device's unique Id.
+     * @param {Object} options GAP Connection Parameters.
+     * Available GAP Connection Parameters:
+     * <ul>
+     * <li>{number} min_conn_interval: Minimum Connection Interval in 1.25 ms units.
+     * <li>{number} max_conn_interval:  Maximum Connection Interval in 1.25 ms units.
+     * <li>{number} slave_latency: Slave Latency in number of connection events.
+     * <li>{number} conn_sup_timeout: Connection Supervision Timeout in 10 ms units.
+     * </ul>
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     updateConnectionParameters(deviceInstanceId, options, callback) {
         const device = this.getDevice(deviceInstanceId);
         if (!device) {
@@ -1877,9 +2515,13 @@ class Adapter extends EventEmitter {
         });
     }
 
-    // Central role
-
-    // callback signature function(err) {}
+    /**
+     * Reject a GAP connection parameters update request.
+     *
+     * @param {string} deviceInstanceId The device's unique Id.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     rejectConnParams(deviceInstanceId, callback) {
         const connectionHandle = this.getDevice(deviceInstanceId).connectionHandle;
 
@@ -1893,6 +2535,101 @@ class Adapter extends EventEmitter {
         });
     }
 
+    /**
+     * Get the current ATT_MTU size.
+     *
+     * @param {string} deviceInstanceId The device's unique Id.
+     * @returns {undefined|number} The current ATT_MTU size.
+     */
+    getCurrentAttMtu(deviceInstanceId) {
+        if (!(deviceInstanceId in this._attMtuMap)) {
+            return;
+        }
+
+        return this._attMtuMap[deviceInstanceId];
+    }
+
+    /**
+     * @summary Start an ATT_MTU exchange by sending an Exchange MTU Request to the server.
+     *
+     * The SoftDevice sets ATT_MTU to the minimum of:
+     * <ul>
+     *     <li>The Client RX MTU value, and
+     *     <li>The Server RX MTU value from `BLE_GATTC_EVT_EXCHANGE_MTU_RSP`.
+     * </ul>
+     *
+     *     However, the SoftDevice never sets ATT_MTU lower than `GATT_MTU_SIZE_DEFAULT` == 23.
+     *
+     * @param {string} deviceInstanceId The device's unique Id.
+     * @param {number} mtu Requested ATT_MTU. Default ATT_MTU is 23. Valid range is between 24 and 247.
+     * @param {function(Error, number)} [callback] Callback signature: (err, mtu) => {} where `mtu` is the updated
+     *                                           ATT_MTU value.
+     * @returns {void}
+     */
+     requestAttMtu(deviceInstanceId, mtu, callback) {
+        if (this._bleDriver.NRF_SD_BLE_API_VERSION <= 2) {
+            if (callback) callback(null, this._bleDriver.GATT_MTU_SIZE_DEFAULT);
+            return;
+        }
+
+        const device = this.getDevice(deviceInstanceId);
+
+        if (!device) {
+            const errorObject = _makeError('Failed to request att mtu', 'Failed to find device with id ' + deviceInstanceId);
+            if (callback) callback(errorObject);
+            return;
+        }
+
+        if (this._gattOperationsMap[device.instanceId]) {
+            this.emit('error', _makeError('Failed to get services, a GATT operation already in progress'));
+            return;
+        }
+
+        this._adapter.gattcExchangeMtuRequest(device.connectionHandle, mtu, err => {
+            if (err) {
+                const errorObject = _makeError('Failed to request att mtu', err);
+                if (callback) callback(errorObject);
+                return;
+            }
+
+            this._gattOperationsMap[device.instanceId] = { callback: callback, clientRxMtu: mtu };
+        });
+    }
+
+    /**
+     * @summary Initiate the GAP Authentication procedure.
+     *
+     * In the central role, this function will send an SMP Pairing Request (or an SMP Pairing Failed if rejected),
+     * otherwise in the peripheral role, an SMP Security Request will be sent.
+     *
+     * @param {string} deviceInstanceId The device's unique Id.
+     * @param {object} secParams The security parameters to be used during the pairing or bonding procedure.
+     *                           In the peripheral role, only the bond, mitm, lesc and keypress fields of this Object are used.
+     *                           In the central role, this pointer may be NULL to reject a Security Request.
+     * Available GAP security parameters:
+     * <ul>
+     * <li>{boolean} bond Perform bonding.
+     * <li>{boolean} lesc Enable LE Secure Connection pairing.
+     * <li>{boolean} keypress Enable generation of keypress notifications.
+     * <li>{Object} io_caps IO capabilities, see @ref BLE_GAP_IO_CAPS.
+     * <li>{boolean} oob Out Of Band data available.
+     * <li>{number} min_key_size Minimum encryption key size in octets between 7 and 16. If 0 then not applicable in this instance.
+     * <li>{number} max_key_size Maximum encryption key size in octets between min_key_size and 16.
+     * <li>{Object} kdist_own Key distribution bitmap: keys that the local device will distribute.
+     *                <ul>
+     *                <li>{boolean} enc Long Term Key and Master Identification.
+     *                <li>{boolean} id Identity Resolving Key and Identity Address Information.
+     *                <li>{boolean} sign Connection Signature Resolving Key.
+     *                <li>{boolean} link Derive the Link Key from the LTK.
+     *                </ul>
+     * <li>{Object} kdist_peer Key distribution bitmap: keys that the remote device will distribute.
+     *                <ul>
+     *                <li>^^ Same as properties as `kdist_own` above. ^^
+     *                </ul>
+     * </ul>
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     authenticate(deviceInstanceId, secParams, callback) {
         const device = this.getDevice(deviceInstanceId);
 
@@ -1921,6 +2658,34 @@ class Adapter extends EventEmitter {
         });
     }
 
+    /**
+     * @summary Reply with GAP security parameters.
+     *
+     * This function is only used to reply to a `BLE_GAP_EVT_SEC_PARAMS_REQUEST`, calling it at other times will result in an `NRF_ERROR_INVALID_STATE`.
+     * If the call returns an error code, the request is still pending, and the reply call may be repeated with corrected parameters.
+     *
+     * @param {string} deviceInstanceId The device's unique Id.
+     * @param {string} secStatus Security status, see `BLE_GAP_SEC_STATUS`.
+     * @param {Object} secParams Security parameters object. In the central role this must be set to null, as the parameters have
+     *                           already been provided during a previous call to `this.authenticate()`.
+     * @param {Object} secKeyset security key set object.
+     * <ul>
+     *            <li>{Object} kdist_own Key distribution bitmap: keys that the local device will distribute.
+     *                <ul>
+     *                <li>{boolean} enc Long Term Key and Master Identification.
+     *                <li>{boolean} id Identity Resolving Key and Identity Address Information.
+     *                <li>{boolean} sign Connection Signature Resolving Key.
+     *                <li>{boolean} link Derive the Link Key from the LTK.
+     *                </ul>
+     *            <li>{Object} kdist_peer Key distribution bitmap: keys that the remote device will distribute.
+     *                <ul>
+     *                <li>^^ Same as properties as `kdist_own` above. ^^
+     *                </ul>
+     * </ul>
+     * @param {function(Error, Object)} [callback] Callback signature: (err, secKeyset) => {} where `secKeyset` is a
+     *                                           security key set object as described above.
+     * @returns {void}
+     */
     replySecParams(deviceInstanceId, secStatus, secParams, secKeyset, callback) {
         const device = this.getDevice(deviceInstanceId);
 
@@ -1937,6 +2702,21 @@ class Adapter extends EventEmitter {
         });
     }
 
+    /**
+     * @summary Reply with an authentication key.
+     *
+     * This function is only used to reply to a `BLE_GAP_EVT_AUTH_KEY_REQUEST `or a `BLE_GAP_EVT_PASSKEY_DISPLAY`, calling it at other times will result in an `NRF_ERROR_INVALID_STATE`.
+     * If the call returns an error code, the request is still pending, and the reply call may be repeated with corrected parameters.
+     *
+     * @param {string} deviceInstanceId The device's unique Id.
+     * @param {Object} keyType No key, 6-digit Passkey or Out Of Band data.
+     * @param {null|Array|string} key If key type is `BLE_GAP_AUTH_KEY_TYPE_NONE`, then null.
+     *                            If key type is `BLE_GAP_AUTH_KEY_TYPE_PASSKEY`, then a 6-byte array (digit 0..9 only)
+     *                                or null when confirming LE Secure Connections Numeric Comparison.
+     *                            If key type is `BLE_GAP_AUTH_KEY_TYPE_OOB`, then a 16-byte OOB key value in Little Endian format.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     replyAuthKey(deviceInstanceId, keyType, key, callback) {
         const device = this.getDevice(deviceInstanceId);
 
@@ -1958,6 +2738,17 @@ class Adapter extends EventEmitter {
         });
     }
 
+    /**
+     * @summary Reply with an LE Secure connections DHKey.
+     *
+     * This function is only used to reply to a `BLE_GAP_EVT_LESC_DHKEY_REQUEST`, calling it at other times will result in an `NRF_ERROR_INVALID_STATE`.
+     * If the call returns an error code, the request is still pending, and the reply call may be repeated with corrected parameters.
+     *
+     * @param {string} deviceInstanceId The device's unique Id.
+     * @param {Object} dhkey LE Secure Connections DHKey.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     replyLescDhkey(deviceInstanceId, dhkey, callback) {
         const device = this.getDevice(deviceInstanceId);
 
@@ -1974,6 +2765,16 @@ class Adapter extends EventEmitter {
         });
     }
 
+    /**
+     * @summary Notify the peer of a local keypress.
+     *
+     * This function can only be used when an authentication procedure using LE Secure Connection is in progress. Calling it at other times will result in an `NRF_ERROR_INVALID_STATE`.
+     *
+     * @param {string} deviceInstanceId The device's unique Id.
+     * @param {number} notificationType See `adapter.driver.BLE_GAP_KP_NOT_TYPES`.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     notifyKeypress(deviceInstanceId, notificationType, callback) {
         const device = this.getDevice(deviceInstanceId);
 
@@ -1990,6 +2791,17 @@ class Adapter extends EventEmitter {
         });
     }
 
+    /**
+     * @summary Generate a set of OOB data to send to a peer out of band.
+     *
+     * The `ble_gap_addr_t` included in the OOB data returned will be the currently active one (or, if a connection has already been established,
+     * the one used during connection setup). The application may manually overwrite it with an updated value.
+     *
+     * @param {string} deviceInstanceId The device's unique Id.
+     * @param {string} ownPublicKey LE Secure Connections local P-256 Public Key.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     getLescOobData(deviceInstanceId, ownPublicKey, callback) {
         const device = this.getDevice(deviceInstanceId);
 
@@ -2011,6 +2823,19 @@ class Adapter extends EventEmitter {
         });
     }
 
+    /**
+     * @summary Provide the OOB data sent/received out of band.
+     *
+     * At least one of the 2 data objects provided must not be null.
+     * An authentication procedure with OOB selected as an algorithm must be in progress when calling this function.
+     * A `BLE_GAP_EVT_LESC_DHKEY_REQUEST` event with the oobd_req set to 1 must have been received prior to calling this function.
+     *
+     * @param {string} deviceInstanceId The device's unique Id.
+     * @param {string} ownOobData The OOB data sent out of band to a peer or NULL if none sent.
+     * @param {string} peerOobData The OOB data received out of band from a peer or NULL if none received.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     setLescOobData(deviceInstanceId, ownOobData, peerOobData, callback) {
         const device = this.getDevice(deviceInstanceId);
 
@@ -2028,6 +2853,17 @@ class Adapter extends EventEmitter {
         if (callback) { callback(); }
     }
 
+    /**
+     * @summary Initiate GAP Encryption procedure.
+     *
+     * In the central role, this function will initiate the encryption procedure using the encryption information provided.
+     *
+     * @param {string} deviceInstanceId The device's unique Id.
+     * @param {Object} masterId Master identification structure. TODO
+     * @param {Object} encInfo Encryption information structure. TODO
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     encrypt(deviceInstanceId, masterId, encInfo, callback) {
         const device = this.getDevice(deviceInstanceId);
 
@@ -2049,6 +2885,20 @@ class Adapter extends EventEmitter {
         });
     }
 
+    /**
+     * @summary Reply with GAP security information.
+     *
+     * This function is only used to reply to a `BLE_GAP_EVT_SEC_INFO_REQUEST`, calling it at other times will result in `NRF_ERROR_INVALID_STATE`.
+     * If the call returns an error code, the request is still pending, and the reply call may be repeated with corrected parameters.
+     * Data signing is not yet supported, and signInfo must therefore be null.
+     *
+     * @param {string} deviceInstanceId The device's unique Id.
+     * @param {Object} encInfo Encryption information structure. May be null to signal none is available.
+     * @param {Object} idInfo Identity information structure. May be null to signal none is available.
+     * @param {Object} signInfo Pointer to a signing information structure. May be null to signal none is available.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     secInfoReply(deviceInstanceId, encInfo, idInfo, signInfo, callback) {
         const device = this.getDevice(deviceInstanceId);
 
@@ -2070,8 +2920,13 @@ class Adapter extends EventEmitter {
         });
     }
 
-    // GATTS
-    // Array of services
+    /**
+     * Set the services in the BLE peripheral device's GATT attribute table.
+     *
+     * @param {Service[]} services An array of `Service` objects to be set.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     setServices(services, callback) {
         let decodeUUID = (uuid, data) => {
             return new Promise((resolve, reject) => {
@@ -2083,7 +2938,7 @@ class Adapter extends EventEmitter {
                         // so we have to add it to the SD and try again
                         if (err.errno === this._bleDriver.NRF_ERROR_NOT_FOUND && length === 16) {
                             this._adapter.addVendorspecificUUID(
-                                {uuid128: uuid},
+                                { uuid128: uuid },
                                 (err, type) => {
                                     if (err) {
                                         reject(_makeError(`Unable to add UUID ${uuid} to SoftDevice`, err));
@@ -2310,15 +3165,26 @@ class Adapter extends EventEmitter {
         });
     }
 
-    // GATTS/GATTC
-
-    // Callback signature function(err, service) {}
+    /**
+     * Get a `Service` instance by its instanceId.
+     *
+     * @param {string} serviceInstanceId The unique Id of this service.
+     * @returns {Service} The service.
+     */
     getService(serviceInstanceId, callback) {
         // TODO: Do read on service? callback?
         return this._services[serviceInstanceId];
     }
 
-    // Callback signature function(err, services) {}. If deviceInstanceId is local, local database (GATTS)
+    /**
+     * Initiate or continue a GATT Primary Service Discovery procedure.
+     *
+     * @param {string} deviceInstanceId The device's unique Id.
+     * @param {function(Error, Service[])} [callback] Callback signature: (err, services) => {} where `services` is an
+     *                                              array of `Service` instances corresponding to the discovered GATT
+     *                                              primary services.
+     * @returns {void}
+     */
     getServices(deviceInstanceId, callback) {
         // TODO: Implement something for when device is local
         const device = this.getDevice(deviceInstanceId);
@@ -2338,7 +3204,7 @@ class Adapter extends EventEmitter {
             return;
         }
 
-        this._gattOperationsMap[device.instanceId] = {callback: callback, pendingHandleReads: {}, parent: device};
+        this._gattOperationsMap[device.instanceId] = { callback: callback, pendingHandleReads: {}, parent: device };
         this._adapter.gattcDiscoverPrimaryServices(device.connectionHandle, 1, null, (err, services) => {
             if (err) {
                 this.emit('error', _makeError('Failed to get services', err));
@@ -2348,10 +3214,27 @@ class Adapter extends EventEmitter {
         });
     }
 
+    /**
+     * Get a `Characteristic` instance by its instanceId.
+     *
+     * @param {string} characteristicId The unique Id of this characteristic.
+     * @returns {Characteristic} The characteristic.
+     */
     getCharacteristic(characteristicId) {
         return this._characteristics[characteristicId];
     }
 
+    /**
+     * Initiate or continue a GATT Characteristic Discovery procedure.
+     *
+     *
+     * @param {string} serviceId Unique ID of of the GATT service.
+     * @param {function(Error, Characteristic[])} [callback] Callback signature: (err, characteristics) => {} where
+     *                                            `characteristics` is an array of `Characteristic` instances
+     *                                             corresponding to the discovered GATT characteristics attached to
+     *                                             the service.
+     * @returns {void}
+     */
     getCharacteristics(serviceId, callback) {
         // TODO: Implement something for when device is local
 
@@ -2395,6 +3278,12 @@ class Adapter extends EventEmitter {
         });
     }
 
+    /**
+     * Get a `Descriptor` instance by its instanceId.
+     *
+     * @param {string} descriptorId The unique Id of this descriptor.
+     * @returns {Descriptor} The descriptor.
+     */
     getDescriptor(descriptorId) {
         return this._descriptors[descriptorId];
     }
@@ -2414,13 +3303,13 @@ class Adapter extends EventEmitter {
     _getDescriptorValue(descriptor, deviceInstanceId) {
         if (this._isDescriptorPerConnectionBased(descriptor)) {
             return descriptor.value[deviceInstanceId];
-        } else {
-            return descriptor.value;
         }
+
+        return descriptor.value;
     }
 
     _addDeviceToAllPerConnectionValues(deviceId) {
-        for (let descriptorInstanceId in this._descriptors) {
+        for (const descriptorInstanceId in this._descriptors) {
             const descriptor = this._descriptors[descriptorInstanceId];
             if (this._instanceIdIsOnLocalDevice(descriptorInstanceId) &&
                 this._isDescriptorPerConnectionBased(descriptor)) {
@@ -2431,7 +3320,7 @@ class Adapter extends EventEmitter {
     }
 
     _clearDeviceFromAllPerConnectionValues(deviceId) {
-        for (let descriptorInstanceId in this._descriptors) {
+        for (const descriptorInstanceId in this._descriptors) {
             const descriptor = this._descriptors[descriptorInstanceId];
             if (this._instanceIdIsOnLocalDevice(descriptorInstanceId) &&
                 this._isDescriptorPerConnectionBased(descriptor)) {
@@ -2459,6 +3348,15 @@ class Adapter extends EventEmitter {
         return newCollection;
     }
 
+    /**
+     * Initiate or continue a GATT Characteristic Descriptor Discovery procedure.
+     *
+     * @param {string} characteristicId Unique ID of of the GATT characteristic.
+     * @param {function(Error, Descriptor[])} [callback] Callback signature: (err, descriptors) => {} where
+     *                                        `descriptors` is an array of `Descriptor` instances corresponding to the
+     *                                        discovered GATT descriptors attached to the characteristic.
+     * @returns {void}
+     */
     getDescriptors(characteristicId, callback) {
         const characteristic = this.getCharacteristic(characteristicId);
         const service = this.getService(characteristic.serviceInstanceId);
@@ -2478,60 +3376,62 @@ class Adapter extends EventEmitter {
             return;
         }
 
-        const handleRange = {start_handle: characteristic.valueHandle + 1, end_handle: service.endHandle};
-        this._gattOperationsMap[device.instanceId] = {callback: callback, pendingHandleReads: {}, parent: characteristic};
+        const handleRange = { start_handle: characteristic.valueHandle + 1, end_handle: service.endHandle };
+        this._gattOperationsMap[device.instanceId] = { callback, pendingHandleReads: {}, parent: characteristic };
         this._adapter.gattcDiscoverDescriptors(device.connectionHandle, handleRange, err => {
             //this._checkAndPropagateError('Failed to get descriptors', err, callback);
         });
     }
 
     _getDescriptorsPromise() {
-        return (data, serviceId, characteristicId) => { return new Promise((resolve, reject) => {
-            this.getDescriptors(
-                characteristicId, (error, descriptors) => {
+        return (data, serviceId, characteristicId) => {
+            return new Promise((resolve, reject) => {
+                this.getDescriptors(
+                    characteristicId, (error, descriptors) => {
+                        if (error) {
+                            reject(error);
+                            return;
+                        }
+
+                        data.services[serviceId].characteristics[characteristicId].descriptors = descriptors;
+
+                        resolve(data);
+                    }
+                );
+            });
+        };
+    }
+
+    _getCharacteristicsPromise() {
+        return (data, service) => {
+            return new Promise((resolve, reject) => {
+                this.getCharacteristics(service.instanceId, (error, characteristics) => {
                     if (error) {
                         reject(error);
                         return;
                     }
 
-                    data.services[serviceId].characteristics[characteristicId].descriptors = descriptors;
+                    data.services[service.instanceId].characteristics = {};
+                    let promise = Promise.resolve(data);
 
-                    resolve(data);
-                }
-            );
-        });
-        };
-    }
+                    for (let characteristic of characteristics) {
+                        data.services[service.instanceId].characteristics[characteristic.instanceId] = characteristic;
 
-    _getCharacteristicsPromise() {
-        return (data, service) => { return new Promise((resolve, reject) => {
-            this.getCharacteristics(service.instanceId, (error, characteristics) => {
-                if (error) {
-                    reject(error);
-                return;
-            }
+                        promise = promise.then(data => {
+                            return this._getDescriptorsPromise()(
+                                data,
+                                service.instanceId,
+                                characteristic.instanceId);
+                        });
+                    }
 
-                data.services[service.instanceId].characteristics = {};
-                let promise = Promise.resolve(data);
-
-                for (let characteristic of characteristics) {
-                    data.services[service.instanceId].characteristics[characteristic.instanceId] = characteristic;
-
-                    promise = promise.then(data => {
-                        return this._getDescriptorsPromise()(
-                            data,
-                            service.instanceId,
-                            characteristic.instanceId);
-        });
-                }
-
-                promise.then(data => {
-                    resolve(data);
-                }).catch(error => {
-                    reject(error);
+                    promise.then(data => {
+                        resolve(data);
+                    }).catch(error => {
+                        reject(error);
+                    });
                 });
             });
-        });
         };
     }
 
@@ -2550,8 +3450,17 @@ class Adapter extends EventEmitter {
         });
     }
 
+    /**
+     * Discovers information about a range of attributes on a GATT server.
+     *
+     * @param {string} deviceInstanceId The device's unique Id.
+     * @param {function(Error, Object)} [callback] Callback signature: (err, attributes) => {} where `attributes` contains
+     *                                           the device's GATT attributes (services, characteristics and
+     *                                           descriptors).
+     * @returns {void}
+     */
     getAttributes(deviceInstanceId, callback) {
-        let data = {'services':{}};
+        let data = { 'services': {} };
 
         this._getServicesPromise(deviceInstanceId).then(services => {
             let p = Promise.resolve(data);
@@ -2566,11 +3475,19 @@ class Adapter extends EventEmitter {
 
             return p;
         })
-        .then(data => { if (callback) callback(undefined, data); })
-        .catch(error => { if (callback) callback(error); });
+            .then(data => { if (callback) callback(undefined, data); })
+            .catch(error => { if (callback) callback(error); });
     }
 
-    // Callback signature function(err, readBytes) {}
+    /**
+     * Reads the value of a GATT characteristic.
+     *
+     * @param {string} characteristicId Unique ID of of the GATT characteristic.
+     * @param {function(Error, number[])} [callback] Callback signature: (err, readBytes) => {} where `readBytes` is an
+     *                                             array of numbers corresponding to the value of the GATT
+     *                                             characteristic.
+     * @returns {void}
+     */
     readCharacteristicValue(characteristicId, callback) {
         const characteristic = this.getCharacteristic(characteristicId);
         if (!characteristic) {
@@ -2591,7 +3508,7 @@ class Adapter extends EventEmitter {
             throw new Error('Characteristic value read failed: A gatt operation already in progress with device id ' + device.instanceId);
         }
 
-        this._gattOperationsMap[device.instanceId] = {callback: callback, readBytes: []};
+        this._gattOperationsMap[device.instanceId] = { callback: callback, readBytes: [] };
 
         this._adapter.gattcRead(device.connectionHandle, characteristic.valueHandle, 0, err => {
             if (err) {
@@ -2600,7 +3517,16 @@ class Adapter extends EventEmitter {
         });
     }
 
-    // Callback signature function(err) {}  ack: require acknowledge from device, irrelevant in GATTS role. options: {ack, long, offset}
+    /**
+     * Writes the value of a GATT characteristic.
+     *
+     * @param {string} characteristicId Unique ID of the GATT characteristic.
+     * @param {array} value The value (array of bytes) to be written.
+     * @param {boolean} ack Require acknowledge from device, irrelevant in GATTS role.
+     * @param {function(Error)} completeCallback Callback signature: err => {}
+     * @param {function} deviceNotifiedOrIndicated TODO
+     * @returns {void}
+     */
     writeCharacteristicValue(characteristicId, value, ack, completeCallback, deviceNotifiedOrIndicated) {
         const characteristic = this.getCharacteristic(characteristicId);
         if (!characteristic) {
@@ -2621,14 +3547,14 @@ class Adapter extends EventEmitter {
             throw new Error('Characteristic value write failed: A gatt operation already in progress with device id ' + device.instanceId);
         }
 
-        this._gattOperationsMap[device.instanceId] = {callback: completeCallback, bytesWritten: 0, value: value.slice(), attribute: characteristic};
+        this._gattOperationsMap[device.instanceId] = { callback: completeCallback, bytesWritten: 0, value: value.slice(), attribute: characteristic };
 
-        if (value.length > this._maxShortWritePayloadSize) {
+        if (value.length > this._maxShortWritePayloadSize(device.instanceId)) {
             if (!ack) {
                 throw new Error('Long writes do not support BLE_GATT_OP_WRITE_CMD');
             }
 
-            this._gattOperationsMap[device.instanceId].bytesWritten = this._maxLongWritePayloadSize;
+            this._gattOperationsMap[device.instanceId].bytesWritten = this._maxLongWritePayloadSize(device.instanceId);
             this._longWrite(device, characteristic, value, completeCallback);
         } else {
             this._gattOperationsMap[device.instanceId].bytesWritten = value.length;
@@ -2667,14 +3593,14 @@ class Adapter extends EventEmitter {
     _isCCCDDescriptor(descriptorId) {
         const descriptor = this._descriptors[descriptorId];
         return descriptor &&
-               ((descriptor.uuid === '0000290200001000800000805F9B34FB') ||
-               (descriptor.uuid === '2902'));
+            ((descriptor.uuid === '0000290200001000800000805F9B34FB') ||
+                (descriptor.uuid === '2902'));
     }
 
     _getCCCDOfCharacteristic(characteristicId) {
         return _.find(this._descriptors, descriptor => {
             return (descriptor.characteristicInstanceId === characteristicId) &&
-                   (this._isCCCDDescriptor(descriptor.instanceId));
+                (this._isCCCDDescriptor(descriptor.instanceId));
         });
     }
 
@@ -2682,6 +3608,15 @@ class Adapter extends EventEmitter {
         return instanceId.split('.')[0] === 'local';
     }
 
+    /**
+     * Reads the value of a GATT descriptor.
+     *
+     * @param {string} descriptorId Unique ID of of the GATT descriptor.
+     * @param {function(Error, number[])} [callback] Callback signature: (err, readBytes) => {} where `readBytes` is an
+     *                                             array of numbers corresponding to the value of the GATT
+     *                                             descriptor.
+     * @returns {void}
+     */
     readDescriptorValue(descriptorId, callback) {
         const descriptor = this.getDescriptor(descriptorId);
         if (!descriptor) {
@@ -2702,7 +3637,7 @@ class Adapter extends EventEmitter {
             throw new Error('Descriptor read failed: A gatt operation already in progress with device with id ' + device.instanceId);
         }
 
-        this._gattOperationsMap[device.instanceId] = {callback: callback, readBytes: []};
+        this._gattOperationsMap[device.instanceId] = { callback: callback, readBytes: [] };
 
         this._adapter.gattcRead(device.connectionHandle, descriptor.handle, 0, err => {
             if (err) {
@@ -2711,7 +3646,17 @@ class Adapter extends EventEmitter {
         });
     }
 
-    // Callback signature function(err) {}, callback will not be called until ack is received. options: {ack, long, offset}
+    /**
+     * Writes the value of a GATT descriptor.
+     *
+     * @param {string} descriptorId Unique ID of the GATT descriptor.
+     * @param {array} value The value (array of bytes) to be written.
+     * @param {boolean} ack Require acknowledge from device, irrelevant in GATTS role.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     *                                   (not called until ack is received if `requireAck`).
+     *                                   options: {ack, long, offset}
+     * @returns {void}
+     */
     writeDescriptorValue(descriptorId, value, ack, callback) {
         // Does not support reliable write
         const descriptor = this.getDescriptor(descriptorId);
@@ -2733,14 +3678,14 @@ class Adapter extends EventEmitter {
             throw new Error('Descriptor write failed: A gatt operation already in progress with device with id ' + device.instanceId);
         }
 
-        this._gattOperationsMap[device.instanceId] = {callback: callback, bytesWritten: 0, value: value.slice(), attribute: descriptor};
+        this._gattOperationsMap[device.instanceId] = { callback: callback, bytesWritten: 0, value: value.slice(), attribute: descriptor };
 
-        if (value.length > this._maxShortWritePayloadSize) {
+        if (value.length > this._maxShortWritePayloadSize(device.instanceId)) {
             if (!ack) {
                 throw new Error('Long writes do not support BLE_GATT_OP_WRITE_CMD');
             }
 
-            this._gattOperationsMap[device.instanceId].bytesWritten = this._maxLongWritePayloadSize;
+            this._gattOperationsMap[device.instanceId].bytesWritten = this._maxLongWritePayloadSize(device.instanceId);
             this._longWrite(device, descriptor, value, callback);
         } else {
             this._gattOperationsMap[device.instanceId].bytesWritten = value.length;
@@ -2758,11 +3703,11 @@ class Adapter extends EventEmitter {
             value: value,
         };
 
-        this._adapter.gattcWrite(device.connectionHandle, writeParameters, err => {
+        this._gattcWriteWithRetries(device.connectionHandle, writeParameters, err => {
             if (err) {
                 delete this._gattOperationsMap[device.instanceId];
-                this.emit('error', 'Failed to write to attribute with handle: ' + attribute.handle);
-                if (callback) { callback(err); }
+                this.emit('error', _makeError('Failed to write to attribute with handle: ' + attribute.handle, err));
+                if (callback) callback(err);
                 return;
             }
 
@@ -2774,9 +3719,30 @@ class Adapter extends EventEmitter {
         });
     }
 
+    _gattcWriteWithRetries(connectionHandle, writeParameters, callback) {
+        let attempts = 0;
+        const MAX_ATTEMPTS = 20;
+        const RETRY_DELAY = 5;
+        const BLE_ERROR_NO_TX_PACKETS = 0x3004;
+        const tryWrite = () => {
+            this._adapter.gattcWrite(connectionHandle, writeParameters, err => {
+                if (err) {
+                    if (err.errno === BLE_ERROR_NO_TX_PACKETS && attempts++ <= MAX_ATTEMPTS) {
+                        setTimeout(() => tryWrite(), RETRY_DELAY);
+                    } else {
+                        if (callback) callback(err);
+                    }
+                } else {
+                    if (callback) callback();
+                }
+            });
+        };
+        tryWrite();
+    }
+
     _longWrite(device, attribute, value, callback) {
-        if (value.length < this._maxShortWritePayloadSize) {
-            throw new Error('Wrong write method. Use regular write for payload sizes < ' + this._maxShortWritePayloadSize);
+        if (value.length < this._maxShortWritePayloadSize(device.instanceId)) {
+            throw new Error('Wrong write method. Use regular write for payload sizes < ' + this._maxShortWritePayloadSize(device.instanceId));
         }
 
         const writeParameters = {
@@ -2784,8 +3750,8 @@ class Adapter extends EventEmitter {
             flags: this._bleDriver.BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE,
             handle: attribute.handle,
             offset: 0,
-            len: this._maxLongWritePayloadSize,
-            value: value.slice(0, this._maxLongWritePayloadSize),
+            len: this._maxLongWritePayloadSize(device.instanceId),
+            value: value.slice(0, this._maxLongWritePayloadSize(device.instanceId)),
         };
 
         this._adapter.gattcWrite(device.connectionHandle, writeParameters, err => {
@@ -2824,8 +3790,8 @@ class Adapter extends EventEmitter {
 
     _sendingNotificationsAndIndicationsComplete() {
         return this._pendingNotificationsAndIndications.sentAllNotificationsAndIndications &&
-               this._pendingNotificationsAndIndications.remainingNotificationCallbacks === 0 &&
-               this._pendingNotificationsAndIndications.remainingIndicationConfirmations === 0;
+            this._pendingNotificationsAndIndications.remainingNotificationCallbacks === 0 &&
+            this._pendingNotificationsAndIndications.remainingIndicationConfirmations === 0;
     }
 
     _writeLocalValue(attribute, value, offset, completeCallback, deviceNotifiedOrIndicated) {
@@ -2888,8 +3854,8 @@ class Adapter extends EventEmitter {
         if (cccdDescriptor) {
             // TODO: This is probably way to simple, do we need a map of devices indication is sent to?
             this._pendingNotificationsAndIndications = {
-                completeCallback: completeCallback,
-                deviceNotifiedOrIndicated: deviceNotifiedOrIndicated,
+                completeCallback,
+                deviceNotifiedOrIndicated,
                 sentAllNotificationsAndIndications: false,
                 remainingNotificationCallbacks: 0,
                 remainingIndicationConfirmations: 0,
@@ -2933,24 +3899,24 @@ class Adapter extends EventEmitter {
                             }
 
                             return;
-                        } else {
-                            this._setAttributeValueWithOffset(attribute, value, offset);
+                        }
 
-                            if (sendNotification) {
-                                if (deviceNotifiedOrIndicated) {
-                                    deviceNotifiedOrIndicated(device, attribute);
-                                }
+                        this._setAttributeValueWithOffset(attribute, value, offset);
 
-                                this.emit('deviceNotifiedOrIndicated', device, attribute);
-
-                                this._pendingNotificationsAndIndications.remainingNotificationCallbacks--;
-                                if (this._sendingNotificationsAndIndicationsComplete()) {
-                                    completeCallback(undefined);
-                                    this._pendingNotificationsAndIndications = {};
-                                }
-                            } else if (sendIndication) {
-                                return;
+                        if (sendNotification) {
+                            if (deviceNotifiedOrIndicated) {
+                                deviceNotifiedOrIndicated(device, attribute);
                             }
+
+                            this.emit('deviceNotifiedOrIndicated', device, attribute);
+
+                            this._pendingNotificationsAndIndications.remainingNotificationCallbacks--;
+                            if (this._sendingNotificationsAndIndicationsComplete()) {
+                                completeCallback(undefined);
+                                this._pendingNotificationsAndIndications = {};
+                            }
+                        } else if (sendIndication) {
+                            return;
                         }
                     });
                 }
@@ -2990,7 +3956,7 @@ class Adapter extends EventEmitter {
         this._adapter.gattsGetValue(this._bleDriver.BLE_CONN_HANDLE_INVALID, attribute, readParameters, (err, readResults) => {
             if (err) {
                 this.emit('error', _makeError('Failed to write local value', err));
-                if (callback) { callback(err, undefined); }
+                if (callback) callback(err, undefined);
                 return;
             }
 
@@ -2999,9 +3965,17 @@ class Adapter extends EventEmitter {
         });
     }
 
-    // Only for GATTC role
-
-    // Callback signature function(err) {}, ack: require all notifications to ack, callback will not be called until ack is received
+    /**
+     * Starts notifications on a GATT characteristic.
+     *
+     * Only for GATT central role.
+     *
+     * @param {string} characteristicId Unique ID of the GATT characteristic.
+     * @param {boolean} requireAck Require all notifications to ack.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     *                                   (not called until ack is received if `requireAck`).
+     * @returns {void}
+     */
     startCharacteristicsNotifications(characteristicId, requireAck, callback) {
         // TODO: If CCCD not discovered do a decriptor discovery
         const enableNotificationBitfield = requireAck ? 2 : 1;
@@ -3024,7 +3998,13 @@ class Adapter extends EventEmitter {
         });
     }
 
-    // Callback signature function(err) {}
+    /**
+     * Disables notifications on a GATT characteristic.
+     *
+     * @param {string} characteristicId Unique ID of the GATT characteristic.
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
     stopCharacteristicsNotifications(characteristicId, callback) {
         // TODO: If CCCD not discovered how did we start it?
         const disableNotificationBitfield = 0;

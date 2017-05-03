@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2016 Nordic Semiconductor ASA
+/* Copyright (c) 2016, Nordic Semiconductor ASA
+ *
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -8,31 +8,33 @@
  *   1. Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *   2. Redistributions in binary form must reproduce the above copyright notice, this
- *   list of conditions and the following disclaimer in the documentation and/or
- *   other materials provided with the distribution.
+ *   2. Redistributions in binary form, except as embedded into a Nordic
+ *   Semiconductor ASA integrated circuit in a product or a software update for
+ *   such product, must reproduce the above copyright notice, this list of
+ *   conditions and the following disclaimer in the documentation and/or other
+ *   materials provided with the distribution.
  *
- *   3. Neither the name of Nordic Semiconductor ASA nor the names of other
- *   contributors to this software may be used to endorse or promote products
- *   derived from this software without specific prior written permission.
+ *   3. Neither the name of Nordic Semiconductor ASA nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
  *
- *   4. This software must only be used in or with a processor manufactured by Nordic
- *   Semiconductor ASA, or in or with a processor manufactured by a third party that
- *   is used in combination with a processor manufactured by Nordic Semiconductor.
+ *   4. This software, with or without modification, must only be used with a
+ *   Nordic Semiconductor ASA integrated circuit.
  *
- *   5. Any software provided in binary or object form under this license must not be
+ *   5. Any software provided in binary form under this license must not be
  *   reverse engineered, decompiled, modified and/or disassembled.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL NORDIC SEMICONDUCTOR ASA OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #ifndef DRIVER_GAP_H
@@ -450,6 +452,31 @@ public:
     ble_gap_conn_sec_t *ToNative();
 };
 
+class GapOpt : public BleToJs<ble_gap_opt_t>
+{
+public:
+    GapOpt(ble_gap_opt_t *gap_opt) : BleToJs<ble_gap_opt_t>(gap_opt) {}
+    GapOpt(v8::Local<v8::Object> js) : BleToJs<ble_gap_opt_t>(js) {}
+    ble_gap_opt_t *ToNative();
+};
+
+#if NRF_SD_BLE_API_VERSION >= 3
+class GapOptExtLen : public BleToJs<ble_gap_opt_ext_len_t>
+{
+public:
+    GapOptExtLen(ble_gap_opt_ext_len_t *ext_len) : BleToJs<ble_gap_opt_ext_len_t>(ext_len) {}
+    GapOptExtLen(v8::Local<v8::Object> js) : BleToJs<ble_gap_opt_ext_len_t>(js) {}
+    ble_gap_opt_ext_len_t *ToNative();
+};
+#endif
+
+class GapOptScanReqReport : public BleToJs<ble_gap_opt_scan_req_report_t>
+{
+public:
+    GapOptScanReqReport(ble_gap_opt_scan_req_report_t *req_report) : BleToJs<ble_gap_opt_scan_req_report_t>(req_report) {}
+    GapOptScanReqReport(v8::Local<v8::Object> js) : BleToJs<ble_gap_opt_scan_req_report_t>(js) {}
+    ble_gap_opt_scan_req_report_t *ToNative();
+};
 
 // Gap structs -- END --
 #pragma endregion Gap structs
@@ -457,37 +484,45 @@ public:
 
 ///// Start GAP Batons ////////////////////////////////////////////////////////////////////////////////
 
-struct GapAddressSetBaton : Baton {
+struct GapAddressSetBaton : Baton
+{
 public:
     BATON_CONSTRUCTOR(GapAddressSetBaton);
     ble_gap_addr_t *address;
+#if NRF_SD_BLE_API_VERSION <= 2
     uint8_t addr_cycle_mode;
+#endif
 };
 
-struct GapAddressGetBaton : Baton {
+struct GapAddressGetBaton : Baton
+{
 public:
     BATON_CONSTRUCTOR(GapAddressGetBaton);
     ble_gap_addr_t *address;
 };
 
-struct StartScanBaton : public Baton {
+struct StartScanBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(StartScanBaton);
     ble_gap_scan_params_t *scan_params;
 };
 
-struct StopScanBaton : public Baton {
+struct StopScanBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(StopScanBaton);
 };
 
-struct TXPowerBaton : public Baton {
+struct TXPowerBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(TXPowerBaton);
     int8_t tx_power;
 };
 
-struct GapSetDeviceNameBaton : public Baton {
+struct GapSetDeviceNameBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapSetDeviceNameBaton);
     ble_gap_conn_sec_mode_t *conn_sec_mode;
@@ -495,14 +530,16 @@ public:
     uint16_t length;
 };
 
-struct GapGetDeviceNameBaton : public Baton {
+struct GapGetDeviceNameBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapGetDeviceNameBaton);
     uint8_t *dev_name;
     uint16_t length;
 };
 
-struct GapConnectBaton : public Baton {
+struct GapConnectBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapConnectBaton);
     ble_gap_addr_t *address;
@@ -510,19 +547,22 @@ public:
     ble_gap_conn_params_t *conn_params;
 };
 
-struct GapConnectCancelBaton : public Baton {
+struct GapConnectCancelBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapConnectCancelBaton);
 };
 
-struct GapDisconnectBaton : public Baton {
+struct GapDisconnectBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapDisconnectBaton);
     uint16_t conn_handle;
     uint8_t hci_status_code;
 };
 
-struct GapUpdateConnectionParametersBaton : public Baton {
+struct GapUpdateConnectionParametersBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapUpdateConnectionParametersBaton);
     BATON_DESTRUCTOR(GapUpdateConnectionParametersBaton) { delete connectionParameters; }
@@ -530,7 +570,8 @@ public:
     ble_gap_conn_params_t *connectionParameters;
 };
 
-struct GapStartRSSIBaton : public Baton {
+struct GapStartRSSIBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapStartRSSIBaton);
     uint16_t conn_handle;
@@ -538,31 +579,36 @@ public:
     uint8_t skip_count;
 };
 
-struct GapStopRSSIBaton : public Baton {
+struct GapStopRSSIBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapStopRSSIBaton);
     uint16_t conn_handle;
 };
 
-struct GapGetRSSIBaton : public Baton {
+struct GapGetRSSIBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapGetRSSIBaton);
     uint16_t conn_handle;
     int8_t rssi;
 };
 
-struct GapStartAdvertisingBaton : public Baton {
+struct GapStartAdvertisingBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapStartAdvertisingBaton);
     ble_gap_adv_params_t *p_adv_params;
 };
 
-struct GapStopAdvertisingBaton : public Baton {
+struct GapStopAdvertisingBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapStopAdvertisingBaton);
 };
 
-struct GapSecParamsReplyBaton : public Baton {
+struct GapSecParamsReplyBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapSecParamsReplyBaton);
     uint16_t conn_handle;
@@ -571,14 +617,16 @@ public:
     ble_gap_sec_keyset_t *sec_keyset;
 };
 
-struct GapConnSecGetBaton : public Baton {
+struct GapConnSecGetBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapConnSecGetBaton);
     uint16_t conn_handle;
     ble_gap_conn_sec_t *conn_sec;
 };
 
-struct GapEncryptBaton : public Baton {
+struct GapEncryptBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapEncryptBaton);
     uint16_t conn_handle;
@@ -586,7 +634,8 @@ public:
     ble_gap_enc_info_t *enc_info;
 };
 
-struct GapSecInfoReplyBaton : public Baton {
+struct GapSecInfoReplyBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapSecInfoReplyBaton);
     uint16_t conn_handle;
@@ -595,14 +644,16 @@ public:
     ble_gap_sign_info_t *sign_info;
 };
 
-struct GapAuthenticateBaton : public Baton {
+struct GapAuthenticateBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapAuthenticateBaton);
     uint16_t conn_handle;
     ble_gap_sec_params_t *p_sec_params;
 };
 
-struct GapSetAdvertisingDataBaton : public Baton {
+struct GapSetAdvertisingDataBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapSetAdvertisingDataBaton);
     uint8_t *data;
@@ -611,31 +662,36 @@ public:
     uint8_t srdlen;
 };
 
-struct GapSetPPCPBaton : public Baton {
+struct GapSetPPCPBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapSetPPCPBaton);
     ble_gap_conn_params_t *p_conn_params;
 };
 
-struct GapGetPPCPBaton : public Baton {
+struct GapGetPPCPBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapGetPPCPBaton);
     ble_gap_conn_params_t *p_conn_params;
 };
 
-struct GapSetAppearanceBaton : public Baton {
+struct GapSetAppearanceBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapSetAppearanceBaton);
     uint16_t appearance;
 };
 
-struct GapGetAppearanceBaton : public Baton {
+struct GapGetAppearanceBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapGetAppearanceBaton);
     uint16_t appearance;
 };
 
-struct GapReplyAuthKeyBaton : public Baton {
+struct GapReplyAuthKeyBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapReplyAuthKeyBaton);
     uint16_t conn_handle;
@@ -643,7 +699,8 @@ public:
     uint8_t *key;
 };
 
-struct GapReplyDHKeyLESCBaton : public Baton {
+struct GapReplyDHKeyLESCBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GapReplyDHKeyLESCBaton);
     uint16_t conn_handle;

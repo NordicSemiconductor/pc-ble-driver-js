@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2016 Nordic Semiconductor ASA
+/* Copyright (c) 2016, Nordic Semiconductor ASA
+ *
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -8,31 +8,33 @@
  *   1. Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *   2. Redistributions in binary form must reproduce the above copyright notice, this
- *   list of conditions and the following disclaimer in the documentation and/or
- *   other materials provided with the distribution.
+ *   2. Redistributions in binary form, except as embedded into a Nordic
+ *   Semiconductor ASA integrated circuit in a product or a software update for
+ *   such product, must reproduce the above copyright notice, this list of
+ *   conditions and the following disclaimer in the documentation and/or other
+ *   materials provided with the distribution.
  *
- *   3. Neither the name of Nordic Semiconductor ASA nor the names of other
- *   contributors to this software may be used to endorse or promote products
- *   derived from this software without specific prior written permission.
+ *   3. Neither the name of Nordic Semiconductor ASA nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
  *
- *   4. This software must only be used in or with a processor manufactured by Nordic
- *   Semiconductor ASA, or in or with a processor manufactured by a third party that
- *   is used in combination with a processor manufactured by Nordic Semiconductor.
+ *   4. This software, with or without modification, must only be used with a
+ *   Nordic Semiconductor ASA integrated circuit.
  *
- *   5. Any software provided in binary or object form under this license must not be
+ *   5. Any software provided in binary form under this license must not be
  *   reverse engineered, decompiled, modified and/or disassembled.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL NORDIC SEMICONDUCTOR ASA OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "common.h"
@@ -59,14 +61,16 @@ extern int adapterCount;
 
 #pragma region Name Map entries to enable constants (value and name) from C in JavaScript
 
-static name_map_t gap_adv_type_map = {
+static name_map_t gap_adv_type_map =
+{
     NAME_MAP_ENTRY(BLE_GAP_ADV_TYPE_ADV_IND),
     NAME_MAP_ENTRY(BLE_GAP_ADV_TYPE_ADV_DIRECT_IND),
     NAME_MAP_ENTRY(BLE_GAP_ADV_TYPE_ADV_SCAN_IND),
     NAME_MAP_ENTRY(BLE_GAP_ADV_TYPE_ADV_NONCONN_IND)
 };
 
-static name_map_t gap_role_map = {
+static name_map_t gap_role_map =
+{
     NAME_MAP_ENTRY(BLE_GAP_ROLE_INVALID),
     NAME_MAP_ENTRY(BLE_GAP_ROLE_PERIPH),
     NAME_MAP_ENTRY(BLE_GAP_ROLE_CENTRAL)
@@ -245,6 +249,10 @@ v8::Local<v8::Object> GapAddr::ToJs()
     Utility::Set(obj, "address", addr);
     Utility::Set(obj, "type", ConversionUtility::valueToJsString(native->addr_type, gap_addr_type_map));
 
+#if NRF_SD_BLE_API_VERSION >= 3
+    Utility::Set(obj, "addr_id_peer", native->addr_id_peer);
+#endif
+
     free(addr);
 
     return scope.Escape(obj);
@@ -384,6 +392,63 @@ ble_gap_conn_sec_t *GapConnSec::ToNative()
 }
 
 #pragma endregion GapConnSec
+
+#pragma region GapOpt
+
+ble_gap_opt_t *GapOpt::ToNative()
+{
+    auto gap_opt = new ble_gap_opt_t();
+    memset(gap_opt, 0, sizeof(gap_opt));
+
+    if (Utility::Has(jsobj, "scan_req_report"))
+    {
+        auto scan_req_obj = ConversionUtility::getJsObject(jsobj, "scan_req_report");
+        gap_opt->scan_req_report = GapOptScanReqReport(scan_req_obj);
+    }
+#if NRF_SD_BLE_API_VERSION >= 3
+    else if (Utility::Has(jsobj, "ext_len"))
+    {
+        auto ext_len_obj = ConversionUtility::getJsObject(jsobj, "ext_len");
+        gap_opt->ext_len = GapOptExtLen(ext_len_obj);
+    }
+#endif
+    //TODO: Add rest of gap_opt types
+
+    return gap_opt;
+}
+
+#pragma endregion GapOpt
+
+#pragma region GapOptExtLen
+
+#if NRF_SD_BLE_API_VERSION >= 3
+
+ble_gap_opt_ext_len_t *GapOptExtLen::ToNative()
+{
+    auto ext_len = new ble_gap_opt_ext_len_t();
+    memset(ext_len, 0, sizeof(ble_gap_opt_ext_len_t));
+
+    ext_len->rxtx_max_pdu_payload_size = ConversionUtility::getNativeUint8(jsobj, "rxtx_max_pdu_payload_size");
+
+    return ext_len;
+}
+#endif
+
+#pragma endregion GapOptExtLen
+
+#pragma region GapOptScanReqReport
+
+ble_gap_opt_scan_req_report_t *GapOptScanReqReport::ToNative()
+{
+    auto req_report_opt = new ble_gap_opt_scan_req_report_t();
+    memset(req_report_opt, 0, sizeof(ble_gap_opt_scan_req_report_t));
+
+    req_report_opt->enable = ConversionUtility::getNativeBool(jsobj, "enable");
+
+    return req_report_opt;
+}
+
+#pragma endregion GapOptScanReqReport
 
 #pragma region GapIrk
 
@@ -818,16 +883,18 @@ v8::Local<v8::Object> GapConnected::ToJs()
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
     BleDriverEvent::ToJs(obj);
 
-    Utility::Set(obj, "own_addr", GapAddr(&(evt->own_addr)).ToJs());
     Utility::Set(obj, "peer_addr", GapAddr(&(evt->peer_addr)).ToJs());
     Utility::Set(obj, "role", ConversionUtility::valueToJsString(evt->role, gap_role_map));
     Utility::Set(obj, "conn_params", GapConnParams(&(evt->conn_params)).ToJs());
+#if NRF_SD_BLE_API_VERSION <= 2
+    Utility::Set(obj, "own_addr", GapAddr(&(evt->own_addr)).ToJs());
     Utility::Set(obj, "irk_match", ConversionUtility::toJsBool(evt->irk_match));
 
     if (evt->irk_match == 1)
     {
         Utility::Set(obj, "irk_idx", evt->irk_match_idx);
     }
+#endif
 
     return scope.Escape(obj);
 }
@@ -1430,7 +1497,11 @@ NAN_METHOD(Adapter::GapSetAddress)
 
     try
     {
-        address_cycle_mode = ConversionUtility::getNativeUint8(info[argumentcount]);
+        // Check validity of argument as cycle_modeMode is only applicable in SD API v2
+        if (info[argumentcount]->IsInt32())
+        {
+            address_cycle_mode = ConversionUtility::getNativeUint8(info[argumentcount]);
+        }
         argumentcount++;
 
         addressObject = ConversionUtility::getJsObject(info[argumentcount]);
@@ -1447,7 +1518,9 @@ NAN_METHOD(Adapter::GapSetAddress)
     }
 
     auto baton = new GapAddressSetBaton(callback);
+#if NRF_SD_BLE_API_VERSION <= 2
     baton->addr_cycle_mode = address_cycle_mode;
+#endif
 
     try
     {
@@ -1467,7 +1540,11 @@ NAN_METHOD(Adapter::GapSetAddress)
 void Adapter::GapSetAddress(uv_work_t *req)
 {
     auto baton = static_cast<GapAddressSetBaton *>(req->data);
+#if NRF_SD_BLE_API_VERSION <= 2
     baton->result = sd_ble_gap_address_set(baton->adapter, baton->addr_cycle_mode, baton->address);
+#elif NRF_SD_BLE_API_VERSION >= 3
+    baton->result = sd_ble_gap_addr_set(baton->adapter, baton->address);
+#endif
 }
 
 // This runs in Main Thread
@@ -1529,7 +1606,11 @@ NAN_METHOD(Adapter::GapGetAddress)
 void Adapter::GapGetAddress(uv_work_t *req)
 {
     auto baton = static_cast<GapAddressGetBaton *>(req->data);
+#if NRF_SD_BLE_API_VERSION <= 2
     baton->result = sd_ble_gap_address_get(baton->adapter, baton->address);
+#elif NRF_SD_BLE_API_VERSION >= 3
+    baton->result = sd_ble_gap_addr_get(baton->adapter, baton->address);
+#endif
 }
 
 // This runs in Main Thread
@@ -1808,7 +1889,7 @@ NAN_METHOD(Adapter::GapSetDeviceName)
     }
 
     baton->dev_name = dev_name;
-    baton->length = length;
+    baton->length = (uint16_t)length;
     baton->adapter = obj->adapter;
 
     uv_queue_work(uv_default_loop(), baton->req, GapSetDeviceName, reinterpret_cast<uv_after_work_cb>(AfterGapSetDeviceName));
@@ -2763,7 +2844,7 @@ NAN_METHOD(Adapter::GapReplySecurityParameters)
 
         obj->createSecurityKeyStorage(conn_handle, keyset);
     }
-    catch (char const *)
+    catch (std::string)
     {
         Nan::ThrowTypeError("The provided keyset can not be parsed.");
         return;
@@ -3757,6 +3838,18 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST);
         NODE_DEFINE_CONSTANT(target, BLE_GAP_EVT_SCAN_REQ_REPORT);
 
+        /* GAP Option IDs */
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_CH_MAP);
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_LOCAL_CONN_LATENCY);
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_PASSKEY);
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_SCAN_REQ_REPORT);
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_COMPAT_MODE);
+
+#if NRF_SD_BLE_API_VERSION >= 3
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_AUTH_PAYLOAD_TIMEOUT);
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_EXT_LEN);
+#endif
+
         /* BLE_ERRORS_GAP SVC return values specific to GAP */
         NODE_DEFINE_CONSTANT(target, BLE_ERROR_GAP_UUID_LIST_MISMATCH); //UUID list does not contain an integral number of UUIDs.
         NODE_DEFINE_CONSTANT(target, BLE_ERROR_GAP_DISCOVERABLE_WITH_WHITELIST); //Use of Whitelist not permitted with discoverable advertising.
@@ -3774,6 +3867,9 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GAP_TIMEOUT_SRC_SECURITY_REQUEST); //Security request timeout.
         NODE_DEFINE_CONSTANT(target, BLE_GAP_TIMEOUT_SRC_SCAN); //Scanning timeout.
         NODE_DEFINE_CONSTANT(target, BLE_GAP_TIMEOUT_SRC_CONN); //Connection timeout.
+#if NRF_SD_BLE_API_VERSION >= 3
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_TIMEOUT_SRC_AUTH_PAYLOAD); //Authenticated payload timeout
+#endif
 
         /* BLE_GAP_ADDR_TYPES GAP Address types */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_ADDR_TYPE_PUBLIC); //Public address.
@@ -3782,9 +3878,10 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GAP_ADDR_TYPE_RANDOM_PRIVATE_NON_RESOLVABLE); //Private Non-Resolvable address.
 
         /* BLE_GAP_ADDR_CYCLE_MODES GAP Address cycle modes */
+#if NRF_SD_BLE_API_VERSION <= 2
         NODE_DEFINE_CONSTANT(target, BLE_GAP_ADDR_CYCLE_MODE_NONE); //Set addresses directly, no automatic address cycling.
         NODE_DEFINE_CONSTANT(target, BLE_GAP_ADDR_CYCLE_MODE_AUTO); //Automatically generate and update private addresses.
-
+#endif
         /* The default interval in seconds at which a private address is refreshed when address cycle mode is @ref BLE_GAP_ADDR_CYCLE_MODE_AUTO.  */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_DEFAULT_PRIVATE_ADDR_CYCLE_INTERVAL_S);
 
@@ -3927,7 +4024,11 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GAP_CP_CONN_SUP_TIMEOUT_MIN); //Lowest supervision timeout permitted, in units of 10 ms, i.e. 100 ms.
         NODE_DEFINE_CONSTANT(target, BLE_GAP_CP_CONN_SUP_TIMEOUT_MAX); //Highest supervision timeout permitted, in units of 10 ms, i.e. 32 s.
 
-        /* GAP device name maximum length. */
+#if NRF_SD_BLE_API_VERSION >= 3
+        /* Default number of octets in device name. */
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_DEVNAME_DEFAULT_LEN);
+#endif
+        /* Maximum number of octets in device name. */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_DEVNAME_MAX_LEN);
 
         /* Disable RSSI events for connections */
@@ -3945,9 +4046,14 @@ extern "C" {
         /* Maximum amount of addresses in a whitelist. */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_WHITELIST_ADDR_MAX_COUNT);
 
+#if NRF_SD_BLE_API_VERSION <= 2
         /* Maximum amount of IRKs in a whitelist.
         * @note  The number of IRKs is limited to 8, even if the hardware supports more. */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_WHITELIST_IRK_MAX_COUNT);
+#elif NRF_SD_BLE_API_VERSION >= 3
+        /* Maximum amount of identities in the device identities list. */
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_DEVICE_IDENTITIES_MAX_COUNT);
+#endif
 
         /* GAP_SEC_MODES GAP Security Modes */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_SEC_MODE); //No key (may be used to reject).

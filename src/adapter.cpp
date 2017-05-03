@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2016 Nordic Semiconductor ASA
+/* Copyright (c) 2016, Nordic Semiconductor ASA
+ *
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -8,31 +8,33 @@
  *   1. Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *   2. Redistributions in binary form must reproduce the above copyright notice, this
- *   list of conditions and the following disclaimer in the documentation and/or
- *   other materials provided with the distribution.
+ *   2. Redistributions in binary form, except as embedded into a Nordic
+ *   Semiconductor ASA integrated circuit in a product or a software update for
+ *   such product, must reproduce the above copyright notice, this list of
+ *   conditions and the following disclaimer in the documentation and/or other
+ *   materials provided with the distribution.
  *
- *   3. Neither the name of Nordic Semiconductor ASA nor the names of other
- *   contributors to this software may be used to endorse or promote products
- *   derived from this software without specific prior written permission.
+ *   3. Neither the name of Nordic Semiconductor ASA nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
  *
- *   4. This software must only be used in or with a processor manufactured by Nordic
- *   Semiconductor ASA, or in or with a processor manufactured by a third party that
- *   is used in combination with a processor manufactured by Nordic Semiconductor.
+ *   4. This software, with or without modification, must only be used with a
+ *   Nordic Semiconductor ASA integrated circuit.
  *
- *   5. Any software provided in binary or object form under this license must not be
+ *   5. Any software provided in binary form under this license must not be
  *   reverse engineered, decompiled, modified and/or disassembled.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL NORDIC SEMICONDUCTOR ASA OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "adapter.h"
@@ -128,26 +130,35 @@ void Adapter::initEventHandling(Nan::Callback *callback, uint32_t interval)
     eventCallback = callback;
     asyncEvent->data = static_cast<void *>(this);
 
-    if (uv_async_init(uv_default_loop(), asyncEvent, event_handler) != 0) {
-            std::cerr << "Not able to create a new async event handler." << std::endl;
-            std::terminate();
-        }
+    if (uv_async_init(uv_default_loop(), asyncEvent, event_handler) != 0)
+    {
+        std::cerr << "Not able to create a new async event handler." << std::endl;
+        std::terminate();
+    }
+
+    if (eventInterval == 0)
+    {
+        return;
+    }
+
+    if (eventIntervalTimer == nullptr)
+    {
+        eventIntervalTimer = new uv_timer_t();
+    }
 
     // Setup event interval functionality
-    if (eventInterval > 0)
-    {
-        if (eventIntervalTimer != nullptr) {
-            eventIntervalTimer->data = static_cast<void *>(this);
-            if (uv_timer_init(uv_default_loop(), eventIntervalTimer) != 0) {
-            std::cerr << "Not able to create a new async event interval timer." << std::endl;
-            std::terminate();
-        }
+    eventIntervalTimer->data = static_cast<void *>(this);
 
-            if (uv_timer_start(eventIntervalTimer, event_interval_handler, eventInterval, eventInterval) != 0) {
-            std::cerr << "Not able to create a new event interval handler." << std::endl;
-            std::terminate();
-        }
-        }
+    if (uv_timer_init(uv_default_loop(), eventIntervalTimer) != 0)
+    {
+        std::cerr << "Not able to create a new async event interval timer." << std::endl;
+        std::terminate();
+    }
+
+    if (uv_timer_start(eventIntervalTimer, event_interval_handler, eventInterval, eventInterval) != 0)
+    {
+        std::cerr << "Not able to create a new event interval handler." << std::endl;
+        std::terminate();
     }
 }
 
@@ -174,16 +185,17 @@ void Adapter::initLogHandling(Nan::Callback *callback)
     logCallback = callback;
     asyncLog->data = static_cast<void *>(this);
 
-    if (asyncLog == nullptr)  {
+    if (asyncLog == nullptr)
+    {
         std::cerr << "asyncLog is null, terminating." << std::endl;
         std::terminate();
     }
 
     if (uv_async_init(uv_default_loop(), asyncLog, log_handler) != 0)
-        {
-            std::cerr << "Not able to create a new event log handler." << std::endl;
-            std::terminate();
-        }
+    {
+        std::cerr << "Not able to create a new event log handler." << std::endl;
+        std::terminate();
+    }
 }
 
 extern "C" {
@@ -210,17 +222,18 @@ void Adapter::initStatusHandling(Nan::Callback *callback)
     asyncStatus->data = static_cast<void *>(this);
 
     if (uv_async_init(uv_default_loop(), asyncStatus, status_handler) != 0)
-        {
-            std::cerr << "Not able to create a new status handler." << std::endl;
-            std::terminate();
-        }
+    {
+        std::cerr << "Not able to create a new status handler." << std::endl;
+        std::terminate();
+    }
 }
 
 void Adapter::cleanUpV8Resources()
 {
     uv_mutex_lock(adapterCloseMutex);
 
-    if (asyncStatus != nullptr) {
+    if (asyncStatus != nullptr)
+    {
         auto handle = reinterpret_cast<uv_handle_t *>(asyncStatus);
         uv_close(handle, [](uv_handle_t *handle) {
             free(handle);
@@ -229,7 +242,8 @@ void Adapter::cleanUpV8Resources()
         asyncStatus = nullptr;
     }
 
-    if (eventIntervalTimer != nullptr) {
+    if (eventIntervalTimer != nullptr)
+    {
         // Deallocate resources related to the event handling interval timer
         if (uv_timer_stop(eventIntervalTimer) != 0)
         {
@@ -237,26 +251,31 @@ void Adapter::cleanUpV8Resources()
         }
 
         auto handle = reinterpret_cast<uv_handle_t *>(eventIntervalTimer);
-        uv_close(handle, [](uv_handle_t *handle) {
+        uv_close(handle, [](uv_handle_t *handle)
+        {
             free(handle);
         });
 
         eventIntervalTimer = nullptr;
     }
 
-    if (asyncEvent != nullptr) {
+    if (asyncEvent != nullptr)
+    {
         auto handle = reinterpret_cast<uv_handle_t *>(asyncEvent);
 
-        uv_close(handle, [](uv_handle_t *handle) {
+        uv_close(handle, [](uv_handle_t *handle)
+        {
             free(handle);
         });
 
         asyncEvent = nullptr;
     }
 
-    if (asyncLog != nullptr) {
+    if (asyncLog != nullptr)
+    {
         auto logHandle = reinterpret_cast<uv_handle_t *>(asyncLog);
-        uv_close(logHandle, [](uv_handle_t *handle) {
+        uv_close(logHandle, [](uv_handle_t *handle)
+        {
             free(handle);
         });
 
@@ -276,6 +295,8 @@ void Adapter::initGeneric(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "encodeUUID", EncodeUUID);
     Nan::SetPrototypeMethod(tpl, "decodeUUID", DecodeUUID);
     Nan::SetPrototypeMethod(tpl, "replyUserMemory", ReplyUserMemory);
+    Nan::SetPrototypeMethod(tpl, "setBleOption", SetBleOption);
+    Nan::SetPrototypeMethod(tpl, "getBleOption", GetBleOption);
 
     Nan::SetPrototypeMethod(tpl, "getStats", GetStats);
 }
@@ -327,6 +348,9 @@ void Adapter::initGattC(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "gattcReadCharacteristicValues", GattcReadCharacteristicValues);
     Nan::SetPrototypeMethod(tpl, "gattcWrite", GattcWrite);
     Nan::SetPrototypeMethod(tpl, "gattcConfirmHandleValue", GattcConfirmHandleValue);
+#if NRF_SD_BLE_API_VERSION >= 3
+    Nan::SetPrototypeMethod(tpl, "gattcExchangeMtuRequest", GattcExchangeMtuRequest);
+#endif
 }
 
 void Adapter::initGattS(v8::Local<v8::FunctionTemplate> tpl)
@@ -339,6 +363,9 @@ void Adapter::initGattS(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "gattsSetValue", GattsSetValue);
     Nan::SetPrototypeMethod(tpl, "gattsGetValue", GattsGetValue);
     Nan::SetPrototypeMethod(tpl, "gattsReplyReadWriteAuthorize", GattsReplyReadWriteAuthorize);
+#if NRF_SD_BLE_API_VERSION >= 3
+    Nan::SetPrototypeMethod(tpl, "gattsExchangeMtuReply", GattsExchangeMtuReply);
+#endif
 }
 
 Adapter::Adapter()
@@ -359,6 +386,7 @@ Adapter::Adapter()
     asyncStatus = nullptr;
 
     adapterCloseMutex = new uv_mutex_t();
+
     if (uv_mutex_init(adapterCloseMutex) != 0)
     {
         std::cerr << "Not able to create adapterCloseMutex! Terminating." << std::endl;
@@ -377,15 +405,19 @@ Adapter::~Adapter()
     cleanUpV8Resources();
 
     uv_mutex_destroy(adapterCloseMutex);
+    delete adapterCloseMutex;
 }
 
 NAN_METHOD(Adapter::New)
 {
-    if (info.IsConstructCall()) {
+    if (info.IsConstructCall())
+    {
         auto obj = new Adapter();
         obj->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
-    } else {
+    }
+    else
+    {
         v8::Local<v8::Function> cons = Nan::New(constructor);
         info.GetReturnValue().Set(cons->NewInstance());
     }

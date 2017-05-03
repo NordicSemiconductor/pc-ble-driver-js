@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2016 Nordic Semiconductor ASA
+/* Copyright (c) 2016, Nordic Semiconductor ASA
+ *
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -8,31 +8,33 @@
  *   1. Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *   2. Redistributions in binary form must reproduce the above copyright notice, this
- *   list of conditions and the following disclaimer in the documentation and/or
- *   other materials provided with the distribution.
+ *   2. Redistributions in binary form, except as embedded into a Nordic
+ *   Semiconductor ASA integrated circuit in a product or a software update for
+ *   such product, must reproduce the above copyright notice, this list of
+ *   conditions and the following disclaimer in the documentation and/or other
+ *   materials provided with the distribution.
  *
- *   3. Neither the name of Nordic Semiconductor ASA nor the names of other
- *   contributors to this software may be used to endorse or promote products
- *   derived from this software without specific prior written permission.
+ *   3. Neither the name of Nordic Semiconductor ASA nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
  *
- *   4. This software must only be used in or with a processor manufactured by Nordic
- *   Semiconductor ASA, or in or with a processor manufactured by a third party that
- *   is used in combination with a processor manufactured by Nordic Semiconductor.
+ *   4. This software, with or without modification, must only be used with a
+ *   Nordic Semiconductor ASA integrated circuit.
  *
- *   5. Any software provided in binary or object form under this license must not be
+ *   5. Any software provided in binary form under this license must not be
  *   reverse engineered, decompiled, modified and/or disassembled.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL NORDIC SEMICONDUCTOR ASA OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include <iostream>
@@ -133,8 +135,9 @@ void sd_rpc_on_log_event(adapter_t *adapter, sd_rpc_log_severity_t severity, con
 
 void Adapter::appendLog(LogEntry *log)
 {
-    if (asyncLog != nullptr) {
-    logQueue.push(log);
+    if (asyncLog != nullptr)
+    {
+        logQueue.push(log);
         uv_async_send(asyncLog);
     }
 }
@@ -256,13 +259,15 @@ void Adapter::onRpcEvent(uv_async_t *handle)
         EventEntry *eventEntry = nullptr;
         eventQueue.pop(eventEntry);
 
-        if (eventEntry == nullptr) {
+        if (eventEntry == nullptr)
+        {
             std::cerr << "eventEntry from queue is null. Illegal state, terminating." << std::endl;
             std::terminate();
         }
 
         auto event = eventEntry->event;
-        if (eventEntry == nullptr) {
+        if (eventEntry == nullptr)
+        {
             std::cerr << "event from eventEntry is null. Illegal state, terminating." << std::endl;
             std::terminate();
         }
@@ -271,9 +276,12 @@ void Adapter::onRpcEvent(uv_async_t *handle)
         {
             switch (event->header.evt_id)
             {
-                COMMON_EVT_CASE(TX_COMPLETE,      TXComplete, tx_complete,      array, arrayIndex, eventEntry);
-                COMMON_EVT_CASE(USER_MEM_REQUEST, MemRequest, user_mem_request, array, arrayIndex, eventEntry);
-                COMMON_EVT_CASE(USER_MEM_RELEASE, MemRelease, user_mem_release, array, arrayIndex, eventEntry);
+                COMMON_EVT_CASE(TX_COMPLETE,            TXComplete,         tx_complete,            array, arrayIndex, eventEntry);
+                COMMON_EVT_CASE(USER_MEM_REQUEST,       MemRequest,         user_mem_request,       array, arrayIndex, eventEntry);
+                COMMON_EVT_CASE(USER_MEM_RELEASE,       MemRelease,         user_mem_release,       array, arrayIndex, eventEntry);
+#if NRF_SD_BLE_API_VERSION >= 3
+                COMMON_EVT_CASE(DATA_LENGTH_CHANGED,    DataLengthChanged,  data_length_changed,    array, arrayIndex, eventEntry);
+#endif
 
                 GAP_EVT_CASE(CONNECTED,                 Connected,              connected,                  array, arrayIndex, eventEntry);
                 GAP_EVT_CASE(DISCONNECTED,              Disconnected,           disconnected,               array, arrayIndex, eventEntry);
@@ -303,12 +311,18 @@ void Adapter::onRpcEvent(uv_async_t *handle)
                 GATTC_EVT_CASE(WRITE_RSP,                   Write,                         write_rsp,                  array, arrayIndex, eventEntry);
                 GATTC_EVT_CASE(HVX,                         HandleValueNotification,       hvx,                        array, arrayIndex, eventEntry);
                 GATTC_EVT_CASE(TIMEOUT,                     Timeout,                       timeout,                    array, arrayIndex, eventEntry);
+#if NRF_SD_BLE_API_VERSION >= 3
+                GATTC_EVT_CASE(EXCHANGE_MTU_RSP,        ExchangeMtuResponse,    exchange_mtu_rsp,   array, arrayIndex, eventEntry);
+#endif
 
                 GATTS_EVT_CASE(WRITE,                   Write,                  write,              array, arrayIndex, eventEntry);
                 GATTS_EVT_CASE(RW_AUTHORIZE_REQUEST,    RWAuthorizeRequest,     authorize_request,  array, arrayIndex, eventEntry);
                 GATTS_EVT_CASE(SYS_ATTR_MISSING,        SystemAttributeMissing, sys_attr_missing,   array, arrayIndex, eventEntry);
                 GATTS_EVT_CASE(HVC,                     HVC,                    hvc,                array, arrayIndex, eventEntry);
                 GATTS_EVT_CASE(TIMEOUT,                 Timeout,                timeout,            array, arrayIndex, eventEntry);
+#if NRF_SD_BLE_API_VERSION >= 3
+                GATTS_EVT_CASE(EXCHANGE_MTU_REQUEST,    ExchangeMtuRequest,     exchange_mtu_request,       array, arrayIndex, eventEntry);
+#endif
 
                 // Handled special as there is no parameter for this in the event struct.
                 GATTS_EVT_CASE(SC_CONFIRM, SCConfirm, timeout, array, arrayIndex, eventEntry);
@@ -451,13 +465,28 @@ v8::Local<v8::Object> CommonMemReleaseEvent::ToJs()
     return scope.Escape(obj);
 }
 
+#if NRF_SD_BLE_API_VERSION >= 3
+v8::Local<v8::Object> CommonDataLengthChangedEvent::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New <v8::Object>();
+    BleDriverCommonEvent::ToJs(obj);
+
+    Utility::Set(obj, "max_tx_octets", ConversionUtility::toJsNumber(evt->max_tx_octets));
+    Utility::Set(obj, "max_tx_time", ConversionUtility::toJsNumber(evt->max_tx_time));
+    Utility::Set(obj, "max_rx_octets", ConversionUtility::toJsNumber(evt->max_rx_octets));
+    Utility::Set(obj, "max_rx_time", ConversionUtility::toJsNumber(evt->max_rx_time));
+
+    return scope.Escape(obj);
+}
+#endif
+
 // Class private method that is only used by the class to activate the SoftDevice in the Adapter
 uint32_t Adapter::enableBLE(adapter_t *adapter)
 {
-    // If the this->adapter have not been set yet it is because the Adapter::Open call has not set
-    // an adapter_t instance. The SoftDevice is started in Adapter::Open call and we do not have to take care of it
-    // here.
-
+    // If the this->adapter has not been set yet it is because the Adapter::Open call has not set
+    // an adapter_t instance. The SoftDevice is started in Adapter::Open call and we do not have to
+    // take care of it here.
     if (adapter == nullptr)
     {
         return NRF_ERROR_INVALID_PARAM;
@@ -467,18 +496,12 @@ uint32_t Adapter::enableBLE(adapter_t *adapter)
 
     memset(&ble_enable_params, 0, sizeof(ble_enable_params));
 
-    /* set the number of Vendor Specific UUIDs to 5 */
     ble_enable_params.common_enable_params.vs_uuid_count = 5;
-    /* this application requires 1 connection as a peripheral */
     ble_enable_params.gap_enable_params.periph_conn_count = 1;
-    /* this application requires 3 connections as a central */
-    ble_enable_params.gap_enable_params.central_conn_count = 3;
-    /* this application only needs to be able to pair in one central link at a time */
     ble_enable_params.gap_enable_params.central_sec_count = 1;
-    /* we require the Service Changed characteristic */
     ble_enable_params.gatts_enable_params.service_changed = false;
-    /* the default Attribute Table size is appropriate for our application */
     ble_enable_params.gatts_enable_params.attr_tab_size = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
+    ble_enable_params.gap_enable_params.central_conn_count = 7;
 
     return sd_ble_enable(adapter, &ble_enable_params, 0);
 }
@@ -555,7 +578,6 @@ void Adapter::AfterEnableBLE(uv_work_t *req)
     delete baton->enable_params;
     delete baton;
 }
-
 
 // This function runs in the Main Thread
 NAN_METHOD(Adapter::Open)
@@ -685,7 +707,17 @@ void Adapter::Open(uv_work_t *req)
     baton->mainObject->eventCallbackBatchEventTotalCount = 0;
     baton->mainObject->eventCallbackBatchNumber = 0;
 
-    auto error_code = sd_rpc_open(adapter, sd_rpc_on_status, sd_rpc_on_event, sd_rpc_on_log_event);
+    // Set the log level
+    auto error_code = sd_rpc_log_handler_severity_filter_set(adapter, baton->log_level);
+
+    if (error_code != NRF_SUCCESS)
+    {
+        std::cerr << std::endl << "Failed to set log severity filter." << std::endl;
+        baton->result = error_code;
+        return;
+    }
+
+    error_code = sd_rpc_open(adapter, sd_rpc_on_status, sd_rpc_on_event, sd_rpc_on_log_event);
 
     // Let the normal log handling handle the rest of the log calls
     adapterBeingOpened = nullptr;
@@ -722,7 +754,6 @@ void Adapter::AfterOpen(uv_work_t *req)
 {
     Nan::HandleScope scope;
     auto baton = static_cast<OpenBaton *>(req->data);
-    delete req;
 
     v8::Local<v8::Value> argv[1];
 
@@ -1204,6 +1235,161 @@ void Adapter::AfterReplyUserMemory(uv_work_t *req)
     delete baton;
 }
 
+#pragma region SetBleOption
+
+// This function runs in the Main Thread
+NAN_METHOD(Adapter::SetBleOption)
+{
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    uint32_t optionId;
+    v8::Local<v8::Object> optionObject;
+    v8::Local<v8::Function> callback;
+    auto argumentcount = 0;
+
+    try
+    {
+        optionId = ConversionUtility::getNativeUint32(info[argumentcount]);
+        argumentcount++;
+
+        optionObject = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (std::string error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    auto baton = new BleOptionBaton(callback);
+    baton->adapter = obj->adapter;
+    baton->opt_id = optionId;
+
+    try
+    {
+        baton->p_opt = BleOpt(optionObject);
+    }
+    catch (std::string error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("BLE Option", error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    uv_queue_work(uv_default_loop(), baton->req, SetBleOption, reinterpret_cast<uv_after_work_cb>(AfterSetBleOption));
+}
+
+// This runs in a worker thread (not Main Thread)
+void Adapter::SetBleOption(uv_work_t *req)
+{
+    auto baton = static_cast<BleOptionBaton *>(req->data);
+    baton->result = sd_ble_opt_set(baton->adapter, baton->opt_id, baton->p_opt);
+}
+
+// This runs in  Main Thread
+void Adapter::AfterSetBleOption(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+    auto baton = static_cast<BleOptionBaton *>(req->data);
+
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "setting BLE option");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+    delete baton;
+}
+
+#pragma endregion SetBleOption
+
+#pragma region GetBleOption
+
+// This function runs in the Main Thread
+NAN_METHOD(Adapter::GetBleOption)
+{
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    uint32_t optionId;
+    v8::Local<v8::Function> callback;
+    auto argumentcount = 0;
+
+    try
+    {
+        optionId = ConversionUtility::getNativeUint32(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (std::string error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    auto baton = new BleOptionBaton(callback);
+    baton->adapter = obj->adapter;
+    baton->opt_id = optionId;
+    baton->p_opt = new ble_opt_t();
+
+    uv_queue_work(uv_default_loop(), baton->req, GetBleOption, reinterpret_cast<uv_after_work_cb>(AfterGetBleOption));
+}
+
+// This runs in a worker thread (not Main Thread)
+void Adapter::GetBleOption(uv_work_t *req)
+{
+    auto baton = static_cast<BleOptionBaton *>(req->data);
+    baton->result = sd_ble_opt_get(baton->adapter, baton->opt_id, baton->p_opt);
+}
+
+// This runs in  Main Thread
+void Adapter::AfterGetBleOption(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+    auto baton = static_cast<BleOptionBaton *>(req->data);
+    v8::Local<v8::Value> optionValue = Nan::Undefined();
+
+    // TODO: Implement support through BleOpt ToJs for all required options
+    if (baton->opt_id == BLE_GAP_OPT_SCAN_REQ_REPORT)
+    {
+        optionValue = ConversionUtility::toJsBool(baton->p_opt->gap_opt.scan_req_report.enable);
+    }
+#if NRF_SD_BLE_API_VERSION >= 3
+    else if (baton->opt_id == BLE_GAP_OPT_EXT_LEN) {
+        optionValue = ConversionUtility::toJsNumber(baton->p_opt->gap_opt.ext_len.rxtx_max_pdu_payload_size);
+    }
+#endif
+
+    v8::Local<v8::Value> argv[2];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "getting BLE option");
+        argv[1] = Nan::Undefined();
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+        argv[1] = optionValue;
+    }
+
+    baton->callback->Call(2, argv);
+    delete baton->p_opt;
+    delete baton;
+}
+
+#pragma endregion GetBleOption
+
 #pragma region BandwidthCountParameters
 
 v8::Local<v8::Object> BandwidthCountParameters::ToJs()
@@ -1302,6 +1488,9 @@ v8::Local<v8::Object> EnableParameters::ToJs()
     Utility::Set(obj, "common_enable_params", CommonEnableParameters(&native->common_enable_params).ToJs());
     Utility::Set(obj, "gap_enable_params", GapEnableParameters(&native->gap_enable_params).ToJs());
     Utility::Set(obj, "gatts_enable_params", GattsEnableParameters(&native->gatts_enable_params).ToJs());
+#if NRF_SD_BLE_API_VERSION >= 3
+    Utility::Set(obj, "gatt_enable_params", GattEnableParameters(&native->gatt_enable_params).ToJs());
+#endif
 
     return scope.Escape(obj);
 }
@@ -1312,6 +1501,9 @@ ble_enable_params_t *EnableParameters::ToNative()
     enable_params->common_enable_params = CommonEnableParameters(ConversionUtility::getJsObject(jsobj, "common_enable_params"));
     enable_params->gap_enable_params = GapEnableParameters(ConversionUtility::getJsObject(jsobj, "gap_enable_params"));
     enable_params->gatts_enable_params = GattsEnableParameters(ConversionUtility::getJsObjectOrNull(jsobj, "gatts_enable_params"));
+#if NRF_SD_BLE_API_VERSION >= 3
+    enable_params->gatt_enable_params = GattEnableParameters(ConversionUtility::getJsObjectOrNull(jsobj, "gatt_enable_params"));
+#endif
     return enable_params;
 }
 
@@ -1448,7 +1640,8 @@ ble_uuid128_t *BleUUID128::ToNative()
     size_t uuid_len = uuidString->Length() + 1;
     auto uuidPtr = static_cast<char*>(malloc(uuid_len));
 
-    if (uuidPtr == nullptr) {
+    if (uuidPtr == nullptr)
+    {
         std::cerr << "uuidPtr is null. Illegal state, terminating." << std::endl;
         std::terminate();
     }
@@ -1466,7 +1659,8 @@ ble_uuid128_t *BleUUID128::ToNative()
         &(ptr[3]), &(ptr[2]),
         &(ptr[1]), &(ptr[0]));
 
-    if (scan_count != 16) {
+    if (scan_count != 16)
+    {
         std::cerr << "scan_count is not 16, illegal state, terminating." << std::endl;
         std::terminate();
     }
@@ -1482,6 +1676,25 @@ ble_uuid128_t *BleUUID128::ToNative()
 }
 
 #pragma endregion UUID128
+
+#pragma region BleOpt
+
+ble_opt_t *BleOpt::ToNative()
+{
+    auto ble_opt = new ble_opt_t();
+
+    if (Utility::Has(jsobj, "gap_opt"))
+    {
+        auto gap_opt_obj = ConversionUtility::getJsObject(jsobj, "gap_opt");
+        ble_opt->gap_opt = GapOpt(gap_opt_obj);
+    }
+
+    return ble_opt;
+}
+
+
+
+#pragma endregion BleOpt
 
 extern "C" {
     void init_adapter_list(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
@@ -1527,6 +1740,9 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, SD_RPC_LOG_WARNING);
         NODE_DEFINE_CONSTANT(target, SD_RPC_LOG_ERROR);
         NODE_DEFINE_CONSTANT(target, SD_RPC_LOG_FATAL);
+
+        // Constant used for identification of the SD API version
+        NODE_DEFINE_CONSTANT(target, NRF_SD_BLE_API_VERSION);
     }
 
     void init_types(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
@@ -1557,7 +1773,9 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_UUID_GAP); /* Generic Access Profile. */
         NODE_DEFINE_CONSTANT(target, BLE_UUID_GAP_CHARACTERISTIC_DEVICE_NAME); /* Device Name Characteristic. */
         NODE_DEFINE_CONSTANT(target, BLE_UUID_GAP_CHARACTERISTIC_APPEARANCE); /* Appearance Characteristic. */
-        NODE_DEFINE_CONSTANT(target, BLE_UUID_GAP_CHARACTERISTIC_PPF); /* Peripheral Privacy Flag Characteristic. */
+#if NRF_SD_BLE_API_VERSION <= 2
+		NODE_DEFINE_CONSTANT(target, BLE_UUID_GAP_CHARACTERISTIC_PPF); /* Peripheral Privacy Flag Characteristic. */
+#endif
         NODE_DEFINE_CONSTANT(target, BLE_UUID_GAP_CHARACTERISTIC_RECONN_ADDR); /* Reconnection Address Characteristic. */
         NODE_DEFINE_CONSTANT(target, BLE_UUID_GAP_CHARACTERISTIC_PPCP); /* Peripheral Preferred Connection Parameters Characteristic. */
 
@@ -1624,8 +1842,10 @@ extern "C" {
     {
         NODE_DEFINE_CONSTANT(target, BLE_SVC_BASE);           /**< Common BLE SVC base. */
         NODE_DEFINE_CONSTANT(target, BLE_SVC_LAST);           /**< Total: 12. */
-        NODE_DEFINE_CONSTANT(target, BLE_RESERVED_SVC_BASE);  /**< Reserved BLE SVC base. */
+#if NRF_SD_BLE_API_VERSION <= 2
+		NODE_DEFINE_CONSTANT(target, BLE_RESERVED_SVC_BASE);  /**< Reserved BLE SVC base. */
         NODE_DEFINE_CONSTANT(target, BLE_RESERVED_SVC_LAST);  /**< Total: 4. */
+#endif
         NODE_DEFINE_CONSTANT(target, BLE_GAP_SVC_BASE);       /**< GAP BLE SVC base. */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_SVC_LAST);       /**< Total: 32. */
         NODE_DEFINE_CONSTANT(target, BLE_GATTC_SVC_BASE);     /**< GATTC BLE SVC base. */
@@ -1668,6 +1888,9 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_EVT_TX_COMPLETE);                      /**< Transmission Complete. @ref ble_evt_tx_complete_t */
         NODE_DEFINE_CONSTANT(target, BLE_EVT_USER_MEM_REQUEST);                 /**< User Memory request. @ref ble_evt_user_mem_request_t */
         NODE_DEFINE_CONSTANT(target, BLE_EVT_USER_MEM_RELEASE);                 /**< User Memory release. @ref ble_evt_user_mem_release_t */
+#if NRF_SD_BLE_API_VERSION >= 3
+        NODE_DEFINE_CONSTANT(target, BLE_EVT_DATA_LENGTH_CHANGED);              /** Link layer PDU length changed. @ref ble_evt_data_length_changed_t */
+#endif
     }
 
     void init_hci(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)

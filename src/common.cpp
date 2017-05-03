@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2016 Nordic Semiconductor ASA
+/* Copyright (c) 2016, Nordic Semiconductor ASA
+ *
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -8,31 +8,33 @@
  *   1. Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *   2. Redistributions in binary form must reproduce the above copyright notice, this
- *   list of conditions and the following disclaimer in the documentation and/or
- *   other materials provided with the distribution.
+ *   2. Redistributions in binary form, except as embedded into a Nordic
+ *   Semiconductor ASA integrated circuit in a product or a software update for
+ *   such product, must reproduce the above copyright notice, this list of
+ *   conditions and the following disclaimer in the documentation and/or other
+ *   materials provided with the distribution.
  *
- *   3. Neither the name of Nordic Semiconductor ASA nor the names of other
- *   contributors to this software may be used to endorse or promote products
- *   derived from this software without specific prior written permission.
+ *   3. Neither the name of Nordic Semiconductor ASA nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
  *
- *   4. This software must only be used in or with a processor manufactured by Nordic
- *   Semiconductor ASA, or in or with a processor manufactured by a third party that
- *   is used in combination with a processor manufactured by Nordic Semiconductor.
+ *   4. This software, with or without modification, must only be used with a
+ *   Nordic Semiconductor ASA integrated circuit.
  *
- *   5. Any software provided in binary or object form under this license must not be
+ *   5. Any software provided in binary form under this license must not be
  *   reverse engineered, decompiled, modified and/or disassembled.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL NORDIC SEMICONDUCTOR ASA OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include <chrono>
@@ -45,10 +47,11 @@
 #include "ble_hci.h"
 
 #define RETURN_VALUE_OR_THROW_EXCEPTION(method) \
-try { \
+try \
+{ \
     return (method); \
 } \
-catch(char const *error) \
+catch(std::string error) \
 { \
     std::cout << "Exception: " << name << ":" << error << std::endl; \
     std::stringstream ex; \
@@ -56,7 +59,8 @@ catch(char const *error) \
     throw ex.str(); \
 }
 
-static name_map_t error_message_name_map = {
+static name_map_t error_message_name_map =
+{
     // Generic errors
     NAME_MAP_ENTRY(NRF_SUCCESS),
     NAME_MAP_ENTRY(NRF_ERROR_SVC_HANDLER_MISSING),
@@ -95,7 +99,8 @@ static name_map_t error_message_name_map = {
     NAME_MAP_ENTRY(BLE_ERROR_GATTS_SYS_ATTR_MISSING),
 };
 
-static name_map_t sd_rpc_app_status_map = {
+static name_map_t sd_rpc_app_status_map =
+{
     NAME_MAP_ENTRY(PKT_SEND_MAX_RETRIES_REACHED),
     NAME_MAP_ENTRY(PKT_UNEXPECTED),
     NAME_MAP_ENTRY(PKT_ENCODE_ERROR),
@@ -292,7 +297,7 @@ uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Value> js)
 {
     if (!js->IsArray())
     {
-        throw "array";
+        throw std::string("array");
     }
 
     v8::Local<v8::Array> jsarray = v8::Local<v8::Array>::Cast(js);
@@ -336,7 +341,7 @@ v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Value>js)
 {
     if (!js->IsObject())
     {
-        throw "object";
+        throw std::string("object");
     }
 
     return js->ToObject();
@@ -363,7 +368,7 @@ v8::Local<v8::Object> ConversionUtility::getJsObjectOrNull(v8::Local<v8::Value>j
         return ConversionUtility::getJsObject(js);
     }
 
-    throw "object or null";
+    throw std::string("object or null");
 }
 
 v8::Local<v8::Object> ConversionUtility::getJsObjectOrNull(v8::Local<v8::Object>js, const char *name)
@@ -403,7 +408,7 @@ std::string ConversionUtility::getNativeString(v8::Local<v8::Value> js)
 {
     if (!js->IsString())
     {
-        throw "string";
+        throw std::string("string");
     }
 
     return std::string(*Nan::Utf8String(js));
@@ -494,7 +499,7 @@ v8::Handle<v8::Value> ConversionUtility::toJsValueArray(const uint8_t *nativeDat
 
 v8::Handle<v8::Value> ConversionUtility::toJsString(const char *cString)
 {
-    return ConversionUtility::toJsString(cString, strlen(cString));
+    return ConversionUtility::toJsString(cString, static_cast<uint16_t>(strlen(cString)));
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsString(const char *cString, uint16_t length)
@@ -562,7 +567,7 @@ v8::Local<v8::Function> ConversionUtility::getCallbackFunction(v8::Local<v8::Val
     Nan::EscapableHandleScope scope;
     if (!js->IsFunction())
     {
-        throw "function";
+        throw std::string("function");
     }
     return scope.Escape(js.As<v8::Function>());
 }

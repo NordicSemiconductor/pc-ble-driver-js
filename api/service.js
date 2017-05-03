@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2016 Nordic Semiconductor ASA
+/* Copyright (c) 2016, Nordic Semiconductor ASA
+ *
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -8,46 +8,62 @@
  *   1. Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *   2. Redistributions in binary form must reproduce the above copyright notice, this
- *   list of conditions and the following disclaimer in the documentation and/or
- *   other materials provided with the distribution.
+ *   2. Redistributions in binary form, except as embedded into a Nordic
+ *   Semiconductor ASA integrated circuit in a product or a software update for
+ *   such product, must reproduce the above copyright notice, this list of
+ *   conditions and the following disclaimer in the documentation and/or other
+ *   materials provided with the distribution.
  *
- *   3. Neither the name of Nordic Semiconductor ASA nor the names of other
- *   contributors to this software may be used to endorse or promote products
- *   derived from this software without specific prior written permission.
+ *   3. Neither the name of Nordic Semiconductor ASA nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
  *
- *   4. This software must only be used in or with a processor manufactured by Nordic
- *   Semiconductor ASA, or in or with a processor manufactured by a third party that
- *   is used in combination with a processor manufactured by Nordic Semiconductor.
+ *   4. This software, with or without modification, must only be used with a
+ *   Nordic Semiconductor ASA integrated circuit.
  *
- *   5. Any software provided in binary or object form under this license must not be
+ *   5. Any software provided in binary form under this license must not be
  *   reverse engineered, decompiled, modified and/or disassembled.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL NORDIC SEMICONDUCTOR ASA OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 'use strict';
 
-var i = 1;
+let i = 1;
 
-var assertValidType = function (type) {
+function _assertValidType(type) {
     if (type !== 'primary' && type !== 'secondary') {
         throw new Error(`Type can only be 'primary' or 'secondary', not '${type}'.`);
     }
-};
+}
 
+/**
+ * Class that represents a GATT service.
+ */
 class Service {
+    /**
+     * Create a service in the Bluetooth `Device's` GATT attribute table.
+     *
+     * @constructor
+     * @param {string} deviceInstanceId The unique ID of the Bluetooth device to add `Service` to.
+     * @param {string} uuid A 128-bit or 16-bit unique identifier for this service.
+     * @param {string} type The server service type. 'primary' or `secondary`.
+     */
     constructor(deviceInstanceId, uuid, type) {
-        this._instanceId = deviceInstanceId + '.' + (i++).toString();
+        // increment global so `serviceInstanceId` is unique for each created service.
+        i += 1;
+
+        this._instanceId = `${deviceInstanceId}.${i}`;
         this._deviceInstanceId = deviceInstanceId;
         this.uuid = uuid;
 
@@ -56,7 +72,7 @@ class Service {
         }
 
         if (type !== undefined) {
-            assertValidType(type);
+            _assertValidType(type);
             this._type = type;
         } else {
             this._type = null;
@@ -66,21 +82,38 @@ class Service {
         this.endHandle = null;
     }
 
-    // unique ID for the service (since uuid is not enough to separate between services)
+    /**
+     * Get the instanceId of this service (since uuid is not enough to differentiate services).
+     * @returns {string} Unique ID of this service.
+     */
     get instanceId() {
         return this._instanceId;
     }
 
-    // device address of the remote peripheral that the GATT service belongs to. 'local.server' when local.
+    /**
+     * Get the Id of the Bluetooth device that this service belongs to.
+     * 'local.server': local/adapter, non-'local.server': remote peripheral.
+     * @returns {string} The unique Id of the Bluetooth device that this service belongs to.
+     */
     get deviceInstanceId() {
         return this._deviceInstanceId;
     }
 
+    /**
+     * Method that sets the `type` of this service.
+     *
+     * @param {string} type The type of this service. 'primary' or `secondary`.
+     * @returns {void}
+     */
     set type(type) {
-        assertValidType(type);
+        _assertValidType(type);
         this._type = type;
     }
 
+    /**
+     * Get the type of this service. 'primary' or `secondary`.
+     * @returns {string} type The type of this service.
+     */
     get type() {
         return this._type;
     }

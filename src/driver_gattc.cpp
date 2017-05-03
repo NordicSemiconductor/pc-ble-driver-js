@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2016 Nordic Semiconductor ASA
+/* Copyright (c) 2016, Nordic Semiconductor ASA
+ *
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -8,31 +8,33 @@
  *   1. Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *   2. Redistributions in binary form must reproduce the above copyright notice, this
- *   list of conditions and the following disclaimer in the documentation and/or
- *   other materials provided with the distribution.
+ *   2. Redistributions in binary form, except as embedded into a Nordic
+ *   Semiconductor ASA integrated circuit in a product or a software update for
+ *   such product, must reproduce the above copyright notice, this list of
+ *   conditions and the following disclaimer in the documentation and/or other
+ *   materials provided with the distribution.
  *
- *   3. Neither the name of Nordic Semiconductor ASA nor the names of other
- *   contributors to this software may be used to endorse or promote products
- *   derived from this software without specific prior written permission.
+ *   3. Neither the name of Nordic Semiconductor ASA nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
  *
- *   4. This software must only be used in or with a processor manufactured by Nordic
- *   Semiconductor ASA, or in or with a processor manufactured by a third party that
- *   is used in combination with a processor manufactured by Nordic Semiconductor.
+ *   4. This software, with or without modification, must only be used with a
+ *   Nordic Semiconductor ASA integrated circuit.
  *
- *   5. Any software provided in binary or object form under this license must not be
+ *   5. Any software provided in binary form under this license must not be
  *   reverse engineered, decompiled, modified and/or disassembled.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL NORDIC SEMICONDUCTOR ASA OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "driver_gattc.h"
@@ -41,7 +43,8 @@
 #include "driver.h"
 #include "driver_gatt.h"
 
-static name_map_t gattc_svcs_type_map = {
+static name_map_t gattc_svcs_type_map =
+{
     NAME_MAP_ENTRY(SD_BLE_GATTC_PRIMARY_SERVICES_DISCOVER),
     NAME_MAP_ENTRY(SD_BLE_GATTC_RELATIONSHIPS_DISCOVER),
     NAME_MAP_ENTRY(SD_BLE_GATTC_CHARACTERISTICS_DISCOVER),
@@ -50,20 +53,8 @@ static name_map_t gattc_svcs_type_map = {
     NAME_MAP_ENTRY(SD_BLE_GATTC_READ),
     NAME_MAP_ENTRY(SD_BLE_GATTC_CHAR_VALUES_READ),
     NAME_MAP_ENTRY(SD_BLE_GATTC_WRITE),
-    NAME_MAP_ENTRY(SD_BLE_GATTC_HV_CONFIRM)
-};
-
-static name_map_t gattc_evts_type_map = {
-    NAME_MAP_ENTRY(BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP),
-    NAME_MAP_ENTRY(BLE_GATTC_EVT_REL_DISC_RSP),
-    NAME_MAP_ENTRY(BLE_GATTC_EVT_CHAR_DISC_RSP),
-    NAME_MAP_ENTRY(BLE_GATTC_EVT_DESC_DISC_RSP),
-    NAME_MAP_ENTRY(BLE_GATTC_EVT_CHAR_VAL_BY_UUID_READ_RSP),
-    NAME_MAP_ENTRY(BLE_GATTC_EVT_READ_RSP),
-    NAME_MAP_ENTRY(BLE_GATTC_EVT_CHAR_VALS_READ_RSP),
-    NAME_MAP_ENTRY(BLE_GATTC_EVT_WRITE_RSP),
-    NAME_MAP_ENTRY(BLE_GATTC_EVT_HVX),
-    NAME_MAP_ENTRY(BLE_GATTC_EVT_TIMEOUT)
+    NAME_MAP_ENTRY(SD_BLE_GATTC_HV_CONFIRM),
+    NAME_MAP_ENTRY(SD_BLE_GATTC_WRITE)
 };
 
 //
@@ -307,13 +298,14 @@ v8::Local<v8::Object> GattcHandleValue::ToJs()
 
 v8::Local<v8::Object> GattcCharacteristicValueReadByUUIDEvent::ToJs()
 {
-    Nan::EscapableHandleScope scope;
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    BleDriverGattcEvent::ToJs(obj);
+	Nan::EscapableHandleScope scope;
+	v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+	BleDriverGattcEvent::ToJs(obj);
+	Utility::Set(obj, "count", evt->count);
+	Utility::Set(obj, "value_len", evt->value_len);
 
-    Utility::Set(obj, "count", evt->count);
-    Utility::Set(obj, "value_len", evt->value_len);
 
+#if NRF_SD_BLE_API_VERSION <= 2
     v8::Local<v8::Array> handle_value_array = Nan::New<v8::Array>();
 
     for (auto i = 0; i < evt->count; ++i)
@@ -322,8 +314,11 @@ v8::Local<v8::Object> GattcCharacteristicValueReadByUUIDEvent::ToJs()
     }
 
     Utility::Set(obj, "handle_values", handle_value_array);
+#else
+#pragma message("Support for GattcCharacteristicValueReadByUUIDEvent not implemented in AddOn for SDv3 and higher.")
+#endif
 
-    return scope.Escape(obj);
+	return scope.Escape(obj);
 }
 
 v8::Local<v8::Object> GattcReadEvent::ToJs()
@@ -391,6 +386,19 @@ v8::Local<v8::Object> GattcTimeoutEvent::ToJs()
 
     return scope.Escape(obj);
 }
+
+#if NRF_SD_BLE_API_VERSION >= 3
+v8::Local<v8::Object> GattcExchangeMtuResponseEvent::ToJs()
+{
+	Nan::EscapableHandleScope scope;
+	v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+	BleDriverGattcEvent::ToJs(obj);
+
+	Utility::Set(obj, "server_rx_mtu", evt->server_rx_mtu);
+
+	return scope.Escape(obj);
+}
+#endif
 
 NAN_METHOD(Adapter::GattcDiscoverPrimaryServices)
 {
@@ -1064,6 +1072,70 @@ void Adapter::AfterGattcConfirmHandleValue(uv_work_t *req)
     delete baton;
 }
 
+#if NRF_SD_BLE_API_VERSION >= 3
+NAN_METHOD(Adapter::GattcExchangeMtuRequest)
+{
+    uint16_t conn_handle;
+    uint16_t client_rx_mtu;
+    v8::Local<v8::Function> callback;
+    auto argumentcount = 0;
+
+    try
+    {
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        client_rx_mtu = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (std::string error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto baton = new GattcExchangeMtuRequestBaton(callback);
+    baton->adapter = obj->adapter;
+    baton->conn_handle = conn_handle;
+    baton->client_rx_mtu = client_rx_mtu;
+
+    uv_queue_work(uv_default_loop(), baton->req, GattcExchangeMtuRequest, reinterpret_cast<uv_after_work_cb>(AfterGattcExchangeMtuRequest));
+}
+
+// This runs in a worker thread (not Main Thread)
+void Adapter::GattcExchangeMtuRequest(uv_work_t *req)
+{
+    auto baton = static_cast<GattcExchangeMtuRequestBaton *>(req->data);
+    baton->result = sd_ble_gattc_exchange_mtu_request(baton->adapter, baton->conn_handle, baton->client_rx_mtu);
+}
+
+// This runs in Main Thread
+void Adapter::AfterGattcExchangeMtuRequest(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+
+    auto baton = static_cast<GattcExchangeMtuRequestBaton *>(req->data);
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "requesting MTU exchange");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+    delete baton;
+}
+#endif
+
 extern "C" {
     void init_gattc(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
@@ -1082,6 +1154,9 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTC_CHAR_VALUES_READ);                               /**< Read multiple Characteristic Values. */
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTC_WRITE);                                          /**< Generic write. */
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTC_HV_CONFIRM);                                     /**< Handle Value Confirmation. */
+#if NRF_SD_BLE_API_VERSION >= 3
+		NODE_DEFINE_CONSTANT(target, SD_BLE_GATTC_EXCHANGE_MTU_REQUEST);                           /**< Exchange MTU Request */
+#endif
 
         NODE_DEFINE_CONSTANT(target, BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP);                       /**< Primary Service Discovery Response event. @ref ble_gattc_evt_prim_srvc_disc_rsp_t */
         NODE_DEFINE_CONSTANT(target, BLE_GATTC_EVT_REL_DISC_RSP);                             /**< Relationship Discovery Response event. @ref ble_gattc_evt_rel_disc_rsp_t */
@@ -1093,5 +1168,8 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GATTC_EVT_WRITE_RSP);                                /**< Write Response event. @ref ble_gattc_evt_write_rsp_t */
         NODE_DEFINE_CONSTANT(target, BLE_GATTC_EVT_HVX);                                      /**< Handle Value Notification or Indication event. @ref ble_gattc_evt_hvx_t */
         NODE_DEFINE_CONSTANT(target, BLE_GATTC_EVT_TIMEOUT);                                  /**< Timeout event. @ref ble_gattc_evt_timeout_t */
+#if NRF_SD_BLE_API_VERSION >= 3
+        NODE_DEFINE_CONSTANT(target, BLE_GATTC_EVT_EXCHANGE_MTU_RSP);                         /**< Exchange MTU Response event. @ref ble_gattc_evt_exchange_mtu_rsp_t. */
+#endif
     }
 }

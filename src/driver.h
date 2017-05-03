@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2016 Nordic Semiconductor ASA
+/* Copyright (c) 2016, Nordic Semiconductor ASA
+ *
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -8,31 +8,33 @@
  *   1. Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *   2. Redistributions in binary form must reproduce the above copyright notice, this
- *   list of conditions and the following disclaimer in the documentation and/or
- *   other materials provided with the distribution.
+ *   2. Redistributions in binary form, except as embedded into a Nordic
+ *   Semiconductor ASA integrated circuit in a product or a software update for
+ *   such product, must reproduce the above copyright notice, this list of
+ *   conditions and the following disclaimer in the documentation and/or other
+ *   materials provided with the distribution.
  *
- *   3. Neither the name of Nordic Semiconductor ASA nor the names of other
- *   contributors to this software may be used to endorse or promote products
- *   derived from this software without specific prior written permission.
+ *   3. Neither the name of Nordic Semiconductor ASA nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
  *
- *   4. This software must only be used in or with a processor manufactured by Nordic
- *   Semiconductor ASA, or in or with a processor manufactured by a third party that
- *   is used in combination with a processor manufactured by Nordic Semiconductor.
+ *   4. This software, with or without modification, must only be used with a
+ *   Nordic Semiconductor ASA integrated circuit.
  *
- *   5. Any software provided in binary or object form under this license must not be
+ *   5. Any software provided in binary form under this license must not be
  *   reverse engineered, decompiled, modified and/or disassembled.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL NORDIC SEMICONDUCTOR ASA OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #ifndef BLE_DRIVER_JS_DRIVER_H
@@ -52,6 +54,9 @@ static name_map_t common_event_name_map = {
     NAME_MAP_ENTRY(BLE_EVT_TX_COMPLETE),
     NAME_MAP_ENTRY(BLE_EVT_USER_MEM_REQUEST),
     NAME_MAP_ENTRY(BLE_EVT_USER_MEM_RELEASE),
+#if NRF_SD_BLE_API_VERSION >= 3
+    NAME_MAP_ENTRY(BLE_EVT_DATA_LENGTH_CHANGED),
+#endif
 };
 
 NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& str);
@@ -147,6 +152,20 @@ public:
     ble_uuid128_t *ToNative() override;
 };
 
+
+class BleOpt : public BleToJs<ble_opt_t>
+{
+public:
+    explicit BleOpt(ble_opt_t *ble_opt) : BleToJs<ble_opt_t>(ble_opt) {}
+    explicit BleOpt(v8::Local<v8::Object> js) : BleToJs<ble_opt_t>(js) {}
+    virtual ~BleOpt() {}
+
+    //v8::Local<v8::Object> ToJs() override;
+    ble_opt_t *ToNative() override;
+};
+
+#pragma region BleDriverCommonEvent
+
 template<typename EventType>
 class BleDriverCommonEvent : public BleDriverEvent<EventType>
 {
@@ -199,10 +218,23 @@ public:
     v8::Local<v8::Object> ToJs();
 };
 
+#if NRF_SD_BLE_API_VERSION >= 3
+class CommonDataLengthChangedEvent : BleDriverCommonEvent<ble_evt_data_length_changed_t>
+{
+public:
+    CommonDataLengthChangedEvent(std::string timestamp, uint16_t conn_handle, ble_evt_data_length_changed_t *evt)
+        : BleDriverCommonEvent<ble_evt_data_length_changed_t>(BLE_EVT_DATA_LENGTH_CHANGED, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs();
+};
+#endif
+
+#pragma endregion BleDriverCommonEvent
 
 ///// Start Batons ////////////////////////////////////////
 
-struct OpenBaton : public Baton {
+struct OpenBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(OpenBaton)
     //char path[PATH_STRING_SIZE];
@@ -228,13 +260,15 @@ public:
     Adapter *mainObject;
 };
 
-struct CloseBaton : public Baton {
+struct CloseBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(CloseBaton)
     Adapter *mainObject;
 };
 
-struct EnableBLEBaton : public Baton {
+struct EnableBLEBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(EnableBLEBaton)
     ble_enable_params_t *enable_params;
@@ -242,21 +276,24 @@ public:
 };
 
 
-struct GetVersionBaton : public Baton {
+struct GetVersionBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(GetVersionBaton);
     ble_version_t *version;
 
 };
 
-class BleAddVendorSpcificUUIDBaton : public Baton {
+class BleAddVendorSpcificUUIDBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(BleAddVendorSpcificUUIDBaton);
     ble_uuid128_t *p_vs_uuid;
     uint8_t p_uuid_type;
 };
 
-class BleUUIDEncodeBaton : public Baton {
+class BleUUIDEncodeBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(BleUUIDEncodeBaton);
     ble_uuid_t *p_uuid;
@@ -264,7 +301,8 @@ public:
     uint8_t *uuid_le;
 };
 
-class BleUUIDDecodeBaton : public Baton {
+class BleUUIDDecodeBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(BleUUIDDecodeBaton);
     uint8_t uuid_le_len;
@@ -272,11 +310,20 @@ public:
     uint8_t *uuid_le;
 };
 
-class BleUserMemReplyBaton : public Baton {
+class BleUserMemReplyBaton : public Baton
+{
 public:
     BATON_CONSTRUCTOR(BleUserMemReplyBaton);
     uint16_t conn_handle;
     ble_user_mem_block_t *p_block;
+};
+
+class BleOptionBaton : public Baton
+{
+public:
+    BATON_CONSTRUCTOR(BleOptionBaton);
+    uint32_t opt_id;
+    ble_opt_t *p_opt;
 };
 
 ///// End Batons ////////////////////////////////////////

@@ -26,9 +26,11 @@
 #include <atomic>
 #include <cstddef>
 
-namespace memory_sequential_unsafe {
+namespace memory_sequential_unsafe
+{
     template<typename Element, size_t Size>
-    class CircularFifo{
+    class CircularFifo
+    {
     public:
         enum { Capacity = Size + 1 };
 

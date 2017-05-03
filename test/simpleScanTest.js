@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2016 Nordic Semiconductor ASA
+/* Copyright (c) 2016, Nordic Semiconductor ASA
+ *
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -8,31 +8,33 @@
  *   1. Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *   2. Redistributions in binary form must reproduce the above copyright notice, this
- *   list of conditions and the following disclaimer in the documentation and/or
- *   other materials provided with the distribution.
+ *   2. Redistributions in binary form, except as embedded into a Nordic
+ *   Semiconductor ASA integrated circuit in a product or a software update for
+ *   such product, must reproduce the above copyright notice, this list of
+ *   conditions and the following disclaimer in the documentation and/or other
+ *   materials provided with the distribution.
  *
- *   3. Neither the name of Nordic Semiconductor ASA nor the names of other
- *   contributors to this software may be used to endorse or promote products
- *   derived from this software without specific prior written permission.
+ *   3. Neither the name of Nordic Semiconductor ASA nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
  *
- *   4. This software must only be used in or with a processor manufactured by Nordic
- *   Semiconductor ASA, or in or with a processor manufactured by a third party that
- *   is used in combination with a processor manufactured by Nordic Semiconductor.
+ *   4. This software, with or without modification, must only be used with a
+ *   Nordic Semiconductor ASA integrated circuit.
  *
- *   5. Any software provided in binary or object form under this license must not be
+ *   5. Any software provided in binary form under this license must not be
  *   reverse engineered, decompiled, modified and/or disassembled.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL NORDIC SEMICONDUCTOR ASA OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 'use strict';
@@ -43,22 +45,22 @@ const setup = require('./setup');
 const adapterFactory = setup.adapterFactory;
 
 const connectionParameters = {
-           min_conn_interval: 7.5,
-           max_conn_interval: 7.5,
-           slave_latency: 0,
-           conn_sup_timeout: 4000,
-       };
+    min_conn_interval: 7.5,
+    max_conn_interval: 7.5,
+    slave_latency: 0,
+    conn_sup_timeout: 4000,
+};
 
 const scanParameters = {
-   active: true,
-   interval: 100,
-   window: 50,
-   timeout: 5,
+    active: true,
+    interval: 100,
+    window: 50,
+    timeout: 5,
 };
 
 const options = {
-   scanParams: scanParameters,
-   connParams: connectionParameters,
+    scanParams: scanParameters,
+    connParams: connectionParameters,
 };
 
 const advOptions = {
@@ -67,11 +69,11 @@ const advOptions = {
 };
 
 const openOptions = {
-            baudRate: 115200,
-            parity: 'none',
-            flowControl: 'none',
-            enableBLE: true,
-            eventInterval: 0,
+    baudRate: 115200,
+    parity: 'none',
+    flowControl: 'none',
+    enableBLE: true,
+    eventInterval: 0,
 };
 
 let listenersAdded = false;
@@ -80,9 +82,10 @@ function runTests(adapterOne) {
     let connect_in_progress = false;
 
     if (!listenersAdded) {
-        adapterOne.on('logMessage', (severity, message) => { if (severity > 1) console.log(`#1 logMessage: ${message}`)});
-        adapterOne.on('status', (status) => {
-            console.log(`#1 status: ${JSON.stringify(status)}`); });
+        adapterOne.on('logMessage', (severity, message) => { if (severity > 1) console.log(`#1 logMessage: ${message}`); });
+        adapterOne.on('status', status => {
+            console.log(`#1 status: ${JSON.stringify(status)}`);
+        });
         adapterOne.on('error', error => { console.log('#1 error: ' + JSON.stringify(error, null, 1)); });
         adapterOne.on('stateChanged', state => {
             console.log('#1 stateChanged: ' + JSON.stringify(state));
@@ -111,12 +114,11 @@ function runTests(adapterOne) {
                 assert(!error);
                 console.log(JSON.stringify(state));
 
-                //console.log('Setting name');
                 adapterOne.setName('adapterOne', error => {
                     assert(!error);
 
                     console.log('Starting scan');
-                    adapterOne.startScan(scanParameters, (error) => {
+                    adapterOne.startScan(scanParameters, error => {
                         assert(!error);
                     });
                 });
@@ -128,7 +130,7 @@ let adapterOne;
 
 adapterFactory.on('added', adapter => {
     console.log(`onAdded: Adapter added. Adapter: ${adapter.instanceId}`);
-    adapterOne  = adapter;
+    adapterOne = adapter;
 });
 
 adapterFactory.on('removed', adapter => {
@@ -145,15 +147,14 @@ console.log('c: close adapter');
 
 process.stdin.setRawMode(true);
 process.stdin.resume();
-process.stdin.on('data', (data) => {
-    if (data == 's')
-    {
+process.stdin.on('data', data => {
+    if (data == 's') {
         console.log('s pressed');
         adapterFactory.getAdapters((error, adapters) => {
             assert(!error);
             runTests(adapters[Object.keys(adapters)[0]]);
         });
-        console.log('Running tests')
+        console.log('Running tests');
     } else if (data == 'c') {
         if (adapterOne !== undefined) {
             console.log('Closing adapter');
