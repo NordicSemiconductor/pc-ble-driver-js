@@ -8,7 +8,8 @@
     "install": "node build.js",
     "test": "jest --config config/jest-unit.config",
     "test:system": "jest --config config/jest-system.config",
-    "docs": "node pre_commit.js"
+    "docs": "node pre_commit.js",
+    "harvest": "node harvest.js"
   },
   "repository": {
     "type": "git",
@@ -33,6 +34,7 @@
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "^4.0.0",
     "eslint-plugin-react": "^6.10.0",
+    "fs-extra": "^3.0.1",
     "jest": "^19.0.2",
     "jscs": "^2.3.5",
     "jsdoc": "^3.4.3",
