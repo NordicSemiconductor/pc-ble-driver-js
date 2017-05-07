@@ -37,6 +37,8 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+'use strict';
+
 const cmakeJS = require('cmake-js');
 const os = require('os');
 const path = require('path');
