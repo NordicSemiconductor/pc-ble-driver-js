@@ -49,7 +49,7 @@ const ServiceFactory = require('./api/serviceFactory');
 const Dfu = require('./api/dfu');
 const firmware = require('./api/firmware');
 
-module.exports.api = {
+module.exports = {
     Adapter,
     AdapterFactory,
     AdapterState,
