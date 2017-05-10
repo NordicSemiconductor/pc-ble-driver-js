@@ -2397,6 +2397,9 @@ class Adapter extends EventEmitter {
      * The call will fail if `advData` and `scanRespData` are both null since this would have no effect.
      *
      * See @ref: ./util/adType.js for possible advertisement object parameters.
+     * Note: should multiple custom properties be required in the advData or scanRespData,
+     * it is possible to append 'custom' key with colon plus anything, like 'custom:1'.
+     *
      * @param {Object} advData Advertising packet
      * @param {Object} scanRespData Scan response packet.
      *
