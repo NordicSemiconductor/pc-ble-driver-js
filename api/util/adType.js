@@ -170,7 +170,9 @@ class AdType {
         // We assume that all marshall methods returns an absolute position in the provided buffer
         for (let property in obj) {
             if (obj.hasOwnProperty(property)) {
-                let conv = adTypeConverter[property];
+                // strip away optional property index e.g.: custom:0 => custom
+                const convType = property.split(':')[0];
+                const conv = adTypeConverter[convType];
 
                 if (conv !== undefined) {
                     let len = 0;
