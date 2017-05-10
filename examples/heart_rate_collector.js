@@ -36,7 +36,8 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/**@example examples/heart_rate_collector
+
+/** @example examples/heart_rate_collector
  *
  * @brief Heart Rate Collector Sample Application main file.
  *
@@ -54,9 +55,9 @@ const api = require('../index').api;
 
 const adapterFactory = api.AdapterFactory.getInstance();
 
-const BLE_UUID_HEART_RATE_SERVICE = '180D'; /**< Heart Rate service UUID. */
-const BLE_UUID_HEART_RATE_MEASUREMENT_CHAR = '2A37'; /**< Heart Rate Measurement characteristic UUID. */
-const BLE_UUID_CCCD = '2902'; /**< Client characteristic descriptor UUID. */
+const BLE_UUID_HEART_RATE_SERVICE = '180D';
+const BLE_UUID_HEART_RATE_MEASUREMENT_CHAR = '2A37';
+const BLE_UUID_CCCD = '2902';
 
 /* State */
 let heartRateService;
@@ -106,7 +107,7 @@ function addAdapterListener(adapter, prefix) {
                 console.log('Press any key to toggle notifications on the hrm characteristic.' +
                             'Press `q` or `Q` to disconnect from the BLE peripheral and quit application.');
                 addUserInputListener(adapter);
-            })
+            });
         }).catch(error => {
             console.log(error);
             process.exit(1);
@@ -168,7 +169,7 @@ function getAdapter() {
             }
 
             console.log('Found the following adapters: ');
-            for (let adapter in adapters) {
+            for (const adapter in adapters) {
                 console.log(adapters[adapter].instanceId);
             }
 
@@ -189,7 +190,7 @@ function openAdapter(adapter) {
         const baudRate = 115200;
         console.log(`Opening adapter with ID: ${adapter.instanceId} and baud rate: ${baudRate}...`);
 
-        adapter.open({ baudRate: baudRate, }, err => {
+        adapter.open({ baudRate }, err => {
             if (err) {
                 return reject(Error(`Error opening adapter: ${err}.`));
             }
@@ -278,7 +279,7 @@ function discoverHeartRateService(adapter, device) {
             }
 
             for (let service in services) {
-                if (services[service].uuid == BLE_UUID_HEART_RATE_SERVICE) {
+                if (services[service].uuid === BLE_UUID_HEART_RATE_SERVICE) {
                     return resolve(services[service]);
                 }
             }
@@ -328,8 +329,8 @@ function discoverHRMCharCCCD(adapter) {
                 return reject(Error(`Error discovering the heart rate characteristic's CCCD: ${err}.`));
             }
 
-            for (let descriptor in descriptors) {
-                if (descriptors[descriptor].uuid == BLE_UUID_CCCD) {
+            for (const descriptor in descriptors) {
+                if (descriptors[descriptor].uuid === BLE_UUID_CCCD) {
                     return resolve(descriptors[descriptor]);
                 }
             }
@@ -348,7 +349,7 @@ function addUserInputListener(adapter) {
     process.stdin.setEncoding('utf8');
     process.stdin.setRawMode(true);
 
-    let notificationsEnabled = [0, 0];
+    const notificationsEnabled = [0, 0];
 
     process.stdin.on('readable', () => {
         const chunk = process.stdin.read();
@@ -398,7 +399,7 @@ getAdapter().then(adapter => {
         })
         .then(() => {
             console.log('Scanning.');
-        })
+        });
 }).catch(error => {
     console.log(error);
     process.exit(1);
