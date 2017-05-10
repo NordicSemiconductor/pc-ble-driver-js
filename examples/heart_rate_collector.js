@@ -346,11 +346,14 @@ function discoverHRMCharCCCD(adapter) {
  */
 function addUserInputListener(adapter) {
     process.stdin.setEncoding('utf8');
+    process.stdin.setRawMode(true);
 
     let notificationsEnabled = [0, 0];
 
     process.stdin.on('readable', () => {
         const chunk = process.stdin.read();
+        if (chunk === null) return;
+
         if (chunk[0] === 'q' || chunk[0] === 'Q') {
             adapter.close(err => {
                 if (err) {
