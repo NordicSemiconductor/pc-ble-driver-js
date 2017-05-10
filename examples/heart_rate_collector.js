@@ -50,7 +50,7 @@
 
 const _ = require('underscore');
 
-const api = require('../index').api;
+const api = require('../index');
 
 
 const adapterFactory = api.AdapterFactory.getInstance();

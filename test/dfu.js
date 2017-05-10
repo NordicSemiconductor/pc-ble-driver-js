@@ -53,7 +53,7 @@
  */
 
 const assert = require('assert');
-const api = require('../index').api;
+const api = require('../index');
 const adapterFactory = require('./setup').adapterFactory;
 
 function setupAdapter(adapter, callback) {

@@ -130,15 +130,4 @@ export class ServiceFactory {
   createDescriptor(characteristic: Characteristic, uuid: string, value: string, options: string);
 }
 
-export const api: {
-  AdapterFactory: typeof AdapterFactory;
-  Adapter: typeof Adapter;
-  AdapterState: typeof AdapterState;
-  Characteristic: typeof Characteristic;
-  Device: typeof Device;
-  Service: typeof Service;
-  Descriptor: typeof Descriptor;
-  ServiceFactory: typeof ServiceFactory;
-};
-
 export const driver: any;

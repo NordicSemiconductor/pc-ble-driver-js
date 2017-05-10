@@ -39,7 +39,7 @@
 
 'use strict';
 
-const api = require('../index').api;
+const api = require('../index');
 
 const adapterFactory = api.AdapterFactory.getInstance();
 const ServiceFactory = new api.ServiceFactory();
