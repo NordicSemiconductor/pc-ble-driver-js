@@ -65,6 +65,22 @@ const ResultCode = Object.freeze({
     OPERATION_FAILED: 0x0A,
 });
 
+const ButtonlessControlPointOpCode = Object.freeze({
+    RESERVED: 0x00,
+    ENTER_BOOTLOADER: 0x01,
+    SET_ADVERTISEMENT_NAME: 0x02, // Only used by certain platforms
+    RESPONSE: 0x20,
+});
+
+const ButtonlessResponseCode = Object.freeze({
+    RESERVED: 0x00,
+    SUCCESS: 0x01,
+    OP_CODE_NOT_SUPPORTED: 0x02,
+    OPERATION_FAILED: 0x04,
+    ADVERTISEMENT_NAME_INVALID: 0x05,
+    BUSY: 0x06,
+});
+
 // Object types for create/select operations.
 const ObjectType = Object.freeze({
     COMMAND: 0x01,
@@ -104,6 +120,14 @@ function getOpCodeName(opCode) {
     return _getCodeName(ControlPointOpcode, opCode);
 }
 
+function getButtonlessResponseCodeName(responseCode) {
+    return _getCodeName(ButtonlessResponseCode, responseCode);
+}
+
+function getButtonlessOpCodeName(OpCode) {
+    return _getCodeName(ButtonlessControlPointOpcode, OpCode);
+}
+
 function _getCodeName(codeObject, value) {
     return _.invert(codeObject)[value] || 'UNKNOWN';
 }
@@ -111,9 +135,13 @@ function _getCodeName(codeObject, value) {
 module.exports = {
     ControlPointOpcode,
     ResultCode,
+    ButtonlessControlPointOpcode,
+    ButtonlessResponseCode,
     ObjectType,
     ErrorCode,
     createError,
     getResultCodeName,
     getOpCodeName,
+    getButtonlessOpCodeName,
+    getButtonlessResponseCodeName,
 };
