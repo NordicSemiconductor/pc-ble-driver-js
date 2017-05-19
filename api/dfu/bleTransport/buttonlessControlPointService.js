@@ -40,7 +40,7 @@
 'use strict';
 
 const NotificationQueue = require('./notificationQueue');
-const ButtonlessControlPointOpcode = require('../dfuConstants').ButtonlessControlPointOpCode;
+const ButtonlessControlPointOpCode = require('../dfuConstants').ButtonlessControlPointOpCode;
 const ButtonlessResponseCode = require('../dfuConstants').ButtonlessResponseCode;
 const ErrorCode = require('../dfuConstants').ErrorCode;
 const createError = require('../dfuConstants').createError;
@@ -54,7 +54,7 @@ class ButtonlessControlPointService {
     }
 
     enterBootloader() {
-        return this._sendCommand([ButtonlessControlPointOpcode.ENTER_BOOTLOADER]);
+        return this._sendCommand([ButtonlessControlPointOpCode.ENTER_BOOTLOADER]);
     }
 
     static parseResponse(response) {

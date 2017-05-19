@@ -135,7 +135,7 @@ function _getCodeName(codeObject, value) {
 module.exports = {
     ControlPointOpcode,
     ResultCode,
-    ButtonlessControlPointOpcode,
+    ButtonlessControlPointOpCode,
     ButtonlessResponseCode,
     ObjectType,
     ErrorCode,
