@@ -101,6 +101,24 @@ class NotificationQueue {
         ]);
     }
 
+    /**
+     * Instructs the device to start notifying about changes to the control point characteristic id.
+     *
+     * @returns Promise with empty response
+     */
+    startCharacteristicsNotifications() {
+        return new Promise((resolve, reject) => {
+            const ack = false;
+            this._adapter.startCharacteristicsNotifications(this._controlPointCharacteristicId, ack, error => {
+                if (error) {
+                    reject(createError(ErrorCode.NOTIFICATION_START_ERROR, error.message));
+                } else {
+                    resolve();
+                }
+            });
+        });
+    }
+
     _waitForNotification(opCode, pollInterval) {
         return new Promise((resolve, reject) => {
             const wait = () => {

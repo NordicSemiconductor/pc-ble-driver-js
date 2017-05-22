@@ -175,51 +175,31 @@ class DfuTransport extends EventEmitter {
      * @private
      */
     _enterDfuMode(device) {
+        const deviceInfoService = new DeviceInfoService(this._adapter, device.instanceId);
+        const findCharacteristic = ((serviceUuid, characteristicUuid) => {
+            return new Promise((resolve, reject) => {
+                deviceInfoService.getCharacteristicId(serviceUuid, characteristicUuid)
+                    .then(characteristicId => {
+                        this._debug(`findCharacteristic: Found characteristic ID ${characteristicId}`);
+                        resolve(characteristicId);
+                    })
+                    .catch(err => {
+                        this._debug(`findCharacteristic: Did not find characteristic ID. Error ${err}`);
+                        resolve(null);
+                    });
+            });
+        });
 
-
-
-        return this._getCharacteristicIds(device)
-            .then(characteristicIds => {
-                if (characteristicIds.controlPointId && characteristicIDs.packetId) {
-                    // Already in DFU mode
-                    return Promise.resolve(characteristicIds);
-                } else if (characteristicIds.bondedButtonlessId) {
-                    // Bonded buttonless DFU available
-                    return this._triggerButtonlessDfu(characteristicIds.bondedButtonlessId);
-                } else if (characteristicIds.unbondedButtonlessId) {
-                    // Unbonded buttonless DFU available
-                    return this._triggerButtonlessDfu(characteristicIds.unbondedButtonlessId);
+        return findCharacteristic(DFU_SERVICE_UUID, DFU_BUTTONLESS_UNBONDED_UUID)
+            .then(characteristicId => {
+                if (characteristicId) {
+                    this._debug(`Found unbonded characteristic: ${characteristicId}`);
+                    return this._triggerButtonlessDfu(characteristicId)
                 } else {
-                    // Not in DFU mode and no buttonless characteristics for getting there
-                    return Promise.reject(createError(ErrorCode.NO_DFU_CHARACTERISTIC,
-                      `Unable to enter DFU mode on device ${device.instanceId}`));
+                    this._debug(`Did not find unbonded buttonless service, passing on device: ${device}`);
+                    return Promise.resolve(device);
                 }
             });
-    }
-/*
-        let buttonlessControlPointService = new ButtonlessControlPointService(this._adapter, buttonlessControlPointId);
-        buttonlessControlPointService.enterBootloader().
-            .then(() => this.waitForDisconnection())
-*/
-
-
-    /**
-     * Write the buttonless DFU command for the target to enter DFU mode.
-     *
-     * @param characteristicId the buttonless DFU characteristic id.
-     * @private
-     */
-    _writeEnterDfuCommand(characteristicId) {
-        return new Promise((resolve, reject) => {
-            this._adapter.writeCharacteristicValue(characteristicId, ButtonlessDfuControlPointOpcode.ENTER_BOOTLOADER, true, error => {
-                if (error) {
-                    reject(createError(ErrorCode.WRITE_ERROR, `Could not write ` +
-                        `enter DFU mode command: ${error.message}`));
-                } else {
-                    resolve();
-                }
-            });
-        })
     }
 
     /**
@@ -227,46 +207,19 @@ class DfuTransport extends EventEmitter {
      * to the target (which is now in DFU mode).
      *
      * @param characteristic the buttonless DFU characteristic to use.
-     * @returns Promise: The set of DFU characteristics with the device in DFU mode.
+     * @returns Promise: The device in DFU mode.
      * @private
      */
     _triggerButtonlessDfu(characteristicId) {
         // TODO: Add 'device' to arguments?
-        // TODO: Extract to separate unit?
+        // TODO: Find type of DFU (or take as input), then update address accordingly.
+        // TODO: Let this be the "one and only" function for "performing the buttonless actions if required"?
+        let buttonlessControlPointService = new ButtonlessControlPointService(this._adapter, characteristicId);
 
-        let notificationQueue = new NotificationQueue(adapter, controlPointCharacteristicId);
-        notificationQueue.startListening();
-
-        return this._writeEnterDfuCommand(characteristicId)
-            .then(() => notificationQueue.readNext(ButtonlessControlPointOpCode.ENTER_BOOTLOADER))
-            .then(response =>)
-// FIXME bruk buttonlessControlPointService
-        /*
-            this._notificationQueue.startListening();
-
-            return this._writeCharacteristicValue(command)
-                .then(() => this._notificationQueue.readNext(command[0]))
-                .then(response => ControlPointService.parseResponse(response))
-                .then(response => {
-                    this._notificationQueue.stopListening();
-                    return response;
-                })
-                .catch(error => {
-                    this._notificationQueue.stopListening();
-                    error.message = `When writing '${getOpCodeName(command[0])}' ` +
-                      `command to Control Point Characteristic of DFU Target: ` + error.message;
-                    throw error;
-                });
-                */
-
-        // TODO: Combine into ButtonlessControlPointService:
-        // - Notifications on characteristic
-        // - Write 0x01 to characteristic
-        // - Receive 0x20, 0x01, 0x01 from characteristic (or fail)
-
-        // TODO: Wait for disconnect
-        // TODO: Connect to address or address+1
-        // TODO: getCharacteristicIds (separate function?)
+        return buttonlessControlPointService.startCharacteristicsNotifications()
+            .then(() => buttonlessControlPointService.enterBootloader())
+            .then(() => this.waitForDisconnection())
+            .then(() => this._connectIfNeeded(targetAddress, targetAddressType))
     }
 
     /**
@@ -311,9 +264,7 @@ class DfuTransport extends EventEmitter {
      * @private
      */
     _getBondedButtonlessCharacteristicId(deviceInfoService) {
-        deviceInfoService.getCharacteristicId(DFU_SERVICE_UUID, DFU_BUTTONLESS_BONDED_UUID)
-        .then(characteristicId => { return Promise.resolve(characteristicId); })
-        .catch(err => { return Promise.resolve(null); });
+        return deviceInfoService.getCharacteristicId(DFU_SERVICE_UUID, DFU_BUTTONLESS_BONDED_UUID);
     }
 
     /**
@@ -323,9 +274,7 @@ class DfuTransport extends EventEmitter {
      * @private
      */
     _getUnbondedButtonlessCharacteristicId(deviceInfoService) {
-        deviceInfoService.getCharacteristicId(DFU_SERVICE_UUID, DFU_BUTTONLESS_UNBONDED_UUID)
-        .then(characteristicId => { return Promise.resolve(characteristicId); })
-        .catch(err => { return Promise.resolve(null); });
+        return deviceInfoService.getCharacteristicId(DFU_SERVICE_UUID, DFU_BUTTONLESS_UNBONDED_UUID)
     }
 
     /**
@@ -348,6 +297,18 @@ class DfuTransport extends EventEmitter {
         }
     }
 
+    /**
+     * Add one to the BLE address.
+     * Needed for unbonded buttonless DFU, which can not use service changed
+     * indications to prevent ATT table caching.
+     *
+     * @param address the address to add one to
+     * @returns address + 1
+     * @private
+     */
+    _addOneToAddress(address) {
+        // TODO: Implement.
+    }
 
     /**
      * Returns connected device for the given address. If there is no connected

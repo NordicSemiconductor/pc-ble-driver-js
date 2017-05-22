@@ -125,7 +125,7 @@ function getButtonlessResponseCodeName(responseCode) {
 }
 
 function getButtonlessOpCodeName(OpCode) {
-    return _getCodeName(ButtonlessControlPointOpcode, OpCode);
+    return _getCodeName(ButtonlessControlPointOpCode, OpCode);
 }
 
 function _getCodeName(codeObject, value) {
