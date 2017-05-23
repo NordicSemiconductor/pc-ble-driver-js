@@ -53,11 +53,32 @@ const getResultCodeName = require('../dfuConstants').getResultCodeName;
  */
 class NotificationQueue {
 
-    constructor(adapter, controlPointCharacteristicId) {
+    /**
+     * Creates a NotificationQueue
+     *
+     * Available fields for the (optional) codes parameter:
+     * - response: the RESPONSE opcode
+     * - success: the SUCCESS response code
+     * - getOpCodeName: function for getting the name of an opcode
+     * - getResponseCodeName: function for getting the name of a response code
+     *
+     * @constructor
+     * @param adapter the adapter
+     * @param controlPointCharacteristicId the characteristic to operate on
+     * @param [codes] for using a custom set of opcodes and response codes.
+     */
+    constructor(adapter, controlPointCharacteristicId, codes) {
         this._adapter = adapter;
         this._controlPointCharacteristicId = controlPointCharacteristicId;
         this._notifications = [];
         this._onNotificationReceived = this._onNotificationReceived.bind(this);
+        const _defaultCodes = {
+            response: ControlPointOpcode.RESPONSE,
+            success: ResultCode.SUCCESS,
+            getOpCodeName: getOpCodeName,
+            getResponseCodeName: getResultCodeName,
+        };
+        this._codes = _defaultCodes;
     }
 
     /**
@@ -92,7 +113,7 @@ class NotificationQueue {
             setTimeout(() => {
                 reject(createError(ErrorCode.NOTIFICATION_TIMEOUT,
                     `Timed out while waiting for response to operation code ${opCode} ` +
-                    `(${getOpCodeName(opCode)})`));
+                    `(${this._codes.getOpCodeName(opCode)})`));
             }, timeout);
         });
         return Promise.race([
@@ -133,23 +154,23 @@ class NotificationQueue {
             return null;
         }
         const value = notification.value;
-        if (value[0] === ControlPointOpcode.RESPONSE) {
+        if (value[0] === this._codes.response) {
             if (value[1] === opCode) {
-                if (value[2] === ResultCode.SUCCESS) {
+                if (value[2] === this._codes.success) {
                     return value;
                 } else {
                     const error = createError(ErrorCode.COMMAND_ERROR,
-                        `Operation code ${opCode} (${getOpCodeName(opCode)}) ` +
+                        `Operation code ${opCode} (${this._codes.getOpCodeName(opCode)}) ` +
                         `failed on DFU Target. ` +
-                        `Result code ${value[2]} (${getResultCodeName(value[2])})`);
+                        `Result code ${value[2]} (${this._codes.getResponseCodeName(value[2])})`);
                     error.commandErrorCode = value[2];
                     throw error;
                 }
             } else {
                 throw createError(ErrorCode.UNEXPECTED_NOTIFICATION,
                     `Got unexpected response from DFU Target. ` +
-                    `Expected response to operation code ${opCode} (${getOpCodeName(opCode)}), ` +
-                    `but got response to operation code ${value[1]} (${getOpCodeName(value[1])})`);
+                    `Expected response to operation code ${opCode} (${this._codes.getOpCodeName(opCode)}), ` +
+                    `but got response to operation code ${value[1]} (${this._codes.getOpCodeName(value[1])})`);
             }
         }
         return null;
