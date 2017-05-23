@@ -41,10 +41,12 @@
 
 const ControlPointOpcode = require('../dfuConstants').ControlPointOpcode;
 const ResultCode = require('../dfuConstants').ResultCode;
+const ExtendedErrorCode = require('../dfuConstants').ExtendedErrorCode;
 const ErrorCode = require('../dfuConstants').ErrorCode;
 const createError = require('../dfuConstants').createError;
 const getOpCodeName = require('../dfuConstants').getOpCodeName;
 const getResultCodeName = require('../dfuConstants').getResultCodeName;
+const getExtendedErrorCodeName = require('../dfuConstants').getExtendedErrorCodeName;
 
 /**
  * Listens to notifications for the given control point characteristic,
@@ -59,8 +61,10 @@ class NotificationQueue {
      * Available fields for the (optional) codes parameter:
      * - response: the RESPONSE opcode
      * - success: the SUCCESS response code
+     * - extendedError: the EXTENDED_ERROR response code
      * - getOpCodeName: function for getting the name of an opcode
      * - getResponseCodeName: function for getting the name of a response code
+     * - getExtendedErrorCodeName: function for getting the name of an extended error response code
      *
      * @constructor
      * @param adapter the adapter
@@ -75,8 +79,10 @@ class NotificationQueue {
         const _defaultCodes = {
             response: ControlPointOpcode.RESPONSE,
             success: ResultCode.SUCCESS,
+            extendedError: ResultCode.EXTENDED_ERROR,
             getOpCodeName: getOpCodeName,
             getResponseCodeName: getResultCodeName,
+            getExtendedErrorCodeName: getExtendedErrorCodeName,
         };
         this._codes = _defaultCodes;
     }
@@ -159,10 +165,12 @@ class NotificationQueue {
                 if (value[2] === this._codes.success) {
                     return value;
                 } else {
+                    let extendedErrorString = (value[2] === this._codes.extendedError) ? ` Extended error code ${value[3]} (${this._codes.getExtendedErrorCodeName(value[3])})` : ``;
                     const error = createError(ErrorCode.COMMAND_ERROR,
                         `Operation code ${opCode} (${this._codes.getOpCodeName(opCode)}) ` +
                         `failed on DFU Target. ` +
-                        `Result code ${value[2]} (${this._codes.getResponseCodeName(value[2])})`);
+                        `Result code ${value[2]} (${this._codes.getResponseCodeName(value[2])})` +
+                        extendedErrorString);
                     error.commandErrorCode = value[2];
                     throw error;
                 }
