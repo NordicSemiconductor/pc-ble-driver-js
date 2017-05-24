@@ -59,7 +59,7 @@ describe('getResultCodeName', () => {
         expect(getResultCodeName(ResultCode.SUCCESS)).toEqual('SUCCESS');
     });
 
-    it('returns "UNKNOWN" when unknown code 0x0B is given', () => {
-        expect(getResultCodeName(0x0B)).toEqual('UNKNOWN');
+    it('returns "UNKNOWN" when unknown code 0xEF is given', () => {
+        expect(getResultCodeName(0xEF)).toEqual('UNKNOWN');
     });
 });
