@@ -63,7 +63,26 @@ const ResultCode = Object.freeze({
     UNSUPPORTED_TYPE: 0x07,
     OPERATION_NOT_PERMITTED: 0x08,
     OPERATION_FAILED: 0x0A,
+    EXTENDED_ERROR: 0x0B,
 });
+
+// Extended error codes
+const ExtendedErrorCode = Object.freeze({
+    NO_ERROR: 0x00,
+    INVALID_ERROR_CODE: 0x01,
+    WRONG_COMMAND_FORMAT: 0x02,
+    UNKNOWN_COMMAND: 0x03,
+    INIT_COMMAND_INVALID: 0x04,
+    FW_VERSION_FAILURE: 0x05,
+    HW_VERSION_FAILURE: 0x06,
+    SD_VERSION_FAILURE: 0x07,
+    SIGNATURE_MISSING: 0x08,
+    WRONG_HASH_TYPE: 0x09,
+    HASH_FAILED: 0x0A,
+    WRONG_SIGNATURE_TYPE: 0x0B,
+    VERIFICATION_FAILED: 0x0C,
+    INSUFFICIENT_SPACE: 0x0D,
+})
 
 const ButtonlessControlPointOpCode = Object.freeze({
     RESERVED: 0x00,
@@ -120,6 +139,10 @@ function getOpCodeName(opCode) {
     return _getCodeName(ControlPointOpcode, opCode);
 }
 
+function getExtendedErrorCodeName(extendedErrorCode) {
+    return _getCodeName(ExtendedErrorCode, extendedErrorCode);
+}
+
 function getButtonlessResponseCodeName(responseCode) {
     return _getCodeName(ButtonlessResponseCode, responseCode);
 }
@@ -135,6 +158,7 @@ function _getCodeName(codeObject, value) {
 module.exports = {
     ControlPointOpcode,
     ResultCode,
+    ExtendedErrorCode,
     ButtonlessControlPointOpCode,
     ButtonlessResponseCode,
     ObjectType,
@@ -142,6 +166,7 @@ module.exports = {
     createError,
     getResultCodeName,
     getOpCodeName,
+    getExtendedErrorCodeName,
     getButtonlessOpCodeName,
     getButtonlessResponseCodeName,
 };
