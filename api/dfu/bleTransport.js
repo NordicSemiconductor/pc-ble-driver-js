@@ -219,7 +219,7 @@ class DfuTransport extends EventEmitter {
         return buttonlessControlPointService.startCharacteristicsNotifications()
             .then(() => buttonlessControlPointService.enterBootloader())
             .then(() => this.waitForDisconnection())
-            .then(() => this._connectIfNeeded(targetAddress, targetAddressType))
+            .then(() => this._connectIfNeeded(targetAddress, targetAddressType));
     }
 
     /**

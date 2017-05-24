@@ -43,6 +43,7 @@ const NotificationQueue = require('./notificationQueue');
 const ButtonlessControlPointOpCode = require('../dfuConstants').ButtonlessControlPointOpCode;
 const ButtonlessResponseCode = require('../dfuConstants').ButtonlessResponseCode;
 const getButtonlessOpCodeName = require('../dfuConstants').getButtonlessOpCodeName;
+const getButtonlessResponseCodeName = require('../dfuConstants').getButtonlessResponseCodeName;
 const ErrorCode = require('../dfuConstants').ErrorCode;
 const createError = require('../dfuConstants').createError;
 
@@ -51,7 +52,15 @@ class ButtonlessControlPointService {
     constructor(adapter, buttonlessCharacteristicId) {
         this._adapter = adapter;
         this._buttonlessCharacteristicId = buttonlessCharacteristicId;
-        this._notificationQueue = new NotificationQueue(adapter, this._buttonlessCharacteristicId);
+        const buttonlessCodes = {
+          response: ButtonlessControlPointOpCode.RESPONSE,
+          success: ButtonlessResponseCode.SUCCESS,
+          extendedError: null,
+          getOpCodeName: getButtonlessOpCodeName,
+          getResponseCodeName: getButtonlessResponseCodeName,
+          getExtendedErrorCodeName: null,
+        };
+        this._notificationQueue = new NotificationQueue(adapter, this._buttonlessCharacteristicId, buttonlessCodes);
     }
 
     startCharacteristicsNotifications() {
