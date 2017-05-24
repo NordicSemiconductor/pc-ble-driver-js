@@ -84,7 +84,7 @@ class NotificationQueue {
             getResponseCodeName: getResultCodeName,
             getExtendedErrorCodeName: getExtendedErrorCodeName,
         };
-        this._codes = _defaultCodes;
+        this._codes = codes || _defaultCodes;
     }
 
     /**
