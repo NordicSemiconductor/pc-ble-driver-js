@@ -63,10 +63,6 @@ class ButtonlessControlPointService {
         this._notificationQueue = new NotificationQueue(adapter, this._buttonlessCharacteristicId, buttonlessCodes);
     }
 
-    startCharacteristicsNotifications() {
-        return this._notificationQueue.startCharacteristicsNotifications();
-    }
-
     enterBootloader() {
         return this._sendCommand([ButtonlessControlPointOpCode.ENTER_BOOTLOADER]);
     }

@@ -185,20 +185,31 @@ class DfuTransport extends EventEmitter {
                         resolve(characteristicId);
                     })
                     .catch(err => {
+                        //TODO resolve only on characteristic not found, reject with the error on other errors.
                         this._debug(`findCharacteristic: Did not find characteristic ID. Error ${err}`);
                         resolve(null);
                     });
             });
         });
 
-        return findCharacteristic(DFU_SERVICE_UUID, DFU_BUTTONLESS_UNBONDED_UUID)
+        return findCharacteristic(DFU_SERVICE_UUID, DFU_BUTTONLESS_BONDED_UUID)
             .then(characteristicId => {
                 if (characteristicId) {
-                    this._debug(`Found unbonded characteristic: ${characteristicId}`);
-                    return this._triggerButtonlessDfu(characteristicId)
+                    this._debug(`Found bonded buttonless characteristic: ${characteristicId}`);
+                    const bonded = true;
+                    return this._triggerButtonlessDfu(characteristicId, bonded);
                 } else {
-                    this._debug(`Did not find unbonded buttonless service, passing on device: ${device}`);
-                    return Promise.resolve(device);
+                    return findCharacteristic(DFU_SERVICE_UUID, DFU_BUTTONLESS_UNBONDED_UUID)
+                        .then(characteristicId => {
+                            if (characteristicId) {
+                                this._debug(`Found unbonded buttonless characteristic: ${characteristicId}`);
+                                const bonded = false;
+                                return this._triggerButtonlessDfu(characteristicId, bonded);
+                            } else {
+                                this._debug(`Found no buttonless characteristic.`);
+                                return Promise.resolve(device);
+                            }
+                        });
                 }
             });
     }
@@ -208,19 +219,22 @@ class DfuTransport extends EventEmitter {
      * to the target (which is now in DFU mode).
      *
      * @param characteristic the buttonless DFU characteristic to use.
+     * @param bonded {boolean} is it the "bonded" characteristic?
      * @returns Promise: The device in DFU mode.
      * @private
      */
-    _triggerButtonlessDfu(characteristicId) {
-        // TODO: Add 'device' to arguments?
-        // TODO: Find type of DFU (or take as input), then update address accordingly.
-        // TODO: Let this be the "one and only" function for "performing the buttonless actions if required"?
+    _triggerButtonlessDfu(characteristicId, bonded) {
         let buttonlessControlPointService = new ButtonlessControlPointService(this._adapter, characteristicId);
 
-        return buttonlessControlPointService.startCharacteristicsNotifications()
+        return this._startCharacteristicsIndications(characteristicId)
             .then(() => buttonlessControlPointService.enterBootloader())
             .then(() => this.waitForDisconnection())
-            .then(() => this._connectIfNeeded(this._addOneToAddress(), this._transportParameters.targetAddressType));
+            .then(() => {
+                if (!bonded) {
+                    this._addOneToAddress();
+                }
+                return this._connectIfNeeded(this._transportParameters.targetAddress, this._transportParameters.targetAddressType);
+            });
     }
 
     /**
@@ -535,22 +549,51 @@ class DfuTransport extends EventEmitter {
 
 
     /**
-     * Instructs the device to start notifying about changes to the given characteristic id.
+     * Enable notifications or Indications
      *
+     * @param characteristicId the characteristic to enable notifications or indications on
+     * @param ack true for indications, false for notifications
      * @returns Promise with empty response
      * @private
      */
-    _startCharacteristicsNotifications(characteristicId) {
+    _startCharacteristicsNotificationsOrIndications(characteristicId, ack) {
         return new Promise((resolve, reject) => {
-            const ack = false;
+            // In adapter.js, the terminology for Indications and Notifications is:
+            // - BLE Indications are "notifications with ack"
+            // - BLE Notifications are "notifications without ack"
             this._adapter.startCharacteristicsNotifications(characteristicId, ack, error => {
                 if (error) {
-                    reject(createError(ErrorCode.NOTIFICATION_START_ERROR, error.message));
+                    const errorCode = (ack ? ErrorCode.INDICATION_START_ERROR : ErrorCode.NOTIFICATION_START_ERROR);
+                    reject(createError(errorCode , error.message));
                 } else {
                     resolve();
                 }
             });
         });
+    }
+
+    /**
+     * Instructs the device to start notifying about changes to the given characteristic id.
+     *
+     * @param characteristicId the characteristic to enable notifications on
+     * @returns Promise with empty response
+     * @private
+     */
+    _startCharacteristicsNotifications(characteristicId) {
+        const ack = false;
+        return this._startCharacteristicsNotificationsOrIndications(characteristicId, ack);
+    }
+
+    /**
+     * Instructs the device to start indicating changes to the given characteristic id.
+     *
+     * @param characteristicId the characteristic to enable indications on
+     * @returns Promise with empty response
+     * @private
+     */
+    _startCharacteristicsIndications(characteristicId) {
+        const ack = true;
+        return this._startCharacteristicsNotificationsOrIndications(characteristicId, ack);
     }
 
     /**
