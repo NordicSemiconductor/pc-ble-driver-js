@@ -135,7 +135,7 @@ class NotificationQueue {
      */
     startCharacteristicsNotifications() {
         return new Promise((resolve, reject) => {
-            const ack = false;
+            const ack = true;
             this._adapter.startCharacteristicsNotifications(this._controlPointCharacteristicId, ack, error => {
                 if (error) {
                     reject(createError(ErrorCode.NOTIFICATION_START_ERROR, error.message));

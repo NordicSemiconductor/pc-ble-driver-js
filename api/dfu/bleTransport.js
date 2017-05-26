@@ -53,6 +53,7 @@ const ButtonlessControlPointOpcode = require('./dfuConstants').ButtonlessControl
 const ButtonlessResponseCode = require('./dfuConstants').ButtonlessResponseCode;
 const createError = require('./dfuConstants').createError;
 const EventEmitter = require('events');
+const numberToHexString = require('../util/hexConv').numberToHexString;
 
 const MAX_RETRIES = 3;
 
@@ -219,7 +220,7 @@ class DfuTransport extends EventEmitter {
         return buttonlessControlPointService.startCharacteristicsNotifications()
             .then(() => buttonlessControlPointService.enterBootloader())
             .then(() => this.waitForDisconnection())
-            .then(() => this._connectIfNeeded(targetAddress, targetAddressType));
+            .then(() => this._connectIfNeeded(this._addOneToAddress(), this._transportParameters.targetAddressType));
     }
 
     /**
@@ -306,8 +307,11 @@ class DfuTransport extends EventEmitter {
      * @returns address + 1
      * @private
      */
-    _addOneToAddress(address) {
-        // TODO: Implement.
+    _addOneToAddress() {
+        // FIXME: Actually write this in an understandable way
+        this._transportParameters.targetAddress = numberToHexString(parseInt(this._transportParameters.targetAddress.replace(/:/g,''), 16) + 1).replace(/(.{2})\B/g,"$1"+":");
+        console.log(this._transportParameters.targetAddress);
+        return this._transportParameters.targetAddress;
     }
 
     /**
