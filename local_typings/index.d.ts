@@ -130,6 +130,20 @@ export class ServiceFactory {
   createDescriptor(characteristic: Characteristic, uuid: string, value: string, options: string);
 }
 
+export class DfuTransportParameters {
+  adapter: Adapter;
+  targetAddress: string;
+  targetAddressType: string;
+  prnValue?: number;
+  mtuSize?: number;
+}
+
+export class Dfu extends EventEmitter {
+  constructor(transportType: string, transportParameters: DfuTransportParameters);
+  performDfu(zipFilePath: string, callback: (err?: any, abort?: boolean) => void): void;
+  abort(): void;
+}
+
 export function getFirmwarePath(family: string): string;
 export function getFirmwareString(family: string): string;
 
