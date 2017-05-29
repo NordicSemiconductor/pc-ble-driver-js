@@ -130,6 +130,25 @@ export class ServiceFactory {
   createDescriptor(characteristic: Characteristic, uuid: string, value: string, options: string);
 }
 
+export class KeyPair {
+  sk: string;
+  pk: string;
+}
+
+export class PublicKey {
+  pk: string;
+}
+
+export class SharedSecret {
+  ss: string;
+}
+
+export class Security {
+  generateKeyPair(): KeyPair;
+  generatePublicKey(privateKey: string): PublicKey;
+  generateSharedSecred(privateKey: string, publicKey: string): SharedSecret;
+}
+
 export class DfuTransportParameters {
   adapter: Adapter;
   targetAddress: string;
