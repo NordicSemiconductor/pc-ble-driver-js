@@ -185,9 +185,12 @@ class DfuTransport extends EventEmitter {
                         resolve(characteristicId);
                     })
                     .catch(err => {
-                        //TODO resolve only on characteristic not found, reject with the error on other errors.
                         this._debug(`findCharacteristic: Did not find characteristic ID. Error ${err}`);
-                        resolve(null);
+                        if (err.code === ErrorCode.NO_DFU_CHARACTERISTIC) {
+                            resolve(null);
+                        } else {
+                            reject(err);
+                        }
                     });
             });
         });
