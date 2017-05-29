@@ -130,4 +130,7 @@ export class ServiceFactory {
   createDescriptor(characteristic: Characteristic, uuid: string, value: string, options: string);
 }
 
+export function getFirmwarePath(family: string): string;
+export function getFirmwareString(family: string): string;
+
 export const driver: any;
