@@ -107,6 +107,7 @@ class DfuTransport extends EventEmitter {
      * - targetAddressType: The target address type (required)
      * - prnValue:          Packet receipt notification number (optional)
      * - mtuSize:           Maximum transmission unit number (optional)
+     * - bondingData:       masterId and encInfo, for using stored keys (optional)
      *
      * @param transportParameters configuration parameters
      */
@@ -304,14 +305,14 @@ class DfuTransport extends EventEmitter {
      * @private
      */
     _connectIfNeeded(targetAddress, targetAddressType) {
-        // TODO: Pair if bonded.
         // TODO: Enable Service Change Indications if available and not enabled.
         const device = this._getConnectedDevice(targetAddress);
         if (device) {
             return Promise.resolve(device);
         } else {
             this._debug(`Connecting to address: ${targetAddress}, type: ${targetAddressType}.`);
-            return this._connect(targetAddress, targetAddressType);
+            return this._connect(targetAddress, targetAddressType)
+                .then(device => this._encrypt(device));
         }
     }
 
@@ -379,6 +380,26 @@ class DfuTransport extends EventEmitter {
         });
     }
 
+    /**
+     * Encrypt the connection (if bonding data is provided)
+     */
+    _encrypt(device) {
+        return new Promise((resolve, reject) => {
+            if (!this._transportParameters.bondingData) {
+                resolve(device);
+            }
+
+            const masterId = this._transportParameters.bondingData.masterId;
+            const encInfo = this._transportParameters.bondingData.encInfo;
+            this._adapter.encrypt(device.instanceId, masterId, encInfo, error => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(device);
+                }
+            });
+        });
+    }
 
     /**
      * Wait for the connection to the DFU target to break. Times out with an
