@@ -326,6 +326,8 @@ class DfuTransport extends EventEmitter {
      */
     _addOneToAddress() {
         // FIXME: Actually write this in an understandable way
+        // TODO: Move to util (and and also move other address manipulating code to the same location?)
+        // FIXME: Edge case where address is all FFs -> 10:00:00:00:00:00:0
         this._transportParameters.targetAddress = numberToHexString(parseInt(this._transportParameters.targetAddress.replace(/:/g,''), 16) + 1).replace(/(.{2})\B/g,"$1"+":");
         console.log(this._transportParameters.targetAddress);
         return this._transportParameters.targetAddress;
