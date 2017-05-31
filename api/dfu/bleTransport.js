@@ -312,7 +312,8 @@ class DfuTransport extends EventEmitter {
         } else {
             this._debug(`Connecting to address: ${targetAddress}, type: ${targetAddressType}.`);
             return this._connect(targetAddress, targetAddressType)
-                .then(device => this._encrypt(device));
+                .then(device => this._encrypt(device))
+                .then(device => this._enableServiceChanged(device));
         }
     }
 
@@ -398,6 +399,26 @@ class DfuTransport extends EventEmitter {
                     resolve(device);
                 }
             });
+        });
+    }
+
+    /**
+     * Enable Service Changed Indications (if available)
+     */
+    _enableServiceChanged(device) {
+        return new Promise((resolve, reject) => {
+            const deviceInfoService = new DeviceInfoService(this._adapter, device.instanceId);
+            deviceInfoService.getCharacteristicId(this._adapter.driver.BLE_UUID_GATT, this._adapter.driver.BLE_UUID_GATT_CHARACTERISTIC_SERVICE_CHANGED)
+              .then(characteristicId => {
+                  this._debug(`Found service changed: ${characteristicId}`);
+                  let ack = true;
+                  _startCharacteristicsNotificationsOrIndications(characteristicId, ack)
+                      .then(() => resolve(device));
+              })
+              .catch(err => {
+                  this._debug(`Did not find service changed. Error: ${err}`);
+                  resolve(device);
+              });
         });
     }
 
