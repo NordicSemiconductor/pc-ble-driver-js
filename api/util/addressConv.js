@@ -38,7 +38,6 @@
  */
 
 'use strict';
-const numberToHexString = require('../util/hexConv').numberToHexString;
 
 /**
  * Convert an integer to a six byte BLE address on the format "xx:xx:xx:xx:xx:xx".
@@ -55,7 +54,7 @@ function intToAddress(integer) {
         throw new Error(`Cannot convert, negative number: ${integer}`);
     }
 
-    let bytestring = numberToHexString(integer);
+    let bytestring = integer.toString(16).toUpperCase();
 
     if (bytestring.length > 12) {
         throw new Error(`Cannot convert, number too large: ${integer}`);
