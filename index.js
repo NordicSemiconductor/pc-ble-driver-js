@@ -43,11 +43,11 @@ const AdapterState = require('./api/adapterState');
 const Characteristic = require('./api/characteristic');
 const Descriptor = require('./api/descriptor');
 const Device = require('./api/device');
+const Dfu = require('./api/dfu');
+const FirmwareUpdater = require('./api/firmwareUpdater');
 const Security = require('./api/security');
 const Service = require('./api/service');
 const ServiceFactory = require('./api/serviceFactory');
-const Dfu = require('./api/dfu');
-const firmware = require('./api/firmware');
 
 module.exports = {
     Adapter,
@@ -56,10 +56,9 @@ module.exports = {
     Characteristic,
     Descriptor,
     Device,
+    Dfu,
+    FirmwareUpdater,
     Security,
     Service,
     ServiceFactory,
-    Dfu,
-    getFirmwarePath: firmware.getFirmwarePath,
-    getFirmwareString: firmware.getFirmwareString,
 };
