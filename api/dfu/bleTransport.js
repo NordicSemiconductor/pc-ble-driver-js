@@ -546,7 +546,12 @@ class DfuTransport extends EventEmitter {
      * code ABORTED.
      */
     abort() {
-        this._objectWriter.abort();
+        if (this._objectWriter) {
+            this._objectWriter.abort();
+        } else {
+            throw(createError(ErrorCode.ABORTED, 'Abort was triggered.'));
+            this.destroy();
+        }
     }
 
     /**
