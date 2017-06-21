@@ -54,6 +54,8 @@ const ButtonlessResponseCode = require('./dfuConstants').ButtonlessResponseCode;
 const createError = require('./dfuConstants').createError;
 const EventEmitter = require('events');
 const numberToHexString = require('../util/hexConv').numberToHexString;
+const addressToInt = require('../util/addressConv').addressToInt;
+const intToAddress = require('../util/addressConv').intToAddress;
 
 const MAX_RETRIES = 3;
 
@@ -327,11 +329,8 @@ class DfuTransport extends EventEmitter {
      * @private
      */
     _addOneToAddress() {
-        // FIXME: Actually write this in an understandable way
-        // TODO: Move to util (and and also move other address manipulating code to the same location?)
-        // FIXME: Edge case where address is all FFs -> 10:00:00:00:00:00:0
-        this._transportParameters.targetAddress = numberToHexString(parseInt(this._transportParameters.targetAddress.replace(/:/g,''), 16) + 1).replace(/(.{2})\B/g,"$1"+":");
-        console.log(this._transportParameters.targetAddress);
+        this._transportParameters.targetAddress = intToAddress(addressToInt(this._transportParameters.targetAddress) + 1);
+        this._debug(`New address for DFU target: ${this._transportParameters.targetAddress}`);
         return this._transportParameters.targetAddress;
     }
 
