@@ -45,7 +45,7 @@ describe('FirmwareUpdater.constructor', () => {
     it('throws error if programmer instance does not implement the required functions', () => {
         const programmer = {};
         expect(() => new FirmwareUpdater(programmer))
-            .toThrowError(/does not implement the required functions/);
+            .toThrowError(/does not implement all the required functions/);
     });
 
     it('does not throw error if programmer instance implements the required functions', () => {
@@ -55,7 +55,7 @@ describe('FirmwareUpdater.constructor', () => {
             program: () => {},
         };
         expect(() => new FirmwareUpdater(programmer))
-            .not.toThrowError(/does not implement the required functions/);
+            .not.toThrowError();
     });
 });
 
