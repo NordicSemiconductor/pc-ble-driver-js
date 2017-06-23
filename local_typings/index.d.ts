@@ -98,7 +98,7 @@ export class Adapter extends EventEmitter {
   close(callback?: (err: any) => void): void;
   startScan(options: ScanParameters, callback?: (err: any) => void): void;
   stopScan(callback?: (err: any) => void): void;
-  connect(deviceAddress: string, options: ConnectionOptions, callback?: (err: any) => void): void;
+  connect(deviceAddress: string | Address, options: ConnectionOptions, callback?: (err: any) => void): void;
   getService(serviceInstanceId: string, callback?: (err: any, service: Service) => void): void;
   getServices(deviceInstanceId: string, callback?: (err: any, services: Array<Service>) => void): void;
   getCharacteristic(charInstanceId: string): Characteristic;
