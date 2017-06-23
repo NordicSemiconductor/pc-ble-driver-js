@@ -63,6 +63,41 @@ const ResultCode = Object.freeze({
     UNSUPPORTED_TYPE: 0x07,
     OPERATION_NOT_PERMITTED: 0x08,
     OPERATION_FAILED: 0x0A,
+    EXTENDED_ERROR: 0x0B,
+});
+
+// Extended error codes
+const ExtendedErrorCode = Object.freeze({
+    NO_ERROR: 0x00,
+    INVALID_ERROR_CODE: 0x01,
+    WRONG_COMMAND_FORMAT: 0x02,
+    UNKNOWN_COMMAND: 0x03,
+    INIT_COMMAND_INVALID: 0x04,
+    FW_VERSION_FAILURE: 0x05,
+    HW_VERSION_FAILURE: 0x06,
+    SD_VERSION_FAILURE: 0x07,
+    SIGNATURE_MISSING: 0x08,
+    WRONG_HASH_TYPE: 0x09,
+    HASH_FAILED: 0x0A,
+    WRONG_SIGNATURE_TYPE: 0x0B,
+    VERIFICATION_FAILED: 0x0C,
+    INSUFFICIENT_SPACE: 0x0D,
+})
+
+const ButtonlessControlPointOpCode = Object.freeze({
+    RESERVED: 0x00,
+    ENTER_BOOTLOADER: 0x01,
+    SET_ADVERTISEMENT_NAME: 0x02, // Only used by certain platforms
+    RESPONSE: 0x20,
+});
+
+const ButtonlessResponseCode = Object.freeze({
+    RESERVED: 0x00,
+    SUCCESS: 0x01,
+    OP_CODE_NOT_SUPPORTED: 0x02,
+    OPERATION_FAILED: 0x04,
+    ADVERTISEMENT_NAME_INVALID: 0x05,
+    BUSY: 0x06,
 });
 
 // Object types for create/select operations.
@@ -83,7 +118,7 @@ const ErrorCode = Object.freeze({
     NO_DFU_CHARACTERISTIC: 0x08,
     NO_DFU_SERVICE: 0x09,
     NOTIFICATION_START_ERROR: 0x10,
-    NOTIFICATION_STOP_ERROR: 0x11,
+    INDICATION_START_ERROR: 0x11,
     INIT_PACKET_TOO_LARGE: 0x12,
     DISCONNECTION_TIMEOUT: 0x13,
     CONNECTION_PARAM_ERROR: 0x14,
@@ -104,6 +139,18 @@ function getOpCodeName(opCode) {
     return _getCodeName(ControlPointOpcode, opCode);
 }
 
+function getExtendedErrorCodeName(extendedErrorCode) {
+    return _getCodeName(ExtendedErrorCode, extendedErrorCode);
+}
+
+function getButtonlessResponseCodeName(responseCode) {
+    return _getCodeName(ButtonlessResponseCode, responseCode);
+}
+
+function getButtonlessOpCodeName(OpCode) {
+    return _getCodeName(ButtonlessControlPointOpCode, OpCode);
+}
+
 function _getCodeName(codeObject, value) {
     return _.invert(codeObject)[value] || 'UNKNOWN';
 }
@@ -111,9 +158,15 @@ function _getCodeName(codeObject, value) {
 module.exports = {
     ControlPointOpcode,
     ResultCode,
+    ExtendedErrorCode,
+    ButtonlessControlPointOpCode,
+    ButtonlessResponseCode,
     ObjectType,
     ErrorCode,
     createError,
     getResultCodeName,
     getOpCodeName,
+    getExtendedErrorCodeName,
+    getButtonlessOpCodeName,
+    getButtonlessResponseCodeName,
 };

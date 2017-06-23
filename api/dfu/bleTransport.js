@@ -43,19 +43,27 @@ const logLevel = require('../util/logLevel');
 const ObjectWriter = require('./bleTransport/objectWriter');
 const DeviceInfoService = require('./bleTransport/deviceInfoService');
 const ControlPointService = require('./bleTransport/controlPointService');
+const ButtonlessControlPointService = require('./bleTransport/buttonlessControlPointService');
 const InitPacketState = require('./dfuModels').InitPacketState;
 const FirmwareState = require('./dfuModels').FirmwareState;
 const ObjectType = require('./dfuConstants').ObjectType;
 const ErrorCode = require('./dfuConstants').ErrorCode;
 const ResultCode = require('./dfuConstants').ResultCode;
+const ButtonlessControlPointOpcode = require('./dfuConstants').ButtonlessControlPointOpcode;
+const ButtonlessResponseCode = require('./dfuConstants').ButtonlessResponseCode;
 const createError = require('./dfuConstants').createError;
 const EventEmitter = require('events');
+const numberToHexString = require('../util/hexConv').numberToHexString;
+const addressToInt = require('../util/addressConv').addressToInt;
+const intToAddress = require('../util/addressConv').intToAddress;
 
 const MAX_RETRIES = 3;
 
 const DFU_SERVICE_UUID = 'FE59';
 const DFU_CONTROL_POINT_UUID = '8EC90001F3154F609FB8838830DAEA50';
 const DFU_PACKET_UUID = '8EC90002F3154F609FB8838830DAEA50';
+const DFU_BUTTONLESS_UNBONDED_UUID = '8EC90003F3154F609FB8838830DAEA50';
+const DFU_BUTTONLESS_BONDED_UUID = '8EC90004F3154F609FB8838830DAEA50';
 
 const DEFAULT_CONNECTION_PARAMS = {
     min_conn_interval: 7.5,
@@ -101,6 +109,7 @@ class DfuTransport extends EventEmitter {
      * - targetAddressType: The target address type (required)
      * - prnValue:          Packet receipt notification number (optional)
      * - mtuSize:           Maximum transmission unit number (optional)
+     * - bondingData:       masterId and encInfo, for using stored keys (optional)
      *
      * @param transportParameters configuration parameters
      */
@@ -145,6 +154,7 @@ class DfuTransport extends EventEmitter {
             `targetAddressType: ${targetAddressType}, prnValue: ${prnValue}, mtuSize: ${mtuSize}.`);
 
         return this._connectIfNeeded(targetAddress, targetAddressType)
+            .then(device => this._enterDfuMode(device))
             .then(device => this._getCharacteristicIds(device))
             .then(characteristicIds => {
                 const controlPointId = characteristicIds.controlPointId;
@@ -159,6 +169,78 @@ class DfuTransport extends EventEmitter {
             .then(() => this._setPrn(prnValue))
             .then(() => this._setMtuSize(mtuSize))
             .then(() => this._isInitialized = true);
+    }
+
+    /**
+     * Get the target to enter DFU mode.
+     *
+     * @param device the DFU target device
+     * @returns Promise: the DFU target device in DFU mode.
+     * @private
+     */
+    _enterDfuMode(device) {
+        const deviceInfoService = new DeviceInfoService(this._adapter, device.instanceId);
+        const findCharacteristic = ((serviceUuid, characteristicUuid) => {
+            return new Promise((resolve, reject) => {
+                deviceInfoService.getCharacteristicId(serviceUuid, characteristicUuid)
+                    .then(characteristicId => {
+                        this._debug(`findCharacteristic: Found characteristic ID ${characteristicId}`);
+                        resolve(characteristicId);
+                    })
+                    .catch(err => {
+                        this._debug(`findCharacteristic: Did not find characteristic ID. Error ${err}`);
+                        if (err.code === ErrorCode.NO_DFU_CHARACTERISTIC) {
+                            resolve(null);
+                        } else {
+                            reject(err);
+                        }
+                    });
+            });
+        });
+
+        return findCharacteristic(DFU_SERVICE_UUID, DFU_BUTTONLESS_BONDED_UUID)
+            .then(characteristicId => {
+                if (characteristicId) {
+                    this._debug(`Found bonded buttonless characteristic: ${characteristicId}`);
+                    const bonded = true;
+                    return this._triggerButtonlessDfu(characteristicId, bonded);
+                } else {
+                    return findCharacteristic(DFU_SERVICE_UUID, DFU_BUTTONLESS_UNBONDED_UUID)
+                        .then(characteristicId => {
+                            if (characteristicId) {
+                                this._debug(`Found unbonded buttonless characteristic: ${characteristicId}`);
+                                const bonded = false;
+                                return this._triggerButtonlessDfu(characteristicId, bonded);
+                            } else {
+                                this._debug(`Found no buttonless characteristic.`);
+                                return Promise.resolve(device);
+                            }
+                        });
+                }
+            });
+    }
+
+    /**
+     * Use the given characteristic to trigger buttonless DFU and reconnect
+     * to the target (which is now in DFU mode).
+     *
+     * @param characteristic the buttonless DFU characteristic to use.
+     * @param bonded {boolean} is it the "bonded" characteristic?
+     * @returns Promise: The device in DFU mode.
+     * @private
+     */
+    _triggerButtonlessDfu(characteristicId, bonded) {
+        let buttonlessControlPointService = new ButtonlessControlPointService(this._adapter, characteristicId);
+
+        return this._startCharacteristicsIndications(characteristicId)
+            .then(() => buttonlessControlPointService.enterBootloader())
+            .then(() => this.waitForDisconnection())
+            .then(() => {
+                if (!bonded) {
+                    this._addOneToAddress();
+                }
+                return this._connectIfNeeded(this._transportParameters.targetAddress, this._transportParameters.targetAddressType);
+            });
     }
 
     /**
@@ -196,6 +278,25 @@ class DfuTransport extends EventEmitter {
             });
     }
 
+    /**
+     * Find the control point for bonded buttonless DFU.
+     * @param deviceInfoService
+     * @returns Promise: characteristic ID for bonded buttonless DFU
+     * @private
+     */
+    _getBondedButtonlessCharacteristicId(deviceInfoService) {
+        return deviceInfoService.getCharacteristicId(DFU_SERVICE_UUID, DFU_BUTTONLESS_BONDED_UUID);
+    }
+
+    /**
+     * Find the control point for bonded buttonless DFU.
+     * @param deviceInfoService
+     * @returns Promise: characteristic ID for unbonded buttonless DFU
+     * @private
+     */
+    _getUnbondedButtonlessCharacteristicId(deviceInfoService) {
+        return deviceInfoService.getCharacteristicId(DFU_SERVICE_UUID, DFU_BUTTONLESS_UNBONDED_UUID)
+    }
 
     /**
      * Connect to the target device if not already connected.
@@ -206,15 +307,32 @@ class DfuTransport extends EventEmitter {
      * @private
      */
     _connectIfNeeded(targetAddress, targetAddressType) {
+        // TODO: Enable Service Change Indications if available and not enabled.
         const device = this._getConnectedDevice(targetAddress);
         if (device) {
             return Promise.resolve(device);
         } else {
             this._debug(`Connecting to address: ${targetAddress}, type: ${targetAddressType}.`);
-            return this._connect(targetAddress, targetAddressType);
+            return this._connect(targetAddress, targetAddressType)
+                .then(device => this._encrypt(device))
+                .then(device => this._enableServiceChanged(device));
         }
     }
 
+    /**
+     * Add one to the BLE address.
+     * Needed for unbonded buttonless DFU, which can not use service changed
+     * indications to prevent ATT table caching.
+     *
+     * @param address the address to add one to
+     * @returns address + 1
+     * @private
+     */
+    _addOneToAddress() {
+        this._transportParameters.targetAddress = intToAddress(addressToInt(this._transportParameters.targetAddress) + 1);
+        this._debug(`New address for DFU target: ${this._transportParameters.targetAddress}`);
+        return this._transportParameters.targetAddress;
+    }
 
     /**
      * Returns connected device for the given address. If there is no connected
@@ -262,6 +380,46 @@ class DfuTransport extends EventEmitter {
         });
     }
 
+    /**
+     * Encrypt the connection (if bonding data is provided)
+     */
+    _encrypt(device) {
+        return new Promise((resolve, reject) => {
+            if (!this._transportParameters.bondingData) {
+                resolve(device);
+            }
+
+            const masterId = this._transportParameters.bondingData.masterId;
+            const encInfo = this._transportParameters.bondingData.encInfo;
+            this._adapter.encrypt(device.instanceId, masterId, encInfo, error => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(device);
+                }
+            });
+        });
+    }
+
+    /**
+     * Enable Service Changed Indications (if available)
+     */
+    _enableServiceChanged(device) {
+        return new Promise((resolve, reject) => {
+            const deviceInfoService = new DeviceInfoService(this._adapter, device.instanceId);
+            deviceInfoService.getCharacteristicId(this._adapter.driver.BLE_UUID_GATT, this._adapter.driver.BLE_UUID_GATT_CHARACTERISTIC_SERVICE_CHANGED)
+              .then(characteristicId => {
+                  this._debug(`Found service changed: ${characteristicId}`);
+                  let ack = true;
+                  _startCharacteristicsNotificationsOrIndications(characteristicId, ack)
+                      .then(() => resolve(device));
+              })
+              .catch(err => {
+                  this._debug(`Did not find service changed. Error: ${err}`);
+                  resolve(device);
+              });
+        });
+    }
 
     /**
      * Wait for the connection to the DFU target to break. Times out with an
@@ -388,7 +546,12 @@ class DfuTransport extends EventEmitter {
      * code ABORTED.
      */
     abort() {
-        this._objectWriter.abort();
+        if (this._objectWriter) {
+            this._objectWriter.abort();
+        } else {
+            throw(createError(ErrorCode.ABORTED, 'Abort was triggered.'));
+            this.destroy();
+        }
     }
 
     /**
@@ -437,22 +600,51 @@ class DfuTransport extends EventEmitter {
 
 
     /**
-     * Instructs the device to start notifying about changes to the given characteristic id.
+     * Enable notifications or Indications
      *
+     * @param characteristicId the characteristic to enable notifications or indications on
+     * @param ack true for indications, false for notifications
      * @returns Promise with empty response
      * @private
      */
-    _startCharacteristicsNotifications(characteristicId) {
+    _startCharacteristicsNotificationsOrIndications(characteristicId, ack) {
         return new Promise((resolve, reject) => {
-            const ack = false;
+            // In adapter.js, the terminology for Indications and Notifications is:
+            // - BLE Indications are "notifications with ack"
+            // - BLE Notifications are "notifications without ack"
             this._adapter.startCharacteristicsNotifications(characteristicId, ack, error => {
                 if (error) {
-                    reject(createError(ErrorCode.NOTIFICATION_START_ERROR, error.message));
+                    const errorCode = (ack ? ErrorCode.INDICATION_START_ERROR : ErrorCode.NOTIFICATION_START_ERROR);
+                    reject(createError(errorCode , error.message));
                 } else {
                     resolve();
                 }
             });
         });
+    }
+
+    /**
+     * Instructs the device to start notifying about changes to the given characteristic id.
+     *
+     * @param characteristicId the characteristic to enable notifications on
+     * @returns Promise with empty response
+     * @private
+     */
+    _startCharacteristicsNotifications(characteristicId) {
+        const ack = false;
+        return this._startCharacteristicsNotificationsOrIndications(characteristicId, ack);
+    }
+
+    /**
+     * Instructs the device to start indicating changes to the given characteristic id.
+     *
+     * @param characteristicId the characteristic to enable indications on
+     * @returns Promise with empty response
+     * @private
+     */
+    _startCharacteristicsIndications(characteristicId) {
+        const ack = true;
+        return this._startCharacteristicsNotificationsOrIndications(characteristicId, ack);
     }
 
     /**

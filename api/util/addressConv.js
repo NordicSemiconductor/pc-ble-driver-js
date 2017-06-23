@@ -39,27 +39,55 @@
 
 'use strict';
 
-const ControlPointOpcode = require('../dfuConstants').ControlPointOpcode;
-const ResultCode = require('../dfuConstants').ResultCode;
-const getOpCodeName = require('../dfuConstants').getOpCodeName;
-const getResultCodeName = require('../dfuConstants').getResultCodeName;
+/**
+ * Convert an integer to a six byte BLE address on the format "xx:xx:xx:xx:xx:xx".
+ *
+ * @param {number} integer the number to convert
+ * @returns {string} integer converted to BLE address
+ */
+function intToAddress(integer) {
+    if (typeof (integer) !== 'number') {
+        throw new Error(`Cannot convert, not a number: ${integer}`);
+    }
 
-describe('getOpCodeName', () => {
-    it('returns "CREATE" when code for CREATE is given', () => {
-        expect(getOpCodeName(ControlPointOpcode.CREATE)).toEqual('CREATE');
-    });
+    if (integer < 0) {
+        throw new Error(`Cannot convert, negative number: ${integer}`);
+    }
 
-    it('returns "UNKNOWN" when unknown code 0x61 is given', () => {
-        expect(getOpCodeName(0x61)).toEqual('UNKNOWN');
-    });
-});
+    let bytestring = integer.toString(16).toUpperCase();
 
-describe('getResultCodeName', () => {
-    it('returns "SUCCESS" when code for SUCCESS is given', () => {
-        expect(getResultCodeName(ResultCode.SUCCESS)).toEqual('SUCCESS');
-    });
+    if (bytestring.length > 12) {
+        throw new Error(`Cannot convert, number too large: ${integer}`);
+    }
 
-    it('returns "UNKNOWN" when unknown code 0xEF is given', () => {
-        expect(getResultCodeName(0xEF)).toEqual('UNKNOWN');
-    });
-});
+    const LENGTH = 12;
+    bytestring = ('0'.repeat(LENGTH-1) + bytestring).slice(-LENGTH);
+
+    const MATCH_CHARACTER_PAIRS_NOT_AT_END_OF_LINE = /[0-9A-F]{2}\B/g
+    const ADD_COLON = '$&' + ':';
+    return bytestring.replace(MATCH_CHARACTER_PAIRS_NOT_AT_END_OF_LINE, ADD_COLON);
+}
+
+/**
+ * Convert a BLE address on the format "xx:xx:xx:xx:xx:xx" to an integer.
+ *
+ * @param {string} address the BLE address to convert
+ * @return {number} address converted to ingeger
+ */
+function addressToInt(address) {
+    if (typeof(address) !== 'string') {
+        throw new Error(`Cannot convert, not a string: ${address}`);
+    }
+
+    const VALID_ADDRESS_PATTERN = /^[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}$/;
+    if (!VALID_ADDRESS_PATTERN.test(address)) {
+        throw new Error(`Cannot convert, malformed address: ${address}`);
+    }
+
+    return parseInt(address.replace(/:/g,''), 16);
+}
+
+module.exports = {
+    intToAddress,
+    addressToInt,
+};
