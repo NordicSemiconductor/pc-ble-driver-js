@@ -35,21 +35,21 @@
  */
 
 function getBuildSystem(debug) {
-    var cmakeJS = require('cmake-js');
-    var os = require('os');
+    const cmakeJS = require('cmake-js');
+    const os = require('os');
 
-    var defaultRuntime = 'node';
-    var defaultRuntimeVersion = process.version.substr(1);
-    var defaultWinArch = os.arch();
+    const defaultRuntime = 'node';
+    const defaultRuntimeVersion = process.version.substr(1);
+    const defaultWinArch = os.arch();
 
-    var options = {
+    const options = {
         runtime: process.env.npm_config_runtime || undefined,
         runtimeVersion: process.env.npm_config_target || undefined,
         arch: process.env.npm_config_arch || undefined,
-        debug: debug,
+        debug,
     };
 
-    var buildSystem = new cmakeJS.BuildSystem(options);
+    const buildSystem = new cmakeJS.BuildSystem(options);
 
     if (buildSystem.options.runtime === undefined) {
         buildSystem.options.runtime = defaultRuntime;
@@ -66,18 +66,30 @@ function getBuildSystem(debug) {
     return buildSystem;
 }
 
-var times = 0;
+let times = 0;
 
 function begin(args) {
-    var debug = false;
+	// Sanity check for the platform-specific binary driver files
+    const fs = require('fs');
+    fs.readdir('./pc-ble-driver', (err, files) => {
+        if (err) {
+            console.error('ERROR: Could not read the \'pc-ble-driver\' subrepo, please check manually.');
+            process.exit(2);
+        } else if (!files.length) {
+            console.error('ERROR: The \'pc-ble-driver\' subrepo is empty, please run \'git submodule update --init --recursive\' and try again.');
+            process.exit(1);
+        }
+    });
 
-    var length = args.length >>> 0;
+    let debug = false;
 
-    for (var i = 0; i < length; i++) {
+    const length = args.length >>> 0;
+
+    for (let i = 0; i < length; i++) {
         if (args[i] === '--debug') debug = true;
     }
 
-    var buildSystem;
+    let buildSystem;
     try {
         buildSystem = getBuildSystem(debug);
     } catch (e) {
