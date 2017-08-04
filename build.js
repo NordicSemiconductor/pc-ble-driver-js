@@ -34,6 +34,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+'use strict';
+
 function getBuildSystem(debug) {
     const cmakeJS = require('cmake-js');
     const os = require('os');
