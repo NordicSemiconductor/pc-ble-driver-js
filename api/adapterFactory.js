@@ -134,16 +134,18 @@ class AdapterFactory extends EventEmitter {
                     sdVersion = 'v3';
                     break;
                 default:
-                    throw new Error('Unsupported nRF5 development kit.');
+                    throw new Error(`Unsupported nRF5 development kit. [${instanceId}]`);
             }
 
             selectedDriver = this._bleDrivers[sdVersion];
             addOnAdapter = new selectedDriver.Adapter();
         } else {
-            throw new Error('Not able to determine version of pc-ble-driver to use.');
+            throw new Error(`Not able to determine version of pc-ble-driver to use. [${instanceId}]`);
         }
 
-        if (addOnAdapter === undefined) { throw new Error('Missing argument adapter.'); }
+        if (addOnAdapter === undefined) {
+            throw new Error(`Missing argument adapter. [${instanceId}]`);
+        }
 
         let notSupportedMessage;
 
@@ -188,12 +190,16 @@ class AdapterFactory extends EventEmitter {
                     delete removedAdapters[adapterInstanceId];
                 }
 
-                const newAdapter = this._parseAndCreateAdapter(adapter);
+                try {
+                    const newAdapter = this._parseAndCreateAdapter(adapter);
 
-                if (this._adapters[adapterInstanceId] === undefined) {
-                    this._adapters[adapterInstanceId] = newAdapter;
-                    this._setUpListenersForAdapterOpenAndClose(newAdapter);
-                    this.emit('added', newAdapter);
+                    if (this._adapters[adapterInstanceId] === undefined) {
+                        this._adapters[adapterInstanceId] = newAdapter;
+                        this._setUpListenersForAdapterOpenAndClose(newAdapter);
+                        this.emit('added', newAdapter);
+                    }
+                } catch (error) {
+                    this.emit('error', error);
                 }
             }
 
