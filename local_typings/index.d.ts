@@ -150,7 +150,7 @@ export class Adapter extends EventEmitter {
   getCurrentAttMtu(deviceInstanceId: string): number;
   
   authenticate(deviceInstanceId: string, secParams: any, callback?: (err: any) => void): void;
-  replySecParams(deviceInstanceId: string, secStatus: number, secParams: SecurityParameters | null, secKeys: SecurityKeys | null, callback?: (err: any) => void): void;
+  replySecParams(deviceInstanceId: string, secStatus: number, secParams: SecurityParameters | null, secKeys: SecurityKeys | null, callback?: (err: any, keyset?: any) => void): void;
   replyLescDhkey(deviceInstanceId: string, key: any, callback?: (err: any) => void): void;
   replyAuthKey(deviceInstanceId: string, keyType: any, key: any, callback?: (err: any) => void): void;
   notifyKeypress(deviceInstanceId: string, notificationType: any, callback?: (err: any) => void): void;
