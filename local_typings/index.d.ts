@@ -28,6 +28,37 @@ export interface ConnectionParameters {
   conn_sup_timeout: number;
 }
 
+/**
+ * Key distribution: keys that shall be distributed.
+ *
+ */
+export interface SecurityKeyExchange {
+  id: boolean;   /**< Identity Resolving Key and Identity Address Information. */
+  enc: boolean;  /**< Long Term Key and Master Identification. */
+  sign: boolean; /**< Connection Signature Resolving Key. */
+  link: boolean; /**< Derive the Link Key from the LTK. */
+}
+
+export interface SecurityParameters {
+  bond: boolean;
+  mitm: boolean;
+  lesc: boolean;
+  keypress: boolean;
+  io_caps: string; // FIXME: replace this with enum
+  oob: boolean;
+  min_key_size: number;
+  max_key_size: number;
+  kdist_own: SecurityKeyExchange;
+  kdist_per: SecurityKeyExchange;
+}
+
+export interface SecurityKeys {
+  enc_key: string;
+  id_key: string;
+  sign_key: string;
+  pk: string;
+}
+
 export interface ConnectionOptions {
   scanParams: ScanParameters;
   connParams: ConnectionParameters;
@@ -117,6 +148,16 @@ export class Adapter extends EventEmitter {
   rejectConnParams(deviceInstanceId: string, callback?: (err: any) => void): void;
   requestAttMtu(deviceInstanceId: string, mtu: number, callback?: (err: any, value: number) => void): void;
   getCurrentAttMtu(deviceInstanceId: string): number;
+  
+  authenticate(deviceInstanceId: string, secParams: any, callback?: (err: any) => void): void;
+  replySecParams(deviceInstanceId: string, secStatus: number, secParams: SecurityParameters | null, secKeys: SecurityKeys | null, callback?: (err: any, keyset?: any) => void): void;
+  replyLescDhkey(deviceInstanceId: string, key: any, callback?: (err: any) => void): void;
+  replyAuthKey(deviceInstanceId: string, keyType: any, key: any, callback?: (err: any) => void): void;
+  notifyKeypress(deviceInstanceId: string, notificationType: any, callback?: (err: any) => void): void;
+  getLescOobData(deviceInstanceId: string, ownPublicKey: string, callback?: (err: any) => void): void;
+  setLescOobData(deviceInstanceId: string, ownOobData: string, peerOobData: string, callback?: (err: any) => void): void;
+  encrypt(deviceInstanceId: string, masterId: any, encInfo: any, callback?: (err: any) => void): void;
+  secInfoReply(deviceInstanceId: string, encInfo: any, idInfo:any, signInfo: any, callback?: (err: any) => void): void;
 }
 
 export class AdapterFactory extends EventEmitter {
