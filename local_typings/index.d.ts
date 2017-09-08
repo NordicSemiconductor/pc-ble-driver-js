@@ -49,7 +49,7 @@ export interface SecurityParameters {
   min_key_size: number;
   max_key_size: number;
   kdist_own: SecurityKeyExchange;
-  kdist_per: SecurityKeyExchange;
+  kdist_peer: SecurityKeyExchange;
 }
 
 export interface SecurityKeys {
