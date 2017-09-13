@@ -47,42 +47,42 @@ describe('flags conversion', () => {
     it('should convert leLimitedDiscMode', () => {
         expect(AdType.convertToBuffer({
             flags: ['leLimitedDiscMode'],
-        })).toEqual(Buffer.from([LENGTH, AD_TYPE_FLAGS, 0x01]));
+        })).toEqual(new Buffer([LENGTH, AD_TYPE_FLAGS, 0x01]));
     });
 
     it('should convert leGeneralDiscMode', () => {
         expect(AdType.convertToBuffer({
             flags: ['leGeneralDiscMode'],
-        })).toEqual(Buffer.from([LENGTH, AD_TYPE_FLAGS, 0x02]));
+        })).toEqual(new Buffer([LENGTH, AD_TYPE_FLAGS, 0x02]));
     });
 
     it('should convert brEdrNotSupported', () => {
         expect(AdType.convertToBuffer({
             flags: ['brEdrNotSupported'],
-        })).toEqual(Buffer.from([LENGTH, AD_TYPE_FLAGS, 0x04]));
+        })).toEqual(new Buffer([LENGTH, AD_TYPE_FLAGS, 0x04]));
     });
 
     it('should convert leBrEdrController', () => {
         expect(AdType.convertToBuffer({
             flags: ['leBrEdrController'],
-        })).toEqual(Buffer.from([LENGTH, AD_TYPE_FLAGS, 0x08]));
+        })).toEqual(new Buffer([LENGTH, AD_TYPE_FLAGS, 0x08]));
     });
 
     it('should convert leBrEdrHost', () => {
         expect(AdType.convertToBuffer({
             flags: ['leBrEdrHost'],
-        })).toEqual(Buffer.from([LENGTH, AD_TYPE_FLAGS, 0x10]));
+        })).toEqual(new Buffer([LENGTH, AD_TYPE_FLAGS, 0x10]));
     });
 
     it('should convert leLimitedDiscMode, brEdrNotSupported', () => {
         expect(AdType.convertToBuffer({
             flags: ['leLimitedDiscMode', 'brEdrNotSupported'],
-        })).toEqual(Buffer.from([LENGTH, AD_TYPE_FLAGS, 0x05]));
+        })).toEqual(new Buffer([LENGTH, AD_TYPE_FLAGS, 0x05]));
     });
 
     it('should convert leGeneralDiscMode, brEdrNotSupported', () => {
         expect(AdType.convertToBuffer({
             flags: ['leGeneralDiscMode', 'brEdrNotSupported'],
-        })).toEqual(Buffer.from([LENGTH, AD_TYPE_FLAGS, 0x06]));
+        })).toEqual(new Buffer([LENGTH, AD_TYPE_FLAGS, 0x06]));
     });
 });
