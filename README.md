@@ -18,7 +18,7 @@ The [examples](./examples) and [integration tests](./test) serve as a great star
     
 ## Architecture
 
-All functionality of `pc-ble-driver-js` is exposed through it's [api](./api/). Other directories in `pc-ble-driver-js/` are for building, binding to C/C++, and testing, and a developer building an application on top of `pc-ble-driver-js` need not concern themselves with these details.
+All functionality of `pc-ble-driver-js` is exposed through its [api](./api/). Other directories in `pc-ble-driver-js/` are for building, binding to C/C++, and testing, and a developer building an application on top of `pc-ble-driver-js` need not concern themselves with these details.
 
 [Adapter](./api/adapter.js) is the core component of `pc-ble-driver-js`'s api. An `Adapter` sends serialized commands to the nRF5 connectivity chip, which in-turn executes the corresponding SoftDevice functionality. Any events the nRF5 connectivity chip receives from the SoftDevice are serialized and forwarded to the `Adapter`, which parses and handles these events.
 

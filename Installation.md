@@ -2,7 +2,7 @@
 
 To run `pc-ble-driver-js` you will first need to set up your nRF5 connectivity chip. You can find additional information here: [Hardware Setup](https://github.com/NordicSemiconductor/pc-ble-driver#hardware-setup).
 
-Before installing `pc-ble-driver-js` you will need to have [Boost](http://www.boost.org/) installed. To install and compile Boost, please follow the instructions here: [Building Boost](https://github.com/NordicSemiconductor/pc-ble-driver#building-boost). Make sure you have built the Boost libraries for the architecture (32 or 64-bit) required by your Node installation.
+Before installing `pc-ble-driver-js` you will need to have [Boost](http://www.boost.org/) installed. To install and compile Boost, please follow the instructions here: [Building Boost](https://github.com/NordicSemiconductor/pc-ble-driver/blob/master/Installation.md#building-boost). Make sure you have built the Boost libraries for the architecture (32 or 64-bit) required by your Node installation.
 
 ### Submodule
 

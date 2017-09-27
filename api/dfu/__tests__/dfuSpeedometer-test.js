@@ -102,25 +102,6 @@ describe('when initialized with total bytes 102400 and completed bytes 0', () =>
     it('should be 0% completed', () => {
         expect(speedometer.calculatePercentCompleted()).toBe(0);
     });
-
-    describe('when setting completed bytes to 10000', () => {
-        const completedBytes = 10000;
-        beforeEach(() => {
-            speedometer.updateState(completedBytes);
-        });
-
-        it('should have bytes per second larger than zero', () => {
-            expect(speedometer.calculateBytesPerSecond()).toBeGreaterThan(0);
-        });
-
-        it('should have average bytes per second larger than zero', () => {
-            expect(speedometer.calculateAverageBytesPerSecond()).toBeGreaterThan(0);
-        });
-
-        it('should be 9% completed', () => {
-            expect(speedometer.calculatePercentCompleted()).toBe(9);
-        });
-    });
 });
 
 describe('when initialized with total bytes 102400, completed bytes 1000, and start time', () => {
