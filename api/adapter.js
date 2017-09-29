@@ -73,6 +73,7 @@ const _makeError = function (userMessage, description) {
 /**
  * Class representing a transport adapter (SoftDevice RPC module).
  *
+ * @fires Adapter#advertiseTimedOut
  * @fires Adapter#attMtuChanged
  * @fires Adapter#authKeyRequest
  * @fires Adapter#authStatus
