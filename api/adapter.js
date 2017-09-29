@@ -111,7 +111,7 @@ const _makeError = function (userMessage, description) {
  */
 class Adapter extends EventEmitter {
     /**
-     * @summary Create an object representing an adapte
+     * @summary Create an object representing an adapter.
      *
      * This constructor is called by `AdapterFactory` and it should not be necessary for the developer to call directly.
      *
