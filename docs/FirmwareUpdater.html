@@ -47,9 +47,7 @@
 
 
 <div class="description">
-    Initialize the firmware updater with a programmer instance. The programmer
-instance could be pc-nrfjprog-js or any other instance that implements the
-read, getDeviceInfo, and program functions.
+    Initialize the firmware updater with a programmer instance. The programmerinstance could be pc-nrfjprog-js or any other instance that implements theread, getDeviceInfo, and program functions.
 </div>
 
 
@@ -142,7 +140,7 @@ read, getDeviceInfo, and program functions.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="firmwareUpdater.js.html">firmwareUpdater.js</a>, <a href="firmwareUpdater.js.html#line78">line 78</a>
+        <a href="firmwareUpdater.js.html">firmwareUpdater.js</a>, <a href="firmwareUpdater.js.html#line75">line 75</a>
     </li></ul></dd>
     
 
@@ -314,7 +312,7 @@ read, getDeviceInfo, and program functions.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="firmwareUpdater.js.html">firmwareUpdater.js</a>, <a href="firmwareUpdater.js.html#line109">line 109</a>
+        <a href="firmwareUpdater.js.html">firmwareUpdater.js</a>, <a href="firmwareUpdater.js.html#line106">line 106</a>
     </li></ul></dd>
     
 
@@ -353,7 +351,7 @@ read, getDeviceInfo, and program functions.
             </dt>
             <dd>
                 
-<span class="param-type"><a href="Error.html">Error</a></span>
+<span class="param-type">Error</span>
 
 
             </dd>
@@ -519,7 +517,7 @@ read, getDeviceInfo, and program functions.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="firmwareUpdater.js.html">firmwareUpdater.js</a>, <a href="firmwareUpdater.js.html#line129">line 129</a>
+        <a href="firmwareUpdater.js.html">firmwareUpdater.js</a>, <a href="firmwareUpdater.js.html#line126">line 126</a>
     </li></ul></dd>
     
 
@@ -558,7 +556,7 @@ read, getDeviceInfo, and program functions.
             </dt>
             <dd>
                 
-<span class="param-type"><a href="Error.html">Error</a></span>
+<span class="param-type">Error</span>
 
 
             </dd>
@@ -724,7 +722,7 @@ read, getDeviceInfo, and program functions.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="firmwareUpdater.js.html">firmwareUpdater.js</a>, <a href="firmwareUpdater.js.html#line149">line 149</a>
+        <a href="firmwareUpdater.js.html">firmwareUpdater.js</a>, <a href="firmwareUpdater.js.html#line146">line 146</a>
     </li></ul></dd>
     
 
@@ -763,7 +761,7 @@ read, getDeviceInfo, and program functions.
             </dt>
             <dd>
                 
-<span class="param-type"><a href="Error.html">Error</a></span>
+<span class="param-type">Error</span>
 
 
             </dd>
@@ -813,8 +811,7 @@ read, getDeviceInfo, and program functions.
 
 
 <div class="description">
-    Get the latest connectivity firmware version for the given family and
-platform.
+    Get the latest connectivity firmware version for the given family andplatform.
 </div>
 
 
@@ -930,7 +927,7 @@ platform.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="firmwareUpdater.js.html">firmwareUpdater.js</a>, <a href="firmwareUpdater.js.html#line96">line 96</a>
+        <a href="firmwareUpdater.js.html">firmwareUpdater.js</a>, <a href="firmwareUpdater.js.html#line93">line 93</a>
     </li></ul></dd>
     
 
@@ -969,7 +966,7 @@ platform.
             </dt>
             <dd>
                 
-<span class="param-type"><a href="Error.html">Error</a></span>
+<span class="param-type">Error</span>
 
 
             </dd>
@@ -1019,9 +1016,7 @@ platform.
 
 
 <div class="description">
-    Parse the version info struct that can be found in the connectivity
-firmware. See the connectivity firmware patch in pc-ble-driver/hex/sd_api_v*
-for details.
+    Parse the version info struct that can be found in the connectivityfirmware. See the connectivity firmware patch in pc-ble-driver/hex/sd_api_v*for details.
 </div>
 
 
@@ -1114,7 +1109,7 @@ for details.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="firmwareUpdater.js.html">firmwareUpdater.js</a>, <a href="firmwareUpdater.js.html#line162">line 162</a>
+        <a href="firmwareUpdater.js.html">firmwareUpdater.js</a>, <a href="firmwareUpdater.js.html#line159">line 159</a>
     </li></ul></dd>
     
 
@@ -1174,18 +1169,7 @@ for details.
 
 
 <div class="description">
-    Get version info from the firmware for the given serial number. If no
-connectivity firmware is present, then the returned object will only
-contain isUpdateRequired = true. This will also be true if the version
-is not the latest, or if the baud rate is not supported.
-
-<ul>
-<li>{boolean} isUpdateRequired: True if firmware needs to be updated.</li>
-<li>{string} version: The 'major.minor.patch' version for the firmware.</li>
-<li>{number} sdBleApiVersion: The SoftDevice version.</li>
-<li>{number} transportType: Transport type, 1 = UART_HCI.</li>
-<li>{number} baudRate: UART transport baud rate.</li>
-</ul>
+    Get version info from the firmware for the given serial number. If noconnectivity firmware is present, then the returned object will onlycontain isUpdateRequired = true. This will also be true if the versionis not the latest, or if the baud rate is not supported.<ul><li>{boolean} isUpdateRequired: True if firmware needs to be updated.</li><li>{string} version: The 'major.minor.patch' version for the firmware.</li><li>{number} sdBleApiVersion: The SoftDevice version.</li><li>{number} transportType: Transport type, 1 = UART_HCI.</li><li>{number} baudRate: UART transport baud rate.</li></ul>
 </div>
 
 
@@ -1301,7 +1285,7 @@ is not the latest, or if the baud rate is not supported.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="firmwareUpdater.js.html">firmwareUpdater.js</a>, <a href="firmwareUpdater.js.html#line237">line 237</a>
+        <a href="firmwareUpdater.js.html">firmwareUpdater.js</a>, <a href="firmwareUpdater.js.html#line234">line 234</a>
     </li></ul></dd>
     
 
@@ -1357,8 +1341,7 @@ is not the latest, or if the baud rate is not supported.
 
 
 <div class="description">
-    Program the given serial number with the latest connectivity firmware. The
-new version info object (ref. getVersionInfo) is returned through the callback.
+    Program the given serial number with the latest connectivity firmware. Thenew version info object (ref. getVersionInfo) is returned through the callback.
 </div>
 
 
@@ -1474,7 +1457,7 @@ new version info object (ref. getVersionInfo) is returned through the callback.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="firmwareUpdater.js.html">firmwareUpdater.js</a>, <a href="firmwareUpdater.js.html#line254">line 254</a>
+        <a href="firmwareUpdater.js.html">firmwareUpdater.js</a>, <a href="firmwareUpdater.js.html#line251">line 251</a>
     </li></ul></dd>
     
 
@@ -1541,7 +1524,7 @@ new version info object (ref. getVersionInfo) is returned through the callback.
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="AdapterFactory.html">AdapterFactory</a></li><li><a href="AdapterState.html">AdapterState</a></li><li><a href="Characteristic.html">Characteristic</a></li><li><a href="Descriptor.html">Descriptor</a></li><li><a href="Device.html">Device</a></li><li><a href="Dfu.html">Dfu</a></li><li><a href="Error.html">Error</a></li><li><a href="FirmwareUpdater.html">FirmwareUpdater</a></li><li><a href="Security.html">Security</a></li><li><a href="Service.html">Service</a></li><li><a href="ServiceFactory.html">ServiceFactory</a></li></ul><h3>Events</h3><ul><li><a href="Adapter.html#event:advertiseTimedOut">advertiseTimedOut</a></li><li><a href="Adapter.html#event:attMtuChanged">attMtuChanged</a></li><li><a href="Adapter.html#event:authKeyRequest">authKeyRequest</a></li><li><a href="Adapter.html#event:authStatus">authStatus</a></li><li><a href="Adapter.html#event:characteristicAdded">characteristicAdded</a></li><li><a href="Adapter.html#event:characteristicValueChanged">characteristicValueChanged</a></li><li><a href="Adapter.html#event:closed">closed</a></li><li><a href="Adapter.html#event:connectTimedOut">connectTimedOut</a></li><li><a href="Adapter.html#event:connParamUpdate">connParamUpdate</a></li><li><a href="Adapter.html#event:connParamUpdateRequest">connParamUpdateRequest</a></li><li><a href="Adapter.html#event:connSecUpdate">connSecUpdate</a></li><li><a href="Adapter.html#event:dataLengthChanged">dataLengthChanged</a></li><li><a href="Adapter.html#event:descriptorAdded">descriptorAdded</a></li><li><a href="Adapter.html#event:descriptorValueChanged">descriptorValueChanged</a></li><li><a href="Adapter.html#event:deviceConnected">deviceConnected</a></li><li><a href="Adapter.html#event:deviceDisconnected">deviceDisconnected</a></li><li><a href="Adapter.html#event:deviceDiscovered">deviceDiscovered</a></li><li><a href="Adapter.html#event:deviceNotifiedOrIndicated">deviceNotifiedOrIndicated</a></li><li><a href="Adapter.html#event:error">error</a></li><li><a href="Adapter.html#event:keyPressed">keyPressed</a></li><li><a href="Adapter.html#event:lescDhkeyRequest">lescDhkeyRequest</a></li><li><a href="Adapter.html#event:logMessage">logMessage</a></li><li><a href="Adapter.html#event:opened">opened</a></li><li><a href="Adapter.html#event:passkeyDisplay">passkeyDisplay</a></li><li><a href="Adapter.html#event:scanTimedOut">scanTimedOut</a></li><li><a href="Adapter.html#event:secInfoRequest">secInfoRequest</a></li><li><a href="Adapter.html#event:secParamsRequest">secParamsRequest</a></li><li><a href="Adapter.html#event:securityChanged">securityChanged</a></li><li><a href="Adapter.html#event:securityRequest">securityRequest</a></li><li><a href="Adapter.html#event:securityRequestTimedOut">securityRequestTimedOut</a></li><li><a href="Adapter.html#event:serviceAdded">serviceAdded</a></li><li><a href="Adapter.html#event:stateChanged">stateChanged</a></li><li><a href="Adapter.html#event:status">status</a></li><li><a href="Adapter.html#event:txComplete">txComplete</a></li><li><a href="Adapter.html#event:warning">warning</a></li><li><a href="Dfu.html#event:progressUpdate">progressUpdate</a></li><li><a href="Dfu.html#event:transferComplete">transferComplete</a></li><li><a href="Dfu.html#event:transferStart">transferStart</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Enumeration">Enumeration</a></li><li><a href="global.html#Update">Update</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AdapterFactory.html">AdapterFactory</a></li><li><a href="AdapterState.html">AdapterState</a></li><li><a href="Characteristic.html">Characteristic</a></li><li><a href="Descriptor.html">Descriptor</a></li><li><a href="Device.html">Device</a></li><li><a href="Dfu.html">Dfu</a></li><li><a href="FirmwareUpdater.html">FirmwareUpdater</a></li><li><a href="Security.html">Security</a></li><li><a href="Service.html">Service</a></li><li><a href="ServiceFactory.html">ServiceFactory</a></li></ul><h3>Events</h3><ul><li><a href="Dfu.html#event:progressUpdate">progressUpdate</a></li><li><a href="Dfu.html#event:transferComplete">transferComplete</a></li><li><a href="Dfu.html#event:transferStart">transferStart</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Enumeration">Enumeration</a></li><li><a href="global.html#Update">Update</a></li></ul>
 </nav>
 
 <br class="clear">

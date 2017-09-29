@@ -126,15 +126,7 @@
 
             
 
-            <td class="description last">Configuration parameters.
-Available transport parameters:
- <ul>
- <li>{Object} adapter: An instance of adapter.
- <li>{string} targetAddress: The target address to connect to.
- <li>{string} targetAddressType: The target address type.
- <li>{number} [prnValue]: Packet receipt notification number.
- <li>{number} [mtuSize]: Maximum transmission unit number.
- </ul></td>
+            <td class="description last">Configuration parameters.Available transport parameters: <ul> <li>{Object} adapter: An instance of adapter. <li>{string} targetAddress: The target address to connect to. <li>{string} targetAddressType: The target address type. <li>{number} [prnValue]: Packet receipt notification number. <li>{number} [mtuSize]: Maximum transmission unit number. </ul></td>
         </tr>
 
     
@@ -175,7 +167,7 @@ Available transport parameters:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line69">line 69</a>
+        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line66">line 66</a>
     </li></ul></dd>
     
 
@@ -192,7 +184,7 @@ Available transport parameters:
 
 <h5>Fires:</h5>
 <ul>
-    <li><a href="Adapter.html#event:stateChanged">Adapter#event:stateChanged</a></li>
+    <li>Adapter#event:stateChanged</li>
 
     <li><a href="Dfu.html#event:transferStart">Dfu#event:transferStart</a></li>
 
@@ -200,7 +192,7 @@ Available transport parameters:
 
     <li><a href="Dfu.html#event:progressUpdate">Dfu#event:progressUpdate</a></li>
 
-    <li><a href="Adapter.html#event:logMessage">Adapter#event:logMessage</a></li>
+    <li>Adapter#event:logMessage</li>
 </ul>
 
 
@@ -288,7 +280,7 @@ Available transport parameters:
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line147">line 147</a>
+        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line144">line 144</a>
     </li></ul></dd>
     
 
@@ -344,27 +336,7 @@ Available transport parameters:
 
 
 <div class="description">
-    Get and return manifest object from the given zip file.
-
-The manifest object has one or more of the following properties:
-{
-  application: {},
-  bootloader: {},
-  softdevice: {},
-  softdevice_bootloader: {},
-}
-
-Each of the above properties have the following:
-{
-  bin_file: <string>, // Firmware filename
-  dat_file: <string>, // Init packet filename
-}
-
-The softdevice_bootloader property also has:
-info_read_only_metadata: {
-  bl_size: <integer>, // Bootloader size
-  sd_size: <integer>, // Softdevice size
-}
+    Get and return manifest object from the given zip file.The manifest object has one or more of the following properties:{  application: {},  bootloader: {},  softdevice: {},  softdevice_bootloader: {},}Each of the above properties have the following:{  bin_file: <string>, // Firmware filename  dat_file: <string>, // Init packet filename}The softdevice_bootloader property also has:info_read_only_metadata: {  bl_size: <integer>, // Bootloader size  sd_size: <integer>, // Softdevice size}
 </div>
 
 
@@ -480,7 +452,7 @@ info_read_only_metadata: {
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line430">line 430</a>
+        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line427">line 427</a>
     </li></ul></dd>
     
 
@@ -652,7 +624,7 @@ info_read_only_metadata: {
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line109">line 109</a>
+        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line106">line 106</a>
     </li></ul></dd>
     
 
@@ -822,7 +794,7 @@ info_read_only_metadata: {
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line267">line 267</a>
+        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line264">line 264</a>
     </li></ul></dd>
     
 
@@ -966,7 +938,7 @@ info_read_only_metadata: {
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line252">line 252</a>
+        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line249">line 249</a>
     </li></ul></dd>
     
 
@@ -1110,7 +1082,7 @@ info_read_only_metadata: {
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line229">line 229</a>
+        <a href="dfu.js.html">dfu.js</a>, <a href="dfu.js.html#line226">line 226</a>
     </li></ul></dd>
     
 
@@ -1148,7 +1120,7 @@ info_read_only_metadata: {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="AdapterFactory.html">AdapterFactory</a></li><li><a href="AdapterState.html">AdapterState</a></li><li><a href="Characteristic.html">Characteristic</a></li><li><a href="Descriptor.html">Descriptor</a></li><li><a href="Device.html">Device</a></li><li><a href="Dfu.html">Dfu</a></li><li><a href="Error.html">Error</a></li><li><a href="FirmwareUpdater.html">FirmwareUpdater</a></li><li><a href="Security.html">Security</a></li><li><a href="Service.html">Service</a></li><li><a href="ServiceFactory.html">ServiceFactory</a></li></ul><h3>Events</h3><ul><li><a href="Adapter.html#event:advertiseTimedOut">advertiseTimedOut</a></li><li><a href="Adapter.html#event:attMtuChanged">attMtuChanged</a></li><li><a href="Adapter.html#event:authKeyRequest">authKeyRequest</a></li><li><a href="Adapter.html#event:authStatus">authStatus</a></li><li><a href="Adapter.html#event:characteristicAdded">characteristicAdded</a></li><li><a href="Adapter.html#event:characteristicValueChanged">characteristicValueChanged</a></li><li><a href="Adapter.html#event:closed">closed</a></li><li><a href="Adapter.html#event:connectTimedOut">connectTimedOut</a></li><li><a href="Adapter.html#event:connParamUpdate">connParamUpdate</a></li><li><a href="Adapter.html#event:connParamUpdateRequest">connParamUpdateRequest</a></li><li><a href="Adapter.html#event:connSecUpdate">connSecUpdate</a></li><li><a href="Adapter.html#event:dataLengthChanged">dataLengthChanged</a></li><li><a href="Adapter.html#event:descriptorAdded">descriptorAdded</a></li><li><a href="Adapter.html#event:descriptorValueChanged">descriptorValueChanged</a></li><li><a href="Adapter.html#event:deviceConnected">deviceConnected</a></li><li><a href="Adapter.html#event:deviceDisconnected">deviceDisconnected</a></li><li><a href="Adapter.html#event:deviceDiscovered">deviceDiscovered</a></li><li><a href="Adapter.html#event:deviceNotifiedOrIndicated">deviceNotifiedOrIndicated</a></li><li><a href="Adapter.html#event:error">error</a></li><li><a href="Adapter.html#event:keyPressed">keyPressed</a></li><li><a href="Adapter.html#event:lescDhkeyRequest">lescDhkeyRequest</a></li><li><a href="Adapter.html#event:logMessage">logMessage</a></li><li><a href="Adapter.html#event:opened">opened</a></li><li><a href="Adapter.html#event:passkeyDisplay">passkeyDisplay</a></li><li><a href="Adapter.html#event:scanTimedOut">scanTimedOut</a></li><li><a href="Adapter.html#event:secInfoRequest">secInfoRequest</a></li><li><a href="Adapter.html#event:secParamsRequest">secParamsRequest</a></li><li><a href="Adapter.html#event:securityChanged">securityChanged</a></li><li><a href="Adapter.html#event:securityRequest">securityRequest</a></li><li><a href="Adapter.html#event:securityRequestTimedOut">securityRequestTimedOut</a></li><li><a href="Adapter.html#event:serviceAdded">serviceAdded</a></li><li><a href="Adapter.html#event:stateChanged">stateChanged</a></li><li><a href="Adapter.html#event:status">status</a></li><li><a href="Adapter.html#event:txComplete">txComplete</a></li><li><a href="Adapter.html#event:warning">warning</a></li><li><a href="Dfu.html#event:progressUpdate">progressUpdate</a></li><li><a href="Dfu.html#event:transferComplete">transferComplete</a></li><li><a href="Dfu.html#event:transferStart">transferStart</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Enumeration">Enumeration</a></li><li><a href="global.html#Update">Update</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AdapterFactory.html">AdapterFactory</a></li><li><a href="AdapterState.html">AdapterState</a></li><li><a href="Characteristic.html">Characteristic</a></li><li><a href="Descriptor.html">Descriptor</a></li><li><a href="Device.html">Device</a></li><li><a href="Dfu.html">Dfu</a></li><li><a href="FirmwareUpdater.html">FirmwareUpdater</a></li><li><a href="Security.html">Security</a></li><li><a href="Service.html">Service</a></li><li><a href="ServiceFactory.html">ServiceFactory</a></li></ul><h3>Events</h3><ul><li><a href="Dfu.html#event:progressUpdate">progressUpdate</a></li><li><a href="Dfu.html#event:transferComplete">transferComplete</a></li><li><a href="Dfu.html#event:transferStart">transferStart</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Enumeration">Enumeration</a></li><li><a href="global.html#Update">Update</a></li></ul>
 </nav>
 
 <br class="clear">
