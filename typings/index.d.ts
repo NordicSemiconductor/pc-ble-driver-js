@@ -34,10 +34,10 @@ export declare interface ScanParameters {
 }
 
 export declare interface ConnectionParameters {
-  min_conn_interval: number;
-  max_conn_interval: number;
-  slave_latency: number;
-  conn_sup_timeout: number;
+  minConnectionInterval: number;
+  maxConnectionInterval: number;
+  slaveLatency: number;
+  connectionSupervisionTimeout: number;
 }
 
 /**
@@ -71,6 +71,24 @@ export declare interface SecurityKeys {
   pk: string;
 }
 
+export declare interface AuthParameters {
+  securityMode: number;
+  securityLevel: number;
+}
+
+export declare interface AuthStatus {
+  auth_status: number,
+  auth_status_name: string,
+  error_src: number,
+  error_src_name: string,
+  bonded: boolean,
+  sm1_levels: number,
+  sm2_levels: number,
+  kdist_own: any, // FIXME:
+  kdist_peer: any, // FIXME:
+  keyset: any, // FIXME:
+}
+
 export declare interface ConnectionOptions {
   scanParams: ScanParameters;
   connParams: ConnectionParameters;
@@ -95,9 +113,22 @@ export declare interface Device {
   addressType: string;
   role: string;
   connectionHandle: number;
+  connected: boolean;
+  txPower: number;
+  minConnectionInterval:number;
+  maxConnectionInterval:number;
+  slaveLatency:number;
+  connectionSupervisionTimeout:number;
+  paired:boolean;
   name: string;
   rssi: number;
+  rssi_level: number;
+  advType: string;
   adData: any;
+  services: Array<any>;
+  flags: any;
+  scanResponse: any;
+  time: Date;
 }
 
 export declare interface Service {
@@ -201,7 +232,7 @@ declare class Adapter extends EventEmitter {
   encrypt(deviceInstanceId: string, masterId: any, encInfo: any, callback?: (err: any) => void): void;
   secInfoReply(deviceInstanceId: string, encInfo: any, idInfo: any, signInfo: any, callback?: (err: any) => void): void;
 
-  on(event: 'secParamsRequest', listener: (device: Device, peer_params: any) => void): this; // FIXME: define event.peer_params
+  on(event: 'secParamsRequest', listener: (device: Device, peer_params: SecurityParameters) => void): this;
   on(event: 'error', listener: (error: Error) => void): this;
   on(event: 'stateChanged', listener: (adapterState: AdapterState) => void): this;
   on(event: 'warning', listener: (warning: Error) => void): this;
@@ -211,10 +242,10 @@ declare class Adapter extends EventEmitter {
   on(event: 'logMessage', listener: (severity: string, message: string) => void): this;
   on(event: 'deviceConnected', listener: (device: Device) => void): this;
   on(event: 'deviceDisconnected', listener: (device: Device, reason_name: string, reason: string) => void): this;
-  on(event: 'connParamUpdate', listener: (device: Device, connectionParameters: any) => void): this; // FIXME: define connectionParameters
-  on(event: 'connSecUpdate', listener: (device: Device, conn_sec: any) => void): this; // FIXME: define conn_sec
-  on(event: 'securityChanged', listener: (device: Device, authParameters: any) => void): this; // FIXME: define authParamters
-  on(event: 'authStatus', listener: (device: Device, status: any) => void): this; // FIXME: define status
+  on(event: 'connParamUpdate', listener: (device: Device, connectionParameters: ConnectionParameters) => void): this;
+  on(event: 'connSecUpdate', listener: (device: Device, conn_sec: AuthParameters) => void): this;
+  on(event: 'securityChanged', listener: (device: Device, authParameters: AuthParameters) => void): this;
+  on(event: 'authStatus', listener: (device: Device, status: AuthStatus) => void): this;
   on(event: 'passkeyDisplay', listener: (device: Device, matchRequest: number, passkey: string) => void): this;
   on(event: 'authKeyRequest', listener: (device: Device, keyType: string) => void): this;
   on(event: 'keyPressed', listener: (device: Device, keyPressNotificationType: string) => void): this;
