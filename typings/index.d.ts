@@ -1,3 +1,5 @@
+import { EventEmitter } from 'events';
+
 export declare interface Error {
   message: string;
   description: string;
@@ -94,6 +96,12 @@ export declare interface ConnectionOptions {
   connParams: ConnectionParameters;
 }
 
+export declare interface AdapterFirmwareVersion {
+  version_number: number;
+  company_id: number;
+  subversion_number: number;
+}
+
 export declare interface AdapterState {
   instanceId: string;
   port: string;
@@ -105,6 +113,7 @@ export declare interface AdapterState {
   scanning: boolean;
   advertising: boolean;
   connecting: boolean;
+  firmwareVersion: AdapterFirmwareVersion;
 }
 
 export declare interface Device {
@@ -172,21 +181,6 @@ export declare interface Descriptor {
   value: Array<number>;
 }
 
-// This is the declaration of EventEmitter taken
-// from node.d.ts file
-declare class EventEmitter {
-  addListener(event: string, listener: Function): this;
-  on(event: string, listener: Function): this;
-  once(event: string, listener: Function): this;
-  removeListener(event: string, listener: Function): this;
-  removeAllListeners(event?: string): this;
-  setMaxListeners(n: number): this;
-  getMaxListeners(): number;
-  listeners(event: string): Function[];
-  emit(event: string, ...args: any[]): boolean;
-  listenerCount(type: string): number;
-}
-
 declare class Adapter extends EventEmitter {
   instanceId: string;
   driver: any;
@@ -252,7 +246,7 @@ declare class Adapter extends EventEmitter {
   on(event: 'lescDhkeyRequest', listener: (device: Device, pk_peer: any) => void): this; // FIXME: define pk_peer
   on(event: 'secInfoRequest', listener: (device: Device, event: any) => void): this; // FIXME: define event
   on(event: 'securityRequest', listener: (device: Device, event: any) => void): this; // FIXME: define event
-  on(event: 'connParamUpdateRequest', listener: (device: Device, connectionParameters: any) => void): this; // FIXME: define connectionParameters
+  on(event: 'connParamUpdateRequest', listener: (device: Device, connectionParameters: ConnectionParameters) => void): this;
   on(event: 'deviceDiscovered', listener: (device: Device) => void): this;
   on(event: 'advertiseTimeout', listener: () => void): this;
   on(event: 'scanTimedOut', listener: () => void): this;
