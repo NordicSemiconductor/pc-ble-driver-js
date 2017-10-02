@@ -36,10 +36,14 @@ export declare interface ScanParameters {
 }
 
 export declare interface ConnectionParameters {
-  minConnectionInterval: number;
-  maxConnectionInterval: number;
-  slaveLatency: number;
-  connectionSupervisionTimeout: number;
+  minConnectionInterval?: number;
+  min_conn_interval?: number; // FIXME: https://github.com/NordicSemiconductor/pc-ble-driver-js/issues/76
+  maxConnectionInterval?: number;
+  max_conn_interval?: number; // FIXME: https://github.com/NordicSemiconductor/pc-ble-driver-js/issues/76
+  slaveLatency?: number;
+  slave_latency?: number; // FIXME: https://github.com/NordicSemiconductor/pc-ble-driver-js/issues/76
+  connectionSupervisionTimeout?: number; 
+  conn_sup_timeout?: number; // FIXME: https://github.com/NordicSemiconductor/pc-ble-driver-js/issues/76
 }
 
 /**
