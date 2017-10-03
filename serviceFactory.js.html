@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: serviceFactory.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: serviceFactory.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/* Copyright (c) 2016, Nordic Semiconductor ASA
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ *   1. Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ *   2. Redistributions in binary form, except as embedded into a Nordic
+ *   Semiconductor ASA integrated circuit in a product or a software update for
+ *   such product, must reproduce the above copyright notice, this list of
+ *   conditions and the following disclaimer in the documentation and/or other
+ *   materials provided with the distribution.
+ *
+ *   3. Neither the name of Nordic Semiconductor ASA nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
+ *
+ *   4. This software, with or without modification, must only be used with a
+ *   Nordic Semiconductor ASA integrated circuit.
+ *
+ *   5. Any software provided in binary form under this license must not be
+ *   reverse engineered, decompiled, modified and/or disassembled.
+ *
+ *
+ * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL NORDIC SEMICONDUCTOR ASA OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+'use strict';
+
+const Service = require('./service');
+const Characteristic = require('./characteristic');
+const Descriptor = require('./descriptor');
+
+/**
+ * Class that provides factory methods for creating `Service`, `Characteristic` and `Descriptor` instances.
+ */
+class ServiceFactory {
+    /**
+     * Factory method to create a service in the Bluetooth `Device's` 'local.server' GATT attribute table.
+     *
+     * @param {string} uuid A 128-bit or 16-bit unique identifier for this service.
+     * @param {string} serviceType The server service type. 'primary' (default) or `secondary`.
+     * @returns {Service} A newly created `Service` instance.
+     */
+    createService(uuid, serviceType) {
+        serviceType = typeof serviceType !== 'undefined' ? serviceType : 'primary';
+        return new Service('local.server', uuid, serviceType);
+    }
+
+    /**
+     * Factory method to create a characteristic in the Bluetooth `Device's` GATT attribute table.
+     *
+     * @param {Service} service The `Service` instance this characteristic is to be added to.
+     * @param {string} uuid A 128-bit or 16-bit unique identifier for this characteristic.
+     * @param {array} value The initial value of this characteristic.
+     * @param {Object} properties This GATT characteristic's metadata.
+     * Available characteristic properties:
+     *  &lt;ul>
+     *  &lt;li>{boolean} broadcast: Broadcasting of the value permitted.
+     *  &lt;li>{boolean} read: Reading the value permitted.
+     *  &lt;li>{boolean} write: Writing the value with Write Request permitted.
+     *  &lt;li>{boolean} writeWoResp: Writing the value with Write Command permitted.
+     *  &lt;li>{boolean} reliableWrite: Writing the value with Queued Write operations permitted.
+     *  &lt;li>{boolean} notify: Notications of the value permitted.
+     *  &lt;li>{boolean} indicate: Indications of the value permitted.
+     *  &lt;li>{boolean} authSignedWr: Writing the value with Signed Write Command permitted.
+     *  &lt;li>{boolean} wrAux: Writing the Characteristic User Description descriptor permitted.
+     *  &lt;/ul>
+     * @param {Object} options This GATT characteristic's attribute's metadata.
+     * Available characteristic options:
+     *  &lt;ul>
+     *  &lt;li>{string} readPerm: Read permissions.
+     *  &lt;li>{string} writePerm: Write permissions.
+     *  &lt;li>{boolean} variableLength: Variable length attribute.
+     *  &lt;li>{number} maxLength: Maximum attribute value length in bytes, see ref BLE_GATTS_ATTR_LENS_MAX for maximum values.
+     *  &lt;li>{boolean} readAuth: Read authorization and value will be requested from the application on every read operation.
+     *  &lt;li>{boolean} writeAuth: Write authorization will be requested from the application on every Write Request operation (but not Write Command).
+     *  &lt;li>Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
+     *  &lt;/ul>
+     * @returns {Characteristic} A newly created `Characteristic` instance.
+     */
+    createCharacteristic(service, uuid, value, properties, options) {
+        // TODO: we are mutating the service parameter here. May want to re-work this method.
+
+        if (!service) {
+            throw new Error('Service to add characteristics to must be provided.');
+        }
+
+        if (service._factory_characteristics === undefined) {
+            service._factory_characteristics = [];
+        }
+
+        const characteristic = new Characteristic(service.instanceId, uuid, value, properties, options);
+
+        service._factory_characteristics.push(characteristic);
+        return characteristic;
+    }
+
+    /**
+     * Factory method to create a descriptor in the Bluetooth `Device's` GATT attribute table.
+     *
+     * @param {Characteristic} characteristic The `Characteristic` instance this descriptor is to be added to.
+     * @param {string} uuid A 128-bit or 16-bit unique identifier for this descriptor.
+     * @param {array} value The initial value of this descriptor.
+     * @param {Object} options This GATT descriptor's attribute's metadata.
+     * Available descriptor options:
+     * &lt;ul>
+     * &lt;li>{string} readPerm: Read permissions.
+     * &lt;li>{string} writePerm: Write permissions.
+     * &lt;li>{boolean} variableLength: Variable length attribute.
+     * &lt;li>{number} maxLength: Maximum attribute value length in bytes, see ref BLE_GATTS_ATTR_LENS_MAX for maximum values.
+     * &lt;li>{boolean} readAuth: Read authorization and value will be requested from the application on every read operation.
+     * &lt;li>{boolean} writeAuth: Write authorization will be requested from the application on every Write Request operation (but not Write Command).
+     * &lt;li>Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
+     * &lt;/ul>
+     * @returns {Descriptor} A newly created `Descriptor` instance.
+     */
+    createDescriptor(characteristic, uuid, value, options) {
+        // TODO: we are mutating the characteristic parameter here. May want to re-work this method.
+
+        if (!characteristic) {
+            throw new Error('Characteristic to add descriptor to must be provided.');
+        }
+
+        if (characteristic._factory_descriptors === undefined) {
+            characteristic._factory_descriptors = [];
+        }
+
+        const descriptor = new Descriptor(characteristic.instanceId, uuid, value, options);
+
+        characteristic._factory_descriptors.push(descriptor);
+        return descriptor;
+    }
+}
+
+module.exports = ServiceFactory;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="AdapterFactory.html">AdapterFactory</a></li><li><a href="AdapterState.html">AdapterState</a></li><li><a href="Characteristic.html">Characteristic</a></li><li><a href="Descriptor.html">Descriptor</a></li><li><a href="Device.html">Device</a></li><li><a href="Dfu.html">Dfu</a></li><li><a href="Error.html">Error</a></li><li><a href="FirmwareUpdater.html">FirmwareUpdater</a></li><li><a href="Security.html">Security</a></li><li><a href="Service.html">Service</a></li><li><a href="ServiceFactory.html">ServiceFactory</a></li></ul><h3>Events</h3><ul><li><a href="Adapter.html#event:advertiseTimedOut">advertiseTimedOut</a></li><li><a href="Adapter.html#event:attMtuChanged">attMtuChanged</a></li><li><a href="Adapter.html#event:authKeyRequest">authKeyRequest</a></li><li><a href="Adapter.html#event:authStatus">authStatus</a></li><li><a href="Adapter.html#event:characteristicAdded">characteristicAdded</a></li><li><a href="Adapter.html#event:characteristicValueChanged">characteristicValueChanged</a></li><li><a href="Adapter.html#event:closed">closed</a></li><li><a href="Adapter.html#event:connectTimedOut">connectTimedOut</a></li><li><a href="Adapter.html#event:connParamUpdate">connParamUpdate</a></li><li><a href="Adapter.html#event:connParamUpdateRequest">connParamUpdateRequest</a></li><li><a href="Adapter.html#event:connSecUpdate">connSecUpdate</a></li><li><a href="Adapter.html#event:dataLengthChanged">dataLengthChanged</a></li><li><a href="Adapter.html#event:descriptorAdded">descriptorAdded</a></li><li><a href="Adapter.html#event:descriptorValueChanged">descriptorValueChanged</a></li><li><a href="Adapter.html#event:deviceConnected">deviceConnected</a></li><li><a href="Adapter.html#event:deviceDisconnected">deviceDisconnected</a></li><li><a href="Adapter.html#event:deviceDiscovered">deviceDiscovered</a></li><li><a href="Adapter.html#event:deviceNotifiedOrIndicated">deviceNotifiedOrIndicated</a></li><li><a href="Adapter.html#event:error">error</a></li><li><a href="Adapter.html#event:keyPressed">keyPressed</a></li><li><a href="Adapter.html#event:lescDhkeyRequest">lescDhkeyRequest</a></li><li><a href="Adapter.html#event:logMessage">logMessage</a></li><li><a href="Adapter.html#event:opened">opened</a></li><li><a href="Adapter.html#event:passkeyDisplay">passkeyDisplay</a></li><li><a href="Adapter.html#event:scanTimedOut">scanTimedOut</a></li><li><a href="Adapter.html#event:secInfoRequest">secInfoRequest</a></li><li><a href="Adapter.html#event:secParamsRequest">secParamsRequest</a></li><li><a href="Adapter.html#event:securityChanged">securityChanged</a></li><li><a href="Adapter.html#event:securityRequest">securityRequest</a></li><li><a href="Adapter.html#event:securityRequestTimedOut">securityRequestTimedOut</a></li><li><a href="Adapter.html#event:serviceAdded">serviceAdded</a></li><li><a href="Adapter.html#event:stateChanged">stateChanged</a></li><li><a href="Adapter.html#event:status">status</a></li><li><a href="Adapter.html#event:txComplete">txComplete</a></li><li><a href="Adapter.html#event:warning">warning</a></li><li><a href="Dfu.html#event:progressUpdate">progressUpdate</a></li><li><a href="Dfu.html#event:transferComplete">transferComplete</a></li><li><a href="Dfu.html#event:transferStart">transferStart</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Enumeration">Enumeration</a></li><li><a href="global.html#Update">Update</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
