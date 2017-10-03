@@ -45,6 +45,6 @@
     "sinon": "^1.17.1",
     "yargs": "^3.29.0"
   },
-  "typings": "local_typings/index.d.ts",
+  "typings": "typings/index.d.ts",
   "pre-commit": "docs"
 }
