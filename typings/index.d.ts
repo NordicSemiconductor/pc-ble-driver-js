@@ -274,8 +274,8 @@ export declare class AdapterFactory extends EventEmitter {
 
 export declare class ServiceFactory {
   createService(uuid: string, serviceType: string);
-  createCharacteristic(service: Service, uuid: string, value: any, properties: any, options: any);
-  createDescriptor(characteristic: Characteristic, uuid: string, value: string, options: string);
+  createCharacteristic(service: Service, uuid: string, value: Array<number>, properties: any, options: any);
+  createDescriptor(characteristic: Characteristic, uuid: string, value: Array<number>, options: any);
 }
 
 export declare interface KeyPair {
