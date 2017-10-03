@@ -34,6 +34,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+const path = require('path');
 const exec = require('child_process').exec;
 
 exec('git diff --cached --name-only', (error, stdout, stderr) => {
@@ -48,7 +49,7 @@ exec('git diff --cached --name-only', (error, stdout, stderr) => {
         // if a .js file in api/ is staged for commit, update the auto-generated api docs
         if (file.startsWith('api/') && file.endsWith('.js')) {
             console.log('Generating docs for api/ and adding them to this commit.');
-            exec('node_modules/.bin/jsdoc api/ -d docs/ -c .jsdoc_conf.json', (error, stdout, stderr) => {
+            exec(`node_modules${path.sep}.bin${path.sep}documentation build api/** -f html -o docs/ -c .jsdoc_conf.json`, (error, stdout, stderr) => {
                 if (error) {
                     console.log(`Generating docs failed with error: ${error}.`);
                     console.log(stderr);
@@ -63,8 +64,6 @@ exec('git diff --cached --name-only', (error, stdout, stderr) => {
                     }
                 });
             });
-
-            return;
         }
     });
 });
