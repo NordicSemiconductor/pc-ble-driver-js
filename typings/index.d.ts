@@ -219,6 +219,7 @@ declare class Adapter extends EventEmitter {
   readCharacteristicValue(characteristicId: string, callback?: (err: any, bytesRead: Array<number>) => void): void;
   writeCharacteristicValue(characteristicId: string, value: Array<number>, ack: boolean, callback?: (error: Error) => void): void;
   readDescriptorValue(descriptorId: string, callback?: (err: any, value: Array<number>) => void): void;
+  writeDescriptorValue(descriptorId: string, value: Array<number>, ack: boolean, callback?: (error: Error) => void): void;
 
   authenticate(deviceInstanceId: string, secParams: any, callback?: (err: any) => void): void;
   replySecParams(deviceInstanceId: string, secStatus: number, secParams: SecurityParameters | null, secKeys: SecurityKeys | null, callback?: (err: any, keyset?: any) => void): void;
