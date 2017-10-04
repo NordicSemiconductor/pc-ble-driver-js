@@ -58,6 +58,12 @@ class AdapterState {
         this.flowControl = null;
 
         this.available = false;
+
+        /**
+         * Whether the BLE stack has been enabled.
+         * @type {boolean}
+         */
+        this.bleEnabled = false;
         this.scanning = false;
         this.advertising = false;
         this.connecting = false;
