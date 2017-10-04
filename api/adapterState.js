@@ -52,11 +52,33 @@ class AdapterState {
         this._instanceId = `${instanceId}.${port}`;
         this._port = port;
         this._serialNumber = serialNumber;
+        this._address = null;
+        this._addressType = null;
 
+        /**
+         * The baud rate that the adapter's serial port is configured with.
+         * @type {number}
+         */
         this.baudRate = null;
+
+        /**
+         * The parity that the adapter's serial port is configured with.
+         * Can be either 'none' or 'even'.
+         * @type {string}
+         */
         this.parity = null;
+
+        /**
+         * Whether flow control is configured for this adapter's serial port.
+         * Can be either 'none' or 'hw'.
+         * @type {string}
+         */
         this.flowControl = null;
 
+        /**
+         * Whether the adapter is available and successfully opened.
+         * @type {boolean}
+         */
         this.available = false;
 
         /**
@@ -64,13 +86,35 @@ class AdapterState {
          * @type {boolean}
          */
         this.bleEnabled = false;
+
+        /**
+         * Whether the adapter is currently scanning for devices.
+         * @type {boolean}
+         */
         this.scanning = false;
+
+        /**
+         * Whether the adapter is currently advertising.
+         * @type {boolean}
+         */
         this.advertising = false;
+
+        /**
+         * Whether the adapter is currently connecting to a device.
+         * @type {boolean}
+         */
         this.connecting = false;
 
-        this._address = null;
-        this._addressType = null;
+        /**
+         * The device name that is related to this adapter.
+         * @type {string}
+         */
         this.name = null;
+
+        /**
+         * The SoftDevice firmware version used by this adapter.
+         * @type {string}
+         */
         this.firmwareVersion = null;
     }
 
