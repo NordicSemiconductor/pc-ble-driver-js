@@ -219,6 +219,7 @@ declare class Adapter extends EventEmitter {
   readCharacteristicValue(characteristicId: string, callback?: (err: any, bytesRead: Array<number>) => void): void;
   writeCharacteristicValue(characteristicId: string, value: Array<number>, ack: boolean, callback?: (error: Error) => void): void;
   readDescriptorValue(descriptorId: string, callback?: (err: any, value: Array<number>) => void): void;
+  writeDescriptorValue(descriptorId: string, value: Array<number>, ack: boolean, callback?: (error: Error) => void): void;
 
   authenticate(deviceInstanceId: string, secParams: any, callback?: (err: any) => void): void;
   replySecParams(deviceInstanceId: string, secStatus: number, secParams: SecurityParameters | null, secKeys: SecurityKeys | null, callback?: (err: any, keyset?: any) => void): void;
@@ -274,8 +275,8 @@ export declare class AdapterFactory extends EventEmitter {
 
 export declare class ServiceFactory {
   createService(uuid: string, serviceType: string);
-  createCharacteristic(service: Service, uuid: string, value: any, properties: any, options: any);
-  createDescriptor(characteristic: Characteristic, uuid: string, value: string, options: string);
+  createCharacteristic(service: Service, uuid: string, value: Array<number>, properties: any, options: any);
+  createDescriptor(characteristic: Characteristic, uuid: string, value: Array<number>, options: any);
 }
 
 export declare interface KeyPair {
