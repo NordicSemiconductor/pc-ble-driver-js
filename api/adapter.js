@@ -399,8 +399,9 @@ class Adapter extends EventEmitter {
             this.emit('opened', this);
 
             if (options.enableBLE) {
+                this._changeState({ bleEnabled: true });
                 this.getState(getStateError => {
-                    if (this._checkAndPropagateError(getStateError, 'Error retrieving adapter state.', callback)) { return; }
+                    this._checkAndPropagateError(getStateError, 'Error retrieving adapter state.', callback);
                 });
             }
 
@@ -417,7 +418,10 @@ class Adapter extends EventEmitter {
      * @returns {void}
      */
     close(callback) {
-        this._changeState({ available: false });
+        this._changeState({
+            available: false,
+            bleEnabled: false,
+        });
         this._adapter.close(error => {
             /**
              * Adapter closed event.
@@ -511,7 +515,7 @@ class Adapter extends EventEmitter {
             options,
             (err, parameters, app_ram_base) => {
                 if (this._checkAndPropagateError(err, 'Enabling BLE failed.', callback)) { return; }
-
+                this._changeState({ bleEnabled: true });
                 if (callback) {
                     callback(err, parameters, app_ram_base);
                 }
@@ -525,6 +529,7 @@ class Adapter extends EventEmitter {
                 this._changeState(
                     {
                         available: false,
+                        bleEnabled: false,
                         connecting: false,
                         scanning: false,
                         advertising: false,
@@ -1997,6 +2002,7 @@ class Adapter extends EventEmitter {
 
                     changedStates.address = address;
                     changedStates.available = true;
+                    changedStates.bleEnabled = true;
 
                     this._changeState(changedStates);
                     if (callback) { callback(undefined, this._state); }
