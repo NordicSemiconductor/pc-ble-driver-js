@@ -446,6 +446,10 @@ class Adapter extends EventEmitter {
      * @returns {void}
      */
     close(callback) {
+        if (!this._state.available) {
+            if (callback) callback();
+            return;
+        }
         this._changeState({
             available: false,
             bleEnabled: false,
