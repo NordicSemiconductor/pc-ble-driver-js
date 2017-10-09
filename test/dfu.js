@@ -58,13 +58,16 @@ function setupAdapter(adapter, callback) {
         baudRate: 1000000,
         parity: 'none',
         flowControl: 'none',
-        enableBLE: true,
+        enableBLE: false,
         eventInterval: 0,
     };
 
     adapter.open(options, error => {
         assert(!error);
-        callback();
+        adapter.enableBLE(null, err => {
+            assert(!err);
+            callback();
+        });
     });
 }
 
