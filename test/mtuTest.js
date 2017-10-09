@@ -107,7 +107,7 @@ function connect(adapter, connectToAddress) {
             options,
             error => {
                 if (error) {
-                    return reject();
+                    return reject(error);
                 }
 
                 return resolve();
@@ -206,7 +206,7 @@ function startAdvertising(adapter) {
             {}, // scan response data
             advDataErr => {
                 if (advDataErr) {
-                    return reject();
+                    return reject(advDataErr);
                 }
 
                 return resolve();
@@ -220,7 +220,7 @@ function startAdvertising(adapter) {
                 },
                 startAdvErr => {
                     if (startAdvErr) {
-                        return reject();
+                        return reject(startAdvErr);
                     }
 
                     return resolve();
@@ -236,7 +236,7 @@ function onConnected(adapter, peerDevice) {
 
             adapter.requestAttMtu(peerDevice.instanceId, mtu, (err, newMtu) => {
                 if (err) {
-                    return reject();
+                    return reject(err);
                 }
 
                 console.log(`ATT_MTU is ${newMtu}`);
@@ -247,7 +247,7 @@ function onConnected(adapter, peerDevice) {
         new Promise((resolve, reject) => {
             adapter.getServices(peerDevice.instanceId, (err, services) => {
                 if (err) {
-                    return reject();
+                    return reject(err);
                 }
 
                 console.log(`Services: ${JSON.stringify(services, null, ' ')}`);
@@ -310,13 +310,13 @@ function onConnected(adapter, peerDevice) {
 function runTests(centralAdapter, peripheralAdapter) {
     addAdapterListener(centralAdapter, '#CENTRAL');
     addAdapterListener(peripheralAdapter, '#PERIPH');
-    console.log('Hi');
 
     Promise.resolve()
-        .then(() => {
-            setupAdapter(centralAdapter, 'centralAdapter', centralDeviceAddress, centralDeviceAddressType, () => {});
-            console.log('Adapter was setup..');
-        })
+        .then(() =>
+            new Promise(resolve => {
+                setupAdapter(centralAdapter, 'centralAdapter', centralDeviceAddress, centralDeviceAddressType, () =>
+                    resolve());
+            }))
         .then(() =>
             new Promise(resolve => {
                 setupAdapter(peripheralAdapter, 'peripheralAdapter', peripheralDeviceAddress, peripheralDeviceAddressType, () =>
