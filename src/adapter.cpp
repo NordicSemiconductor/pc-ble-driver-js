@@ -122,6 +122,7 @@ extern "C" {
 void Adapter::initEventHandling(Nan::Callback *callback, uint32_t interval)
 {
     eventInterval = interval;
+    asyncEvent = new uv_async_t();
 
     // Setup event related functionality
     eventCallback = callback;
@@ -133,12 +134,22 @@ void Adapter::initEventHandling(Nan::Callback *callback, uint32_t interval)
         std::terminate();
     }
 
+    // Clear the statistics
+    eventCallbackCount = 0;
+
+    // Max number of events in queue before sending it to JavaScript
+    eventCallbackMaxCount = 0;
+    eventCallbackBatchEventCounter = 0;
+    eventCallbackBatchEventTotalCount = 0;
+    eventCallbackBatchNumber = 0;
+
     if (eventInterval == 0)
     {
         return;
     }
 
     if (eventIntervalTimer == nullptr)
+
     {
         eventIntervalTimer = new uv_timer_t();
     }
@@ -179,14 +190,9 @@ extern "C" {
 void Adapter::initLogHandling(Nan::Callback *callback)
 {
     // Setup event related functionality
+    asyncLog = new uv_async_t();
     logCallback = callback;
     asyncLog->data = static_cast<void *>(this);
-
-    if (asyncLog == nullptr)
-    {
-        std::cerr << "asyncLog is null, terminating." << std::endl;
-        std::terminate();
-    }
 
     if (uv_async_init(uv_default_loop(), asyncLog, log_handler) != 0)
     {
@@ -215,6 +221,7 @@ extern "C" {
 void Adapter::initStatusHandling(Nan::Callback *callback)
 {
     // Setup event related functionality
+    asyncStatus = new uv_async_t();
     statusCallback = callback;
     asyncStatus->data = static_cast<void *>(this);
 
