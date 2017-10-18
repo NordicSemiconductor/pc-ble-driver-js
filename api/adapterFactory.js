@@ -52,6 +52,41 @@ const _singleton = Symbol('Ensure that only one instance of AdapterFactory ever 
 const UPDATE_INTERVAL_MS = 2000;
 
 /**
+ * Adapter added event. Fired when a new devkit is found.
+ *
+ * @event AdapterFactory#added
+ * @param {object} adapter The adapter instance that was added.
+ */
+
+/**
+ * Adapter removed event. Fired when a devkit is removed.
+ *
+ * @event AdapterFactory#removed
+ * @param {object} adapter The adapter instance that was removed.
+ */
+
+/**
+ * Adapter opened event.
+ *
+ * @event AdapterFactory#adapterOpened
+ * @param {object} adapter The adapter instance that was opened.
+ */
+
+/**
+ * Adapter closed event.
+ *
+ * @event AdapterFactory#adapterClosed
+ * @param {object} adapter The adapter instance that was closed.
+ */
+
+/**
+ * Error event.
+ *
+ * @event AdapterFactory#error
+ * @param {Error} error Error object with a human-readable message.
+ */
+
+/**
  * Log message event.
  *
  * @event AdapterFactory#logMessage
@@ -62,6 +97,11 @@ const UPDATE_INTERVAL_MS = 2000;
 /**
  * Class that provides Adapters through the use of the pc-ble-driver AddOn and the internal `Adapter` class.
  *
+ * @fires AdapterFactory#added
+ * @fires AdapterFactory#removed
+ * @fires AdapterFactory#adapterOpened
+ * @fires AdapterFactory#adapterClosed
+ * @fires AdapterFactory#error
  * @fires AdapterFactory#logMessage
  */
 class AdapterFactory extends EventEmitter {
