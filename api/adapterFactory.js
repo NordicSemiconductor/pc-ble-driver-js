@@ -42,6 +42,7 @@ const _bleDriverV2 = require('bindings')('pc-ble-driver-js-sd_api_v2');
 const _bleDriverV3 = require('bindings')('pc-ble-driver-js-sd_api_v3');
 
 const Adapter = require('./adapter');
+const logLevel = require('./util/logLevel');
 const EventEmitter = require('events');
 
 const _bleDrivers = { v2: _bleDriverV2, v3: _bleDriverV3 };
@@ -51,7 +52,17 @@ const _singleton = Symbol('Ensure that only one instance of AdapterFactory ever 
 const UPDATE_INTERVAL_MS = 2000;
 
 /**
+ * Log message event.
+ *
+ * @event AdapterFactory#logMessage
+ * @param {string} severity Severity of the log event.
+ * @param {string} message Human-readable log message.
+ */
+
+/**
  * Class that provides Adapters through the use of the pc-ble-driver AddOn and the internal `Adapter` class.
+ *
+ * @fires AdapterFactory#logMessage
  */
 class AdapterFactory extends EventEmitter {
     /**
@@ -199,7 +210,7 @@ class AdapterFactory extends EventEmitter {
                         this.emit('added', newAdapter);
                     }
                 } catch (error) {
-                    this.emit('error', error);
+                    this.emit('logMessage', logLevel.DEBUG, `Unable to create adapter: ${error.message}`);
                 }
             }
 
