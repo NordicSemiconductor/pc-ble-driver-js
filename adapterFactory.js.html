@@ -70,6 +70,7 @@ const _bleDriverV2 = require('bindings')('pc-ble-driver-js-sd_api_v2');
 const _bleDriverV3 = require('bindings')('pc-ble-driver-js-sd_api_v3');
 
 const Adapter = require('./adapter');
+const logLevel = require('./util/logLevel');
 const EventEmitter = require('events');
 
 const _bleDrivers = { v2: _bleDriverV2, v3: _bleDriverV3 };
@@ -79,7 +80,57 @@ const _singleton = Symbol('Ensure that only one instance of AdapterFactory ever 
 const UPDATE_INTERVAL_MS = 2000;
 
 /**
+ * Adapter added event. Fired when a new devkit is found.
+ *
+ * @event AdapterFactory#added
+ * @param {object} adapter The adapter instance that was added.
+ */
+
+/**
+ * Adapter removed event. Fired when a devkit is removed.
+ *
+ * @event AdapterFactory#removed
+ * @param {object} adapter The adapter instance that was removed.
+ */
+
+/**
+ * Adapter opened event.
+ *
+ * @event AdapterFactory#adapterOpened
+ * @param {object} adapter The adapter instance that was opened.
+ */
+
+/**
+ * Adapter closed event.
+ *
+ * @event AdapterFactory#adapterClosed
+ * @param {object} adapter The adapter instance that was closed.
+ */
+
+/**
+ * Error event.
+ *
+ * @event AdapterFactory#error
+ * @param {Error} error Error object with a human-readable message.
+ */
+
+/**
+ * Log message event.
+ *
+ * @event AdapterFactory#logMessage
+ * @param {string} severity Severity of the log event.
+ * @param {string} message Human-readable log message.
+ */
+
+/**
  * Class that provides Adapters through the use of the pc-ble-driver AddOn and the internal `Adapter` class.
+ *
+ * @fires AdapterFactory#added
+ * @fires AdapterFactory#removed
+ * @fires AdapterFactory#adapterOpened
+ * @fires AdapterFactory#adapterClosed
+ * @fires AdapterFactory#error
+ * @fires AdapterFactory#logMessage
  */
 class AdapterFactory extends EventEmitter {
     /**
@@ -227,7 +278,7 @@ class AdapterFactory extends EventEmitter {
                         this.emit('added', newAdapter);
                     }
                 } catch (error) {
-                    this.emit('error', error);
+                    this.emit('logMessage', logLevel.DEBUG, `Unable to create adapter: ${error.message}`);
                 }
             }
 
@@ -281,7 +332,7 @@ module.exports = AdapterFactory;
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="AdapterFactory.html">AdapterFactory</a></li><li><a href="AdapterState.html">AdapterState</a></li><li><a href="Characteristic.html">Characteristic</a></li><li><a href="Descriptor.html">Descriptor</a></li><li><a href="Device.html">Device</a></li><li><a href="Dfu.html">Dfu</a></li><li><a href="Error.html">Error</a></li><li><a href="FirmwareUpdater.html">FirmwareUpdater</a></li><li><a href="Security.html">Security</a></li><li><a href="Service.html">Service</a></li><li><a href="ServiceFactory.html">ServiceFactory</a></li></ul><h3>Events</h3><ul><li><a href="Adapter.html#event:advertiseTimedOut">advertiseTimedOut</a></li><li><a href="Adapter.html#event:attMtuChanged">attMtuChanged</a></li><li><a href="Adapter.html#event:authKeyRequest">authKeyRequest</a></li><li><a href="Adapter.html#event:authStatus">authStatus</a></li><li><a href="Adapter.html#event:characteristicAdded">characteristicAdded</a></li><li><a href="Adapter.html#event:characteristicValueChanged">characteristicValueChanged</a></li><li><a href="Adapter.html#event:closed">closed</a></li><li><a href="Adapter.html#event:connectTimedOut">connectTimedOut</a></li><li><a href="Adapter.html#event:connParamUpdate">connParamUpdate</a></li><li><a href="Adapter.html#event:connParamUpdateRequest">connParamUpdateRequest</a></li><li><a href="Adapter.html#event:connSecUpdate">connSecUpdate</a></li><li><a href="Adapter.html#event:dataLengthChanged">dataLengthChanged</a></li><li><a href="Adapter.html#event:descriptorAdded">descriptorAdded</a></li><li><a href="Adapter.html#event:descriptorValueChanged">descriptorValueChanged</a></li><li><a href="Adapter.html#event:deviceConnected">deviceConnected</a></li><li><a href="Adapter.html#event:deviceDisconnected">deviceDisconnected</a></li><li><a href="Adapter.html#event:deviceDiscovered">deviceDiscovered</a></li><li><a href="Adapter.html#event:deviceNotifiedOrIndicated">deviceNotifiedOrIndicated</a></li><li><a href="Adapter.html#event:error">error</a></li><li><a href="Adapter.html#event:keyPressed">keyPressed</a></li><li><a href="Adapter.html#event:lescDhkeyRequest">lescDhkeyRequest</a></li><li><a href="Adapter.html#event:logMessage">logMessage</a></li><li><a href="Adapter.html#event:opened">opened</a></li><li><a href="Adapter.html#event:passkeyDisplay">passkeyDisplay</a></li><li><a href="Adapter.html#event:scanTimedOut">scanTimedOut</a></li><li><a href="Adapter.html#event:secInfoRequest">secInfoRequest</a></li><li><a href="Adapter.html#event:secParamsRequest">secParamsRequest</a></li><li><a href="Adapter.html#event:securityChanged">securityChanged</a></li><li><a href="Adapter.html#event:securityRequest">securityRequest</a></li><li><a href="Adapter.html#event:securityRequestTimedOut">securityRequestTimedOut</a></li><li><a href="Adapter.html#event:serviceAdded">serviceAdded</a></li><li><a href="Adapter.html#event:stateChanged">stateChanged</a></li><li><a href="Adapter.html#event:status">status</a></li><li><a href="Adapter.html#event:txComplete">txComplete</a></li><li><a href="Adapter.html#event:warning">warning</a></li><li><a href="Dfu.html#event:progressUpdate">progressUpdate</a></li><li><a href="Dfu.html#event:transferComplete">transferComplete</a></li><li><a href="Dfu.html#event:transferStart">transferStart</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Enumeration">Enumeration</a></li><li><a href="global.html#Update">Update</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="AdapterFactory.html">AdapterFactory</a></li><li><a href="AdapterState.html">AdapterState</a></li><li><a href="Characteristic.html">Characteristic</a></li><li><a href="Descriptor.html">Descriptor</a></li><li><a href="Device.html">Device</a></li><li><a href="Dfu.html">Dfu</a></li><li><a href="Error.html">Error</a></li><li><a href="FirmwareUpdater.html">FirmwareUpdater</a></li><li><a href="Security.html">Security</a></li><li><a href="Service.html">Service</a></li><li><a href="ServiceFactory.html">ServiceFactory</a></li></ul><h3>Events</h3><ul><li><a href="Adapter.html#event:advertiseTimedOut">advertiseTimedOut</a></li><li><a href="Adapter.html#event:attMtuChanged">attMtuChanged</a></li><li><a href="Adapter.html#event:authKeyRequest">authKeyRequest</a></li><li><a href="Adapter.html#event:authStatus">authStatus</a></li><li><a href="Adapter.html#event:characteristicAdded">characteristicAdded</a></li><li><a href="Adapter.html#event:characteristicValueChanged">characteristicValueChanged</a></li><li><a href="Adapter.html#event:closed">closed</a></li><li><a href="Adapter.html#event:connectTimedOut">connectTimedOut</a></li><li><a href="Adapter.html#event:connParamUpdate">connParamUpdate</a></li><li><a href="Adapter.html#event:connParamUpdateRequest">connParamUpdateRequest</a></li><li><a href="Adapter.html#event:connSecUpdate">connSecUpdate</a></li><li><a href="Adapter.html#event:dataLengthChanged">dataLengthChanged</a></li><li><a href="Adapter.html#event:descriptorAdded">descriptorAdded</a></li><li><a href="Adapter.html#event:descriptorValueChanged">descriptorValueChanged</a></li><li><a href="Adapter.html#event:deviceConnected">deviceConnected</a></li><li><a href="Adapter.html#event:deviceDisconnected">deviceDisconnected</a></li><li><a href="Adapter.html#event:deviceDiscovered">deviceDiscovered</a></li><li><a href="Adapter.html#event:deviceNotifiedOrIndicated">deviceNotifiedOrIndicated</a></li><li><a href="Adapter.html#event:error">error</a></li><li><a href="Adapter.html#event:keyPressed">keyPressed</a></li><li><a href="Adapter.html#event:lescDhkeyRequest">lescDhkeyRequest</a></li><li><a href="Adapter.html#event:logMessage">logMessage</a></li><li><a href="Adapter.html#event:opened">opened</a></li><li><a href="Adapter.html#event:passkeyDisplay">passkeyDisplay</a></li><li><a href="Adapter.html#event:scanTimedOut">scanTimedOut</a></li><li><a href="Adapter.html#event:secInfoRequest">secInfoRequest</a></li><li><a href="Adapter.html#event:secParamsRequest">secParamsRequest</a></li><li><a href="Adapter.html#event:securityChanged">securityChanged</a></li><li><a href="Adapter.html#event:securityRequest">securityRequest</a></li><li><a href="Adapter.html#event:securityRequestTimedOut">securityRequestTimedOut</a></li><li><a href="Adapter.html#event:serviceAdded">serviceAdded</a></li><li><a href="Adapter.html#event:stateChanged">stateChanged</a></li><li><a href="Adapter.html#event:status">status</a></li><li><a href="Adapter.html#event:txComplete">txComplete</a></li><li><a href="Adapter.html#event:warning">warning</a></li><li><a href="AdapterFactory.html#event:adapterClosed">adapterClosed</a></li><li><a href="AdapterFactory.html#event:adapterOpened">adapterOpened</a></li><li><a href="AdapterFactory.html#event:added">added</a></li><li><a href="AdapterFactory.html#event:error">error</a></li><li><a href="AdapterFactory.html#event:logMessage">logMessage</a></li><li><a href="AdapterFactory.html#event:removed">removed</a></li><li><a href="Dfu.html#event:progressUpdate">progressUpdate</a></li><li><a href="Dfu.html#event:transferComplete">transferComplete</a></li><li><a href="Dfu.html#event:transferStart">transferStart</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Enumeration">Enumeration</a></li><li><a href="global.html#Update">Update</a></li></ul>
 </nav>
 
 <br class="clear">
