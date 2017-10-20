@@ -9,7 +9,7 @@
     "install": "node build.js",
     "test": "jest --config config/jest-unit.config",
     "test:system": "jest --config config/jest-system.config",
-    "jsdoc": "jsdoc api -d docs -c .jsdoc.json"
+    "docs": "jsdoc api -t node_modules/minami -R README.md -d docs -c .jsdoc.json"
   },
   "repository": {
     "type": "git",
@@ -40,6 +40,7 @@
     "jsdoc": "^3.4.3",
     "jshint": "^2.8.0",
     "keypress": "0.2.1",
+    "minami": "^1.2.3",
     "mocha": "^2.3.3",
     "pc-nrfjprog-js": "https://github.com/NordicSemiconductor/pc-nrfjprog-js.git",
     "proxyquire": "^1.7.3",
