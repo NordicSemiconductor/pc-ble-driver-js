@@ -149,7 +149,6 @@ void Adapter::initEventHandling(Nan::Callback *callback, uint32_t interval)
     }
 
     if (eventIntervalTimer == nullptr)
-
     {
         eventIntervalTimer = new uv_timer_t();
     }
