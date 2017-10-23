@@ -2,22 +2,35 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: AdapterState</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>AdapterState - Documentation</title>
 
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
     <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
     <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
 </head>
-
 <body>
 
-<div id="main">
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
 
-    <h1 class="page-title">Class: AdapterState</h1>
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Adapter.html">Adapter</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#authenticate">authenticate</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#cancelConnect">cancelConnect</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#close">close</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#computePublicKey">computePublicKey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#computeSharedSecret">computeSharedSecret</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#connect">connect</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#deleteKeys">deleteKeys</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#disconnect">disconnect</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#enableBLE">enableBLE</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#encrypt">encrypt</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getAttributes">getAttributes</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getCharacteristic">getCharacteristic</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getCharacteristics">getCharacteristics</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getCurrentAttMtu">getCurrentAttMtu</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getDescriptor">getDescriptor</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getDescriptors">getDescriptors</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getDevice">getDevice</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getDevices">getDevices</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getLescOobData">getLescOobData</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getService">getService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getServices">getServices</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getState">getState</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getStats">getStats</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#notifyKeypress">notifyKeypress</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#open">open</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#readCharacteristicValue">readCharacteristicValue</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#readDescriptorValue">readDescriptorValue</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#rejectConnParams">rejectConnParams</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#replyAuthKey">replyAuthKey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#replyLescDhkey">replyLescDhkey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#replySecParams">replySecParams</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#requestAttMtu">requestAttMtu</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#secInfoReply">secInfoReply</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#setAddress">setAddress</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#setAdvertisingData">setAdvertisingData</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#setLescOobData">setLescOobData</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#setName">setName</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#setServices">setServices</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#startAdvertising">startAdvertising</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#startCharacteristicsNotifications">startCharacteristicsNotifications</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#startScan">startScan</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#stopAdvertising">stopAdvertising</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#stopCharacteristicsNotifications">stopCharacteristicsNotifications</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#stopScan">stopScan</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#updateConnectionParameters">updateConnectionParameters</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#writeCharacteristicValue">writeCharacteristicValue</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#writeDescriptorValue">writeDescriptorValue</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="AdapterFactory.html">AdapterFactory</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="AdapterFactory.html#.getInstance">getInstance</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="AdapterFactory.html#getAdapters">getAdapters</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="AdapterState.html">AdapterState</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Characteristic.html">Characteristic</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Descriptor.html">Descriptor</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Device.html">Device</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Device.html#processEventData">processEventData</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Dfu.html">Dfu</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Dfu.html#abort">abort</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Dfu.html#getManifest">getManifest</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Dfu.html#performDFU">performDFU</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Error.html">Error</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="FirmwareUpdater.html">FirmwareUpdater</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="FirmwareUpdater.html#.getBaudRate">getBaudRate</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="FirmwareUpdater.html#.getFirmwarePath">getFirmwarePath</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="FirmwareUpdater.html#.getFirmwareString">getFirmwareString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="FirmwareUpdater.html#.getLatestVersion">getLatestVersion</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="FirmwareUpdater.html#.parseVersionStruct">parseVersionStruct</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="FirmwareUpdater.html#getVersionInfo">getVersionInfo</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="FirmwareUpdater.html#update">update</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Security.html">Security</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Security.html#generateKeyPair">generateKeyPair</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Security.html#generatePublicKey">generatePublicKey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Security.html#generateSharedSecret">generateSharedSecret</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Service.html">Service</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="ServiceFactory.html">ServiceFactory</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceFactory.html#createCharacteristic">createCharacteristic</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceFactory.html#createDescriptor">createDescriptor</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceFactory.html#createService">createService</a></span></li><li class="nav-heading">Events</li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:advertiseTimedOut">advertiseTimedOut</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:attMtuChanged">attMtuChanged</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:authKeyRequest">authKeyRequest</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:authStatus">authStatus</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:characteristicAdded">characteristicAdded</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:characteristicValueChanged">characteristicValueChanged</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:closed">closed</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:connectTimedOut">connectTimedOut</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:connParamUpdate">connParamUpdate</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:connParamUpdateRequest">connParamUpdateRequest</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:connSecUpdate">connSecUpdate</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:dataLengthChanged">dataLengthChanged</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:descriptorAdded">descriptorAdded</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:descriptorValueChanged">descriptorValueChanged</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:deviceConnected">deviceConnected</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:deviceDisconnected">deviceDisconnected</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:deviceDiscovered">deviceDiscovered</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:deviceNotifiedOrIndicated">deviceNotifiedOrIndicated</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:error">error</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:keyPressed">keyPressed</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:lescDhkeyRequest">lescDhkeyRequest</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:logMessage">logMessage</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:opened">opened</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:passkeyDisplay">passkeyDisplay</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:scanTimedOut">scanTimedOut</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:secInfoRequest">secInfoRequest</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:secParamsRequest">secParamsRequest</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:securityChanged">securityChanged</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:securityRequest">securityRequest</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:securityRequestTimedOut">securityRequestTimedOut</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:serviceAdded">serviceAdded</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:stateChanged">stateChanged</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:status">status</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:txComplete">txComplete</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:warning">warning</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="AdapterFactory.html#event:adapterClosed">adapterClosed</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="AdapterFactory.html#event:adapterOpened">adapterOpened</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="AdapterFactory.html#event:added">added</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="AdapterFactory.html#event:error">error</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="AdapterFactory.html#event:logMessage">logMessage</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="AdapterFactory.html#event:removed">removed</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Dfu.html#event:progressUpdate">progressUpdate</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Dfu.html#event:transferComplete">transferComplete</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Dfu.html#event:transferStart">transferStart</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-member">M</span><span class="nav-item-name"><a href="global.html#Enumeration">Enumeration</a></span></li><li class="nav-item"><span class="nav-item-type type-member">M</span><span class="nav-item-name"><a href="global.html#Update">Update</a></span></li>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">AdapterState</h1>
+    
 
     
 
@@ -28,7 +41,9 @@
 
 <header>
     
-        <h2><span class="attribs"><span class="type-signature"></span></span>AdapterState<span class="signature">(instanceId, port, serialNumber)</span><span class="type-signature"></span></h2>
+        <h2>
+        AdapterState
+        </h2>
         
             <div class="class-description">Class that provides state management for an `Adapter`.</div>
         
@@ -39,14 +54,13 @@
     <div class="container-overview">
     
         
+<div class="section-method">
 
     
     <h2>Constructor</h2>
     
 
-    
     <h4 class="name" id="AdapterState"><span class="type-signature"></span>new AdapterState<span class="signature">(instanceId, port, serialNumber)</span><span class="type-signature"></span></h4>
-    
 
     
 
@@ -55,109 +69,6 @@
 <div class="description">
     Create an object to store `Adapter's` state.
 </div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>instanceId</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The unique Id of this adapter.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>port</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The port this adapter uses. For example it can be 'COM1', '/dev/ttyUSB0' or similar.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>serialNumber</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The serial number of the hardware device being controlled by this adapter.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
 
 
 
@@ -211,6 +122,108 @@
 
 
 
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>instanceId</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>string</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                The unique Id of this adapter.
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>port</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>string</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                The port this adapter uses. For example it can be 'COM1', '/dev/ttyUSB0' or similar.
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>serialNumber</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>Number</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                The serial number of the hardware device being controlled by this adapter.
+                
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
 
 
 
@@ -220,6 +233,14 @@
 
 
 
+
+
+
+
+
+
+
+</div>
     
     </div>
 
@@ -229,9 +250,7 @@
 
     
 
-    
-
-    
+     
 
     
 
@@ -240,6 +259,7 @@
 
         
             
+<div class="section-members">
 <h4 class="name" id="address"><span class="type-signature"></span>address<span class="type-signature"></span></h4>
 
 
@@ -248,8 +268,6 @@
 <div class="description">
     Get the Bluetooth address.
 </div>
-
-
 
 
 
@@ -300,8 +318,12 @@
 
 
 
+
+</div>
+
         
             
+<div class="section-members">
 <h4 class="name" id="address"><span class="type-signature"></span>address<span class="type-signature"></span></h4>
 
 
@@ -310,8 +332,6 @@
 <div class="description">
     Set the Bluetooth address.
 </div>
-
-
 
 
 
@@ -362,8 +382,12 @@
 
 
 
+
+</div>
+
         
             
+<div class="section-members">
 <h4 class="name" id="addressType"><span class="type-signature"></span>addressType<span class="type-signature"></span></h4>
 
 
@@ -372,8 +396,6 @@
 <div class="description">
     Get the BLE address type. 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC' or `BLE_GAP_ADDR_TYPE_PUBLIC`.
 </div>
-
-
 
 
 
@@ -424,8 +446,12 @@
 
 
 
+
+</div>
+
         
             
+<div class="section-members">
 <h4 class="name" id="advertising"><span class="type-signature"></span>advertising<span class="type-signature"> :boolean</span></h4>
 
 
@@ -434,18 +460,6 @@
 <div class="description">
     Whether the adapter is currently advertising.
 </div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">boolean</span>
-
-
-        </li>
-    </ul>
 
 
 
@@ -493,11 +507,25 @@
 
 
 
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><code>boolean</code></span>
 
 
+        </li>
+    </ul>
+
+
+
+
+
+</div>
 
         
             
+<div class="section-members">
 <h4 class="name" id="available"><span class="type-signature"></span>available<span class="type-signature"> :boolean</span></h4>
 
 
@@ -506,18 +534,6 @@
 <div class="description">
     Whether the adapter is available and successfully opened.
 </div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">boolean</span>
-
-
-        </li>
-    </ul>
 
 
 
@@ -565,11 +581,25 @@
 
 
 
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><code>boolean</code></span>
 
 
+        </li>
+    </ul>
+
+
+
+
+
+</div>
 
         
             
+<div class="section-members">
 <h4 class="name" id="baudRate"><span class="type-signature"></span>baudRate<span class="type-signature"> :number</span></h4>
 
 
@@ -578,18 +608,6 @@
 <div class="description">
     The baud rate that the adapter's serial port is configured with.
 </div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">number</span>
-
-
-        </li>
-    </ul>
 
 
 
@@ -637,11 +655,25 @@
 
 
 
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><code>number</code></span>
 
 
+        </li>
+    </ul>
+
+
+
+
+
+</div>
 
         
             
+<div class="section-members">
 <h4 class="name" id="bleEnabled"><span class="type-signature"></span>bleEnabled<span class="type-signature"> :boolean</span></h4>
 
 
@@ -650,18 +682,6 @@
 <div class="description">
     Whether the BLE stack has been enabled.
 </div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">boolean</span>
-
-
-        </li>
-    </ul>
 
 
 
@@ -709,11 +729,25 @@
 
 
 
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><code>boolean</code></span>
 
 
+        </li>
+    </ul>
+
+
+
+
+
+</div>
 
         
             
+<div class="section-members">
 <h4 class="name" id="connecting"><span class="type-signature"></span>connecting<span class="type-signature"> :boolean</span></h4>
 
 
@@ -722,18 +756,6 @@
 <div class="description">
     Whether the adapter is currently connecting to a device.
 </div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">boolean</span>
-
-
-        </li>
-    </ul>
 
 
 
@@ -781,11 +803,25 @@
 
 
 
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><code>boolean</code></span>
 
 
+        </li>
+    </ul>
+
+
+
+
+
+</div>
 
         
             
+<div class="section-members">
 <h4 class="name" id="firmwareVersion"><span class="type-signature"></span>firmwareVersion<span class="type-signature"> :string</span></h4>
 
 
@@ -794,18 +830,6 @@
 <div class="description">
     The SoftDevice firmware version used by this adapter.
 </div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">string</span>
-
-
-        </li>
-    </ul>
 
 
 
@@ -853,11 +877,25 @@
 
 
 
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><code>string</code></span>
 
 
+        </li>
+    </ul>
+
+
+
+
+
+</div>
 
         
             
+<div class="section-members">
 <h4 class="name" id="flowControl"><span class="type-signature"></span>flowControl<span class="type-signature"> :string</span></h4>
 
 
@@ -866,18 +904,6 @@
 <div class="description">
     Whether flow control is configured for this adapter's serial port.Can be either 'none' or 'hw'.
 </div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">string</span>
-
-
-        </li>
-    </ul>
 
 
 
@@ -925,11 +951,25 @@
 
 
 
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><code>string</code></span>
 
 
+        </li>
+    </ul>
+
+
+
+
+
+</div>
 
         
             
+<div class="section-members">
 <h4 class="name" id="instanceId"><span class="type-signature"></span>instanceId<span class="type-signature"></span></h4>
 
 
@@ -938,8 +978,6 @@
 <div class="description">
     Get the instanceId of this adapter.
 </div>
-
-
 
 
 
@@ -990,8 +1028,12 @@
 
 
 
+
+</div>
+
         
             
+<div class="section-members">
 <h4 class="name" id="name"><span class="type-signature"></span>name<span class="type-signature"> :string</span></h4>
 
 
@@ -1000,18 +1042,6 @@
 <div class="description">
     The device name that is related to this adapter.
 </div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">string</span>
-
-
-        </li>
-    </ul>
 
 
 
@@ -1059,11 +1089,25 @@
 
 
 
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><code>string</code></span>
 
 
+        </li>
+    </ul>
+
+
+
+
+
+</div>
 
         
             
+<div class="section-members">
 <h4 class="name" id="parity"><span class="type-signature"></span>parity<span class="type-signature"> :string</span></h4>
 
 
@@ -1072,18 +1116,6 @@
 <div class="description">
     The parity that the adapter's serial port is configured with.Can be either 'none' or 'even'.
 </div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">string</span>
-
-
-        </li>
-    </ul>
 
 
 
@@ -1131,11 +1163,25 @@
 
 
 
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><code>string</code></span>
 
 
+        </li>
+    </ul>
+
+
+
+
+
+</div>
 
         
             
+<div class="section-members">
 <h4 class="name" id="port"><span class="type-signature"></span>port<span class="type-signature"></span></h4>
 
 
@@ -1144,8 +1190,6 @@
 <div class="description">
     Get the port this adapter uses.
 </div>
-
-
 
 
 
@@ -1196,8 +1240,12 @@
 
 
 
+
+</div>
+
         
             
+<div class="section-members">
 <h4 class="name" id="scanning"><span class="type-signature"></span>scanning<span class="type-signature"> :boolean</span></h4>
 
 
@@ -1206,18 +1254,6 @@
 <div class="description">
     Whether the adapter is currently scanning for devices.
 </div>
-
-
-
-    <h5>Type:</h5>
-    <ul>
-        <li>
-            
-<span class="param-type">boolean</span>
-
-
-        </li>
-    </ul>
 
 
 
@@ -1265,11 +1301,25 @@
 
 
 
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type"><code>boolean</code></span>
 
 
+        </li>
+    </ul>
+
+
+
+
+
+</div>
 
         
             
+<div class="section-members">
 <h4 class="name" id="serialNumber"><span class="type-signature"></span>serialNumber<span class="type-signature"></span></h4>
 
 
@@ -1278,8 +1328,6 @@
 <div class="description">
     Get the serial number of the hardware device this adapter controls.
 </div>
-
-
 
 
 
@@ -1330,6 +1378,9 @@
 
 
 
+
+</div>
+
         
     
 
@@ -1347,17 +1398,13 @@
 
 </div>
 
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="AdapterFactory.html">AdapterFactory</a></li><li><a href="AdapterState.html">AdapterState</a></li><li><a href="Characteristic.html">Characteristic</a></li><li><a href="Descriptor.html">Descriptor</a></li><li><a href="Device.html">Device</a></li><li><a href="Dfu.html">Dfu</a></li><li><a href="Error.html">Error</a></li><li><a href="FirmwareUpdater.html">FirmwareUpdater</a></li><li><a href="Security.html">Security</a></li><li><a href="Service.html">Service</a></li><li><a href="ServiceFactory.html">ServiceFactory</a></li></ul><h3>Events</h3><ul><li><a href="Adapter.html#event:advertiseTimedOut">advertiseTimedOut</a></li><li><a href="Adapter.html#event:attMtuChanged">attMtuChanged</a></li><li><a href="Adapter.html#event:authKeyRequest">authKeyRequest</a></li><li><a href="Adapter.html#event:authStatus">authStatus</a></li><li><a href="Adapter.html#event:characteristicAdded">characteristicAdded</a></li><li><a href="Adapter.html#event:characteristicValueChanged">characteristicValueChanged</a></li><li><a href="Adapter.html#event:closed">closed</a></li><li><a href="Adapter.html#event:connectTimedOut">connectTimedOut</a></li><li><a href="Adapter.html#event:connParamUpdate">connParamUpdate</a></li><li><a href="Adapter.html#event:connParamUpdateRequest">connParamUpdateRequest</a></li><li><a href="Adapter.html#event:connSecUpdate">connSecUpdate</a></li><li><a href="Adapter.html#event:dataLengthChanged">dataLengthChanged</a></li><li><a href="Adapter.html#event:descriptorAdded">descriptorAdded</a></li><li><a href="Adapter.html#event:descriptorValueChanged">descriptorValueChanged</a></li><li><a href="Adapter.html#event:deviceConnected">deviceConnected</a></li><li><a href="Adapter.html#event:deviceDisconnected">deviceDisconnected</a></li><li><a href="Adapter.html#event:deviceDiscovered">deviceDiscovered</a></li><li><a href="Adapter.html#event:deviceNotifiedOrIndicated">deviceNotifiedOrIndicated</a></li><li><a href="Adapter.html#event:error">error</a></li><li><a href="Adapter.html#event:keyPressed">keyPressed</a></li><li><a href="Adapter.html#event:lescDhkeyRequest">lescDhkeyRequest</a></li><li><a href="Adapter.html#event:logMessage">logMessage</a></li><li><a href="Adapter.html#event:opened">opened</a></li><li><a href="Adapter.html#event:passkeyDisplay">passkeyDisplay</a></li><li><a href="Adapter.html#event:scanTimedOut">scanTimedOut</a></li><li><a href="Adapter.html#event:secInfoRequest">secInfoRequest</a></li><li><a href="Adapter.html#event:secParamsRequest">secParamsRequest</a></li><li><a href="Adapter.html#event:securityChanged">securityChanged</a></li><li><a href="Adapter.html#event:securityRequest">securityRequest</a></li><li><a href="Adapter.html#event:securityRequestTimedOut">securityRequestTimedOut</a></li><li><a href="Adapter.html#event:serviceAdded">serviceAdded</a></li><li><a href="Adapter.html#event:stateChanged">stateChanged</a></li><li><a href="Adapter.html#event:status">status</a></li><li><a href="Adapter.html#event:txComplete">txComplete</a></li><li><a href="Adapter.html#event:warning">warning</a></li><li><a href="AdapterFactory.html#event:adapterClosed">adapterClosed</a></li><li><a href="AdapterFactory.html#event:adapterOpened">adapterOpened</a></li><li><a href="AdapterFactory.html#event:added">added</a></li><li><a href="AdapterFactory.html#event:error">error</a></li><li><a href="AdapterFactory.html#event:logMessage">logMessage</a></li><li><a href="AdapterFactory.html#event:removed">removed</a></li><li><a href="Dfu.html#event:progressUpdate">progressUpdate</a></li><li><a href="Dfu.html#event:transferComplete">transferComplete</a></li><li><a href="Dfu.html#event:transferStart">transferStart</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Enumeration">Enumeration</a></li><li><a href="global.html#Update">Update</a></li></ul>
-</nav>
-
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> using the Minami theme.
 </footer>
 
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
 </body>
 </html>

@@ -2,22 +2,35 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: AdapterFactory</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>AdapterFactory - Documentation</title>
 
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
+    <link type="text/css" rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
     <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
     <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
 </head>
-
 <body>
 
-<div id="main">
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
 
-    <h1 class="page-title">Class: AdapterFactory</h1>
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <li class="nav-link nav-home-link"><a href="index.html">Home</a></li><li class="nav-heading">Classes</li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Adapter.html">Adapter</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#authenticate">authenticate</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#cancelConnect">cancelConnect</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#close">close</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#computePublicKey">computePublicKey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#computeSharedSecret">computeSharedSecret</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#connect">connect</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#deleteKeys">deleteKeys</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#disconnect">disconnect</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#enableBLE">enableBLE</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#encrypt">encrypt</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getAttributes">getAttributes</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getCharacteristic">getCharacteristic</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getCharacteristics">getCharacteristics</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getCurrentAttMtu">getCurrentAttMtu</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getDescriptor">getDescriptor</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getDescriptors">getDescriptors</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getDevice">getDevice</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getDevices">getDevices</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getLescOobData">getLescOobData</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getService">getService</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getServices">getServices</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getState">getState</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#getStats">getStats</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#notifyKeypress">notifyKeypress</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#open">open</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#readCharacteristicValue">readCharacteristicValue</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#readDescriptorValue">readDescriptorValue</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#rejectConnParams">rejectConnParams</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#replyAuthKey">replyAuthKey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#replyLescDhkey">replyLescDhkey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#replySecParams">replySecParams</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#requestAttMtu">requestAttMtu</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#secInfoReply">secInfoReply</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#setAddress">setAddress</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#setAdvertisingData">setAdvertisingData</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#setLescOobData">setLescOobData</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#setName">setName</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#setServices">setServices</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#startAdvertising">startAdvertising</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#startCharacteristicsNotifications">startCharacteristicsNotifications</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#startScan">startScan</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#stopAdvertising">stopAdvertising</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#stopCharacteristicsNotifications">stopCharacteristicsNotifications</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#stopScan">stopScan</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#updateConnectionParameters">updateConnectionParameters</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#writeCharacteristicValue">writeCharacteristicValue</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Adapter.html#writeDescriptorValue">writeDescriptorValue</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="AdapterFactory.html">AdapterFactory</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="AdapterFactory.html#.getInstance">getInstance</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="AdapterFactory.html#getAdapters">getAdapters</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="AdapterState.html">AdapterState</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Characteristic.html">Characteristic</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Descriptor.html">Descriptor</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Device.html">Device</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Device.html#processEventData">processEventData</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Dfu.html">Dfu</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Dfu.html#abort">abort</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Dfu.html#getManifest">getManifest</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Dfu.html#performDFU">performDFU</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Error.html">Error</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="FirmwareUpdater.html">FirmwareUpdater</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="FirmwareUpdater.html#.getBaudRate">getBaudRate</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="FirmwareUpdater.html#.getFirmwarePath">getFirmwarePath</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="FirmwareUpdater.html#.getFirmwareString">getFirmwareString</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="FirmwareUpdater.html#.getLatestVersion">getLatestVersion</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="FirmwareUpdater.html#.parseVersionStruct">parseVersionStruct</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="FirmwareUpdater.html#getVersionInfo">getVersionInfo</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="FirmwareUpdater.html#update">update</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Security.html">Security</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Security.html#generateKeyPair">generateKeyPair</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Security.html#generatePublicKey">generatePublicKey</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="Security.html#generateSharedSecret">generateSharedSecret</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="Service.html">Service</a></span></li><li class="nav-heading"><span class="nav-item-type type-class">C</span><span class="nav-item-name"><a href="ServiceFactory.html">ServiceFactory</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceFactory.html#createCharacteristic">createCharacteristic</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceFactory.html#createDescriptor">createDescriptor</a></span></li><li class="nav-item"><span class="nav-item-type type-function">F</span><span class="nav-item-name"><a href="ServiceFactory.html#createService">createService</a></span></li><li class="nav-heading">Events</li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:advertiseTimedOut">advertiseTimedOut</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:attMtuChanged">attMtuChanged</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:authKeyRequest">authKeyRequest</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:authStatus">authStatus</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:characteristicAdded">characteristicAdded</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:characteristicValueChanged">characteristicValueChanged</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:closed">closed</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:connectTimedOut">connectTimedOut</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:connParamUpdate">connParamUpdate</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:connParamUpdateRequest">connParamUpdateRequest</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:connSecUpdate">connSecUpdate</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:dataLengthChanged">dataLengthChanged</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:descriptorAdded">descriptorAdded</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:descriptorValueChanged">descriptorValueChanged</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:deviceConnected">deviceConnected</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:deviceDisconnected">deviceDisconnected</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:deviceDiscovered">deviceDiscovered</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:deviceNotifiedOrIndicated">deviceNotifiedOrIndicated</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:error">error</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:keyPressed">keyPressed</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:lescDhkeyRequest">lescDhkeyRequest</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:logMessage">logMessage</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:opened">opened</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:passkeyDisplay">passkeyDisplay</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:scanTimedOut">scanTimedOut</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:secInfoRequest">secInfoRequest</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:secParamsRequest">secParamsRequest</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:securityChanged">securityChanged</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:securityRequest">securityRequest</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:securityRequestTimedOut">securityRequestTimedOut</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:serviceAdded">serviceAdded</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:stateChanged">stateChanged</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:status">status</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:txComplete">txComplete</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Adapter.html#event:warning">warning</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="AdapterFactory.html#event:adapterClosed">adapterClosed</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="AdapterFactory.html#event:adapterOpened">adapterOpened</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="AdapterFactory.html#event:added">added</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="AdapterFactory.html#event:error">error</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="AdapterFactory.html#event:logMessage">logMessage</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="AdapterFactory.html#event:removed">removed</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Dfu.html#event:progressUpdate">progressUpdate</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Dfu.html#event:transferComplete">transferComplete</a></span></li><li class="nav-heading"><span class="nav-item-type type-event">E</span><span class="nav-item-name"><a href="Dfu.html#event:transferStart">transferStart</a></span></li><li class="nav-heading"><a href="global.html">Globals</a></li><li class="nav-item"><span class="nav-item-type type-member">M</span><span class="nav-item-name"><a href="global.html#Enumeration">Enumeration</a></span></li><li class="nav-item"><span class="nav-item-type type-member">M</span><span class="nav-item-name"><a href="global.html#Update">Update</a></span></li>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">AdapterFactory</h1>
+    
 
     
 
@@ -28,7 +41,9 @@
 
 <header>
     
-        <h2><span class="attribs"><span class="type-signature"></span></span>AdapterFactory<span class="signature">(singletonToken, bleDrivers)</span><span class="type-signature"></span></h2>
+        <h2>
+        AdapterFactory
+        </h2>
         
             <div class="class-description">Class that provides Adapters through the use of the pc-ble-driver AddOn and the internal `Adapter` class.</div>
         
@@ -39,14 +54,13 @@
     <div class="container-overview">
     
         
+<div class="section-method">
 
     
     <h2>Constructor</h2>
     
 
-    
     <h4 class="name" id="AdapterFactory"><span class="type-signature"></span>new AdapterFactory<span class="signature">(singletonToken, bleDrivers)</span><span class="type-signature"></span></h4>
-    
 
     
 
@@ -55,86 +69,6 @@
 <div class="description">
     Shall not be called by user. Called by the factory method `this.getInstance()`.
 </div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>singletonToken</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Symbol</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Symbol to ensure that only one instance of `AdapterFactory` ever exists.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>bleDrivers</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Object mapping version to pc-ble-driver AddOn.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
 
 
 
@@ -184,75 +118,6 @@
 
 
 
-<h5>Fires:</h5>
-<ul>
-    <li><a href="AdapterFactory.html#event:added">AdapterFactory#event:added</a></li>
-
-    <li><a href="AdapterFactory.html#event:removed">AdapterFactory#event:removed</a></li>
-
-    <li><a href="AdapterFactory.html#event:adapterOpened">AdapterFactory#event:adapterOpened</a></li>
-
-    <li><a href="AdapterFactory.html#event:adapterClosed">AdapterFactory#event:adapterClosed</a></li>
-
-    <li><a href="AdapterFactory.html#event:error">AdapterFactory#event:error</a></li>
-
-    <li><a href="AdapterFactory.html#event:logMessage">AdapterFactory#event:logMessage</a></li>
-</ul>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Methods</h3>
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id=".getInstance"><span class="type-signature">(static) </span>getInstance<span class="signature">(bleDrivers)</span><span class="type-signature"> &rarr; {<a href="AdapterFactory.html">AdapterFactory</a>}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Get the singleton `AdapterFactory` instance.
-</div>
-
-
-
-
-
 
 
 
@@ -282,16 +147,13 @@
 
         <tr>
             
-                <td class="name"><code>bleDrivers</code></td>
+                <td class="name"><code>singletonToken</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">null</span>
-|
-
-<span class="param-type">Object</span>
+<span class="param-type"><code>Symbol</code></span>
 
 
             
@@ -301,13 +163,106 @@
 
             
 
-            <td class="description last">Optional object mapping version to pc-ble-driver AddOn.</td>
+            <td class="description last">
+                Symbol to ensure that only one instance of `AdapterFactory` ever exists.
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>bleDrivers</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>Object</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                Object mapping version to pc-ble-driver AddOn.
+                
+            </td>
         </tr>
 
     
     </tbody>
 </table>
 
+
+
+
+
+
+<h5>Fires:</h5>
+<ul>
+    <li><a href="AdapterFactory.html#event:added">AdapterFactory#event:added</a></li>
+
+    <li><a href="AdapterFactory.html#event:removed">AdapterFactory#event:removed</a></li>
+
+    <li><a href="AdapterFactory.html#event:adapterOpened">AdapterFactory#event:adapterOpened</a></li>
+
+    <li><a href="AdapterFactory.html#event:adapterClosed">AdapterFactory#event:adapterClosed</a></li>
+
+    <li><a href="AdapterFactory.html#event:error">AdapterFactory#event:error</a></li>
+
+    <li><a href="AdapterFactory.html#event:logMessage">AdapterFactory#event:logMessage</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+</div>
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+<div class="section-method">
+
+    
+
+    <h4 class="name" id=".getInstance"><span class="type-signature">(static) </span>getInstance<span class="signature">(bleDrivers)</span><span class="type-signature"> &rarr; {<a href="AdapterFactory.html">AdapterFactory</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Get the singleton `AdapterFactory` instance.
+</div>
 
 
 
@@ -361,62 +316,6 @@
 
 
 
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    The singleton `AdapterFactory` instance.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="AdapterFactory.html">AdapterFactory</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="getAdapters"><span class="type-signature"></span>getAdapters<span class="signature">(callback)</span><span class="type-signature"> &rarr; {void}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Get connected adapters.
-</div>
-
-
-
-
-
-
-
-
-
     <h5>Parameters:</h5>
     
 
@@ -442,16 +341,16 @@
 
         <tr>
             
-                <td class="name"><code>callback</code></td>
+                <td class="name"><code>bleDrivers</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">null</span>
+<span class="param-type"><code>null</code></span>
 |
 
-<span class="param-type">function</span>
+<span class="param-type"><code>Object</code></span>
 
 
             
@@ -461,13 +360,72 @@
 
             
 
-            <td class="description last">Optional callback signature: (err, adapters) => {}.</td>
+            <td class="description last">
+                Optional object mapping version to pc-ble-driver AddOn.
+                
+            </td>
         </tr>
 
     
     </tbody>
 </table>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="section-returns">
+<h5>Returns:</h5>
+
+        
+
+<dl class="param-type">
+    <dt>
+        Type:
+    </dt>
+    <dd>
+        
+<span class="param-type"><code><a href="AdapterFactory.html">AdapterFactory</a></code></span>
+
+
+    </dd>
+</dl>
+
+
+<div class="param-desc">
+    The singleton `AdapterFactory` instance.
+</div>
+
+    
+</div>
+
+
+
+</div>
+        
+            
+<div class="section-method">
+
+    
+
+    <h4 class="name" id="getAdapters"><span class="type-signature"></span>getAdapters<span class="signature">(callback)</span><span class="type-signature"> &rarr; {void}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Get connected adapters.
+</div>
 
 
 
@@ -521,66 +479,6 @@
 
 
 
-
-
-
-
-<h5>Returns:</h5>
-
-        
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">void</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-    
-
-    
-
-    
-        <h3 class="subsection-title">Events</h3>
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="event:adapterClosed">adapterClosed</h4>
-    
-
-    
-
-
-
-<div class="description">
-    Adapter closed event.
-</div>
-
-
-
-
-
-
-
-
-
     <h5>Parameters:</h5>
     
 
@@ -606,13 +504,16 @@
 
         <tr>
             
-                <td class="name"><code>adapter</code></td>
+                <td class="name"><code>callback</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">object</span>
+<span class="param-type"><code>null</code></span>
+|
+
+<span class="param-type"><code>function</code></span>
 
 
             
@@ -622,13 +523,76 @@
 
             
 
-            <td class="description last">The adapter instance that was closed.</td>
+            <td class="description last">
+                Optional callback signature: (err, adapters) => {}.
+                
+            </td>
         </tr>
 
     
     </tbody>
 </table>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="section-returns">
+<h5>Returns:</h5>
+
+        
+
+<dl class="param-type">
+    <dt>
+        Type:
+    </dt>
+    <dd>
+        
+<span class="param-type"><code>void</code></span>
+
+
+    </dd>
+</dl>
+
+
+    
+</div>
+
+
+
+</div>
+        
+    
+
+    
+
+    
+        <h3 class="subsection-title">Events</h3>
+
+        
+            
+<div class="section-method">
+
+    
+
+    <h4 class="name" id="event:adapterClosed">adapterClosed</h4>
+
+    
+
+
+
+<div class="description">
+    Adapter closed event.
+</div>
 
 
 
@@ -682,40 +646,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="event:adapterOpened">adapterOpened</h4>
-    
-
-    
-
-
-
-<div class="description">
-    Adapter opened event.
-</div>
-
-
-
-
-
-
-
-
-
     <h5>Parameters:</h5>
     
 
@@ -747,7 +677,7 @@
             <td class="type">
             
                 
-<span class="param-type">object</span>
+<span class="param-type"><code>object</code></span>
 
 
             
@@ -757,13 +687,47 @@
 
             
 
-            <td class="description last">The adapter instance that was opened.</td>
+            <td class="description last">
+                The adapter instance that was closed.
+                
+            </td>
         </tr>
 
     
     </tbody>
 </table>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+        
+            
+<div class="section-method">
+
+    
+
+    <h4 class="name" id="event:adapterOpened">adapterOpened</h4>
+
+    
+
+
+
+<div class="description">
+    Adapter opened event.
+</div>
 
 
 
@@ -817,40 +781,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="event:added">added</h4>
-    
-
-    
-
-
-
-<div class="description">
-    Adapter added event. Fired when a new devkit is found.
-</div>
-
-
-
-
-
-
-
-
-
     <h5>Parameters:</h5>
     
 
@@ -882,7 +812,7 @@
             <td class="type">
             
                 
-<span class="param-type">object</span>
+<span class="param-type"><code>object</code></span>
 
 
             
@@ -892,13 +822,47 @@
 
             
 
-            <td class="description last">The adapter instance that was added.</td>
+            <td class="description last">
+                The adapter instance that was opened.
+                
+            </td>
         </tr>
 
     
     </tbody>
 </table>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+        
+            
+<div class="section-method">
+
+    
+
+    <h4 class="name" id="event:added">added</h4>
+
+    
+
+
+
+<div class="description">
+    Adapter added event. Fired when a new devkit is found.
+</div>
 
 
 
@@ -952,40 +916,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="event:error">error</h4>
-    
-
-    
-
-
-
-<div class="description">
-    Error event.
-</div>
-
-
-
-
-
-
-
-
-
     <h5>Parameters:</h5>
     
 
@@ -1011,13 +941,13 @@
 
         <tr>
             
-                <td class="name"><code>error</code></td>
+                <td class="name"><code>adapter</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="Error.html">Error</a></span>
+<span class="param-type"><code>object</code></span>
 
 
             
@@ -1027,13 +957,47 @@
 
             
 
-            <td class="description last">Error object with a human-readable message.</td>
+            <td class="description last">
+                The adapter instance that was added.
+                
+            </td>
         </tr>
 
     
     </tbody>
 </table>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+        
+            
+<div class="section-method">
+
+    
+
+    <h4 class="name" id="event:error">error</h4>
+
+    
+
+
+
+<div class="description">
+    Error event.
+</div>
 
 
 
@@ -1087,40 +1051,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="event:logMessage">logMessage</h4>
-    
-
-    
-
-
-
-<div class="description">
-    Log message event.
-</div>
-
-
-
-
-
-
-
-
-
     <h5>Parameters:</h5>
     
 
@@ -1146,13 +1076,13 @@
 
         <tr>
             
-                <td class="name"><code>severity</code></td>
+                <td class="name"><code>error</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">string</span>
+<span class="param-type"><code><a href="Error.html">Error</a></code></span>
 
 
             
@@ -1162,36 +1092,47 @@
 
             
 
-            <td class="description last">Severity of the log event.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>message</code></td>
-            
-
-            <td class="type">
-            
+            <td class="description last">
+                Error object with a human-readable message.
                 
-<span class="param-type">string</span>
-
-
-            
             </td>
-
-            
-
-            
-
-            <td class="description last">Human-readable log message.</td>
         </tr>
 
     
     </tbody>
 </table>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+        
+            
+<div class="section-method">
+
+    
+
+    <h4 class="name" id="event:logMessage">logMessage</h4>
+
+    
+
+
+
+<div class="description">
+    Log message event.
+</div>
 
 
 
@@ -1245,40 +1186,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="event:removed">removed</h4>
-    
-
-    
-
-
-
-<div class="description">
-    Adapter removed event. Fired when a devkit is removed.
-</div>
-
-
-
-
-
-
-
-
-
     <h5>Parameters:</h5>
     
 
@@ -1304,13 +1211,13 @@
 
         <tr>
             
-                <td class="name"><code>adapter</code></td>
+                <td class="name"><code>severity</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">object</span>
+<span class="param-type"><code>string</code></span>
 
 
             
@@ -1320,13 +1227,73 @@
 
             
 
-            <td class="description last">The adapter instance that was removed.</td>
+            <td class="description last">
+                Severity of the log event.
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>message</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>string</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                Human-readable log message.
+                
+            </td>
         </tr>
 
     
     </tbody>
 </table>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+        
+            
+<div class="section-method">
+
+    
+
+    <h4 class="name" id="event:removed">removed</h4>
+
+    
+
+
+
+<div class="description">
+    Adapter removed event. Fired when a devkit is removed.
+</div>
 
 
 
@@ -1380,6 +1347,56 @@
 
 
 
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>adapter</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>object</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                The adapter instance that was removed.
+                
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
 
 
 
@@ -1389,6 +1406,14 @@
 
 
 
+
+
+
+
+
+
+
+</div>
         
     
 </article>
@@ -1400,17 +1425,13 @@
 
 </div>
 
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Adapter.html">Adapter</a></li><li><a href="AdapterFactory.html">AdapterFactory</a></li><li><a href="AdapterState.html">AdapterState</a></li><li><a href="Characteristic.html">Characteristic</a></li><li><a href="Descriptor.html">Descriptor</a></li><li><a href="Device.html">Device</a></li><li><a href="Dfu.html">Dfu</a></li><li><a href="Error.html">Error</a></li><li><a href="FirmwareUpdater.html">FirmwareUpdater</a></li><li><a href="Security.html">Security</a></li><li><a href="Service.html">Service</a></li><li><a href="ServiceFactory.html">ServiceFactory</a></li></ul><h3>Events</h3><ul><li><a href="Adapter.html#event:advertiseTimedOut">advertiseTimedOut</a></li><li><a href="Adapter.html#event:attMtuChanged">attMtuChanged</a></li><li><a href="Adapter.html#event:authKeyRequest">authKeyRequest</a></li><li><a href="Adapter.html#event:authStatus">authStatus</a></li><li><a href="Adapter.html#event:characteristicAdded">characteristicAdded</a></li><li><a href="Adapter.html#event:characteristicValueChanged">characteristicValueChanged</a></li><li><a href="Adapter.html#event:closed">closed</a></li><li><a href="Adapter.html#event:connectTimedOut">connectTimedOut</a></li><li><a href="Adapter.html#event:connParamUpdate">connParamUpdate</a></li><li><a href="Adapter.html#event:connParamUpdateRequest">connParamUpdateRequest</a></li><li><a href="Adapter.html#event:connSecUpdate">connSecUpdate</a></li><li><a href="Adapter.html#event:dataLengthChanged">dataLengthChanged</a></li><li><a href="Adapter.html#event:descriptorAdded">descriptorAdded</a></li><li><a href="Adapter.html#event:descriptorValueChanged">descriptorValueChanged</a></li><li><a href="Adapter.html#event:deviceConnected">deviceConnected</a></li><li><a href="Adapter.html#event:deviceDisconnected">deviceDisconnected</a></li><li><a href="Adapter.html#event:deviceDiscovered">deviceDiscovered</a></li><li><a href="Adapter.html#event:deviceNotifiedOrIndicated">deviceNotifiedOrIndicated</a></li><li><a href="Adapter.html#event:error">error</a></li><li><a href="Adapter.html#event:keyPressed">keyPressed</a></li><li><a href="Adapter.html#event:lescDhkeyRequest">lescDhkeyRequest</a></li><li><a href="Adapter.html#event:logMessage">logMessage</a></li><li><a href="Adapter.html#event:opened">opened</a></li><li><a href="Adapter.html#event:passkeyDisplay">passkeyDisplay</a></li><li><a href="Adapter.html#event:scanTimedOut">scanTimedOut</a></li><li><a href="Adapter.html#event:secInfoRequest">secInfoRequest</a></li><li><a href="Adapter.html#event:secParamsRequest">secParamsRequest</a></li><li><a href="Adapter.html#event:securityChanged">securityChanged</a></li><li><a href="Adapter.html#event:securityRequest">securityRequest</a></li><li><a href="Adapter.html#event:securityRequestTimedOut">securityRequestTimedOut</a></li><li><a href="Adapter.html#event:serviceAdded">serviceAdded</a></li><li><a href="Adapter.html#event:stateChanged">stateChanged</a></li><li><a href="Adapter.html#event:status">status</a></li><li><a href="Adapter.html#event:txComplete">txComplete</a></li><li><a href="Adapter.html#event:warning">warning</a></li><li><a href="AdapterFactory.html#event:adapterClosed">adapterClosed</a></li><li><a href="AdapterFactory.html#event:adapterOpened">adapterOpened</a></li><li><a href="AdapterFactory.html#event:added">added</a></li><li><a href="AdapterFactory.html#event:error">error</a></li><li><a href="AdapterFactory.html#event:logMessage">logMessage</a></li><li><a href="AdapterFactory.html#event:removed">removed</a></li><li><a href="Dfu.html#event:progressUpdate">progressUpdate</a></li><li><a href="Dfu.html#event:transferComplete">transferComplete</a></li><li><a href="Dfu.html#event:transferStart">transferStart</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Enumeration">Enumeration</a></li><li><a href="global.html#Update">Update</a></li></ul>
-</nav>
-
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a>
+    Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> using the Minami theme.
 </footer>
 
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
 </body>
 </html>
