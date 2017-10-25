@@ -335,8 +335,8 @@ class Adapter extends EventEmitter {
      * <li>{number} [eventInterval=0]: Interval to use for sending BLE driver events to JavaScript.
      *                                 If `0`, events will be sent as soon as they are received from the BLE driver.
      * <li>{string} [logLevel='info']: The verbosity of logging the developer wants with this adapter.
-     * <li>{number} [retransmissionInterval=100]: The time interval to wait between retransmitted packets.
-     * <li>{number} [responseTimeout=750]: Response timeout of the data link layer.
+     * <li>{number} [retransmissionInterval=250]: The time interval to wait between retransmitted packets.
+     * <li>{number} [responseTimeout=1500]: Response timeout of the data link layer.
      * <li>{boolean} [enableBLE=true]: Whether the BLE stack should be initialized and enabled.
      * </ul>
      * @param {function(Error)} [callback] Callback signature: err => {}.
@@ -363,8 +363,8 @@ class Adapter extends EventEmitter {
                 flowControl: 'none',
                 eventInterval: 0,
                 logLevel: 'info',
-                retransmissionInterval: 100,
-                responseTimeout: 750,
+                retransmissionInterval: 250,
+                responseTimeout: 1500,
                 enableBLE: true,
             };
         } else {
@@ -373,8 +373,8 @@ class Adapter extends EventEmitter {
             if (!options.flowControl) options.flowControl = 'none';
             if (!options.eventInterval) options.eventInterval = 0;
             if (!options.logLevel) options.logLevel = 'info';
-            if (!options.retransmissionInterval) options.retransmissionInterval = 100;
-            if (!options.responseTimeout) options.responseTimeout = 750;
+            if (!options.retransmissionInterval) options.retransmissionInterval = 250;
+            if (!options.responseTimeout) options.responseTimeout = 1500;
             if (options.enableBLE === undefined) options.enableBLE = true;
         }
 
