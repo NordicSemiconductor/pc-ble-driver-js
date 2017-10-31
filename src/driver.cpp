@@ -708,6 +708,16 @@ void Adapter::Open(uv_work_t *req)
     {
         std::cerr << std::endl << "Failed to open the nRF5 BLE driver." << std::endl;
         baton->result = error_code;
+
+        // Delete the adapter layer and all layers below
+        sd_rpc_adapter_delete(adapter);
+
+        // Free memory malloc'ed by the sd_rpc_create* functions
+        free(uart);
+        free(h5);
+        free(serialization);
+        free(adapter);
+
         return;
     }
 
