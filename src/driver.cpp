@@ -671,12 +671,6 @@ void Adapter::Open(uv_work_t *req)
 {
     auto baton = static_cast<OpenBaton *>(req->data);
 
-    baton->mainObject->eventIntervalTimer = new uv_timer_t();
-
-    baton->mainObject->asyncEvent = new uv_async_t();
-    baton->mainObject->asyncLog = new uv_async_t();
-    baton->mainObject->asyncStatus = new uv_async_t();
-
     baton->mainObject->initEventHandling(baton->event_callback, baton->evt_interval);
     baton->mainObject->initLogHandling(baton->log_callback);
     baton->mainObject->initStatusHandling(baton->status_callback);
@@ -694,15 +688,6 @@ void Adapter::Open(uv_work_t *req)
 
     baton->adapter = adapter;
     baton->mainObject->adapter = adapter;
-
-    // Clear the statistics
-    baton->mainObject->eventCallbackCount = 0;
-
-    // Max number of events in queue before sending it to JavaScript
-    baton->mainObject->eventCallbackMaxCount = 0;
-    baton->mainObject->eventCallbackBatchEventCounter = 0;
-    baton->mainObject->eventCallbackBatchEventTotalCount = 0;
-    baton->mainObject->eventCallbackBatchNumber = 0;
 
     // Set the log level
     auto error_code = sd_rpc_log_handler_severity_filter_set(adapter, baton->log_level);
@@ -723,6 +708,16 @@ void Adapter::Open(uv_work_t *req)
     {
         std::cerr << std::endl << "Failed to open the nRF5 BLE driver." << std::endl;
         baton->result = error_code;
+
+        // Delete the adapter layer and all layers below
+        sd_rpc_adapter_delete(adapter);
+
+        // Free memory malloc'ed by the sd_rpc_create* functions
+        free(uart);
+        free(h5);
+        free(serialization);
+        free(adapter);
+
         return;
     }
 
