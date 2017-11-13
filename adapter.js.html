@@ -2626,24 +2626,24 @@ class Adapter extends EventEmitter {
         const device = this.getDevice(deviceInstanceId);
 
         if (!device) {
-            const errorObject = _makeError('Failed to request att mtu', 'Failed to find device with id ' + deviceInstanceId);
+            const errorObject = _makeError(`Failed to request att mtu. Failed to find device with id ${deviceInstanceId}`);
             if (callback) callback(errorObject);
             return;
         }
 
         if (this._gattOperationsMap[device.instanceId]) {
-            this.emit('error', _makeError('Failed to get services, a GATT operation already in progress'));
+            this.emit('error', _makeError('Failed to request att mtu. A GATT operation already in progress.'));
             return;
         }
 
         this._adapter.gattcExchangeMtuRequest(device.connectionHandle, mtu, err => {
             if (err) {
-                const errorObject = _makeError('Failed to request att mtu', err);
+                const errorObject = _makeError(`Failed to request att mtu: ${err.message}`);
                 if (callback) callback(errorObject);
                 return;
             }
 
-            this._gattOperationsMap[device.instanceId] = { callback: callback, clientRxMtu: mtu };
+            this._gattOperationsMap[device.instanceId] = { callback, clientRxMtu: mtu };
         });
     }
 
