@@ -15,8 +15,8 @@
     "type": "git",
     "url": "https://github.com/NordicSemiconductor/pc-ble-driver-js.git"
   },
-  "author": "",
-  "license": "modified BSD",
+  "author": "Nordic Semiconductor ASA",
+  "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
     "bindings": "^1.2.1",
     "change-case": "2.3.0",
