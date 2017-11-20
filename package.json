@@ -1,12 +1,14 @@
 {
   "name": "pc-ble-driver-js",
-  "version": "2.1.0",
+  "version": "2.2.0-alpha.0",
   "description": "Javascript bindings for pc-ble-driver",
   "main": "index.js",
   "scripts": {
     "lint": "jshint api/ test/ && jscs api/ test/",
     "deploy-docs": "gh-pages -d docs",
-    "install": "node build.js",
+    "package-prebuilt": "node-pre-gyp package",
+    "publish-prebuilt": "node-pre-gyp-github publish",
+    "install": "node-pre-gyp install --fallback-to-build=false || node build.js",
     "test": "jest --config config/jest-unit.config",
     "test:system": "jest --config config/jest-system.config",
     "docs": "jsdoc api -t node_modules/minami -R README.md -d docs -c .jsdoc.json"
@@ -14,6 +16,12 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/NordicSemiconductor/pc-ble-driver-js.git"
+  },
+  "binary": {
+    "module_name": "pc-ble-driver-js-sd_api_v3",
+    "module_path": "./build/Release",
+    "host": "https://github.com/NordicSemiconductor/pc-ble-driver-js/releases/download/",
+    "remote_path": "v{version}"
   },
   "author": "Nordic Semiconductor ASA",
   "license": "SEE LICENSE IN LICENSE",
@@ -25,6 +33,7 @@
     "jest-bamboo-formatter": "0.0.3",
     "jszip": "^3.1.2",
     "nan": "2.3.3",
+    "node-pre-gyp": "^0.6.39",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
@@ -42,6 +51,7 @@
     "keypress": "0.2.1",
     "minami": "^1.2.3",
     "mocha": "^2.3.3",
+    "node-pre-gyp-github": "^1.3.1",
     "pc-nrfjprog-js": "https://github.com/NordicSemiconductor/pc-nrfjprog-js.git",
     "proxyquire": "^1.7.3",
     "sinon": "^1.17.1",
