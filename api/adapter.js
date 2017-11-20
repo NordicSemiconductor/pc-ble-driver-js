@@ -3227,6 +3227,7 @@ class Adapter extends EventEmitter {
         };
 
         let applyGattServiceCharacteristics = gattService => {
+            console.log(gattService);
             for (let characteristic of gattService._factory_characteristics) {
                 // TODO: Fix Device Name uuid magic number
                 console.log('lalalalalalalal');

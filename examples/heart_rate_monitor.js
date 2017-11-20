@@ -60,6 +60,7 @@ let heartRateService;
 let heartRateMeasurementCharacteristic;
 let cccdDescriptor;
 let heartRateInterval;
+let genericService;
 
 
 adapterFactory.on('added', adapter => { console.log(`onAdded: Adapter added: ${adapter.instanceId}.`); });
@@ -285,9 +286,10 @@ function servicesInit(adapter) {
         console.log('Initializing the heart rate service and its characteristics/descriptors...');
 
         heartRateService = serviceFactory.createService(BLE_UUID_HEART_RATE_SERVICE);
+        genericService = serviceFactory.createService('1801');
         characteristicsInit();
 
-        adapter.setServices([heartRateService], err => {
+        adapter.setServices([heartRateService, genericService], err => {
             if (err) {
                 return reject(Error(`Error initializing services: ${JSON.stringify(err, null, 1)}'.`));
             }
