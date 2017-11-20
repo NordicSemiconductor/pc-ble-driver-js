@@ -43,6 +43,9 @@
  * https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.heart_rate.xml
  */
 
+/* eslint-disable no-use-before-define */
+/* eslint-disable valid-jsdoc */
+
 'use strict';
 
 const _ = require('underscore');
@@ -86,28 +89,51 @@ function addAdapterListener(adapter, prefix) {
     adapter.on('deviceConnected', device => {
         console.log(`${prefix} deviceConnected: ${JSON.stringify(device)}.`);
 
-        discoverHeartRateService(adapter, device).then(service => {
-            console.log('Discovered the heart rate service.');
-            heartRateService = service;
+        // discoverHeartRateService(adapter, device).then(service => {
+        //     console.log('Discovered the heart rate service.');
+        //     heartRateService = service;
+        //     console.log();
+        //     console.log(service);
+        //     console.log();
+        //     return discoverHRMCharacteristic(adapter)
+        //     .then(characteristic => {
+        //         console.log('Discovered the heart rate measurement characteristic.');
+        //         heartRateMeasurementCharacteristic = characteristic;
+        //
+        //         return discoverHRMCharCCCD(adapter);
+        //     })
+        //     .then(descriptor => {
+        //         console.log('Discovered the heart rate measurement characteristic\'s CCCD.');
+        //         cccdDescriptor = descriptor;
+        //
+        //         console.log('Press any key to toggle notifications on the hrm characteristic.' +
+        //                     'Press `q` or `Q` to disconnect from the BLE peripheral and quit application.');
+        //         addUserInputListener(adapter);
+        //     });
+        // }).catch(error => {
+        //     console.log(error);
+        //     process.exit(1);
+        // });
 
-            return discoverHRMCharacteristic(adapter)
-            .then(characteristic => {
-                console.log('Discovered the heart rate measurement characteristic.');
-                heartRateMeasurementCharacteristic = characteristic;
+        discoverServiceChangedService(adapter, device).then(service => {
+            console.log(service);
+            discoverServiceChangedCharacteristic(adapter, service).then(characteristic => {
+                console.log(characteristic);
+                discoverServiceChangedCharCCCD(adapter, characteristic).then(descriptor => {
+                    console.log(descriptor);
+                    const indicationsEnabled = [1, 0];
+                    adapter.writeDescriptorValue(descriptor.instanceId, indicationsEnabled, false, err => {
+                        if (err) {
+                            console.log(`Error enabling indications: ${err}.`);
+                            process.exit(1);
+                        }
 
-                return discoverHRMCharCCCD(adapter);
-            })
-            .then(descriptor => {
-                console.log('Discovered the heart rate measurement characteristic\'s CCCD.');
-                cccdDescriptor = descriptor;
-
-                console.log('Press any key to toggle notifications on the hrm characteristic.' +
-                            'Press `q` or `Q` to disconnect from the BLE peripheral and quit application.');
-                addUserInputListener(adapter);
+                        console.log('Indication toggled.');
+                    });
+                });
             });
         }).catch(error => {
             console.log(error);
-            process.exit(1);
         });
     });
 
@@ -170,7 +196,7 @@ function getAdapter() {
                 console.log(adapters[adapter].instanceId);
             }
 
-            resolve(adapters[Object.keys(adapters)[0]]);
+            resolve(adapters[Object.keys(adapters)[1]]);
         });
     });
 }
@@ -260,11 +286,66 @@ function connect(adapter, connectToAddress) {
     });
 }
 
+function discoverServiceChangedService(adapter, device) {
+    return new Promise((resolve, reject) => {
+        adapter.getServices(device.instanceId, (err, services) => {
+            if (err) {
+                return reject(Error(`Error discovering the heart rate service: ${err}.`));
+            }
+
+            for (let service in services) {
+                if (services[service].uuid === '1801') {
+                    return resolve(services[service]);
+                }
+            }
+
+            reject(Error('Did not discover the heart rate service in peripheral\'s GATT attribute table.'));
+        });
+    });
+
+}
+
+function discoverServiceChangedCharacteristic(adapter, service) {
+    return new Promise((resolve, reject) => {
+        adapter.getCharacteristics(service.instanceId, (err, characteristics) => {
+            if (err) {
+                return reject(Error(`Error discovering the heart rate service's characteristics: ${err}.`));
+            }
+
+            for (let characteristic in characteristics) {
+                if (characteristics[characteristic].uuid == '2A05') {
+                    return resolve(characteristics[characteristic]);
+                }
+            }
+
+            reject(error('did not discover the heart rate measurement chars in peripheral\'s gatt attribute table.'));
+        });
+    });
+}
+
+function discoverServiceChangedCharCCCD(adapter, characteristic) {
+    return new Promise((resolve, reject) => {
+        adapter.getDescriptors(characteristic.instanceId, (err, descriptors) => {
+            if (err) {
+                return reject(Error(`Error discovering the heart rate characteristic's CCCD: ${err}.`));
+            }
+
+            for (const descriptor in descriptors) {
+                if (descriptors[descriptor].uuid === BLE_UUID_CCCD) {
+                    return resolve(descriptors[descriptor]);
+                }
+            }
+
+            reject(Error('Did not discover the hrm chars CCCD in peripheral\'s GATT attribute table.'));
+        });
+    });
+}
+
 /**
- * Discovers the heart rate service in the BLE peripheral's GATT attribute table.
+ * discovers the heart rate service in the ble peripheral's gatt attribute table.
  *
- * @param adapter Adapter being used.
- * @param device Bluetooth central device being used.
+ * @param adapter adapter being used.
+ * @param device bluetooth central device being used.
  * @returns {Promise} Resolves on successfully discovering the heart rate service.
  *                    If an error occurs, rejects with the corresponding error.
  */
@@ -344,7 +425,7 @@ function discoverHRMCharCCCD(adapter) {
  */
 function addUserInputListener(adapter) {
     process.stdin.setEncoding('utf8');
-    process.stdin.setRawMode(true);
+    // process.stdin.setRawMode(true);
 
     const notificationsEnabled = [0, 0];
 
@@ -370,7 +451,19 @@ function addUserInputListener(adapter) {
                 console.log('Enabling notifications on the heart rate measurement characteristic.');
             }
 
-            adapter.writeDescriptorValue(cccdDescriptor.instanceId, notificationsEnabled, false, err => {
+            // adapter.writeDescriptorValue(cccdDescriptor.instanceId, notificationsEnabled, false, err => {
+            //     if (err) {
+            //         console.log(`Error enabling notifications on the hrm characteristic: ${err}.`);
+            //         process.exit(1);
+            //     }
+            //
+            //     console.log('Notifications toggled on the heart rate measurement characteristic.');
+            // });
+
+            const indicationsEnabled = [2, 0];
+            console.log(cccdDescriptor.instanceId);
+
+            adapter.writeDescriptorValue(cccdDescriptor.instanceId, indicationsEnabled, false, err => {
                 if (err) {
                     console.log(`Error enabling notifications on the hrm characteristic: ${err}.`);
                     process.exit(1);

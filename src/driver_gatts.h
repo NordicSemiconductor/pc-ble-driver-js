@@ -305,6 +305,15 @@ public:
     ble_gatts_rw_authorize_reply_params_t *p_rw_authorize_reply_params;
 };
 
+struct GattsServiceChangedBaton : public Baton
+{
+public:
+    BATON_CONSTRUCTOR(GattsServiceChangedBaton);
+    uint16_t conn_handle;
+    uint16_t start_handle;
+    uint16_t end_handle;
+};
+
 #if NRF_SD_BLE_API_VERSION >= 3
 struct GattsExchangeMtuReplyBaton : public Baton
 {

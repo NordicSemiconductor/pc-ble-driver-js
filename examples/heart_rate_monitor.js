@@ -48,7 +48,6 @@ const _ = require('underscore');
 
 const api = require('../index');
 
-
 const adapterFactory = api.AdapterFactory.getInstance();
 const serviceFactory = new api.ServiceFactory();
 
@@ -84,7 +83,9 @@ function addAdapterListener(adapter, prefix) {
     /**
      * Handling the Application's BLE Stack events.
      */
-    adapter.on('deviceConnected', device => { console.log(`${prefix} deviceConnected: ${device.address}.`); });
+    adapter.on('deviceConnected', device => {
+        console.log(`${prefix} deviceConnected: ${device.address}.`);
+    });
 
     adapter.on('deviceDisconnected', device => {
         console.log(`${prefix} deviceDisconnected:${JSON.stringify(device)}.`);
@@ -98,12 +99,28 @@ function addAdapterListener(adapter, prefix) {
     });
 
     adapter.on('descriptorValueChanged', attribute => {
-        onDescValueChanged(adapter, attribute, prefix);
+        // onDescValueChanged(adapter, attribute, prefix);
+        // const connHandle = 0;
+        // changedService(adapter, connHandle, 14, 65535);
     });
 
     adapter.on('advertiseTimedOut', () => {
         console.log(`${prefix} advertiseTimedOut: Advertising timed-out. Exiting.`);
         process.exit(1);
+    });
+
+    adapter.on('systemAttributeSet', () => {
+        console.log(`${prefix} systemAttributeSet.`);
+    });
+}
+
+function changedService(adapter, connHandle, startHandle, endHandle) {
+    return new Promise((resolve, reject) => {
+        console.log('changed servcie');
+
+        adapter.changedService(connHandle, startHandle, endHandle, err => {
+            console.log(err);
+        });
     });
 }
 
@@ -131,7 +148,7 @@ function getAdapter() {
                 console.log(adapters[adapter].instanceId);
             }
 
-            resolve(adapters[Object.keys(adapters)[0]]);
+            resolve(adapters[Object.keys(adapters)[2]]);
         });
     });
 }
@@ -234,7 +251,7 @@ function characteristicsInit() {
             writeWoResp: false,
             reliableWrite: false,
             notify: true,
-            indicate: false,
+            indicate: true,
         },
         {
             maxLength: 2,
@@ -394,6 +411,7 @@ function onDescValueChanged(adapter, attribute, prefix) {
         } else {
             disableNotificationsOnHRM();
         }
+
     }
 }
 

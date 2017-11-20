@@ -1030,6 +1030,73 @@ void Adapter::AfterGattsReplyReadWriteAuthorize(uv_work_t *req)
     delete baton;
 }
 
+NAN_METHOD(Adapter::GattsServiceChanged)
+{
+    uint16_t conn_handle;
+    uint16_t start_handle;
+    uint16_t end_handle;
+    v8::Local<v8::Function> callback;
+    auto argumentcount = 0;
+
+    try
+    {
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        start_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        end_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (std::string error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    auto baton = new GattsServiceChangedBaton(callback);
+    baton->adapter = obj->adapter;
+    baton->conn_handle = conn_handle;
+    baton->start_handle = start_handle;
+    baton->end_handle = end_handle;
+
+    uv_queue_work(uv_default_loop(), baton->req, GattsServiceChanged, reinterpret_cast<uv_after_work_cb>(AfterGattsServiceChanged));
+}
+
+// This runs in a worker thread (not Main Thread)
+void Adapter::GattsServiceChanged(uv_work_t *req)
+{
+    auto baton = static_cast<GattsServiceChangedBaton *>(req->data);
+    baton->result = sd_ble_gatts_service_changed(baton->adapter, baton->conn_handle, baton->start_handle, baton->end_handle);
+}
+
+// This runs in Main Thread
+void Adapter::AfterGattsServiceChanged(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+
+    auto baton = static_cast<GattsServiceChangedBaton *>(req->data);
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "service changed");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+    delete baton;
+}
+
 #if NRF_SD_BLE_API_VERSION >= 3
 NAN_METHOD(Adapter::GattsExchangeMtuReply)
 {

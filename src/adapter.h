@@ -203,6 +203,7 @@ private:
     ADAPTER_METHOD_DEFINITIONS(GattsSetValue);
     ADAPTER_METHOD_DEFINITIONS(GattsGetValue);
     ADAPTER_METHOD_DEFINITIONS(GattsReplyReadWriteAuthorize);
+    ADAPTER_METHOD_DEFINITIONS(GattsServiceChanged);
 #if NRF_SD_BLE_API_VERSION >= 3
     ADAPTER_METHOD_DEFINITIONS(GattsExchangeMtuReply);
 #endif

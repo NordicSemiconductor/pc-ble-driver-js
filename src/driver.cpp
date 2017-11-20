@@ -496,7 +496,7 @@ uint32_t Adapter::enableBLE(adapter_t *adapter)
     ble_enable_params.common_enable_params.vs_uuid_count = 5;
     ble_enable_params.gap_enable_params.periph_conn_count = 1;
     ble_enable_params.gap_enable_params.central_sec_count = 1;
-    ble_enable_params.gatts_enable_params.service_changed = false;
+    ble_enable_params.gatts_enable_params.service_changed = true;
     ble_enable_params.gatts_enable_params.attr_tab_size = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
     ble_enable_params.gap_enable_params.central_conn_count = 7;
 
