@@ -6,6 +6,7 @@
   "scripts": {
     "lint": "jshint api/ test/ && jscs api/ test/",
     "deploy-docs": "gh-pages -d docs",
+    "clean-prebuilt": "node-pre-gyp clean",
     "package-prebuilt": "node-pre-gyp package",
     "publish-prebuilt": "node-pre-gyp-github publish",
     "install": "node-pre-gyp install --fallback-to-build=false || node build.js",
