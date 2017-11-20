@@ -1,13 +1,15 @@
 {
   "name": "pc-ble-driver-js",
-  "version": "2.2.0-alpha.0",
+  "version": "2.2.1-alpha.0",
   "description": "Javascript bindings for pc-ble-driver",
   "main": "index.js",
   "scripts": {
     "lint": "jshint api/ test/ && jscs api/ test/",
     "deploy-docs": "gh-pages -d docs",
+    "clean-prebuilt": "node-pre-gyp clean",
     "package-prebuilt": "node-pre-gyp package",
     "publish-prebuilt": "node-pre-gyp-github publish",
+    "publish-all-prebuilt": "node scripts/publish-all-prebuilt.js",
     "install": "node-pre-gyp install --fallback-to-build=false || node build.js",
     "test": "jest --config config/jest-unit.config",
     "test:system": "jest --config config/jest-system.config",
