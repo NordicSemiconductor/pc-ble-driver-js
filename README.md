@@ -14,6 +14,10 @@ To install pc-ble-driver-js for use in a Node.js project, simply:
 
 This will work as long as precompiled binaries exist for your platform/runtime environment, ref. the files attached to the [Releases](https://github.com/NordicSemiconductor/pc-ble-driver-js/releases). If not, then it will attempt to build the binaries from source, which requires some additional setup as described in [Installation.md](./Installation.md).
 
+## Hardware setup
+
+A connectivity firmware needs to be flashed on the nRF5 IC before using pc-ble-driver-js. More information on this can be found in [Hardware setup](https://github.com/NordicSemiconductor/pc-ble-driver/blob/master/Installation.md#hardware-setup).
+
 ## Getting started
 
 The [examples](./examples) and [integration tests](./test) may be used as a starting point for development with pc-ble-driver-js. Examples include a [heart rate monitor](./examples/heart_rate_monitor.js) (BLE peripheral) and [heart rate collector](./examples/heart_rate_collector.js) (BLE master) and show the basic structure of an application built on pc-ble-driver-js. To run the heart rate monitor example, verify your nRF5 connectivity chip is set-up and connected to your PC and run:
