@@ -121,7 +121,7 @@ function addAdapterListener(adapter, prefix) {
                 console.log(characteristic);
                 discoverServiceChangedCharCCCD(adapter, characteristic).then(descriptor => {
                     console.log(descriptor);
-                    const indicationsEnabled = [1, 0];
+                    const indicationsEnabled = [2, 0];
                     adapter.writeDescriptorValue(descriptor.instanceId, indicationsEnabled, false, err => {
                         if (err) {
                             console.log(`Error enabling indications: ${err}.`);
@@ -289,6 +289,7 @@ function connect(adapter, connectToAddress) {
 function discoverServiceChangedService(adapter, device) {
     return new Promise((resolve, reject) => {
         adapter.getServices(device.instanceId, (err, services) => {
+            console.log(services);
             if (err) {
                 return reject(Error(`Error discovering the heart rate service: ${err}.`));
             }
@@ -460,17 +461,6 @@ function addUserInputListener(adapter) {
             //     console.log('Notifications toggled on the heart rate measurement characteristic.');
             // });
 
-            const indicationsEnabled = [2, 0];
-            console.log(cccdDescriptor.instanceId);
-
-            adapter.writeDescriptorValue(cccdDescriptor.instanceId, indicationsEnabled, false, err => {
-                if (err) {
-                    console.log(`Error enabling notifications on the hrm characteristic: ${err}.`);
-                    process.exit(1);
-                }
-
-                console.log('Notifications toggled on the heart rate measurement characteristic.');
-            });
         }
     });
 }

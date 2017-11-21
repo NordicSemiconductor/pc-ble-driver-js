@@ -61,6 +61,8 @@ let heartRateMeasurementCharacteristic;
 let cccdDescriptor;
 let heartRateInterval;
 let genericService;
+let serviceChangedCharacteristic;
+let serviceChangedCccdDescriptor;
 
 
 adapterFactory.on('added', adapter => { console.log(`onAdded: Adapter added: ${adapter.instanceId}.`); });
@@ -99,10 +101,21 @@ function addAdapterListener(adapter, prefix) {
         console.log(`${prefix} deviceDiscovered: ${JSON.stringify(device)}.`);
     });
 
-    adapter.on('descriptorValueChanged', attribute => {
+    adapter.on('systemAttributeSet', () => {
+        console.log(`${prefix} systemAttributeSet.`);
+    });
+
+    adapter.on('characteristicValueChanged', attribute => {
         // onDescValueChanged(adapter, attribute, prefix);
-        // const connHandle = 0;
+
+        console.log('yes!');
+        const connHandle = 0;
         // changedService(adapter, connHandle, 14, 65535);
+        changedService(adapter, connHandle, 14, 15);
+    });
+
+    adapter.on('descriptorValueChanged', attribute => {
+        onDescValueChanged(adapter, attribute, prefix);
     });
 
     adapter.on('advertiseTimedOut', () => {
@@ -110,9 +123,6 @@ function addAdapterListener(adapter, prefix) {
         process.exit(1);
     });
 
-    adapter.on('systemAttributeSet', () => {
-        console.log(`${prefix} systemAttributeSet.`);
-    });
 }
 
 function changedService(adapter, connHandle, startHandle, endHandle) {
@@ -270,6 +280,36 @@ function characteristicsInit() {
             writePerm: ['open'],
             variableLength: false,
         });
+
+    serviceChangedCharacteristic = serviceFactory.createCharacteristic(
+        genericService,
+        '2A05',
+        [0, 0],
+        {
+            broadcast: false,
+            read: false,
+            write: false,
+            writeWoResp: false,
+            reliableWrite: false,
+            notify: true,
+            indicate: true,
+        },
+        {
+            maxLength: 2,
+            readPerm: ['open'],
+            writePerm: ['open'],
+        });
+
+    serviceChangedCccdDescriptor = serviceFactory.createDescriptor(
+        serviceChangedCharacteristic,
+        BLE_UUID_CCCD,
+        [0, 0],
+        {
+            maxLength: 2,
+            readPerm: ['open'],
+            writePerm: ['open'],
+            variableLength: false,
+        });
 }
 
 /**
@@ -347,6 +387,14 @@ function onDescValueChanged(adapter, attribute, prefix) {
     console.log(`${prefix} descriptorValueChanged: ${JSON.stringify(attribute)}.`);
 
     const descriptorHandle = adapter._getCCCDOfCharacteristic(heartRateMeasurementCharacteristic.instanceId).handle;
+
+    console.log(descriptorHandle);
+    console.log(serviceChangedCccdDescriptor.handle);
+    if (descriptorHandle === serviceChangedCccdDescriptor.handle) {
+        console.log('yes!');
+        const connHandle = 0;
+        changedService(adapter, connHandle, 14, 65535);
+    }
 
     if (descriptorHandle === cccdDescriptor.handle) {
         const descriptorValue = attribute.value[Object.keys(attribute.value)[0]];

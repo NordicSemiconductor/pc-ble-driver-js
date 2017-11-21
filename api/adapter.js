@@ -1611,9 +1611,7 @@ class Adapter extends EventEmitter {
     _getServiceByHandle(deviceInstanceId, handle) {
         let foundService = null;
 
-        console.log(this._services);
         for (let serviceInstanceId in this._services) {
-            console.log(serviceInstanceId);
             const service = this._services[serviceInstanceId];
 
             if (!_.isEqual(service.deviceInstanceId, deviceInstanceId)) {
@@ -1636,8 +1634,6 @@ class Adapter extends EventEmitter {
         for (let characteristicInstanceId in this._characteristics) {
             const characteristic = this._characteristics[characteristicInstanceId];
 
-            console.log(handle);
-            console.log(service);
             if (characteristic.serviceInstanceId !== service.instanceId) {
                 continue;
             }
@@ -1655,7 +1651,6 @@ class Adapter extends EventEmitter {
     }
 
     _getDescriptorByHandle(deviceInstanceId, handle) {
-        console.log(handle);
         const characteristic = this._getCharacteristicByHandle(deviceInstanceId, handle);
 
         for (let descriptorInstanceId in this._descriptors) {
@@ -1689,6 +1684,7 @@ class Adapter extends EventEmitter {
              * @type {Object}
              * @property {Characteristic} attribute - The changed characteristic.
              */
+            console.log('a');
             this.emit('characteristicValueChanged', attribute);
         } else if (attribute instanceof Descriptor) {
             /**
@@ -3227,14 +3223,12 @@ class Adapter extends EventEmitter {
         };
 
         let applyGattServiceCharacteristics = gattService => {
-            console.log(gattService);
             for (let characteristic of gattService._factory_characteristics) {
                 // TODO: Fix Device Name uuid magic number
-                console.log('lalalalalalalal');
-                console.log(characteristic);
                 if (characteristic.uuid === '2A05') {
                     // TODO: At some point addon should accept string.
                     this._setDeviceNameFromArray(characteristic.value, characteristic.writePerm, err => {
+                        console.log(err);
                         if (!err) {
                             characteristic.declarationHandle = 11;
                             characteristic.valueHandle = 12;
