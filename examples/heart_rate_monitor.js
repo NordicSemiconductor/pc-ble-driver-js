@@ -111,7 +111,7 @@ function addAdapterListener(adapter, prefix) {
         console.log('yes!');
         const connHandle = 0;
         // changedService(adapter, connHandle, 14, 65535);
-        changedService(adapter, connHandle, 14, 15);
+        // changedService(adapter, connHandle, 15, 16);
     });
 
     adapter.on('descriptorValueChanged', attribute => {
@@ -127,7 +127,7 @@ function addAdapterListener(adapter, prefix) {
 
 function changedService(adapter, connHandle, startHandle, endHandle) {
     return new Promise((resolve, reject) => {
-        console.log('changed servcie');
+        console.log('changed service');
 
         adapter.changedService(connHandle, startHandle, endHandle, err => {
             console.log(err);
@@ -387,13 +387,12 @@ function onDescValueChanged(adapter, attribute, prefix) {
     console.log(`${prefix} descriptorValueChanged: ${JSON.stringify(attribute)}.`);
 
     const descriptorHandle = adapter._getCCCDOfCharacteristic(heartRateMeasurementCharacteristic.instanceId).handle;
+    const serviceChangedDescriptorHandle = adapter._getCCCDOfCharacteristic(serviceChangedCharacteristic.instanceId).handle;
 
-    console.log(descriptorHandle);
-    console.log(serviceChangedCccdDescriptor.handle);
-    if (descriptorHandle === serviceChangedCccdDescriptor.handle) {
-        console.log('yes!');
+    if (serviceChangedDescriptorHandle == serviceChangedCccdDescriptor.handle) {
+        console.log('yesssssss!');
         const connHandle = 0;
-        changedService(adapter, connHandle, 14, 65535);
+        changedService(adapter, connHandle, 14, 15);
     }
 
     if (descriptorHandle === cccdDescriptor.handle) {

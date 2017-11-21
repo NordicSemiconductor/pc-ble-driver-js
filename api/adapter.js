@@ -1699,6 +1699,7 @@ class Adapter extends EventEmitter {
     }
 
     _parseGattcHvxEvent(event) {
+        console.log(event.type === this._bleDriver.BLE_GATT_HVX_INDICATION);
         if (event.type === this._bleDriver.BLE_GATT_HVX_INDICATION) {
             this._adapter.gattcConfirmHandleValue(event.conn_handle, event.handle, error => {
                 if (error) {
@@ -1768,6 +1769,8 @@ class Adapter extends EventEmitter {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
         const attribute = this._getAttributeByHandle('local.server', event.handle);
 
+        console.log(this._instanceIdIsOnLocalDevice(attribute.instanceId));
+        console.log(this._isCCCDDescriptor(attribute.instanceId));
         if (event.op === this._bleDriver.BLE_GATTS_OP_WRITE_REQ ||
             event.op === this._bleDriver.BLE_GATTS_OP_WRITE_CMD) {
             if (this._instanceIdIsOnLocalDevice(attribute.instanceId) && this._isCCCDDescriptor(attribute.instanceId)) {
@@ -3223,6 +3226,7 @@ class Adapter extends EventEmitter {
         };
 
         let applyGattServiceCharacteristics = gattService => {
+            console.log(gattService._factory_characteristics);
             for (let characteristic of gattService._factory_characteristics) {
                 // TODO: Fix Device Name uuid magic number
                 if (characteristic.uuid === '2A05') {
@@ -3233,6 +3237,12 @@ class Adapter extends EventEmitter {
                             characteristic.declarationHandle = 11;
                             characteristic.valueHandle = 12;
                             this._characteristics[characteristic.instanceId] = characteristic;
+                            for (let descriptor of characteristic._factory_descriptors) {
+                                if (descriptor.uuid === '2902') {
+                                    descriptor.handle = 13;
+                                    this._descriptors[descriptor.instanceId] = descriptor;
+                                }
+                            }
                         }
                     });
                 }
@@ -3351,6 +3361,7 @@ class Adapter extends EventEmitter {
     changedService(connHandle, startHandle, endHandle, callback) {
         console.log('adapter.changedservice');
         this._adapter.gattsServiceChanged(connHandle, startHandle, endHandle, err => {
+            console.log(err);
             if (err) {
                 this.emit('error', _makeError('Failed to changed service', err));
                 if (callback) {
@@ -3758,6 +3769,7 @@ class Adapter extends EventEmitter {
 
     _isCCCDDescriptor(descriptorId) {
         const descriptor = this._descriptors[descriptorId];
+        console.log(descriptor);
         return descriptor &&
             ((descriptor.uuid === '0000290200001000800000805F9B34FB') ||
                 (descriptor.uuid === '2902'));
