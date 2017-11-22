@@ -281,35 +281,35 @@ function characteristicsInit() {
             variableLength: false,
         });
 
-    serviceChangedCharacteristic = serviceFactory.createCharacteristic(
-        genericService,
-        '2A05',
-        [0, 0],
-        {
-            broadcast: false,
-            read: false,
-            write: false,
-            writeWoResp: false,
-            reliableWrite: false,
-            notify: true,
-            indicate: true,
-        },
-        {
-            maxLength: 2,
-            readPerm: ['open'],
-            writePerm: ['open'],
-        });
+    // serviceChangedCharacteristic = serviceFactory.createCharacteristic(
+    //     genericService,
+    //     '2A05',
+    //     [0, 0],
+    //     {
+    //         broadcast: false,
+    //         read: false,
+    //         write: false,
+    //         writeWoResp: false,
+    //         reliableWrite: false,
+    //         notify: true,
+    //         indicate: true,
+    //     },
+    //     {
+    //         maxLength: 2,
+    //         readPerm: ['open'],
+    //         writePerm: ['open'],
+    //     });
 
-    serviceChangedCccdDescriptor = serviceFactory.createDescriptor(
-        serviceChangedCharacteristic,
-        BLE_UUID_CCCD,
-        [0, 0],
-        {
-            maxLength: 2,
-            readPerm: ['open'],
-            writePerm: ['open'],
-            variableLength: false,
-        });
+    // serviceChangedCccdDescriptor = serviceFactory.createDescriptor(
+    //     serviceChangedCharacteristic,
+    //     BLE_UUID_CCCD,
+    //     [0, 0],
+    //     {
+    //         maxLength: 2,
+    //         readPerm: ['open'],
+    //         writePerm: ['open'],
+    //         variableLength: false,
+    //     });
 }
 
 /**
@@ -326,10 +326,10 @@ function servicesInit(adapter) {
         console.log('Initializing the heart rate service and its characteristics/descriptors...');
 
         heartRateService = serviceFactory.createService(BLE_UUID_HEART_RATE_SERVICE);
-        genericService = serviceFactory.createService('1801');
+        // genericService = serviceFactory.createService('1801');
         characteristicsInit();
 
-        adapter.setServices([heartRateService, genericService], err => {
+        adapter.setServices([heartRateService], err => {
             if (err) {
                 return reject(Error(`Error initializing services: ${JSON.stringify(err, null, 1)}'.`));
             }
@@ -387,9 +387,10 @@ function onDescValueChanged(adapter, attribute, prefix) {
     console.log(`${prefix} descriptorValueChanged: ${JSON.stringify(attribute)}.`);
 
     const descriptorHandle = adapter._getCCCDOfCharacteristic(heartRateMeasurementCharacteristic.instanceId).handle;
-    const serviceChangedDescriptorHandle = adapter._getCCCDOfCharacteristic(serviceChangedCharacteristic.instanceId).handle;
+    const serviceChangedDescriptorHandle = adapter._getCCCDOfCharacteristic('local.server.3.3').handle;
 
-    if (serviceChangedDescriptorHandle == serviceChangedCccdDescriptor.handle) {
+    console.log(serviceChangedDescriptorHandle);
+    if (serviceChangedDescriptorHandle == '13') {
         console.log('yesssssss!');
         const connHandle = 0;
         changedService(adapter, connHandle, 14, 15);

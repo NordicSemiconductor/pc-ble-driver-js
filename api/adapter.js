@@ -42,6 +42,7 @@ const _ = require('underscore');
 const AdapterState = require('./adapterState');
 const Device = require('./device');
 const Service = require('./service');
+const ServiceFactory = require('./serviceFactory');
 const Characteristic = require('./characteristic');
 const Descriptor = require('./descriptor');
 const AdType = require('./util/adType');
@@ -3238,6 +3239,7 @@ class Adapter extends EventEmitter {
                             characteristic.valueHandle = 12;
                             this._characteristics[characteristic.instanceId] = characteristic;
                             for (let descriptor of characteristic._factory_descriptors) {
+                                console.log('lalalalala');
                                 if (descriptor.uuid === '2902') {
                                     descriptor.handle = 13;
                                     this._descriptors[descriptor.instanceId] = descriptor;
@@ -3252,6 +3254,46 @@ class Adapter extends EventEmitter {
 
         // Create array of function objects to call in sequence.
         var promises = [];
+
+
+        let serviceFactory = new ServiceFactory();
+
+        let genericService = serviceFactory.createService('1801');
+
+        let serviceChangedCharacteristic = serviceFactory.createCharacteristic(
+            genericService,
+            '2A05',
+            [0, 0],
+            {
+                broadcast: false,
+                read: false,
+                write: false,
+                writeWoResp: false,
+                reliableWrite: false,
+                notify: true,
+                indicate: true,
+            },
+            {
+                maxLength: 2,
+                readPerm: ['open'],
+                writePerm: ['open'],
+            });
+
+        let serviceChangedCccdDescriptor = serviceFactory.createDescriptor(
+            serviceChangedCharacteristic,
+            '2902',
+            [0, 0],
+            {
+                maxLength: 2,
+                readPerm: ['open'],
+                writePerm: ['open'],
+                variableLength: false,
+            });
+
+        services.push(genericService);
+
+        console.log('services');
+        console.log(services);
 
         for (let service of services) {
             var p;
