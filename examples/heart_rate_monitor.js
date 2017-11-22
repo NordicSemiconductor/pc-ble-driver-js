@@ -105,15 +105,6 @@ function addAdapterListener(adapter, prefix) {
         console.log(`${prefix} systemAttributeSet.`);
     });
 
-    adapter.on('characteristicValueChanged', attribute => {
-        // onDescValueChanged(adapter, attribute, prefix);
-
-        console.log('yes!');
-        const connHandle = 0;
-        // changedService(adapter, connHandle, 14, 65535);
-        // changedService(adapter, connHandle, 15, 16);
-    });
-
     adapter.on('descriptorValueChanged', attribute => {
         onDescValueChanged(adapter, attribute, prefix);
     });
@@ -280,36 +271,6 @@ function characteristicsInit() {
             writePerm: ['open'],
             variableLength: false,
         });
-
-    // serviceChangedCharacteristic = serviceFactory.createCharacteristic(
-    //     genericService,
-    //     '2A05',
-    //     [0, 0],
-    //     {
-    //         broadcast: false,
-    //         read: false,
-    //         write: false,
-    //         writeWoResp: false,
-    //         reliableWrite: false,
-    //         notify: true,
-    //         indicate: true,
-    //     },
-    //     {
-    //         maxLength: 2,
-    //         readPerm: ['open'],
-    //         writePerm: ['open'],
-    //     });
-
-    // serviceChangedCccdDescriptor = serviceFactory.createDescriptor(
-    //     serviceChangedCharacteristic,
-    //     BLE_UUID_CCCD,
-    //     [0, 0],
-    //     {
-    //         maxLength: 2,
-    //         readPerm: ['open'],
-    //         writePerm: ['open'],
-    //         variableLength: false,
-    //     });
 }
 
 /**
@@ -326,7 +287,6 @@ function servicesInit(adapter) {
         console.log('Initializing the heart rate service and its characteristics/descriptors...');
 
         heartRateService = serviceFactory.createService(BLE_UUID_HEART_RATE_SERVICE);
-        // genericService = serviceFactory.createService('1801');
         characteristicsInit();
 
         adapter.setServices([heartRateService], err => {
@@ -389,11 +349,13 @@ function onDescValueChanged(adapter, attribute, prefix) {
     const descriptorHandle = adapter._getCCCDOfCharacteristic(heartRateMeasurementCharacteristic.instanceId).handle;
     const serviceChangedDescriptorHandle = adapter._getCCCDOfCharacteristic('local.server.3.3').handle;
 
-    console.log(serviceChangedDescriptorHandle);
     if (serviceChangedDescriptorHandle == '13') {
         console.log('yesssssss!');
         const connHandle = 0;
-        changedService(adapter, connHandle, 14, 15);
+        // changedService(adapter, connHandle, 14, 15);
+        this._adapter.gattsHVX(connHandle, hvxParams, err => {
+           console.log(err);
+        }
     }
 
     if (descriptorHandle === cccdDescriptor.handle) {

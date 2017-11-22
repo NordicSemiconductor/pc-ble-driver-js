@@ -682,6 +682,7 @@ class Adapter extends EventEmitter {
                     this._parseGattsHvcEvent(event);
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_SC_CONFIRM:
+                    console.log('BLE_GATTS_EVT_SC_CONFIRM');
                     // Not needed, service changed is not supported currently.
                     break;
                 case this._bleDriver.BLE_GATTS_EVT_TIMEOUT:
@@ -3247,7 +3248,6 @@ class Adapter extends EventEmitter {
 
         // Create array of function objects to call in sequence.
         var promises = [];
-
 
         let serviceFactory = new ServiceFactory();
 
