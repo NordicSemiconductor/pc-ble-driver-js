@@ -1062,9 +1062,6 @@ class Adapter extends EventEmitter {
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_CONN:
                 const deviceAddress = this._gapOperationsMap.connecting.deviceAddress;
-                const callback = this._gapOperationsMap.connecting.callback;
-                const errorObject = _makeError('Could not connect. Connection procedure timed out.');
-                if (callback) callback(errorObject);
                 delete this._gapOperationsMap.connecting;
                 this._changeState({ connecting: false });
 
