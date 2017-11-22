@@ -116,15 +116,11 @@ function addAdapterListener(adapter, prefix) {
         // });
 
         discoverServiceChangedService(adapter, device).then(service => {
-            console.log(service);
             discoverServiceChangedCharacteristic(adapter, service).then(characteristic => {
-                console.log(characteristic);
                 discoverServiceChangedCharCCCD(adapter, characteristic).then(descriptor => {
-                    console.log(descriptor);
                     const indicationsEnabled = [2, 0];
                     adapter.writeDescriptorValue(descriptor.instanceId, indicationsEnabled, false, err => {
                         if (err) {
-                            console.log(`Error enabling indications: ${err}.`);
                             process.exit(1);
                         }
 
