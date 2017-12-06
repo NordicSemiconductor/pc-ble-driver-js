@@ -479,7 +479,7 @@ v8::Local<v8::Object> CommonDataLengthChangedEvent::ToJs()
 #endif
 
 // Class private method that is only used by the class to activate the SoftDevice in the Adapter
-uint32_t Adapter::enableBLE(adapter_t *adapter)
+uint32_t Adapter::enableBLE(adapter_t *adapter, ble_enable_params_t *ble_enable_params)
 {
     // If the this->adapter has not been set yet it is because the Adapter::Open call has not set
     // an adapter_t instance. The SoftDevice is started in Adapter::Open call and we do not have to
@@ -489,18 +489,7 @@ uint32_t Adapter::enableBLE(adapter_t *adapter)
         return NRF_ERROR_INVALID_PARAM;
     }
 
-    ble_enable_params_t ble_enable_params;
-
-    memset(&ble_enable_params, 0, sizeof(ble_enable_params));
-
-    ble_enable_params.common_enable_params.vs_uuid_count = 5;
-    ble_enable_params.gap_enable_params.periph_conn_count = 1;
-    ble_enable_params.gap_enable_params.central_sec_count = 1;
-    ble_enable_params.gatts_enable_params.service_changed = false;
-    ble_enable_params.gatts_enable_params.attr_tab_size = BLE_GATTS_ATTR_TAB_SIZE_DEFAULT;
-    ble_enable_params.gap_enable_params.central_conn_count = 7;
-
-    return sd_ble_enable(adapter, &ble_enable_params, 0);
+    return sd_ble_enable(adapter, ble_enable_params, 0);
 }
 
 // This function runs in the Main Thread
@@ -619,12 +608,23 @@ NAN_METHOD(Adapter::Open)
         baton->retransmission_interval = ConversionUtility::getNativeUint32(options, "retransmissionInterval"); parameter++;
         baton->response_timeout = ConversionUtility::getNativeUint32(options, "responseTimeout"); parameter++;
         baton->enable_ble = ConversionUtility::getBool(options, "enableBLE"); parameter++;
+        baton->ble_enable_params = EnableParameters(ConversionUtility::getJsObject(options, "enableBLEParams")); parameter++;
     }
     catch (std::string error)
     {
         std::stringstream errormessage;
         errormessage << "A setup option was wrong. Option: ";
-        const char *_options[] = { "baudrate", "parity", "flowcontrol", "eventInterval", "logLevel", "retransmissionInterval", "responseTimeout", "enableBLE" };
+        const char *_options[] = {
+            "baudrate",
+            "parity",
+            "flowcontrol",
+            "eventInterval",
+            "logLevel",
+            "retransmissionInterval",
+            "responseTimeout",
+            "enableBLE",
+            "enableBLEParams"
+        };
         errormessage << _options[parameter] << ". Reason: " << error;
         Nan::ThrowTypeError(errormessage.str().c_str());
         return;
@@ -722,8 +722,7 @@ void Adapter::Open(uv_work_t *req)
     }
 
     if (baton->enable_ble) {
-        // Enable BLE with default values defined in Adapter:enableBLE private function
-        error_code = Adapter::enableBLE(adapter);
+        error_code = Adapter::enableBLE(adapter, baton->ble_enable_params);
 
         if (error_code == NRF_SUCCESS)
         {
