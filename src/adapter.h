@@ -213,7 +213,7 @@ private:
     static void initGattS(v8::Local<v8::FunctionTemplate> tpl);
 
     void dispatchEvents();
-    static uint32_t enableBLE(adapter_t *adapter);
+    static uint32_t enableBLE(adapter_t *adapter, ble_enable_params_t *ble_enable_params);
 
     void createSecurityKeyStorage(const uint16_t connHandle, ble_gap_sec_keyset_t *keyset);
     void destroySecurityKeyStorage(const uint16_t connHandle);
