@@ -823,6 +823,61 @@ void Adapter::AfterClose(uv_work_t *req)
     delete baton;
 }
 
+NAN_METHOD(Adapter::ConnReset)
+{
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    v8::Local<v8::Function> callback;
+
+    try
+    {
+        callback = ConversionUtility::getCallbackFunction(info[0]);
+    }
+    catch (std::string error)
+    {
+        auto message = ErrorMessage::getTypeErrorMessage(0, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    auto baton = new ConnResetBaton(callback);
+    baton->adapter = obj->adapter;
+    baton->mainObject = obj;
+
+    uv_queue_work(uv_default_loop(), baton->req, ConnReset, reinterpret_cast<uv_after_work_cb>(AfterConnReset));
+}
+
+void Adapter::ConnReset(uv_work_t *req)
+{
+    auto baton = static_cast<CloseBaton *>(req->data);
+    baton->result = sd_rpc_conn_reset(baton->adapter);
+}
+
+void Adapter::AfterConnReset(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+    auto baton = static_cast<ConnResetBaton *>(req->data);
+
+    baton->mainObject->cleanUpV8Resources();
+
+    if (baton->callback != nullptr)
+    {
+        v8::Local<v8::Value> argv[1];
+
+        if (baton->result != NRF_SUCCESS)
+        {
+            argv[0] = ErrorMessage::getErrorMessage(baton->result, "resetting connectivity device");
+        }
+        else
+        {
+            argv[0] = Nan::Undefined();
+        }
+
+        baton->callback->Call(1, argv);
+    }
+
+    delete baton;
+}
+
 NAN_METHOD(Adapter::AddVendorSpecificUUID)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
