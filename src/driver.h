@@ -265,6 +265,13 @@ public:
     Adapter *mainObject;
 };
 
+struct ConnResetBaton : public Baton
+{
+public:
+    BATON_CONSTRUCTOR(ConnResetBaton);
+    Adapter *mainObject;
+};
+
 struct EnableBLEBaton : public Baton
 {
 public:
