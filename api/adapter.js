@@ -435,6 +435,7 @@ class Adapter extends EventEmitter {
      * @summary Close the adapter.
      *
      * This function will close the serial port, release allocated resources and remove event listeners.
+     * Before closing, a reset command is issued to set the connectivity device to idle state.
      *
      * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
@@ -444,19 +445,46 @@ class Adapter extends EventEmitter {
             if (callback) callback();
             return;
         }
+
         this._changeState({
             available: false,
             bleEnabled: false,
         });
-        this._adapter.close(error => {
-            /**
-             * Adapter closed event.
-             *
-             * @event Adapter#closed
-             * @type {Object}
-             * @property {Adapter} this - An instance of the closed <code>Adapter</code>.
-             */
-            this.emit('closed', this);
+
+        this.connReset(err => {
+            if (err) {
+                this.emit('logMessage', logLevel.DEBUG, `Failed to issue connectivity reset: ${err}. Proceeding with close.`);
+            }
+
+            this._adapter.close(error => {
+                /**
+                 * Adapter closed event.
+                 *
+                 * @event Adapter#closed
+                 * @type {Object}
+                 * @property {Adapter} this - An instance of the closed <code>Adapter</code>.
+                 */
+                this.emit('closed', this);
+                if (callback) callback(error);
+            });
+        });
+    }
+
+    /**
+     * @summary Reset the connectivity device
+     *
+     * This function will issue a reset command to the connectivity device.
+     *
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
+    connReset(callback) {
+        if (!this.state.available) {
+            if (callback) callback(_makeError('The adapter is not available.'));
+            return;
+        }
+
+        this._adapter.connReset(error => {
             if (callback) callback(error);
         });
     }
