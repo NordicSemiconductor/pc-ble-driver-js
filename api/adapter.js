@@ -3707,44 +3707,61 @@ class Adapter extends EventEmitter {
             handle: attribute.handle,
             offset: 0,
             len: value.length,
-            value: value,
+            value,
         };
 
-        this._gattcWriteWithRetries(device.connectionHandle, writeParameters, err => {
-            if (err) {
+        Promise.resolve()
+            .then(() => {
+                if (ack) {
+                    return this._shortWriteWithResponse(device, writeParameters);
+                }
+                return this._shortWriteWithoutResponse(device, writeParameters)
+                    .then(() => {
+                        delete this._gattOperationsMap[device.instanceId];
+                        attribute.value = value;
+                        if (callback) { callback(undefined, attribute); }
+                    });
+            })
+            .catch(err => {
                 delete this._gattOperationsMap[device.instanceId];
-                this.emit('error', _makeError('Failed to write to attribute with handle: ' + attribute.handle, err));
-                if (callback) callback(err);
-                return;
-            }
+                const error = _makeError(`Failed to write to attribute with handle: ${attribute.handle}: ${err.message}`);
+                this.emit('error', error);
+                if (callback) callback(error);
+            });
+    }
 
-            if (!ack) {
-                delete this._gattOperationsMap[device.instanceId];
-                attribute.value = value;
-                if (callback) { callback(undefined, attribute); }
-            }
+    _shortWriteWithResponse(device, writeParameters) {
+        return new Promise((resolve, reject) => {
+            this._adapter.gattcWrite(device.connectionHandle, writeParameters, err => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
         });
     }
 
-    _gattcWriteWithRetries(connectionHandle, writeParameters, callback) {
-        let attempts = 0;
-        const MAX_ATTEMPTS = 20;
-        const RETRY_DELAY = 5;
-        const BLE_ERROR_NO_TX_PACKETS = 0x3004;
-        const tryWrite = () => {
-            this._adapter.gattcWrite(connectionHandle, writeParameters, err => {
-                if (err) {
-                    if (err.errno === BLE_ERROR_NO_TX_PACKETS && attempts++ <= MAX_ATTEMPTS) {
-                        setTimeout(() => tryWrite(), RETRY_DELAY);
-                    } else {
-                        if (callback) callback(err);
+    _shortWriteWithoutResponse(device, writeParameters) {
+        return Promise.race([
+            new Promise((resolve, reject) => {
+                const txCompleteHandler = txCompleteDevice => {
+                    if (device.connectionHandle === txCompleteDevice.connectionHandle) {
+                        this.removeListener('txComplete', txCompleteHandler);
+                        resolve();
                     }
-                } else {
-                    if (callback) callback();
-                }
-            });
-        };
-        tryWrite();
+                };
+                this.on('txComplete', txCompleteHandler);
+                this._adapter.gattcWrite(device.connectionHandle, writeParameters, err => {
+                    if (err) reject(err);
+                });
+            }),
+            new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    reject(_makeError('Timed out while waiting for BLE_EVT_TX_COMPLETE'));
+                }, 2000);
+            }),
+        ]);
     }
 
     _longWrite(device, attribute, value, callback) {
