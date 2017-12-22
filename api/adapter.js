@@ -1947,6 +1947,8 @@ class Adapter extends EventEmitter {
          * @property {Device} remoteDevice - The <code>Device</code> instance representing the BLE peer we've connected to.
          * @property {number} event.count - Number of packets transmitted.
          */
+        remoteDevice.txCompleteQueue -= event.count;
+        console.log(`got TX complete count ${event.count}`);
         this.emit('txComplete', remoteDevice, event.count);
     }
 
@@ -3710,7 +3712,7 @@ class Adapter extends EventEmitter {
             value: value,
         };
 
-        this._gattcWriteWithRetries(device.connectionHandle, writeParameters, err => {
+        this._gattcWriteWithRetries(device, writeParameters, err => {
             if (err) {
                 delete this._gattOperationsMap[device.instanceId];
                 this.emit('error', _makeError('Failed to write to attribute with handle: ' + attribute.handle, err));
@@ -3726,23 +3728,33 @@ class Adapter extends EventEmitter {
         });
     }
 
-    _gattcWriteWithRetries(connectionHandle, writeParameters, callback) {
+    _gattcWriteWithRetries(device, writeParameters, callback) {
         let attempts = 0;
-        const MAX_ATTEMPTS = 20;
-        const RETRY_DELAY = 5;
-        const BLE_ERROR_NO_TX_PACKETS = 0x3004;
+        const MAX_ATTEMPTS = 100;
+        const RETRY_DELAY = 3;
+        //const BLE_ERROR_NO_TX_PACKETS = 0x3004;
         const tryWrite = () => {
-            this._adapter.gattcWrite(connectionHandle, writeParameters, err => {
-                if (err) {
-                    if (err.errno === BLE_ERROR_NO_TX_PACKETS && attempts++ <= MAX_ATTEMPTS) {
-                        setTimeout(() => tryWrite(), RETRY_DELAY);
-                    } else {
-                        if (callback) callback(err);
-                    }
-                } else {
-                    if (callback) callback();
+            if (attempts > MAX_ATTEMPTS) {
+                const error = _makeError('Timed out while waiting for TX complete');
+                this.emit('error', error);
+                if (callback) callback(error);
+            } else if (device.txCompleteQueue > 0) {
+                attempts += 1;
+                console.log(`TX complete queue: ${device.txCompleteQueue}. Retry count: ${attempts}.`);
+                setTimeout(() => tryWrite(), RETRY_DELAY);
+            } else {
+                if (writeParameters.write_op === this._bleDriver.BLE_GATT_OP_WRITE_CMD) {
+                    device.txCompleteQueue += 1;
                 }
-            });
+                this._adapter.gattcWrite(device.connectionHandle, writeParameters, err => {
+                    if (err) {
+                        console.log(`Failed to perform gattcWrite. TX complete queue was: ${device.txCompleteQueue}.`);
+                    } else {
+                        console.log('wrote');
+                    }
+                    if (callback) callback(err);
+                });
+            }
         };
         tryWrite();
     }

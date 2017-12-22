@@ -100,6 +100,7 @@ class Device {
         this.connectionSupervisionTimeout = null;
 
         this.paired = false;
+        this.txCompleteQueue = 0;
 
         // local adapter peripheral initiated a pairing procedure
         this.ownPeriphInitiatedPairingPending = false;
