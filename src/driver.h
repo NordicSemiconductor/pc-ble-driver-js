@@ -252,7 +252,8 @@ public:
     uint32_t retransmission_interval; // The interval between each retransmission of packet to target
     uint32_t response_timeout; // Duration to wait for reply on reliable packet sent to target
 
-    bool enable_ble; // Enable BLE or not when connecting, if not the developer must enable the the BLE when state is active
+    bool enable_ble; // Enable BLE or not when connecting, if not the developer must enable the BLE when state is active
+    ble_enable_params_t *ble_enable_params; // If enable BLE is true, then use these params when enabling BLE
 
     Adapter *mainObject;
 };
@@ -261,6 +262,13 @@ struct CloseBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(CloseBaton)
+    Adapter *mainObject;
+};
+
+struct ConnResetBaton : public Baton
+{
+public:
+    BATON_CONSTRUCTOR(ConnResetBaton);
     Adapter *mainObject;
 };
 

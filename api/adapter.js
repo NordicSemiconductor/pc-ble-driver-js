@@ -320,6 +320,27 @@ class Adapter extends EventEmitter {
         }
     }
 
+    _getDefaultEnableBLEParams() {
+        return {
+            gap_enable_params: {
+                periph_conn_count: 1,
+                central_conn_count: 7,
+                central_sec_count: 1,
+            },
+            gatts_enable_params: {
+                service_changed: false,
+                attr_tab_size: this._bleDriver.BLE_GATTS_ATTR_TAB_SIZE_DEFAULT,
+            },
+            common_enable_params: {
+                conn_bw_counts: null, // tell SD to use default
+                vs_uuid_count: 10,
+            },
+            gatt_enable_params: {
+                att_mtu: 247, // 247 is max att mtu size
+            },
+        };
+    }
+
     /**
      * @summary Initialize the adapter.
      *
@@ -383,6 +404,7 @@ class Adapter extends EventEmitter {
         options.logCallback = this._logCallback.bind(this);
         options.eventCallback = this._eventCallback.bind(this);
         options.statusCallback = this._statusCallback.bind(this);
+        options.enableBLEParams = this._getDefaultEnableBLEParams();
 
         this._adapter.open(this._state.port, options, err => {
             if (this._checkAndPropagateError(err, 'Error occurred opening serial port.', callback)) { return; }
@@ -413,6 +435,7 @@ class Adapter extends EventEmitter {
      * @summary Close the adapter.
      *
      * This function will close the serial port, release allocated resources and remove event listeners.
+     * Before closing, a reset command is issued to set the connectivity device to idle state.
      *
      * @param {function(Error)} [callback] Callback signature: err => {}.
      * @returns {void}
@@ -422,19 +445,46 @@ class Adapter extends EventEmitter {
             if (callback) callback();
             return;
         }
+
         this._changeState({
             available: false,
             bleEnabled: false,
         });
-        this._adapter.close(error => {
-            /**
-             * Adapter closed event.
-             *
-             * @event Adapter#closed
-             * @type {Object}
-             * @property {Adapter} this - An instance of the closed <code>Adapter</code>.
-             */
-            this.emit('closed', this);
+
+        this.connReset(err => {
+            if (err) {
+                this.emit('logMessage', logLevel.DEBUG, `Failed to issue connectivity reset: ${err}. Proceeding with close.`);
+            }
+
+            this._adapter.close(error => {
+                /**
+                 * Adapter closed event.
+                 *
+                 * @event Adapter#closed
+                 * @type {Object}
+                 * @property {Adapter} this - An instance of the closed <code>Adapter</code>.
+                 */
+                this.emit('closed', this);
+                if (callback) callback(error);
+            });
+        });
+    }
+
+    /**
+     * @summary Reset the connectivity device
+     *
+     * This function will issue a reset command to the connectivity device.
+     *
+     * @param {function(Error)} [callback] Callback signature: err => {}.
+     * @returns {void}
+     */
+    connReset(callback) {
+        if (!this.state.available) {
+            if (callback) callback(_makeError('The adapter is not available.'));
+            return;
+        }
+
+        this._adapter.connReset(error => {
             if (callback) callback(error);
         });
     }
@@ -495,24 +545,7 @@ class Adapter extends EventEmitter {
      */
     enableBLE(options, callback) {
         if (options === undefined || options === null) {
-            options = {
-                gap_enable_params: {
-                    periph_conn_count: 1,
-                    central_conn_count: 7,
-                    central_sec_count: 1,
-                },
-                gatts_enable_params: {
-                    service_changed: false,
-                    attr_tab_size: this._bleDriver.BLE_GATTS_ATTR_TAB_SIZE_DEFAULT,
-                },
-                common_enable_params: {
-                    conn_bw_counts: null, // tell SD to use default
-                    vs_uuid_count: 10,
-                },
-                gatt_enable_params: {
-                    att_mtu: 247, // 247 is max att mtu size
-                },
-            };
+            options = this._getDefaultEnableBLEParams();
         }
 
         this._adapter.enableBLE(
