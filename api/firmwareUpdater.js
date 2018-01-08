@@ -52,14 +52,14 @@ const VERSION_INFO_LENGTH = 24;
 
 const firmwareMap = {
     0: { // nrf51
-        win32: path.join(sdV2Dir, 'connectivity_1.2.1_1m_with_s130_2.0.1.hex'),
-        linux: path.join(sdV2Dir, 'connectivity_1.2.1_1m_with_s130_2.0.1.hex'),
-        darwin: path.join(sdV2Dir, 'connectivity_1.2.1_115k2_with_s130_2.0.1.hex'),
+        win32: path.join(sdV2Dir, 'connectivity_1.2.2_1m_with_s130_2.0.1.hex'),
+        linux: path.join(sdV2Dir, 'connectivity_1.2.2_1m_with_s130_2.0.1.hex'),
+        darwin: path.join(sdV2Dir, 'connectivity_1.2.2_115k2_with_s130_2.0.1.hex'),
     },
     1: { // nrf52
-        win32: path.join(sdV3Dir, 'connectivity_1.2.1_1m_with_s132_3.0.hex'),
-        linux: path.join(sdV3Dir, 'connectivity_1.2.1_1m_with_s132_3.0.hex'),
-        darwin: path.join(sdV3Dir, 'connectivity_1.2.1_115k2_with_s132_3.0.hex'),
+        win32: path.join(sdV3Dir, 'connectivity_1.2.2_1m_with_s132_3.0.hex'),
+        linux: path.join(sdV3Dir, 'connectivity_1.2.2_1m_with_s132_3.0.hex'),
+        darwin: path.join(sdV3Dir, 'connectivity_1.2.2_115k2_with_s132_3.0.hex'),
     },
 };
 
