@@ -77,7 +77,7 @@ adapterFactory.getAdapters((err, adapters) => {
 
     adapter.open(
         {
-            baudRate: 115200,
+            baudRate: 1000000,
             parity: 'none',
             flowControl: 'none',
         },
