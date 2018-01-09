@@ -128,7 +128,7 @@ function connect(adapter, connectToAddress, callback) {
 function setupAdapter(adapter, name, address, addressType, callback) {
     adapter.open(
         {
-            baudRate: 115200,
+            baudRate: 1000000,
             parity: 'none',
             flowControl: 'none',
             enableBLE: false,
