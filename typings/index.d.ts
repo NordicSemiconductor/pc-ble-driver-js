@@ -308,7 +308,7 @@ export declare interface DfuTransportParameters {
 
 export declare class Dfu extends EventEmitter {
   constructor(transportType: string, transportParameters: DfuTransportParameters);
-  performDfu(zipFilePath: string, callback: (err?: any, abort?: boolean) => void): void;
+  performDFU(zipFilePath: string, callback: (err?: any, abort?: boolean) => void): void;
   abort(): void;
 }
 
