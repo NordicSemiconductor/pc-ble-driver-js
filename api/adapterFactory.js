@@ -45,7 +45,7 @@ const Adapter = require('./adapter');
 const logLevel = require('./util/logLevel');
 const EventEmitter = require('events');
 
-const _bleDrivers = { v2: _bleDriverV2, v3: _bleDriverV3 };
+const _bleDrivers = {v2: _bleDriverV2, v3: _bleDriverV3};
 const _singleton = Symbol('Ensure that only one instance of AdapterFactory ever exists.');
 
 /** @constant {number} Update interval, in milliseconds, at which PC shall be checked for new connected adapters. */
@@ -290,6 +290,31 @@ class AdapterFactory extends EventEmitter {
                 callback(undefined, adapters);
             }
         });
+    }
+
+    /**
+     * Create Adapter with on custom serialport
+     *
+     * @param sdVersion Softdevice version: 'v2' or 'v3'.
+     * @param comName Serialport name (eg. 'COM7' on windows).
+     * @param instanceId The unique Id that identifies this Adapter instance.
+     * @returns {Adapter} Created adapter.
+     */
+    createAdapter(sdVersion, comName, instanceId) {
+        if (sdVersion !== 'v2' && sdVersion !== 'v3') {
+            throw new Error('Unsupported soft-device version!');
+        }
+        if (typeof comName === 'undefined') {
+            throw new Error('Missing parameter: comName!');
+        }
+        if (typeof instanceId === 'undefined') {
+            throw new Error('Missing parameter: instanceId!');
+        }
+
+        const selectedDriver = this._bleDrivers[sdVersion];
+        const addOnAdapter = new selectedDriver.Adapter();
+
+        return new Adapter(selectedDriver, addOnAdapter, instanceId, comName);
     }
 }
 
