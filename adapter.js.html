@@ -487,15 +487,15 @@ class Adapter extends EventEmitter {
             return;
         }
 
-        this._changeState({
-            available: false,
-            bleEnabled: false,
-        });
-
         this.connReset(err => {
             if (err) {
-                this.emit('logMessage', logLevel.DEBUG, `Failed to issue connectivity reset: ${err}. Proceeding with close.`);
+                this.emit('logMessage', logLevel.DEBUG, `Failed to issue connectivity reset: ${err.message}. Proceeding with close.`);
             }
+
+            this._changeState({
+                available: false,
+                bleEnabled: false,
+            });
 
             this._adapter.close(error => {
                 /**
