@@ -45,7 +45,7 @@ const Adapter = require('./adapter');
 const logLevel = require('./util/logLevel');
 const EventEmitter = require('events');
 
-const _bleDrivers = {v2: _bleDriverV2, v3: _bleDriverV3};
+const _bleDrivers = { v2: _bleDriverV2, v3: _bleDriverV3 };
 const _singleton = Symbol('Ensure that only one instance of AdapterFactory ever exists.');
 
 /** @constant {number} Update interval, in milliseconds, at which PC shall be checked for new connected adapters. */
@@ -293,11 +293,11 @@ class AdapterFactory extends EventEmitter {
     }
 
     /**
-     * Create Adapter with on custom serialport
+     * Create Adapter with custom serialport
      *
-     * @param sdVersion Softdevice version: 'v2' or 'v3'.
-     * @param comName Serialport name (eg. 'COM7' on windows).
-     * @param instanceId The unique Id that identifies this Adapter instance.
+     * @param sdVersion {string} Softdevice API version: 'v2' or 'v3'.
+     * @param comName {string} Serialport name (eg. 'COM7' on windows).
+     * @param instanceId {string} The unique Id that identifies this Adapter instance.
      * @returns {Adapter} Created adapter.
      */
     createAdapter(sdVersion, comName, instanceId) {
