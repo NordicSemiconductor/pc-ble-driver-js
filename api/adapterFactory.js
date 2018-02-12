@@ -291,6 +291,31 @@ class AdapterFactory extends EventEmitter {
             }
         });
     }
+
+    /**
+     * Create Adapter with custom serialport
+     *
+     * @param sdVersion {string} Softdevice API version: 'v2' or 'v3'.
+     * @param comName {string} Serialport name (eg. 'COM7' on windows).
+     * @param instanceId {string} The unique Id that identifies this Adapter instance.
+     * @returns {Adapter} Created adapter.
+     */
+    createAdapter(sdVersion, comName, instanceId) {
+        if (sdVersion !== 'v2' && sdVersion !== 'v3') {
+            throw new Error('Unsupported soft-device version!');
+        }
+        if (typeof comName === 'undefined') {
+            throw new Error('Missing parameter: comName!');
+        }
+        if (typeof instanceId === 'undefined') {
+            throw new Error('Missing parameter: instanceId!');
+        }
+
+        const selectedDriver = this._bleDrivers[sdVersion];
+        const addOnAdapter = new selectedDriver.Adapter();
+
+        return new Adapter(selectedDriver, addOnAdapter, instanceId, comName);
+    }
 }
 
 module.exports = AdapterFactory;
