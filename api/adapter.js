@@ -446,15 +446,15 @@ class Adapter extends EventEmitter {
             return;
         }
 
-        this._changeState({
-            available: false,
-            bleEnabled: false,
-        });
-
         this.connReset(err => {
             if (err) {
-                this.emit('logMessage', logLevel.DEBUG, `Failed to issue connectivity reset: ${err}. Proceeding with close.`);
+                this.emit('logMessage', logLevel.DEBUG, `Failed to issue connectivity reset: ${err.message}. Proceeding with close.`);
             }
+
+            this._changeState({
+                available: false,
+                bleEnabled: false,
+            });
 
             this._adapter.close(error => {
                 /**
@@ -1095,6 +1095,9 @@ class Adapter extends EventEmitter {
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_CONN:
                 const deviceAddress = this._gapOperationsMap.connecting.deviceAddress;
+                const errorObject = _makeError('Connect timed out.', deviceAddress);
+                const connectingCallback = this._gapOperationsMap.connecting.callback;
+                if (connectingCallback) connectingCallback(errorObject);
                 delete this._gapOperationsMap.connecting;
                 this._changeState({ connecting: false });
 
