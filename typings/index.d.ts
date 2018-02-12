@@ -208,7 +208,7 @@ declare class Adapter extends EventEmitter {
   updateConnectionParameters(deviceInstanceId: string, options: ConnectionParameters, callback?: (err: any) => void): void;
   rejectConnParams(deviceInstanceId: string, callback?: (err: any) => void): void;
   requestAttMtu(deviceInstanceId: string, mtu: number, callback?: (err: any, value: number) => void): void;
-  getCurrentAttMtu(deviceInstanceId: string): number;
+  getCurrentAttMtu(deviceInstanceId: string): number|undefined;
 
   getService(serviceInstanceId: string, callback?: (err: any, service: Service) => void): Service;
   getServices(deviceInstanceId: string, callback?: (err: any, services: Array<Service>) => void): void;
