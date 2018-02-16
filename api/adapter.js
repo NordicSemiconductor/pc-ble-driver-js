@@ -1134,7 +1134,7 @@ class Adapter extends EventEmitter {
                 this.emit('error', _makeError('Security request timed out.'));
                 break;
             default:
-                console.log(`GAP operation timed out: ${event.src_name} (${event.src}).`);
+                this.emit('logMessage', logLevel.DEBUG, `GAP operation timed out: ${event.src_name} (${event.src}).`);
         }
     }
 
@@ -1433,7 +1433,8 @@ class Adapter extends EventEmitter {
             };
 
             if (!attribute) {
-                console.log('something went wrong in bookkeeping of pending reads');
+                this.emit('logMessage', logLevel.DEBUG, `Unable to find attribute with handle ${event.handle} ` +
+                    'when parsing GATTC read response event.');
                 return;
             }
 
@@ -1603,7 +1604,6 @@ class Adapter extends EventEmitter {
                 this._adapter.gattcWrite(device.connectionHandle, writeParameters, err => {
 
                     if (err) {
-                        console.log('some error');
                         this._longWriteCancel(device, gattOperation.attribute);
                         this.emit('error', _makeError('Failed to write value to device/handle ' + device.instanceId + '/' + handle, err));
                         return;
@@ -3826,7 +3826,6 @@ class Adapter extends EventEmitter {
 
         this._adapter.gattcWrite(device.connectionHandle, writeParameters, err => {
             if (err) {
-                console.log(err);
                 this._longWriteCancel(device, attribute);
                 this.emit('error', _makeError('Failed to write value to device/handle ' + device.instanceId + '/' + attribute.handle, err));
                 return;
