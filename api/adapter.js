@@ -364,6 +364,11 @@ class Adapter extends EventEmitter {
      * @returns {void}
      */
     open(options, callback) {
+        if (this.state.opening || this.state.available) {
+            callback(_makeError('Adapter is already open.'));
+            return;
+        }
+
         if (this.notSupportedMessage !== undefined) {
             const error = new Error(this.notSupportedMessage);
 
@@ -399,7 +404,12 @@ class Adapter extends EventEmitter {
             if (options.enableBLE === undefined) options.enableBLE = true;
         }
 
-        this._changeState({ baudRate: options.baudRate, parity: options.parity, flowControl: options.flowControl });
+        this._changeState({
+            opening: true,
+            baudRate: options.baudRate,
+            parity: options.parity,
+            flowControl: options.flowControl,
+        });
 
         options.logCallback = this._logCallback.bind(this);
         options.eventCallback = this._eventCallback.bind(this);
@@ -407,8 +417,8 @@ class Adapter extends EventEmitter {
         options.enableBLEParams = this._getDefaultEnableBLEParams();
 
         this._adapter.open(this._state.port, options, err => {
+            this._changeState({ opening: false });
             if (this._checkAndPropagateError(err, 'Error occurred opening serial port.', callback)) { return; }
-
             this._changeState({ available: true });
 
             /**
