@@ -117,6 +117,12 @@ class AdapterState {
         this.flowControl = null;
 
         /**
+         * Whether the adapter is in the process of being opened.
+         * @type {boolean}
+         */
+        this.opening = false;
+
+        /**
          * Whether the adapter is available and successfully opened.
          * @type {boolean}
          */
