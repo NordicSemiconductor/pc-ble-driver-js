@@ -50,6 +50,14 @@ Configure cmake-js:
 
     $ npm config set cmake_BOOST_ROOT=/path/to/boost_x_xx_x
 
+### Building for Electron runtime
+
+If the pc-ble-driver-js module is going to be run from a different Node runtime, e.g. Electron, it is necessary provide that information to npm. To configure a different node runtime, add a .npmrc file to the root folder of the repo. Example .npmrc file content:
+
+    runtime = Electron
+    target = 1.16.6
+    disturl = https://atom.io/download/atom-shell
+    
 ### Installation
 
 Now you are ready to install pc-ble-driver-js:
