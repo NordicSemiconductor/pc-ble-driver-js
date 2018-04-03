@@ -63,7 +63,9 @@
 
 
 <div class="description">
-    Initialize the firmware updater with a programmer instance. The programmerinstance could be pc-nrfjprog-js or any other instance that implements theread, getDeviceInfo, and program functions.
+    Initialize the firmware updater with a programmer instance. The programmer
+instance could be pc-nrfjprog-js or any other instance that implements the
+read, getDeviceInfo, and program functions.
 </div>
 
 
@@ -870,7 +872,8 @@
 
 
 <div class="description">
-    Get the latest connectivity firmware version for the given family andplatform.
+    Get the latest connectivity firmware version for the given family and
+platform.
 </div>
 
 
@@ -1088,7 +1091,9 @@
 
 
 <div class="description">
-    Parse the version info struct that can be found in the connectivityfirmware. See the connectivity firmware patch in pc-ble-driver/hex/sd_api_v*for details.
+    Parse the version info struct that can be found in the connectivity
+firmware. See the connectivity firmware patch in pc-ble-driver/hex/sd_api_v*
+for details.
 </div>
 
 
@@ -1248,7 +1253,18 @@
 
 
 <div class="description">
-    Get version info from the firmware for the given serial number. If noconnectivity firmware is present, then the returned object will onlycontain isUpdateRequired = true. This will also be true if the versionis not the latest, or if the baud rate is not supported.<ul><li>{boolean} isUpdateRequired: True if firmware needs to be updated.</li><li>{string} version: The 'major.minor.patch' version for the firmware.</li><li>{number} sdBleApiVersion: The SoftDevice version.</li><li>{number} transportType: Transport type, 1 = UART_HCI.</li><li>{number} baudRate: UART transport baud rate.</li></ul>
+    Get version info from the firmware for the given serial number. If no
+connectivity firmware is present, then the returned object will only
+contain isUpdateRequired = true. This will also be true if the version
+is not the latest, or if the baud rate is not supported.
+
+<ul>
+<li>{boolean} isUpdateRequired: True if firmware needs to be updated.</li>
+<li>{string} version: The 'major.minor.patch' version for the firmware.</li>
+<li>{number} sdBleApiVersion: The SoftDevice version.</li>
+<li>{number} transportType: Transport type, 1 = UART_HCI.</li>
+<li>{number} baudRate: UART transport baud rate.</li>
+</ul>
 </div>
 
 
@@ -1430,7 +1446,8 @@
 
 
 <div class="description">
-    Program the given serial number with the latest connectivity firmware. Thenew version info object (ref. getVersionInfo) is returned through the callback.
+    Program the given serial number with the latest connectivity firmware. The
+new version info object (ref. getVersionInfo) is returned through the callback.
 </div>
 
 

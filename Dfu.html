@@ -190,7 +190,15 @@
             
 
             <td class="description last">
-                Configuration parameters.Available transport parameters: <ul> <li>{Object} adapter: An instance of adapter. <li>{string} targetAddress: The target address to connect to. <li>{string} targetAddressType: The target address type. <li>{number} [prnValue]: Packet receipt notification number. <li>{number} [mtuSize]: Maximum transmission unit number. </ul>
+                Configuration parameters.
+Available transport parameters:
+ <ul>
+ <li>{Object} adapter: An instance of adapter.
+ <li>{string} targetAddress: The target address to connect to.
+ <li>{string} targetAddressType: The target address type.
+ <li>{number} [prnValue]: Packet receipt notification number.
+ <li>{number} [mtuSize]: Maximum transmission unit number.
+ </ul>
                 
             </td>
         </tr>
@@ -363,7 +371,27 @@
 
 
 <div class="description">
-    Get and return manifest object from the given zip file.The manifest object has one or more of the following properties:{  application: {},  bootloader: {},  softdevice: {},  softdevice_bootloader: {},}Each of the above properties have the following:{  bin_file: <string>, // Firmware filename  dat_file: <string>, // Init packet filename}The softdevice_bootloader property also has:info_read_only_metadata: {  bl_size: <integer>, // Bootloader size  sd_size: <integer>, // Softdevice size}
+    Get and return manifest object from the given zip file.
+
+The manifest object has one or more of the following properties:
+{
+  application: {},
+  bootloader: {},
+  softdevice: {},
+  softdevice_bootloader: {},
+}
+
+Each of the above properties have the following:
+{
+  bin_file: <string>, // Firmware filename
+  dat_file: <string>, // Init packet filename
+}
+
+The softdevice_bootloader property also has:
+info_read_only_metadata: {
+  bl_size: <integer>, // Bootloader size
+  sd_size: <integer>, // Softdevice size
+}
 </div>
 
 

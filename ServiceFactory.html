@@ -339,7 +339,19 @@
             
 
             <td class="description last">
-                This GATT characteristic's metadata.Available characteristic properties: <ul> <li>{boolean} broadcast: Broadcasting of the value permitted. <li>{boolean} read: Reading the value permitted. <li>{boolean} write: Writing the value with Write Request permitted. <li>{boolean} writeWoResp: Writing the value with Write Command permitted. <li>{boolean} reliableWrite: Writing the value with Queued Write operations permitted. <li>{boolean} notify: Notications of the value permitted. <li>{boolean} indicate: Indications of the value permitted. <li>{boolean} authSignedWr: Writing the value with Signed Write Command permitted. <li>{boolean} wrAux: Writing the Characteristic User Description descriptor permitted. </ul>
+                This GATT characteristic's metadata.
+Available characteristic properties:
+ <ul>
+ <li>{boolean} broadcast: Broadcasting of the value permitted.
+ <li>{boolean} read: Reading the value permitted.
+ <li>{boolean} write: Writing the value with Write Request permitted.
+ <li>{boolean} writeWoResp: Writing the value with Write Command permitted.
+ <li>{boolean} reliableWrite: Writing the value with Queued Write operations permitted.
+ <li>{boolean} notify: Notications of the value permitted.
+ <li>{boolean} indicate: Indications of the value permitted.
+ <li>{boolean} authSignedWr: Writing the value with Signed Write Command permitted.
+ <li>{boolean} wrAux: Writing the Characteristic User Description descriptor permitted.
+ </ul>
                 
             </td>
         </tr>
@@ -365,7 +377,17 @@
             
 
             <td class="description last">
-                This GATT characteristic's attribute's metadata.Available characteristic options: <ul> <li>{string} readPerm: Read permissions. <li>{string} writePerm: Write permissions. <li>{boolean} variableLength: Variable length attribute. <li>{number} maxLength: Maximum attribute value length in bytes, see ref BLE_GATTS_ATTR_LENS_MAX for maximum values. <li>{boolean} readAuth: Read authorization and value will be requested from the application on every read operation. <li>{boolean} writeAuth: Write authorization will be requested from the application on every Write Request operation (but not Write Command). <li>Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required. </ul>
+                This GATT characteristic's attribute's metadata.
+Available characteristic options:
+ <ul>
+ <li>{string} readPerm: Read permissions.
+ <li>{string} writePerm: Write permissions.
+ <li>{boolean} variableLength: Variable length attribute.
+ <li>{number} maxLength: Maximum attribute value length in bytes, see ref BLE_GATTS_ATTR_LENS_MAX for maximum values.
+ <li>{boolean} readAuth: Read authorization and value will be requested from the application on every read operation.
+ <li>{boolean} writeAuth: Write authorization will be requested from the application on every Write Request operation (but not Write Command).
+ <li>Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
+ </ul>
                 
             </td>
         </tr>
@@ -603,7 +625,17 @@
             
 
             <td class="description last">
-                This GATT descriptor's attribute's metadata.Available descriptor options:<ul><li>{string} readPerm: Read permissions.<li>{string} writePerm: Write permissions.<li>{boolean} variableLength: Variable length attribute.<li>{number} maxLength: Maximum attribute value length in bytes, see ref BLE_GATTS_ATTR_LENS_MAX for maximum values.<li>{boolean} readAuth: Read authorization and value will be requested from the application on every read operation.<li>{boolean} writeAuth: Write authorization will be requested from the application on every Write Request operation (but not Write Command).<li>Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.</ul>
+                This GATT descriptor's attribute's metadata.
+Available descriptor options:
+<ul>
+<li>{string} readPerm: Read permissions.
+<li>{string} writePerm: Write permissions.
+<li>{boolean} variableLength: Variable length attribute.
+<li>{number} maxLength: Maximum attribute value length in bytes, see ref BLE_GATTS_ATTR_LENS_MAX for maximum values.
+<li>{boolean} readAuth: Read authorization and value will be requested from the application on every read operation.
+<li>{boolean} writeAuth: Write authorization will be requested from the application on every Write Request operation (but not Write Command).
+<li>Note: vloc = this._bleDriver.BLE_GATTS_VLOC_STACK; // Attribute Value is located in stack memory, no user memory is required.
+</ul>
                 
             </td>
         </tr>

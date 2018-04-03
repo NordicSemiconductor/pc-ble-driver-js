@@ -729,7 +729,10 @@
     <h4 class="name" id="authenticate"><span class="type-signature"></span>authenticate<span class="signature">(deviceInstanceId, secParams, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Initiate the GAP Authentication procedure.In the central role, this function will send an SMP Pairing Request (or an SMP Pairing Failed if rejected),otherwise in the peripheral role, an SMP Security Request will be sent.</p>
+    <p class="summary">Initiate the GAP Authentication procedure.
+
+In the central role, this function will send an SMP Pairing Request (or an SMP Pairing Failed if rejected),
+otherwise in the peripheral role, an SMP Security Request will be sent.</p>
     
 
 
@@ -872,7 +875,30 @@
             
 
             <td class="description last">
-                The security parameters to be used during the pairing or bonding procedure.                          In the peripheral role, only the bond, mitm, lesc and keypress fields of this Object are used.                          In the central role, this pointer may be NULL to reject a Security Request.Available GAP security parameters:<ul><li>{boolean} bond Perform bonding.<li>{boolean} lesc Enable LE Secure Connection pairing.<li>{boolean} keypress Enable generation of keypress notifications.<li>{Object} io_caps IO capabilities, see @ref BLE_GAP_IO_CAPS.<li>{boolean} oob Out Of Band data available.<li>{number} min_key_size Minimum encryption key size in octets between 7 and 16. If 0 then not applicable in this instance.<li>{number} max_key_size Maximum encryption key size in octets between min_key_size and 16.<li>{Object} kdist_own Key distribution bitmap: keys that the local device will distribute.               <ul>               <li>{boolean} enc Long Term Key and Master Identification.               <li>{boolean} id Identity Resolving Key and Identity Address Information.               <li>{boolean} sign Connection Signature Resolving Key.               <li>{boolean} link Derive the Link Key from the LTK.               </ul><li>{Object} kdist_peer Key distribution bitmap: keys that the remote device will distribute.               <ul>               <li>^^ Same as properties as `kdist_own` above. ^^               </ul></ul>
+                The security parameters to be used during the pairing or bonding procedure.
+                          In the peripheral role, only the bond, mitm, lesc and keypress fields of this Object are used.
+                          In the central role, this pointer may be NULL to reject a Security Request.
+Available GAP security parameters:
+<ul>
+<li>{boolean} bond Perform bonding.
+<li>{boolean} lesc Enable LE Secure Connection pairing.
+<li>{boolean} keypress Enable generation of keypress notifications.
+<li>{Object} io_caps IO capabilities, see @ref BLE_GAP_IO_CAPS.
+<li>{boolean} oob Out Of Band data available.
+<li>{number} min_key_size Minimum encryption key size in octets between 7 and 16. If 0 then not applicable in this instance.
+<li>{number} max_key_size Maximum encryption key size in octets between min_key_size and 16.
+<li>{Object} kdist_own Key distribution bitmap: keys that the local device will distribute.
+               <ul>
+               <li>{boolean} enc Long Term Key and Master Identification.
+               <li>{boolean} id Identity Resolving Key and Identity Address Information.
+               <li>{boolean} sign Connection Signature Resolving Key.
+               <li>{boolean} link Derive the Link Key from the LTK.
+               </ul>
+<li>{Object} kdist_peer Key distribution bitmap: keys that the remote device will distribute.
+               <ul>
+               <li>^^ Same as properties as `kdist_own` above. ^^
+               </ul>
+</ul>
                 
             </td>
         </tr>
@@ -1131,7 +1157,10 @@
     <h4 class="name" id="close"><span class="type-signature"></span>close<span class="signature">(callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Close the adapter.This function will close the serial port, release allocated resources and remove event listeners.Before closing, a reset command is issued to set the connectivity device to idle state.</p>
+    <p class="summary">Close the adapter.
+
+This function will close the serial port, release allocated resources and remove event listeners.
+Before closing, a reset command is issued to set the connectivity device to idle state.</p>
     
 
 
@@ -1577,7 +1606,11 @@
     <h4 class="name" id="connect"><span class="type-signature"></span>connect<span class="signature">(deviceAddress, options, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Create a connection (GAP Link Establishment).If a scanning procedure is currently in progress it will be automatically stopped when calling this function.The application will be informed of a connection being established with a event:DeviceConnectedEvent.</p>
+    <p class="summary">Create a connection (GAP Link Establishment).
+
+If a scanning procedure is currently in progress it will be automatically stopped when calling this function.
+
+The application will be informed of a connection being established with a event:DeviceConnectedEvent.</p>
     
 
 
@@ -1689,7 +1722,10 @@
             
 
             <td class="description last">
-                The peer address. If the use_whitelist bit is set in scanParams,                                     then this is ignored. If given as a string,                                     `address.type='BLE_GAP_ADDR_TYPE_RANDOM_STATIC'` by default. Else,                                     an Object with members: { address: {string}, type: {string} } must be given.
+                The peer address. If the use_whitelist bit is set in scanParams,
+                                     then this is ignored. If given as a string,
+                                     `address.type='BLE_GAP_ADDR_TYPE_RANDOM_STATIC'` by default. Else,
+                                     an Object with members: { address: {string}, type: {string} } must be given.
                 
             </td>
         </tr>
@@ -1723,7 +1759,28 @@
             
 
             <td class="description last">
-                The scan and connection parameters.Available options:<ul><li>{Object} scanParams:               <ul>               <li>{boolean} active: If 1, perform active scanning (scan requests).               <li>{number} interval: Scan interval between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).               <li>{number} window: Scan window between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).               <li>{number} timeout: Scan timeout between 0x0001 and 0xFFFF in seconds, 0x0000 disables timeout.               <li>{number} use_whitelist: If 1, filter advertisers using current active whitelist.               <li>{number} adv_dir_report: If 1, also report directed advertisements where the initiator field is set to a                                            private resolvable address, even if the address did not resolve to an entry in the                                            device identity list. A report will be generated even if the peer is not in the whitelist.               </ul><li>{Object} connParams:               <ul>               <li>{number} min_conn_interval: Minimum Connection Interval in 1.25 ms units.               <li>{number} max_conn_interval:  Maximum Connection Interval in 1.25 ms units.               <li>{number} slave_latency: Slave Latency in number of connection events.               <li>{number} conn_sup_timeout: Connection Supervision Timeout in 10 ms units.               </ul></ul>
+                The scan and connection parameters.
+Available options:
+<ul>
+<li>{Object} scanParams:
+               <ul>
+               <li>{boolean} active: If 1, perform active scanning (scan requests).
+               <li>{number} interval: Scan interval between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
+               <li>{number} window: Scan window between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
+               <li>{number} timeout: Scan timeout between 0x0001 and 0xFFFF in seconds, 0x0000 disables timeout.
+               <li>{number} use_whitelist: If 1, filter advertisers using current active whitelist.
+               <li>{number} adv_dir_report: If 1, also report directed advertisements where the initiator field is set to a
+                                            private resolvable address, even if the address did not resolve to an entry in the
+                                            device identity list. A report will be generated even if the peer is not in the whitelist.
+               </ul>
+<li>{Object} connParams:
+               <ul>
+               <li>{number} min_conn_interval: Minimum Connection Interval in 1.25 ms units.
+               <li>{number} max_conn_interval:  Maximum Connection Interval in 1.25 ms units.
+               <li>{number} slave_latency: Slave Latency in number of connection events.
+               <li>{number} conn_sup_timeout: Connection Supervision Timeout in 10 ms units.
+               </ul>
+</ul>
                 
             </td>
         </tr>
@@ -1814,7 +1871,9 @@
     <h4 class="name" id="connReset"><span class="type-signature"></span>connReset<span class="signature">(callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Reset the connectivity deviceThis function will issue a reset command to the connectivity device.</p>
+    <p class="summary">Reset the connectivity device
+
+This function will issue a reset command to the connectivity device.</p>
     
 
 
@@ -1984,7 +2043,9 @@
 
 
 <div class="description">
-    Deletes any previously generated key-pair.The next time `computeSharedSecret` or `computePublicKey` is invoked, a new key-pair will be generated and used.
+    Deletes any previously generated key-pair.
+
+The next time `computeSharedSecret` or `computePublicKey` is invoked, a new key-pair will be generated and used.
 </div>
 
 
@@ -2084,7 +2145,9 @@
     <h4 class="name" id="disconnect"><span class="type-signature"></span>disconnect<span class="signature">(deviceInstanceId, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Disconnect (GAP Link Termination).This call initiates the disconnection procedure, and its completion will be communicated to the applicationwith a `BLE_GAP_EVT_DISCONNECTED` event upon which `callback` will be called.</p>
+    <p class="summary">Disconnect (GAP Link Termination).
+This call initiates the disconnection procedure, and its completion will be communicated to the application
+with a `BLE_GAP_EVT_DISCONNECTED` event upon which `callback` will be called.</p>
     
 
 
@@ -2284,7 +2347,9 @@
     <h4 class="name" id="enableBLE"><span class="type-signature"></span>enableBLE<span class="signature">(options<span class="signature-attributes">opt</span>, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Enable the BLE stack.This call initializes the BLE stack, no other BLE related function can be called before this one.</p>
+    <p class="summary">Enable the BLE stack.
+
+This call initializes the BLE stack, no other BLE related function can be called before this one.</p>
     
 
 
@@ -2395,7 +2460,33 @@
             
 
             <td class="description last">
-                BLE Initialization parameters. If `undefined` or `null` the BLE stack will be                          initialized with default options (see code for `enableBLE()` below for default values).Available BLE enable parameters:<ul><li>{Object} gap_enable_params: GAP init parameters               <ul>               <li>{number} periph_conn_count: Number of connections acting as a peripheral.               <li>{number} central_conn_count: Number of connections acting as a central.               <li>{number} central_sec_count: Number of SMP instances for all connections acting as a central.               </ul><li>{Object} gatts_enable_params: GATTS init parameters               <ul>               <li>{boolean} service_changed: Include the Service Changed characteristic in the Attribute Table.               <li>{number} attr_tab_size: Attribute Table size in bytes. The size must be a multiple of 4.               </ul><li>{Object} common_enable_params: Common init parameters               <ul>               <li>{null|number} conn_bw_counts: Bandwidth configuration parameters or null for defaults.               <li>{number} vs_uuid_count: Maximum number of 128-bit, Vendor Specific UUID bases to allocate.               </ul><li>{Object} gatt_enable_params: GATT init parameters               <ul>               <li>{number} att_mtu: Maximum size of ATT packet the SoftDevice can send or receive.                                     If it is 0 then @ref GATT_MTU_SIZE_DEFAULT will be used.                                     Otherwise @ref GATT_MTU_SIZE_DEFAULT is the minimum value.               </ul></ul>
+                BLE Initialization parameters. If `undefined` or `null` the BLE stack will be
+                          initialized with default options (see code for `enableBLE()` below for default values).
+Available BLE enable parameters:
+<ul>
+<li>{Object} gap_enable_params: GAP init parameters
+               <ul>
+               <li>{number} periph_conn_count: Number of connections acting as a peripheral.
+               <li>{number} central_conn_count: Number of connections acting as a central.
+               <li>{number} central_sec_count: Number of SMP instances for all connections acting as a central.
+               </ul>
+<li>{Object} gatts_enable_params: GATTS init parameters
+               <ul>
+               <li>{boolean} service_changed: Include the Service Changed characteristic in the Attribute Table.
+               <li>{number} attr_tab_size: Attribute Table size in bytes. The size must be a multiple of 4.
+               </ul>
+<li>{Object} common_enable_params: Common init parameters
+               <ul>
+               <li>{null|number} conn_bw_counts: Bandwidth configuration parameters or null for defaults.
+               <li>{number} vs_uuid_count: Maximum number of 128-bit, Vendor Specific UUID bases to allocate.
+               </ul>
+<li>{Object} gatt_enable_params: GATT init parameters
+               <ul>
+               <li>{number} att_mtu: Maximum size of ATT packet the SoftDevice can send or receive.
+                                     If it is 0 then @ref GATT_MTU_SIZE_DEFAULT will be used.
+                                     Otherwise @ref GATT_MTU_SIZE_DEFAULT is the minimum value.
+               </ul>
+</ul>
                 
             </td>
         </tr>
@@ -2431,7 +2522,11 @@
             
 
             <td class="description last">
-                Callback signature: (err, parameters, app_ram_base) => {}                                                  where `parameters` is the BLE initialization parameters as                                                  described above and `app_ram_base` is the minimum start address                                                  of the application RAM region required by the SoftDevice for                                                  this configuration.
+                Callback signature: (err, parameters, app_ram_base) => {}
+                                                  where `parameters` is the BLE initialization parameters as
+                                                  described above and `app_ram_base` is the minimum start address
+                                                  of the application RAM region required by the SoftDevice for
+                                                  this configuration.
                 
             </td>
         </tr>
@@ -2486,7 +2581,9 @@
     <h4 class="name" id="encrypt"><span class="type-signature"></span>encrypt<span class="signature">(deviceInstanceId, masterId, encInfo, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Initiate GAP Encryption procedure.In the central role, this function will initiate the encryption procedure using the encryption information provided.</p>
+    <p class="summary">Initiate GAP Encryption procedure.
+
+In the central role, this function will initiate the encryption procedure using the encryption information provided.</p>
     
 
 
@@ -2901,7 +2998,9 @@
             
 
             <td class="description last">
-                Callback signature: (err, attributes) => {} where `attributes` contains                                          the device's GATT attributes (services, characteristics and                                          descriptors).
+                Callback signature: (err, attributes) => {} where `attributes` contains
+                                          the device's GATT attributes (services, characteristics and
+                                          descriptors).
                 
             </td>
         </tr>
@@ -3263,7 +3362,10 @@
             
 
             <td class="description last">
-                Callback signature: (err, characteristics) => {} where                                           `characteristics` is an array of `Characteristic` instances                                            corresponding to the discovered GATT characteristics attached to                                            the service.
+                Callback signature: (err, characteristics) => {} where
+                                           `characteristics` is an array of `Characteristic` instances
+                                            corresponding to the discovered GATT characteristics attached to
+                                            the service.
                 
             </td>
         </tr>
@@ -3788,7 +3890,9 @@
             
 
             <td class="description last">
-                Callback signature: (err, descriptors) => {} where                                       `descriptors` is an array of `Descriptor` instances corresponding to the                                       discovered GATT descriptors attached to the characteristic.
+                Callback signature: (err, descriptors) => {} where
+                                       `descriptors` is an array of `Descriptor` instances corresponding to the
+                                       discovered GATT descriptors attached to the characteristic.
                 
             </td>
         </tr>
@@ -4114,7 +4218,10 @@
     <h4 class="name" id="getLescOobData"><span class="type-signature"></span>getLescOobData<span class="signature">(deviceInstanceId, ownPublicKey, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Generate a set of OOB data to send to a peer out of band.The `ble_gap_addr_t` included in the OOB data returned will be the currently active one (or, if a connection has already been established,the one used during connection setup). The application may manually overwrite it with an updated value.</p>
+    <p class="summary">Generate a set of OOB data to send to a peer out of band.
+
+The `ble_gap_addr_t` included in the OOB data returned will be the currently active one (or, if a connection has already been established,
+the one used during connection setup). The application may manually overwrite it with an updated value.</p>
     
 
 
@@ -4655,7 +4762,9 @@
             
 
             <td class="description last">
-                Callback signature: (err, services) => {} where `services` is an                                             array of `Service` instances corresponding to the discovered GATT                                             primary services.
+                Callback signature: (err, services) => {} where `services` is an
+                                             array of `Service` instances corresponding to the discovered GATT
+                                             primary services.
                 
             </td>
         </tr>
@@ -4823,7 +4932,9 @@
             
 
             <td class="description last">
-                Callback signature: (err, state) => {} where `state` is an                                                instance of `AdapterState` corresponding to this adapter's                                                stored state.
+                Callback signature: (err, state) => {} where `state` is an
+                                                instance of `AdapterState` corresponding to this adapter's
+                                                stored state.
                 
             </td>
         </tr>
@@ -4882,7 +4993,13 @@
 
 
 <div class="description">
-    This function is for debugging purposes. It will return an object with these members:<ul><li>{number} eventCallbackTotalTime<li>{number} eventCallbackTotalCount<li>{number} eventCallbackBatchMaxCount<li>{number} eventCallbackBatchAvgCount</ul>
+    This function is for debugging purposes. It will return an object with these members:
+<ul>
+<li>{number} eventCallbackTotalTime
+<li>{number} eventCallbackTotalCount
+<li>{number} eventCallbackBatchMaxCount
+<li>{number} eventCallbackBatchAvgCount
+</ul>
 </div>
 
 
@@ -4986,7 +5103,9 @@
     <h4 class="name" id="notifyKeypress"><span class="type-signature"></span>notifyKeypress<span class="signature">(deviceInstanceId, notificationType, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Notify the peer of a local keypress.This function can only be used when an authentication procedure using LE Secure Connection is in progress. Calling it at other times will result in an `NRF_ERROR_INVALID_STATE`.</p>
+    <p class="summary">Notify the peer of a local keypress.
+
+This function can only be used when an authentication procedure using LE Secure Connection is in progress. Calling it at other times will result in an `NRF_ERROR_INVALID_STATE`.</p>
     
 
 
@@ -5220,7 +5339,10 @@
     <h4 class="name" id="open"><span class="type-signature"></span>open<span class="signature">(options, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Initialize the adapter.The serial port will be attempted to be opened with the configured serial port settings in<code>adapterOptions</code>.</p>
+    <p class="summary">Initialize the adapter.
+
+The serial port will be attempted to be opened with the configured serial port settings in
+<code>adapterOptions</code>.</p>
     
 
 
@@ -5329,7 +5451,19 @@
             
 
             <td class="description last">
-                Options to initialize/open this adapter with.Available adapter open options:<ul><li>{number} [baudRate=115200]: The baud rate this adapter's serial port should be configured with.<li>{string} [parity='none']: The parity this adapter's serial port should be configured with.<li>{string} [flowControl='none']: Whether flow control should be configured with this adapter's serial port.<li>{number} [eventInterval=0]: Interval to use for sending BLE driver events to JavaScript.                                If `0`, events will be sent as soon as they are received from the BLE driver.<li>{string} [logLevel='info']: The verbosity of logging the developer wants with this adapter.<li>{number} [retransmissionInterval=250]: The time interval to wait between retransmitted packets.<li>{number} [responseTimeout=1500]: Response timeout of the data link layer.<li>{boolean} [enableBLE=true]: Whether the BLE stack should be initialized and enabled.</ul>
+                Options to initialize/open this adapter with.
+Available adapter open options:
+<ul>
+<li>{number} [baudRate=115200]: The baud rate this adapter's serial port should be configured with.
+<li>{string} [parity='none']: The parity this adapter's serial port should be configured with.
+<li>{string} [flowControl='none']: Whether flow control should be configured with this adapter's serial port.
+<li>{number} [eventInterval=0]: Interval to use for sending BLE driver events to JavaScript.
+                                If `0`, events will be sent as soon as they are received from the BLE driver.
+<li>{string} [logLevel='info']: The verbosity of logging the developer wants with this adapter.
+<li>{number} [retransmissionInterval=250]: The time interval to wait between retransmitted packets.
+<li>{number} [responseTimeout=1500]: Response timeout of the data link layer.
+<li>{boolean} [enableBLE=true]: Whether the BLE stack should be initialized and enabled.
+</ul>
                 
             </td>
         </tr>
@@ -5567,7 +5701,9 @@
             
 
             <td class="description last">
-                Callback signature: (err, readBytes) => {} where `readBytes` is an                                            array of numbers corresponding to the value of the GATT                                            characteristic.
+                Callback signature: (err, readBytes) => {} where `readBytes` is an
+                                            array of numbers corresponding to the value of the GATT
+                                            characteristic.
                 
             </td>
         </tr>
@@ -5769,7 +5905,9 @@
             
 
             <td class="description last">
-                Callback signature: (err, readBytes) => {} where `readBytes` is an                                            array of numbers corresponding to the value of the GATT                                            descriptor.
+                Callback signature: (err, readBytes) => {} where `readBytes` is an
+                                            array of numbers corresponding to the value of the GATT
+                                            descriptor.
                 
             </td>
         </tr>
@@ -6026,7 +6164,10 @@
     <h4 class="name" id="replyAuthKey"><span class="type-signature"></span>replyAuthKey<span class="signature">(deviceInstanceId, keyType, key, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Reply with an authentication key.This function is only used to reply to a `BLE_GAP_EVT_AUTH_KEY_REQUEST `or a `BLE_GAP_EVT_PASSKEY_DISPLAY`, calling it at other times will result in an `NRF_ERROR_INVALID_STATE`.If the call returns an error code, the request is still pending, and the reply call may be repeated with corrected parameters.</p>
+    <p class="summary">Reply with an authentication key.
+
+This function is only used to reply to a `BLE_GAP_EVT_AUTH_KEY_REQUEST `or a `BLE_GAP_EVT_PASSKEY_DISPLAY`, calling it at other times will result in an `NRF_ERROR_INVALID_STATE`.
+If the call returns an error code, the request is still pending, and the reply call may be repeated with corrected parameters.</p>
     
 
 
@@ -6209,7 +6350,10 @@
             
 
             <td class="description last">
-                If key type is `BLE_GAP_AUTH_KEY_TYPE_NONE`, then null.                           If key type is `BLE_GAP_AUTH_KEY_TYPE_PASSKEY`, then a 6-byte array (digit 0..9 only)                               or null when confirming LE Secure Connections Numeric Comparison.                           If key type is `BLE_GAP_AUTH_KEY_TYPE_OOB`, then a 16-byte OOB key value in Little Endian format.
+                If key type is `BLE_GAP_AUTH_KEY_TYPE_NONE`, then null.
+                           If key type is `BLE_GAP_AUTH_KEY_TYPE_PASSKEY`, then a 6-byte array (digit 0..9 only)
+                               or null when confirming LE Secure Connections Numeric Comparison.
+                           If key type is `BLE_GAP_AUTH_KEY_TYPE_OOB`, then a 16-byte OOB key value in Little Endian format.
                 
             </td>
         </tr>
@@ -6300,7 +6444,10 @@
     <h4 class="name" id="replyLescDhkey"><span class="type-signature"></span>replyLescDhkey<span class="signature">(deviceInstanceId, dhkey, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Reply with an LE Secure connections DHKey.This function is only used to reply to a `BLE_GAP_EVT_LESC_DHKEY_REQUEST`, calling it at other times will result in an `NRF_ERROR_INVALID_STATE`.If the call returns an error code, the request is still pending, and the reply call may be repeated with corrected parameters.</p>
+    <p class="summary">Reply with an LE Secure connections DHKey.
+
+This function is only used to reply to a `BLE_GAP_EVT_LESC_DHKEY_REQUEST`, calling it at other times will result in an `NRF_ERROR_INVALID_STATE`.
+If the call returns an error code, the request is still pending, and the reply call may be repeated with corrected parameters.</p>
     
 
 
@@ -6534,7 +6681,10 @@
     <h4 class="name" id="replySecParams"><span class="type-signature"></span>replySecParams<span class="signature">(deviceInstanceId, secStatus, secParams, secKeyset, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Reply with GAP security parameters.This function is only used to reply to a `BLE_GAP_EVT_SEC_PARAMS_REQUEST`, calling it at other times will result in an `NRF_ERROR_INVALID_STATE`.If the call returns an error code, the request is still pending, and the reply call may be repeated with corrected parameters.</p>
+    <p class="summary">Reply with GAP security parameters.
+
+This function is only used to reply to a `BLE_GAP_EVT_SEC_PARAMS_REQUEST`, calling it at other times will result in an `NRF_ERROR_INVALID_STATE`.
+If the call returns an error code, the request is still pending, and the reply call may be repeated with corrected parameters.</p>
     
 
 
@@ -6711,7 +6861,8 @@
             
 
             <td class="description last">
-                Security parameters object. In the central role this must be set to null, as the parameters have                          already been provided during a previous call to `this.authenticate()`.
+                Security parameters object. In the central role this must be set to null, as the parameters have
+                          already been provided during a previous call to `this.authenticate()`.
                 
             </td>
         </tr>
@@ -6745,7 +6896,20 @@
             
 
             <td class="description last">
-                security key set object.<ul>           <li>{Object} kdist_own Key distribution bitmap: keys that the local device will distribute.               <ul>               <li>{boolean} enc Long Term Key and Master Identification.               <li>{boolean} id Identity Resolving Key and Identity Address Information.               <li>{boolean} sign Connection Signature Resolving Key.               <li>{boolean} link Derive the Link Key from the LTK.               </ul>           <li>{Object} kdist_peer Key distribution bitmap: keys that the remote device will distribute.               <ul>               <li>^^ Same as properties as `kdist_own` above. ^^               </ul></ul>
+                security key set object.
+<ul>
+           <li>{Object} kdist_own Key distribution bitmap: keys that the local device will distribute.
+               <ul>
+               <li>{boolean} enc Long Term Key and Master Identification.
+               <li>{boolean} id Identity Resolving Key and Identity Address Information.
+               <li>{boolean} sign Connection Signature Resolving Key.
+               <li>{boolean} link Derive the Link Key from the LTK.
+               </ul>
+           <li>{Object} kdist_peer Key distribution bitmap: keys that the remote device will distribute.
+               <ul>
+               <li>^^ Same as properties as `kdist_own` above. ^^
+               </ul>
+</ul>
                 
             </td>
         </tr>
@@ -6781,7 +6945,8 @@
             
 
             <td class="description last">
-                Callback signature: (err, secKeyset) => {} where `secKeyset` is a                                          security key set object as described above.
+                Callback signature: (err, secKeyset) => {} where `secKeyset` is a
+                                          security key set object as described above.
                 
             </td>
         </tr>
@@ -6836,7 +7001,15 @@
     <h4 class="name" id="requestAttMtu"><span class="type-signature"></span>requestAttMtu<span class="signature">(deviceInstanceId, mtu, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Start an ATT_MTU exchange by sending an Exchange MTU Request to the server.The SoftDevice sets ATT_MTU to the minimum of:<ul>    <li>The Client RX MTU value, and    <li>The Server RX MTU value from `BLE_GATTC_EVT_EXCHANGE_MTU_RSP`.</ul>    However, the SoftDevice never sets ATT_MTU lower than `GATT_MTU_SIZE_DEFAULT` == 23.</p>
+    <p class="summary">Start an ATT_MTU exchange by sending an Exchange MTU Request to the server.
+
+The SoftDevice sets ATT_MTU to the minimum of:
+<ul>
+    <li>The Client RX MTU value, and
+    <li>The Server RX MTU value from `BLE_GATTC_EVT_EXCHANGE_MTU_RSP`.
+</ul>
+
+    However, the SoftDevice never sets ATT_MTU lower than `GATT_MTU_SIZE_DEFAULT` == 23.</p>
     
 
 
@@ -7015,7 +7188,8 @@
             
 
             <td class="description last">
-                Callback signature: (err, mtu) => {} where `mtu` is the updated                                          ATT_MTU value.
+                Callback signature: (err, mtu) => {} where `mtu` is the updated
+                                          ATT_MTU value.
                 
             </td>
         </tr>
@@ -7070,7 +7244,11 @@
     <h4 class="name" id="secInfoReply"><span class="type-signature"></span>secInfoReply<span class="signature">(deviceInstanceId, encInfo, idInfo, signInfo, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Reply with GAP security information.This function is only used to reply to a `BLE_GAP_EVT_SEC_INFO_REQUEST`, calling it at other times will result in `NRF_ERROR_INVALID_STATE`.If the call returns an error code, the request is still pending, and the reply call may be repeated with corrected parameters.Data signing is not yet supported, and signInfo must therefore be null.</p>
+    <p class="summary">Reply with GAP security information.
+
+This function is only used to reply to a `BLE_GAP_EVT_SEC_INFO_REQUEST`, calling it at other times will result in `NRF_ERROR_INVALID_STATE`.
+If the call returns an error code, the request is still pending, and the reply call may be repeated with corrected parameters.
+Data signing is not yet supported, and signInfo must therefore be null.</p>
     
 
 
@@ -7372,7 +7550,11 @@
     <h4 class="name" id="setAddress"><span class="type-signature"></span>setAddress<span class="signature">(address, type, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Sets this adapter's BLE device's local Bluetooth identity address.The local Bluetooth identity address is the address that identifies this device to other peers.The address type must be either `BLE_GAP_ADDR_TYPE_PUBLIC` or 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC'.The identity address cannot be changed while roles are running.</p>
+    <p class="summary">Sets this adapter's BLE device's local Bluetooth identity address.
+
+The local Bluetooth identity address is the address that identifies this device to other peers.
+The address type must be either `BLE_GAP_ADDR_TYPE_PUBLIC` or 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC'.
+The identity address cannot be changed while roles are running.</p>
     
 
 
@@ -7606,7 +7788,18 @@
     <h4 class="name" id="setAdvertisingData"><span class="type-signature"></span>setAdvertisingData<span class="signature">(advData, scanRespData, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Set, clear or update advertising and scan response data.The format of the advertising data will be checked by this call to ensure interoperability.Limitations imposed by this API call to the data provided include having a flags data type in the scan response data andduplicating the local name in the advertising data and scan response data.To clear the advertising data and set it to a 0-length packet, simply provide a null `advData`/`scanRespData` parameter.The call will fail if `advData` and `scanRespData` are both null since this would have no effect.See @ref: ./util/adType.js for possible advertisement object parameters.Note: should multiple custom properties be required in the advData or scanRespData,it is possible to append 'custom' key with colon plus anything, like 'custom:1'.</p>
+    <p class="summary">Set, clear or update advertising and scan response data.
+The format of the advertising data will be checked by this call to ensure interoperability.
+Limitations imposed by this API call to the data provided include having a flags data type in the scan response data and
+duplicating the local name in the advertising data and scan response data.
+
+To clear the advertising data and set it to a 0-length packet, simply provide a null `advData`/`scanRespData` parameter.
+
+The call will fail if `advData` and `scanRespData` are both null since this would have no effect.
+
+See @ref: ./util/adType.js for possible advertisement object parameters.
+Note: should multiple custom properties be required in the advData or scanRespData,
+it is possible to append 'custom' key with colon plus anything, like 'custom:1'.</p>
     
 
 
@@ -7840,7 +8033,11 @@
     <h4 class="name" id="setLescOobData"><span class="type-signature"></span>setLescOobData<span class="signature">(deviceInstanceId, ownOobData, peerOobData, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Provide the OOB data sent/received out of band.At least one of the 2 data objects provided must not be null.An authentication procedure with OOB selected as an algorithm must be in progress when calling this function.A `BLE_GAP_EVT_LESC_DHKEY_REQUEST` event with the oobd_req set to 1 must have been received prior to calling this function.</p>
+    <p class="summary">Provide the OOB data sent/received out of band.
+
+At least one of the 2 data objects provided must not be null.
+An authentication procedure with OOB selected as an algorithm must be in progress when calling this function.
+A `BLE_GAP_EVT_LESC_DHKEY_REQUEST` event with the oobd_req set to 1 must have been received prior to calling this function.</p>
     
 
 
@@ -8512,7 +8709,15 @@
     <h4 class="name" id="startAdvertising"><span class="type-signature"></span>startAdvertising<span class="signature">(options, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Start advertising (GAP Discoverable, Connectable modes, Broadcast Procedure).An application can start an advertising procedure for broadcasting purposes while a connectionis active. After a BLE_GAP_EVT_CONNECTED event is received, this function may thereforebe called to start a broadcast advertising procedure. The advertising procedurecannot however be connectable (it must be of type BLE_GAP_ADV_TYPE_ADV_SCAN_IND orBLE_GAP_ADV_TYPE_ADV_NONCONN_IND).Only one advertiser may be active at any time.</p>
+    <p class="summary">Start advertising (GAP Discoverable, Connectable modes, Broadcast Procedure).
+
+An application can start an advertising procedure for broadcasting purposes while a connection
+is active. After a BLE_GAP_EVT_CONNECTED event is received, this function may therefore
+be called to start a broadcast advertising procedure. The advertising procedure
+cannot however be connectable (it must be of type BLE_GAP_ADV_TYPE_ADV_SCAN_IND or
+BLE_GAP_ADV_TYPE_ADV_NONCONN_IND).
+
+Only one advertiser may be active at any time.</p>
     
 
 
@@ -8621,7 +8826,15 @@
             
 
             <td class="description last">
-                GAP advertising parameters.Available GAP advertising parameters:<ul><li>{number} channelMask: Channel mask for RF channels used in advertising. Default: all channels on.<li>{number} interval: GAP Advertising interval. Required: an interval must be provided.<li>{number} timeout: Maximum advertising time in limited discoverable mode. Required: a timeout must be provided.<li>{boolean} connectable: GAP Advertising type connectable. Default: The device is connectable.<li>{boolean} scannable: GAP Advertising type scannable. Default: The device is undirected.</ul>
+                GAP advertising parameters.
+Available GAP advertising parameters:
+<ul>
+<li>{number} channelMask: Channel mask for RF channels used in advertising. Default: all channels on.
+<li>{number} interval: GAP Advertising interval. Required: an interval must be provided.
+<li>{number} timeout: Maximum advertising time in limited discoverable mode. Required: a timeout must be provided.
+<li>{boolean} connectable: GAP Advertising type connectable. Default: The device is connectable.
+<li>{boolean} scannable: GAP Advertising type scannable. Default: The device is undirected.
+</ul>
                 
             </td>
         </tr>
@@ -8716,7 +8929,9 @@
 
 
 <div class="description">
-    Starts notifications on a GATT characteristic.Only for GATT central role.
+    Starts notifications on a GATT characteristic.
+
+Only for GATT central role.
 </div>
 
 
@@ -8893,7 +9108,8 @@
             
 
             <td class="description last">
-                Callback signature: err => {}.                                  (not called until ack is received if `requireAck`).
+                Callback signature: err => {}.
+                                  (not called until ack is received if `requireAck`).
                 
             </td>
         </tr>
@@ -9057,7 +9273,18 @@
             
 
             <td class="description last">
-                The GAP scanning parameters.Available scan parameters:<ul><li>{boolean} active If 1, perform active scanning (scan requests).<li>{number} interval Scan interval between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).<li>{number} window Scan window between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).<li>{number} timeout Scan timeout between 0x0001 and 0xFFFF in seconds, 0x0000 disables timeout.<li>{number} use_whitelist If 1, filter advertisers using current active whitelist.<li>{number} adv_dir_report If 1, also report directed advertisements where the initiator field is set to a                            private resolvable address, even if the address did not resolve to an entry in the                            device identity list. A report will be generated even if the peer is not in the whitelist.</ul>
+                The GAP scanning parameters.
+Available scan parameters:
+<ul>
+<li>{boolean} active If 1, perform active scanning (scan requests).
+<li>{number} interval Scan interval between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
+<li>{number} window Scan window between 0x0004 and 0x4000 in 0.625ms units (2.5ms to 10.24s).
+<li>{number} timeout Scan timeout between 0x0001 and 0xFFFF in seconds, 0x0000 disables timeout.
+<li>{number} use_whitelist If 1, filter advertisers using current active whitelist.
+<li>{number} adv_dir_report If 1, also report directed advertisements where the initiator field is set to a
+                            private resolvable address, even if the address did not resolve to an entry in the
+                            device identity list. A report will be generated even if the peer is not in the whitelist.
+</ul>
                 
             </td>
         </tr>
@@ -9686,7 +9913,12 @@
     <h4 class="name" id="updateConnectionParameters"><span class="type-signature"></span>updateConnectionParameters<span class="signature">(deviceInstanceId, options, callback<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {void}</span></h4>
 
     
-    <p class="summary">Update connection parameters.In the central role this will initiate a Link Layer connection parameter update procedure,otherwise in the peripheral role, this will send the corresponding L2CAP request and wait forthe central to perform the procedure. In both cases, and regardless of success or failure, the applicationwill be informed of the result with a event:connParamUpdateEvent.</p>
+    <p class="summary">Update connection parameters.
+
+In the central role this will initiate a Link Layer connection parameter update procedure,
+otherwise in the peripheral role, this will send the corresponding L2CAP request and wait for
+the central to perform the procedure. In both cases, and regardless of success or failure, the application
+will be informed of the result with a event:connParamUpdateEvent.</p>
     
 
 
@@ -9829,7 +10061,14 @@
             
 
             <td class="description last">
-                GAP Connection Parameters.Available GAP Connection Parameters:<ul><li>{number} min_conn_interval: Minimum Connection Interval in 1.25 ms units.<li>{number} max_conn_interval:  Maximum Connection Interval in 1.25 ms units.<li>{number} slave_latency: Slave Latency in number of connection events.<li>{number} conn_sup_timeout: Connection Supervision Timeout in 10 ms units.</ul>
+                GAP Connection Parameters.
+Available GAP Connection Parameters:
+<ul>
+<li>{number} min_conn_interval: Minimum Connection Interval in 1.25 ms units.
+<li>{number} max_conn_interval:  Maximum Connection Interval in 1.25 ms units.
+<li>{number} slave_latency: Slave Latency in number of connection events.
+<li>{number} conn_sup_timeout: Connection Supervision Timeout in 10 ms units.
+</ul>
                 
             </td>
         </tr>
@@ -10395,7 +10634,9 @@
             
 
             <td class="description last">
-                Callback signature: err => {}.                                  (not called until ack is received if `requireAck`).                                  options: {ack, long, offset}
+                Callback signature: err => {}.
+                                  (not called until ack is received if `requireAck`).
+                                  options: {ack, long, offset}
                 
             </td>
         </tr>
@@ -12271,7 +12512,8 @@
 
             
 
-            <td class="description last">The maximum number of payload octets in a Link Layer Data Channel                                         PDU that the local Controller will send. Range: 27-251</td>
+            <td class="description last">The maximum number of payload octets in a Link Layer Data Channel
+                                         PDU that the local Controller will send. Range: 27-251</td>
         </tr>
 
         
@@ -12867,7 +13109,8 @@
 
             
 
-            <td class="description last">The <code>Device</code> instance representing the BLE peer we've disconnected                            from.</td>
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we've disconnected
+                            from.</td>
         </tr>
 
         
@@ -13066,7 +13309,8 @@
 
             
 
-            <td class="description last">The <code>Device</code> instance representing the BLE peer we've                                      discovered.</td>
+            <td class="description last">The <code>Device</code> instance representing the BLE peer we've
+                                      discovered.</td>
         </tr>
 
         
@@ -13762,7 +14006,8 @@
 
             
 
-            <td class="description last">LESC OOB data required. A call to <code>replyLescDhkey</code> is                                    required to complete the procedure.</td>
+            <td class="description last">LESC OOB data required. A call to <code>replyLescDhkey</code> is
+                                    required to complete the procedure.</td>
         </tr>
 
         
