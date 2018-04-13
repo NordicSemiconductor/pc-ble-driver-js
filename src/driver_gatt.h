@@ -59,17 +59,6 @@ public:
     ble_gatt_char_ext_props_t *ToNative();
 };
 
-#if NRF_SD_BLE_API_VERSION >= 3
-class GattEnableParameters : public BleToJs<ble_gatt_enable_params_t>
-{
-public:
-    GattEnableParameters(ble_gatt_enable_params_t *enableParamters) : BleToJs<ble_gatt_enable_params_t>(enableParamters) {}
-    GattEnableParameters(v8::Local<v8::Object> js) : BleToJs<ble_gatt_enable_params_t>(js) {}
-    v8::Local<v8::Object> ToJs() override;
-    ble_gatt_enable_params_t *ToNative() override;
-};
-#endif
-
 extern "C" {
     void init_gatt(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
 }

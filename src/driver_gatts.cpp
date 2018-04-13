@@ -45,14 +45,15 @@
 
 static name_map_t gatts_op_map =
 {
-	NAME_MAP_ENTRY(BLE_GATTS_OP_WRITE_REQ),
-	NAME_MAP_ENTRY(BLE_GATTS_OP_WRITE_CMD),
-	NAME_MAP_ENTRY(BLE_GATTS_OP_SIGN_WRITE_CMD),
-	NAME_MAP_ENTRY(BLE_GATTS_OP_PREP_WRITE_REQ),
-	NAME_MAP_ENTRY(BLE_GATTS_OP_EXEC_WRITE_REQ_CANCEL),
-	NAME_MAP_ENTRY(BLE_GATTS_OP_EXEC_WRITE_REQ_NOW)
+    NAME_MAP_ENTRY(BLE_GATTS_OP_WRITE_REQ),
+    NAME_MAP_ENTRY(BLE_GATTS_OP_WRITE_CMD),
+    NAME_MAP_ENTRY(BLE_GATTS_OP_SIGN_WRITE_CMD),
+    NAME_MAP_ENTRY(BLE_GATTS_OP_PREP_WRITE_REQ),
+    NAME_MAP_ENTRY(BLE_GATTS_OP_EXEC_WRITE_REQ_CANCEL),
+    NAME_MAP_ENTRY(BLE_GATTS_OP_EXEC_WRITE_REQ_NOW)
 };
 
+#if NRF_SD_BLE_API_VERSION == 2
 v8::Local<v8::Object> GattsEnableParameters::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -73,6 +74,7 @@ ble_gatts_enable_params_t *GattsEnableParameters::ToNative()
 
     return enableParams;
 }
+#endif
 
 ble_gatts_attr_md_t *GattsAttributeMetadata::ToNative()
 {
@@ -280,7 +282,7 @@ v8::Local<v8::Object> GattsWriteEvent::ToJs()
 
     Utility::Set(obj, "handle", ConversionUtility::toJsNumber(evt->handle));
     Utility::Set(obj, "op", ConversionUtility::toJsNumber(evt->op));
-	Utility::Set(obj, "op_name", ConversionUtility::valueToJsString(evt->op, gatts_op_map));
+    Utility::Set(obj, "op_name", ConversionUtility::valueToJsString(evt->op, gatts_op_map));
     Utility::Set(obj, "auth_required", ConversionUtility::toJsBool(evt->auth_required));
     Utility::Set(obj, "uuid", BleUUID(&evt->uuid).ToJs());
     Utility::Set(obj, "offset", ConversionUtility::toJsNumber(evt->offset));
@@ -374,13 +376,13 @@ v8::Local<v8::Object> GattsTimeoutEvent::ToJs()
 #if NRF_SD_BLE_API_VERSION >= 3
 v8::Local<v8::Object> GattsExchangeMtuRequestEvent::ToJs()
 {
-	Nan::EscapableHandleScope scope;
-	v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-	BleDriverGattsEvent::ToJs(obj);
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverGattsEvent::ToJs(obj);
 
-	Utility::Set(obj, "client_rx_mtu", ConversionUtility::toJsNumber(evt->client_rx_mtu));
+    Utility::Set(obj, "client_rx_mtu", ConversionUtility::toJsNumber(evt->client_rx_mtu));
 
-	return scope.Escape(obj);
+    return scope.Escape(obj);
 }
 #endif
 

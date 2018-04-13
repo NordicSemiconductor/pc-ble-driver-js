@@ -273,13 +273,11 @@ void Adapter::onRpcEvent(uv_async_t *handle)
         {
             switch (event->header.evt_id)
             {
+#if NRF_SD_BLE_API_VERSION == 2
                 COMMON_EVT_CASE(TX_COMPLETE,            TXComplete,         tx_complete,            array, arrayIndex, eventEntry);
+#endif
                 COMMON_EVT_CASE(USER_MEM_REQUEST,       MemRequest,         user_mem_request,       array, arrayIndex, eventEntry);
                 COMMON_EVT_CASE(USER_MEM_RELEASE,       MemRelease,         user_mem_release,       array, arrayIndex, eventEntry);
-#if NRF_SD_BLE_API_VERSION >= 3
-                COMMON_EVT_CASE(DATA_LENGTH_CHANGED,    DataLengthChanged,  data_length_changed,    array, arrayIndex, eventEntry);
-#endif
-
                 GAP_EVT_CASE(CONNECTED,                 Connected,              connected,                  array, arrayIndex, eventEntry);
                 GAP_EVT_CASE(DISCONNECTED,              Disconnected,           disconnected,               array, arrayIndex, eventEntry);
                 GAP_EVT_CASE(CONN_PARAM_UPDATE,         ConnParamUpdate,        conn_param_update,          array, arrayIndex, eventEntry);
@@ -298,6 +296,11 @@ void Adapter::onRpcEvent(uv_async_t *handle)
                 GAP_EVT_CASE(CONN_PARAM_UPDATE_REQUEST, ConnParamUpdateRequest, conn_param_update_request,  array, arrayIndex, eventEntry);
                 GAP_EVT_CASE(SCAN_REQ_REPORT,           ScanReqReport,          scan_req_report,            array, arrayIndex, eventEntry);
 
+#if NRF_SD_BLE_API_VERSION == 6
+                GAP_EVT_CASE(DATA_LENGTH_UPDATE_REQUEST, DataLengthUpdateRequest, data_length_update_request, array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(DATA_LENGTH_UPDATE,         DataLengthUpdateEvt,        data_length_update,         array, arrayIndex, eventEntry);
+#endif
+
                 GATTC_EVT_CASE(PRIM_SRVC_DISC_RSP,          PrimaryServiceDiscovery,       prim_srvc_disc_rsp,         array, arrayIndex, eventEntry);
                 GATTC_EVT_CASE(REL_DISC_RSP,                RelationshipDiscovery,         rel_disc_rsp,               array, arrayIndex, eventEntry);
                 GATTC_EVT_CASE(CHAR_DISC_RSP,               CharacteristicDiscovery,       char_disc_rsp,              array, arrayIndex, eventEntry);
@@ -308,7 +311,7 @@ void Adapter::onRpcEvent(uv_async_t *handle)
                 GATTC_EVT_CASE(WRITE_RSP,                   Write,                         write_rsp,                  array, arrayIndex, eventEntry);
                 GATTC_EVT_CASE(HVX,                         HandleValueNotification,       hvx,                        array, arrayIndex, eventEntry);
                 GATTC_EVT_CASE(TIMEOUT,                     Timeout,                       timeout,                    array, arrayIndex, eventEntry);
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION == 6
                 GATTC_EVT_CASE(EXCHANGE_MTU_RSP,        ExchangeMtuResponse,    exchange_mtu_rsp,   array, arrayIndex, eventEntry);
 #endif
 
@@ -317,13 +320,12 @@ void Adapter::onRpcEvent(uv_async_t *handle)
                 GATTS_EVT_CASE(SYS_ATTR_MISSING,        SystemAttributeMissing, sys_attr_missing,   array, arrayIndex, eventEntry);
                 GATTS_EVT_CASE(HVC,                     HVC,                    hvc,                array, arrayIndex, eventEntry);
                 GATTS_EVT_CASE(TIMEOUT,                 Timeout,                timeout,            array, arrayIndex, eventEntry);
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION == 6
                 GATTS_EVT_CASE(EXCHANGE_MTU_REQUEST,    ExchangeMtuRequest,     exchange_mtu_request,       array, arrayIndex, eventEntry);
 #endif
 
                 // Handled special as there is no parameter for this in the event struct.
                 GATTS_EVT_CASE(SC_CONFIRM, SCConfirm, timeout, array, arrayIndex, eventEntry);
-
             default:
                 std::cerr << "Event " << event->header.evt_id << " unknown to me." << std::endl;
                 break;
@@ -427,6 +429,7 @@ void Adapter::onStatusEvent(uv_async_t *handle)
     }
 }
 
+#if NRF_SD_BLE_API_VERSION == 2
 v8::Local<v8::Object> CommonTXCompleteEvent::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -437,6 +440,31 @@ v8::Local<v8::Object> CommonTXCompleteEvent::ToJs()
 
     return scope.Escape(obj);
 }
+#elif NRF_SD_BLE_API_VERSION == 6
+v8::Local<v8::Object> GattcWriteCmdTxCompleteEvent::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverCommonEvent::ToJs(obj);
+
+    Utility::Set(obj, "count", ConversionUtility::toJsNumber(evt->count));
+
+    return scope.Escape(obj);
+}
+
+v8::Local<v8::Object> GattsHvnTxCompleteEvent::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverCommonEvent::ToJs(obj);
+
+    Utility::Set(obj, "count", ConversionUtility::toJsNumber(evt->count));
+
+    return scope.Escape(obj);
+}
+
+
+#endif
 
 v8::Local<v8::Object> CommonMemRequestEvent::ToJs()
 {
@@ -462,22 +490,7 @@ v8::Local<v8::Object> CommonMemReleaseEvent::ToJs()
     return scope.Escape(obj);
 }
 
-#if NRF_SD_BLE_API_VERSION >= 3
-v8::Local<v8::Object> CommonDataLengthChangedEvent::ToJs()
-{
-    Nan::EscapableHandleScope scope;
-    v8::Local<v8::Object> obj = Nan::New <v8::Object>();
-    BleDriverCommonEvent::ToJs(obj);
-
-    Utility::Set(obj, "max_tx_octets", ConversionUtility::toJsNumber(evt->max_tx_octets));
-    Utility::Set(obj, "max_tx_time", ConversionUtility::toJsNumber(evt->max_tx_time));
-    Utility::Set(obj, "max_rx_octets", ConversionUtility::toJsNumber(evt->max_rx_octets));
-    Utility::Set(obj, "max_rx_time", ConversionUtility::toJsNumber(evt->max_rx_time));
-
-    return scope.Escape(obj);
-}
-#endif
-
+#if NRF_SD_BLE_API_VERSION == 2
 // Class private method that is only used by the class to activate the SoftDevice in the Adapter
 uint32_t Adapter::enableBLE(adapter_t *adapter, ble_enable_params_t *ble_enable_params)
 {
@@ -491,6 +504,24 @@ uint32_t Adapter::enableBLE(adapter_t *adapter, ble_enable_params_t *ble_enable_
 
     return sd_ble_enable(adapter, ble_enable_params, 0);
 }
+#endif
+
+#if NRF_SD_BLE_API_VERSION == 6
+// Class private method that is only used by the class to activate the SoftDevice in the Adapter
+uint32_t Adapter::enableBLE(adapter_t *adapter)
+{
+    // If the this->adapter has not been set yet it is because the Adapter::Open call has not set
+    // an adapter_t instance. The SoftDevice is started in Adapter::Open call and we do not have to
+    // take care of it here.
+    if (adapter == nullptr)
+    {
+        return NRF_ERROR_INVALID_PARAM;
+    }
+
+    // The p_app_ram_base argument is irrelevent for pc-ble-driver since it is managed by the connectivity firmware
+    return sd_ble_enable(adapter, NULL);
+}
+#endif
 
 // This function runs in the Main Thread
 NAN_METHOD(Adapter::EnableBLE)
@@ -518,6 +549,7 @@ NAN_METHOD(Adapter::EnableBLE)
     auto baton = new EnableBLEBaton(callback);
     baton->adapter = obj->adapter;
 
+#if NRF_SD_BLE_API_VERSION == 2
     try
     {
         baton->enable_params = EnableParameters(enableObject);
@@ -528,6 +560,7 @@ NAN_METHOD(Adapter::EnableBLE)
         Nan::ThrowTypeError(message);
         return;
     }
+#endif
 
     uv_queue_work(uv_default_loop(), baton->req, EnableBLE, reinterpret_cast<uv_after_work_cb>(AfterEnableBLE));
 }
@@ -536,7 +569,14 @@ NAN_METHOD(Adapter::EnableBLE)
 void Adapter::EnableBLE(uv_work_t *req)
 {
     auto baton = static_cast<EnableBLEBaton *>(req->data);
+#if NRF_SD_BLE_API_VERSION == 2
     baton->result = sd_ble_enable(baton->adapter, baton->enable_params, &baton->app_ram_base);
+#endif
+
+#if NRF_SD_BLE_API_VERSION == 6
+    // The p_app_ram_base argument is irrelevent for pc-ble-driver since it is managed by the connectivity firmware
+    baton->result = sd_ble_enable(baton->adapter, NULL);
+#endif
 }
 
 // This runs in  Main Thread
@@ -545,6 +585,7 @@ void Adapter::AfterEnableBLE(uv_work_t *req)
     Nan::HandleScope scope;
     auto baton = static_cast<EnableBLEBaton *>(req->data);
 
+#if NRF_SD_BLE_API_VERSION == 2
     v8::Local<v8::Value> argv[3];
 
     if (baton->result != NRF_SUCCESS)
@@ -559,9 +600,25 @@ void Adapter::AfterEnableBLE(uv_work_t *req)
         argv[1] = EnableParameters(baton->enable_params);
         argv[2] = ConversionUtility::toJsNumber(baton->app_ram_base);
     }
-
+    
     baton->callback->Call(3, argv);
     delete baton->enable_params;
+
+#elif NRF_SD_BLE_API_VERSION == 6
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "enabling SoftDevice");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+#endif // NRF_SD_BLE_API_VERSION
+
     delete baton;
 }
 
@@ -608,7 +665,9 @@ NAN_METHOD(Adapter::Open)
         baton->retransmission_interval = ConversionUtility::getNativeUint32(options, "retransmissionInterval"); parameter++;
         baton->response_timeout = ConversionUtility::getNativeUint32(options, "responseTimeout"); parameter++;
         baton->enable_ble = ConversionUtility::getBool(options, "enableBLE"); parameter++;
+#if NRF_SD_BLE_API_VERSION == 2
         baton->ble_enable_params = EnableParameters(ConversionUtility::getJsObject(options, "enableBLEParams")); parameter++;
+#endif
     }
     catch (std::string error)
     {
@@ -722,7 +781,13 @@ void Adapter::Open(uv_work_t *req)
     }
 
     if (baton->enable_ble) {
-        error_code = Adapter::enableBLE(adapter, baton->ble_enable_params);
+#if NRF_SD_BLE_API_VERSION == 2
+    error_code = Adapter::enableBLE(adapter, baton->ble_enable_params);
+#elif NRF_SD_BLE_API_VERSION == 6
+    error_code = Adapter::enableBLE(adapter);
+#else
+    #error "Not supported in this version of SoftDevice."
+#endif
 
         if (error_code == NRF_SUCCESS)
         {
@@ -1406,13 +1471,10 @@ void Adapter::AfterGetBleOption(uv_work_t *req)
     v8::Local<v8::Value> optionValue = Nan::Undefined();
 
     // TODO: Implement support through BleOpt ToJs for all required options
+#if NRF_SD_BLE_API_VERSION == 2
     if (baton->opt_id == BLE_GAP_OPT_SCAN_REQ_REPORT)
     {
         optionValue = ConversionUtility::toJsBool(baton->p_opt->gap_opt.scan_req_report.enable);
-    }
-#if NRF_SD_BLE_API_VERSION >= 3
-    else if (baton->opt_id == BLE_GAP_OPT_EXT_LEN) {
-        optionValue = ConversionUtility::toJsNumber(baton->p_opt->gap_opt.ext_len.rxtx_max_pdu_payload_size);
     }
 #endif
 
@@ -1436,8 +1498,89 @@ void Adapter::AfterGetBleOption(uv_work_t *req)
 
 #pragma endregion GetBleOption
 
+#pragma region SetBleConfig
+
+#if NRF_SD_BLE_API_VERSION == 6
+
+NAN_METHOD(Adapter::SetBleConfig) {
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    uint32_t configId;
+    v8::Local<v8::Object> configObject;
+    uint32_t appRamBase;
+    v8::Local<v8::Function> callback;
+    auto argumentcount = 0;
+
+    try
+    {
+        configId = ConversionUtility::getNativeUint32(info[argumentcount]);
+        argumentcount++;
+
+        configObject = ConversionUtility::getJsObject(info[argumentcount]);
+        argumentcount++;
+
+        appRamBase = ConversionUtility::getNativeUint32(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (std::string error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    auto baton = new BleConfigBaton(callback);
+    baton->adapter = obj->adapter;
+    baton->cfg_id = configId;
+    baton->app_ram_base = appRamBase;
+
+    try
+    {
+        baton->p_cfg = BleCfg(configObject);
+    }
+    catch (std::string error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("BLE Config", error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    uv_queue_work(uv_default_loop(), baton->req, SetBleConfig, reinterpret_cast<uv_after_work_cb>(AfterSetBleConfig));
+}
+
+void Adapter::SetBleConfig(uv_work_t *req)
+{
+    auto baton = static_cast<BleConfigBaton *>(req->data);
+    baton->result = sd_ble_cfg_set(baton->adapter, baton->cfg_id, baton->p_cfg, baton->app_ram_base);
+}
+
+void Adapter::AfterSetBleConfig(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+    auto baton = static_cast<BleConfigBaton *>(req->data);
+
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "setting BLE config");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+    delete baton;
+}
+#endif // NRF_SD_BLE_API_VERSION == 6
+#pragma endregion SetBleConfig
+
 #pragma region BandwidthCountParameters
 
+#if NRF_SD_BLE_API_VERSION == 2
 v8::Local<v8::Object> BandwidthCountParameters::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -1458,11 +1601,13 @@ ble_conn_bw_count_t *BandwidthCountParameters::ToNative()
     count_params->low_count = ConversionUtility::getNativeUint8(jsobj, "low_count");
     return count_params;
 }
+#endif
 
 #pragma endregion BandwidthCountParameters
 
 #pragma region BandwidthGlobalMemoryPool
 
+#if NRF_SD_BLE_API_VERSION == 2
 v8::Local<v8::Object> BandwidthGlobalMemoryPool::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -1491,11 +1636,13 @@ ble_conn_bw_counts_t *BandwidthGlobalMemoryPool::ToNative()
     memory_pool->rx_counts = BandwidthCountParameters(ConversionUtility::getJsObject(jsobj, "rx_counts"));
     return memory_pool;
 }
+#endif
 
 #pragma endregion BandwidthGlobalMemoryPool
 
 #pragma region CommonEnableParameters
 
+#if NRF_SD_BLE_API_VERSION == 2
 v8::Local<v8::Object> CommonEnableParameters::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -1521,11 +1668,13 @@ ble_common_enable_params_t *CommonEnableParameters::ToNative()
     enable_params->p_conn_bw_counts = BandwidthGlobalMemoryPool(ConversionUtility::getJsObjectOrNull(jsobj, "conn_bw_counts"));
     return enable_params;
 }
+#endif
 
 #pragma endregion CommonEnableParameters
 
 #pragma region EnableParameters
 
+#if NRF_SD_BLE_API_VERSION == 2
 v8::Local<v8::Object> EnableParameters::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -1534,9 +1683,6 @@ v8::Local<v8::Object> EnableParameters::ToJs()
     Utility::Set(obj, "common_enable_params", CommonEnableParameters(&native->common_enable_params).ToJs());
     Utility::Set(obj, "gap_enable_params", GapEnableParameters(&native->gap_enable_params).ToJs());
     Utility::Set(obj, "gatts_enable_params", GattsEnableParameters(&native->gatts_enable_params).ToJs());
-#if NRF_SD_BLE_API_VERSION >= 3
-    Utility::Set(obj, "gatt_enable_params", GattEnableParameters(&native->gatt_enable_params).ToJs());
-#endif
 
     return scope.Escape(obj);
 }
@@ -1547,11 +1693,9 @@ ble_enable_params_t *EnableParameters::ToNative()
     enable_params->common_enable_params = CommonEnableParameters(ConversionUtility::getJsObject(jsobj, "common_enable_params"));
     enable_params->gap_enable_params = GapEnableParameters(ConversionUtility::getJsObject(jsobj, "gap_enable_params"));
     enable_params->gatts_enable_params = GattsEnableParameters(ConversionUtility::getJsObjectOrNull(jsobj, "gatts_enable_params"));
-#if NRF_SD_BLE_API_VERSION >= 3
-    enable_params->gatt_enable_params = GattEnableParameters(ConversionUtility::getJsObjectOrNull(jsobj, "gatt_enable_params"));
-#endif
     return enable_params;
 }
+#endif
 
 #pragma endregion EnableParameters
 
@@ -1738,9 +1882,311 @@ ble_opt_t *BleOpt::ToNative()
     return ble_opt;
 }
 
-
-
 #pragma endregion BleOpt
+
+#if NRF_SD_BLE_API_VERSION == 6
+
+ble_cfg_t *BleCfg::ToNative()
+{
+    auto ble_cfg = new ble_cfg_t();
+
+    if (Utility::Has(jsobj, "conn_cfg"))
+    {
+        auto conn_cfg_obj = ConversionUtility::getJsObject(jsobj, "conn_cfg");
+        ble_cfg->conn_cfg = BleConnCfg(conn_cfg_obj);
+    } 
+    else if (Utility::Has(jsobj, "common_cfg"))
+    {
+        auto common_cfg_obj = ConversionUtility::getJsObject(jsobj, "common_cfg");
+        ble_cfg->common_cfg = BleCommonCfg(common_cfg_obj);
+    }
+    else if (Utility::Has(jsobj, "gap_cfg")) {
+        auto gap_cfg_obj = ConversionUtility::getJsObject(jsobj, "gap_cfg");
+        ble_cfg->gap_cfg = BleGapCfg(gap_cfg_obj);
+    }
+    else if (Utility::Has(jsobj, "gatts_cfg")) {
+        auto gatts_cfg_obj = ConversionUtility::getJsObject(jsobj, "gatts_cfg");
+        ble_cfg->gatts_cfg = BleGattsCfg(gatts_cfg_obj);
+    }
+
+    return ble_cfg;
+}
+ble_common_cfg_t *BleCommonCfg::ToNative()
+{
+    auto ble_common_cfg = new ble_common_cfg_t();
+
+    if (Utility::Has(jsobj, "vs_uuid_cfg"))
+    {
+        auto conn_cfg_obj = ConversionUtility::getJsObject(jsobj, "vs_uuid_cfg");
+        ble_common_cfg->vs_uuid_cfg = BleCommonCfgVsUuid(conn_cfg_obj);
+    }
+
+    return ble_common_cfg;
+}
+
+ble_conn_cfg_t *BleConnCfg::ToNative()
+{
+    auto ble_conn_cfg = new ble_conn_cfg_t();
+
+    if (Utility::Has(jsobj, "conn_cfg_tag")) {
+        ble_conn_cfg->conn_cfg_tag = ConversionUtility::getNativeUint8(jsobj, "conn_cfg_tag");
+    }
+
+    if (Utility::Has(jsobj, "gap_conn_cfg"))
+    {
+        auto gap_conn_cfg_obj = ConversionUtility::getJsObject(jsobj, "gap_conn_cfg");
+        auto gap_conn_cfg = BleGapConnCfg(gap_conn_cfg_obj);
+        ble_conn_cfg->params.gap_conn_cfg = gap_conn_cfg;
+    }
+    else if (Utility::Has(jsobj, "gattc_conn_cfg"))
+    {
+        auto gattc_conn_cfg_obj = ConversionUtility::getJsObject(jsobj, "gattc_conn_cfg");
+        auto gattc_conn_cfg = BleGattcConnCfg(gattc_conn_cfg_obj);
+        ble_conn_cfg->params.gattc_conn_cfg = gattc_conn_cfg;
+    }
+    else if (Utility::Has(jsobj, "gatts_conn_cfg"))
+    {
+        auto gatts_conn_cfg_obj = ConversionUtility::getJsObject(jsobj, "gatts_conn_cfg");
+        auto gatts_conn_cfg = BleGattsConnCfg(gatts_conn_cfg_obj);
+        ble_conn_cfg->params.gatts_conn_cfg = gatts_conn_cfg;
+    }
+    else if (Utility::Has(jsobj, "gatt_conn_cfg"))
+    {
+        auto gatt_conn_cfg_obj = ConversionUtility::getJsObject(jsobj, "gatt_conn_cfg");
+        auto gatt_conn_cfg = BleGattConnCfg(gatt_conn_cfg_obj);
+        ble_conn_cfg->params.gatt_conn_cfg = gatt_conn_cfg;
+    }
+    else if (Utility::Has(jsobj, "l2cap_conn_cfg"))
+    {
+        auto l2cap_conn_cfg_obj = ConversionUtility::getJsObject(jsobj, "l2cap_conn_cfgg");
+        auto l2cap_conn_cfg = BleL2capConnCfg(l2cap_conn_cfg_obj);
+        ble_conn_cfg->params.l2cap_conn_cfg = l2cap_conn_cfg;
+    }
+
+    return ble_conn_cfg;
+}
+
+ble_gap_conn_cfg_t *BleGapConnCfg::ToNative()
+{
+    auto gap_conn_cfg = new ble_gap_conn_cfg_t();
+
+    if (Utility::Has(jsobj, "conn_count"))
+    {
+        gap_conn_cfg->conn_count = ConversionUtility::getNativeUint8(jsobj, "conn_count");
+    }
+    else if (Utility::Has(jsobj, "event_length"))
+    {
+        gap_conn_cfg->event_length = ConversionUtility::getNativeUint16(jsobj, "event_length");
+    }
+
+    return gap_conn_cfg;
+}
+
+ble_common_cfg_vs_uuid_t *BleCommonCfgVsUuid::ToNative()
+{
+    auto common_cfg_vs_uuid = new ble_common_cfg_vs_uuid_t();
+
+    if (Utility::Has(jsobj, "vs_uuid_count"))
+    {
+        common_cfg_vs_uuid->vs_uuid_count = ConversionUtility::getNativeUint8(jsobj, "vs_uuid_count");
+    }
+
+    return common_cfg_vs_uuid;
+}
+
+ble_gap_cfg_t *BleGapCfg::ToNative()
+{
+    auto ble_gap_cfg = new ble_gap_cfg_t();
+
+    if (Utility::Has(jsobj, "role_count_cfg"))
+    {
+        auto role_count_cfg_obj = ConversionUtility::getJsObject(jsobj, "role_count_cfg");
+        ble_gap_cfg->role_count_cfg = BleGapCfgRoleCount(role_count_cfg_obj);
+    }
+
+    if (Utility::Has(jsobj, "device_name"))
+    {
+        auto device_name_obj = ConversionUtility::getJsObject(jsobj, "device_name");
+        ble_gap_cfg->device_name_cfg = BleGapCfgDeviceName(device_name_obj);
+    }
+
+    return ble_gap_cfg;
+}
+
+ble_gap_cfg_device_name_t *BleGapCfgDeviceName::ToNative()
+{
+    auto ble_gap_cfg_device_name = new ble_gap_cfg_device_name_t();
+
+    if (Utility::Has(jsobj, "write_perm"))
+    {
+        auto write_perm_obj = ConversionUtility::getJsObject(jsobj, "write_perm");
+        ble_gap_cfg_device_name->write_perm = BleGapConnSecMode(write_perm_obj);
+    }
+
+    if (Utility::Has(jsobj, "vloc"))
+    {
+        auto vloc_obj = ConversionUtility::getJsObject(jsobj, "vloc");
+        ble_gap_cfg_device_name->vloc = ConversionUtility::getNativeUint8(jsobj, "vloc");
+    }
+
+    if (Utility::Has(jsobj, "value")) {
+        auto value = ConversionUtility::getJsObject(jsobj, "value");
+        ble_gap_cfg_device_name->p_value = ConversionUtility::getNativePointerToUint8(jsobj, "value");
+    }
+
+    if (Utility::Has(jsobj, "current_len"))
+    {
+        ble_gap_cfg_device_name->current_len = ConversionUtility::getNativeUint16(jsobj, "current_len");
+    }
+
+    if (Utility::Has(jsobj, "max_len"))
+    {
+        ble_gap_cfg_device_name->max_len = ConversionUtility::getNativeUint16(jsobj, "max_len");
+    }
+
+    return ble_gap_cfg_device_name;
+}
+
+ble_gap_conn_sec_mode_t *BleGapConnSecMode::ToNative()
+{
+    auto ble_gap_conn_sec_mode = new ble_gap_conn_sec_mode_t();
+
+    if (Utility::Has(jsobj, "sm"))
+    {
+        ble_gap_conn_sec_mode->sm = ConversionUtility::getNativeUint8(jsobj, "sm");
+    }
+
+    if (Utility::Has(jsobj, "lv"))
+    {
+        ble_gap_conn_sec_mode->lv = ConversionUtility::getNativeUint16(jsobj, "lv");
+    }
+
+    return ble_gap_conn_sec_mode;
+}
+
+ble_gap_cfg_role_count_t *BleGapCfgRoleCount::ToNative()
+{
+    auto ble_gap_cfg_role_count = new ble_gap_cfg_role_count_t();
+
+    if (Utility::Has(jsobj, "periph_role_count"))
+    {
+        ble_gap_cfg_role_count->periph_role_count = ConversionUtility::getNativeUint8(jsobj, "periph_role_count");
+    }
+
+    if (Utility::Has(jsobj, "central_role_count"))
+    {
+        ble_gap_cfg_role_count->central_role_count = ConversionUtility::getNativeUint8(jsobj, "central_role_count");
+    }
+
+    if (Utility::Has(jsobj, "central_sec_count"))
+    {
+        ble_gap_cfg_role_count->central_sec_count = ConversionUtility::getNativeUint8(jsobj, "central_sec_count");
+    }
+
+    return ble_gap_cfg_role_count;
+}
+
+ble_gattc_conn_cfg_t *BleGattcConnCfg::ToNative()
+{
+    auto gattc_conn_cfg = new ble_gattc_conn_cfg_t();
+    
+    if (Utility::Has(jsobj, "write_cmd_tx_queue_size"))
+    {
+        gattc_conn_cfg->write_cmd_tx_queue_size = ConversionUtility::getNativeUint8(jsobj, "write_cmd_tx_queue_size");
+    }
+
+    return gattc_conn_cfg;
+}
+
+ble_gatts_conn_cfg_t *BleGattsConnCfg::ToNative()
+{
+    auto gatts_conn_cfg = new ble_gatts_conn_cfg_t();
+
+    if (Utility::Has(jsobj, "hvn_tx_queue_size")) {
+        gatts_conn_cfg->hvn_tx_queue_size = ConversionUtility::getNativeUint8(jsobj, "hvn_tx_queue_size");
+    }
+
+    return gatts_conn_cfg;
+}
+
+ble_gatt_conn_cfg_t *BleGattConnCfg::ToNative()
+{
+    auto gatt_conn_cfg = new ble_gatt_conn_cfg_t();
+
+    if (Utility::Has(jsobj, "att_mtu")) {
+        gatt_conn_cfg->att_mtu = ConversionUtility::getNativeUint16(jsobj, "att_mtu");
+    }
+
+    return gatt_conn_cfg;
+}
+
+ble_l2cap_conn_cfg_t *BleL2capConnCfg::ToNative()
+{
+    auto l2cap_conn_cfg = new ble_l2cap_conn_cfg_t();
+
+    if (Utility::Has(jsobj, "rx_mps")) {
+        l2cap_conn_cfg->rx_mps = ConversionUtility::getNativeUint16(jsobj, "rx_mps");
+    }
+
+    if (Utility::Has(jsobj, "tx_mps")) {
+        l2cap_conn_cfg->tx_mps = ConversionUtility::getNativeUint16(jsobj, "tx_mps");
+    }
+
+    if (Utility::Has(jsobj, "rx_queue_size")) {
+        l2cap_conn_cfg->rx_queue_size = ConversionUtility::getNativeUint8(jsobj, "rx_queue_size");
+    }
+
+    if (Utility::Has(jsobj, "tx_queue_size")) {
+        l2cap_conn_cfg->tx_queue_size = ConversionUtility::getNativeUint8(jsobj, "tx_queue_size");
+    }
+
+    if (Utility::Has(jsobj, "ch_count")) {
+        l2cap_conn_cfg->ch_count = ConversionUtility::getNativeUint8(jsobj, "ch_count");
+    }
+
+    return l2cap_conn_cfg;
+}
+
+ble_gatts_cfg_t *BleGattsCfg::ToNative() {
+    auto ble_gatts_cfg = new ble_gatts_cfg_t();
+
+    if (Utility::Has(jsobj, "service_changed"))
+    {
+        auto service_changed_obj = ConversionUtility::getJsObject(jsobj, "service_changed");
+        ble_gatts_cfg->service_changed = BleGattsCfgServiceChanged(service_changed_obj);
+    }
+
+    if (Utility::Has(jsobj, "attr_tab_size")) {
+        auto attr_tab_size_obj = ConversionUtility::getJsObject(jsobj, "attr_tab_size");
+        ble_gatts_cfg->attr_tab_size = BleGattsCfgAttrTabSize(attr_tab_size_obj);
+    }
+
+    return ble_gatts_cfg;
+}
+
+ble_gatts_cfg_service_changed_t *BleGattsCfgServiceChanged::ToNative()
+{
+    auto ble_gatts_cfg_service_changed = new ble_gatts_cfg_service_changed_t();
+
+    if (Utility::Has(jsobj, "service_changed")) {
+        ble_gatts_cfg_service_changed->service_changed = ConversionUtility::getNativeUint16(jsobj, "service_changed");
+    }
+
+    return ble_gatts_cfg_service_changed;
+}
+
+ble_gatts_cfg_attr_tab_size_t *BleGattsCfgAttrTabSize::ToNative()
+{
+    auto ble_gatts_cfg_attr_tab_size = new ble_gatts_cfg_attr_tab_size_t();
+
+    if (Utility::Has(jsobj, "attr_tab_size")) {
+        ble_gatts_cfg_attr_tab_size->attr_tab_size = ConversionUtility::getNativeUint16(jsobj, "attr_tab_size");
+    }
+
+    return ble_gatts_cfg_attr_tab_size;
+}
+
+#endif
 
 extern "C" {
     void init_adapter_list(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);
@@ -1819,8 +2265,8 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_UUID_GAP); /* Generic Access Profile. */
         NODE_DEFINE_CONSTANT(target, BLE_UUID_GAP_CHARACTERISTIC_DEVICE_NAME); /* Device Name Characteristic. */
         NODE_DEFINE_CONSTANT(target, BLE_UUID_GAP_CHARACTERISTIC_APPEARANCE); /* Appearance Characteristic. */
-#if NRF_SD_BLE_API_VERSION <= 2
-		NODE_DEFINE_CONSTANT(target, BLE_UUID_GAP_CHARACTERISTIC_PPF); /* Peripheral Privacy Flag Characteristic. */
+#if NRF_SD_BLE_API_VERSION == 2
+        NODE_DEFINE_CONSTANT(target, BLE_UUID_GAP_CHARACTERISTIC_PPF); /* Peripheral Privacy Flag Characteristic. */
 #endif
         NODE_DEFINE_CONSTANT(target, BLE_UUID_GAP_CHARACTERISTIC_RECONN_ADDR); /* Reconnection Address Characteristic. */
         NODE_DEFINE_CONSTANT(target, BLE_UUID_GAP_CHARACTERISTIC_PPCP); /* Peripheral Preferred Connection Parameters Characteristic. */
@@ -1888,8 +2334,8 @@ extern "C" {
     {
         NODE_DEFINE_CONSTANT(target, BLE_SVC_BASE);           /**< Common BLE SVC base. */
         NODE_DEFINE_CONSTANT(target, BLE_SVC_LAST);           /**< Total: 12. */
-#if NRF_SD_BLE_API_VERSION <= 2
-		NODE_DEFINE_CONSTANT(target, BLE_RESERVED_SVC_BASE);  /**< Reserved BLE SVC base. */
+#if NRF_SD_BLE_API_VERSION == 2
+        NODE_DEFINE_CONSTANT(target, BLE_RESERVED_SVC_BASE);  /**< Reserved BLE SVC base. */
         NODE_DEFINE_CONSTANT(target, BLE_RESERVED_SVC_LAST);  /**< Total: 4. */
 #endif
         NODE_DEFINE_CONSTANT(target, BLE_GAP_SVC_BASE);       /**< GAP BLE SVC base. */
@@ -1929,14 +2375,18 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_USER_MEM_TYPE_INVALID);                /**< Invalid User Memory Types. */
         NODE_DEFINE_CONSTANT(target, BLE_USER_MEM_TYPE_GATTS_QUEUED_WRITES);    /**< User Memory for GATTS queued writes. */
         NODE_DEFINE_CONSTANT(target, BLE_UUID_VS_COUNT_DEFAULT);                /**< Use the default VS UUID count (10 for this version of the SoftDevice). */
+#if NRF_SD_BLE_API_VERSION == 2
         NODE_DEFINE_CONSTANT(target, BLE_UUID_VS_COUNT_MIN);                    /**< Minimum VS UUID count. */
+#endif
 
+#if NRF_SD_BLE_API_VERSION == 2
         NODE_DEFINE_CONSTANT(target, BLE_EVT_TX_COMPLETE);                      /**< Transmission Complete. @ref ble_evt_tx_complete_t */
+#elif NRF_SD_BLE_API_VERSION == 6
+        NODE_DEFINE_CONSTANT(target, BLE_GATTC_EVT_WRITE_CMD_TX_COMPLETE);      /**< Write without Response transmission complete. */
+        NODE_DEFINE_CONSTANT(target, BLE_GATTS_EVT_HVN_TX_COMPLETE);            /**< Handle Value Notification transmission complete. */
+#endif
         NODE_DEFINE_CONSTANT(target, BLE_EVT_USER_MEM_REQUEST);                 /**< User Memory request. @ref ble_evt_user_mem_request_t */
         NODE_DEFINE_CONSTANT(target, BLE_EVT_USER_MEM_RELEASE);                 /**< User Memory release. @ref ble_evt_user_mem_release_t */
-#if NRF_SD_BLE_API_VERSION >= 3
-        NODE_DEFINE_CONSTANT(target, BLE_EVT_DATA_LENGTH_CHANGED);              /** Link layer PDU length changed. @ref ble_evt_data_length_changed_t */
-#endif
     }
 
     void init_hci(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
