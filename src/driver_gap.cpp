@@ -58,6 +58,7 @@ extern int adapterCount;
 
 #pragma region Name Map entries to enable constants (value and name) from C in JavaScript
 
+#if NRF_SD_BLE_API_VERSION == 2
 static name_map_t gap_adv_type_map =
 {
     NAME_MAP_ENTRY(BLE_GAP_ADV_TYPE_ADV_IND),
@@ -65,6 +66,7 @@ static name_map_t gap_adv_type_map =
     NAME_MAP_ENTRY(BLE_GAP_ADV_TYPE_ADV_SCAN_IND),
     NAME_MAP_ENTRY(BLE_GAP_ADV_TYPE_ADV_NONCONN_IND)
 };
+#endif
 
 static name_map_t gap_role_map =
 {
@@ -75,8 +77,10 @@ static name_map_t gap_role_map =
 
 static name_map_t gap_timeout_sources_map =
 {
+#if NRF_SD_BLE_API_VERSION == 2
     NAME_MAP_ENTRY(BLE_GAP_TIMEOUT_SRC_ADVERTISING),
     NAME_MAP_ENTRY(BLE_GAP_TIMEOUT_SRC_SECURITY_REQUEST),
+#endif
     NAME_MAP_ENTRY(BLE_GAP_TIMEOUT_SRC_SCAN),
     NAME_MAP_ENTRY(BLE_GAP_TIMEOUT_SRC_CONN)
 };
@@ -196,6 +200,7 @@ static name_map_t gap_auth_key_types =
 #pragma region Conversion methods to/from JavaScript/C++
 #pragma region GapEnableParameters
 
+#if NRF_SD_BLE_API_VERSION == 2
 v8::Local<v8::Object> GapEnableParameters::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -223,6 +228,7 @@ ble_gap_enable_params_t *GapEnableParameters::ToNative()
 
     return enable_params;
 }
+#endif
 
 #pragma endregion GapEnableParameters
 
@@ -246,7 +252,7 @@ v8::Local<v8::Object> GapAddr::ToJs()
     Utility::Set(obj, "address", addr);
     Utility::Set(obj, "type", ConversionUtility::valueToJsString(native->addr_type, gap_addr_type_map));
 
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION == 6
     Utility::Set(obj, "addr_id_peer", native->addr_id_peer);
 #endif
 
@@ -397,20 +403,15 @@ ble_gap_opt_t *GapOpt::ToNative()
     auto gap_opt = new ble_gap_opt_t();
     memset(gap_opt, 0, sizeof(gap_opt));
 
+#if NRF_SD_BLE_API_VERSION == 2
     if (Utility::Has(jsobj, "scan_req_report"))
     {
         auto scan_req_obj = ConversionUtility::getJsObject(jsobj, "scan_req_report");
         gap_opt->scan_req_report = GapOptScanReqReport(scan_req_obj);
     }
-#if NRF_SD_BLE_API_VERSION >= 3
-    else if (Utility::Has(jsobj, "ext_len"))
-    {
-        auto ext_len_obj = ConversionUtility::getJsObject(jsobj, "ext_len");
-        gap_opt->ext_len = GapOptExtLen(ext_len_obj);
-    }
 #endif
-    //TODO: Add rest of gap_opt types
 
+    //TODO: Add rest of gap_opt types
     return gap_opt;
 }
 
@@ -418,23 +419,11 @@ ble_gap_opt_t *GapOpt::ToNative()
 
 #pragma region GapOptExtLen
 
-#if NRF_SD_BLE_API_VERSION >= 3
-
-ble_gap_opt_ext_len_t *GapOptExtLen::ToNative()
-{
-    auto ext_len = new ble_gap_opt_ext_len_t();
-    memset(ext_len, 0, sizeof(ble_gap_opt_ext_len_t));
-
-    ext_len->rxtx_max_pdu_payload_size = ConversionUtility::getNativeUint8(jsobj, "rxtx_max_pdu_payload_size");
-
-    return ext_len;
-}
-#endif
-
 #pragma endregion GapOptExtLen
 
 #pragma region GapOptScanReqReport
 
+#if NRF_SD_BLE_API_VERSION == 2
 ble_gap_opt_scan_req_report_t *GapOptScanReqReport::ToNative()
 {
     auto req_report_opt = new ble_gap_opt_scan_req_report_t();
@@ -444,6 +433,7 @@ ble_gap_opt_scan_req_report_t *GapOptScanReqReport::ToNative()
 
     return req_report_opt;
 }
+#endif
 
 #pragma endregion GapOptScanReqReport
 
@@ -481,6 +471,7 @@ ble_gap_irk_t *GapIrk::ToNative()
 
 #pragma region GapAdvChannelMask
 
+#if NRF_SD_BLE_API_VERSION == 2
 v8::Local<v8::Object> GapAdvChannelMask::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -505,6 +496,7 @@ ble_gap_adv_ch_mask_t *GapAdvChannelMask::ToNative()
 
     return mask;
 }
+#endif
 
 #pragma endregion GapAdvChannelMask
 
@@ -528,14 +520,24 @@ ble_gap_adv_params_t *GapAdvParams::ToNative()
     auto params = new ble_gap_adv_params_t();
     memset(params, 0, sizeof(ble_gap_adv_params_t));
 
+#if NRF_SD_BLE_API_VERSION == 2
     params->type = ConversionUtility::getNativeUint8(jsobj, "type");
+
     // TODO: Add p_peer_addr
     // params->p_peer_addr = ;
     params->fp = ConversionUtility::getNativeUint8(jsobj, "fp");
+    params->timeout = ConversionUtility::getNativeUint16(jsobj, "timeout");
+#endif
+
+#if NRF_SD_BLE_API_VERSION == 2
+    params->channel_mask = GapAdvChannelMask(ConversionUtility::getJsObject(jsobj, "channel_mask"));
+#elif NRF_SD_BLE_API_VERSION == 6
+    params->channel_mask[0] |= ConversionUtility::getNativeBool(jsobj, "ch_37_off") ? 0x20 : 0;
+    params->channel_mask[0] |= ConversionUtility::getNativeBool(jsobj, "ch_38_off") ? 0x40 : 0;
+    params->channel_mask[0] |= ConversionUtility::getNativeBool(jsobj, "ch_39_off") ? 0x80 : 0;
+#endif
     // TODO: Add whitelist
     params->interval = ConversionUtility::msecsToUnitsUint16(jsobj, "interval", ConversionUtility::ConversionUnit625ms);
-    params->timeout = ConversionUtility::getNativeUint16(jsobj, "timeout");
-    params->channel_mask = GapAdvChannelMask(ConversionUtility::getJsObject(jsobj, "channel_mask"));
 
     return params;
 }
@@ -883,7 +885,7 @@ v8::Local<v8::Object> GapConnected::ToJs()
     Utility::Set(obj, "peer_addr", GapAddr(&(evt->peer_addr)).ToJs());
     Utility::Set(obj, "role", ConversionUtility::valueToJsString(evt->role, gap_role_map));
     Utility::Set(obj, "conn_params", GapConnParams(&(evt->conn_params)).ToJs());
-#if NRF_SD_BLE_API_VERSION <= 2
+#if NRF_SD_BLE_API_VERSION == 2
     Utility::Set(obj, "own_addr", GapAddr(&(evt->own_addr)).ToJs());
     Utility::Set(obj, "irk_match", ConversionUtility::toJsBool(evt->irk_match));
 
@@ -954,6 +956,94 @@ v8::Local<v8::Object> GapSecInfoRequest::ToJs()
 }
 
 #pragma endregion GapSecInfoRequest
+
+#if NRF_SD_BLE_API_VERSION == 6
+#pragma region GapDataLengthUpdateRequest
+
+v8::Local<v8::Object> GapDataLengthUpdateRequest::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverEvent::ToJs(obj);
+    Utility::Set(obj, "peer_params", GapDataLengthParams(&(evt->peer_params)).ToJs());
+    return scope.Escape(obj);
+};
+
+#pragma endregion GapDataLengthUpdateRequest
+
+#pragma region GapDataLengthUpdateEvt
+v8::Local<v8::Object> GapDataLengthUpdateEvt::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverEvent::ToJs(obj);
+    Utility::Set(obj, "effective_params", GapDataLengthParams(&(evt->effective_params)).ToJs());
+    return scope.Escape(obj);
+};
+#pragma endregion GapDataLengthUpdateEvt
+
+#pragma region GapDataLengthParams
+ble_gap_data_length_params_t *GapDataLengthParams::ToNative()
+{
+    if (Utility::IsNull(jsobj))
+    {
+        return nullptr;
+    }
+
+    auto ble_gap_data_length_params = new ble_gap_data_length_params_t();
+
+    ble_gap_data_length_params->max_tx_octets = ConversionUtility::getNativeUint16(jsobj, "max_tx_octets");
+    ble_gap_data_length_params->max_rx_octets = ConversionUtility::getNativeUint16(jsobj, "max_rx_octets");
+    ble_gap_data_length_params->max_tx_time_us = ConversionUtility::getNativeUint16(jsobj, "max_tx_time_us");
+    ble_gap_data_length_params->max_rx_time_us = ConversionUtility::getNativeUint16(jsobj, "max_rx_time_us");
+
+    return ble_gap_data_length_params;
+};
+
+v8::Local<v8::Object> GapDataLengthParams::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    Utility::Set(obj, "max_tx_octets", native->max_tx_octets);
+    Utility::Set(obj, "max_rx_octets", native->max_rx_octets);
+    Utility::Set(obj, "max_tx_time_us", native->max_tx_time_us);
+    Utility::Set(obj, "max_rx_time_us", native->max_rx_time_us);
+    return scope.Escape(obj);
+};
+
+#pragma endregion GapDataLengthParams
+
+#pragma region GapDataLengthLimitation
+
+ble_gap_data_length_limitation_t *GapDataLengthLimitation::ToNative()
+{
+    if (Utility::IsNull(jsobj))
+    {
+        return nullptr;
+    }
+
+    auto ble_gap_data_length_limitation = new ble_gap_data_length_limitation_t();
+
+    ble_gap_data_length_limitation->tx_payload_limited_octets = ConversionUtility::getNativeUint16(jsobj, "tx_payload_limited_octets");
+    ble_gap_data_length_limitation->rx_payload_limited_octets = ConversionUtility::getNativeUint16(jsobj, "rx_payload_limited_octets");
+    ble_gap_data_length_limitation->tx_rx_time_limited_us = ConversionUtility::getNativeUint16(jsobj, "tx_rx_time_limited_us");
+
+    return ble_gap_data_length_limitation;
+};
+
+v8::Local<v8::Object> GapDataLengthLimitation::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    Utility::Set(obj, "tx_payload_limited_octets", native->tx_payload_limited_octets);
+    Utility::Set(obj, "rx_payload_limited_octets", native->rx_payload_limited_octets);
+    Utility::Set(obj, "tx_rx_time_limited_us", native->tx_rx_time_limited_us);
+    return scope.Escape(obj);
+};
+
+#pragma endregion GapDataLengthLimitation
+
+#endif // NRF_SD_BLE_API_VERSION == 6
 
 #pragma region GapPasskeyDisplay
 
@@ -1275,14 +1365,21 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
     BleDriverEvent::ToJs(obj);
     Utility::Set(obj, "rssi", evt->rssi);
     Utility::Set(obj, "peer_addr", GapAddr(&(this->evt->peer_addr)).ToJs());
+
+#if NRF_SD_BLE_API_VERSION == 2
     Utility::Set(obj, "scan_rsp", ConversionUtility::toJsBool(evt->scan_rsp));
 
     if (this->evt->scan_rsp != 1)
     {
         Utility::Set(obj, "adv_type", ConversionUtility::valueToJsString(this->evt->type, gap_adv_type_map)); // TODO: add support for non defined adv types
     }
+#endif
 
+#if NRF_SD_BLE_API_VERSION == 2
     uint8_t dlen = this->evt->dlen;
+#elif NRF_SD_BLE_API_VERSION == 6
+    uint8_t dlen = this->evt->data.len;
+#endif
 
     if (dlen != 0)
     {
@@ -1290,7 +1387,11 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
         v8::Local<v8::Object> data_obj = Nan::New<v8::Object>();
         Utility::Set(obj, "data", data_obj);
 
+#if NRF_SD_BLE_API_VERSION == 2
         auto data = evt->data;
+#elif NRF_SD_BLE_API_VERSION == 6
+        auto data = evt->data.p_data;
+#endif
 
         // TODO: Evaluate if buffer is the correct datatype for advertisement data
         //Utility::Set(data_obj, "raw", ConversionUtility::toJsValueArray(data, dlen));
@@ -1515,7 +1616,7 @@ NAN_METHOD(Adapter::GapSetAddress)
     }
 
     auto baton = new GapAddressSetBaton(callback);
-#if NRF_SD_BLE_API_VERSION <= 2
+#if NRF_SD_BLE_API_VERSION == 2
     baton->addr_cycle_mode = address_cycle_mode;
 #endif
 
@@ -1537,9 +1638,9 @@ NAN_METHOD(Adapter::GapSetAddress)
 void Adapter::GapSetAddress(uv_work_t *req)
 {
     auto baton = static_cast<GapAddressSetBaton *>(req->data);
-#if NRF_SD_BLE_API_VERSION <= 2
+#if NRF_SD_BLE_API_VERSION == 2
     baton->result = sd_ble_gap_address_set(baton->adapter, baton->addr_cycle_mode, baton->address);
-#elif NRF_SD_BLE_API_VERSION >= 3
+#elif NRF_SD_BLE_API_VERSION == 6
     baton->result = sd_ble_gap_addr_set(baton->adapter, baton->address);
 #endif
 }
@@ -1816,7 +1917,11 @@ NAN_METHOD(Adapter::GapSetTXPower)
 void Adapter::GapSetTXPower(uv_work_t *req)
 {
     auto baton = static_cast<TXPowerBaton *>(req->data);
+#if NRF_SD_BLE_API_VERSION == 2
     baton->result = sd_ble_gap_tx_power_set(baton->adapter, baton->tx_power);
+#elif NRF_SD_BLE_API_VERSION == 4
+#warning "Use new version of API: sd_ble_gap_tx_power_set() takes two new parameters, role and handle, in addition to tx_power. For available roles and TX power values, see ble_gap.h."
+#endif
 }
 
 // This runs in Main Thread
@@ -2129,6 +2234,7 @@ NAN_METHOD(Adapter::GapStartScan)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Object> options;
+    bool cont;
     v8::Local<v8::Function> callback;
     auto argumentcount = 0;
 
@@ -2136,6 +2242,12 @@ NAN_METHOD(Adapter::GapStartScan)
     {
         options = ConversionUtility::getJsObject(info[argumentcount]);
         argumentcount++;
+
+#if NRF_SD_BLE_API_VERSION == 6
+        // Continue scanning. This is called when getting the result of a scan.
+        cont = ConversionUtility::getNativeBool(info[argumentcount]);
+        argumentcount++;
+#endif
 
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
@@ -2151,7 +2263,11 @@ NAN_METHOD(Adapter::GapStartScan)
 
     auto baton = new StartScanBaton(callback);
     baton->scan_params = params;
+#if NRF_SD_BLE_API_VERSION == 6
+    baton->cont = cont;
+#endif
     baton->adapter = obj->adapter;
+
 
     uv_queue_work(uv_default_loop(), baton->req, GapStartScan, reinterpret_cast<uv_after_work_cb>(AfterGapStartScan));
 }
@@ -2160,7 +2276,12 @@ NAN_METHOD(Adapter::GapStartScan)
 void Adapter::GapStartScan(uv_work_t *req)
 {
     auto baton = static_cast<StartScanBaton *>(req->data);
+
+#if NRF_SD_BLE_API_VERSION == 2
     baton->result = sd_ble_gap_scan_start(baton->adapter, baton->scan_params);
+#elif NRF_SD_BLE_API_VERSION == 6
+    // Q: does the pc-ble-driver-js have a static memory that it uses for this?
+#endif
 }
 
 // This runs in Main Thread
@@ -2250,6 +2371,9 @@ NAN_METHOD(Adapter::GapConnect)
     v8::Local<v8::Object> address;
     v8::Local<v8::Object> scan_params;
     v8::Local<v8::Object> conn_params;
+#if NRF_SD_BLE_API_VERSION == 6
+    uint8_t conn_cfg_tag;
+#endif
     v8::Local<v8::Function> callback;
     auto argumentcount = 0;
 
@@ -2263,6 +2387,11 @@ NAN_METHOD(Adapter::GapConnect)
 
         conn_params = ConversionUtility::getJsObject(info[argumentcount]);
         argumentcount++;
+
+#if NRF_SD_BLE_API_VERSION == 6
+        conn_cfg_tag = ConversionUtility::getNativeUint8(info[argumentcount]);
+        argumentcount++;
+#endif
 
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
@@ -2311,6 +2440,10 @@ NAN_METHOD(Adapter::GapConnect)
         return;
     }
 
+#if NRF_SD_BLE_API_VERSION == 6
+    baton->conn_cfg_tag = conn_cfg_tag;
+#endif
+
     uv_queue_work(uv_default_loop(), baton->req, GapConnect, reinterpret_cast<uv_after_work_cb>(AfterGapConnect));
 }
 
@@ -2318,7 +2451,11 @@ NAN_METHOD(Adapter::GapConnect)
 void Adapter::GapConnect(uv_work_t *req)
 {
     auto baton = static_cast<GapConnectBaton *>(req->data);
+#if  NRF_SD_BLE_API_VERSION == 2
     baton->result = sd_ble_gap_connect(baton->adapter, baton->address, baton->scan_params, baton->conn_params);
+#elif NRF_SD_BLE_API_VERSION == 6
+    baton->result = sd_ble_gap_connect(baton->adapter, baton->address, baton->scan_params, baton->conn_params, baton->conn_cfg_tag);
+#endif
 }
 
 // This runs in Main Thread
@@ -2472,15 +2609,27 @@ void Adapter::AfterGapGetRSSI(uv_work_t *req)
 NAN_METHOD(Adapter::GapStartAdvertising)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+#if NRF_SD_BLE_API_VERSION == 2
     v8::Local<v8::Object> adv_params;
+#elif NRF_SD_BLE_API_VERSION == 6
+    uint8_t adv_handle;
+    uint8_t conn_cfg_tag;
+#endif
+
     v8::Local<v8::Function> callback;
     auto argumentcount = 0;
 
     try
     {
+#if NRF_SD_BLE_API_VERSION == 2
         adv_params = ConversionUtility::getJsObject(info[argumentcount]);
         argumentcount++;
-
+#elif NRF_SD_BLE_API_VERSION == 6
+        adv_handle = ConversionUtility::getNativeUint8(info[argumentcount]);
+        argumentcount++;
+        conn_cfg_tag = ConversionUtility::getNativeUint8(info[argumentcount]);
+        argumentcount++;
+#endif
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
@@ -2492,6 +2641,7 @@ NAN_METHOD(Adapter::GapStartAdvertising)
     }
 
     auto baton = new GapStartAdvertisingBaton(callback);
+#if NRF_SD_BLE_API_VERSION == 2
     try
     {
         baton->p_adv_params = GapAdvParams(adv_params);
@@ -2502,6 +2652,11 @@ NAN_METHOD(Adapter::GapStartAdvertising)
         Nan::ThrowTypeError(message);
         return;
     }
+#elif NRF_SD_BLE_API_VERSION == 6
+    baton->adv_handle = adv_handle;
+    baton->conn_cfg_tag = conn_cfg_tag;
+#endif
+
     baton->adapter = obj->adapter;
 
     uv_queue_work(uv_default_loop(), baton->req, GapStartAdvertising, reinterpret_cast<uv_after_work_cb>(AfterGapStartAdvertising));
@@ -2511,8 +2666,12 @@ NAN_METHOD(Adapter::GapStartAdvertising)
 void Adapter::GapStartAdvertising(uv_work_t *req)
 {
     auto baton = static_cast<GapStartAdvertisingBaton *>(req->data);
-    baton->result = sd_ble_gap_adv_start(baton->adapter, baton->p_adv_params);
 
+#if NRF_SD_BLE_API_VERSION == 2
+    baton->result = sd_ble_gap_adv_start(baton->adapter, baton->p_adv_params);
+#elif NRF_SD_BLE_API_VERSION == 6
+    baton->result = sd_ble_gap_adv_start(baton->adapter, baton->adv_handle, baton->conn_cfg_tag);
+#endif
 }
 
 // This runs in Main Thread
@@ -3079,6 +3238,7 @@ void Adapter::AfterGapAuthenticate(uv_work_t *req)
 
 #pragma region GapSetAdvertisingData
 
+#if NRF_SD_BLE_API_VERSION == 2
 NAN_METHOD(Adapter::GapSetAdvertisingData)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
@@ -3166,6 +3326,7 @@ void Adapter::AfterGapSetAdvertisingData(uv_work_t *req)
     baton->callback->Call(1, argv);
     delete baton;
 }
+#endif
 
 #pragma endregion GapSetAdvertisingData
 
@@ -3807,6 +3968,101 @@ void Adapter::AfterGapSetLESCOOBData(uv_work_t *req)
 }
 #pragma endregion GapSetLESCOOBData
 
+#if NRF_SD_BLE_API_VERSION == 6
+#pragma region GapDataLengthUpdate
+NAN_METHOD(Adapter::GapDataLengthUpdate)
+{
+    auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    uint16_t conn_handle;
+    v8::Local<v8::Object> p_dl_params;
+    v8::Local<v8::Object> p_dl_limitation;
+    v8::Local<v8::Function> callback;
+    auto argumentcount = 0;
+
+    try
+    {
+        conn_handle = ConversionUtility::getNativeUint16(info[argumentcount]);
+        argumentcount++;
+
+        p_dl_params = ConversionUtility::getJsObjectOrNull(info[argumentcount]);
+        argumentcount++;
+
+        p_dl_limitation = ConversionUtility::getJsObjectOrNull(info[argumentcount]);
+        argumentcount++;
+
+        callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
+        argumentcount++;
+    }
+    catch (std::string error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    auto baton = new GapDataLengthUpdateBaton(callback);
+    baton->adapter = obj->adapter;
+    baton->conn_handle = conn_handle;
+
+    try
+    {
+        baton->p_dl_params = GapDataLengthParams(p_dl_params);
+    }
+    catch (std::string error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_dl_params", error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    try
+    {
+        baton->p_dl_limitation = GapDataLengthLimitation(p_dl_limitation);
+    }
+    catch (std::string error)
+    {
+        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_dl_limitation", error);
+        Nan::ThrowTypeError(message);
+        return;
+    }
+
+    uv_queue_work(uv_default_loop(), baton->req, GapDataLengthUpdate, reinterpret_cast<uv_after_work_cb>(AfterGapDataLengthUpdate));
+}
+
+// This runs in a worker thread (not Main Thread)
+void Adapter::GapDataLengthUpdate(uv_work_t *req)
+{
+    auto baton = static_cast<GapDataLengthUpdateBaton *>(req->data);
+    baton->result = sd_ble_gap_data_length_update(baton->adapter, baton->conn_handle, baton->p_dl_params, baton->p_dl_limitation);
+}
+
+// This runs in Main Thread
+void Adapter::AfterGapDataLengthUpdate(uv_work_t *req)
+{
+    Nan::HandleScope scope;
+
+    auto baton = static_cast<GapDataLengthUpdateBaton *>(req->data);
+    v8::Local<v8::Value> argv[1];
+
+    if (baton->result != NRF_SUCCESS)
+    {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "data length update");
+    }
+    else
+    {
+        argv[0] = Nan::Undefined();
+    }
+
+    baton->callback->Call(1, argv);
+
+    delete baton->p_dl_params;
+    delete baton->p_dl_limitation;
+    delete baton;
+}
+
+#pragma endregion GapDataLengthUpdate
+#endif // NRF_SD_BLE_API_VERSION == 6
+
 #pragma endregion JavaScript function implementations
 
 #pragma region JavaScript constants from ble_gap.h
@@ -3839,12 +4095,18 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_CH_MAP);
         NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_LOCAL_CONN_LATENCY);
         NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_PASSKEY);
+#if NRF_SD_BLE_API_VERSION == 2
         NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_SCAN_REQ_REPORT);
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_COMPAT_MODE);
+#endif
 
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION == 2
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_COMPAT_MODE);
+#elif NRF_SD_BLE_API_VERISON == 6
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_COMPAT_MODE_1);
+#endif
+
+#if NRF_SD_BLE_API_VERSION == 6
         NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_AUTH_PAYLOAD_TIMEOUT);
-        NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_EXT_LEN);
 #endif
 
         /* BLE_ERRORS_GAP SVC return values specific to GAP */
@@ -3860,11 +4122,13 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GAP_ROLE_CENTRAL); //Central Role.
 
         /* BLE_GAP_TIMEOUT_SOURCES GAP Timeout sources */
+#if NRF_SD_BLE_API_VERSION == 2
         NODE_DEFINE_CONSTANT(target, BLE_GAP_TIMEOUT_SRC_ADVERTISING); //Advertising timeout.
         NODE_DEFINE_CONSTANT(target, BLE_GAP_TIMEOUT_SRC_SECURITY_REQUEST); //Security request timeout.
+#endif
         NODE_DEFINE_CONSTANT(target, BLE_GAP_TIMEOUT_SRC_SCAN); //Scanning timeout.
         NODE_DEFINE_CONSTANT(target, BLE_GAP_TIMEOUT_SRC_CONN); //Connection timeout.
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION == 6
         NODE_DEFINE_CONSTANT(target, BLE_GAP_TIMEOUT_SRC_AUTH_PAYLOAD); //Authenticated payload timeout
 #endif
 
@@ -3875,7 +4139,7 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GAP_ADDR_TYPE_RANDOM_PRIVATE_NON_RESOLVABLE); //Private Non-Resolvable address.
 
         /* BLE_GAP_ADDR_CYCLE_MODES GAP Address cycle modes */
-#if NRF_SD_BLE_API_VERSION <= 2
+#if NRF_SD_BLE_API_VERSION == 2
         NODE_DEFINE_CONSTANT(target, BLE_GAP_ADDR_CYCLE_MODE_NONE); //Set addresses directly, no automatic address cycling.
         NODE_DEFINE_CONSTANT(target, BLE_GAP_ADDR_CYCLE_MODE_AUTO); //Automatically generate and update private addresses.
 #endif
@@ -3931,7 +4195,9 @@ extern "C" {
 
         /* BLE_GAP_ADV_INTERVALS GAP Advertising interval max and min */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_ADV_INTERVAL_MIN); //Minimum Advertising interval in 625 us units, i.e. 20 ms.
+#if NRF_SD_BLE_API_VERSION == 2
         NODE_DEFINE_CONSTANT(target, BLE_GAP_ADV_NONCON_INTERVAL_MIN); //Minimum Advertising interval in 625 us units for non connectable mode, i.e. 100 ms.
+#endif
         NODE_DEFINE_CONSTANT(target, BLE_GAP_ADV_INTERVAL_MAX); //Maximum Advertising interval in 625 us units, i.e. 10.24 s.
 
         /* BLE_GAP_SCAN_INTERVALS GAP Scan interval max and min */
@@ -3944,6 +4210,7 @@ extern "C" {
 
         /* BLE_GAP_SCAN_TIMEOUT GAP Scan timeout max and min */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_SCAN_TIMEOUT_MIN); //Minimum Scan timeout in seconds.
+#if NRF_SD_BLE_API_VERSION == 2
         NODE_DEFINE_CONSTANT(target, BLE_GAP_SCAN_TIMEOUT_MAX); //Maximum Scan timeout in seconds.
 
         /* Maximum size of advertising data in octets. */
@@ -3954,7 +4221,7 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GAP_ADV_TYPE_ADV_DIRECT_IND); //Connectable directed.
         NODE_DEFINE_CONSTANT(target, BLE_GAP_ADV_TYPE_ADV_SCAN_IND); //Scannable undirected.
         NODE_DEFINE_CONSTANT(target, BLE_GAP_ADV_TYPE_ADV_NONCONN_IND); //Non connectable undirected.
-
+#endif 
         /* BLE_GAP_ADV_FILTER_POLICIES GAP Advertising filter policies */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_ADV_FP_ANY); //Allow scan requests and connect requests from any device.
         NODE_DEFINE_CONSTANT(target, BLE_GAP_ADV_FP_FILTER_SCANREQ); //Filter scan requests with whitelist.
@@ -4021,7 +4288,11 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GAP_CP_CONN_SUP_TIMEOUT_MIN); //Lowest supervision timeout permitted, in units of 10 ms, i.e. 100 ms.
         NODE_DEFINE_CONSTANT(target, BLE_GAP_CP_CONN_SUP_TIMEOUT_MAX); //Highest supervision timeout permitted, in units of 10 ms, i.e. 32 s.
 
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION == 6
+        NODE_DEFINE_CONSTANT(target, BLE_CONN_CFG_TAG_DEFAULT); //Default configuration tag, SoftDevice default connection configuration.
+#endif
+
+#if NRF_SD_BLE_API_VERSION == 6
         /* Default number of octets in device name. */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_DEVNAME_DEFAULT_LEN);
 #endif
@@ -4043,11 +4314,11 @@ extern "C" {
         /* Maximum amount of addresses in a whitelist. */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_WHITELIST_ADDR_MAX_COUNT);
 
-#if NRF_SD_BLE_API_VERSION <= 2
+#if NRF_SD_BLE_API_VERSION == 2
         /* Maximum amount of IRKs in a whitelist.
         * @note  The number of IRKs is limited to 8, even if the hardware supports more. */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_WHITELIST_IRK_MAX_COUNT);
-#elif NRF_SD_BLE_API_VERSION >= 3
+#elif NRF_SD_BLE_API_VERSION == 6
         /* Maximum amount of identities in the device identities list. */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_DEVICE_IDENTITIES_MAX_COUNT);
 #endif
@@ -4061,6 +4332,12 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GAP_KP_NOT_TYPE_PASSKEY_DIGIT_OUT);
         NODE_DEFINE_CONSTANT(target, BLE_GAP_KP_NOT_TYPE_PASSKEY_CLEAR);
         NODE_DEFINE_CONSTANT(target, BLE_GAP_KP_NOT_TYPE_PASSKEY_END);
+
+#if  NRF_SD_BLE_API_VERSION == 6
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_EVT_DATA_LENGTH_UPDATE_REQUEST);
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_EVT_DATA_LENGTH_UPDATE);
+#endif
+
     }
 }
 

@@ -143,6 +143,10 @@ private:
     ADAPTER_METHOD_DEFINITIONS(SetBleOption);
     ADAPTER_METHOD_DEFINITIONS(GetBleOption);
 
+#if NRF_SD_BLE_API_VERSION == 6
+    ADAPTER_METHOD_DEFINITIONS(SetBleConfig);
+#endif
+
     // General sync methods
     static NAN_METHOD(GetStats);
 
@@ -180,6 +184,9 @@ private:
     ADAPTER_METHOD_DEFINITIONS(GapGetLESCOOBData);
 
     ADAPTER_METHOD_DEFINITIONS(GapSetLESCOOBData);
+#if NRF_SD_BLE_API_VERSION == 6
+    ADAPTER_METHOD_DEFINITIONS(GapDataLengthUpdate);
+#endif
 
     // Gattc async mehtods
     ADAPTER_METHOD_DEFINITIONS(GattcDiscoverPrimaryServices);
@@ -191,7 +198,7 @@ private:
     ADAPTER_METHOD_DEFINITIONS(GattcReadCharacteristicValues);
     ADAPTER_METHOD_DEFINITIONS(GattcWrite);
     ADAPTER_METHOD_DEFINITIONS(GattcConfirmHandleValue);
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION == 6
     ADAPTER_METHOD_DEFINITIONS(GattcExchangeMtuRequest);
 #endif
 
@@ -204,7 +211,7 @@ private:
     ADAPTER_METHOD_DEFINITIONS(GattsSetValue);
     ADAPTER_METHOD_DEFINITIONS(GattsGetValue);
     ADAPTER_METHOD_DEFINITIONS(GattsReplyReadWriteAuthorize);
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION == 6
     ADAPTER_METHOD_DEFINITIONS(GattsExchangeMtuReply);
 #endif
 
@@ -214,7 +221,11 @@ private:
     static void initGattS(v8::Local<v8::FunctionTemplate> tpl);
 
     void dispatchEvents();
+#if NRF_SD_BLE_API_VERSION == 2
     static uint32_t enableBLE(adapter_t *adapter, ble_enable_params_t *ble_enable_params);
+#elif NRF_SD_BLE_API_VERSION == 6
+    static uint32_t enableBLE(adapter_t *adapter);
+#endif
 
     void createSecurityKeyStorage(const uint16_t connHandle, ble_gap_sec_keyset_t *keyset);
     void destroySecurityKeyStorage(const uint16_t connHandle);
