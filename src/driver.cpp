@@ -273,9 +273,6 @@ void Adapter::onRpcEvent(uv_async_t *handle)
         {
             switch (event->header.evt_id)
             {
-#if NRF_SD_BLE_API_VERSION == 2
-                COMMON_EVT_CASE(TX_COMPLETE,            TXComplete,         tx_complete,            array, arrayIndex, eventEntry);
-#endif
                 COMMON_EVT_CASE(USER_MEM_REQUEST,       MemRequest,         user_mem_request,       array, arrayIndex, eventEntry);
                 COMMON_EVT_CASE(USER_MEM_RELEASE,       MemRelease,         user_mem_release,       array, arrayIndex, eventEntry);
                 GAP_EVT_CASE(CONNECTED,                 Connected,              connected,                  array, arrayIndex, eventEntry);
@@ -295,10 +292,15 @@ void Adapter::onRpcEvent(uv_async_t *handle)
                 GAP_EVT_CASE(SEC_REQUEST,               SecRequest,             sec_request,                array, arrayIndex, eventEntry);
                 GAP_EVT_CASE(CONN_PARAM_UPDATE_REQUEST, ConnParamUpdateRequest, conn_param_update_request,  array, arrayIndex, eventEntry);
                 GAP_EVT_CASE(SCAN_REQ_REPORT,           ScanReqReport,          scan_req_report,            array, arrayIndex, eventEntry);
+#if NRF_SD_BLE_API_VERSION == 2
+                COMMON_EVT_CASE(TX_COMPLETE, TXComplete, tx_complete, array, arrayIndex, eventEntry);
+#endif
 
 #if NRF_SD_BLE_API_VERSION == 6
                 GAP_EVT_CASE(DATA_LENGTH_UPDATE_REQUEST, DataLengthUpdateRequest, data_length_update_request, array, arrayIndex, eventEntry);
-                GAP_EVT_CASE(DATA_LENGTH_UPDATE,         DataLengthUpdateEvt,        data_length_update,         array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(DATA_LENGTH_UPDATE,         DataLengthUpdateEvt,     data_length_update,         array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(PHY_UPDATE_REQUEST,         PhyUpdateRequest,        phy_update_request,         array, arrayIndex, eventEntry);
+                GAP_EVT_CASE(PHY_UPDATE,                 PhyUpdateEvt,            phy_update,                 array, arrayIndex, eventEntry);
 #endif
 
                 GATTC_EVT_CASE(PRIM_SRVC_DISC_RSP,          PrimaryServiceDiscovery,       prim_srvc_disc_rsp,         array, arrayIndex, eventEntry);
