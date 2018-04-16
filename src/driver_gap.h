@@ -64,12 +64,13 @@ static name_map_t gap_event_name_map = {
 #if NRF_SD_BLE_API_VERSION == 6
     ,
     NAME_MAP_ENTRY(BLE_GAP_EVT_DATA_LENGTH_UPDATE_REQUEST),
-    NAME_MAP_ENTRY(BLE_GAP_EVT_DATA_LENGTH_UPDATE)
+    NAME_MAP_ENTRY(BLE_GAP_EVT_DATA_LENGTH_UPDATE),
+    NAME_MAP_ENTRY(BLE_GAP_EVT_PHY_UPDATE_REQUEST),
+    NAME_MAP_ENTRY(BLE_GAP_EVT_PHY_UPDATE)
 #endif // NRF_SD_BLE_API_VERSION == 6
 };
 
 #pragma region Gap events
-// Gap events -- START --
 
 template<typename EventType>
 class BleDriverGapEvent : public BleDriverEvent<EventType>
@@ -264,24 +265,30 @@ public:
 
     v8::Local<v8::Object> ToJs();
 };
+
+class GapPhyUpdateRequest : public BleDriverGapEvent<ble_gap_evt_phy_update_request_t>
+{
+public:
+    GapPhyUpdateRequest(const std::string timestamp, uint16_t conn_handle, ble_gap_evt_phy_update_request_t *evt)
+        : BleDriverGapEvent<ble_gap_evt_phy_update_request_t>(BLE_GAP_EVT_PHY_UPDATE_REQUEST, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs();
+};
+
+class GapPhyUpdateEvt : public BleDriverGapEvent<ble_gap_evt_phy_update_t>
+{
+public:
+    GapPhyUpdateEvt(const std::string timestamp, uint16_t conn_handle, ble_gap_evt_phy_update_t *evt)
+        : BleDriverGapEvent<ble_gap_evt_phy_update_t>(BLE_GAP_EVT_PHY_UPDATE, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs();
+};
+
 #endif // NRF_SD_BLE_API_VERSION == 6
 
 #pragma endregion Gap events
 
 #pragma region Gap structs
-
-#if NRF_SD_BLE_API_VERSION == 2
-class GapEnableParameters : public BleToJs<ble_gap_enable_params_t>
-{
-public:
-    GapEnableParameters(ble_gap_enable_params_t *gap_addr) : BleToJs<ble_gap_enable_params_t>(gap_addr) {}
-    GapEnableParameters(v8::Local<v8::Object> js) : BleToJs<ble_gap_enable_params_t>(js) {}
-    v8::Local<v8::Object> ToJs();
-    ble_gap_enable_params_t *ToNative();
-};
-#endif
-
-// Gap structs --START --
 
 class GapAddr : public BleToJs<ble_gap_addr_t>
 {
@@ -472,6 +479,15 @@ public:
 };
 
 #if NRF_SD_BLE_API_VERSION == 2
+class GapEnableParameters : public BleToJs<ble_gap_enable_params_t>
+{
+public:
+    GapEnableParameters(ble_gap_enable_params_t *gap_addr) : BleToJs<ble_gap_enable_params_t>(gap_addr) {}
+    GapEnableParameters(v8::Local<v8::Object> js) : BleToJs<ble_gap_enable_params_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_enable_params_t *ToNative();
+};
+
 class GapAdvChannelMask : public BleToJs<ble_gap_adv_ch_mask_t>
 {
 public:
@@ -511,13 +527,20 @@ public:
     ble_gap_data_length_limitation_t *ToNative();
 };
 
+class GapPhys: public BleToJs<ble_gap_phys_t>
+{
+public:
+    GapPhys(ble_gap_phys_t *ble_gap_phys) : BleToJs<ble_gap_phys_t>(ble_gap_phys) {}
+    GapPhys(v8::Local<v8::Object> js) : BleToJs<ble_gap_phys_t>(js) {}
+    v8::Local<v8::Object> ToJs();
+    ble_gap_phys_t *ToNative();
+};
+
 #endif
 
-// Gap structs -- END --
 #pragma endregion Gap structs
 
-
-///// Start GAP Batons ////////////////////////////////////////////////////////////////////////////////
+#pragma region Gap Batons
 
 struct GapAddressSetBaton : Baton
 {
@@ -807,9 +830,18 @@ public:
     ble_gap_data_length_params_t *p_dl_params;
     ble_gap_data_length_limitation_t *p_dl_limitation;
 };
+
+struct GapPhyUpdateBaton : public Baton
+{
+public:
+    BATON_CONSTRUCTOR(GapPhyUpdateBaton);
+    uint16_t conn_handle;
+    ble_gap_phys_t *p_gap_phys;
+};
+
 #endif
 
-///// End GAP Batons //////////////////////////////////////////////////////////////////////////////////
+#pragma endregion Gap Batons
 
 extern "C" {
     void init_gap(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target);

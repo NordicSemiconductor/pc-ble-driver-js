@@ -341,6 +341,7 @@ void Adapter::initGap(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "gapSetLescOobData", GapSetLESCOOBData);
 #if NRF_SD_BLE_API_VERSION == 6
     Nan::SetPrototypeMethod(tpl, "gapDataLengthUpdate", GapDataLengthUpdate);
+    Nan::SetPrototypeMethod(tpl, "gapPhyUpdate", GapPhyUpdate);
 #endif
 }
 

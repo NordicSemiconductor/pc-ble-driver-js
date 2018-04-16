@@ -62,6 +62,8 @@ NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& str);
 NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const v8::Handle<v8::String>& str);
 NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const v8::Handle<v8::String>& str);
 
+#pragma region Struct conversions
+
 #if NRF_SD_BLE_API_VERSION == 2
 class BandwidthCountParameters : public BleToJs<ble_conn_bw_count_t>
 {
@@ -108,7 +110,6 @@ public:
 };
 #endif
 
-
 class Version : public BleToJs<ble_version_t>
 {
 public:
@@ -152,7 +153,6 @@ public:
     v8::Local<v8::Object> ToJs() override;
     ble_uuid128_t *ToNative() override;
 };
-
 
 class BleOpt : public BleToJs<ble_opt_t>
 {
@@ -333,6 +333,8 @@ public:
 
 #endif // NRF_SD_BLE_API_VERSION == 6
 
+#pragma endregion Struct conversions
+
 #pragma region BleDriverCommonEvent
 
 template<typename EventType>
@@ -410,7 +412,7 @@ public:
 
 #pragma endregion BleDriverCommonEvent
 
-///// Start Batons ////////////////////////////////////////
+#pragma region Batons
 
 struct OpenBaton : public Baton
 {
@@ -528,7 +530,7 @@ public:
 };
 #endif
 
-///// End Batons ////////////////////////////////////////
+#pragma endregion Batons
 
 
 #endif //BLE_DRIVER_JS_DRIVER_H

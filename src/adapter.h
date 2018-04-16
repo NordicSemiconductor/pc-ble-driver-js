@@ -186,6 +186,8 @@ private:
     ADAPTER_METHOD_DEFINITIONS(GapSetLESCOOBData);
 #if NRF_SD_BLE_API_VERSION == 6
     ADAPTER_METHOD_DEFINITIONS(GapDataLengthUpdate);
+    ADAPTER_METHOD_DEFINITIONS(GapPhyUpdate);
+
 #endif
 
     // Gattc async mehtods
