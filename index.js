@@ -42,6 +42,7 @@ const Descriptor = require('./api/descriptor');
 const Device = require('./api/device');
 const Dfu = require('./api/dfu');
 const FirmwareUpdater = require('./api/firmwareUpdater');
+const FirmwareUtil = require('./api/firmwareUtil');
 const Security = require('./api/security');
 const Service = require('./api/service');
 const ServiceFactory = require('./api/serviceFactory');
@@ -55,6 +56,7 @@ module.exports = {
     Device,
     Dfu,
     FirmwareUpdater,
+    FirmwareUtil,
     Security,
     Service,
     ServiceFactory,
