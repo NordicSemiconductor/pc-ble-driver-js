@@ -114,7 +114,7 @@ describe('FirmwareUpdater.parseVersionStruct', () => {
 describe('FirmwareUpdater.getFirmwarePath', () => {
     it('throws error if unknown family was supplied', () => {
         expect(() => FirmwareUpdater.getFirmwarePath(-1, 'linux'))
-            .toThrowError('Unsupported family: -1. Expected one of ["0","1"]');
+            .toThrowError('Unsupported family: -1. Expected one of 0 or 1.');
     });
 
     it('throws error if unknown platform was supplied', () => {
@@ -156,7 +156,7 @@ describe('FirmwareUpdater.getFirmwarePath', () => {
 describe('FirmwareUpdater.getLatestVersion', () => {
     it('throws error if unknown family was supplied', () => {
         expect(() => FirmwareUpdater.getLatestVersion(-1, 'linux'))
-            .toThrowError('Unsupported family: -1. Expected one of ["0","1"]');
+            .toThrowError('Unsupported family: -1. Expected one of 0 or 1.');
     });
 
     it('throws error if unknown platform was supplied', () => {
@@ -174,7 +174,7 @@ describe('FirmwareUpdater.getLatestVersion', () => {
 describe('FirmwareUpdater.getBaudRate', () => {
     it('throws error if unknown family was supplied', () => {
         expect(() => FirmwareUpdater.getBaudRate(-1, 'linux'))
-            .toThrowError('Unsupported family: -1. Expected one of ["0","1"]');
+            .toThrowError('Unsupported family: -1. Expected one of 0 or 1.');
     });
 
     it('throws error if unknown platform was supplied', () => {

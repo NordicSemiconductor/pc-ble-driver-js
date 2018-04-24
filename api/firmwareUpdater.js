@@ -37,32 +37,29 @@
 'use strict';
 
 const os = require('os');
-const fs = require('fs');
-const path = require('path');
-const arrayToInt = require('./util/intArrayConv').arrayToInt;
+const FirmwareUtil = require('./firmwareUtil');
 
-const currentDir = require.resolve('./firmwareUpdater');
-const hexDir = path.join(currentDir, '..', '..', 'pc-ble-driver', 'hex');
-const sdV2Dir = path.join(hexDir, 'sd_api_v2');
-const sdV3Dir = path.join(hexDir, 'sd_api_v3');
+/**
+ * Converts from family ID (used by pc-nrfjprog-js) to family string.
+ *
+ * @param {Number} familyId Family ID. Can be 0 or 1.
+ * @returns {string} Family string. Can be 'nrf51' or 'nrf52'.
+ */
+function getFamilyString(familyId) {
+    if (familyId === 0) {
+        return 'nrf51';
+    } else if (familyId === 1) {
+        return 'nrf52';
+    }
+    throw new Error(`Unsupported family: ${familyId}. Expected one of 0 or 1.`);
+}
 
-const VERSION_INFO_MAGIC = 0x46D8A517;
-const VERSION_INFO_START = 0x20000;
-const VERSION_INFO_LENGTH = 24;
-
-const firmwareMap = {
-    0: { // nrf51
-        win32: path.join(sdV2Dir, 'connectivity_1.2.2_1m_with_s130_2.0.1.hex'),
-        linux: path.join(sdV2Dir, 'connectivity_1.2.2_1m_with_s130_2.0.1.hex'),
-        darwin: path.join(sdV2Dir, 'connectivity_1.2.2_115k2_with_s130_2.0.1.hex'),
-    },
-    1: { // nrf52
-        win32: path.join(sdV3Dir, 'connectivity_1.2.2_1m_with_s132_3.0.hex'),
-        linux: path.join(sdV3Dir, 'connectivity_1.2.2_1m_with_s132_3.0.hex'),
-        darwin: path.join(sdV3Dir, 'connectivity_1.2.2_115k2_with_s132_3.0.hex'),
-    },
-};
-
+/**
+ * Class that performs firmware update using pc-nrfjprog-js.
+ *
+ * @deprecated This class is being replaced by the nrf-device-setup npm module,
+ * which supports both firmware updates with both nrfjprog and serial DFU.
+ */
 class FirmwareUpdater {
 
     /**
@@ -91,8 +88,8 @@ class FirmwareUpdater {
      * @returns {string} The latest 'major.minor.patch' version.
      */
     static getLatestVersion(family, platform) {
-        const firmwarePath = FirmwareUpdater.getFirmwarePath(family, platform);
-        return path.basename(firmwarePath).split('_')[1];
+        const firmwareInfo = FirmwareUtil.getFirmwareInfo(getFamilyString(family), platform);
+        return firmwareInfo.version;
     }
 
     /**
@@ -104,15 +101,8 @@ class FirmwareUpdater {
      * @returns {number} Baud rate.
      */
     static getBaudRate(family, platform) {
-        const firmwarePath = FirmwareUpdater.getFirmwarePath(family, platform);
-        const firmwareFile = path.basename(firmwarePath);
-        if (firmwareFile.includes('_1m_')) {
-            return 1000000;
-        } else if (firmwareFile.includes('_115k2_')) {
-            return 115200;
-        }
-        throw new Error('Unable to determine baud rate from file name ' +
-            `${firmwareFile}`);
+        const firmwareInfo = FirmwareUtil.getFirmwareInfo(getFamilyString(family), platform);
+        return firmwareInfo.baudRate;
     }
 
     /**
@@ -124,15 +114,8 @@ class FirmwareUpdater {
      * @returns {string} Absolute path to firmware file.
      */
     static getFirmwarePath(family, platform) {
-        if (!firmwareMap[family]) {
-            throw new Error(`Unsupported family: ${family}. Expected one ` +
-                `of ${JSON.stringify(Object.keys(firmwareMap))}`);
-        }
-        if (!firmwareMap[family][platform]) {
-            throw new Error(`Unsupported platform: ${platform}. Expected one ` +
-                `of ${JSON.stringify(Object.keys(firmwareMap[family]))}`);
-        }
-        return firmwareMap[family][platform];
+        const firmwareInfo = FirmwareUtil.getFirmwareInfo(getFamilyString(family), platform);
+        return firmwareInfo.path;
     }
 
     /**
@@ -144,8 +127,7 @@ class FirmwareUpdater {
      * @returns {string} Firmware hex string.
      */
     static getFirmwareString(family, platform) {
-        const filePath = FirmwareUpdater.getFirmwarePath(family, platform);
-        return fs.readFileSync(filePath, { encoding: 'utf8' });
+        return FirmwareUtil.getFirmwareAsString(getFamilyString(family), platform);
     }
 
     /**
@@ -157,25 +139,7 @@ class FirmwareUpdater {
      * @returns {Object} Parsed version info struct as an object.
      */
     static parseVersionStruct(versionStruct) {
-        const magic = arrayToInt(versionStruct.slice(0, 4));
-        const isValid = versionStruct.length === VERSION_INFO_LENGTH
-            && magic === VERSION_INFO_MAGIC;
-        if (!isValid) {
-            return {};
-        }
-        const major = versionStruct[12];
-        const minor = versionStruct[13];
-        const patch = versionStruct[14];
-        const version = `${major}.${minor}.${patch}`;
-        const sdBleApiVersion = versionStruct[16];
-        const transportType = versionStruct[17];
-        const baudRate = arrayToInt(versionStruct.slice(20, 24));
-        return {
-            version,
-            sdBleApiVersion,
-            transportType,
-            baudRate,
-        };
+        return FirmwareUtil.parseVersionStruct(versionStruct);
     }
 
     _read(serialNumber, startAddress, length) {
@@ -203,12 +167,13 @@ class FirmwareUpdater {
     }
 
     _createVersionInfo(serialNumber, family, platform) {
-        return this._read(serialNumber, VERSION_INFO_START, VERSION_INFO_LENGTH)
+        return this._read(serialNumber, FirmwareUtil.getStructStartAddress(), FirmwareUtil.getStructLength())
             .then(versionStruct => {
-                const info = FirmwareUpdater.parseVersionStruct(versionStruct);
+                const info = FirmwareUtil.parseVersionStruct(versionStruct);
+                const firmwareInfo = FirmwareUtil.getFirmwareInfo(getFamilyString(family), platform);
                 const isUpdateRequired =
-                    info.version !== FirmwareUpdater.getLatestVersion(family, platform) ||
-                    info.baudRate !== FirmwareUpdater.getBaudRate(family, platform);
+                    info.version !== firmwareInfo.firmwareVersion ||
+                    info.baudRate !== firmwareInfo.baudRate;
                 return Object.assign({}, info, { isUpdateRequired });
             });
     }
@@ -233,7 +198,7 @@ class FirmwareUpdater {
      */
     getVersionInfo(serialNumber, callback) {
         this._getDeviceInfo(serialNumber)
-            .then(deviceInfo => this._createVersionInfo(serialNumber, deviceInfo.family, os.platform()))
+            .then(deviceInfo => this._createVersionInfo(serialNumber, getFamilyString(deviceInfo.family), os.platform()))
             .then(versionInfo => callback(null, versionInfo))
             .catch(err => callback(new Error('Unable to get version info for ' +
                 `${serialNumber}: ${err.message}`), null));
@@ -251,7 +216,7 @@ class FirmwareUpdater {
     update(serialNumber, callback) {
         this._getDeviceInfo(serialNumber)
             .then(deviceInfo => {
-                const firmwareString = FirmwareUpdater.getFirmwareString(deviceInfo.family, os.platform());
+                const firmwareString = FirmwareUtil.getFirmwareAsString(getFamilyString(deviceInfo.family), os.platform());
                 const INPUT_FORMAT_HEX_STRING = 1;
                 return this._program(serialNumber, firmwareString, { inputFormat: INPUT_FORMAT_HEX_STRING })
                     .then(() => deviceInfo);
