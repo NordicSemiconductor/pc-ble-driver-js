@@ -38,31 +38,29 @@
 
 const os = require('os');
 const fs = require('fs');
-const path = require('path');
-const arrayToInt = require('./util/intArrayConv').arrayToInt;
+const FirmwareRegistry = require('./firmwareRegistry');
 
-const currentDir = require.resolve('./firmwareUpdater');
-const hexDir = path.join(currentDir, '..', '..', 'pc-ble-driver', 'hex');
-const sdV2Dir = path.join(hexDir, 'sd_api_v2');
-const sdV3Dir = path.join(hexDir, 'sd_api_v3');
+/**
+ * Converts from family ID (used by pc-nrfjprog-js) to family string.
+ *
+ * @param {Number} familyId Family ID. Can be 0 or 1.
+ * @returns {string} Family string. Can be 'nrf51' or 'nrf52'.
+ */
+function getFamilyString(familyId) {
+    if (familyId === 0) {
+        return 'nrf51';
+    } else if (familyId === 1) {
+        return 'nrf52';
+    }
+    throw new Error(`Unsupported family: ${familyId}. Expected one of 0 or 1.`);
+}
 
-const VERSION_INFO_MAGIC = 0x46D8A517;
-const VERSION_INFO_START = 0x20000;
-const VERSION_INFO_LENGTH = 24;
-
-const firmwareMap = {
-    0: { // nrf51
-        win32: path.join(sdV2Dir, 'connectivity_1.2.2_1m_with_s130_2.0.1.hex'),
-        linux: path.join(sdV2Dir, 'connectivity_1.2.2_1m_with_s130_2.0.1.hex'),
-        darwin: path.join(sdV2Dir, 'connectivity_1.2.2_115k2_with_s130_2.0.1.hex'),
-    },
-    1: { // nrf52
-        win32: path.join(sdV3Dir, 'connectivity_1.2.2_1m_with_s132_3.0.hex'),
-        linux: path.join(sdV3Dir, 'connectivity_1.2.2_1m_with_s132_3.0.hex'),
-        darwin: path.join(sdV3Dir, 'connectivity_1.2.2_115k2_with_s132_3.0.hex'),
-    },
-};
-
+/**
+ * Class that performs firmware update using pc-nrfjprog-js.
+ *
+ * @deprecated This class is being replaced by the nrf-device-setup npm module,
+ * which supports firmware updates with both nrfjprog and serial DFU.
+ */
 class FirmwareUpdater {
 
     /**
@@ -86,66 +84,59 @@ class FirmwareUpdater {
      * platform.
      *
      * @param {number} family The devkit family: 0 = nrf51, 1 = nrf52.
-     * @param {string} platform The OS platform. One of 'win32', 'linux', 'darwin'.
+     * @param {String} [platform] Optional value that can be one of 'win32',
+     *     'linux', 'darwin'. Will use the detected platform if not provided.
      * @throws {Error} Throws error if unsupported family or platform.
      * @returns {string} The latest 'major.minor.patch' version.
      */
     static getLatestVersion(family, platform) {
-        const firmwarePath = FirmwareUpdater.getFirmwarePath(family, platform);
-        return path.basename(firmwarePath).split('_')[1];
+        const familyString = getFamilyString(family);
+        const firmware = FirmwareRegistry.getJlinkConnectivityFirmware(familyString, platform);
+        return firmware.version;
     }
 
     /**
      * Get the baud rate that is supported for the given family and platform.
      *
      * @param {number} family The devkit family: 0 = nrf51, 1 = nrf52.
-     * @param {string} platform The OS platform. One of 'win32', 'linux', 'darwin'.
+     * @param {String} [platform] Optional value that can be one of 'win32',
+     *     'linux', 'darwin'. Will use the detected platform if not provided.
      * @throws {Error} Throws error if unsupported family or platform.
      * @returns {number} Baud rate.
      */
     static getBaudRate(family, platform) {
-        const firmwarePath = FirmwareUpdater.getFirmwarePath(family, platform);
-        const firmwareFile = path.basename(firmwarePath);
-        if (firmwareFile.includes('_1m_')) {
-            return 1000000;
-        } else if (firmwareFile.includes('_115k2_')) {
-            return 115200;
-        }
-        throw new Error('Unable to determine baud rate from file name ' +
-            `${firmwareFile}`);
+        const familyString = getFamilyString(family);
+        const firmware = FirmwareRegistry.getJlinkConnectivityFirmware(familyString, platform);
+        return firmware.baudRate;
     }
 
     /**
      * Get path to the latest firmware file for the given family and platform.
      *
      * @param {number} family The devkit family: 0 = nrf51, 1 = nrf52.
-     * @param {string} platform The OS platform. One of 'win32', 'linux', 'darwin'.
+     * @param {String} [platform] Optional value that can be one of 'win32',
+     *     'linux', 'darwin'. Will use the detected platform if not provided.
      * @throws {Error} Throws error if unsupported family or platform.
      * @returns {string} Absolute path to firmware file.
      */
     static getFirmwarePath(family, platform) {
-        if (!firmwareMap[family]) {
-            throw new Error(`Unsupported family: ${family}. Expected one ` +
-                `of ${JSON.stringify(Object.keys(firmwareMap))}`);
-        }
-        if (!firmwareMap[family][platform]) {
-            throw new Error(`Unsupported platform: ${platform}. Expected one ` +
-                `of ${JSON.stringify(Object.keys(firmwareMap[family]))}`);
-        }
-        return firmwareMap[family][platform];
+        const familyString = getFamilyString(family);
+        const firmware = FirmwareRegistry.getJlinkConnectivityFirmware(familyString, platform);
+        return firmware.file;
     }
 
     /**
      * Get the latest firmware hex as a string.
      *
      * @param {number} family The devkit family: 0 = nrf51, 1 = nrf52.
-     * @param {string} platform The OS platform. One of 'win32', 'linux', 'darwin'.
+     * @param {String} [platform] Optional value that can be one of 'win32',
+     *     'linux', 'darwin'. Will use the detected platform if not provided.
      * @throws {Error} Throws error if unsupported family or platform.
      * @returns {string} Firmware hex string.
      */
     static getFirmwareString(family, platform) {
-        const filePath = FirmwareUpdater.getFirmwarePath(family, platform);
-        return fs.readFileSync(filePath, { encoding: 'utf8' });
+        const firmwarePath = FirmwareUpdater.getFirmwarePath(family, platform);
+        return fs.readFileSync(firmwarePath, { encoding: 'utf8' });
     }
 
     /**
@@ -157,25 +148,7 @@ class FirmwareUpdater {
      * @returns {Object} Parsed version info struct as an object.
      */
     static parseVersionStruct(versionStruct) {
-        const magic = arrayToInt(versionStruct.slice(0, 4));
-        const isValid = versionStruct.length === VERSION_INFO_LENGTH
-            && magic === VERSION_INFO_MAGIC;
-        if (!isValid) {
-            return {};
-        }
-        const major = versionStruct[12];
-        const minor = versionStruct[13];
-        const patch = versionStruct[14];
-        const version = `${major}.${minor}.${patch}`;
-        const sdBleApiVersion = versionStruct[16];
-        const transportType = versionStruct[17];
-        const baudRate = arrayToInt(versionStruct.slice(20, 24));
-        return {
-            version,
-            sdBleApiVersion,
-            transportType,
-            baudRate,
-        };
+        return FirmwareRegistry.parseVersionStruct(versionStruct);
     }
 
     _read(serialNumber, startAddress, length) {
@@ -203,12 +176,16 @@ class FirmwareUpdater {
     }
 
     _createVersionInfo(serialNumber, family, platform) {
+        const VERSION_INFO_START = 0x20000;
+        const VERSION_INFO_LENGTH = 24;
         return this._read(serialNumber, VERSION_INFO_START, VERSION_INFO_LENGTH)
             .then(versionStruct => {
-                const info = FirmwareUpdater.parseVersionStruct(versionStruct);
+                const info = FirmwareRegistry.parseVersionStruct(versionStruct);
+                const familyString = getFamilyString(family);
+                const firmwareInfo = FirmwareRegistry.getJlinkConnectivityFirmware(familyString, platform);
                 const isUpdateRequired =
-                    info.version !== FirmwareUpdater.getLatestVersion(family, platform) ||
-                    info.baudRate !== FirmwareUpdater.getBaudRate(family, platform);
+                    info.version !== firmwareInfo.firmwareVersion ||
+                    info.baudRate !== firmwareInfo.baudRate;
                 return Object.assign({}, info, { isUpdateRequired });
             });
     }
