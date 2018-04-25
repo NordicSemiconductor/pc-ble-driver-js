@@ -48,9 +48,10 @@
 const _ = require('underscore');
 
 const api = require('../index');
-
+const { AdapterPool } = require('./adapterPool');
 
 const adapterFactory = api.AdapterFactory.getInstance();
+const adapterPool = new AdapterPool();
 
 const BLE_UUID_HEART_RATE_SERVICE = '180D';
 const BLE_UUID_HEART_RATE_MEASUREMENT_CHAR = '2A37';
@@ -152,27 +153,9 @@ function addAdapterListener(adapter, prefix) {
  * @returns {Promise} Resolves with the first adapter found. If no adapters are found or an error occurs, rejects with
  *                    the corresponding error.
  */
-function getAdapter() {
-    return new Promise((resolve, reject) => {
-        console.log('Searching for connected adapters...');
-
-        adapterFactory.getAdapters((err, adapters) => {
-            if (err) {
-                return reject(Error(err));
-            }
-
-            if (_.isEmpty(adapters)) {
-                return reject(Error('getAdapter() found no connected adapters.'));
-            }
-
-            console.log('Found the following adapters: ');
-            for (const adapter in adapters) {
-                console.log(adapters[adapter].instanceId);
-            }
-
-            resolve(adapters[Object.keys(adapters)[0]]);
-        });
-    });
+async function getAdapter() {
+    const { port, apiVersion, serialNumber } = await adapterPool.grabAdapter();
+    return adapterFactory.createAdapter(apiVersion, port, serialNumber);
 }
 
 /**
@@ -184,12 +167,23 @@ function getAdapter() {
  */
 function openAdapter(adapter) {
     return new Promise((resolve, reject) => {
-        const baudRate = 115200;
+        const baudRate = 1000000;
         console.log(`Opening adapter with ID: ${adapter.instanceId} and baud rate: ${baudRate}...`);
 
-        adapter.open({ baudRate }, err => {
+        const options = {
+            baudRate,
+            parity: 'none',
+            flowControl: 'none',
+            eventInterval: 0,
+            logLevel: 'debug',
+            enableBLE: true,
+            retransmissionInterval: 2500,
+            responseTimeout: 1000,
+        };
+
+        adapter.open(options, err => {
             if (err) {
-                return reject(Error(`Error opening adapter: ${err}.`));
+                reject(Error(`Error opening adapter: ${err}.`));
             }
 
             resolve();
