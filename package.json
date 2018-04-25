@@ -47,6 +47,7 @@
     "gh-pages": "^1.0.0",
     "jest": "^19.0.2",
     "jest-bamboo-formatter": "0.0.3",
+    "jest-serializer-path": "^0.1.14",
     "jscs": "^2.3.5",
     "jsdoc": "^3.4.3",
     "jshint": "^2.8.0",

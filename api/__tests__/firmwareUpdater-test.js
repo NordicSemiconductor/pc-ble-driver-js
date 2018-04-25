@@ -117,11 +117,6 @@ describe('FirmwareUpdater.getFirmwarePath', () => {
             .toThrowError('Unsupported family: -1. Expected one of 0 or 1.');
     });
 
-    it('throws error if unknown platform was supplied', () => {
-        expect(() => FirmwareUpdater.getFirmwarePath(0, 'windooze'))
-            .toThrowError('Unsupported platform: windooze. Expected one of ["win32","linux","darwin"]');
-    });
-
     it('returns v2/1m hex path for nrf51 and win32', () => {
         expect(FirmwareUpdater.getFirmwarePath(0, 'win32'))
             .toEqual(expect.stringMatching(/1m.*s130_2/));
@@ -159,11 +154,6 @@ describe('FirmwareUpdater.getLatestVersion', () => {
             .toThrowError('Unsupported family: -1. Expected one of 0 or 1.');
     });
 
-    it('throws error if unknown platform was supplied', () => {
-        expect(() => FirmwareUpdater.getLatestVersion(0, 'windooze'))
-            .toThrowError('Unsupported platform: windooze. Expected one of ["win32","linux","darwin"]');
-    });
-
     it('returns latest version for nrf51 and linux', () => {
         const firmwarePath = FirmwareUpdater.getFirmwarePath(0, 'linux');
         const latestVersion = FirmwareUpdater.getLatestVersion(0, 'linux');
@@ -175,11 +165,6 @@ describe('FirmwareUpdater.getBaudRate', () => {
     it('throws error if unknown family was supplied', () => {
         expect(() => FirmwareUpdater.getBaudRate(-1, 'linux'))
             .toThrowError('Unsupported family: -1. Expected one of 0 or 1.');
-    });
-
-    it('throws error if unknown platform was supplied', () => {
-        expect(() => FirmwareUpdater.getBaudRate(0, 'windooze'))
-            .toThrowError('Unsupported platform: windooze. Expected one of ["win32","linux","darwin"]');
     });
 
     it('returns 1m for nrf51 and win32', () => {
