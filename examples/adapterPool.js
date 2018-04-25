@@ -35,7 +35,9 @@
  */
 
 const DeviceLister = require('nrf-device-lister');
-// const { setupDevice } = require('nrf-device-setup');
+const { setupDevice } = require('nrf-device-setup');
+const fs = require('fs');
+const path = require('path');
 
 const traits = {
     usb: false,
@@ -46,11 +48,9 @@ const traits = {
     jlink: true,
 };
 
-/*
 const VERSION_INFO_MAGIC = [0x46, 0xd8, 0xa5, 0x17];
 const VERSION_INFO_LENGTH = 24;
 const VERSION_INFO_START = 0x20000;
-*/
 
 class AdapterPool {
     constructor() {
@@ -89,7 +89,7 @@ class AdapterPool {
 
             /* eslint no-sparse-arrays: "off" */
             const requestedArray = [
-                0x17, 0xa5, 0xd8, 0x46, // Magic string in flash memory
+                ...VERSION_INFO_MAGIC, // Magic string in flash memory
                 undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, // Irrelevant
                 major, minor, patch,
                 undefined,
@@ -105,8 +105,7 @@ class AdapterPool {
             return requestedArray.reduce((accumulated, value, idx) => {
                 if (accumulated === false) return false; // Fast exist if previous value is false.
                 if (value == null) return true; // If we do not care about the value, compare next
-                if (provided[idx] === value) return true;
-                return false;
+                return provided[idx] === value;
             }, true);
         };
 
@@ -117,31 +116,29 @@ class AdapterPool {
             const { vendorId, productId, serialNumber } = adapter.serialport;
             let sdVersion = null;
 
-            if (adapter && adapter.serialport && adapter.serialport.vendorId) {
-                if (vendorId === '1915' && productId === 'C00A') {
+            if (vendorId === '1915' && productId === 'C00A') {
                     // Nordic Semiconductor PCA10059 dongle
-                    sdVersion = 3;
-                } else if (vendorId === '1366') {
+                sdVersion = 3;
+            } else if (vendorId === '1366') {
                     // Segger JLink OB
-                    const seggerSerialNumber = /^.*68([0-3]{1})[0-9]{6}$/;
+                const seggerSerialNumber = /^.*68([0-3])[0-9]{6}$/;
 
-                    if (seggerSerialNumber.test(serialNumber)) {
-                        const developmentKit = parseInt(seggerSerialNumber.exec(serialNumber)[1], 10);
+                if (seggerSerialNumber.test(serialNumber)) {
+                    const developmentKit = parseInt(seggerSerialNumber.exec(serialNumber)[1], 10);
 
-                        switch (developmentKit) {
-                            case 0:
-                            case 1:
-                                sdVersion = 2;
-                                break;
-                            case 2:
-                                sdVersion = 3;
-                                break;
-                            case 3:
-                                sdVersion = 3;
-                                break;
-                            default:
-                                sdVersion = null;
-                        }
+                    switch (developmentKit) {
+                        case 0:
+                        case 1:
+                            sdVersion = 2;
+                            break;
+                        case 2:
+                            sdVersion = 3;
+                            break;
+                        case 3:
+                            sdVersion = 3;
+                            break;
+                        default:
+                            sdVersion = null;
                     }
                 }
             }
@@ -191,14 +188,14 @@ class AdapterPool {
             throw new Error('Not able to determine SoftDevice API version to use.');
         }
 
-        /* TODO: figure out the dfu parameters to use for pca10059 connfw.
         await setupDevice(
             selectedAdapter,
             {
                 dfu: {
                     pca10059: {
-                        fw: path.resolve(__dirname, '..', 'test.hex'),
-                        semver: '',
+                        application: fs.readFileSync(path.resolve(__dirname, '..', 'connfw.hex')),
+                        softdevice: fs.readFileSync(path.resolve(__dirname, '..', 'softdevice.hex')),
+                        semver: 'ble-connectivity 0.1.0',
                     },
                 },
                 jprog: {
@@ -213,7 +210,7 @@ class AdapterPool {
                                 apiVersion: 2,
                                 transportType: 1,
                                 baudRate: 1000000,
-                            })
+                            }),
                         },
                         fwIdAddress: VERSION_INFO_START,
                     },
@@ -228,15 +225,14 @@ class AdapterPool {
                                 apiVersion: 3,
                                 transportType: 1,
                                 baudRate: 1000000,
-                            })
+                            }),
                         },
                         fwIdAddress: VERSION_INFO_START,
                     },
                 },
-                needSerialport: true
-            }
+                needSerialport: true,
+            },
         );
-        */
 
         return {
             port: selectedAdapter.serialport.comName,
