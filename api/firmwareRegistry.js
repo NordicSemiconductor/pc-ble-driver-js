@@ -95,18 +95,6 @@ function getFirmwareMap(platform) {
     };
 }
 
-function readFileToBuffer(filePath) {
-    return new Promise((resolve, reject) => {
-        fs.readFile(filePath, (err, data) => {
-            if (err) {
-                reject(new Error(`Unable to read firmware file '${filePath}': ${err.message}`));
-            } else {
-                resolve(data);
-            }
-        });
-    });
-}
-
 /**
  * Exposes connectivity firmware information to the consumer of pc-ble-driver-js.
  * Implemented as a class with static functions in order to stay consistent with
@@ -161,72 +149,63 @@ class FirmwareRegistry {
     }
 
     /**
-     * Returns a Promise that resolves with an object that can be passed to
-     * the nrf-device-setup npm library for setting up the device. See
-     * https://www.npmjs.com/package/nrf-device-setup for a description of
-     * the returned object format.
+     * Returns an object that can be passed to the nrf-device-setup npm library
+     * for setting up the device. See https://www.npmjs.com/package/nrf-device-setup
+     * for a description of the returned object format.
      *
      * @param {String} [platform] Optional value that can be one of 'win32',
      *     'linux', 'darwin'. Will use the detected platform if not provided.
-     * @returns {Promise<Object>} Promise that resolves with device setup object.
+     * @returns {Object} Device setup object.
      */
     static getDeviceSetup(platform) {
         const firmwareMap = getFirmwareMap(platform || process.platform);
+
+        const config = {
+            jprog: {},
+            dfu: {},
+        };
 
         // Convert jlink entries from the firmwareMap to jprog entries as
         // expected by nrf-device-setup. Reading files into buffers to avoid
         // problems with file system paths when using the library inside an
         // Electron asar archive.
-        const jprogEntryPromises = Object.keys(firmwareMap.jlink).map(family => {
-            const config = firmwareMap.jlink[family];
-            return readFileToBuffer(config.file)
-                .then(buffer => ({
-                    [family]: {
-                        fw: buffer,
-                        fwVersion: {
-                            length: VERSION_INFO_LENGTH,
-                            validator: data => {
-                                const parsedData = FirmwareRegistry.parseVersionStruct(data);
-                                return parsedData.version === config.version &&
-                                    parsedData.baudRate === config.baudRate;
-                            },
+        Object.keys(firmwareMap.jlink).forEach(family => {
+            const deviceConfig = firmwareMap.jlink[family];
+            const buffer = fs.readFileSync(deviceConfig.file);
+            Object.assign(config.jprog, {
+                [family]: {
+                    fw: buffer,
+                    fwVersion: {
+                        length: VERSION_INFO_LENGTH,
+                        validator: data => {
+                            const parsedData = FirmwareRegistry.parseVersionStruct(data);
+                            return parsedData.version === deviceConfig.version &&
+                                parsedData.baudRate === deviceConfig.baudRate;
                         },
-                        fwIdAddress: VERSION_INFO_START,
                     },
-                }));
+                    fwIdAddress: VERSION_INFO_START,
+                },
+            });
         });
 
         // Convert nordicUsb entries from the firmwareMap to dfu entries as
         // expected by nrf-device-setup. Reading files into buffers to avoid
         // problems with file system paths when using the library inside an
         // Electron asar archive.
-        const dfuEntryPromises = Object.keys(firmwareMap.nordicUsb).map(deviceType => {
-            const config = firmwareMap.nordicUsb[deviceType];
-            return Promise.all([
-                readFileToBuffer(config.files.application),
-                readFileToBuffer(config.files.softdevice),
-            ]).then(([applicationBuffer, softdeviceBuffer]) => ({
+        Object.keys(firmwareMap.nordicUsb).forEach(deviceType => {
+            const deviceConfig = firmwareMap.nordicUsb[deviceType];
+            const applicationBuffer = fs.readFileSync(deviceConfig.files.application);
+            const softdeviceBuffer = fs.readFileSync(deviceConfig.files.softdevice);
+            Object.assign(config.dfu, {
                 [deviceType]: {
                     application: applicationBuffer,
                     softdevice: softdeviceBuffer,
-                    semver: config.version,
+                    semver: deviceConfig.version,
                 },
-            }));
+            });
         });
 
-        const config = {
-            jprog: {},
-            dfu: {},
-        };
-        return Promise.all(jprogEntryPromises)
-            .then(jprogEntries => {
-                jprogEntries.forEach(entry => Object.assign(config.jprog, entry));
-                return Promise.all(dfuEntryPromises);
-            })
-            .then(dfuEntries => {
-                dfuEntries.forEach(entry => Object.assign(config.dfu, entry));
-                return config;
-            });
+        return config;
     }
 
     /**
