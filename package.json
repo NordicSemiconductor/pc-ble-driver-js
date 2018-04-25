@@ -35,6 +35,8 @@
     "jszip": "^3.1.2",
     "nan": "2.3.3",
     "node-pre-gyp": "^0.6.39",
+    "nrf-device-lister": "1.0.1",
+    "nrf-device-setup": "0.1.1",
     "underscore": "^1.8.3"
   },
   "devDependencies": {

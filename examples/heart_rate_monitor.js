@@ -47,9 +47,10 @@
 const _ = require('underscore');
 
 const api = require('../index');
-
+const { AdapterPool } = require('./adapterPool');
 
 const adapterFactory = api.AdapterFactory.getInstance();
+const adapterPool = new AdapterPool();
 const serviceFactory = new api.ServiceFactory();
 
 const BLE_UUID_HEART_RATE_SERVICE = '180d'; /**< Heart Rate service UUID. */
@@ -113,27 +114,10 @@ function addAdapterListener(adapter, prefix) {
  * @returns {Promise} Resolves with the first adapter found. If no adapters are found or an error occurs, rejects with
  *                    the corresponding error.
  */
-function getAdapter() {
-    return new Promise((resolve, reject) => {
-        console.log('Searching for connected adapters...');
 
-        adapterFactory.getAdapters((err, adapters) => {
-            if (err) {
-                return reject(Error(err));
-            }
-
-            if (_.isEmpty(adapters)) {
-                return reject(Error('getAdapter() found no connected adapters.'));
-            }
-
-            console.log('Found the following adapters: ');
-            for (let adapter in adapters) {
-                console.log(adapters[adapter].instanceId);
-            }
-
-            resolve(adapters[Object.keys(adapters)[0]]);
-        });
-    });
+async function getAdapter() {
+    const { port, apiVersion, serialNumber } = await adapterPool.grabAdapter();
+    return adapterFactory.createAdapter(apiVersion, port, serialNumber);
 }
 
 /**
