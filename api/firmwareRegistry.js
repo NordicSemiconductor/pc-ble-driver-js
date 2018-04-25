@@ -164,14 +164,32 @@ class FirmwareRegistry {
         };
     }
 
+    /**
+     * Get the magic number that is located at `getStructStartAddress()` in every
+     * connectivity firmware.
+     *
+     * @returns {Number} The magic number that exists in every conn. firmware.
+     */
     static getStructMagic() {
         return VERSION_INFO_MAGIC;
     }
 
+    /**
+     * Get the start address of the struct inside the firmware, containing meta
+     * information about the firmware (e.g. version, baud rate, etc.).
+     *
+     * @returns {Number} Start address of the struct.
+     */
     static getStructStartAddress() {
         return VERSION_INFO_START;
     }
 
+    /**
+     * Get the length of the struct inside the firmware, containing meta information
+     * about the firmware (e.g. version, baud rate, etc.).
+     *
+     * @returns {Number} Length of the struct.
+     */
     static getStructLength() {
         return VERSION_INFO_LENGTH;
     }
