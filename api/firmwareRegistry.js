@@ -49,89 +49,184 @@ const VERSION_INFO_MAGIC = 0x46D8A517;
 const VERSION_INFO_START = 0x20000;
 const VERSION_INFO_LENGTH = 24;
 
-const firmwareMap = {
-    nrf51: {
-        win32: path.join(sdV2Dir, 'connectivity_1.2.2_1m_with_s130_2.0.1.hex'),
-        linux: path.join(sdV2Dir, 'connectivity_1.2.2_1m_with_s130_2.0.1.hex'),
-        darwin: path.join(sdV2Dir, 'connectivity_1.2.2_115k2_with_s130_2.0.1.hex'),
-    },
-    nrf52: {
-        win32: path.join(sdV3Dir, 'connectivity_1.2.2_1m_with_s132_3.0.hex'),
-        linux: path.join(sdV3Dir, 'connectivity_1.2.2_1m_with_s132_3.0.hex'),
-        darwin: path.join(sdV3Dir, 'connectivity_1.2.2_115k2_with_s132_3.0.hex'),
-    },
-};
-
-function getFirmwarePath(family, platform) {
-    if (!firmwareMap[family]) {
-        throw new Error(`Unsupported family: ${family}. Expected one ` +
-            `of ${JSON.stringify(Object.keys(firmwareMap))}`);
-    }
-    if (!firmwareMap[family][platform]) {
-        throw new Error(`Unsupported platform: ${platform}. Expected one ` +
-            `of ${JSON.stringify(Object.keys(firmwareMap[family]))}`);
-    }
-    return firmwareMap[family][platform];
+/*
+ * Holds connectivity firmware information for all supported devices.
+ *
+ * Devices that have a J-Link debug probe are programmed using nrfjprog, and
+ * have only one firmware hex file. Devices that use the Nordic USB stack
+ * are programmed using serial DFU. In this case, we need two hex files: One
+ * for the softdevice and one for the connectivity application.
+ *
+ * MacOS does not support opening serial ports using baud rates higher than
+ * 115200, while Windows and Linux supports 1m. This requires separate
+ * connectivity firmwares and baud rate settings for the different OS'es.
+ */
+function getFirmwareMap(platform) {
+    return {
+        jlink: {
+            nrf51: {
+                file: platform === 'darwin' ?
+                    path.join(sdV2Dir, 'connectivity_1.2.2_115k2_with_s130_2.0.1.hex') :
+                    path.join(sdV2Dir, 'connectivity_1.2.2_1m_with_s130_2.0.1.hex'),
+                version: '1.2.2',
+                baudRate: platform === 'darwin' ? 115200 : 1000000,
+                sdBleApiVersion: 2,
+            },
+            nrf52: {
+                file: platform === 'darwin' ?
+                    path.join(sdV3Dir, 'connectivity_1.2.2_115k2_with_s132_3.0.hex') :
+                    path.join(sdV3Dir, 'connectivity_1.2.2_1m_with_s132_3.0.hex'),
+                version: '1.2.2',
+                baudRate: platform === 'darwin' ? 115200 : 1000000,
+                sdBleApiVersion: 3,
+            },
+        },
+        nordicUsb: {
+            pca10059: {
+                files: {
+                    application: path.join(sdV3Dir, 'connectivity_x.y.z.hex'), // TODO: Add real file.
+                    softdevice: path.join(sdV3Dir, 'softdevice_x.y.z.hex'), // TODO: Add real file.
+                },
+                version: 'connectivity 1.2.2+dfuMar-27-2018-12-41-04', // TODO: Add real version.
+                baudRate: platform === 'darwin' ? 115200 : 1000000,
+                sdBleApiVersion: 3,
+            },
+        },
+    };
 }
 
-function getFirmwareVersion(family, platform) {
-    const firmwarePath = getFirmwarePath(family, platform);
-    return path.basename(firmwarePath).split('_')[1];
+function readFileToBuffer(filePath) {
+    return new Promise((resolve, reject) => {
+        fs.readFile(path, (err, data) => {
+            if (err) {
+                reject(new Error(`Unable to read firmware file '${filePath}': ${err.message}`));
+            } else {
+                resolve(data);
+            }
+        });
+    });
 }
 
-function getBaudRate(family, platform) {
-    const firmwarePath = getFirmwarePath(family, platform);
-    const firmwareFile = path.basename(firmwarePath);
-    if (firmwareFile.includes('_1m_')) {
-        return 1000000;
-    } else if (firmwareFile.includes('_115k2_')) {
-        return 115200;
-    }
-    throw new Error('Unable to determine baud rate from file name ' +
-        `${firmwareFile}`);
-}
-
-function getSoftDeviceVersion(family, platform) {
-    const firmwarePath = getFirmwarePath(family, platform);
-    if (firmwarePath.includes(sdV2Dir)) {
-        return 'v2';
-    }
-    return 'v3';
-}
-
+/**
+ * Exposes connectivity firmware information to the consumer of pc-ble-driver-js.
+ * Implemented as a class with static functions in order to stay consistent with
+ * the rest of the pc-ble-driver-js API.
+ */
 class FirmwareRegistry {
 
     /**
-     * Returns information about the connectivity firmware that is included in the
-     * current version of this library. The connectivity firmware and its properties
-     * depends on device family and platform (OS).
+     * Get connectivity firmware information for the given device family.
+     * Returns an object on the form:
+     * {
+     *   file: '/path/to/firmware.hex',
+     *   version: '1.2.2',
+     *   baudRate: 115200,
+     *   sdBleApiVersion: 2,
+     * }
      *
-     * @param {String} family Device family. One of 'nrf51' or 'nrf52'.
-     * @param {String} platform Platform (OS). One of 'win32', 'linux', 'darwin'.
-     * @returns {{path: string, version: string, baudRate: number, sdBleApiVersion: string}}
-     *    Object containing the path to the firmware hex file, the firmware version, the
-     *    baud rate to use with the firmware, and the SoftDevice API version.
+     * @param {String} family The device family. One of 'nrf51' or 'nrf52'.
+     * @param {String} [platform] Optional value that can be one of 'win32',
+     *     'linux', 'darwin'. Will use the detected platform if not provided.
+     * @returns {Object} Firmware info object as described above.
      */
-    static getFirmware(family, platform) {
-        return {
-            path: getFirmwarePath(family, platform),
-            version: getFirmwareVersion(family, platform),
-            baudRate: getBaudRate(family, platform),
-            sdBleApiVersion: getSoftDeviceVersion(family, platform),
-        };
+    static getJlinkConnectivityFirmware(family, platform) {
+        const firmwareMap = getFirmwareMap(platform || process.platform);
+        if (!firmwareMap.jlink[family]) {
+            throw new Error(`Unsupported family: ${family}. ` +
+                `Expected one of ${JSON.stringify(Object.keys(firmwareMap.jlink))}`);
+        }
+        return firmwareMap.jlink[family];
     }
 
     /**
-     * Get the firmware hex as a string.
+     * Get connectivity firmware information for Nordic USB devices.
+     * Returns an object on the form:
+     * {
+     *   files: {
+     *     application: '/path/to/application.hex',
+     *     softdevice: '/path/to/softdevice.hex',
+     *   },
+     *   version: 'connectivity 1.2.2+dfuMar-27-2018-12-41-04',
+     *   baudRate: 115200,
+     *   sdBleApiVersion: 3,
+     * }
      *
-     * @param {String} family Device family. One of 'nrf51' or 'nrf52'.
-     * @param {String} platform Platform (OS). One of 'win32', 'linux', 'darwin'.
-     * @throws {Error} Throws error if unsupported family or platform.
-     * @returns {String} Firmware hex string.
+     * @param {String} [platform] Optional value that can be one of 'win32',
+     *     'linux', 'darwin'. Will use the detected platform if not provided.
+     * @returns {Object} Firmware info object as described above.
      */
-    static getFirmwareAsString(family, platform) {
-        const firmwarePath = getFirmwarePath(family, platform);
-        return fs.readFileSync(firmwarePath, { encoding: 'utf8' });
+    static getNordicUsbConnectivityFirmware(platform) {
+        const firmwareMap = getFirmwareMap(platform || process.platform);
+        return firmwareMap.nordicUsb.pca10059;
+    }
+
+    /**
+     * Returns a Promise that resolves with an object that can be passed to
+     * the nrf-device-setup npm library for setting up the device. See
+     * https://www.npmjs.com/package/nrf-device-setup for a description of
+     * the returned object format.
+     *
+     * @param {String} [platform] Optional value that can be one of 'win32',
+     *     'linux', 'darwin'. Will use the detected platform if not provided.
+     * @returns {Promise<Object>} Promise that resolves with device setup object.
+     */
+    static getDeviceSetup(platform) {
+        const firmwareMap = getFirmwareMap(platform || process.platform);
+
+        // Convert jlink entries from the firmwareMap to jprog entries as
+        // expected by nrf-device-setup. Reading files into buffers to avoid
+        // problems with file system paths when using the library inside an
+        // Electron asar archive.
+        const jprogEntryPromises = Object.keys(firmwareMap.jlink).map(family => {
+            const config = firmwareMap.jlink[family];
+            return readFileToBuffer(config.file)
+                .then(buffer => ({
+                    [family]: {
+                        fw: buffer,
+                        fwVersion: {
+                            length: VERSION_INFO_LENGTH,
+                            validator: data => {
+                                const parsedData = FirmwareRegistry.parseVersionStruct(data);
+                                return parsedData.version === config.version &&
+                                    parsedData.baudRate === config.baudRate;
+                            },
+                        },
+                        fwIdAddress: VERSION_INFO_START,
+                    },
+                }));
+        });
+
+        // Convert nordicUsb entries from the firmwareMap to dfu entries as
+        // expected by nrf-device-setup. Reading files into buffers to avoid
+        // problems with file system paths when using the library inside an
+        // Electron asar archive.
+        const dfuEntryPromises = Object.keys(firmwareMap.nordicUsb).map(deviceType => {
+            const config = firmwareMap.nordicUsb[deviceType];
+            return Promise.all([
+                readFileToBuffer(config.files.application),
+                readFileToBuffer(config.files.softdevice),
+            ]).then(([applicationBuffer, softdeviceBuffer]) => ({
+                [deviceType]: {
+                    application: applicationBuffer,
+                    softdevice: softdeviceBuffer,
+                    semver: config.version,
+                },
+            }));
+        });
+
+        const config = {
+            jprog: {},
+            dfu: {},
+        };
+        return Promise.all(jprogEntryPromises)
+            .then(jprogEntries => {
+                jprogEntries.forEach(entry => Object.assign(config.jprog, entry));
+                return Promise.all(dfuEntryPromises);
+            })
+            .then(dfuEntries => {
+                dfuEntries.forEach(entry => Object.assign(config.dfu, entry));
+                return config;
+            });
     }
 
     /**
@@ -162,36 +257,6 @@ class FirmwareRegistry {
             transportType,
             baudRate,
         };
-    }
-
-    /**
-     * Get the magic number that is located at `getStructStartAddress()` in every
-     * connectivity firmware.
-     *
-     * @returns {Number} The magic number that exists in every conn. firmware.
-     */
-    static getStructMagic() {
-        return VERSION_INFO_MAGIC;
-    }
-
-    /**
-     * Get the start address of the struct inside the firmware, containing meta
-     * information about the firmware (e.g. version, baud rate, etc.).
-     *
-     * @returns {Number} Start address of the struct.
-     */
-    static getStructStartAddress() {
-        return VERSION_INFO_START;
-    }
-
-    /**
-     * Get the length of the struct inside the firmware, containing meta information
-     * about the firmware (e.g. version, baud rate, etc.).
-     *
-     * @returns {Number} Length of the struct.
-     */
-    static getStructLength() {
-        return VERSION_INFO_LENGTH;
     }
 }
 

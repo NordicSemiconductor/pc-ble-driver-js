@@ -37,6 +37,7 @@
 'use strict';
 
 const os = require('os');
+const fs = require('fs');
 const FirmwareRegistry = require('./firmwareRegistry');
 
 /**
@@ -58,7 +59,7 @@ function getFamilyString(familyId) {
  * Class that performs firmware update using pc-nrfjprog-js.
  *
  * @deprecated This class is being replaced by the nrf-device-setup npm module,
- * which supports both firmware updates with both nrfjprog and serial DFU.
+ * which supports firmware updates with both nrfjprog and serial DFU.
  */
 class FirmwareUpdater {
 
@@ -83,12 +84,14 @@ class FirmwareUpdater {
      * platform.
      *
      * @param {number} family The devkit family: 0 = nrf51, 1 = nrf52.
-     * @param {string} platform The OS platform. One of 'win32', 'linux', 'darwin'.
+     * @param {String} [platform] Optional value that can be one of 'win32',
+     *     'linux', 'darwin'. Will use the detected platform if not provided.
      * @throws {Error} Throws error if unsupported family or platform.
      * @returns {string} The latest 'major.minor.patch' version.
      */
     static getLatestVersion(family, platform) {
-        const firmware = FirmwareRegistry.getFirmware(getFamilyString(family), platform);
+        const familyString = getFamilyString(family);
+        const firmware = FirmwareRegistry.getJlinkConnectivityFirmware(familyString, platform);
         return firmware.version;
     }
 
@@ -96,12 +99,14 @@ class FirmwareUpdater {
      * Get the baud rate that is supported for the given family and platform.
      *
      * @param {number} family The devkit family: 0 = nrf51, 1 = nrf52.
-     * @param {string} platform The OS platform. One of 'win32', 'linux', 'darwin'.
+     * @param {String} [platform] Optional value that can be one of 'win32',
+     *     'linux', 'darwin'. Will use the detected platform if not provided.
      * @throws {Error} Throws error if unsupported family or platform.
      * @returns {number} Baud rate.
      */
     static getBaudRate(family, platform) {
-        const firmware = FirmwareRegistry.getFirmware(getFamilyString(family), platform);
+        const familyString = getFamilyString(family);
+        const firmware = FirmwareRegistry.getJlinkConnectivityFirmware(familyString, platform);
         return firmware.baudRate;
     }
 
@@ -109,25 +114,29 @@ class FirmwareUpdater {
      * Get path to the latest firmware file for the given family and platform.
      *
      * @param {number} family The devkit family: 0 = nrf51, 1 = nrf52.
-     * @param {string} platform The OS platform. One of 'win32', 'linux', 'darwin'.
+     * @param {String} [platform] Optional value that can be one of 'win32',
+     *     'linux', 'darwin'. Will use the detected platform if not provided.
      * @throws {Error} Throws error if unsupported family or platform.
      * @returns {string} Absolute path to firmware file.
      */
     static getFirmwarePath(family, platform) {
-        const firmware = FirmwareRegistry.getFirmware(getFamilyString(family), platform);
-        return firmware.path;
+        const familyString = getFamilyString(family);
+        const firmware = FirmwareRegistry.getJlinkConnectivityFirmware(familyString, platform);
+        return firmware.file;
     }
 
     /**
      * Get the latest firmware hex as a string.
      *
      * @param {number} family The devkit family: 0 = nrf51, 1 = nrf52.
-     * @param {string} platform The OS platform. One of 'win32', 'linux', 'darwin'.
+     * @param {String} [platform] Optional value that can be one of 'win32',
+     *     'linux', 'darwin'. Will use the detected platform if not provided.
      * @throws {Error} Throws error if unsupported family or platform.
      * @returns {string} Firmware hex string.
      */
     static getFirmwareString(family, platform) {
-        return FirmwareRegistry.getFirmwareAsString(getFamilyString(family), platform);
+        const firmwarePath = FirmwareUpdater.getFirmwarePath(family, platform);
+        return fs.readFileSync(firmwarePath, { encoding: 'utf8' });
     }
 
     /**
@@ -167,10 +176,13 @@ class FirmwareUpdater {
     }
 
     _createVersionInfo(serialNumber, family, platform) {
-        return this._read(serialNumber, FirmwareRegistry.getStructStartAddress(), FirmwareRegistry.getStructLength())
+        const VERSION_INFO_START = 0x20000;
+        const VERSION_INFO_LENGTH = 24;
+        return this._read(serialNumber, VERSION_INFO_START, VERSION_INFO_LENGTH)
             .then(versionStruct => {
                 const info = FirmwareRegistry.parseVersionStruct(versionStruct);
-                const firmwareInfo = FirmwareRegistry.getFirmware(getFamilyString(family), platform);
+                const familyString = getFamilyString(family);
+                const firmwareInfo = FirmwareRegistry.getJlinkConnectivityFirmware(familyString, platform);
                 const isUpdateRequired =
                     info.version !== firmwareInfo.firmwareVersion ||
                     info.baudRate !== firmwareInfo.baudRate;
@@ -198,7 +210,7 @@ class FirmwareUpdater {
      */
     getVersionInfo(serialNumber, callback) {
         this._getDeviceInfo(serialNumber)
-            .then(deviceInfo => this._createVersionInfo(serialNumber, getFamilyString(deviceInfo.family), os.platform()))
+            .then(deviceInfo => this._createVersionInfo(serialNumber, deviceInfo.family, os.platform()))
             .then(versionInfo => callback(null, versionInfo))
             .catch(err => callback(new Error('Unable to get version info for ' +
                 `${serialNumber}: ${err.message}`), null));
@@ -216,7 +228,7 @@ class FirmwareUpdater {
     update(serialNumber, callback) {
         this._getDeviceInfo(serialNumber)
             .then(deviceInfo => {
-                const firmwareString = FirmwareRegistry.getFirmwareAsString(getFamilyString(deviceInfo.family), os.platform());
+                const firmwareString = FirmwareUpdater.getFirmwareString(deviceInfo.family, os.platform());
                 const INPUT_FORMAT_HEX_STRING = 1;
                 return this._program(serialNumber, firmwareString, { inputFormat: INPUT_FORMAT_HEX_STRING })
                     .then(() => deviceInfo);
