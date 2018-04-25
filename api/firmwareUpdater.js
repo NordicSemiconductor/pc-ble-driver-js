@@ -37,7 +37,7 @@
 'use strict';
 
 const os = require('os');
-const FirmwareUtil = require('./firmwareUtil');
+const FirmwareRegistry = require('./firmwareRegistry');
 
 /**
  * Converts from family ID (used by pc-nrfjprog-js) to family string.
@@ -88,8 +88,8 @@ class FirmwareUpdater {
      * @returns {string} The latest 'major.minor.patch' version.
      */
     static getLatestVersion(family, platform) {
-        const firmwareInfo = FirmwareUtil.getFirmwareInfo(getFamilyString(family), platform);
-        return firmwareInfo.version;
+        const firmware = FirmwareRegistry.getFirmware(getFamilyString(family), platform);
+        return firmware.version;
     }
 
     /**
@@ -101,8 +101,8 @@ class FirmwareUpdater {
      * @returns {number} Baud rate.
      */
     static getBaudRate(family, platform) {
-        const firmwareInfo = FirmwareUtil.getFirmwareInfo(getFamilyString(family), platform);
-        return firmwareInfo.baudRate;
+        const firmware = FirmwareRegistry.getFirmware(getFamilyString(family), platform);
+        return firmware.baudRate;
     }
 
     /**
@@ -114,8 +114,8 @@ class FirmwareUpdater {
      * @returns {string} Absolute path to firmware file.
      */
     static getFirmwarePath(family, platform) {
-        const firmwareInfo = FirmwareUtil.getFirmwareInfo(getFamilyString(family), platform);
-        return firmwareInfo.path;
+        const firmware = FirmwareRegistry.getFirmware(getFamilyString(family), platform);
+        return firmware.path;
     }
 
     /**
@@ -127,7 +127,7 @@ class FirmwareUpdater {
      * @returns {string} Firmware hex string.
      */
     static getFirmwareString(family, platform) {
-        return FirmwareUtil.getFirmwareAsString(getFamilyString(family), platform);
+        return FirmwareRegistry.getFirmwareAsString(getFamilyString(family), platform);
     }
 
     /**
@@ -139,7 +139,7 @@ class FirmwareUpdater {
      * @returns {Object} Parsed version info struct as an object.
      */
     static parseVersionStruct(versionStruct) {
-        return FirmwareUtil.parseVersionStruct(versionStruct);
+        return FirmwareRegistry.parseVersionStruct(versionStruct);
     }
 
     _read(serialNumber, startAddress, length) {
@@ -167,10 +167,10 @@ class FirmwareUpdater {
     }
 
     _createVersionInfo(serialNumber, family, platform) {
-        return this._read(serialNumber, FirmwareUtil.getStructStartAddress(), FirmwareUtil.getStructLength())
+        return this._read(serialNumber, FirmwareRegistry.getStructStartAddress(), FirmwareRegistry.getStructLength())
             .then(versionStruct => {
-                const info = FirmwareUtil.parseVersionStruct(versionStruct);
-                const firmwareInfo = FirmwareUtil.getFirmwareInfo(getFamilyString(family), platform);
+                const info = FirmwareRegistry.parseVersionStruct(versionStruct);
+                const firmwareInfo = FirmwareRegistry.getFirmware(getFamilyString(family), platform);
                 const isUpdateRequired =
                     info.version !== firmwareInfo.firmwareVersion ||
                     info.baudRate !== firmwareInfo.baudRate;
@@ -216,7 +216,7 @@ class FirmwareUpdater {
     update(serialNumber, callback) {
         this._getDeviceInfo(serialNumber)
             .then(deviceInfo => {
-                const firmwareString = FirmwareUtil.getFirmwareAsString(getFamilyString(deviceInfo.family), os.platform());
+                const firmwareString = FirmwareRegistry.getFirmwareAsString(getFamilyString(deviceInfo.family), os.platform());
                 const INPUT_FORMAT_HEX_STRING = 1;
                 return this._program(serialNumber, firmwareString, { inputFormat: INPUT_FORMAT_HEX_STRING })
                     .then(() => deviceInfo);

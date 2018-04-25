@@ -40,7 +40,7 @@ const fs = require('fs');
 const path = require('path');
 const arrayToInt = require('./util/intArrayConv').arrayToInt;
 
-const currentDir = require.resolve('./firmwareUtil');
+const currentDir = require.resolve('./firmwareRegistry');
 const hexDir = path.join(currentDir, '..', '..', 'pc-ble-driver', 'hex');
 const sdV2Dir = path.join(hexDir, 'sd_api_v2');
 const sdV3Dir = path.join(hexDir, 'sd_api_v3');
@@ -99,7 +99,7 @@ function getSoftDeviceVersion(family, platform) {
     return 'v3';
 }
 
-class FirmwareUtil {
+class FirmwareRegistry {
 
     /**
      * Returns information about the connectivity firmware that is included in the
@@ -112,7 +112,7 @@ class FirmwareUtil {
      *    Object containing the path to the firmware hex file, the firmware version, the
      *    baud rate to use with the firmware, and the SoftDevice API version.
      */
-    static getFirmwareInfo(family, platform) {
+    static getFirmware(family, platform) {
         return {
             path: getFirmwarePath(family, platform),
             version: getFirmwareVersion(family, platform),
@@ -127,7 +127,7 @@ class FirmwareUtil {
      * @param {String} family Device family. One of 'nrf51' or 'nrf52'.
      * @param {String} platform Platform (OS). One of 'win32', 'linux', 'darwin'.
      * @throws {Error} Throws error if unsupported family or platform.
-     * @returns {string} Firmware hex string.
+     * @returns {String} Firmware hex string.
      */
     static getFirmwareAsString(family, platform) {
         const firmwarePath = getFirmwarePath(family, platform);
@@ -139,7 +139,7 @@ class FirmwareUtil {
      * firmware. See the connectivity firmware patch in pc-ble-driver/hex/sd_api_v*
      * for details.
      *
-     * @param {number[]} versionStruct Array of integers from the firmware.
+     * @param {Number[]} versionStruct Array of integers from the firmware.
      * @returns {Object} Parsed version info struct as an object.
      */
     static parseVersionStruct(versionStruct) {
@@ -177,4 +177,4 @@ class FirmwareUtil {
     }
 }
 
-module.exports = FirmwareUtil;
+module.exports = FirmwareRegistry;
