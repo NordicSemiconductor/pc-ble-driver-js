@@ -84,8 +84,8 @@ function getFirmwareMap(platform) {
         nordicUsb: {
             pca10059: {
                 files: {
-                    application: path.join(sdV3Dir, 'connectivity_x.y.z.hex'), // TODO: Add real file.
-                    softdevice: path.join(sdV3Dir, 'softdevice_x.y.z.hex'), // TODO: Add real file.
+                    application: path.join(sdV3Dir, 'connectivity_1.2.2_1m_with_s132_3.0.hex'), // TODO: Add real file.
+                    softdevice: path.join(sdV3Dir, 'connectivity_1.2.2_1m_with_s132_3.0.hex'), // TODO: Add real file.
                 },
                 version: 'connectivity 1.2.2+dfuMar-27-2018-12-41-04', // TODO: Add real version.
                 baudRate: platform === 'darwin' ? 115200 : 1000000,
@@ -97,7 +97,7 @@ function getFirmwareMap(platform) {
 
 function readFileToBuffer(filePath) {
     return new Promise((resolve, reject) => {
-        fs.readFile(path, (err, data) => {
+        fs.readFile(filePath, (err, data) => {
             if (err) {
                 reject(new Error(`Unable to read firmware file '${filePath}': ${err.message}`));
             } else {

@@ -58,8 +58,8 @@ exports[`FirmwareRegistry.getNordicUSBConnectivityFirmware returns expected nord
 Object {
   "baudRate": 115200,
   "files": Object {
-    "application": "<PROJECT_ROOT>/pc-ble-driver/hex/sd_api_v3/connectivity_x.y.z.hex",
-    "softdevice": "<PROJECT_ROOT>/pc-ble-driver/hex/sd_api_v3/softdevice_x.y.z.hex",
+    "application": "<PROJECT_ROOT>/pc-ble-driver/hex/sd_api_v3/connectivity_1.2.2_1m_with_s132_3.0.hex",
+    "softdevice": "<PROJECT_ROOT>/pc-ble-driver/hex/sd_api_v3/connectivity_1.2.2_1m_with_s132_3.0.hex",
   },
   "sdBleApiVersion": 3,
   "version": "connectivity 1.2.2+dfuMar-27-2018-12-41-04",
@@ -70,8 +70,8 @@ exports[`FirmwareRegistry.getNordicUSBConnectivityFirmware returns expected nord
 Object {
   "baudRate": 1000000,
   "files": Object {
-    "application": "<PROJECT_ROOT>/pc-ble-driver/hex/sd_api_v3/connectivity_x.y.z.hex",
-    "softdevice": "<PROJECT_ROOT>/pc-ble-driver/hex/sd_api_v3/softdevice_x.y.z.hex",
+    "application": "<PROJECT_ROOT>/pc-ble-driver/hex/sd_api_v3/connectivity_1.2.2_1m_with_s132_3.0.hex",
+    "softdevice": "<PROJECT_ROOT>/pc-ble-driver/hex/sd_api_v3/connectivity_1.2.2_1m_with_s132_3.0.hex",
   },
   "sdBleApiVersion": 3,
   "version": "connectivity 1.2.2+dfuMar-27-2018-12-41-04",
@@ -82,8 +82,8 @@ exports[`FirmwareRegistry.getNordicUSBConnectivityFirmware returns expected nord
 Object {
   "baudRate": 1000000,
   "files": Object {
-    "application": "<PROJECT_ROOT>/pc-ble-driver/hex/sd_api_v3/connectivity_x.y.z.hex",
-    "softdevice": "<PROJECT_ROOT>/pc-ble-driver/hex/sd_api_v3/softdevice_x.y.z.hex",
+    "application": "<PROJECT_ROOT>/pc-ble-driver/hex/sd_api_v3/connectivity_1.2.2_1m_with_s132_3.0.hex",
+    "softdevice": "<PROJECT_ROOT>/pc-ble-driver/hex/sd_api_v3/connectivity_1.2.2_1m_with_s132_3.0.hex",
   },
   "sdBleApiVersion": 3,
   "version": "connectivity 1.2.2+dfuMar-27-2018-12-41-04",
