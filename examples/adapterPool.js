@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2018, Nordic Semiconductor ASA
  *
  * All rights reserved.
  *
@@ -54,15 +54,15 @@ const VERSION_INFO_START = 0x20000;
 
 class AdapterPool {
     constructor() {
-        this.deviceListener = new DeviceLister(traits);
-        this.deviceListener.on('error', () => {
+        this.deviceLister = new DeviceLister(traits);
+        this.deviceLister.on('error', () => {
         });
         this.grabbedAdapters = [];
     }
 
     getAdapters() {
         return new Promise((resolve, reject) => {
-            this.deviceListener.reenumerate()
+            this.deviceLister.reenumerate()
                 .then(adapters => {
                     // Only pick adapters we are able to program
                     adapters.forEach((adapter, serialNumber) => {
@@ -96,14 +96,13 @@ class AdapterPool {
                 apiVersion,
                 transportType,
                 undefined, undefined, undefined, // Irrelevant
-                 // Skip these
                 (baudRate >> 8) & 0xff,
                 (baudRate >> 16) & 0xff,
                 (baudRate >> 24) & 0xff,
             ];
 
             return requestedArray.reduce((accumulated, value, idx) => {
-                if (accumulated === false) return false; // Fast exist if previous value is false.
+                if (accumulated === false) return false; // Fast exit if previous value is false.
                 if (value == null) return true; // If we do not care about the value, compare next
                 return provided[idx] === value;
             }, true);
@@ -150,12 +149,17 @@ class AdapterPool {
             const serialNumbers = [...foundAdapters.keys()];
 
             if (serialNumber != null) {
-                if (!serialNumbers.has(serialNumber)) {
+                // Interim solution while waiting for:
+                //   https://github.com/NordicSemiconductor/nrf-device-lister-js/pull/28
+                const p = serialNumbers.includes(serialNumber);
+                const q = serialNumbers.includes(Number.parseInt(serialNumber, 10));
+
+                if (!(p || q)) {
                     throw new Error(`Adapter with serial number ${serialNumber} does not exist.`);
                 }
 
                 this.grabbedAdapters.push(serialNumber);
-                return foundAdapters.get(serialNumber);
+                return foundAdapters.get(p ? serialNumber : Number.parseInt(serialNumber, 10));
             }
 
             // Grab an adapter that has not been used before
@@ -188,6 +192,11 @@ class AdapterPool {
             throw new Error('Not able to determine SoftDevice API version to use.');
         }
 
+        /*
+            TODO: waiting for a firmware that works with DFU in setupDevice and
+            TODO: PR https://github.com/NordicSemiconductor/pc-ble-driver-js/pull/151/ is merged with master
+        */
+        /*
         await setupDevice(
             selectedAdapter,
             {
@@ -196,6 +205,12 @@ class AdapterPool {
                         application: fs.readFileSync(path.resolve(__dirname, '..', 'connfw.hex')),
                         softdevice: fs.readFileSync(path.resolve(__dirname, '..', 'softdevice.hex')),
                         semver: 'ble-connectivity 0.1.0',
+                        params: {
+                            hwVersion: 52,
+                            fwVersion: 0xffffffff,
+                            sdReq: [0xA9],
+                            sdId: [0xA9],
+                        },
                     },
                 },
                 jprog: {
@@ -232,7 +247,7 @@ class AdapterPool {
                 },
                 needSerialport: true,
             },
-        );
+        );*/
 
         return {
             port: selectedAdapter.serialport.comName,
@@ -242,5 +257,11 @@ class AdapterPool {
     }
 }
 
-module.exports = { AdapterPool };
+/** Provide instantiated AdapterPool, making it more convenient to fetch an adapter */
+const _adapterPool = new AdapterPool();
 
+function adapterPool(serialNumber) {
+    return _adapterPool.grabAdapter(serialNumber);
+}
+
+module.exports = { AdapterPool, adapterPool };

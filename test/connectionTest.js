@@ -37,10 +37,7 @@
 'use strict';
 
 const assert = require('assert');
-const setup = require('./setup');
-const os = require('os');
-
-const adapterFactory = setup.adapterFactory;
+const { grabAdapter, setupAdapter, outcome } = require('./setup');
 
 const peripheralDeviceAddress = 'FF:11:22:33:AA:CE';
 const peripheralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
@@ -48,37 +45,11 @@ const peripheralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 const centralDeviceAddress = 'FF:11:22:33:AA:CF';
 const centralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
-let centralAsDevice;
+const testOutcome = require('debug')('test:outcome');
+const log = require('debug')('test:log');
+const error = require('debug')('test:error');
 
-function addAdapterFactoryListeners() {
-    adapterFactory.on('added', adapter => {
-        console.log(`onAdded: Adapter added. Adapter: ${adapter.instanceId}`);
-    });
-
-    adapterFactory.on('removed', adapter => {
-        console.log(`onRemoved: Adapter removed. Adapter: ${adapter.instanceId}`);
-    });
-
-    adapterFactory.on('error', error => {
-        console.log('onError: Error occured: ' + JSON.stringify(error, null, 1));
-    });
-}
-
-function addAdapterListener(adapter, prefix) {
-    adapter.on('logMessage', (severity, message) => { console.log(`${prefix} logMessage: ${message}`); });
-    adapter.on('status', status => { console.log(`${prefix} status: ${JSON.stringify(status, null, 1)}`); });
-    adapter.on('error', error => {
-        console.log(`${prefix} error: ${JSON.stringify(error, null, 1)}`);
-        assert(false);
-    });
-    //adapter.on('stateChanged', state => { console.log(`${prefix} stateChanged: ${JSON.stringify(state)}`); });
-
-    adapter.on('deviceConnected', device => { console.log(`${prefix} deviceConnected: ${device.address}`); });
-    adapter.on('deviceDisconnected', device => { console.log(`${prefix} deviceDisconnected: ${JSON.stringify(device, null, 1)}`); });
-    adapter.on('deviceDiscovered', device => { console.log(`${prefix} deviceDiscovered: ${JSON.stringify(device)}`); });
-}
-
-function connect(adapter, connectToAddress, callback) {
+function connect(adapter, connectToAddress) {
     const options = {
         scanParams: {
             active: false,
@@ -94,49 +65,19 @@ function connect(adapter, connectToAddress, callback) {
         },
     };
 
-    adapter.connect(
-        connectToAddress,
-        options,
-        error => {
-            assert(!error);
-            if (callback) callback();
-        }
-    );
-}
-
-function setupAdapter(adapter, name, address, addressType, callback) {
-    adapter.open(
-        {
-            baudRate: 1000000,
-            parity: 'none',
-            flowControl: 'none',
-            enableBLE: false,
-            eventInterval: 0,
-        },
-        error => {
-            assert(!error);
-            adapter.enableBLE(
-                null,
-                (error, params, app_ram_base) => {
-                    if (error) {
-                        console.log(`error: ${error} params: ${JSON.stringify(params)}, app_ram_base: ${app_ram_base}`);
-                    }
-
-                    adapter.getState((error, state) => {
-                        assert(!error);
-                        adapter.setAddress(address, addressType, error => {
-                            assert(!error);
-                            adapter.setName(name, error => {
-                                assert(!error);
-                                callback(adapter);
-                            });
-                        });
-                    });
+    return new Promise((resolve, reject) => {
+        adapter.connect(
+            connectToAddress,
+            options,
+            connectErr => {
+                if (connectErr) {
+                    reject(connectErr);
+                    return;
                 }
-            );
 
-        }
-    );
+                resolve();
+            });
+    });
 }
 
 function startAdvertising(adapter, callback) {
@@ -145,87 +86,108 @@ function startAdvertising(adapter, callback) {
             txPowerLevel: 20,
         },
         {}, // scan response data
-        error => {
-            assert(!error);
+        setAdvertisingDataError => {
+            assert(!setAdvertisingDataError);
 
             adapter.startAdvertising(
                 {
                     interval: 100,
                     timeout: 100,
                 },
-                error => {
-                    assert(!error);
+                startAdvertisingError => {
+                    assert(!startAdvertisingError);
                     if (callback) callback();
-                }
+                },
             );
-        }
+        },
     );
 }
 
-function startScan(adapter, callback) {
-    const scanParameters = {
-        active: true,
-        interval: 100,
-        window: 50,
-        timeout: 5,
-    };
+function requestAttMtu(adapter, peerDevice) {
+    return new Promise((resolve, reject) => {
+        const mtu = 150;
 
-    adapter.startScan(scanParameters, error => {
-        assert(!error);
+        adapter.requestAttMtu(peerDevice.instanceId, mtu, (err, newMtu) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+
+            resolve({ mtu, newMtu });
+        });
     });
 }
 
-function requestAttMtu(adapter, peerDevice, callback) {
-    const mtu = 150;
+async function runTests(centralAdapter, peripheralAdapter) {
+    await Promise.all([
+        setupAdapter(centralAdapter, '#CENTRAL', 'central', centralDeviceAddress, centralDeviceAddressType),
+        setupAdapter(peripheralAdapter, '#PERIPH', 'periph', peripheralDeviceAddress, peripheralDeviceAddressType),
+    ]);
 
-    adapter.requestAttMtu(peerDevice.instanceId, mtu, (err, newMtu) => {
-        assert(!err);
-        console.log(`ATT_MTU is ${newMtu}`);
-        if (callback) callback();
-    });
-}
-
-function runTests(centralAdapter, peripheralAdapter) {
-    addAdapterListener(centralAdapter, '#CENTRAL');
-    addAdapterListener(peripheralAdapter, '#PERIPH');
-
-    setupAdapter(centralAdapter, 'centralAdapter', centralDeviceAddress, centralDeviceAddressType, adapter => {
-    });
-
-    setupAdapter(peripheralAdapter, 'peripheralAdapter', peripheralDeviceAddress, peripheralDeviceAddressType, adapter => {
-        startAdvertising(peripheralAdapter, () => {
-            console.log('Advertising started');
-        });
-
-        peripheralAdapter.once('deviceConnected', centralDevice => {
-            centralAsDevice = centralDevice;
-        });
-
+    const deviceConnectedCentral = new Promise((resolve, reject) => {
         centralAdapter.once('deviceConnected', peripheralDevice => {
-            requestAttMtu(centralAdapter, peripheralDevice);
+            log(`deviceConnected ${peripheralDevice.address}/${peripheralDevice.addressType}`);
+            requestAttMtu(centralAdapter, peripheralDevice).then(() => {
+                resolve();
+            }).catch(err => {
+                reject(err);
+            });
         });
-
-        centralAdapter.once('dataLengthChanged', (peripheralDevice, dataLength) => {
-            console.log(`New data length is ${dataLength}`);
-        });
-
-        centralAdapter.once('attMtuChanged', (peripheralDevice, attMtu) => {
-            console.log(`ATT MTU changed to ${attMtu}`);
-        })
-
-        peripheralAdapter.once('attMtuChanged', (centralDevice, attMtu) => {
-            console.log(`ATT MTU changed to ${attMtu}`);
-        })
-
-        connect(centralAdapter, { address: peripheralDeviceAddress, type: peripheralDeviceAddressType });
     });
+
+    const dataLengthChangedCentral = new Promise(resolve => {
+        centralAdapter.once('dataLengthChanged', (peripheralDevice, dataLength) => {
+            log(`central dataLengthChanged to ${dataLength}`);
+            resolve(dataLength);
+        });
+    });
+
+    const dataLengthChangedCentralPeripheral = new Promise(resolve => {
+        peripheralAdapter.once('dataLengthChanged', (centralDevice, dataLength) => {
+            log(`peripheral dataLengthChanged to ${dataLength}`);
+            resolve(dataLength);
+        });
+    });
+
+    const attMtuChangedCentral = new Promise(resolve => {
+        centralAdapter.once('attMtuChanged', (peripheralDevice, attMtu) => {
+            log(`central attMtuChanged to ${attMtu}`);
+            resolve(attMtu);
+        });
+    });
+
+    const attMtuChangedPeripheral = new Promise(resolve => {
+        peripheralAdapter.once('attMtuChanged', (centralDevice, attMtu) => {
+            log(`peripheral attMtuChanged to ${attMtu}`);
+            resolve(attMtu);
+        });
+    });
+
+    await new Promise((resolve, reject) => startAdvertising(peripheralAdapter, startAdvertisingError => {
+        if (startAdvertisingError) {
+            reject(startAdvertisingError);
+            return;
+        }
+
+        resolve();
+    }));
+
+    await connect(centralAdapter, { address: peripheralDeviceAddress, type: peripheralDeviceAddressType });
+
+    await outcome([
+        deviceConnectedCentral,
+        attMtuChangedCentral,
+        attMtuChangedPeripheral,
+        dataLengthChangedCentral,
+        dataLengthChangedCentralPeripheral]);
 }
 
-addAdapterFactoryListeners();
-
-adapterFactory.getAdapters((error, adapters) => {
-    assert(!error);
-    assert(Object.keys(adapters).length == 2, 'The number of attached devices to computer must exactly 2');
-
-    runTests(adapters[Object.keys(adapters)[0]], adapters[Object.keys(adapters)[1]]);
+Promise.all([grabAdapter(), grabAdapter()]).then(result => {
+    runTests(...result).then(() => {
+        testOutcome('Test completed successfully');
+    }).catch(failure => {
+        error('Test failed with error:', failure);
+    });
+}).catch(err => {
+    error('Error opening adapter:', err);
 });

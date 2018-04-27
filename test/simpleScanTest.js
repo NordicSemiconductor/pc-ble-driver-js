@@ -36,17 +36,14 @@
 
 'use strict';
 
-const assert = require('assert');
+const { grabAdapter, setupAdapter, outcome } = require('./setup');
 
-const setup = require('./setup');
-const adapterFactory = setup.adapterFactory;
+const testOutcome = require('debug')('test:outcome');
+const log = require('debug')('test:log');
+const error = require('debug')('test:error');
 
-const connectionParameters = {
-    min_conn_interval: 7.5,
-    max_conn_interval: 7.5,
-    slave_latency: 0,
-    conn_sup_timeout: 4000,
-};
+const centralDeviceAddress = 'FF:11:22:33:AA:CF';
+const centralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
 const scanParameters = {
     active: true,
@@ -55,112 +52,58 @@ const scanParameters = {
     timeout: 5,
 };
 
-const options = {
-    scanParams: scanParameters,
-    connParams: connectionParameters,
-};
+async function runTests(adapter) {
+    await setupAdapter(adapter, '#CENTRAL', 'central', centralDeviceAddress, centralDeviceAddressType);
 
-const advOptions = {
-    interval: 100,
-    timeout: 10000,
-};
+    const expectedNumberOfScanReports = 10;
+    let scanReportsReceived = 0;
 
-const openOptions = {
-    baudRate: 1000000,
-    parity: 'none',
-    flowControl: 'none',
-    enableBLE: true,
-    eventInterval: 0,
-};
+    await new Promise((startScanResolve, startScanReject) => {
+        adapter.startScan(scanParameters, startScanErr => {
+            if (startScanErr) {
+                startScanReject(startScanErr);
+                return;
+            }
 
-let listenersAdded = false;
-
-function runTests(adapterOne) {
-    let connect_in_progress = false;
-
-    if (!listenersAdded) {
-        adapterOne.on('logMessage', (severity, message) => { if (severity > 1) console.log(`#1 logMessage: ${message}`); });
-        adapterOne.on('status', status => {
-            console.log(`#1 status: ${JSON.stringify(status)}`);
+            startScanResolve();
         });
-        adapterOne.on('error', error => { console.log('#1 error: ' + JSON.stringify(error, null, 1)); });
-        adapterOne.on('stateChanged', state => {
-            console.log('#1 stateChanged: ' + JSON.stringify(state));
+    });
+
+    let timeoutId;
+
+    const scanReportReceived = new Promise(scanReportReceivedResolve => {
+        adapter.on('deviceDiscovered', () => {
+            scanReportsReceived += 1;
+
+            log(`Received ${scanReportsReceived} scan reports.`);
+
+            if (scanReportsReceived > expectedNumberOfScanReports) {
+                clearTimeout(timeoutId);
+                scanReportReceivedResolve();
+            }
         });
+    });
 
-        adapterOne.on('deviceDisconnected', device => { console.log('#1 deviceDisconnected: ' + JSON.stringify(device)); });
-        adapterOne.on('deviceDiscovered', device => {
-            console.log(`Discovered device: ${JSON.stringify(device)}`);
+    await outcome([scanReportReceived]);
+
+    await new Promise((stopScanResolve, stopScanReject) => {
+        adapter.stopScan(stopScanErr => {
+            if (stopScanErr) {
+                stopScanReject(stopScanErr);
+                return;
+            }
+
+            stopScanResolve();
         });
-
-        listenersAdded = true;
-    }
-
-    adapterOne.open(
-        openOptions,
-        error => {
-            assert(!error);
-
-            let advData = {
-                completeLocalName: 'adapterOne',
-                txPowerLevel: 20,
-            };
-
-            console.log('Enabling BLE');
-            adapterOne.getState((error, state) => {
-                assert(!error);
-                console.log(JSON.stringify(state));
-
-                adapterOne.setName('adapterOne', error => {
-                    assert(!error);
-
-                    console.log('Starting scan');
-                    adapterOne.startScan(scanParameters, error => {
-                        assert(!error);
-                    });
-                });
-            });
-        });
+    });
 }
 
-let adapterOne;
-
-adapterFactory.on('added', adapter => {
-    console.log(`onAdded: Adapter added. Adapter: ${adapter.instanceId}`);
-    adapterOne = adapter;
-});
-
-adapterFactory.on('removed', adapter => {
-    console.log(`onRemoved: Adapter removed. Adapter: ${adapter.instanceId}`);
-});
-
-adapterFactory.on('error', error => {
-    console.log('onError: Error occured: ' + JSON.stringify(error, null, 1));
-});
-
-console.log('Keyboard actions:');
-console.log('s: open adapter and start scanning');
-console.log('c: close adapter');
-
-process.stdin.setRawMode(true);
-process.stdin.resume();
-process.stdin.on('data', data => {
-    if (data == 's') {
-        console.log('s pressed');
-        adapterFactory.getAdapters((error, adapters) => {
-            assert(!error);
-            runTests(adapters[Object.keys(adapters)[0]]);
-        });
-        console.log('Running tests');
-    } else if (data == 'c') {
-        if (adapterOne !== undefined) {
-            console.log('Closing adapter');
-            adapterOne.close(err => {
-                console.log('Adapter closed!');
-            });
-        }
-    } else if (data == 'q') {
-        console.log('Quit');
-        process.exit(0);
-    }
+Promise.all([grabAdapter()]).then(result => {
+    runTests(...result).then(() => {
+        testOutcome('Test completed successfully');
+    }).catch(failure => {
+        error('Test failed with error:', failure);
+    });
+}).catch(err => {
+    error('Error opening adapter:', err);
 });
