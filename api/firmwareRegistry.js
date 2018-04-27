@@ -178,6 +178,7 @@ class FirmwareRegistry {
                         validator: data => {
                             const parsedData = FirmwareRegistry.parseVersionStruct(data);
                             return parsedData.version === deviceConfig.version &&
+                                parsedData.sdBleApiVersion === deviceConfig.sdBleApiVersion &&
                                 parsedData.baudRate === deviceConfig.baudRate;
                         },
                     },
