@@ -36,171 +36,129 @@
 
 'use strict';
 
-const setup = require('./setup');
-const adapterFactory = setup.adapterFactory;
-const serviceFactory = setup.ServiceFactory;
+const { grabAdapter, serviceFactory, setupAdapter } = require('./setup');
 
-adapterFactory.on('added', adapter => {
-    console.log(`onAdded: Adapter added. Adapter: ${adapter.instanceId}`);
-});
+const log = require('debug')('test:log');
+const error = require('debug')('test:error');
+const testOutcome = require('debug')('test:outcome');
 
-adapterFactory.on('removed', adapter => {
-    console.log(`onRemoved: Adapter removed. Adapter: ${adapter.instanceId}`);
-});
+const peripheralDeviceAddress = 'FF:11:22:33:AA:CE';
+const peripheralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
-adapterFactory.on('error', error => {
-    console.log('onError: Error occured: ' + JSON.stringify(error, null, 1));
-});
+async function runTests(adapter) {
+    await setupAdapter(adapter, '#PERIPH', 'periph', peripheralDeviceAddress, peripheralDeviceAddressType);
 
-adapterFactory.getAdapters((err, adapters) => {
-    if (err) {
-        console.log('Error:' + err);
-        return;
-    }
+    log('Adapter opened.');
 
-    console.log('Found the following adapters:');
+    const service1 = serviceFactory.createService('adabfb006e7d4601bda2bffaa68956ba');
+    const service2 = serviceFactory.createService('1234');
 
-    for (let adapter in adapters) {
-        console.log(adapters[adapter].instanceId);
-    }
-
-    let adapter = adapters[Object.keys(adapters)[0]];
-
-    adapter.on('error', error => { console.log('adapter.onError: ' + JSON.stringify(error, null, 1)); });
-    adapter.on(
-        'stateChanged',
-        state => { console.log('Adapter state changed: ' + JSON.stringify(state));}
-    );
-    adapter.on('deviceDisconnected', device => { console.log('adapter.deviceDisconnected: ' + JSON.stringify(device)); });
-
-    console.log(`Using adapter ${adapter.instanceId}.`);
-
-    adapter.open(
+    serviceFactory.createCharacteristic(
+        service1,
+        '180d',
+        [1, 2, 3],
         {
-            baudRate: 1000000,
-            parity: 'none',
-            flowControl: 'none',
+            broadcast: false,
+            read: false,
+            write: false,
+            writeWoResp: false,
+            reliableWrite: false, /* extended property in MCP ? */
+            notify: false,
+            indicate: false, /* notify/indicate is cccd, therefore it must be set */
         },
-        err => {
-            if (err) {
-                console.log(`Error opening adapter ${err}.`);
+        {
+            maxLength: 3,
+            readPerm: ['open'],
+            writePerm: ['open'],
+        },
+    );
+
+    serviceFactory.createCharacteristic(
+        service2,
+        '9876',
+        [6, 5, 4],
+        {
+            broadcast: false,
+            read: true,
+            write: true,
+            writeWoResp: false,
+            reliableWrite: false, /* extended property in MCP ? */
+            notify: false,
+            indicate: false, /* notify/indicate is cccd, therefore it must be set */
+        },
+        {
+            maxLength: 3,
+            readPerm: ['open'],
+            writePerm: ['open'],
+            writeAuth: false,
+            readAuth: false,
+        },
+    );
+
+    log('Setting services');
+
+    await new Promise((resolve, reject) => {
+        adapter.setServices([service1, service2], setServicesErr => {
+            if (setServicesErr) {
+                reject(setServicesErr);
                 return;
             }
 
-            console.log('Adapter opened.');
+            log('Trying to advertise services.');
 
-            let services = [];
-            let service1 = serviceFactory.createService('adabfb006e7d4601bda2bffaa68956ba');
-            let service2 = serviceFactory.createService('1234');
+            const advertisingData = {
+                shortenedLocalName: 'MyCoolName',
+                flags: ['leGeneralDiscMode', 'brEdrNotSupported'],
+                txPowerLevel: -10,
+            };
 
-            let characteristic1 = serviceFactory.createCharacteristic(
-                service1,
-                '180d',
-                [1, 2, 3],
-                {
-                    broadcast: false,
-                    read: false,
-                    write: false,
-                    writeWoResp: false,
-                    reliableWrite: false, /* extended property in MCP ? */
-                    notify: false,
-                    indicate: false, /* notify/indicate is cccd, therefore it must be set */
-                },
-                {
-                    maxLength: 3,
-                    readPerm: ['open'],
-                    writePerm: ['open'],
-                }
-            );
+            const scanResponseData = {
+                completeLocalName: 'MyReallyCoolName',
+            };
 
-            let characteristic2 = serviceFactory.createCharacteristic(
-                service2,
-                '9876',
-                [6, 5, 4],
-                {
-                    broadcast: false,
-                    read: true,
-                    write: true,
-                    writeWoResp: false,
-                    reliableWrite: false, /* extended property in MCP ? */
-                    notify: false,
-                    indicate: false, /* notify/indicate is cccd, therefore it must be set */
-                },
-                {
-                    maxLength: 3,
-                    readPerm: ['open'],
-                    writePerm: ['open'],
-                    writeAuth: false,
-                    readAuth: false,
-                }
-            );
+            const options = {
+                interval: 40,
+                timeout: 180,
+                connectable: true,
+                scannable: false,
+            };
 
-
-            // TODO: evalute if - is necessary for 2 byte UUIDs.
-            let descriptor1 = serviceFactory.createDescriptor(
-                characteristic1,
-                '2902',
-                [0, 0],
-                {
-                    maxLength: 2,
-                    readPerm: ['open'],
-                    writePerm: ['open'],
-                    variableLength: false,
-                }
-            );
-
-            let descriptor2 = serviceFactory.createDescriptor(
-                characteristic2,
-                '4567',
-                [0, 0],
-                {
-                    maxLength: 2,
-                    readPerm: ['open'],
-                    writePerm: ['open'],
-                    variableLength: false,
-                }
-            );
-
-            console.log('Setting services');
-            adapter.setServices([service1, service2], err => {
-                if (err) {
-                    console.log(`Error setting services: '${JSON.stringify(err, null, 1)}'.`);
-                    process.exit();
+            adapter.setAdvertisingData(advertisingData, scanResponseData, setAdvertisingDataError => {
+                if (setAdvertisingDataError) {
+                    reject(setAdvertisingDataError);
+                    return;
                 }
 
-                console.log('Trying to advertise services.');
-
-                var advertisingData = {
-                    shortenedLocalName: 'MyCoolName',
-                    flags: ['leGeneralDiscMode', 'brEdrNotSupported'],
-                    txPowerLevel: -10,
-                };
-
-                var scanResponseData = {
-                    completeLocalName: 'MyReallyCoolName',
-                };
-
-                var options = {
-                    interval: 40,
-                    timeout: 180,
-                    connectable: true,
-                    scannable: false,
-                };
-
-                adapter.setAdvertisingData(advertisingData, scanResponseData, err => {
-                    if (err) {
-                        console.log(`Error setting advertising data. ${err}`);
-                    }
-                });
-
-                adapter.startAdvertising( options, function(err) {
-                    if (err) {
-                        console.log(`Error starting advertising. ${err}`);
-                        process.exit();
+                adapter.startAdvertising(options, startAdvertisingError => {
+                    if (startAdvertisingError) {
+                        reject(startAdvertisingError);
+                        return;
                     }
 
-                    console.log('We are advertising!');
+                    log('We are advertising!');
+
+                    setTimeout(() => {
+                        adapter.stopAdvertising(stopAdvertisingErr => {
+                            if (stopAdvertisingErr) {
+                                reject(stopAdvertisingErr);
+                                return;
+                            }
+
+                            resolve();
+                        });
+                    }, 10000);
                 });
             });
         });
+    });
+}
+
+Promise.all([grabAdapter()]).then(result => {
+    runTests(...result).then(() => {
+        testOutcome('Test completed successfully');
+    }).catch(failure => {
+        error('Test failed with error:', failure);
+    });
+}).catch(err => {
+    error('Error opening adapter:', err);
 });

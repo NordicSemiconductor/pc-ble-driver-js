@@ -37,23 +37,98 @@
 'use strict';
 
 const api = require('../index');
+const { adapterPool } = require('../examples/adapterPool');
 
 const adapterFactory = api.AdapterFactory.getInstance();
-const ServiceFactory = new api.ServiceFactory();
+const serviceFactory = new api.ServiceFactory();
 
-adapterFactory.on('added', adapter => {
-    console.log(`onAdded: ${adapter.instanceId}`);
-});
+const testTimeout = 2000;
 
-adapterFactory.on('removed', adapter => {
-    console.log(`onRemoved: ${adapter.instanceId}`);
-});
+const log = require('debug')('setup:log');
+const error = require('debug')('setup:error');
 
-adapterFactory.on('error', error => {
-    console.log(`onError: ${JSON.stringify(error, null, 1)}`);
-});
+// Function shall return a working opened adapter ready for use
+async function grabAdapter(requestedSerialNumber) {
+    const { apiVersion, port, serialNumber } = await adapterPool(requestedSerialNumber);
+    const adapter = adapterFactory.createAdapter(apiVersion, port, serialNumber);
+
+    adapter.on('error', err => error(`Error adapter ${err}`));
+
+    // TODO: automatically determine baud rate
+    const baudRate = 1000000;
+
+    return new Promise((resolve, reject) => {
+        adapter.open({ baudRate }, err => {
+            if (err) {
+                reject(new Error(`Error opening adapter: ${err}.`));
+                return;
+            }
+
+            resolve(adapter);
+        });
+    });
+}
+
+async function outcome(futureOutcomes, timeout) {
+    let timeoutId = null;
+
+    const result = await Promise.race([
+        Promise.all(futureOutcomes),
+        new Promise((_, reject) => {
+            timeoutId = setTimeout(() => reject(new Error(`Test timed out after ${testTimeout}`)), timeout || testTimeout);
+        })]);
+
+    clearTimeout(timeoutId);
+
+    return result;
+}
+
+function addAdapterListener(adapter, prefix) {
+    adapter.on('logMessage', (severity, message) => { log(`${prefix} logMessage: ${message}`); });
+    adapter.on('status', status => { log(`${prefix} status: ${JSON.stringify(status, null, 1)}`); });
+    adapter.on('error', err => {
+        error(`${prefix} error: ${JSON.stringify(err, null, 1)}`);
+    });
+
+    adapter.on('deviceConnected', device => { log(`${prefix} deviceConnected: ${device.address}`); });
+    adapter.on('deviceDisconnected', device => { log(`${prefix} deviceDisconnected: ${JSON.stringify(device, null, 1)}`); });
+    adapter.on('deviceDiscovered', device => { log(`${prefix} deviceDiscovered: ${JSON.stringify(device)}`); });
+}
+
+function setupAdapter(adapter, prefix, name, address, addressType) {
+    return new Promise((resolve, reject) => {
+        addAdapterListener(adapter, prefix);
+
+        adapter.getState(getStateError => {
+            if (getStateError) {
+                reject(getStateError);
+                return;
+            }
+
+            adapter.setAddress(address, addressType, setAddressError => {
+                if (setAddressError) {
+                    reject(setAddressError);
+                    return;
+                }
+
+                adapter.setName(name, setNameError => {
+                    if (setNameError) {
+                        reject(setNameError);
+                        return;
+                    }
+
+                    resolve(adapter);
+                });
+            });
+        });
+    });
+}
 
 module.exports = {
     adapterFactory,
-    ServiceFactory,
+    serviceFactory,
+    adapterPool,
+    grabAdapter,
+    setupAdapter,
+    outcome,
 };
