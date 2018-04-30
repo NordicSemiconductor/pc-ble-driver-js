@@ -49,30 +49,11 @@
  * Usage: node dfu.js <targetAddress> <pathToZip>
  */
 
-const assert = require('assert');
 const api = require('../index');
-const adapterFactory = require('./setup').adapterFactory;
-
-function setupAdapter(adapter, callback) {
-    const options = {
-        baudRate: 1000000,
-        parity: 'none',
-        flowControl: 'none',
-        enableBLE: false,
-        eventInterval: 0,
-    };
-
-    adapter.open(options, error => {
-        assert(!error);
-        adapter.enableBLE(null, err => {
-            assert(!err);
-            callback();
-        });
-    });
-}
+const { grabAdapter } = require('./setup');
 
 function addLogListeners(adapter, dfu) {
-    adapter.on('logMessage', (severity, message) => { if(severity > 1) console.log(`logMessage: ${message}`); });
+    adapter.on('logMessage', (severity, message) => { if (severity > 1) console.log(`logMessage: ${message}`); });
     adapter.on('status', status => console.log(`status: ${JSON.stringify(status)}`));
     adapter.on('error', error => console.log(`error: ${JSON.stringify(error)}`));
     adapter.on('stateChanged', state => console.log(`stateChanged: ${JSON.stringify(state)}`));
@@ -95,20 +76,23 @@ function addLogListeners(adapter, dfu) {
 }
 
 function performDfu(adapter, targetAddress, pathToZip) {
-    const transportParameters = {
-        adapter: adapter,
-        targetAddress: targetAddress,
-        targetAddressType: 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC',
-    };
-    const dfu = new api.Dfu('bleTransport', transportParameters);
+    return new Promise((resolve, reject) => {
+        const transportParameters = {
+            adapter,
+            targetAddress,
+            targetAddressType: 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC',
+        };
+        const dfu = new api.Dfu('bleTransport', transportParameters);
 
-    addLogListeners(adapter, dfu);
+        addLogListeners(adapter, dfu);
 
-    setupAdapter(adapter, () => {
         dfu.performDFU(pathToZip, err => {
             if (err) {
-                console.log('performDFU failed: ', err);
+                reject(err);
+                return;
             }
+
+            resolve();
         });
     });
 }
@@ -122,8 +106,6 @@ if (args.length < 2) {
 const targetAddress = args[0];
 const pathToZip = args[1];
 
-adapterFactory.getAdapters((error, adapters) => {
-    assert(!error);
-    const adapter = adapters[Object.keys(adapters)[0]];
-    performDfu(adapter, targetAddress, pathToZip);
+grabAdapter().then(adapter => performDfu(adapter, targetAddress, pathToZip)).catch(error => {
+    console.log(`Error during DFU operation: ${error.message}.`);
 });
