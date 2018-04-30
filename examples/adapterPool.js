@@ -64,17 +64,19 @@ class AdapterPool {
         return new Promise((resolve, reject) => {
             this.deviceLister.reenumerate()
                 .then(adapters => {
+                    const result = new Map();
+
                     // Only pick adapters we are able to program
                     adapters.forEach((adapter, serialNumber) => {
-                        const keep = adapter.traits
+                        const add = adapter.traits
                             && (adapter.traits.includes('jlink') || adapter.traits.includes('nordicDfu'));
 
-                        if (!keep) {
-                            adapters.delete(serialNumber);
+                        if (add) {
+                            result.set(serialNumber, adapter);
                         }
                     });
 
-                    resolve(adapters);
+                    resolve(result);
                 })
                 .catch(reject);
         });
