@@ -41,6 +41,7 @@ const Characteristic = require('./api/characteristic');
 const Descriptor = require('./api/descriptor');
 const Device = require('./api/device');
 const Dfu = require('./api/dfu');
+const FirmwareRegistry = require('./api/firmwareRegistry');
 const FirmwareUpdater = require('./api/firmwareUpdater');
 const Security = require('./api/security');
 const Service = require('./api/service');
@@ -54,6 +55,7 @@ module.exports = {
     Descriptor,
     Device,
     Dfu,
+    FirmwareRegistry,
     FirmwareUpdater,
     Security,
     Service,
