@@ -36,11 +36,10 @@
 
 'use strict';
 
-const { grabAdapter, setupAdapter, outcome } = require('./setup');
+const { grabAdapter, releaseAdapter, setupAdapter, outcome } = require('./setup');
 
 const assert = require('assert');
 const crypto = require('crypto');
-const os = require('os');
 
 const log = require('debug')('test:log');
 const testOutcome = require('debug')('test:outcome');
@@ -1207,189 +1206,6 @@ async function setupAuthLegacyPasskey(
     }
 }
 
-async function setupAuthLESCNumericComparisonExternal(
-    centralAdapter,
-    peripheralAdapter,
-    peripheralDevice) {
-    const secParams = {
-        bond: true,
-        mitm: true,
-        lesc: true,
-        keypress: false,
-        io_caps: peripheralAdapter.driver.BLE_GAP_IO_CAPS_KEYBOARD_DISPLAY,
-        oob: false,
-        min_key_size: 7,
-        max_key_size: 16,
-        kdist_own: {
-            enc: false,   /** Long Term Key and Master Identification. */
-            id: false,    /** Identity Resolving Key and Identity Address Information. */
-            sign: false,  /** Connection Signature Resolving Key. */
-            link: false,  /** Derive the Link Key from the LTK. */
-        },
-        kdist_peer: {
-            enc: false,   /** Long Term Key and Master Identification. */
-            id: false,    /** Identity Resolving Key and Identity Address Information. */
-            sign: false,  /** Connection Signature Resolving Key. */
-            link: false,  /** Derive the Link Key from the LTK. */
-        },
-    };
-
-    const secKeyset = {
-        keys_own: {
-            enc_key: null,
-            id_key: null,
-            sign_key: null,
-            pk: { pk: peripheralAdapter.computePublicKey() },
-        },
-        keys_peer: {
-            enc_key: null,
-            id_key: null,
-            sign_key: null,
-            pk: null,
-        },
-    };
-
-    const peripheralName = os.hostname();
-
-    const advertisingData = {
-        shortenedLocalName: peripheralName,
-        flags: ['leGeneralDiscMode', 'brEdrNotSupported'],
-        txPowerLevel: -10,
-    };
-
-    const scanResponseData = {
-    };
-
-    const options = {
-        interval: 40,
-        timeout: 180,
-        connectable: true,
-        scannable: false,
-    };
-
-    await new Promise((resolve, reject) => {
-        centralAdapter.disconnect(peripheralDevice.instanceId, err => {
-            if (err) {
-                reject(err);
-                return;
-            }
-
-            resolve();
-        });
-    });
-
-    await new Promise((resolve, reject) => {
-        peripheralAdapter.setAdvertisingData(advertisingData, scanResponseData, err => {
-            if (err) {
-                reject(err);
-                return;
-            }
-
-            resolve();
-        });
-    });
-
-    await new Promise((resolve, reject) => {
-        peripheralAdapter.startAdvertising(options, err => {
-            if (err) {
-                reject(err);
-                return;
-            }
-
-            resolve();
-        });
-    });
-
-
-    const authStatusPeripheral = new Promise((resolve, reject) => {
-        peripheralAdapter.once('authStatus', (device, status) => {
-            if (status !== 0) {
-                reject(new Error(`authStatus shall be 0, but is ${status}`));
-            }
-
-            resolve();
-        });
-    });
-
-    const secParamsRequestPeripheral = new Promise((resolve, reject) => {
-        peripheralAdapter.once('secParamsRequest', (device, _secParams) => {
-            if (_secParams.lesc !== true) {
-                reject(new Error(`lesc shall be true, is ${_secParams.lesc}`));
-                return;
-            }
-
-            if (_secParams.oob !== false) {
-                reject(new Error(`oob shall be false, is ${_secParams.oob}`));
-                return;
-            }
-
-            if (_secParams.mitm !== true) {
-                reject(new Error(`mitm shall be true, is ${_secParams.mitm}`));
-                return;
-            }
-
-            peripheralAdapter.replySecParams(device.instanceId, peripheralAdapter.driver.BLE_GAP_SEC_STATUS_SUCCESS, secParams, secKeyset, (err, keyset) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-
-                resolve({ device, secParams: _secParams, keyset });
-            });
-        });
-    });
-
-    const passkeyDisplayPeripheral = new Promise((resolve, reject) => {
-        peripheralAdapter.once('passkeyDisplay', (device, matchRequest, passkey) => {
-            peripheralAdapter.replyAuthKey(device.instanceId, peripheralAdapter.driver.BLE_GAP_AUTH_KEY_TYPE_PASSKEY, null, err => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-
-                resolve({ device, matchRequest, passkey });
-            });
-        });
-    });
-
-    const lescDhkeyRequestPeripheral = new Promise((resolve, reject) => {
-        peripheralAdapter.once('lescDhkeyRequest', (device, publicKeyPeer, oobdReq) => {
-            const sharedSecret = peripheralAdapter.computeSharedSecret(publicKeyPeer);
-
-            peripheralAdapter.replyLescDhkey(device.instanceId, sharedSecret, err => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-
-                resolve({ device, publicKeyPeer, oobdReq });
-            });
-        });
-    });
-
-    const [
-        secParamsRequestPeripheralResult,
-        lescDhkeyRequestPeripheralResult,
-        passkeyDisplayPeripheralResult,
-        authStatusPeripheralResult] = await outcome([
-            secParamsRequestPeripheral,
-            lescDhkeyRequestPeripheral,
-            passkeyDisplayPeripheral,
-            authStatusPeripheral], 10000);
-
-    // TODO: Simple assertions, add more when moving to jest test framework
-    if (
-        secParamsRequestPeripheralResult == null ||
-        lescDhkeyRequestPeripheralResult == null ||
-        passkeyDisplayPeripheralResult == null ||
-        authStatusPeripheralResult == null
-    ) throw new Error('Test did not pass');
-
-    if (authStatusPeripheral.status.auth_status !== 0) {
-        throw new Error(`Auth status shall be success(0), but is ${authStatusPeripheral.status.auth_status}`);
-    }
-}
-
 async function setupAuthLESCNumericComparison(
     centralAdapter,
     peripheralAdapter,
@@ -1641,17 +1457,17 @@ async function runTests(centralAdapter, peripheralAdapter) {
     testOutcome('LESCPasskey - OK');
     await setupAuthLESCOOB(centralAdapter, peripheralAdapter, peripheralDevice);
     testOutcome('LESCOOB - OK');
-    await setupAuthLESCNumericComparisonExternal(centralAdapter, peripheralAdapter, peripheralDevice);
-    testOutcome('LESCNumericComparisonExternal - OK');
 }
 
 Promise.all([grabAdapter(), grabAdapter()]).then(result => {
     runTests(...result).then(() => {
         testOutcome('Test(s) completed successfully');
+        return Promise.all([
+            releaseAdapter(result[0].state.serialNumber),
+            releaseAdapter(result[1].state.serialNumber)]);
     }).catch(failure => {
         testOutcome('Test(s) failed with error:', failure);
     });
 }).catch(error => {
     testOutcome('Error opening adapter:', error);
 });
-
