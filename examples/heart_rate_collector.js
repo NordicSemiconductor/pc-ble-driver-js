@@ -45,13 +45,10 @@
 
 'use strict';
 
-const _ = require('underscore');
-
 const api = require('../index');
-const { AdapterPool } = require('./adapterPool');
+const path = require('path');
 
 const adapterFactory = api.AdapterFactory.getInstance();
-const adapterPool = new AdapterPool();
 
 const BLE_UUID_HEART_RATE_SERVICE = '180D';
 const BLE_UUID_HEART_RATE_MEASUREMENT_CHAR = '2A37';
@@ -62,16 +59,203 @@ let heartRateService;
 let heartRateMeasurementCharacteristic;
 let cccdDescriptor;
 
+/**
+ * Discovers the heart rate service in the BLE peripheral's GATT attribute table.
+ *
+ * @param {Adapter} adapter Adapter being used.
+ * @param {Device} device Bluetooth central device being used.
+ * @returns {Promise} Resolves on successfully discovering the heart rate service.
+ *                    If an error occurs, rejects with the corresponding error.
+ */
+function discoverHeartRateService(adapter, device) {
+    return new Promise((resolve, reject) => {
+        adapter.getServices(device.instanceId, (err, services) => {
+            if (err) {
+                reject(Error(`Error discovering the heart rate service: ${err}.`));
+                return;
+            }
 
-adapterFactory.on('added', adapter => { console.log(`onAdded: Adapter added: ${adapter.instanceId}.`); });
-adapterFactory.on('removed', adapter => { console.log(`onRemoved: Adapter removed: ${adapter.instanceId}.`); });
-adapterFactory.on('error', error => { console.log(`onError: ${JSON.stringify(error, null, 1)}.`); });
+            for (const service in services) {
+                if (services[service].uuid === BLE_UUID_HEART_RATE_SERVICE) {
+                    resolve(services[service]);
+                    return;
+                }
+            }
+
+            reject(Error('Did not discover the heart rate service in peripheral\'s GATT attribute table.'));
+        });
+    });
+}
+
+/**
+ * Discovers the heart rate measurement characteristic in the BLE peripheral's GATT attribute table.
+ *
+ * @param {Adapter} adapter Adapter being used.
+ * @returns {Promise} Resolves on successfully discovering the heart rate measurement characteristic.
+ *                    If an error occurs, rejects with the corresponding error.
+ */
+function discoverHRMCharacteristic(adapter) {
+    return new Promise((resolve, reject) => {
+        adapter.getCharacteristics(heartRateService.instanceId, (err, characteristics) => {
+            if (err) {
+                reject(Error(`Error discovering the heart rate service's characteristics: ${err}.`));
+                return;
+            }
+
+            // eslint-disable-next-line guard-for-in
+            for (const characteristic in characteristics) {
+                console.log(JSON.stringify(characteristics[characteristic]));
+                if (characteristics[characteristic].uuid === BLE_UUID_HEART_RATE_MEASUREMENT_CHAR) {
+                    resolve(characteristics[characteristic]);
+                    return;
+                }
+            }
+
+            reject(Error('Did not discover the heart rate measurement chars in peripheral\'s GATT attribute table.'));
+        });
+    });
+}
+
+/**
+ * Discovers the heart rate measurement characteristic's CCCD in the BLE peripheral's GATT attribute table.
+ *
+ * @param {Adapter} adapter Adapter being used.
+ * @returns {Promise} Resolves on successfully discovering the heart rate measurement characteristic's CCCD.
+ *                    If an error occurs, rejects with the corresponding error.
+ */
+function discoverHRMCharCCCD(adapter) {
+    return new Promise((resolve, reject) => {
+        adapter.getDescriptors(heartRateMeasurementCharacteristic.instanceId, (err, descriptors) => {
+            if (err) {
+                reject(Error(`Error discovering the heart rate characteristic's CCCD: ${err}.`));
+                return;
+            }
+
+            for (const descriptor in descriptors) {
+                if (descriptors[descriptor].uuid === BLE_UUID_CCCD) {
+                    resolve(descriptors[descriptor]);
+                }
+            }
+
+            reject(Error('Did not discover the hrm chars CCCD in peripheral\'s GATT attribute table.'));
+        });
+    });
+}
+
+/**
+ * Allow user to toggle notifications on the hrm char with a key press, as well as cleanly exiting the application.
+ *
+ * @param {Adapter} adapter Adapter being used.
+ * @returns {undefined}
+ */
+function addUserInputListener(adapter) {
+    process.stdin.setEncoding('utf8');
+    process.stdin.setRawMode(true);
+
+    const notificationsEnabled = [0, 0];
+
+    process.stdin.on('readable', () => {
+        const chunk = process.stdin.read();
+        if (chunk === null) return;
+
+        if (chunk[0] === 'q' || chunk[0] === 'Q') {
+            adapter.close(err => {
+                if (err) {
+                    console.log(`Error closing the adapter: ${err}.`);
+                }
+
+                console.log('Exiting the application...');
+                process.exit(1);
+            });
+        } else {
+            if (notificationsEnabled[0]) {
+                notificationsEnabled[0] = 0;
+                console.log('Disabling notifications on the heart rate measurement characteristic.');
+            } else {
+                notificationsEnabled[0] = 1;
+                console.log('Enabling notifications on the heart rate measurement characteristic.');
+            }
+
+            adapter.writeDescriptorValue(cccdDescriptor.instanceId, notificationsEnabled, false, err => {
+                if (err) {
+                    console.log(`Error enabling notifications on the hrm characteristic: ${err}.`);
+                    process.exit(1);
+                }
+
+                console.log('Notifications toggled on the heart rate measurement characteristic.');
+            });
+        }
+    });
+}
+
+/**
+ * Connects to the desired BLE peripheral.
+ *
+ * @param {Adapter} adapter Adapter being used.
+ * @param {any} connectToAddress Device address of the advertising BLE peripheral to connect to.
+ * @returns {Promise} Resolves on successfully connecting to the BLE peripheral.
+ *                    If an error occurs, rejects with the corresponding error.
+ */
+function connect(adapter, connectToAddress) {
+    return new Promise((resolve, reject) => {
+        console.log('Connecting to target device...');
+
+        const options = {
+            scanParams: {
+                active: false,
+                interval: 100,
+                window: 50,
+                timeout: 0,
+            },
+            connParams: {
+                min_conn_interval: 7.5,
+                max_conn_interval: 7.5,
+                slave_latency: 0,
+                conn_sup_timeout: 4000,
+            },
+        };
+
+        adapter.connect(connectToAddress, options, err => {
+            if (err) {
+                reject(Error(`Error connecting to target device: ${err}.`));
+                return;
+            }
+
+            resolve();
+        });
+    });
+}
+
+/**
+ * Function to start scanning (GAP Discovery procedure, Observer Procedure).
+ *
+ * @param {Adapter} adapter Adapter being used.
+ * @returns {Promise} Resolves on successfully initiating the scanning procedure.
+ *                    If an error occurs, rejects with the corresponding error.
+ */
+function startScan(adapter) {
+    return new Promise((resolve, reject) => {
+        console.log('Started scanning...');
+
+        const scanParameters = {
+            active: true,
+            interval: 100,
+            window: 50,
+            timeout: 0,
+        };
+
+        adapter.startScan(scanParameters, err => reject(Error(`Error starting scanning: ${err}.`)));
+
+        resolve();
+    });
+}
 
 /**
  * Handling events emitted by adapter.
  *
- * @param adapter Adapter in use.
- * @param prefix Prefix to prepend to each log.
+ * @param {Adapter} adapter Adapter in use.
+ * @param {string} prefix Prefix to prepend to each log.
+ * @returns {void}
  */
 function addAdapterListener(adapter, prefix) {
     /**
@@ -131,7 +315,7 @@ function addAdapterListener(adapter, prefix) {
             }).catch(error => {
                 console.log(error);
                 process.exit(1);
-            })
+            });
         }
     });
 
@@ -148,26 +332,15 @@ function addAdapterListener(adapter, prefix) {
 }
 
 /**
- * Enumerates all connected adapters.
- *
- * @returns {Promise} Resolves with the first adapter found. If no adapters are found or an error occurs, rejects with
- *                    the corresponding error.
- */
-async function getAdapter() {
-    const { port, apiVersion, serialNumber } = await adapterPool.grabAdapter();
-    return adapterFactory.createAdapter(apiVersion, port, serialNumber);
-}
-
-/**
  * Opens adapter for use with the default options.
  *
- * @param adapter Adapter to be opened.
+ * @param {Adapter} adapter Adapter to be opened.
  * @returns {Promise} Resolves if the adapter is opened successfully.
  *                    If an error occurs, rejects with the corresponding error.
  */
 function openAdapter(adapter) {
     return new Promise((resolve, reject) => {
-        const baudRate = 1000000;
+        const baudRate = process.platform === 'darwin' ? 115200 : 1000000;
         console.log(`Opening adapter with ID: ${adapter.instanceId} and baud rate: ${baudRate}...`);
 
         const options = {
@@ -191,207 +364,46 @@ function openAdapter(adapter) {
     });
 }
 
-/**
- * Function to start scanning (GAP Discovery procedure, Observer Procedure).
- *
- * @param adapter Adapter being used.
- * @returns {Promise} Resolves on successfully initiating the scanning procedure.
- *                    If an error occurs, rejects with the corresponding error.
- */
-function startScan(adapter) {
-    return new Promise((resolve, reject) => {
-        console.log('Started scanning...');
-
-        const scanParameters = {
-            active: true,
-            interval: 100,
-            window: 50,
-            timeout: 0,
-        };
-
-        adapter.startScan(scanParameters, err => {
-            return reject(Error(`Error starting scanning: ${err}.`));
-        });
-
-        resolve();
-    });
-}
-
-/**
- * Connects to the desired BLE peripheral.
- *
- * @param adapter Adapter being used.
- * @param connectToAddress Device address of the advertising BLE peripheral to connect to.
- * @returns {Promise} Resolves on successfully connecting to the BLE peripheral.
- *                    If an error occurs, rejects with the corresponding error.
- */
-function connect(adapter, connectToAddress) {
-    return new Promise((resolve, reject) => {
-        console.log('Connecting to target device...');
-
-        const options = {
-            scanParams: {
-                active: false,
-                interval: 100,
-                window: 50,
-                timeout: 0,
-            },
-            connParams: {
-                min_conn_interval: 7.5,
-                max_conn_interval: 7.5,
-                slave_latency: 0,
-                conn_sup_timeout: 4000,
-            },
-        };
-
-        adapter.connect(connectToAddress, options, err => {
-            if (err) {
-                return reject(Error(`Error connecting to target device: ${err}.`));
-            }
-
-            resolve();
-        });
-    });
-}
-
-/**
- * Discovers the heart rate service in the BLE peripheral's GATT attribute table.
- *
- * @param adapter Adapter being used.
- * @param device Bluetooth central device being used.
- * @returns {Promise} Resolves on successfully discovering the heart rate service.
- *                    If an error occurs, rejects with the corresponding error.
- */
-function discoverHeartRateService(adapter, device) {
-    return new Promise((resolve, reject) => {
-        adapter.getServices(device.instanceId, (err, services) => {
-            if (err) {
-                return reject(Error(`Error discovering the heart rate service: ${err}.`));
-            }
-
-            for (let service in services) {
-                if (services[service].uuid === BLE_UUID_HEART_RATE_SERVICE) {
-                    return resolve(services[service]);
-                }
-            }
-
-            reject(Error('Did not discover the heart rate service in peripheral\'s GATT attribute table.'));
-        });
-    });
-}
-
-/**
- * Discovers the heart rate measurement characteristic in the BLE peripheral's GATT attribute table.
- *
- * @param adapter Adapter being used.
- * @returns {Promise} Resolves on successfully discovering the heart rate measurement characteristic.
- *                    If an error occurs, rejects with the corresponding error.
- */
-function discoverHRMCharacteristic(adapter) {
-    return new Promise((resolve, reject) => {
-        adapter.getCharacteristics(heartRateService.instanceId, (err, characteristics) => {
-            if (err) {
-                return reject(Error(`Error discovering the heart rate service's characteristics: ${err}.`));
-            }
-
-            for (let characteristic in characteristics) {
-                console.log(JSON.stringify(characteristics[characteristic]));
-                if (characteristics[characteristic].uuid == BLE_UUID_HEART_RATE_MEASUREMENT_CHAR) {
-                    return resolve(characteristics[characteristic]);
-                }
-            }
-
-            reject(Error('Did not discover the heart rate measurement chars in peripheral\'s GATT attribute table.'));
-        });
-    });
-}
-
-/**
- * Discovers the heart rate measurement characteristic's CCCD in the BLE peripheral's GATT attribute table.
- *
- * @param adapter Adapter being used.
- * @returns {Promise} Resolves on successfully discovering the heart rate measurement characteristic's CCCD.
- *                    If an error occurs, rejects with the corresponding error.
- */
-function discoverHRMCharCCCD(adapter) {
-    return new Promise((resolve, reject) => {
-        adapter.getDescriptors(heartRateMeasurementCharacteristic.instanceId, (err, descriptors) => {
-            if (err) {
-                return reject(Error(`Error discovering the heart rate characteristic's CCCD: ${err}.`));
-            }
-
-            for (const descriptor in descriptors) {
-                if (descriptors[descriptor].uuid === BLE_UUID_CCCD) {
-                    return resolve(descriptors[descriptor]);
-                }
-            }
-
-            reject(Error('Did not discover the hrm chars CCCD in peripheral\'s GATT attribute table.'));
-        });
-    });
-}
-
-/**
- * Allow user to toggle notifications on the hrm char with a key press, as well as cleanly exiting the application.
- *
- * @param adapter Adapter being used.
- */
-function addUserInputListener(adapter) {
-    process.stdin.setEncoding('utf8');
-    process.stdin.setRawMode(true);
-
-    const notificationsEnabled = [0, 0];
-
-    process.stdin.on('readable', () => {
-        const chunk = process.stdin.read();
-        if (chunk === null) return;
-
-        if (chunk[0] === 'q' || chunk[0] === 'Q') {
-            adapter.close(err => {
-                if (err) {
-                    console.log(`Error closing the adapter: ${err}.`);
-                }
-
-                console.log('Exiting the application...');
-                process.exit(1);
-            });
-        } else {
-            if (notificationsEnabled[0]) {
-                notificationsEnabled[0] = 0;
-                console.log('Disabling notifications on the heart rate measurement characteristic.');
-            } else {
-                notificationsEnabled[0] = 1;
-                console.log('Enabling notifications on the heart rate measurement characteristic.');
-            }
-
-            adapter.writeDescriptorValue(cccdDescriptor.instanceId, notificationsEnabled, false, err => {
-                if (err) {
-                    console.log(`Error enabling notifications on the hrm characteristic: ${err}.`);
-                    process.exit(1);
-                }
-
-                console.log('Notifications toggled on the heart rate measurement characteristic.');
-            });
-        }
-    });
+function help() {
+    console.log(`Usage: ${path.basename(__filename)} <PORT> <SD_API_VERSION>`);
+    console.log();
+    console.log('PORT is the UART for the adapter.');
+    console.log('SD_API_VERSION can be v2 or v3. nRF51 series uses v2.');
+    console.log();
+    console.log('It is assumed that the nRF device has been programmed with the correct connectivity firmware.');
 }
 
 /**
  * Application main entry.
  */
-getAdapter().then(adapter => {
-    console.log(`Connected to adapter: ${adapter.instanceId}.`);
+if (process.argv.length !== 4) {
+    help();
+    process.exit(-1);
+} else {
+    const [,, port, apiVersion] = process.argv;
+
+    if (!port) {
+        console.error('PORT must be specified');
+        process.exit(-1);
+    }
+
+    if (!apiVersion) {
+        if (!['v2', 'v3'].includes(apiVersion)) {
+            console.error(`SD_API_VERSION must be v2 or v3, argument provided is ${apiVersion}`);
+            process.exit(-1);
+        }
+    }
+
+    const adapter = adapterFactory.createAdapter(apiVersion, port, '');
     addAdapterListener(adapter, '#BLE_CENTRAL: ');
 
-    return openAdapter(adapter)
-        .then(() => {
-            console.log('Opened adapter.');
-            return startScan(adapter);
-        })
-        .then(() => {
-            console.log('Scanning.');
-        });
-}).catch(error => {
-    console.log(error);
-    process.exit(1);
-});
+    openAdapter(adapter).then(() => {
+        console.log('Opened adapter.');
+        return startScan(adapter);
+    }).then(() => {
+        console.log('Scanning.');
+    }).catch(error => {
+        console.log(error);
+        process.exit(-1);
+    });
+}
