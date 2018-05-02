@@ -69,8 +69,6 @@ async function runTests(adapter) {
         });
     });
 
-    let timeoutId;
-
     const scanReportReceived = new Promise(scanReportReceivedResolve => {
         adapter.on('deviceDiscovered', () => {
             scanReportsReceived += 1;
@@ -78,13 +76,12 @@ async function runTests(adapter) {
             log(`Received ${scanReportsReceived} scan reports.`);
 
             if (scanReportsReceived > expectedNumberOfScanReports) {
-                clearTimeout(timeoutId);
                 scanReportReceivedResolve();
             }
         });
     });
 
-    await outcome([scanReportReceived]);
+    await outcome([scanReportReceived], 2000);
 
     await new Promise((stopScanResolve, stopScanReject) => {
         adapter.stopScan(stopScanErr => {
