@@ -36,125 +36,97 @@
 
 'use strict';
 
-const assert = require('assert');
+const { grabAdapter, releaseAdapter, setupAdapter, outcome } = require('./setup');
 
-const setup = require('./setup');
-const adapterFactory = setup.adapterFactory;
+const log = require('debug')('test:log');
+const error = require('debug')('test:error');
 
-const peripheralDeviceAddress = 'FF:11:22:33:AA:BE';
-const peripheralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
-
-const centralDeviceAddress = 'FF:11:22:33:AA:BF';
+const centralDeviceAddress = 'FF:11:22:33:AA:BE';
 const centralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
-function addAdapterFactoryListeners() {
-    adapterFactory.on('added', adapter => {
-        console.log(`onAdded: Adapter added. Adapter: ${adapter.instanceId}`);
-    });
-
-    adapterFactory.on('removed', adapter => {
-        console.log(`onRemoved: Adapter removed. Adapter: ${adapter.instanceId}`);
-    });
-
-    adapterFactory.on('error', error => {
-        console.log('onError: Error occured: ' + JSON.stringify(error, null, 1));
-    });
-}
-
-function addAdapterListener(adapter, prefix) {
-    adapter.on('logMessage', (severity, message) => {
-        if (severity > 1) console.log(`${severity} ${prefix} logMessage: ${message}`);
-    });
-
-    adapter.on('status', status => {
-        console.log(`${prefix} status: ${JSON.stringify(status, null, 1)}`);
-    });
-
-    adapter.on('error', error => {
-        console.log(`${prefix} error: ${JSON.stringify(error, null, 1)}`);
-        assert(false);
-    });
-
-    adapter.on('deviceDiscovered', device => {
-        console.log(`${prefix} deviceDiscovered: ${device.address}`);
-    });
-}
-
-function setupAdapter(adapter, name, address, addressType, callback) {
-    adapter.open(
-        {
-            baudRate: 1000000,
-            parity: 'none',
-            flowControl: 'none',
-            enableBLE: false,
-            eventInterval: 10,
-        },
-        error => {
-            assert(!error);
-            adapter.enableBLE(
-                null,
-                (error, params, app_ram_base) => {
-                    assert(!error);
-                    adapter.getState((error, state) => {
-                        assert(!error);
-                        adapter.setAddress(address, addressType, error => {
-                            assert(!error);
-                            adapter.setName(name, error => {
-                                assert(!error);
-                                if (callback) callback(adapter);
-                            });
-                        });
-                    });
-                }
-            );
-        }
-    );
-}
-
-function tearDownAdapter(adapter, callback) {
-    adapter.close(error => {
-        assert(!error);
-        if (callback) callback();
-    });
-}
-
-function startScan(adapter, callback) {
+async function startScan(adapter, timeout) {
     const scanParameters = {
         active: true,
         interval: 100,
         window: 20,
-        timeout: 4,
+        timeout,
     };
 
-    adapter.startScan(scanParameters, err => {
-        assert(!err);
-        if (callback) callback();
+    return new Promise((resolve, reject) => {
+        adapter.startScan(scanParameters, err => {
+            if (err) {
+                reject(err);
+            }
+
+            resolve();
+        });
     });
 }
 
-function runTests(peripheralAdapter) {
-    addAdapterListener(peripheralAdapter, '#PERIPHERAL');
+function runTests() {
+    const expectedNumberOfScanReports = 2;
 
-    setInterval(() => {
-        setupAdapter(peripheralAdapter, 'peripheralAdapter', peripheralDeviceAddress, peripheralDeviceAddressType, adapter => {
-            startScan(adapter, () => {
-                console.log('Scan started');
-                setTimeout(() => {
-                    adapter.stopScan(err => {
-                        console.log('Scan stopped');
-                        assert(!err);
-                        tearDownAdapter(adapter);
-                    });
-                    // Let the scanning run for a time period
-                }, 2000);
+    let adapterSn;
+    let openCloseIterations = 0;
+
+    const oneIteration = async () => {
+        log(`Open close iteration #${openCloseIterations} starting.`);
+
+        const adapterToUse = await grabAdapter(adapterSn);
+        adapterSn = adapterToUse.state.serialNumber;
+
+        await setupAdapter(adapterToUse, 'central', 'central', centralDeviceAddress, centralDeviceAddressType);
+
+        let scanReportsReceived = 0;
+
+        const scanReportsReceivedPromise = new Promise(scanReportReceivedResolve => {
+            const deviceDiscoveredEvent = () => {
+                scanReportsReceived += 1;
+
+                if (scanReportsReceived >= expectedNumberOfScanReports) {
+                    log(`Received ${scanReportsReceived} scan reports.`);
+                    adapterToUse.removeListener('deviceDiscovered', deviceDiscoveredEvent);
+                    scanReportReceivedResolve();
+                }
+            };
+
+            adapterToUse.on('deviceDiscovered', deviceDiscoveredEvent);
+        });
+
+        await startScan(adapterToUse, 1000);
+        await outcome([scanReportsReceivedPromise], 1100);
+
+        await new Promise((resolve, reject) => {
+            adapterToUse.stopScan(stopScanErr => {
+                if (stopScanErr) {
+                    reject(stopScanErr);
+                    return;
+                }
+
+                resolve();
             });
         });
-    }, 5000);
+
+        await releaseAdapter(adapterSn);
+        log(`Open close iteration #${openCloseIterations} complete.`);
+        openCloseIterations += 1;
+    };
+
+    return new Promise(async (_, reject) => {
+        try {
+            while (true) {
+                // eslint-disable-next-line no-await-in-loop
+                await oneIteration();
+                // eslint-disable-next-line no-await-in-loop
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+        } catch (iterationErr) {
+            reject(iterationErr);
+        }
+    });
 }
 
-addAdapterFactoryListeners();
-
-adapterFactory.getAdapters((error, adapters) => {
-    assert(!error);
-    runTests(adapters[Object.keys(adapters)[0]]);
+// Should run until error occurs
+runTests().catch(runTestsError => {
+    error(runTestsError);
 });
