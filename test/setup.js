@@ -275,7 +275,7 @@ async function outcome(futureOutcomes, timeout) {
     const result = await Promise.race([
         Promise.all(futureOutcomes),
         new Promise((_, reject) => {
-            timeoutId = setTimeout(() => reject(new Error(`Test timed out after ${testTimeout}`)), timeout || testTimeout);
+            timeoutId = setTimeout(() => reject(new Error(`Test timed out after ${testTimeout} ms`)), timeout || testTimeout);
         })]);
 
     clearTimeout(timeoutId);

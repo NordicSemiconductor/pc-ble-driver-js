@@ -36,7 +36,7 @@
 
 'use strict';
 
-const { grabAdapter, serviceFactory, setupAdapter } = require('./setup');
+const { grabAdapter, releaseAdapter, serviceFactory, setupAdapter } = require('./setup');
 
 const log = require('debug')('test:log');
 const error = require('debug')('test:error');
@@ -47,7 +47,6 @@ const peripheralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
 async function runTests(adapter) {
     await setupAdapter(adapter, '#PERIPH', 'periph', peripheralDeviceAddress, peripheralDeviceAddressType);
-
     log('Adapter opened.');
 
     const service1 = serviceFactory.createService('adabfb006e7d4601bda2bffaa68956ba');
@@ -153,12 +152,9 @@ async function runTests(adapter) {
     });
 }
 
-Promise.all([grabAdapter()]).then(result => {
-    runTests(...result).then(() => {
-        testOutcome('Test completed successfully');
-    }).catch(failure => {
-        error('Test failed with error:', failure);
-    });
-}).catch(err => {
-    error('Error opening adapter:', err);
+grabAdapter().then(runTests).then(() => {
+    testOutcome('Test completed successfully');
+    return releaseAdapter();
+}).catch(failure => {
+    error('Test failed with error:', failure);
 });
