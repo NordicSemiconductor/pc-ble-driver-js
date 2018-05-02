@@ -36,7 +36,7 @@
 
 'use strict';
 
-const { grabAdapter, setupAdapter, outcome } = require('./setup');
+const { grabAdapter, releaseAdapter, setupAdapter, outcome } = require('./setup');
 
 const testOutcome = require('debug')('test:outcome');
 const log = require('debug')('test:log');
@@ -95,12 +95,9 @@ async function runTests(adapter) {
     });
 }
 
-Promise.all([grabAdapter()]).then(result => {
-    runTests(...result).then(() => {
-        testOutcome('Test completed successfully');
-    }).catch(failure => {
-        error('Test failed with error:', failure);
-    });
-}).catch(err => {
-    error('Error opening adapter:', err);
+grabAdapter().then(runTests).then(() => {
+    testOutcome('Test completed successfully');
+    return releaseAdapter();
+}).catch(failure => {
+    error('Test failed with error:', failure);
 });

@@ -70,7 +70,7 @@ function runTests() {
     let openCloseIterations = 0;
 
     const oneIteration = async () => {
-        log(`Open close iteration #${openCloseIterations} starting.`);
+        log(`Open/close iteration #${openCloseIterations} starting.`);
 
         const adapterToUse = await grabAdapter(adapterSn);
         adapterSn = adapterToUse.state.serialNumber;
@@ -108,7 +108,7 @@ function runTests() {
         });
 
         await releaseAdapter(adapterSn);
-        log(`Open close iteration #${openCloseIterations} complete.`);
+        log(`Open/close iteration #${openCloseIterations} complete.`);
         openCloseIterations += 1;
     };
 
@@ -118,7 +118,7 @@ function runTests() {
                 // eslint-disable-next-line no-await-in-loop
                 await oneIteration();
                 // eslint-disable-next-line no-await-in-loop
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise(resolve => setTimeout(resolve, 3000));
             }
         } catch (iterationErr) {
             reject(iterationErr);

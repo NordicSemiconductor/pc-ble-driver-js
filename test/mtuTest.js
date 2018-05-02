@@ -36,7 +36,7 @@
 
 'use strict';
 
-const { grabAdapter, setupAdapter, outcome } = require('./setup');
+const { grabAdapter, releaseAdapter, setupAdapter, outcome } = require('./setup');
 
 const api = require('../index');
 const testOutcome = require('debug')('test:outcome');
@@ -350,6 +350,9 @@ async function runTests(centralAdapter, peripheralAdapter) {
 Promise.all([grabAdapter(), grabAdapter()]).then(result => {
     runTests(...result).then(() => {
         testOutcome('Test completed successfully');
+        return Promise.all([
+            releaseAdapter(result[0].state.serialNumber),
+            releaseAdapter(result[1].state.serialNumber)]);
     }).catch(failure => {
         error('Test failed with error:', failure);
     });

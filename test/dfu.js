@@ -50,7 +50,7 @@
  */
 
 const api = require('../index');
-const { grabAdapter } = require('./setup');
+const { grabAdapter, releaseAdapter } = require('./setup');
 
 function addLogListeners(adapter, dfu) {
     adapter.on('logMessage', (severity, message) => { if (severity > 1) console.log(`logMessage: ${message}`); });
@@ -106,6 +106,8 @@ if (args.length < 2) {
 const targetAddress = args[0];
 const pathToZip = args[1];
 
-grabAdapter().then(adapter => performDfu(adapter, targetAddress, pathToZip)).catch(error => {
-    console.log(`Error during DFU operation: ${error.message}.`);
-});
+grabAdapter().then(adapter => performDfu(adapter, targetAddress, pathToZip))
+    .then(() => releaseAdapter())
+    .catch(error => {
+        console.log(`Error during DFU operation: ${error.message}.`);
+    });

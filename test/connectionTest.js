@@ -37,7 +37,7 @@
 'use strict';
 
 const assert = require('assert');
-const { grabAdapter, setupAdapter, outcome } = require('./setup');
+const { grabAdapter, releaseAdapter, setupAdapter, outcome } = require('./setup');
 
 const peripheralDeviceAddress = 'FF:11:22:33:AA:CE';
 const peripheralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
@@ -182,12 +182,13 @@ async function runTests(centralAdapter, peripheralAdapter) {
         dataLengthChangedCentralPeripheral]);
 }
 
-Promise.all([grabAdapter(), grabAdapter()]).then(result => {
-    runTests(...result).then(() => {
-        testOutcome('Test completed successfully');
-    }).catch(failure => {
-        error('Test failed with error:', failure);
-    });
-}).catch(err => {
+Promise.all([grabAdapter(), grabAdapter()]).then(result => runTests(...result).then(() => {
+    testOutcome('Test completed successfully');
+    return Promise.all([
+        releaseAdapter(result[0].state.serialNumber),
+        releaseAdapter(result[1].state.serialNumber)]);
+}).catch(failure => {
+    error('Test failed with error:', failure);
+})).catch(err => {
     error('Error opening adapter:', err);
 });
