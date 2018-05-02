@@ -60,7 +60,7 @@
     <h2>Constructor</h2>
     
 
-    <h4 class="name" id="AdapterFactory"><span class="type-signature"></span>new AdapterFactory<span class="signature">(singletonToken, bleDrivers)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="AdapterFactory"><span class="type-signature"></span>new AdapterFactory<span class="signature">(singletonToken, bleDrivers, options)</span><span class="type-signature"></span></h4>
 
     
 
@@ -196,6 +196,32 @@
         </tr>
 
     
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>Object</code></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">
+                Options for customizing the behavior of the adapter factory.
+                
+            </td>
+        </tr>
+
+    
     </tbody>
 </table>
 
@@ -254,7 +280,7 @@
 
     
 
-    <h4 class="name" id=".getInstance"><span class="type-signature">(static) </span>getInstance<span class="signature">(bleDrivers)</span><span class="type-signature"> &rarr; {<a href="AdapterFactory.html">AdapterFactory</a>}</span></h4>
+    <h4 class="name" id=".getInstance"><span class="type-signature">(static) </span>getInstance<span class="signature">(bleDrivers<span class="signature-attributes">opt</span>, options<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {<a href="AdapterFactory.html">AdapterFactory</a>}</span></h4>
 
     
 
@@ -262,6 +288,12 @@
 
 <div class="description">
     Get the singleton `AdapterFactory` instance.
+
+The mapping of SoftDevice API version to pc-ble-driver AddOn can be overridden
+by providing a custom `bleDrivers` argument. By default the AdapterFactory will
+poll for added/removed adapters every 2 seconds and emit 'added' and 'removed'
+events. This can be disabled by passing `enablePolling: false` as part of the
+options object.
 </div>
 
 
@@ -297,7 +329,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapterFactory.js.html">adapterFactory.js</a>, <a href="adapterFactory.js.html#line135">line 135</a>
+        <a href="adapterFactory.js.html">adapterFactory.js</a>, <a href="adapterFactory.js.html#line144">line 144</a>
     </li></ul></dd>
     
 
@@ -329,6 +361,8 @@
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
         
 
@@ -347,9 +381,6 @@
             <td class="type">
             
                 
-<span class="param-type"><code>null</code></span>
-|
-
 <span class="param-type"><code>Object</code></span>
 
 
@@ -357,11 +388,57 @@
             </td>
 
             
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
 
             
 
             <td class="description last">
                 Optional object mapping version to pc-ble-driver AddOn.
+                
+            </td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><code>Object</code></span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">
+                Optional object for customizing the behavior of the adapter factory.
                 
             </td>
         </tr>
@@ -460,7 +537,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapterFactory.js.html">adapterFactory.js</a>, <a href="adapterFactory.js.html#line303">line 303</a>
+        <a href="adapterFactory.js.html">adapterFactory.js</a>, <a href="adapterFactory.js.html#line316">line 316</a>
     </li></ul></dd>
     
 
@@ -672,7 +749,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="adapterFactory.js.html">adapterFactory.js</a>, <a href="adapterFactory.js.html#line276">line 276</a>
+        <a href="adapterFactory.js.html">adapterFactory.js</a>, <a href="adapterFactory.js.html#line289">line 289</a>
     </li></ul></dd>
     
 
