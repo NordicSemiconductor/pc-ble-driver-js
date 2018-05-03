@@ -63,13 +63,14 @@ async function startScan(adapter, timeout) {
     });
 }
 
-function runTests() {
+function runTests(numberOfIterations) {
     const expectedNumberOfScanReports = 2;
 
     let adapterSn;
     let openCloseIterations = 0;
     let programDevice = true;
     let sdApiVersion;
+    const requiredNumberOfIterations = numberOfIterations || Number.MAX_SAFE_INTEGER;
 
     const oneIteration = async () => {
         log(`Open/close iteration #${openCloseIterations} starting.`);
@@ -99,8 +100,8 @@ function runTests() {
             adapterToUse.on('deviceDiscovered', deviceDiscoveredEvent);
         });
 
-        await startScan(adapterToUse, 1000);
-        await outcome([scanReportsReceivedPromise], 1100);
+        await startScan(adapterToUse, 2000);
+        await outcome([scanReportsReceivedPromise], 1500, `Failed waiting for ${expectedNumberOfScanReports} scan reports.`);
 
         await new Promise((resolve, reject) => {
             adapterToUse.stopScan(stopScanErr => {
@@ -114,19 +115,19 @@ function runTests() {
         });
 
         await releaseAdapter(adapterSn);
-        log(`Open/close iteration #${openCloseIterations} complete.`);
+        log(`Open/close iteration #${openCloseIterations} of ${requiredNumberOfIterations} complete.`);
         openCloseIterations += 1;
     };
 
     return new Promise(async (_, reject) => {
         try {
-            while (true) {
+            while (openCloseIterations < requiredNumberOfIterations) {
                 // eslint-disable-next-line no-await-in-loop
                 await oneIteration();
 
                 if (sdApiVersion === 2) {
                     // eslint-disable-next-line no-await-in-loop
-                    await new Promise(resolve => setTimeout(resolve, 300));
+                    await new Promise(resolve => setTimeout(resolve, 250));
                 }
             }
         } catch (iterationErr) {
@@ -136,6 +137,8 @@ function runTests() {
 }
 
 // Should run until error occurs
-runTests().catch(runTestsError => {
+// This test expects an external device to advertise at least 2 packets in the test scans for advertisement packets
+runTests(1000).catch(runTestsError => {
     error(runTestsError);
+    process.exit(-1);
 });
