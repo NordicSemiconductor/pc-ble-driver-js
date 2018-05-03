@@ -166,6 +166,7 @@ async function _grabAdapter(serialNumber, options) {
         if (serialNumbers.some(sn => {
             if (![...grabbedAdapters.keys()].includes(sn)) {
                 availableAdapter = foundAdapters.get(sn);
+                grabbedAdapters.set(sn, foundAdapters.get(sn));
                 return true;
             }
 
@@ -183,8 +184,9 @@ async function _grabAdapter(serialNumber, options) {
         throw new Error('No adapter up for grabs.');
     }
 
-    // TODO: when DFU works, uncomment setupDevice
-    if (options && options.programDevice !== false) {
+    const skipSetupDevice = options && options.programDevice === false;
+
+    if (!skipSetupDevice) {
         await setupDevice(selectedAdapter, FirmwareRegistry.getDeviceSetup());
     }
 
