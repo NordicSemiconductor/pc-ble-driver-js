@@ -16,8 +16,9 @@ If precompiled binaries do not exist in your case, or you are going to do develo
 
 The following Node/npm versions are required:
 
-* Node.js (>=4.4.7)
+* Node.js (>=6.5.7)
 * npm (>=3.7.0)
+
 
 ### Submodule
 
