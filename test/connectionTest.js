@@ -180,15 +180,19 @@ async function runTests(centralAdapter, peripheralAdapter) {
         attMtuChangedPeripheral,
         dataLengthChangedCentral,
         dataLengthChangedCentralPeripheral]);
+
+    return [centralAdapter, peripheralAdapter];
 }
 
-Promise.all([grabAdapter(), grabAdapter()]).then(result => runTests(...result).then(() => {
+Promise.all([
+    grabAdapter(),
+    grabAdapter()])
+.then(result => runTests(...result))
+.then(adapters => {
     testOutcome('Test completed successfully');
     return Promise.all([
-        releaseAdapter(result[0].state.serialNumber),
-        releaseAdapter(result[1].state.serialNumber)]);
+        releaseAdapter(adapters[0].state.serialNumber),
+        releaseAdapter(adapters[1].state.serialNumber)]);
 }).catch(failure => {
     error('Test failed with error:', failure);
-})).catch(err => {
-    error('Error opening adapter:', err);
 });
