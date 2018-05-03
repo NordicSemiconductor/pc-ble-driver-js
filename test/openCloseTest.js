@@ -69,6 +69,7 @@ function runTests() {
     let adapterSn;
     let openCloseIterations = 0;
     let programDevice = true;
+    let sdApiVersion;
 
     const oneIteration = async () => {
         log(`Open/close iteration #${openCloseIterations} starting.`);
@@ -78,6 +79,7 @@ function runTests() {
         // Program/check for correct firmware only once
         programDevice = false;
         adapterSn = adapterToUse.state.serialNumber;
+        sdApiVersion = adapterToUse._bleDriver.NRF_SD_BLE_API_VERSION;
 
         await setupAdapter(adapterToUse, 'central', 'central', centralDeviceAddress, centralDeviceAddressType);
 
@@ -121,8 +123,11 @@ function runTests() {
             while (true) {
                 // eslint-disable-next-line no-await-in-loop
                 await oneIteration();
-                // eslint-disable-next-line no-await-in-loop
-                await new Promise(resolve => setTimeout(resolve, 3000));
+
+                if (sdApiVersion === 2) {
+                    // eslint-disable-next-line no-await-in-loop
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
             }
         } catch (iterationErr) {
             reject(iterationErr);

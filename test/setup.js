@@ -184,13 +184,18 @@ async function _grabAdapter(serialNumber, options) {
         throw new Error('No adapter up for grabs.');
     }
 
+    const softDeviceParams = determineSoftDeviceParameters(selectedAdapter.serialNumber);
+
     const skipSetupDevice = options && options.programDevice === false;
 
     if (!skipSetupDevice) {
         await setupDevice(selectedAdapter, FirmwareRegistry.getDeviceSetup());
-    }
 
-    const softDeviceParams = determineSoftDeviceParameters(selectedAdapter.serialNumber);
+        // nRF51 requires a ~250ms wait time before it can be opened
+        if (softDeviceParams.sdVersion === 'v2') {
+            await new Promise(resolve => setTimeout(resolve, 250));
+        }
+    }
 
     return {
         serialNumber: selectedAdapter.serialNumber,
@@ -258,14 +263,16 @@ async function grabAdapter(requestedSerialNumber = undefined, options = undefine
     const { port, serialNumber, apiVersion, baudRate } = await _grabAdapter(requestedSerialNumber, options);
     const adapter = adapterFactory.createAdapter(apiVersion, port, serialNumber);
 
-    adapter.on('error', err => error(`Error adapter ${err}`));
+    adapter.on('error', err => error(`[${serialNumber}] Adapter error ${err.message}`));
+
+    // Update the grabbed adapter value to be an instance of Adapter and not Device from nrf-device-lister
     grabbedAdapters.set(serialNumber, adapter);
 
     return new Promise((resolve, reject) => {
         debug(`Opening adapter ${serialNumber}.`);
         adapter.open({ baudRate }, err => {
             if (err) {
-                reject(new Error(`Error opening adapter: ${err}.`));
+                reject(new Error(`Error opening adapter ${serialNumber}: ${err}.`));
                 return;
             }
 
