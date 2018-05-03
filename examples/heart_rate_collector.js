@@ -48,7 +48,7 @@
 const api = require('../index');
 const path = require('path');
 
-const adapterFactory = api.AdapterFactory.getInstance();
+const adapterFactory = api.AdapterFactory.getInstance(undefined, { enablePolling: false });
 
 const BLE_UUID_HEART_RATE_SERVICE = '180D';
 const BLE_UUID_HEART_RATE_MEASUREMENT_CHAR = '2A37';

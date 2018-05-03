@@ -49,7 +49,7 @@ const _ = require('underscore');
 const api = require('../index');
 const path = require('path');
 
-const adapterFactory = api.AdapterFactory.getInstance();
+const adapterFactory = api.AdapterFactory.getInstance(undefined, { enablePolling: false });
 const serviceFactory = new api.ServiceFactory();
 
 const BLE_UUID_HEART_RATE_SERVICE = '180d'; /** < Heart Rate service UUID. */
