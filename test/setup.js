@@ -51,6 +51,8 @@ const DeviceLister = require('nrf-device-lister');
 const { setupDevice } = require('nrf-device-setup');
 const { FirmwareRegistry } = require('../index');
 
+require('debug').enable('setup:*,test:*');
+
 const traits = {
     usb: false,
     nordicUsb: true,
@@ -136,7 +138,7 @@ function determineSoftDeviceParameters(serialNumber) {
     return params;
 }
 
-async function _grabAdapter(serialNumber) {
+async function _grabAdapter(serialNumber, options) {
     const foundAdapters = await getAdapters();
 
     const adapterToUse = () => {
@@ -182,7 +184,10 @@ async function _grabAdapter(serialNumber) {
     }
 
     // TODO: when DFU works, uncomment setupDevice
-    // await setupDevice(selectedAdapter, FirmwareRegistry.getDeviceSetup());
+    if (options && options.programDevice !== false) {
+        await setupDevice(selectedAdapter, FirmwareRegistry.getDeviceSetup());
+    }
+
     const softDeviceParams = determineSoftDeviceParameters(selectedAdapter.serialNumber);
 
     return {
@@ -244,10 +249,11 @@ async function releaseAdapter(serialNumber) {
  * Grab an available adapter.
  *
  * @param {(string|undefined)} requestedSerialNumber Specific adapter to grab, if undefined, the function picks one that is not registered as grabbed from before
+ * @param {Object} options to use when grabbing the adapter. Attribute setupDevice: false will prevent programming or checking if the right firmware is on the device.
  * @returns {Promise<Adapter>} An opened adapter ready to use
  */
-async function grabAdapter(requestedSerialNumber = undefined) {
-    const { port, serialNumber, apiVersion, baudRate } = await _grabAdapter(requestedSerialNumber);
+async function grabAdapter(requestedSerialNumber = undefined, options = undefined) {
+    const { port, serialNumber, apiVersion, baudRate } = await _grabAdapter(requestedSerialNumber, options);
     const adapter = adapterFactory.createAdapter(apiVersion, port, serialNumber);
 
     adapter.on('error', err => error(`Error adapter ${err}`));
