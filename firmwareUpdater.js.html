@@ -225,7 +225,7 @@ class FirmwareUpdater {
                 const familyString = getFamilyString(family);
                 const firmwareInfo = FirmwareRegistry.getJlinkConnectivityFirmware(familyString, platform);
                 const isUpdateRequired =
-                    info.version !== firmwareInfo.firmwareVersion ||
+                    info.version !== firmwareInfo.version ||
                     info.baudRate !== firmwareInfo.baudRate;
                 return Object.assign({}, info, { isUpdateRequired });
             });
