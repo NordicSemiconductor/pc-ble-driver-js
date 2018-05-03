@@ -38,7 +38,7 @@
 
 const api = require('../index');
 
-const adapterFactory = api.AdapterFactory.getInstance();
+const adapterFactory = api.AdapterFactory.getInstance(undefined, { enablePolling: false });
 const serviceFactory = new api.ServiceFactory();
 
 const testTimeout = 2000;
