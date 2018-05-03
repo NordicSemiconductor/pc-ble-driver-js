@@ -135,33 +135,54 @@ async function runTests(centralAdapter, peripheralAdapter) {
         });
     });
 
-    const dataLengthChangedCentral = new Promise(resolve => {
-        centralAdapter.once('dataLengthChanged', (peripheralDevice, dataLength) => {
-            log(`central dataLengthChanged to ${dataLength}`);
-            resolve(dataLength);
+    let dataLengthChangedCentral;
+    if (centralAdapter._bleDriver.NRF_SD_BLE_API_VERSION === 2) {
+        dataLengthChangedCentral = Promise.resolve();
+    } else {
+        dataLengthChangedCentral = new Promise(resolve => {
+            centralAdapter.once('dataLengthChanged', (peripheralDevice, dataLength) => {
+                log(`central dataLengthChanged to ${dataLength}`);
+                resolve(dataLength);
+            });
         });
-    });
+    }
 
-    const dataLengthChangedCentralPeripheral = new Promise(resolve => {
-        peripheralAdapter.once('dataLengthChanged', (centralDevice, dataLength) => {
-            log(`peripheral dataLengthChanged to ${dataLength}`);
-            resolve(dataLength);
+    let dataLengthChangedCentralPeripheral;
+    if (centralAdapter._bleDriver.NRF_SD_BLE_API_VERSION === 2) {
+        dataLengthChangedCentralPeripheral = Promise.resolve();
+    } else {
+        dataLengthChangedCentralPeripheral = new Promise(resolve => {
+            peripheralAdapter.once('dataLengthChanged', (centralDevice, dataLength) => {
+                log(`peripheral dataLengthChanged to ${dataLength}`);
+                resolve(dataLength);
+            });
         });
-    });
+    }
 
-    const attMtuChangedCentral = new Promise(resolve => {
-        centralAdapter.once('attMtuChanged', (peripheralDevice, attMtu) => {
-            log(`central attMtuChanged to ${attMtu}`);
-            resolve(attMtu);
+    let attMtuChangedCentral;
+    if (centralAdapter._bleDriver.NRF_SD_BLE_API_VERSION === 2) {
+        attMtuChangedCentral = Promise.resolve();
+    } else {
+        attMtuChangedCentral = new Promise(resolve => {
+            centralAdapter.once('attMtuChanged', (peripheralDevice, attMtu) => {
+                log(`central attMtuChanged to ${attMtu}`);
+                resolve(attMtu);
+            });
         });
-    });
+    }
 
-    const attMtuChangedPeripheral = new Promise(resolve => {
-        peripheralAdapter.once('attMtuChanged', (centralDevice, attMtu) => {
-            log(`peripheral attMtuChanged to ${attMtu}`);
-            resolve(attMtu);
+    let attMtuChangedPeripheral;
+
+    if (centralAdapter._bleDriver.NRF_SD_BLE_API_VERSION === 2) {
+        attMtuChangedPeripheral = Promise.resolve();
+    } else {
+        attMtuChangedPeripheral = new Promise(resolve => {
+            peripheralAdapter.once('attMtuChanged', (centralDevice, attMtu) => {
+                log(`peripheral attMtuChanged to ${attMtu}`);
+                resolve(attMtu);
+            });
         });
-    });
+    }
 
     await new Promise((resolve, reject) => startAdvertising(peripheralAdapter, startAdvertisingError => {
         if (startAdvertisingError) {
