@@ -68,11 +68,15 @@ function runTests() {
 
     let adapterSn;
     let openCloseIterations = 0;
+    let programDevice = true;
 
     const oneIteration = async () => {
         log(`Open/close iteration #${openCloseIterations} starting.`);
 
-        const adapterToUse = await grabAdapter(adapterSn);
+        const adapterToUse = await grabAdapter(adapterSn, { programDevice });
+
+        // Program/check for correct firmware only once
+        programDevice = false;
         adapterSn = adapterToUse.state.serialNumber;
 
         await setupAdapter(adapterToUse, 'central', 'central', centralDeviceAddress, centralDeviceAddressType);
