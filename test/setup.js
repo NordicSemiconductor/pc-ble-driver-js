@@ -43,6 +43,7 @@ const serviceFactory = new api.ServiceFactory();
 
 const testTimeout = 2000;
 
+const debug = require('debug')('setup:debug');
 const log = require('debug')('setup:log');
 const error = require('debug')('setup:error');
 
@@ -226,12 +227,14 @@ async function releaseAdapter(serialNumber) {
     grabbedAdapters.delete(adapterToReleaseSn);
 
     return new Promise((resolve, reject) => {
+        debug(`Closing adapter ${adapterToReleaseSn}.`);
         adapterToRelease.close(closeError => {
             if (closeError) {
                 reject(error);
                 return;
             }
 
+            debug(`Closed adapter ${adapterToReleaseSn}.`);
             resolve(adapterToReleaseSn);
         });
     });
@@ -243,7 +246,7 @@ async function releaseAdapter(serialNumber) {
  * @param {(string|undefined)} requestedSerialNumber Specific adapter to grab, if undefined, the function picks one that is not registered as grabbed from before
  * @returns {Promise<Adapter>} An opened adapter ready to use
  */
-async function grabAdapter(requestedSerialNumber) {
+async function grabAdapter(requestedSerialNumber = undefined) {
     const { port, serialNumber, apiVersion, baudRate } = await _grabAdapter(requestedSerialNumber);
     const adapter = adapterFactory.createAdapter(apiVersion, port, serialNumber);
 
@@ -251,12 +254,14 @@ async function grabAdapter(requestedSerialNumber) {
     grabbedAdapters.set(serialNumber, adapter);
 
     return new Promise((resolve, reject) => {
+        debug(`Opening adapter ${serialNumber}.`);
         adapter.open({ baudRate }, err => {
             if (err) {
                 reject(new Error(`Error opening adapter: ${err}.`));
                 return;
             }
 
+            debug(`Opened adapter ${serialNumber}.`);
             resolve(adapter);
         });
     });
@@ -271,28 +276,36 @@ async function grabAdapter(requestedSerialNumber) {
  */
 async function outcome(futureOutcomes, timeout) {
     let timeoutId = null;
+    let result;
+    const t = timeout || testTimeout;
 
-    const result = await Promise.race([
-        Promise.all(futureOutcomes),
-        new Promise((_, reject) => {
-            timeoutId = setTimeout(() => reject(new Error(`Test timed out after ${testTimeout} ms`)), timeout || testTimeout);
-        })]);
-
-    clearTimeout(timeoutId);
+    try {
+        result = await Promise.race([
+            Promise.all(futureOutcomes),
+            new Promise((_, reject) => {
+                timeoutId = setTimeout(() => reject(new Error(`Test timed out after ${t} ms`)), t);
+            })]);
+    } catch (outcomeError) {
+        throw outcomeError;
+    } finally {
+        clearTimeout(timeoutId);
+    }
 
     return result;
 }
 
 function addAdapterListener(adapter, prefix) {
-    adapter.on('logMessage', (severity, message) => { log(`${prefix} logMessage: ${message}`); });
-    adapter.on('status', status => { log(`${prefix} status: ${JSON.stringify(status, null, 1)}`); });
+    const logPrefix = `[${prefix}-${adapter.state.address}/${adapter.state.addressType}]`;
+
+    adapter.on('logMessage', (severity, message) => { log(`${logPrefix} logMessage: ${message}`); });
+    adapter.on('status', status => { log(`${logPrefix} status: ${JSON.stringify(status, null, 1)}`); });
     adapter.on('error', err => {
-        error(`${prefix} error: ${JSON.stringify(err, null, 1)}`);
+        error(`${logPrefix} error: ${JSON.stringify(err, null, 1)}`);
     });
 
-    adapter.on('deviceConnected', device => { log(`${prefix} deviceConnected: ${device.address}`); });
-    adapter.on('deviceDisconnected', device => { log(`${prefix} deviceDisconnected: ${JSON.stringify(device, null, 1)}`); });
-    adapter.on('deviceDiscovered', device => { log(`${prefix} deviceDiscovered: ${JSON.stringify(device)}`); });
+    adapter.on('deviceConnected', device => { log(`${logPrefix} deviceConnected: ${device.address}`); });
+    adapter.on('deviceDisconnected', device => { log(`${logPrefix} deviceDisconnected: ${JSON.stringify(device, null, 1)}`); });
+    adapter.on('deviceDiscovered', device => { log(`${logPrefix} deviceDiscovered: ${JSON.stringify(device)}`); });
 }
 
 /**
