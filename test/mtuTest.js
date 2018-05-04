@@ -103,8 +103,8 @@ function disconnect(adapter, device) {
     });
 }
 
-function characteristicsInit() {
-    const charValue = new Array(250);
+function characteristicsInit(mtu) {
+    const charValue = new Array(mtu);
     heartRateMeasurementCharacteristic = serviceFactory.createCharacteristic(
         heartRateService,
         BLE_UUID_HEART_RATE_MEASUREMENT_CHAR,
@@ -136,12 +136,12 @@ function characteristicsInit() {
         });
 }
 
-function servicesInit(adapter) {
+function servicesInit(adapter, mtu) {
     return new Promise((resolve, reject) => {
         log('Initializing the heart rate service and its characteristics/descriptors...');
 
         heartRateService = serviceFactory.createService(BLE_UUID_HEART_RATE_SERVICE);
-        characteristicsInit();
+        characteristicsInit(mtu);
 
         adapter.setServices([heartRateService], err => {
             if (err) {
@@ -250,7 +250,8 @@ async function onConnected(adapter, peerDevice, desiredMTU) {
         throw new Error('Invalid characteristic input');
     }
 
-    const value = new Array(244);
+    // Max payload calculation: data length - 4 bytes L2CAP header - 3 bytes GATT header
+    const value = new Array(desiredMTU - 3);
 
     await new Promise((resolve, reject) => {
         adapter.writeCharacteristicValue(charId, value, false, writeCharacteristicValueErr => {
@@ -270,15 +271,20 @@ async function runTests(centralAdapter, peripheralAdapter) {
         setupAdapter(peripheralAdapter, '#PERIPH', 'periph', peripheralDeviceAddress, peripheralDeviceAddressType),
     ]);
 
-    await servicesInit(peripheralAdapter);
-    await startAdvertising(peripheralAdapter);
+    if (centralAdapter._bleDriver.NRF_SD_BLE_API_VERSION === 2 || centralAdapter._bleDriver.NRF_SD_BLE_API_VERSION === 2) {
+        log('SoftDevice V2 does not support changing L2CAP packet length or MTU');
+        return Promise.resolve([centralAdapter, peripheralAdapter]);
+    }
 
-    const desiredMTU = 247;
-    const desiredDataLength = 251;
+    const maxDataLength = 251;
+    const maxMTU = maxDataLength - 4; /* 4 bytes L2CAP header */
+
+    await servicesInit(peripheralAdapter, maxMTU);
+    await startAdvertising(peripheralAdapter);
 
     const deviceConnectedCentral = new Promise((resolve, reject) => {
         centralAdapter.once('deviceConnected', peripheralDevice => {
-            onConnected(centralAdapter, peripheralDevice, desiredMTU).then(() => {
+            onConnected(centralAdapter, peripheralDevice, maxMTU).then(() => {
                 resolve({
                     address: peripheralDevice.address,
                     type: peripheralDevice.addressType,
@@ -295,7 +301,7 @@ async function runTests(centralAdapter, peripheralAdapter) {
         });
     });
 
-    const dataLengthChangedCentralPeripheral = new Promise(resolve => {
+    const dataLengthChangedPeripheral = new Promise(resolve => {
         peripheralAdapter.once('dataLengthChanged', (centralDevice, dataLength) => {
             log(`peripheral dataLengthChanged to ${dataLength}`);
             resolve(dataLength);
@@ -324,7 +330,7 @@ async function runTests(centralAdapter, peripheralAdapter) {
         dataLengthPeripheralResult, attMtuLengthPeripheralResult] = await outcome([
             deviceConnectedCentral,
             dataLengthChangedCentral, attMtuChangedCentral,
-            dataLengthChangedCentralPeripheral, attMtuChangedPeripheral]);
+            dataLengthChangedPeripheral, attMtuChangedPeripheral]);
 
     if (!(deviceConnectedCentralResult.address !== peripheralDeviceAddress)
         && (deviceConnectedCentralResult.type !== peripheralDeviceAddressType)
@@ -333,8 +339,8 @@ async function runTests(centralAdapter, peripheralAdapter) {
             + `, but shall be ${peripheralDeviceAddress}/${peripheralDeviceAddressType}`);
     }
 
-    const p = dataLengthCentralResult === desiredDataLength && attMtuLengthCentralResult === desiredMTU;
-    const q = dataLengthPeripheralResult === desiredDataLength && attMtuLengthPeripheralResult === desiredMTU;
+    const p = dataLengthCentralResult === maxDataLength && attMtuLengthCentralResult === maxMTU;
+    const q = dataLengthPeripheralResult === maxDataLength && attMtuLengthPeripheralResult === maxMTU;
 
     if (!p) {
         throw new Error('central MTU lengths are not correct.');
@@ -345,17 +351,16 @@ async function runTests(centralAdapter, peripheralAdapter) {
     }
 
     await disconnect(centralAdapter, deviceConnectedCentralResult);
+
+    return [centralAdapter, peripheralAdapter];
 }
 
-Promise.all([grabAdapter(), grabAdapter()]).then(result => {
-    runTests(...result).then(() => {
+Promise.all([grabAdapter(), grabAdapter()])
+    .then(result => runTests(...result))
+    .then(adapters => {
         testOutcome('Test completed successfully');
         return Promise.all([
-            releaseAdapter(result[0].state.serialNumber),
-            releaseAdapter(result[1].state.serialNumber)]);
-    }).catch(failure => {
-        error('Test failed with error:', failure);
-    });
-}).catch(err => {
-    error('Error opening adapter:', err);
-});
+            releaseAdapter(adapters[0].state.serialNumber),
+            releaseAdapter(adapters[1].state.serialNumber)]);
+    })
+    .catch(failure => { error('Test failed with error:', failure); });
