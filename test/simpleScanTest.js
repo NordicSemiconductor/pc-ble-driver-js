@@ -38,9 +38,9 @@
 
 const { grabAdapter, releaseAdapter, setupAdapter, outcome } = require('./setup');
 
+const debug = require('debug')('debug');
+const error = require('debug')('error');
 const testOutcome = require('debug')('test:outcome');
-const log = require('debug')('test:log');
-const error = require('debug')('test:error');
 
 const centralDeviceAddress = 'FF:11:22:33:AA:CF';
 const centralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
@@ -73,7 +73,7 @@ async function runTests(adapter) {
         adapter.on('deviceDiscovered', () => {
             scanReportsReceived += 1;
 
-            log(`Received ${scanReportsReceived} scan reports.`);
+            debug(`Received ${scanReportsReceived} scan reports.`);
 
             if (scanReportsReceived > expectedNumberOfScanReports) {
                 scanReportReceivedResolve();
@@ -100,4 +100,5 @@ grabAdapter().then(runTests).then(() => {
     return releaseAdapter();
 }).catch(failure => {
     error('Test failed with error:', failure);
+    process.exit(-1);
 });
