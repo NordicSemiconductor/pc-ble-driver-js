@@ -45,9 +45,9 @@ const peripheralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 const centralDeviceAddress = 'FF:11:22:33:AA:CF';
 const centralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
-const testOutcome = require('debug')('test:outcome');
-const log = require('debug')('test:log');
+const debug = require('debug')('debug');
 const error = require('debug')('test:error');
+const testOutcome = require('debug')('test:outcome');
 
 function connect(adapter, connectToAddress) {
     const options = {
@@ -126,7 +126,7 @@ async function runTests(centralAdapter, peripheralAdapter) {
 
     const deviceConnectedCentral = new Promise((resolve, reject) => {
         centralAdapter.once('deviceConnected', peripheralDevice => {
-            log(`deviceConnected ${peripheralDevice.address}/${peripheralDevice.addressType}`);
+            debug(`deviceConnected ${peripheralDevice.address}/${peripheralDevice.addressType}`);
             requestAttMtu(centralAdapter, peripheralDevice).then(() => {
                 resolve();
             }).catch(err => {
@@ -136,36 +136,36 @@ async function runTests(centralAdapter, peripheralAdapter) {
     });
 
     let dataLengthChangedCentral;
-    if (centralAdapter._bleDriver.NRF_SD_BLE_API_VERSION === 2) {
+    if (centralAdapter.driver.NRF_SD_BLE_API_VERSION === 2) {
         dataLengthChangedCentral = Promise.resolve();
     } else {
         dataLengthChangedCentral = new Promise(resolve => {
             centralAdapter.once('dataLengthChanged', (peripheralDevice, dataLength) => {
-                log(`central dataLengthChanged to ${dataLength}`);
+                debug(`central dataLengthChanged to ${dataLength}`);
                 resolve(dataLength);
             });
         });
     }
 
-    let dataLengthChangedCentralPeripheral;
-    if (centralAdapter._bleDriver.NRF_SD_BLE_API_VERSION === 2) {
-        dataLengthChangedCentralPeripheral = Promise.resolve();
+    let dataLengthChangedPeripheral;
+    if (centralAdapter.driver.NRF_SD_BLE_API_VERSION === 2) {
+        dataLengthChangedPeripheral = Promise.resolve();
     } else {
-        dataLengthChangedCentralPeripheral = new Promise(resolve => {
+        dataLengthChangedPeripheral = new Promise(resolve => {
             peripheralAdapter.once('dataLengthChanged', (centralDevice, dataLength) => {
-                log(`peripheral dataLengthChanged to ${dataLength}`);
+                debug(`peripheral dataLengthChanged to ${dataLength}`);
                 resolve(dataLength);
             });
         });
     }
 
     let attMtuChangedCentral;
-    if (centralAdapter._bleDriver.NRF_SD_BLE_API_VERSION === 2) {
+    if (centralAdapter.driver.NRF_SD_BLE_API_VERSION === 2) {
         attMtuChangedCentral = Promise.resolve();
     } else {
         attMtuChangedCentral = new Promise(resolve => {
             centralAdapter.once('attMtuChanged', (peripheralDevice, attMtu) => {
-                log(`central attMtuChanged to ${attMtu}`);
+                debug(`central attMtuChanged to ${attMtu}`);
                 resolve(attMtu);
             });
         });
@@ -173,12 +173,12 @@ async function runTests(centralAdapter, peripheralAdapter) {
 
     let attMtuChangedPeripheral;
 
-    if (centralAdapter._bleDriver.NRF_SD_BLE_API_VERSION === 2) {
+    if (centralAdapter.driver.NRF_SD_BLE_API_VERSION === 2) {
         attMtuChangedPeripheral = Promise.resolve();
     } else {
         attMtuChangedPeripheral = new Promise(resolve => {
             peripheralAdapter.once('attMtuChanged', (centralDevice, attMtu) => {
-                log(`peripheral attMtuChanged to ${attMtu}`);
+                debug(`peripheral attMtuChanged to ${attMtu}`);
                 resolve(attMtu);
             });
         });
@@ -200,7 +200,7 @@ async function runTests(centralAdapter, peripheralAdapter) {
         attMtuChangedCentral,
         attMtuChangedPeripheral,
         dataLengthChangedCentral,
-        dataLengthChangedCentralPeripheral]);
+        dataLengthChangedPeripheral]);
 
     return [centralAdapter, peripheralAdapter];
 }
@@ -216,4 +216,5 @@ Promise.all([
         releaseAdapter(adapters[1].state.serialNumber)]);
 }).catch(failure => {
     error('Test failed with error:', failure);
+    process.exit(-1);
 });

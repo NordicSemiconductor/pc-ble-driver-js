@@ -41,6 +41,7 @@ const { grabAdapter, releaseAdapter, setupAdapter, outcome } = require('./setup'
 const api = require('../index');
 const testOutcome = require('debug')('test:outcome');
 const error = require('debug')('test:error');
+const debug = require('debug')('debug');
 
 const serviceFactory = new api.ServiceFactory();
 
@@ -49,8 +50,6 @@ const peripheralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
 const centralDeviceAddress = 'FF:11:22:33:AA:CF';
 const centralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
-
-const log = require('debug')('test:log');
 
 let heartRateService;
 let heartRateMeasurementCharacteristic;
@@ -97,7 +96,7 @@ function disconnect(adapter, device) {
                 return;
             }
 
-            log(`Initiated disconnect from ${device.address}/${device.addressType}.`);
+            debug(`Initiated disconnect from ${device.address}/${device.addressType}.`);
             resolve();
         });
     });
@@ -138,7 +137,7 @@ function characteristicsInit(mtu) {
 
 function servicesInit(adapter, mtu) {
     return new Promise((resolve, reject) => {
-        log('Initializing the heart rate service and its characteristics/descriptors...');
+        debug('Initializing the heart rate service and its characteristics/descriptors...');
 
         heartRateService = serviceFactory.createService(BLE_UUID_HEART_RATE_SERVICE);
         characteristicsInit(mtu);
@@ -271,8 +270,8 @@ async function runTests(centralAdapter, peripheralAdapter) {
         setupAdapter(peripheralAdapter, '#PERIPH', 'periph', peripheralDeviceAddress, peripheralDeviceAddressType),
     ]);
 
-    if (centralAdapter._bleDriver.NRF_SD_BLE_API_VERSION === 2 || centralAdapter._bleDriver.NRF_SD_BLE_API_VERSION === 2) {
-        log('SoftDevice V2 does not support changing L2CAP packet length or MTU');
+    if (centralAdapter.driver.NRF_SD_BLE_API_VERSION === 2 || centralAdapter.driver.NRF_SD_BLE_API_VERSION === 2) {
+        debug('SoftDevice V2 does not support changing L2CAP packet length or MTU');
         return Promise.resolve([centralAdapter, peripheralAdapter]);
     }
 
@@ -296,28 +295,28 @@ async function runTests(centralAdapter, peripheralAdapter) {
 
     const dataLengthChangedCentral = new Promise(resolve => {
         centralAdapter.once('dataLengthChanged', (peripheralDevice, dataLength) => {
-            log(`central dataLengthChanged to ${dataLength}`);
+            debug(`central dataLengthChanged to ${dataLength}`);
             resolve(dataLength);
         });
     });
 
     const dataLengthChangedPeripheral = new Promise(resolve => {
         peripheralAdapter.once('dataLengthChanged', (centralDevice, dataLength) => {
-            log(`peripheral dataLengthChanged to ${dataLength}`);
+            debug(`peripheral dataLengthChanged to ${dataLength}`);
             resolve(dataLength);
         });
     });
 
     const attMtuChangedCentral = new Promise(resolve => {
         centralAdapter.once('attMtuChanged', (peripheralDevice, attMtu) => {
-            log(`central attMtuChanged to ${attMtu}`);
+            debug(`central attMtuChanged to ${attMtu}`);
             resolve(attMtu);
         });
     });
 
     const attMtuChangedPeripheral = new Promise(resolve => {
         peripheralAdapter.once('attMtuChanged', (centralDevice, attMtu) => {
-            log(`peripheral attMtuChanged to ${attMtu}`);
+            debug(`peripheral attMtuChanged to ${attMtu}`);
             resolve(attMtu);
         });
     });
@@ -363,4 +362,7 @@ Promise.all([grabAdapter(), grabAdapter()])
             releaseAdapter(adapters[0].state.serialNumber),
             releaseAdapter(adapters[1].state.serialNumber)]);
     })
-    .catch(failure => { error('Test failed with error:', failure); });
+    .catch(failure => {
+        error('Test failed with error:', failure);
+        process.exit(-1);
+    });

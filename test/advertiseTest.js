@@ -38,7 +38,7 @@
 
 const { grabAdapter, releaseAdapter, serviceFactory, setupAdapter } = require('./setup');
 
-const log = require('debug')('test:log');
+const debug = require('debug')('debug');
 const error = require('debug')('test:error');
 const testOutcome = require('debug')('test:outcome');
 
@@ -47,7 +47,7 @@ const peripheralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
 async function runTests(adapter) {
     await setupAdapter(adapter, '#PERIPH', 'periph', peripheralDeviceAddress, peripheralDeviceAddressType);
-    log('Adapter opened.');
+    debug('Adapter opened.');
 
     const service1 = serviceFactory.createService('adabfb006e7d4601bda2bffaa68956ba');
     const service2 = serviceFactory.createService('1234');
@@ -94,7 +94,7 @@ async function runTests(adapter) {
         },
     );
 
-    log('Setting services');
+    debug('Setting services');
 
     await new Promise((resolve, reject) => {
         adapter.setServices([service1, service2], setServicesErr => {
@@ -103,7 +103,7 @@ async function runTests(adapter) {
                 return;
             }
 
-            log('Trying to advertise services.');
+            debug('Trying to advertise services.');
 
             const advertisingData = {
                 shortenedLocalName: 'MyCoolName',
@@ -134,7 +134,7 @@ async function runTests(adapter) {
                         return;
                     }
 
-                    log('We are advertising!');
+                    debug('We are advertising!');
 
                     setTimeout(() => {
                         adapter.stopAdvertising(stopAdvertisingErr => {
@@ -157,4 +157,5 @@ grabAdapter().then(runTests).then(() => {
     return releaseAdapter();
 }).catch(failure => {
     error('Test failed with error:', failure);
+    process.exit(-1);
 });

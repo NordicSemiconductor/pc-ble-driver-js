@@ -43,15 +43,14 @@ const serviceFactory = new api.ServiceFactory();
 
 const testTimeout = 2000;
 
-const debug = require('debug')('setup:debug');
-const log = require('debug')('setup:log');
-const error = require('debug')('setup:error');
+const debug = require('debug')('debug');
+const error = require('debug')('error');
 
 const DeviceLister = require('nrf-device-lister');
 const { setupDevice } = require('nrf-device-setup');
 const { FirmwareRegistry } = require('../index');
 
-require('debug').enable('setup:*,test:*');
+require('debug').enable(['setup:*,test:*', process.env.DEBUG].join(','));
 
 const traits = {
     usb: false,
@@ -110,30 +109,34 @@ function determineSoftDeviceParameters(serialNumber) {
     const gravitonDongleSerialNumber = /^[a-fA-F0-9]{12}$/;
     const params = {};
 
-    params.baudRate = process.platform === 'darwin' ? 115200 : 1000000;
+    let firmware;
 
     if (seggerSerialNumber.test(serialNumber)) {
         const developmentKit = parseInt(seggerSerialNumber.exec(serialNumber)[1], 10);
+        let family;
 
         switch (developmentKit) {
             case 0:
             case 1:
-                params.sdVersion = 'v2';
+                family = 'nrf51';
                 break;
             case 2:
-                params.sdVersion = 'v3';
-                break;
             case 3:
-                params.sdVersion = 'v3';
+                family = 'nrf52';
                 break;
             default:
                 throw new Error(`Unsupported nRF5 development kit. [${serialNumber}]`);
         }
+
+        firmware = FirmwareRegistry.getJlinkConnectivityFirmware(family);
     } else if (gravitonDongleSerialNumber.test(serialNumber)) {
-        params.sdVersion = 'v3';
+        firmware = FirmwareRegistry.getNordicUsbConnectivityFirmware();
     } else {
         throw new Error(`Not able to determine version of pc-ble-driver to use for device with serial number ${serialNumber}.`);
     }
+
+    params.baudRate = firmware.baudRate;
+    params.sdVersion = `v${firmware.sdBleApiVersion}`;
 
     return params;
 }
@@ -255,11 +258,11 @@ async function releaseAdapter(serialNumber) {
 /**
  * Grab an available adapter.
  *
- * @param {(string|undefined)} requestedSerialNumber Specific adapter to grab, if undefined, the function picks one that is not registered as grabbed from before
+ * @param {string} [requestedSerialNumber] Specific adapter to grab, if undefined, the function picks one that is not registered as grabbed from before
  * @param {Object} options to use when grabbing the adapter. Attribute setupDevice: false will prevent programming or checking if the right firmware is on the device.
  * @returns {Promise<Adapter>} An opened adapter ready to use
  */
-async function grabAdapter(requestedSerialNumber = undefined, options = undefined) {
+async function grabAdapter(requestedSerialNumber, options = undefined) {
     const { port, serialNumber, apiVersion, baudRate } = await _grabAdapter(requestedSerialNumber, options);
     const adapter = adapterFactory.createAdapter(apiVersion, port, serialNumber);
 
@@ -313,15 +316,15 @@ async function outcome(futureOutcomes, timeout, description) {
 function addAdapterListener(adapter, prefix) {
     const logPrefix = `[${prefix}-${adapter.state.address}/${adapter.state.addressType}]`;
 
-    adapter.on('logMessage', (severity, message) => { log(`${logPrefix} logMessage: ${message}`); });
-    adapter.on('status', status => { log(`${logPrefix} status: ${JSON.stringify(status, null, 1)}`); });
+    adapter.on('logMessage', (severity, message) => { debug(`${logPrefix} logMessage: ${message}`); });
+    adapter.on('status', status => { debug(`${logPrefix} status: ${JSON.stringify(status, null, 1)}`); });
     adapter.on('error', err => {
         error(`${logPrefix} error: ${JSON.stringify(err, null, 1)}`);
     });
 
-    adapter.on('deviceConnected', device => { log(`${logPrefix} deviceConnected: ${device.address}`); });
-    adapter.on('deviceDisconnected', device => { log(`${logPrefix} deviceDisconnected: ${JSON.stringify(device, null, 1)}`); });
-    adapter.on('deviceDiscovered', device => { log(`${logPrefix} deviceDiscovered: ${JSON.stringify(device)}`); });
+    adapter.on('deviceConnected', device => { debug(`${logPrefix} deviceConnected: ${device.address}`); });
+    adapter.on('deviceDisconnected', device => { debug(`${logPrefix} deviceDisconnected: ${JSON.stringify(device, null, 1)}`); });
+    adapter.on('deviceDiscovered', device => { debug(`${logPrefix} deviceDiscovered: ${JSON.stringify(device)}`); });
 }
 
 /**

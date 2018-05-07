@@ -38,8 +38,9 @@
 
 const { grabAdapter, releaseAdapter, setupAdapter, outcome } = require('./setup');
 
-const log = require('debug')('test:log');
+const debug = require('debug')('debug');
 const error = require('debug')('test:error');
+const testOutcome = require('debug')('test:outcome');
 
 const centralDeviceAddress = 'FF:11:22:33:AA:BE';
 const centralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
@@ -56,6 +57,7 @@ async function startScan(adapter, timeout) {
         adapter.startScan(scanParameters, err => {
             if (err) {
                 reject(err);
+                return;
             }
 
             resolve();
@@ -73,14 +75,14 @@ function runTests(numberOfIterations) {
     const requiredNumberOfIterations = numberOfIterations || Number.MAX_SAFE_INTEGER;
 
     const oneIteration = async () => {
-        log(`Open/close iteration #${openCloseIterations} starting.`);
+        debug(`Open/close iteration #${openCloseIterations} starting.`);
 
         const adapterToUse = await grabAdapter(adapterSn, { programDevice });
 
         // Program/check for correct firmware only once
         programDevice = false;
         adapterSn = adapterToUse.state.serialNumber;
-        sdApiVersion = adapterToUse._bleDriver.NRF_SD_BLE_API_VERSION;
+        sdApiVersion = adapterToUse.driver.NRF_SD_BLE_API_VERSION;
 
         await setupAdapter(adapterToUse, 'central', 'central', centralDeviceAddress, centralDeviceAddressType);
 
@@ -91,7 +93,7 @@ function runTests(numberOfIterations) {
                 scanReportsReceived += 1;
 
                 if (scanReportsReceived >= expectedNumberOfScanReports) {
-                    log(`Received ${scanReportsReceived} scan reports.`);
+                    debug(`Received ${scanReportsReceived} scan reports.`);
                     adapterToUse.removeListener('deviceDiscovered', deviceDiscoveredEvent);
                     scanReportReceivedResolve();
                 }
@@ -115,7 +117,7 @@ function runTests(numberOfIterations) {
         });
 
         await releaseAdapter(adapterSn);
-        log(`Open/close iteration #${openCloseIterations} of ${requiredNumberOfIterations} complete.`);
+        testOutcome(`Open/close iteration #${openCloseIterations} of ${requiredNumberOfIterations} complete.`);
         openCloseIterations += 1;
     };
 
@@ -138,7 +140,7 @@ function runTests(numberOfIterations) {
 
 // Should run until error occurs
 // This test expects an external device to advertise at least 2 packets in the test scans for advertisement packets
-runTests(1000).catch(runTestsError => {
-    error(runTestsError);
+runTests(1000).catch(failure => {
+    error(failure);
     process.exit(-1);
 });

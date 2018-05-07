@@ -41,7 +41,8 @@ const { grabAdapter, releaseAdapter, setupAdapter, outcome } = require('./setup'
 const assert = require('assert');
 const crypto = require('crypto');
 
-const log = require('debug')('test:log');
+const debug = require('debug')('debug');
+const error = require('debug')('error');
 const testOutcome = require('debug')('test:outcome');
 
 const peripheralDeviceAddress = 'FF:11:22:33:AA:CE';
@@ -52,24 +53,24 @@ const centralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
 function addAdapterListener(adapter, prefix) {
     adapter.on('connSecUpdate', () => {
-        log(`${prefix} connSecUpdate`);
+        debug(`${prefix} connSecUpdate`);
     });
 
     adapter.on('authStatus', (device, status) => {
-        log(`${prefix} authStatus - ${JSON.stringify(status)}`); // - ${JSON.stringify(status)}`);
+        debug(`${prefix} authStatus - ${JSON.stringify(status)}`); // - ${JSON.stringify(status)}`);
         assert(status.auth_status === 0);
     });
 
     adapter.on('secParamsRequest', (device, _secParams) => {
-        log(`${prefix} secParamsRequest - ${JSON.stringify(_secParams)}`);
+        debug(`${prefix} secParamsRequest - ${JSON.stringify(_secParams)}`);
     });
 
     adapter.on('lescDhkeyRequest', (device, pkPeer, oobdReq) => {
-        log(`${prefix} lescDhkeyRequest - ${JSON.stringify(pkPeer)} ${JSON.stringify(oobdReq)}`);
+        debug(`${prefix} lescDhkeyRequest - ${JSON.stringify(pkPeer)} ${JSON.stringify(oobdReq)}`);
     });
 
     adapter.on('authKeyRequest', (device, keyType) => {
-        log(`${prefix} authKeyRequest - device: ${device.address} keyType: ${keyType}`);
+        debug(`${prefix} authKeyRequest - device: ${device.address} keyType: ${keyType}`);
     });
 }
 
@@ -915,7 +916,7 @@ async function setupAuthLESCOOB(
 
                     peripheralOobData = _ownOobData;
 
-                    log(`#PERIPH OOB data:${JSON.stringify(_ownOobData)}`);
+                    debug(`#PERIPH OOB data:${JSON.stringify(_ownOobData)}`);
 
                     peripheralAdapter.replySecParams(device.instanceId, peripheralAdapter.driver.BLE_GAP_SEC_STATUS_SUCCESS, secParamsPeripheral, secKeyset, (replySecParamsErr, keyset) => {
                         if (replySecParamsErr) {
@@ -965,7 +966,7 @@ async function setupAuthLESCOOB(
                 return;
             }
 
-            log(`#CENTRAL OOB data:${JSON.stringify(peripheralOobData)}`);
+            debug(`#CENTRAL OOB data:${JSON.stringify(peripheralOobData)}`);
 
             centralAdapter.setLescOobData(device.instanceId, centralOobData, peripheralOobData, err => {
                 if (err) {
@@ -1419,7 +1420,7 @@ function keyGeneration(central, peripheral) {
     assert(compareArray(origCentralPK, central.computePublicKey()));
     assert(compareArray(origPeripheralPK, peripheral.computePublicKey()));
 
-    log('\n\nKeygeneration - OK\n\n');
+    debug('Keygeneration - OK');
 }
 
 async function runTests(centralAdapter, peripheralAdapter) {
@@ -1444,30 +1445,28 @@ async function runTests(centralAdapter, peripheralAdapter) {
     }
 
     await setupAuthLegacyJustWorks(centralAdapter, peripheralAdapter, peripheralDevice);
-    testOutcome('LegacyJustWorks - OK');
+    debug('LegacyJustWorks - OK');
     await setupAuthLegacyPasskey(centralAdapter, peripheralAdapter, peripheralDevice);
-    testOutcome('LegacyPasskey - OK');
+    debug('LegacyPasskey - OK');
     await setupAuthLegacyOOB(centralAdapter, peripheralAdapter, peripheralDevice);
-    testOutcome('LegacyOOB - OK');
+    debug('LegacyOOB - OK');
     await setupAuthLESCJustWorks(centralAdapter, peripheralAdapter, peripheralDevice);
-    testOutcome('LESCJustWorks - OK');
+    debug('LESCJustWorks - OK');
     await setupAuthLESCNumericComparison(centralAdapter, peripheralAdapter, peripheralDevice);
-    testOutcome('LESCNumericComparison - OK');
+    debug('LESCNumericComparison - OK');
     await setupAuthLESCPasskey(centralAdapter, peripheralAdapter, peripheralDevice);
-    testOutcome('LESCPasskey - OK');
+    debug('LESCPasskey - OK');
     await setupAuthLESCOOB(centralAdapter, peripheralAdapter, peripheralDevice);
-    testOutcome('LESCOOB - OK');
+    debug('LESCOOB - OK');
 }
 
-Promise.all([grabAdapter(), grabAdapter()]).then(result => {
+Promise.all([grabAdapter(), grabAdapter()]).then(result =>
     runTests(...result).then(() => {
         testOutcome('Test(s) completed successfully');
         return Promise.all([
             releaseAdapter(result[0].state.serialNumber),
             releaseAdapter(result[1].state.serialNumber)]);
-    }).catch(failure => {
-        testOutcome('Test(s) failed with error:', failure);
+    })).catch(failure => {
+        error('Test failed with error:', failure);
+        process.exit(-1);
     });
-}).catch(error => {
-    testOutcome('Error opening adapter:', error);
-});
