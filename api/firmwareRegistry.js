@@ -82,17 +82,16 @@ function getFirmwareMap(platform) {
             },
         },
         nordicUsb: {
-            /*
             pca10059: {
                 files: {
-                    application: path.join(sdV3Dir, 'connectivity.hex'),
-                    softdevice: path.join(sdV3Dir, 'softdevice.hex'),
+                    application: path.join(sdV3Dir, 'connectivity_1.2.2_usb_for_s132_3.0.hex'),
+                    softdevice: path.join(sdV3Dir, 's132_nrf52_3.0.0_softdevice.hex'),
                 },
-                version: 'connectivity x.y.z',
+                version: 'ble-connectivity 0.1.0+Apr-30-2018-13-25-01',
                 baudRate: platform === 'darwin' ? 115200 : 1000000,
                 sdBleApiVersion: 3,
+                sdId: 0x8C, // SoftDevice FWID, s132_nrf52_3.0.0 === 0x8C
             },
-            */
         },
     };
 }
@@ -139,7 +138,12 @@ class FirmwareRegistry {
      *   version: 'connectivity 1.2.2+dfuMar-27-2018-12-41-04',
      *   baudRate: 115200,
      *   sdBleApiVersion: 3,
+     *   sdId: 0x8C,
      * }
+     *
+     * The `sdId` is ID (also called FWID) of the SoftDevice that is required by
+     * the connectivity. See https://github.com/NordicSemiconductor/pc-nrfutil
+     * for a list of such IDs.
      *
      * @param {String} [platform] Optional value that can be one of 'win32',
      *     'linux', 'darwin'. Will use the detected platform if not provided.
@@ -196,6 +200,9 @@ class FirmwareRegistry {
                     application: applicationBuffer,
                     softdevice: softdeviceBuffer,
                     semver: deviceConfig.version,
+                    params: {
+                        sdId: [deviceConfig.sdId],
+                    },
                 },
             });
         });
