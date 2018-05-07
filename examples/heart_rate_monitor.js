@@ -105,16 +105,16 @@ function advertisingStart(adapter) {
 }
 
 /**
- * Function for sending the heart rate measurement over Bluetooth.
+ * Function for sending the heart rate measurement over Bluetooth Low Energy.
  *
  * @param {Adapter} adapter Adapter being used.
- * @param {array} encodedHeartRate Data to be sent over Bluetooth.
+ * @param {array} encodedHeartRate Data to be sent over Bluetooth Low Energy.
  * @returns {Promise} Resolves if the data is successfully sent.
  *                    If an error occurs, rejects with the corresponding error.
  */
 function heartRateMeasurementSend(adapter, encodedHeartRate) {
     return new Promise((resolve, reject) => {
-        console.log('Sending heart rate measurement over Bluetooth...');
+        console.log('Sending heart rate measurement over Bluetooth Low Energy...');
 
         adapter.writeCharacteristicValue(heartRateMeasurementCharacteristic.instanceId, encodedHeartRate, false,
             err => {
@@ -134,12 +134,9 @@ function heartRateMeasurementSend(adapter, encodedHeartRate) {
  *
  * @param {Adapter} adapter Adapter being used.
  * @param {any} attribute Object from descriptorValueChanged event emitter.
- * @param {string} prefix Prefix to prepend to each log.
  * @returns {undefined}
  */
-function onDescValueChanged(adapter, attribute, prefix) {
-    console.log(`${prefix} descriptorValueChanged: ${JSON.stringify(attribute)}.`);
-
+function onDescValueChanged(adapter, attribute) {
     const descriptorHandle = adapter._getCCCDOfCharacteristic(heartRateMeasurementCharacteristic.instanceId).handle;
 
     if (descriptorHandle === cccdDescriptor.handle) {
@@ -195,7 +192,7 @@ function onDescValueChanged(adapter, attribute, prefix) {
                     heartRateGenerate();
                     const encodedHeartRate = heartRateMeasurementEncode();
                     heartRateMeasurementSend(adapter, encodedHeartRate).then(() => {
-                        console.log('Heart rate measurement successfully sent over Bluetooth.');
+                        console.log('Heart rate measurement successfully sent over Bluetooth Low Energy.');
                     }).catch(err => {
                         console.log(err);
                         process.exit(1);
@@ -208,44 +205,41 @@ function onDescValueChanged(adapter, attribute, prefix) {
     }
 }
 
-
 /**
  * Handling events emitted by adapter.
  *
  * @param {Adapter} adapter Adapter in use.
- * @param {string} prefix Prefix to prepend to each log.
  * @returns {undefined}
  */
-function addAdapterListener(adapter, prefix) {
+function addAdapterListener(adapter) {
     /**
      * Handling error and log message events from the adapter.
      */
-    adapter.on('logMessage', (severity, message) => { console.log(`${prefix} logMessage: ${message}.`); });
-    adapter.on('status', status => { console.log(`${prefix} status: ${JSON.stringify(status, null, 1)}.`); });
-    adapter.on('error', error => { console.log(`${prefix} error: ${JSON.stringify(error, null, 1)}.`); });
+    adapter.on('logMessage', (severity, message) => { if (severity > 3) console.log(`${message}.`); });
+    adapter.on('error', error => { console.log(`error: ${JSON.stringify(error, null, 1)}.`); });
 
     /**
      * Handling the Application's BLE Stack events.
      */
-    adapter.on('deviceConnected', device => { console.log(`${prefix} deviceConnected: ${device.address}.`); });
+    adapter.on('deviceConnected', device => { console.log(`Device ${device.address}/${device.addressType} connected.`); });
 
     adapter.on('deviceDisconnected', device => {
-        console.log(`${prefix} deviceDisconnected:${JSON.stringify(device)}.`);
+        console.log(`Device ${device.address}/${device.addressType} disconnected.`);
 
         disableNotificationsOnHRM();
         advertisingStart(adapter);
     });
 
     adapter.on('deviceDiscovered', device => {
-        console.log(`${prefix} deviceDiscovered: ${JSON.stringify(device)}.`);
+        console.log(`Discovered device ${device.address}/${device.addressType$}.`);
     });
 
     adapter.on('descriptorValueChanged', attribute => {
-        onDescValueChanged(adapter, attribute, prefix);
+        onDescValueChanged(adapter, attribute);
     });
 
     adapter.on('advertiseTimedOut', () => {
-        console.log(`${prefix} advertiseTimedOut: Advertising timed-out. Exiting.`);
+        console.log('advertiseTimedOut: Advertising timed-out. Exiting.');
         process.exit(1);
     });
 }
@@ -259,10 +253,10 @@ function addAdapterListener(adapter, prefix) {
  */
 function openAdapter(adapter) {
     return new Promise((resolve, reject) => {
-        const baudRate = 1000000;
+        const baudRate = process.platform === 'darwin' ? 115200 : 1000000;
         console.log(`Opening adapter with ID: ${adapter.instanceId} and baud rate: ${baudRate}...`);
 
-        adapter.open({ baudRate }, err => {
+        adapter.open({ baudRate, logLevel: 'error' }, err => {
             if (err) {
                 reject(Error(`Error opening adapter: ${err}.`));
                 return;
@@ -373,7 +367,7 @@ function servicesInit(adapter) {
 function help() {
     console.log(`Usage: ${path.basename(__filename)} <PORT> <SD_API_VERSION>`);
     console.log();
-    console.log('PORT is the UART for the adapter.');
+    console.log('PORT is the UART for the adapter. For example /dev/ttyS0 on Unix based systems or COM1 on Windows based systems.');
     console.log('SD_API_VERSION can be v2 or v3. nRF51 series uses v2.');
     console.log();
     console.log('It is assumed that the nRF device has been programmed with the correct connectivity firmware.');
@@ -401,7 +395,7 @@ if (process.argv.length !== 4) {
     }
 
     const adapter = adapterFactory.createAdapter(apiVersion, port, '');
-    addAdapterListener(adapter, '#BLE_CENTRAL: ');
+    addAdapterListener(adapter);
 
     openAdapter(adapter).then(() => {
         console.log('Opened adapter.');
