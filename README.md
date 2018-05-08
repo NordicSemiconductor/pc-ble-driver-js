@@ -22,7 +22,11 @@ A connectivity firmware needs to be flashed on the nRF5 IC before using pc-ble-d
 
 The [examples](./examples) and [integration tests](./test) may be used as a starting point for development with pc-ble-driver-js. Examples include a [heart rate monitor](./examples/heart_rate_monitor.js) (BLE peripheral) and [heart rate collector](./examples/heart_rate_collector.js) (BLE master) and show the basic structure of an application built on pc-ble-driver-js. To run the heart rate monitor example, verify your nRF5 connectivity chip is set-up and connected to your PC and run:
 
-    $ node examples/heart_rate_monitor.js
+    $ node examples/heart_rate_monitor.js <PORT> <SD_API_VERSION>
+ 
+To get more information about the command options you can run the command with the --help argument.
+ 
+    $ node examples/heart_rate_monitor.js --help
     
 ## Architecture
 
