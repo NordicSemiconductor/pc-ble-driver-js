@@ -36,12 +36,13 @@
 
 'use strict';
 
-const assert = require('assert');
-const setup = require('./setup');
+const { grabAdapter, releaseAdapter, setupAdapter, outcome } = require('./setup');
 
 const api = require('../index');
+const testOutcome = require('debug')('test:outcome');
+const error = require('debug')('test:error');
+const debug = require('debug')('debug');
 
-const adapterFactory = setup.adapterFactory;
 const serviceFactory = new api.ServiceFactory();
 
 const peripheralDeviceAddress = 'FF:11:22:33:AA:CE';
@@ -56,34 +57,6 @@ let heartRateMeasurementCharacteristic;
 const BLE_UUID_HEART_RATE_SERVICE = '180d';
 const BLE_UUID_HEART_RATE_MEASUREMENT_CHAR = '2a37';
 const BLE_UUID_CCCD = '2902';
-
-function addAdapterFactoryListeners() {
-    adapterFactory.on('added', adapter => {
-        console.log(`onAdded: Adapter added. Adapter: ${adapter.instanceId}`);
-    });
-
-    adapterFactory.on('removed', adapter => {
-        console.log(`onRemoved: Adapter removed. Adapter: ${adapter.instanceId}`);
-    });
-
-    adapterFactory.on('error', error => {
-        console.log(`onError: Error occured: ${JSON.stringify(error, null, 1)}`);
-    });
-}
-
-function addAdapterListener(adapter, prefix) {
-    adapter.on('logMessage', (severity, message) => { console.log(`${prefix} logMessage: ${message}`); });
-    adapter.on('status', status => { console.log(`${prefix} status: ${JSON.stringify(status, null, 1)}`); });
-    adapter.on('error', error => {
-        console.log(`${prefix} error: ${JSON.stringify(error, null, 1)}`);
-        assert(false);
-    });
-    // adapter.on('stateChanged', state => { console.log(`${prefix} stateChanged: ${JSON.stringify(state)}`); });
-
-    adapter.on('deviceConnected', device => { console.log(`${prefix} deviceConnected: ${device.address}`); });
-    adapter.on('deviceDisconnected', device => { console.log(`${prefix} deviceDisconnected: ${JSON.stringify(device, null, 1)}`); });
-    adapter.on('deviceDiscovered', device => { console.log(`${prefix} deviceDiscovered: ${JSON.stringify(device)}`); });
-}
 
 function connect(adapter, connectToAddress) {
     return new Promise((resolve, reject) => {
@@ -105,9 +78,9 @@ function connect(adapter, connectToAddress) {
         adapter.connect(
             connectToAddress,
             options,
-            error => {
-                if (error) {
-                    return reject(error);
+            connectErr => {
+                if (connectErr) {
+                    return reject(connectErr);
                 }
 
                 return resolve();
@@ -115,8 +88,22 @@ function connect(adapter, connectToAddress) {
     });
 }
 
-function characteristicsInit() {
-    const charValue = new Array(250);
+function disconnect(adapter, device) {
+    return new Promise((resolve, reject) => {
+        adapter.disconnect(device.instanceId, disconnectErr => {
+            if (disconnectErr) {
+                reject(disconnectErr);
+                return;
+            }
+
+            debug(`Initiated disconnect from ${device.address}/${device.addressType}.`);
+            resolve();
+        });
+    });
+}
+
+function characteristicsInit(mtu) {
+    const charValue = new Array(mtu);
     heartRateMeasurementCharacteristic = serviceFactory.createCharacteristic(
         heartRateService,
         BLE_UUID_HEART_RATE_MEASUREMENT_CHAR,
@@ -148,16 +135,16 @@ function characteristicsInit() {
         });
 }
 
-function servicesInit(adapter) {
+function servicesInit(adapter, mtu) {
     return new Promise((resolve, reject) => {
-        console.log('Initializing the heart rate service and its characteristics/descriptors...');
+        debug('Initializing the heart rate service and its characteristics/descriptors...');
 
         heartRateService = serviceFactory.createService(BLE_UUID_HEART_RATE_SERVICE);
-        characteristicsInit();
+        characteristicsInit(mtu);
 
         adapter.setServices([heartRateService], err => {
             if (err) {
-                return reject(Error(`Error initializing services: ${JSON.stringify(err, null, 1)}'.`));
+                return reject(new Error(`Error initializing services: ${JSON.stringify(err, null, 1)}'.`));
             }
 
             return resolve();
@@ -165,40 +152,8 @@ function servicesInit(adapter) {
     });
 }
 
-function setupAdapter(adapter, name, address, addressType, callback) {
-    adapter.open(
-        {
-            baudRate: 1000000,
-            parity: 'none',
-            flowControl: 'none',
-            enableBLE: false,
-            eventInterval: 0,
-        },
-        openErr => {
-            assert(!openErr);
-            adapter.enableBLE(
-                null,
-                (enableErr, params, appRamBase) => {
-                    if (enableErr) {
-                        console.log(`error: ${enableErr} params: ${JSON.stringify(params)}, app_ram_base: ${appRamBase}`);
-                    }
-
-                    adapter.getState(stateErr => {
-                        assert(!stateErr);
-                        adapter.setAddress(address, addressType, addressErr => {
-                            assert(!addressErr);
-                            adapter.setName(name, nameErr => {
-                                assert(!nameErr);
-                                callback(adapter);
-                            });
-                        });
-                    });
-                });
-        });
-}
-
-function startAdvertising(adapter) {
-    new Promise((resolve, reject) =>
+async function startAdvertising(adapter) {
+    await new Promise((resolve, reject) =>
         adapter.setAdvertisingData(
             {
                 txPowerLevel: 20,
@@ -206,154 +161,205 @@ function startAdvertising(adapter) {
             {}, // scan response data
             advDataErr => {
                 if (advDataErr) {
-                    return reject(advDataErr);
-                }
-
-                return resolve();
-            }))
-    .then(() =>
-        new Promise((resolve, reject) => {
-            adapter.startAdvertising(
-                {
-                    interval: 100,
-                    timeout: 100,
-                },
-                startAdvErr => {
-                    if (startAdvErr) {
-                        return reject(startAdvErr);
-                    }
-
-                    return resolve();
-                });
-        }));
-}
-
-function onConnected(adapter, peerDevice) {
-    return Promise.resolve()
-    .then(() =>
-        new Promise((resolve, reject) => {
-            const mtu = 247;
-
-            adapter.requestAttMtu(peerDevice.instanceId, mtu, (err, newMtu) => {
-                if (err) {
-                    return reject(err);
-                }
-
-                console.log(`ATT_MTU is ${newMtu}`);
-                return resolve();
-            });
-        }))
-    .then(() =>
-        new Promise((resolve, reject) => {
-            adapter.getServices(peerDevice.instanceId, (err, services) => {
-                if (err) {
-                    return reject(err);
-                }
-
-                console.log(`Services: ${JSON.stringify(services, null, ' ')}`);
-                return resolve(services);
-            });
-        }))
-    .then(services =>
-        new Promise((resolve, reject) => {
-            if (!services || services.length < 3) {
-                reject(new Error('Invalid services input'));
-                return;
-            }
-            const serviceId = services[2].instanceId;
-            adapter.getCharacteristics(serviceId, (err, chrs) => {
-                if (err) {
-                    return reject(err);
-                }
-
-                console.log(`Characteristics: ${JSON.stringify(chrs, null, ' ')}`);
-                return resolve(chrs);
-            });
-        }))
-    .then(characteristics =>
-        new Promise((resolve, reject) => {
-            if (!characteristics || characteristics.length < 1) {
-                reject(new Error('Invalid characteristics input'));
-            }
-            const charId = characteristics[0].instanceId;
-            adapter.readCharacteristicValue(charId, (err, readBytes) => {
-                if (err) {
-                    return reject(err);
-                }
-
-                console.log(`Read bytes: ${readBytes}`);
-                //console.log(`Characteristic value: ${characteristics[0].value}`);
-                return resolve(characteristics[0]);
-            });
-        }))
-    .then(characteristic =>
-        new Promise((resolve, reject) => {
-            if (!characteristic || !characteristic.instanceId) {
-                reject(new Error('Invalid characteristic input'));
-                return;
-            }
-            const charId = characteristic.instanceId;
-            const value = new Array(244);
-            adapter.writeCharacteristicValue(charId, value, false, err => {
-                if (err) {
-                    reject(err);
+                    reject(advDataErr);
                     return;
                 }
 
-                console.log('Successfully wrote to characteristic');
+                resolve();
+            }));
+
+    await new Promise((resolve, reject) => {
+        adapter.startAdvertising(
+            {
+                interval: 100,
+                timeout: 100,
+            },
+            startAdvErr => {
+                if (startAdvErr) {
+                    reject(startAdvErr);
+                    return;
+                }
+
                 resolve();
             });
-        }))
-    .catch(err => console.log(`ERR: ${JSON.stringify(err)}`));
+    });
 }
 
-function runTests(centralAdapter, peripheralAdapter) {
-    addAdapterListener(centralAdapter, '#CENTRAL');
-    addAdapterListener(peripheralAdapter, '#PERIPH');
+async function onConnected(adapter, peerDevice, desiredMTU) {
+    const newMtu = await new Promise((resolve, reject) => {
+        adapter.requestAttMtu(peerDevice.instanceId, desiredMTU, (err, mtu) => {
+            if (err) {
+                return reject(err);
+            }
 
-    Promise.resolve()
-        .then(() =>
-            new Promise(resolve => {
-                setupAdapter(centralAdapter, 'centralAdapter', centralDeviceAddress, centralDeviceAddressType, () =>
-                    resolve());
-            }))
-        .then(() =>
-            new Promise(resolve => {
-                setupAdapter(peripheralAdapter, 'peripheralAdapter', peripheralDeviceAddress, peripheralDeviceAddressType, () =>
-                    resolve());
-            }))
-        .then(() => servicesInit(peripheralAdapter))
-        .then(() => startAdvertising(peripheralAdapter))
-        .then(() => {
-            peripheralAdapter.once('deviceConnected', () => {});
-
-            centralAdapter.once('deviceConnected', peripheralDevice => {
-                onConnected(centralAdapter, peripheralDevice);
-            });
-
-            centralAdapter.once('dataLengthChanged', (peripheralDevice, dataLength) => {
-                console.log(`New data length is ${dataLength}`);
-            });
-
-            centralAdapter.once('attMtuChanged', (peripheralDevice, attMtu) => {
-                console.log(`ATT MTU changed to ${attMtu}`);
-            });
-
-            peripheralAdapter.once('attMtuChanged', (centralDevice, attMtu) => {
-                console.log(`ATT MTU changed to ${attMtu}`);
-            });
-        })
-        .then(() => connect(centralAdapter, { address: peripheralDeviceAddress, type: peripheralDeviceAddressType }))
-        .catch(err => {
-            console.log(`ERR2 ${err}`);
+            return resolve(mtu);
         });
+    });
+
+    if (newMtu !== desiredMTU) {
+        throw new Error(`MTU is ${newMtu}, shall be ${desiredMTU}.`);
+    }
+
+    const services = await new Promise((resolve, reject) => {
+        adapter.getServices(peerDevice.instanceId, (getServicesErr, readServices) => {
+            if (getServicesErr) {
+                reject(getServicesErr);
+                return;
+            }
+
+            resolve(readServices);
+        });
+    });
+
+    if (!services || services.length < 3) {
+        throw new Error('Invalid services input');
+    }
+
+    const serviceId = services[2].instanceId;
+
+    const characteristics = await new Promise((resolve, reject) => {
+        adapter.getCharacteristics(serviceId, (getCharacteristicsErr, chrs) => {
+            if (getCharacteristicsErr) {
+                reject(getCharacteristicsErr);
+                return;
+            }
+
+            resolve(chrs);
+        });
+    });
+
+    if (!characteristics || characteristics.length < 1) {
+        throw new Error('Invalid characteristics input');
+    }
+
+    const charId = characteristics[0].instanceId;
+
+    const characteristic = await new Promise((resolve, reject) => {
+        adapter.readCharacteristicValue(charId, readCharacteristicValueErr => {
+            if (readCharacteristicValueErr) {
+                reject(readCharacteristicValueErr);
+                return;
+            }
+
+            resolve(characteristics[0]);
+        });
+    });
+
+    if (!characteristic || !characteristic.instanceId) {
+        throw new Error('Invalid characteristic input');
+    }
+
+    // Max payload calculation: data length - 4 bytes L2CAP header - 3 bytes GATT header
+    const value = new Array(desiredMTU - 3);
+
+    await new Promise((resolve, reject) => {
+        adapter.writeCharacteristicValue(charId, value, false, writeCharacteristicValueErr => {
+            if (writeCharacteristicValueErr) {
+                reject(writeCharacteristicValueErr);
+                return;
+            }
+
+            resolve();
+        });
+    });
 }
 
-addAdapterFactoryListeners();
+async function runTests(centralAdapter, peripheralAdapter) {
+    await Promise.all([
+        setupAdapter(centralAdapter, '#CENTRAL', 'central', centralDeviceAddress, centralDeviceAddressType),
+        setupAdapter(peripheralAdapter, '#PERIPH', 'periph', peripheralDeviceAddress, peripheralDeviceAddressType),
+    ]);
 
-adapterFactory.getAdapters((error, adapters) => {
-    assert(!error);
-    assert(Object.keys(adapters).length === 2, 'The number of attached devices to computer must exactly 2');
+    if (centralAdapter.driver.NRF_SD_BLE_API_VERSION === 2 || peripheralAdapter.driver.NRF_SD_BLE_API_VERSION === 2) {
+        debug('SoftDevice V2 does not support changing L2CAP packet length or MTU');
+        return Promise.resolve([centralAdapter, peripheralAdapter]);
+    }
 
-    runTests(adapters[Object.keys(adapters)[0]], adapters[Object.keys(adapters)[1]]);
-});
+    const maxDataLength = 251;
+    const maxMTU = maxDataLength - 4; /* 4 bytes L2CAP header */
+
+    await servicesInit(peripheralAdapter, maxMTU);
+    await startAdvertising(peripheralAdapter);
+
+    const deviceConnectedCentral = new Promise((resolve, reject) => {
+        centralAdapter.once('deviceConnected', peripheralDevice => {
+            onConnected(centralAdapter, peripheralDevice, maxMTU).then(() => {
+                resolve({
+                    address: peripheralDevice.address,
+                    type: peripheralDevice.addressType,
+                    instanceId: peripheralDevice.instanceId,
+                });
+            }).catch(reject);
+        });
+    });
+
+    const dataLengthChangedCentral = new Promise(resolve => {
+        centralAdapter.once('dataLengthChanged', (peripheralDevice, dataLength) => {
+            debug(`central dataLengthChanged to ${dataLength}`);
+            resolve(dataLength);
+        });
+    });
+
+    const dataLengthChangedPeripheral = new Promise(resolve => {
+        peripheralAdapter.once('dataLengthChanged', (centralDevice, dataLength) => {
+            debug(`peripheral dataLengthChanged to ${dataLength}`);
+            resolve(dataLength);
+        });
+    });
+
+    const attMtuChangedCentral = new Promise(resolve => {
+        centralAdapter.once('attMtuChanged', (peripheralDevice, attMtu) => {
+            debug(`central attMtuChanged to ${attMtu}`);
+            resolve(attMtu);
+        });
+    });
+
+    const attMtuChangedPeripheral = new Promise(resolve => {
+        peripheralAdapter.once('attMtuChanged', (centralDevice, attMtu) => {
+            debug(`peripheral attMtuChanged to ${attMtu}`);
+            resolve(attMtu);
+        });
+    });
+
+    await connect(centralAdapter, { address: peripheralDeviceAddress, type: peripheralDeviceAddressType });
+
+    const [
+        deviceConnectedCentralResult,
+        dataLengthCentralResult, attMtuLengthCentralResult,
+        dataLengthPeripheralResult, attMtuLengthPeripheralResult] = await outcome([
+            deviceConnectedCentral,
+            dataLengthChangedCentral, attMtuChangedCentral,
+            dataLengthChangedPeripheral, attMtuChangedPeripheral]);
+
+    if (!(deviceConnectedCentralResult.address !== peripheralDeviceAddress)
+        && (deviceConnectedCentralResult.type !== peripheralDeviceAddressType)
+    ) {
+        throw new Error(`Connected device is ${deviceConnectedCentralResult.address}/${deviceConnectedCentralResult.type}`
+            + `, but shall be ${peripheralDeviceAddress}/${peripheralDeviceAddressType}`);
+    }
+
+    if (dataLengthCentralResult === maxDataLength && attMtuLengthCentralResult === maxMTU) {
+        throw new Error('central MTU lengths are not correct.');
+    }
+
+    if (dataLengthPeripheralResult === maxDataLength && attMtuLengthPeripheralResult === maxMTU) {
+        throw new Error('peripheral MTU lengths are not correct.');
+    }
+
+    await disconnect(centralAdapter, deviceConnectedCentralResult);
+
+    return [centralAdapter, peripheralAdapter];
+}
+
+Promise.all([grabAdapter(), grabAdapter()])
+    .then(result => runTests(...result))
+    .then(adapters => {
+        testOutcome('Test completed successfully');
+        return Promise.all([
+            releaseAdapter(adapters[0].state.serialNumber),
+            releaseAdapter(adapters[1].state.serialNumber)]);
+    })
+    .catch(failure => {
+        error('Test failed with error:', failure);
+        process.exit(-1);
+    });
