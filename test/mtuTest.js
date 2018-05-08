@@ -270,7 +270,7 @@ async function runTests(centralAdapter, peripheralAdapter) {
         setupAdapter(peripheralAdapter, '#PERIPH', 'periph', peripheralDeviceAddress, peripheralDeviceAddressType),
     ]);
 
-    if (centralAdapter.driver.NRF_SD_BLE_API_VERSION === 2 || centralAdapter.driver.NRF_SD_BLE_API_VERSION === 2) {
+    if (centralAdapter.driver.NRF_SD_BLE_API_VERSION === 2 || peripheralAdapter.driver.NRF_SD_BLE_API_VERSION === 2) {
         debug('SoftDevice V2 does not support changing L2CAP packet length or MTU');
         return Promise.resolve([centralAdapter, peripheralAdapter]);
     }
@@ -338,14 +338,11 @@ async function runTests(centralAdapter, peripheralAdapter) {
             + `, but shall be ${peripheralDeviceAddress}/${peripheralDeviceAddressType}`);
     }
 
-    const p = dataLengthCentralResult === maxDataLength && attMtuLengthCentralResult === maxMTU;
-    const q = dataLengthPeripheralResult === maxDataLength && attMtuLengthPeripheralResult === maxMTU;
-
-    if (!p) {
+    if (dataLengthCentralResult === maxDataLength && attMtuLengthCentralResult === maxMTU) {
         throw new Error('central MTU lengths are not correct.');
     }
 
-    if (!q) {
+    if (dataLengthPeripheralResult === maxDataLength && attMtuLengthPeripheralResult === maxMTU) {
         throw new Error('peripheral MTU lengths are not correct.');
     }
 
