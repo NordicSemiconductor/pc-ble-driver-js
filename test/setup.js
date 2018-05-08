@@ -282,8 +282,8 @@ async function grabAdapter(requestedSerialNumber, options = undefined) {
  * Await outcome of an array of promises
  *
  * @param {Array<Promise>} futureOutcomes An array of Promises to resolve
- * @param {number} timeout Milliseconds to wait before outcome is regarded as timed out
- * @param {string} description Description of failed outcome.
+ * @param {number} [timeout] Milliseconds to wait before outcome is regarded as timed out
+ * @param {string} [description] Description of failed outcome.
  * @returns {Promise<any>} An array of the promises.
  */
 async function outcome(futureOutcomes, timeout, description) {
@@ -295,7 +295,8 @@ async function outcome(futureOutcomes, timeout, description) {
         result = await Promise.race([
             Promise.all(futureOutcomes),
             new Promise((_, reject) => {
-                timeoutId = setTimeout(() => reject(new Error(`Test timed out after ${t} ms. ${description || ''}`)), t);
+                timeoutId = setTimeout(
+                    () => reject(new Error(`Test timed out after ${t} ms. ${description || ''}`)), t);
             })]);
     } catch (outcomeError) {
         throw outcomeError;

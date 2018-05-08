@@ -42,14 +42,12 @@ const assert = require('assert');
 const crypto = require('crypto');
 
 const debug = require('debug')('debug');
-const error = require('debug')('error');
-const testOutcome = require('debug')('test:outcome');
 
-const peripheralDeviceAddress = 'FF:11:22:33:AA:CE';
-const peripheralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
+const PERIPHERAL_DEVICE_ADDRESS = 'FF:11:22:33:AA:CE';
+const PERIPHERAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
-const centralDeviceAddress = 'FF:11:22:33:AA:CF';
-const centralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
+const CENTRAL_DEVICE_ADDRESS = 'FF:11:22:33:AA:CF';
+const CENTRAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
 function addAdapterListener(adapter, prefix) {
     adapter.on('connSecUpdate', () => {
@@ -231,16 +229,12 @@ async function setupAuthLegacyJustWorks(
     const [secParamsRequestPeripheralResult, secParamsRequestCentralResult, authStatusCentralResult]
         = await outcome([secParamsRequestPeripheral, secParamsRequestCentral, authStatusCentral]);
 
-    // TODO: Simple assertions, add more when moving to jest test framework
-    if (
-        secParamsRequestCentralResult == null ||
-        secParamsRequestPeripheralResult == null ||
-        authStatusCentralResult == null
-    ) throw new Error('Test did not pass');
+    // TODO: Simple assertions, add more later
+    expect(secParamsRequestCentralResult).toBeDefined();
+    expect(secParamsRequestPeripheralResult).toBeDefined();
+    expect(authStatusCentralResult).toBeDefined();
 
-    if (authStatusCentralResult.status.auth_status !== 0) {
-        throw new Error(`Auth status shall be success(0), but is ${authStatusCentralResult.status.auth_status}`);
-    }
+    expect(authStatusCentralResult.status.auth_status).toBe(0);
 }
 
 async function setupAuthLegacyOOB(
@@ -377,20 +371,14 @@ async function setupAuthLegacyOOB(
         authKeyRequestCentral,
         authStatusCentral]);
 
-    // TODO: Simple assertions, add more when moving to jest test framework
-    if (
-        secParamsRequestCentralResult == null ||
-        authKeyRequestPeripheralResult == null ||
-        secParamsRequestPeripheralResult == null ||
-        authKeyRequestCentralResult == null ||
-        authStatusCentralResult == null
-    ) {
-        throw new Error('Test did not pass');
-    }
+    // TODO: Simple assertions, add more later
+    expect(secParamsRequestCentralResult).toBeDefined();
+    expect(authKeyRequestPeripheralResult).toBeDefined();
+    expect(secParamsRequestPeripheralResult).toBeDefined();
+    expect(authKeyRequestCentralResult).toBeDefined();
+    expect(authStatusCentralResult).toBeDefined();
 
-    if (authStatusCentralResult.status.auth_status !== 0) {
-        throw new Error(`Auth status shall be success(0), but is ${authStatusCentralResult.status.auth_status}`);
-    }
+    expect(authStatusCentralResult.status.auth_status).toBe(0);
 }
 
 async function setupAuthLESCJustWorks(
@@ -552,17 +540,12 @@ async function setupAuthLESCJustWorks(
             lescDhkeyRequestPeripheral,
             authStatusCentral]);
 
-    // TODO: Simple assertions, add more when moving to jest test framework
-    if (
-        secParamsRequestCentralResult == null ||
-        secParamsRequestPeripheralResult == null ||
-        lescDhkeyRequestCentralResult == null ||
-        lescDhkeyRequestPeripheralResult == null
-    ) throw new Error('Test did not pass');
-
-    if (authStatusCentralResult.status.auth_status !== 0) {
-        throw new Error(`Auth status shall be success(0), but is ${authStatusCentralResult.status.auth_status}`);
-    }
+    // TODO: Simple assertions, add more later
+    expect(secParamsRequestCentralResult).toBeDefined();
+    expect(secParamsRequestPeripheralResult).toBeDefined();
+    expect(lescDhkeyRequestCentralResult).toBeDefined();
+    expect(lescDhkeyRequestPeripheralResult).toBeDefined();
+    expect(authStatusCentralResult.status.auth_status).toBe(0);
 }
 
 async function setupAuthLESCPasskey(
@@ -799,27 +782,18 @@ async function setupAuthLESCPasskey(
             lescDhkeyRequestCentral, lescDhkeyRequestPeripheral,
             authStatusCentral]);
 
-    // TODO: Simple assertions, add more when moving to jest test framework
-    if (
-        secParamsRequestCentralResult == null ||
-        secParamsRequestPeripheralResult == null ||
-        passkeyDisplayPeripheralResult == null ||
-        keyPressedPeripheralResult == null ||
-        authKeyRequestCentralResult == null ||
-        lescDhkeyRequestCentralResult == null ||
-        lescDhkeyRequestPeripheralResult == null ||
-        authStatusCentralResult == null
-    ) {
-        throw new Error('Test did not pass');
-    }
+    // TODO: Simple assertions, add more later
+    expect(secParamsRequestCentralResult).toBeDefined();
+    expect(secParamsRequestPeripheralResult).toBeDefined();
+    expect(passkeyDisplayPeripheralResult).toBeDefined();
+    expect(keyPressedPeripheralResult).toBeDefined();
+    expect(authKeyRequestCentralResult).toBeDefined();
+    expect(lescDhkeyRequestCentralResult).toBeDefined();
+    expect(lescDhkeyRequestPeripheralResult).toBeDefined();
+    expect(authStatusCentralResult).toBeDefined();
 
-    if (keyPressedPeripheralResult.keypressCount !== keypressSequence.length) {
-        throw new Error(`Keypress count shall be ${keypressSequence.length}, but is ${keyPressedPeripheralResult.keypressCount}`);
-    }
-
-    if (authStatusCentralResult.status.auth_status !== 0) {
-        throw new Error(`Auth status shall be success(0), but is ${authStatusCentralResult.status.auth_status}`);
-    }
+    expect(keyPressedPeripheralResult.keypressCount).toBe(keypressSequence.length);
+    expect(authStatusCentralResult.status.auth_status).toBe(0);
 }
 
 async function setupAuthLESCOOB(
@@ -1051,20 +1025,14 @@ async function setupAuthLESCOOB(
         lescDhkeyRequestPeripheral,
         authStatusCentral]);
 
-    // TODO: Simple assertions, add more when moving to jest test framework
-    if (
-        secParamsRequestCentralResult == null ||
-        secParamsRequestPeripheralResult == null ||
-        lescDhkeyRequestCentralResult == null ||
-        lescDhkeyRequestPeripheralResult == null ||
-        authStatusCentralResult == null
-    ) {
-        throw new Error('Test did not pass');
-    }
+    // TODO: Simple assertions, add more later
+    expect(secParamsRequestCentralResult).toBeDefined();
+    expect(secParamsRequestPeripheralResult).toBeDefined();
+    expect(lescDhkeyRequestCentralResult).toBeDefined();
+    expect(lescDhkeyRequestPeripheralResult).toBeDefined();
+    expect(authStatusCentralResult).toBeDefined();
 
-    if (authStatusCentralResult.status.auth_status !== 0) {
-        throw new Error(`Auth status shall be success(0), but is ${authStatusCentralResult.status.auth_status}`);
-    }
+    expect(authStatusCentralResult.status.auth_status).toBe(0);
 }
 
 async function setupAuthLegacyPasskey(
@@ -1191,20 +1159,14 @@ async function setupAuthLegacyPasskey(
     ] = await outcome([secParamsRequestPeripheral, secParamsRequestCentral, authKeyRequest, passkeyDisplayPeripheral, authStatusCentral]);
 
 
-    // TODO: Simple assertions, add more when moving to jest test framework
-    if (
-        secParamsRequestCentralResult == null ||
-        secParamsRequestPeripheralResult == null ||
-        authKeyRequestResult == null ||
-        passkeyDisplayPeripheralResult == null ||
-        authStatusCentralResult == null
-    ) {
-        throw new Error('Test did not pass');
-    }
+    // TODO: Simple assertions, add more later
+    expect(secParamsRequestCentralResult).toBeDefined();
+    expect(secParamsRequestPeripheralResult).toBeDefined();
+    expect(authKeyRequestResult).toBeDefined();
+    expect(passkeyDisplayPeripheralResult).toBeDefined();
+    expect(authStatusCentralResult).toBeDefined();
 
-    if (authStatusCentralResult.status.auth_status !== 0) {
-        throw new Error(`Auth status shall be success(0), but is ${authStatusCentralResult.status.auth_status}`);
-    }
+    expect(authStatusCentralResult.status.auth_status).toBe(0);
 }
 
 async function setupAuthLESCNumericComparison(
@@ -1380,20 +1342,16 @@ async function setupAuthLESCNumericComparison(
         authStatusCentral]);
 
 
-    // TODO: Simple assertions, add more when moving to jest test framework
-    if (
-        secParamsRequestCentralResult == null ||
-        secParamsRequestPeripheralResult == null ||
-        lescDhkeyRequestPeripheralResult == null ||
-        lescDhkeyRequestCentralResult == null ||
-        passkeyDisplayPeripheralResult == null ||
-        passkeyDisplayCentralResult == null ||
-        authStatusCentralResult == null
-    ) throw new Error('Test did not pass');
+    // TODO: Simple assertions, add more later
+    expect(secParamsRequestCentralResult).toBeDefined();
+    expect(secParamsRequestPeripheralResult).toBeDefined();
+    expect(lescDhkeyRequestPeripheralResult).toBeDefined();
+    expect(lescDhkeyRequestCentralResult).toBeDefined();
+    expect(passkeyDisplayPeripheralResult).toBeDefined();
+    expect(passkeyDisplayCentralResult).toBeDefined();
+    expect(authStatusCentralResult).toBeDefined();
 
-    if (authStatusCentralResult.status.auth_status !== 0) {
-        throw new Error(`Auth status shall be success(0), but is ${authStatusCentralResult.status.auth_status}`);
-    }
+    expect(authStatusCentralResult.status.auth_status).toBe(0);
 }
 
 function compareArray(first, second) {
@@ -1407,66 +1365,79 @@ function keyGeneration(central, peripheral) {
     const origCentralPK = central._keys.pk;
     const origPeripheralPK = peripheral._keys.pk;
 
-    assert(origCentralPK !== origPeripheralPK);
-
-    assert(compareArray(origCentralPK, central.computePublicKey()));
-    assert(compareArray(origPeripheralPK, peripheral.computePublicKey()));
+    expect(origCentralPK).not.toBe(origPeripheralPK);
+    expect(compareArray(origCentralPK, central.computePublicKey())).toBe(true);
+    expect(compareArray(origPeripheralPK, peripheral.computePublicKey())).toBe(true);
 
     const centralSharedSecret = central.computeSharedSecret({ pk: origPeripheralPK });
     const peripheralSharedSecret = peripheral.computeSharedSecret({ pk: origCentralPK });
 
-    assert(compareArray(centralSharedSecret, peripheralSharedSecret));
+    expect(compareArray(centralSharedSecret, peripheralSharedSecret)).toBe(true);
 
-    assert(compareArray(origCentralPK, central.computePublicKey()));
-    assert(compareArray(origPeripheralPK, peripheral.computePublicKey()));
-
-    debug('Keygeneration - OK');
+    expect(compareArray(origCentralPK, central.computePublicKey())).toBe(true);
+    expect(compareArray(origPeripheralPK, peripheral.computePublicKey())).toBe(true);
 }
 
-async function runTests(centralAdapter, peripheralAdapter) {
-    addAdapterListener(centralAdapter, '#CENTRAL');
-    addAdapterListener(peripheralAdapter, '#PERIPH');
+describe('the API', async () => {
+    let centralAdapter;
+    let peripheralAdapter;
+    let peripheralDevice;
 
-    await setupAdapter(centralAdapter, '#CENTRAL', 'central', centralDeviceAddress, centralDeviceAddressType);
-    await setupAdapter(peripheralAdapter, '#PERIPH', 'peripheral', peripheralDeviceAddress, peripheralDeviceAddressType);
-    await startAdvertising(peripheralAdapter);
-    keyGeneration(centralAdapter, peripheralAdapter);
+    beforeAll(async () => {
+        [centralAdapter, peripheralAdapter] = await Promise.all([grabAdapter(), grabAdapter()]);
 
-    const [, peripheralDevice] = await Promise.all([
-        connect(centralAdapter, { address: peripheralDeviceAddress, type: peripheralDeviceAddressType }),
-        new Promise(resolve => {
-            centralAdapter.once('deviceConnected', deviceConnected => {
-                resolve(deviceConnected);
-            });
-        })]);
+        addAdapterListener(centralAdapter, '#CENTRAL');
+        addAdapterListener(peripheralAdapter, '#PERIPH');
 
-    if (!(peripheralDevice.address === peripheralDeviceAddress && peripheralDevice.addressType === peripheralDeviceAddressType)) {
-        throw new Error(`Device connected should be ${peripheralDevice.address}/${peripheralDevice.addressType}`);
-    }
+        await setupAdapter(centralAdapter, '#CENTRAL', 'central', CENTRAL_DEVICE_ADDRESS, CENTRAL_DEVICE_ADDRESS_TYPE);
+        await setupAdapter(peripheralAdapter, '#PERIPH', 'peripheral', PERIPHERAL_DEVICE_ADDRESS, PERIPHERAL_DEVICE_ADDRESS_TYPE);
 
-    await setupAuthLegacyJustWorks(centralAdapter, peripheralAdapter, peripheralDevice);
-    debug('LegacyJustWorks - OK');
-    await setupAuthLegacyPasskey(centralAdapter, peripheralAdapter, peripheralDevice);
-    debug('LegacyPasskey - OK');
-    await setupAuthLegacyOOB(centralAdapter, peripheralAdapter, peripheralDevice);
-    debug('LegacyOOB - OK');
-    await setupAuthLESCJustWorks(centralAdapter, peripheralAdapter, peripheralDevice);
-    debug('LESCJustWorks - OK');
-    await setupAuthLESCNumericComparison(centralAdapter, peripheralAdapter, peripheralDevice);
-    debug('LESCNumericComparison - OK');
-    await setupAuthLESCPasskey(centralAdapter, peripheralAdapter, peripheralDevice);
-    debug('LESCPasskey - OK');
-    await setupAuthLESCOOB(centralAdapter, peripheralAdapter, peripheralDevice);
-    debug('LESCOOB - OK');
-}
+        await startAdvertising(peripheralAdapter);
+        keyGeneration(centralAdapter, peripheralAdapter);
 
-Promise.all([grabAdapter(), grabAdapter()]).then(result =>
-    runTests(...result).then(() => {
-        testOutcome('Test(s) completed successfully');
-        return Promise.all([
-            releaseAdapter(result[0].state.serialNumber),
-            releaseAdapter(result[1].state.serialNumber)]);
-    })).catch(failure => {
-        error('Test failed with error:', failure);
-        process.exit(-1);
+        [, peripheralDevice] = await Promise.all([
+            connect(centralAdapter, { address: PERIPHERAL_DEVICE_ADDRESS, type: PERIPHERAL_DEVICE_ADDRESS_TYPE }),
+            new Promise(resolve => {
+                centralAdapter.once('deviceConnected', deviceConnected => {
+                    resolve(deviceConnected);
+                });
+            })]);
+
+        expect(peripheralDevice.address).toEqual(PERIPHERAL_DEVICE_ADDRESS);
+        expect(peripheralDevice.addressType).toEqual(PERIPHERAL_DEVICE_ADDRESS_TYPE);
     });
+
+    afterAll(async () => {
+        await Promise.all([
+            releaseAdapter(centralAdapter.state.serialNumber),
+            releaseAdapter(peripheralAdapter.state.serialNumber)]);
+    });
+
+    it('shall support LegacyJustWorks', async () => {
+        await setupAuthLegacyJustWorks(centralAdapter, peripheralAdapter, peripheralDevice);
+    });
+
+    it('shall support LegacyPasskey', async () => {
+        await setupAuthLegacyPasskey(centralAdapter, peripheralAdapter, peripheralDevice);
+    });
+
+    it('shall support LegacyOOB', async () => {
+        await setupAuthLegacyOOB(centralAdapter, peripheralAdapter, peripheralDevice);
+    });
+
+    it('shall support LESCJustWorks', async () => {
+        await setupAuthLESCJustWorks(centralAdapter, peripheralAdapter, peripheralDevice);
+    });
+
+    it('shall support LESCNumericComparison', async () => {
+        await setupAuthLESCNumericComparison(centralAdapter, peripheralAdapter, peripheralDevice);
+    });
+
+    it('shall support LESCPasskey', async () => {
+        await setupAuthLESCPasskey(centralAdapter, peripheralAdapter, peripheralDevice);
+    });
+
+    it('shall support LESCOOB', async () => {
+        await setupAuthLESCOOB(centralAdapter, peripheralAdapter, peripheralDevice);
+    });
+});
