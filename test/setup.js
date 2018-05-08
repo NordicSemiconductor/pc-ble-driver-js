@@ -148,19 +148,12 @@ async function _grabAdapter(serialNumber, options) {
         const serialNumbers = [...foundAdapters.keys()];
 
         if (serialNumber != null) {
-            // Interim solution while waiting for:
-            //   https://github.com/NordicSemiconductor/nrf-device-lister-js/pull/28
-            const p = serialNumbers.includes(serialNumber);
-            const q = serialNumbers.includes(Number.parseInt(serialNumber, 10));
-
-            if (!(p || q)) {
+            if (!serialNumbers.includes(serialNumber)) {
                 throw new Error(`Adapter with serial number ${serialNumber} does not exist.`);
             }
 
-            const sn = p ? serialNumber : Number.parseInt(serialNumber, 10);
-
-            grabbedAdapters.set(sn, foundAdapters.get(serialNumber));
-            return foundAdapters.get(sn);
+            grabbedAdapters.set(serialNumber, foundAdapters.get(serialNumber));
+            return foundAdapters.get(serialNumber);
         }
 
         // Grab an adapter that has not been used before
