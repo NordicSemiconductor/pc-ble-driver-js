@@ -1,4 +1,5 @@
 {
+  "rootDir": "..",
   "roots": ["api"],
   "testResultsProcessor": "jest-bamboo-formatter",
   "snapshotSerializers": [
