@@ -50,16 +50,16 @@
  */
 
 const api = require('../index');
-const { grabAdapter, releaseAdapter } = require('./setup');
+const path = require('path');
+
+const adapterFactory = api.AdapterFactory.getInstance(undefined, { enablePolling: false });
 
 function addLogListeners(adapter, dfu) {
-    adapter.on('logMessage', (severity, message) => { if (severity > 1) console.log(`logMessage: ${message}`); });
-    adapter.on('status', status => console.log(`status: ${JSON.stringify(status)}`));
+    adapter.on('logMessage', (severity, message) => { if (severity > 3) console.log(`${message}`); });
     adapter.on('error', error => console.log(`error: ${JSON.stringify(error)}`));
-    adapter.on('stateChanged', state => console.log(`stateChanged: ${JSON.stringify(state)}`));
-    adapter.on('deviceDisconnected', device => console.log(`deviceDisconnected: ${JSON.stringify(device)}`));
-    adapter.on('deviceDiscovered', device => console.log(`deviceDiscovered: ${JSON.stringify(device)}`));
-    adapter.on('deviceConnected', device => console.log(`deviceConnected: ${JSON.stringify(device)}`));
+    adapter.on('deviceDisconnected', device => console.log(`Device ${device.address}/${device.addressType} disconnected.`));
+    adapter.on('deviceDiscovered', device => console.log(`Discovered device ${device.address}/${device.addressType}.`));
+    adapter.on('deviceConnected', device => console.log(`Device ${device.address}/${device.addressType} connected.`));
 
     dfu.on('logMessage', (severity, message) => console.log(message));
     dfu.on('transferStart', fileName => console.log('transferStart:', fileName));
@@ -97,17 +97,84 @@ function performDfu(adapter, targetAddress, pathToZip) {
     });
 }
 
-const args = process.argv.slice(2);
-if (args.length < 2) {
-    console.log('Usage:   node dfu.js <targetAddress> <pathToDfuZip>');
-    console.log('Example: node dfu.js FF:11:22:33:AA:BF ./dfu/dfu_test_app_hrm_s132.zip');
-    process.exit(1);
-}
-const targetAddress = args[0];
-const pathToZip = args[1];
+/**
+ * Opens adapter for use with the default options.
+ *
+ * @param {Adapter} adapter Adapter to be opened.
+ * @returns {Promise} Resolves if the adapter is opened successfully.
+ *                    If an error occurs, rejects with the corresponding error.
+ */
+function openAdapter(adapter) {
+    return new Promise((resolve, reject) => {
+        const baudRate = process.platform === 'darwin' ? 115200 : 1000000;
+        console.log(`Opening adapter with ID: ${adapter.instanceId} and baud rate: ${baudRate}...`);
 
-grabAdapter().then(adapter => performDfu(adapter, targetAddress, pathToZip))
-    .then(() => releaseAdapter())
-    .catch(error => {
-        console.log(`Error during DFU operation: ${error.message}.`);
+        adapter.open({ baudRate, logLevel: 'error' }, err => {
+            if (err) {
+                reject(Error(`Error opening adapter: ${err}.`));
+                return;
+            }
+
+            resolve();
+        });
     });
+}
+
+function help() {
+    console.log(`Usage: ${path.basename(__filename)} <PORT> <SD_API_VERSION> <TARGET_ADDRESS> <PATH_TO_DFU_ZIP>`);
+    console.log();
+    console.log('PORT is the UART for the adapter. For example /dev/ttyS0 on Unix based systems or COM1 on Windows based systems.');
+    console.log('SD_API_VERSION can be v2 or v3. nRF51 series uses v2.');
+    console.log('TARGET_ADDRESS is the BLE address of the peripheral to upgrade.');
+    console.log('PATH_TO_DFU_ZIP is the zip file containing the upgrade firmware.');
+    console.log();
+    console.log('Example: node dfu.js COM1 v3 FF:11:22:33:AA:BF ./dfu/dfu_test_app_hrm_s132.zip');
+    console.log();
+    console.log('It is assumed that the nRF device has been programmed with the correct connectivity firmware.');
+}
+
+/**
+ * Application main entry.
+ */
+if (process.argv.length !== 6) {
+    help();
+    process.exit(-1);
+} else {
+    const port = process.argv[2];
+    const apiVersion = process.argv[3];
+    const targetAddress = process.argv[4];
+    const pathToDfuZip = process.argv[5];
+
+    if (!port) {
+        console.error('PORT must be specified');
+        process.exit(-1);
+    }
+
+    if (!apiVersion) {
+        console.error('SD_API_VERSION must be provided');
+        process.exit(-1);
+    } else if (!['v2', 'v3'].includes(apiVersion)) {
+        console.error(`SD_API_VERSION must be v2 or v3, argument provided is ${apiVersion}`);
+        process.exit(-1);
+    }
+
+    if (!targetAddress) {
+        console.error('TARGET_ADDRESS must be provided.');
+        process.exit(-1);
+    }
+
+    if (!pathToDfuZip) {
+        console.error('PATH_TO_DFU_ZIP must be provided.');
+        process.exit(-1);
+    }
+
+    const adapter = adapterFactory.createAdapter(apiVersion, port, '');
+
+    openAdapter(adapter).then(() => {
+        console.log(`Starting DFU process towards ${targetAddress}`);
+        return performDfu(adapter, targetAddress, pathToDfuZip);
+    }).catch(error => {
+        console.log(error);
+        process.exit(-1);
+    });
+}
