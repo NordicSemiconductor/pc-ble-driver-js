@@ -38,6 +38,11 @@
 
 const api = require('../index');
 
+// Milliseconds wait before terminating test.
+// In worst case programming of two devices needs to be done + the tests shall run.
+const JEST_TIMEOUT_FOR_SETUP_OF_DEVICE = 10000;
+jest.setTimeout(JEST_TIMEOUT_FOR_SETUP_OF_DEVICE);
+
 const adapterFactory = api.AdapterFactory.getInstance(undefined, { enablePolling: false });
 const serviceFactory = new api.ServiceFactory();
 
@@ -332,6 +337,11 @@ function addAdapterListener(adapter, prefix) {
  */
 function setupAdapter(adapter, prefix, name, address, addressType) {
     return new Promise((resolve, reject) => {
+        if (adapter == null) {
+            reject(new Error('adapter argument not provided.'));
+            return;
+        }
+
         addAdapterListener(adapter, prefix);
 
         adapter.getState(getStateError => {
