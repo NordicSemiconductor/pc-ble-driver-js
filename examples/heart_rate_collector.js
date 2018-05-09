@@ -367,12 +367,12 @@ if (process.argv.length !== 4) {
 } else {
     const [,, port, apiVersion] = process.argv;
 
-    if (!port) {
+    if (port == null) {
         console.error('PORT must be specified');
         process.exit(-1);
     }
 
-    if (!apiVersion) {
+    if (apiVersion == null) {
         console.error('SD_API_VERSION must be provided');
         process.exit(-1);
     } else if (!['v2', 'v3'].includes(apiVersion)) {
