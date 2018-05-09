@@ -58,6 +58,8 @@ describe('the API', async () => {
     let scanReportsReceived = 0;
 
     beforeAll(async () => {
+        // Errors here will not stop the tests from running.
+        // Issue filed regarding this: https://github.com/facebook/jest/issues/2713
         adapter = await grabAdapter();
         await setupAdapter(adapter, '#CENTRAL', 'central', CENTRAL_DEVICE_ADDRESS, CENTRAL_DEVICE_ADDRESS_TYPE);
     });

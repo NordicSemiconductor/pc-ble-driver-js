@@ -1384,7 +1384,10 @@ describe('the API', async () => {
     let peripheralDevice;
 
     beforeAll(async () => {
-        [centralAdapter, peripheralAdapter] = await Promise.all([grabAdapter(), grabAdapter()]);
+        // Errors here will not stop the tests from running.
+        // Issue filed regarding this: https://github.com/facebook/jest/issues/2713
+        centralAdapter = await grabAdapter();
+        peripheralAdapter = await grabAdapter();
 
         addAdapterListener(centralAdapter, '#CENTRAL');
         addAdapterListener(peripheralAdapter, '#PERIPH');
