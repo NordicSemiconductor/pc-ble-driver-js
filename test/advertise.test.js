@@ -49,6 +49,9 @@ describe('the API', async () => {
     let adapter;
 
     beforeAll(async () => {
+        // Errors here will not stop the tests from running.
+        // Issue filed regarding this: https://github.com/facebook/jest/issues/2713
+
         adapter = await grabAdapter();
         await setupAdapter(adapter, '#PERIPH', 'periph', PERIPHERAL_DEVICE_ADDRESS, PERIPHERAL_DEVICE_ADDRESS_TYPE);
     });
