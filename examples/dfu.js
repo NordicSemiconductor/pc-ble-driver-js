@@ -145,12 +145,12 @@ if (process.argv.length !== 6) {
     const targetAddress = process.argv[4];
     const pathToDfuZip = process.argv[5];
 
-    if (!port) {
+    if (port == null) {
         console.error('PORT must be specified');
         process.exit(-1);
     }
 
-    if (!apiVersion) {
+    if (apiVersion == null) {
         console.error('SD_API_VERSION must be provided');
         process.exit(-1);
     } else if (!['v2', 'v3'].includes(apiVersion)) {
@@ -158,12 +158,12 @@ if (process.argv.length !== 6) {
         process.exit(-1);
     }
 
-    if (!targetAddress) {
+    if (targetAddress == null) {
         console.error('TARGET_ADDRESS must be provided.');
         process.exit(-1);
     }
 
-    if (!pathToDfuZip) {
+    if (pathToDfuZip == null) {
         console.error('PATH_TO_DFU_ZIP must be provided.');
         process.exit(-1);
     }
