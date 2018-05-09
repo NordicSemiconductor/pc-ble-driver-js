@@ -373,10 +373,11 @@ if (process.argv.length !== 4) {
     }
 
     if (!apiVersion) {
-        if (!['v2', 'v3'].includes(apiVersion)) {
-            console.error(`SD_API_VERSION must be v2 or v3, argument provided is ${apiVersion}`);
-            process.exit(-1);
-        }
+        console.error('SD_API_VERSION must be provided');
+        process.exit(-1);
+    } else if (!['v2', 'v3'].includes(apiVersion)) {
+        console.error(`SD_API_VERSION must be v2 or v3, argument provided is ${apiVersion}`);
+        process.exit(-1);
     }
 
     const adapter = adapterFactory.createAdapter(apiVersion, port, '');
