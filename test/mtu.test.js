@@ -339,20 +339,15 @@ describe('the API', async () => {
                 dataLengthChangedCentral, attMtuChangedCentral,
                 dataLengthChangedPeripheral, attMtuChangedPeripheral]);
 
-        if (!(deviceConnectedCentralResult.address !== PERIPHERAL_DEVICE_ADDRESS)
-            && (deviceConnectedCentralResult.type !== PERIPHERAL_DEVICE_ADDRESS_TYPE)
-        ) {
-            throw new Error(`Connected device is ${deviceConnectedCentralResult.address}/${deviceConnectedCentralResult.type}`
-                + `, but shall be ${PERIPHERAL_DEVICE_ADDRESS}/${PERIPHERAL_DEVICE_ADDRESS_TYPE}`);
-        }
 
-        if (dataLengthCentralResult === maxDataLength && attMtuLengthCentralResult === maxMTU) {
-            throw new Error('central MTU lengths are not correct.');
-        }
+        expect(deviceConnectedCentralResult.address).toBe(PERIPHERAL_DEVICE_ADDRESS);
+        expect(deviceConnectedCentralResult.type).toBe(PERIPHERAL_DEVICE_ADDRESS_TYPE);
 
-        if (dataLengthPeripheralResult === maxDataLength && attMtuLengthPeripheralResult === maxMTU) {
-            throw new Error('peripheral MTU lengths are not correct.');
-        }
+        expect(dataLengthCentralResult).toBe(maxDataLength);
+        expect(attMtuLengthCentralResult).toBe(maxMTU);
+
+        expect(dataLengthPeripheralResult).toBe(maxDataLength);
+        expect(attMtuLengthPeripheralResult).toBe(maxMTU);
 
         await disconnect(centralAdapter, deviceConnectedCentralResult);
     });
