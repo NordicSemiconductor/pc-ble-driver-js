@@ -24,9 +24,7 @@ The [examples](./examples) and [integration tests](./test) may be used as a star
 
     $ node examples/heart_rate_monitor.js <PORT> <SD_API_VERSION>
  
-To get more information about the command options you can run the command with the --help argument.
- 
-    $ node examples/heart_rate_monitor.js --help
+To get more information about the command options you can run the command without any arguments.
     
 ## Architecture
 
