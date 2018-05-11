@@ -147,6 +147,9 @@ describe('the API', async () => {
     });
 
     it('shall support setting up a connection with a peripheral', async () => {
+        expect(centralAdapter).toBeDefined();
+        expect(peripheralAdapter).toBeDefined();
+
         const deviceConnectedCentral = new Promise((resolve, reject) => {
             centralAdapter.once('deviceConnected', peripheralDevice => {
                 debug(`deviceConnected ${peripheralDevice.address}/${peripheralDevice.addressType}`);

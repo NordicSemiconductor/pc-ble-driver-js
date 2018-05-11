@@ -69,6 +69,8 @@ describe('the API', async () => {
     });
 
     it('shall support start and stopping scanning', async () => {
+        expect(adapter).toBeDefined();
+
         await new Promise((startScanResolve, startScanReject) => {
             adapter.startScan(scanParameters, startScanErr => {
                 if (startScanErr) {
