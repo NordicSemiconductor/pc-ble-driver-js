@@ -278,6 +278,9 @@ describe('the API', async () => {
     });
 
     it('shall support changing MTU on supported versions of SoftDevice', async () => {
+        expect(centralAdapter).toBeDefined();
+        expect(peripheralAdapter).toBeDefined();
+
         if (centralAdapter.driver.NRF_SD_BLE_API_VERSION === 2 || peripheralAdapter.driver.NRF_SD_BLE_API_VERSION === 2) {
             debug('SoftDevice V2 does not support changing L2CAP packet length or MTU');
             return;

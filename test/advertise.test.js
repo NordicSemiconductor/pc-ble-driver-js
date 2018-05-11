@@ -61,6 +61,8 @@ describe('the API', async () => {
     });
 
     it('shall support starting and stopping of advertising', async () => {
+        expect(adapter).toBeDefined();
+
         const service1 = serviceFactory.createService('adabfb006e7d4601bda2bffaa68956ba');
         const service2 = serviceFactory.createService('1234');
 
