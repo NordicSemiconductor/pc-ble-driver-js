@@ -55,8 +55,6 @@ const DeviceLister = require('nrf-device-lister');
 const { setupDevice } = require('nrf-device-setup');
 const { FirmwareRegistry } = require('../index');
 
-require('debug').enable(['setup:*,test:*', process.env.DEBUG].join(','));
-
 const traits = {
     usb: false,
     nordicUsb: true,
@@ -146,6 +144,13 @@ function determineSoftDeviceParameters(serialNumber) {
     return params;
 }
 
+/**
+ * Grabs an adapter from the list of available adapters connected and programs it with the correct connectivity firmware.
+ *
+ * @param {string} [serialNumber] serial number of the device to program, picks an available one if not specified
+ * @param {any} [options] additional options, programDevice attributes can be set to false to skip programming
+ * @returns {Promise<any>} Promise with information about programmed firmware and device
+ */
 async function _grabAdapter(serialNumber, options) {
     const foundAdapters = await getAdapters();
 
@@ -192,9 +197,12 @@ async function _grabAdapter(serialNumber, options) {
     if (!skipSetupDevice) {
         await setupDevice(selectedAdapter, FirmwareRegistry.getDeviceSetup());
 
-        // nRF51 requires a ~250ms wait time before it can be opened
         if (softDeviceParams.sdVersion === 'v2') {
+            // nRF51 requires a ~250ms wait time before it can be opened
             await new Promise(resolve => setTimeout(resolve, 250));
+        } else {
+            // nRF 52 requires a 216ms wait time before it can be opened
+            await new Promise(resolve => setTimeout(resolve, 216));
         }
     }
 
@@ -257,10 +265,10 @@ async function releaseAdapter(serialNumber) {
  * Grab an available adapter.
  *
  * @param {string} [requestedSerialNumber] Specific adapter to grab, if undefined, the function picks one that is not registered as grabbed from before
- * @param {Object} options to use when grabbing the adapter. Attribute setupDevice: false will prevent programming or checking if the right firmware is on the device.
+ * @param {Object} [options] to use when grabbing the adapter. Attribute setupDevice: false will prevent programming or checking if the right firmware is on the device.
  * @returns {Promise<Adapter>} An opened adapter ready to use
  */
-async function grabAdapter(requestedSerialNumber, options = undefined) {
+async function grabAdapter(requestedSerialNumber, options) {
     const { port, serialNumber, apiVersion, baudRate } = await _grabAdapter(requestedSerialNumber, options);
     const adapter = adapterFactory.createAdapter(apiVersion, port, serialNumber);
 
