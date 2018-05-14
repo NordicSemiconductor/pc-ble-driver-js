@@ -40,7 +40,7 @@ const api = require('../index');
 
 // Milliseconds wait before terminating test.
 // In worst case programming of two devices needs to be done + the tests shall run.
-const JEST_TIMEOUT_FOR_SETUP_OF_DEVICE = 10000;
+const JEST_TIMEOUT_FOR_SETUP_OF_DEVICE = 30000;
 jest.setTimeout(JEST_TIMEOUT_FOR_SETUP_OF_DEVICE);
 
 const adapterFactory = api.AdapterFactory.getInstance(undefined, { enablePolling: false });
