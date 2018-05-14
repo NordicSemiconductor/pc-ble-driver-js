@@ -167,7 +167,9 @@ function _filterAdapters(serialNumbers, options) {
 
     return serialNumbers.filter(sn => {
         if (filterOptions.blacklist) {
-            return !filterOptions.blacklist.includes(sn);
+            if (filterOptions.blacklist.includes(sn)) {
+                return false;
+            }
         }
 
         if (filterOptions.family) {
