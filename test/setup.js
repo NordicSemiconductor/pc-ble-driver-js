@@ -154,30 +154,23 @@ function determineSoftDeviceParameters(serialNumber) {
  * @private
  */
 function _filterAdapters(serialNumbers, options) {
-    // Use options from environment variables or options provided to function
-    let filterOptions;
+    // Use options provided to function primarily, from environment variables secondary
+    const filterOptions = { ...options };
 
-    // Get options from environment variables if available
-    if (options == null && (process.env.PC_BLE_DRIVER_TEST_FAMILY || process.env.PC_BLE_DRIVER_TEST_BLACKLIST)) {
-        filterOptions = {};
+    if (filterOptions.family == null && process.env.PC_BLE_DRIVER_TEST_FAMILY) {
+        filterOptions.family = process.env.PC_BLE_DRIVER_TEST_FAMILY;
+    }
 
-        if (process.env.PC_BLE_DRIVER_TEST_FAMILY) {
-            filterOptions.family = process.env.PC_BLE_DRIVER_TEST_FAMILY;
-        }
-
-        if (process.env.PC_BLE_DRIVER_TEST_BLACKLIST) {
-            filterOptions.blacklist = process.env.PC_BLE_DRIVER_TEST_BLACKLIST.split(',');
-        }
-    } else {
-        filterOptions = options;
+    if (filterOptions.blacklist == null && process.env.PC_BLE_DRIVER_TEST_BLACKLIST) {
+        filterOptions.blacklist = process.env.PC_BLE_DRIVER_TEST_BLACKLIST.split(',');
     }
 
     return serialNumbers.filter(sn => {
-        if (filterOptions && filterOptions.blacklist) {
+        if (filterOptions.blacklist) {
             return !filterOptions.blacklist.includes(sn);
         }
 
-        if (filterOptions && filterOptions.family) {
+        if (filterOptions.family) {
             return determineSoftDeviceParameters(sn).family === filterOptions.family;
         }
 
