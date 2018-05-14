@@ -140,11 +140,7 @@ describe('the API', async () => {
                 while (openCloseIterations < requiredNumberOfIterations) {
                     // eslint-disable-next-line no-await-in-loop
                     await oneIteration();
-
-                    if (sdApiVersion === 2) {
-                        // eslint-disable-next-line no-await-in-loop
-                        await new Promise(waitResolve => setTimeout(waitResolve, NRF51_WAIT_TIME));
-                    }
+                    await new Promise(waitResolve => setTimeout(waitResolve, NRF51_WAIT_TIME));
                 }
 
                 resolve();
