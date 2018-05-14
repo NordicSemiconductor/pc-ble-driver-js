@@ -113,10 +113,10 @@ function determineSoftDeviceParameters(serialNumber) {
     const params = {};
 
     let firmware;
+    let family;
 
     if (seggerSerialNumber.test(serialNumber)) {
         const developmentKit = parseInt(seggerSerialNumber.exec(serialNumber)[1], 10);
-        let family;
 
         switch (developmentKit) {
             case 0:
@@ -140,26 +140,67 @@ function determineSoftDeviceParameters(serialNumber) {
 
     params.baudRate = firmware.baudRate;
     params.sdVersion = `v${firmware.sdBleApiVersion}`;
+    params.family = family;
 
     return params;
+}
+
+/**
+ * Filter adapters to use in tests
+ *
+ * @param {Array<String>} serialNumbers Serial numbers of available devices
+ * @param {GrabAdapterOptions} [options] filter options.
+ * @returns {Array<string>} Filtered array with serial numbers
+ * @private
+ */
+function _filterAdapters(serialNumbers, options) {
+    // Use options from environment variables or options provided to function
+    let filterOptions;
+
+    // Get options from environment variables if available
+    if (options == null && (process.env.PC_BLE_DRIVER_TEST_FAMILY || process.env.PC_BLE_DRIVER_TEST_BLACKLIST)) {
+        filterOptions = {};
+
+        if (process.env.PC_BLE_DRIVER_TEST_FAMILY) {
+            filterOptions.family = process.env.PC_BLE_DRIVER_TEST_FAMILY;
+        }
+
+        if (process.env.PC_BLE_DRIVER_TEST_BLACKLIST) {
+            filterOptions.blacklist = process.env.PC_BLE_DRIVER_TEST_BLACKLIST.split(',');
+        }
+    } else {
+        filterOptions = options;
+    }
+
+    return serialNumbers.filter(sn => {
+        if (filterOptions && filterOptions.blacklist) {
+            return !filterOptions.blacklist.includes(sn);
+        }
+
+        if (filterOptions && filterOptions.family) {
+            return determineSoftDeviceParameters(sn).family === filterOptions.family;
+        }
+
+        return true;
+    });
 }
 
 /**
  * Grabs an adapter from the list of available adapters connected and programs it with the correct connectivity firmware.
  *
  * @param {string} [serialNumber] serial number of the device to program, picks an available one if not specified
- * @param {any} [options] additional options, programDevice attributes can be set to false to skip programming
+ * @param {GrabAdapterOptions} [options] additional options.
  * @returns {Promise<any>} Promise with information about programmed firmware and device
  */
 async function _grabAdapter(serialNumber, options) {
     const foundAdapters = await getAdapters();
 
     const adapterToUse = () => {
-        const serialNumbers = [...foundAdapters.keys()];
+        const serialNumbers = _filterAdapters([...foundAdapters.keys()], options);
 
         if (serialNumber != null) {
             if (!serialNumbers.includes(serialNumber)) {
-                throw new Error(`Adapter with serial number ${serialNumber} does not exist.`);
+                throw new Error(`Adapter with serial number ${serialNumber} does not exist, or is filtered out.`);
             }
 
             grabbedAdapters.set(serialNumber, foundAdapters.get(serialNumber));
@@ -262,10 +303,18 @@ async function releaseAdapter(serialNumber) {
 }
 
 /**
+ * Grab adapter options
+ * @typedef {Object} GrabAdapterOptions
+ * @param {boolean} [programDevice] set to false to not program the device before starting to use it
+ * @param {string} [family] only use devices of a given family
+ * @param {string} [blacklist] list of devices to not use in tests
+ */
+
+/**
  * Grab an available adapter.
  *
  * @param {string} [requestedSerialNumber] Specific adapter to grab, if undefined, the function picks one that is not registered as grabbed from before
- * @param {Object} [options] to use when grabbing the adapter. Attribute setupDevice: false will prevent programming or checking if the right firmware is on the device.
+ * @param {GrabAdapterOptions} [options] to use when grabbing the adapter.
  * @returns {Promise<Adapter>} An opened adapter ready to use
  */
 async function grabAdapter(requestedSerialNumber, options) {
