@@ -39,20 +39,15 @@
 const { grabAdapter, releaseAdapter, setupAdapter, outcome } = require('./setup');
 
 const api = require('../index');
-const testOutcome = require('debug')('test:outcome');
-const error = require('debug')('test:error');
 const debug = require('debug')('debug');
 
 const serviceFactory = new api.ServiceFactory();
 
-const peripheralDeviceAddress = 'FF:11:22:33:AA:CE';
-const peripheralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
+const PERIPHERAL_DEVICE_ADDRESS = 'FF:11:22:33:AA:CE';
+const PERIPHERAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
-const centralDeviceAddress = 'FF:11:22:33:AA:CF';
-const centralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
-
-let heartRateService;
-let heartRateMeasurementCharacteristic;
+const CENTRAL_DEVICE_ADDRESS = 'FF:11:22:33:AA:CF';
+const CENTRAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
 const BLE_UUID_HEART_RATE_SERVICE = '180d';
 const BLE_UUID_HEART_RATE_MEASUREMENT_CHAR = '2a37';
@@ -102,9 +97,9 @@ function disconnect(adapter, device) {
     });
 }
 
-function characteristicsInit(mtu) {
+function characteristicsInit(heartRateService, mtu) {
     const charValue = new Array(mtu);
-    heartRateMeasurementCharacteristic = serviceFactory.createCharacteristic(
+    const heartRateMeasurementCharacteristic = serviceFactory.createCharacteristic(
         heartRateService,
         BLE_UUID_HEART_RATE_MEASUREMENT_CHAR,
         charValue,
@@ -139,8 +134,8 @@ function servicesInit(adapter, mtu) {
     return new Promise((resolve, reject) => {
         debug('Initializing the heart rate service and its characteristics/descriptors...');
 
-        heartRateService = serviceFactory.createService(BLE_UUID_HEART_RATE_SERVICE);
-        characteristicsInit(mtu);
+        const heartRateService = serviceFactory.createService(BLE_UUID_HEART_RATE_SERVICE);
+        characteristicsInit(heartRateService, mtu);
 
         adapter.setServices([heartRateService], err => {
             if (err) {
@@ -264,102 +259,99 @@ async function onConnected(adapter, peerDevice, desiredMTU) {
     });
 }
 
-async function runTests(centralAdapter, peripheralAdapter) {
-    await Promise.all([
-        setupAdapter(centralAdapter, '#CENTRAL', 'central', centralDeviceAddress, centralDeviceAddressType),
-        setupAdapter(peripheralAdapter, '#PERIPH', 'periph', peripheralDeviceAddress, peripheralDeviceAddressType),
-    ]);
+describe('the API', async () => {
+    let centralAdapter;
+    let peripheralAdapter;
 
-    if (centralAdapter.driver.NRF_SD_BLE_API_VERSION === 2 || peripheralAdapter.driver.NRF_SD_BLE_API_VERSION === 2) {
-        debug('SoftDevice V2 does not support changing L2CAP packet length or MTU');
-        return Promise.resolve([centralAdapter, peripheralAdapter]);
-    }
+    beforeAll(async () => {
+        [centralAdapter, peripheralAdapter] = await Promise.all([grabAdapter(), grabAdapter()]);
 
-    const maxDataLength = 251;
-    const maxMTU = maxDataLength - 4; /* 4 bytes L2CAP header */
+        await Promise.all([
+            setupAdapter(centralAdapter, '#CENTRAL', 'central', CENTRAL_DEVICE_ADDRESS, CENTRAL_DEVICE_ADDRESS_TYPE),
+            setupAdapter(peripheralAdapter, '#PERIPH', 'peripheral', PERIPHERAL_DEVICE_ADDRESS, PERIPHERAL_DEVICE_ADDRESS_TYPE)]);
+    });
 
-    await servicesInit(peripheralAdapter, maxMTU);
-    await startAdvertising(peripheralAdapter);
+    afterAll(async () => {
+        await Promise.all([
+            releaseAdapter(centralAdapter.state.serialNumber),
+            releaseAdapter(peripheralAdapter.state.serialNumber)]);
+    });
 
-    const deviceConnectedCentral = new Promise((resolve, reject) => {
-        centralAdapter.once('deviceConnected', peripheralDevice => {
-            onConnected(centralAdapter, peripheralDevice, maxMTU).then(() => {
-                resolve({
-                    address: peripheralDevice.address,
-                    type: peripheralDevice.addressType,
-                    instanceId: peripheralDevice.instanceId,
-                });
-            }).catch(reject);
+    it('shall support changing MTU on supported versions of SoftDevice', async () => {
+        expect(centralAdapter).toBeDefined();
+        expect(peripheralAdapter).toBeDefined();
+
+        if (centralAdapter.driver.NRF_SD_BLE_API_VERSION === 2 || peripheralAdapter.driver.NRF_SD_BLE_API_VERSION === 2) {
+            debug('SoftDevice V2 does not support changing L2CAP packet length or MTU');
+            return;
+        }
+
+        const maxDataLength = 251;
+        const maxMTU = maxDataLength - 4; /* 4 bytes L2CAP header */
+
+        await servicesInit(peripheralAdapter, maxMTU);
+        await startAdvertising(peripheralAdapter);
+
+        const deviceConnectedCentral = new Promise((resolve, reject) => {
+            centralAdapter.once('deviceConnected', peripheralDevice => {
+                onConnected(centralAdapter, peripheralDevice, maxMTU).then(() => {
+                    resolve({
+                        address: peripheralDevice.address,
+                        type: peripheralDevice.addressType,
+                        instanceId: peripheralDevice.instanceId,
+                    });
+                }).catch(reject);
+            });
         });
-    });
 
-    const dataLengthChangedCentral = new Promise(resolve => {
-        centralAdapter.once('dataLengthChanged', (peripheralDevice, dataLength) => {
-            debug(`central dataLengthChanged to ${dataLength}`);
-            resolve(dataLength);
+        const dataLengthChangedCentral = new Promise(resolve => {
+            centralAdapter.once('dataLengthChanged', (peripheralDevice, dataLength) => {
+                debug(`central dataLengthChanged to ${dataLength}`);
+                resolve(dataLength);
+            });
         });
-    });
 
-    const dataLengthChangedPeripheral = new Promise(resolve => {
-        peripheralAdapter.once('dataLengthChanged', (centralDevice, dataLength) => {
-            debug(`peripheral dataLengthChanged to ${dataLength}`);
-            resolve(dataLength);
+        const dataLengthChangedPeripheral = new Promise(resolve => {
+            peripheralAdapter.once('dataLengthChanged', (centralDevice, dataLength) => {
+                debug(`peripheral dataLengthChanged to ${dataLength}`);
+                resolve(dataLength);
+            });
         });
-    });
 
-    const attMtuChangedCentral = new Promise(resolve => {
-        centralAdapter.once('attMtuChanged', (peripheralDevice, attMtu) => {
-            debug(`central attMtuChanged to ${attMtu}`);
-            resolve(attMtu);
+        const attMtuChangedCentral = new Promise(resolve => {
+            centralAdapter.once('attMtuChanged', (peripheralDevice, attMtu) => {
+                debug(`central attMtuChanged to ${attMtu}`);
+                resolve(attMtu);
+            });
         });
-    });
 
-    const attMtuChangedPeripheral = new Promise(resolve => {
-        peripheralAdapter.once('attMtuChanged', (centralDevice, attMtu) => {
-            debug(`peripheral attMtuChanged to ${attMtu}`);
-            resolve(attMtu);
+        const attMtuChangedPeripheral = new Promise(resolve => {
+            peripheralAdapter.once('attMtuChanged', (centralDevice, attMtu) => {
+                debug(`peripheral attMtuChanged to ${attMtu}`);
+                resolve(attMtu);
+            });
         });
+
+        await connect(centralAdapter, { address: PERIPHERAL_DEVICE_ADDRESS, type: PERIPHERAL_DEVICE_ADDRESS_TYPE });
+
+        const [
+            deviceConnectedCentralResult,
+            dataLengthCentralResult, attMtuLengthCentralResult,
+            dataLengthPeripheralResult, attMtuLengthPeripheralResult] = await outcome([
+                deviceConnectedCentral,
+                dataLengthChangedCentral, attMtuChangedCentral,
+                dataLengthChangedPeripheral, attMtuChangedPeripheral]);
+
+
+        expect(deviceConnectedCentralResult.address).toBe(PERIPHERAL_DEVICE_ADDRESS);
+        expect(deviceConnectedCentralResult.type).toBe(PERIPHERAL_DEVICE_ADDRESS_TYPE);
+
+        expect(dataLengthCentralResult).toBe(maxDataLength);
+        expect(attMtuLengthCentralResult).toBe(maxMTU);
+
+        expect(dataLengthPeripheralResult).toBe(maxDataLength);
+        expect(attMtuLengthPeripheralResult).toBe(maxMTU);
+
+        await disconnect(centralAdapter, deviceConnectedCentralResult);
     });
-
-    await connect(centralAdapter, { address: peripheralDeviceAddress, type: peripheralDeviceAddressType });
-
-    const [
-        deviceConnectedCentralResult,
-        dataLengthCentralResult, attMtuLengthCentralResult,
-        dataLengthPeripheralResult, attMtuLengthPeripheralResult] = await outcome([
-            deviceConnectedCentral,
-            dataLengthChangedCentral, attMtuChangedCentral,
-            dataLengthChangedPeripheral, attMtuChangedPeripheral]);
-
-    if (!(deviceConnectedCentralResult.address !== peripheralDeviceAddress)
-        && (deviceConnectedCentralResult.type !== peripheralDeviceAddressType)
-    ) {
-        throw new Error(`Connected device is ${deviceConnectedCentralResult.address}/${deviceConnectedCentralResult.type}`
-            + `, but shall be ${peripheralDeviceAddress}/${peripheralDeviceAddressType}`);
-    }
-
-    if (dataLengthCentralResult === maxDataLength && attMtuLengthCentralResult === maxMTU) {
-        throw new Error('central MTU lengths are not correct.');
-    }
-
-    if (dataLengthPeripheralResult === maxDataLength && attMtuLengthPeripheralResult === maxMTU) {
-        throw new Error('peripheral MTU lengths are not correct.');
-    }
-
-    await disconnect(centralAdapter, deviceConnectedCentralResult);
-
-    return [centralAdapter, peripheralAdapter];
-}
-
-Promise.all([grabAdapter(), grabAdapter()])
-    .then(result => runTests(...result))
-    .then(adapters => {
-        testOutcome('Test completed successfully');
-        return Promise.all([
-            releaseAdapter(adapters[0].state.serialNumber),
-            releaseAdapter(adapters[1].state.serialNumber)]);
-    })
-    .catch(failure => {
-        error('Test failed with error:', failure);
-        process.exit(-1);
-    });
+});

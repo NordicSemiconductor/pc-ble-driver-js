@@ -38,6 +38,11 @@
 
 const api = require('../index');
 
+// Milliseconds wait before terminating test.
+// In worst case programming of two devices needs to be done + the tests shall run.
+const JEST_TIMEOUT_FOR_SETUP_OF_DEVICE = 30000;
+jest.setTimeout(JEST_TIMEOUT_FOR_SETUP_OF_DEVICE);
+
 const adapterFactory = api.AdapterFactory.getInstance(undefined, { enablePolling: false });
 const serviceFactory = new api.ServiceFactory();
 
@@ -49,8 +54,6 @@ const error = require('debug')('error');
 const DeviceLister = require('nrf-device-lister');
 const { setupDevice } = require('nrf-device-setup');
 const { FirmwareRegistry } = require('../index');
-
-require('debug').enable(['setup:*,test:*', process.env.DEBUG].join(','));
 
 const traits = {
     usb: false,
@@ -110,10 +113,10 @@ function determineSoftDeviceParameters(serialNumber) {
     const params = {};
 
     let firmware;
+    let family;
 
     if (seggerSerialNumber.test(serialNumber)) {
         const developmentKit = parseInt(seggerSerialNumber.exec(serialNumber)[1], 10);
-        let family;
 
         switch (developmentKit) {
             case 0:
@@ -137,19 +140,62 @@ function determineSoftDeviceParameters(serialNumber) {
 
     params.baudRate = firmware.baudRate;
     params.sdVersion = `v${firmware.sdBleApiVersion}`;
+    params.family = family;
 
     return params;
 }
 
+/**
+ * Filter adapters to use in tests
+ *
+ * @param {Array<String>} serialNumbers Serial numbers of available devices
+ * @param {GrabAdapterOptions} [options] filter options.
+ * @returns {Array<string>} Filtered array with serial numbers
+ * @private
+ */
+function _filterAdapters(serialNumbers, options) {
+    // Use options provided to function primarily, from environment variables secondary
+    const filterOptions = { ...options };
+
+    if (filterOptions.family == null && process.env.PC_BLE_DRIVER_TEST_FAMILY) {
+        filterOptions.family = process.env.PC_BLE_DRIVER_TEST_FAMILY;
+    }
+
+    if (filterOptions.blacklist == null && process.env.PC_BLE_DRIVER_TEST_BLACKLIST) {
+        filterOptions.blacklist = process.env.PC_BLE_DRIVER_TEST_BLACKLIST.split(',');
+    }
+
+    return serialNumbers.filter(sn => {
+        if (filterOptions.blacklist) {
+            if (filterOptions.blacklist.includes(sn)) {
+                return false;
+            }
+        }
+
+        if (filterOptions.family) {
+            return determineSoftDeviceParameters(sn).family === filterOptions.family;
+        }
+
+        return true;
+    });
+}
+
+/**
+ * Grabs an adapter from the list of available adapters connected and programs it with the correct connectivity firmware.
+ *
+ * @param {string} [serialNumber] serial number of the device to program, picks an available one if not specified
+ * @param {GrabAdapterOptions} [options] additional options.
+ * @returns {Promise<any>} Promise with information about programmed firmware and device
+ */
 async function _grabAdapter(serialNumber, options) {
     const foundAdapters = await getAdapters();
 
     const adapterToUse = () => {
-        const serialNumbers = [...foundAdapters.keys()];
+        const serialNumbers = _filterAdapters([...foundAdapters.keys()], options);
 
         if (serialNumber != null) {
             if (!serialNumbers.includes(serialNumber)) {
-                throw new Error(`Adapter with serial number ${serialNumber} does not exist.`);
+                throw new Error(`Adapter with serial number ${serialNumber} does not exist, or is filtered out.`);
             }
 
             grabbedAdapters.set(serialNumber, foundAdapters.get(serialNumber));
@@ -187,9 +233,12 @@ async function _grabAdapter(serialNumber, options) {
     if (!skipSetupDevice) {
         await setupDevice(selectedAdapter, FirmwareRegistry.getDeviceSetup());
 
-        // nRF51 requires a ~250ms wait time before it can be opened
         if (softDeviceParams.sdVersion === 'v2') {
+            // nRF51 requires a ~250ms wait time before it can be opened
             await new Promise(resolve => setTimeout(resolve, 250));
+        } else {
+            // nRF 52 requires a 216ms wait time before it can be opened
+            await new Promise(resolve => setTimeout(resolve, 216));
         }
     }
 
@@ -249,13 +298,21 @@ async function releaseAdapter(serialNumber) {
 }
 
 /**
+ * Grab adapter options
+ * @typedef {Object} GrabAdapterOptions
+ * @param {boolean} [programDevice] set to false to not program the device before starting to use it
+ * @param {string} [family] only use devices of a given family
+ * @param {string} [blacklist] list of devices to not use in tests
+ */
+
+/**
  * Grab an available adapter.
  *
  * @param {string} [requestedSerialNumber] Specific adapter to grab, if undefined, the function picks one that is not registered as grabbed from before
- * @param {Object} options to use when grabbing the adapter. Attribute setupDevice: false will prevent programming or checking if the right firmware is on the device.
+ * @param {GrabAdapterOptions} [options] to use when grabbing the adapter.
  * @returns {Promise<Adapter>} An opened adapter ready to use
  */
-async function grabAdapter(requestedSerialNumber, options = undefined) {
+async function grabAdapter(requestedSerialNumber, options) {
     const { port, serialNumber, apiVersion, baudRate } = await _grabAdapter(requestedSerialNumber, options);
     const adapter = adapterFactory.createAdapter(apiVersion, port, serialNumber);
 
@@ -282,8 +339,8 @@ async function grabAdapter(requestedSerialNumber, options = undefined) {
  * Await outcome of an array of promises
  *
  * @param {Array<Promise>} futureOutcomes An array of Promises to resolve
- * @param {number} timeout Milliseconds to wait before outcome is regarded as timed out
- * @param {string} description Description of failed outcome.
+ * @param {number} [timeout] Milliseconds to wait before outcome is regarded as timed out
+ * @param {string} [description] Description of failed outcome.
  * @returns {Promise<any>} An array of the promises.
  */
 async function outcome(futureOutcomes, timeout, description) {
@@ -295,7 +352,8 @@ async function outcome(futureOutcomes, timeout, description) {
         result = await Promise.race([
             Promise.all(futureOutcomes),
             new Promise((_, reject) => {
-                timeoutId = setTimeout(() => reject(new Error(`Test timed out after ${t} ms. ${description || ''}`)), t);
+                timeoutId = setTimeout(
+                    () => reject(new Error(`Test timed out after ${t} ms. ${description || ''}`)), t);
             })]);
     } catch (outcomeError) {
         throw outcomeError;
@@ -331,6 +389,11 @@ function addAdapterListener(adapter, prefix) {
  */
 function setupAdapter(adapter, prefix, name, address, addressType) {
     return new Promise((resolve, reject) => {
+        if (adapter == null) {
+            reject(new Error('adapter argument not provided.'));
+            return;
+        }
+
         addAdapterListener(adapter, prefix);
 
         adapter.getState(getStateError => {
