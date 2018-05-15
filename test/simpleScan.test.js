@@ -39,11 +39,6 @@
 const { grabAdapter, releaseAdapter, setupAdapter, outcome } = require('./setup');
 
 const debug = require('debug')('debug');
-const error = require('debug')('error');
-const testOutcome = require('debug')('test:outcome');
-
-const centralDeviceAddress = 'FF:11:22:33:AA:CF';
-const centralDeviceAddressType = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
 const scanParameters = {
     active: true,
@@ -52,53 +47,64 @@ const scanParameters = {
     timeout: 5,
 };
 
-async function runTests(adapter) {
-    await setupAdapter(adapter, '#CENTRAL', 'central', centralDeviceAddress, centralDeviceAddressType);
+const CENTRAL_DEVICE_ADDRESS = 'FF:11:22:33:AA:CF';
+const CENTRAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
-    const expectedNumberOfScanReports = 10;
+const SCAN_DURATION_WAIT_TIME = 1500;
+
+describe('the API', async () => {
+    let adapter;
+    const EXPECTED_NUMBER_OF_SCAN_REPORTS = 10;
     let scanReportsReceived = 0;
 
-    await new Promise((startScanResolve, startScanReject) => {
-        adapter.startScan(scanParameters, startScanErr => {
-            if (startScanErr) {
-                startScanReject(startScanErr);
-                return;
-            }
-
-            startScanResolve();
-        });
+    beforeAll(async () => {
+        // Errors here will not stop the tests from running.
+        // Issue filed regarding this: https://github.com/facebook/jest/issues/2713
+        adapter = await grabAdapter();
+        await setupAdapter(adapter, '#CENTRAL', 'central', CENTRAL_DEVICE_ADDRESS, CENTRAL_DEVICE_ADDRESS_TYPE);
     });
 
-    const scanReportReceived = new Promise(scanReportReceivedResolve => {
-        adapter.on('deviceDiscovered', () => {
-            scanReportsReceived += 1;
-
-            debug(`Received ${scanReportsReceived} scan reports.`);
-
-            if (scanReportsReceived > expectedNumberOfScanReports) {
-                scanReportReceivedResolve();
-            }
-        });
+    afterAll(async () => {
+        await releaseAdapter(adapter.state.serialNumber);
     });
 
-    await outcome([scanReportReceived], 2000);
+    it('shall support start and stopping scanning', async () => {
+        expect(adapter).toBeDefined();
 
-    await new Promise((stopScanResolve, stopScanReject) => {
-        adapter.stopScan(stopScanErr => {
-            if (stopScanErr) {
-                stopScanReject(stopScanErr);
-                return;
-            }
+        await new Promise((startScanResolve, startScanReject) => {
+            adapter.startScan(scanParameters, startScanErr => {
+                if (startScanErr) {
+                    startScanReject(startScanErr);
+                    return;
+                }
 
-            stopScanResolve();
+                startScanResolve();
+            });
+        });
+
+        const scanReportReceived = new Promise(scanReportReceivedResolve => {
+            adapter.on('deviceDiscovered', () => {
+                scanReportsReceived += 1;
+
+                debug(`Received ${scanReportsReceived} scan reports.`);
+
+                if (scanReportsReceived > EXPECTED_NUMBER_OF_SCAN_REPORTS) {
+                    scanReportReceivedResolve();
+                }
+            });
+        });
+
+        await outcome([scanReportReceived], SCAN_DURATION_WAIT_TIME, 'Waiting for scan reports.');
+
+        await new Promise((stopScanResolve, stopScanReject) => {
+            adapter.stopScan(stopScanErr => {
+                if (stopScanErr) {
+                    stopScanReject(stopScanErr);
+                    return;
+                }
+
+                stopScanResolve();
+            });
         });
     });
-}
-
-grabAdapter().then(runTests).then(() => {
-    testOutcome('Test completed successfully');
-    return releaseAdapter();
-}).catch(failure => {
-    error('Test failed with error:', failure);
-    process.exit(-1);
 });
