@@ -3789,11 +3789,14 @@ class Adapter extends EventEmitter {
     }
 
     _shortWriteWithoutResponse(device, writeParameters) {
+        let timeoutId;
+
         return Promise.race([
             new Promise((resolve, reject) => {
                 const txCompleteHandler = txCompleteDevice => {
                     if (device.connectionHandle === txCompleteDevice.connectionHandle) {
                         this.removeListener('txComplete', txCompleteHandler);
+                        clearTimeout(timeoutId);
                         resolve();
                     }
                 };
@@ -3803,7 +3806,7 @@ class Adapter extends EventEmitter {
                 });
             }),
             new Promise((resolve, reject) => {
-                setTimeout(() => {
+                timeoutId = setTimeout(() => {
                     reject(_makeError('Timed out while waiting for BLE_EVT_TX_COMPLETE'));
                 }, 2000);
             }),
