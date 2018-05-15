@@ -297,12 +297,27 @@ async function releaseAdapter(serialNumber) {
     });
 }
 
+function addAdapterListener(adapter, prefix) {
+    const logPrefix = `[${prefix ? `${prefix}-` : ''}${adapter.state.address ? `${adapter.state.address}/${adapter.state.addressType}` : adapter.instanceId}]`;
+
+    adapter.on('logMessage', (severity, message) => { debug(`${logPrefix} logMessage: ${message}`); });
+    adapter.on('status', status => { debug(`${logPrefix} status: ${JSON.stringify(status, null, 1)}`); });
+    adapter.on('error', err => {
+        error(`${logPrefix} error: ${JSON.stringify(err, null, 1)}`);
+    });
+
+    adapter.on('deviceConnected', device => { debug(`${logPrefix} deviceConnected: ${device.address}`); });
+    adapter.on('deviceDisconnected', device => { debug(`${logPrefix} deviceDisconnected: ${JSON.stringify(device, null, 1)}`); });
+    adapter.on('deviceDiscovered', device => { debug(`${logPrefix} deviceDiscovered: ${JSON.stringify(device)}`); });
+}
+
 /**
  * Grab adapter options
  * @typedef {Object} GrabAdapterOptions
  * @param {boolean} [programDevice] set to false to not program the device before starting to use it
  * @param {string} [family] only use devices of a given family
  * @param {string} [blacklist] list of devices to not use in tests
+ * @param {string} [logLevel] set log level that shall be used in pc-ble-driver. Can be trace, debug, info, error, fatal.
  */
 
 /**
@@ -315,15 +330,27 @@ async function releaseAdapter(serialNumber) {
 async function grabAdapter(requestedSerialNumber, options) {
     const { port, serialNumber, apiVersion, baudRate } = await _grabAdapter(requestedSerialNumber, options);
     const adapter = adapterFactory.createAdapter(apiVersion, port, serialNumber);
+    addAdapterListener(adapter);
 
     adapter.on('error', err => error(`[${serialNumber}] Adapter error ${err.message}`));
 
     // Update the grabbed adapter value to be an instance of Adapter and not Device from nrf-device-lister
     grabbedAdapters.set(serialNumber, adapter);
 
+    // Setup log level in pc-ble-driver based on function argument options or env variable
+    let logLevel;
+
+    if (options && options.logLevel) {
+        logLevel = options.logLevel;
+    } else if (process.env.PC_BLE_DRIVER_TEST_LOGLEVEL) {
+        logLevel = process.env.PC_BLE_DRIVER_TEST_LOGLEVEL;
+    } else {
+        logLevel = 'info';
+    }
+
     return new Promise((resolve, reject) => {
         debug(`Opening adapter ${serialNumber}.`);
-        adapter.open({ baudRate }, err => {
+        adapter.open({ baudRate, logLevel }, err => {
             if (err) {
                 reject(new Error(`Error opening adapter ${serialNumber}: ${err}.`));
                 return;
@@ -364,20 +391,6 @@ async function outcome(futureOutcomes, timeout, description) {
     return result;
 }
 
-function addAdapterListener(adapter, prefix) {
-    const logPrefix = `[${prefix}-${adapter.state.address}/${adapter.state.addressType}]`;
-
-    adapter.on('logMessage', (severity, message) => { debug(`${logPrefix} logMessage: ${message}`); });
-    adapter.on('status', status => { debug(`${logPrefix} status: ${JSON.stringify(status, null, 1)}`); });
-    adapter.on('error', err => {
-        error(`${logPrefix} error: ${JSON.stringify(err, null, 1)}`);
-    });
-
-    adapter.on('deviceConnected', device => { debug(`${logPrefix} deviceConnected: ${device.address}`); });
-    adapter.on('deviceDisconnected', device => { debug(`${logPrefix} deviceDisconnected: ${JSON.stringify(device, null, 1)}`); });
-    adapter.on('deviceDiscovered', device => { debug(`${logPrefix} deviceDiscovered: ${JSON.stringify(device)}`); });
-}
-
 /**
  * Setup adapter with logging, name to advertise with and device address to
  * @param {Adapter} adapter Adapter to setup
@@ -393,8 +406,6 @@ function setupAdapter(adapter, prefix, name, address, addressType) {
             reject(new Error('adapter argument not provided.'));
             return;
         }
-
-        addAdapterListener(adapter, prefix);
 
         adapter.getState(getStateError => {
             if (getStateError) {
