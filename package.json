@@ -11,8 +11,7 @@
     "publish-prebuilt": "node-pre-gyp-github publish",
     "publish-all-prebuilt": "node scripts/publish-all-prebuilt.js",
     "install": "node-pre-gyp install --fallback-to-build=false || node build.js",
-    "test": "jest --config config/jest-unit.config",
-    "test:system": "jest --config config/jest-system.config",
+    "test": "jest --config config/jest-unit.json",
     "docs": "jsdoc api -t node_modules/minami -R README.md -d docs -c .jsdoc.json"
   },
   "repository": {
@@ -27,6 +26,18 @@
   },
   "author": "Nordic Semiconductor ASA",
   "license": "SEE LICENSE IN LICENSE",
+  "babel": {
+    "presets": [
+      [
+        "env",
+        {
+          "targets": {
+            "node": "6.5.7"
+          }
+        }
+      ]
+    ]
+  },
   "dependencies": {
     "bindings": "^1.2.1",
     "change-case": "2.3.0",
@@ -35,18 +46,23 @@
     "jszip": "^3.1.2",
     "nan": "2.3.3",
     "node-pre-gyp": "^0.6.39",
+    "nrf-device-lister": "2.0.0",
+    "nrf-device-setup": "0.2.0",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
+    "babel-preset-env": "^1.6.1",
     "chai": "3.3.0",
+    "debug": "3.1.0",
     "eslint": "^3.16.0",
     "eslint-config-airbnb": "^14.1.0",
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "^4.0.0",
     "eslint-plugin-react": "^6.10.0",
     "gh-pages": "^1.0.0",
-    "jest": "^19.0.2",
-    "jest-bamboo-formatter": "0.0.3",
+    "jest": "^22.4.3",
+    "jest-bamboo-formatter": "1.0.1",
+    "jest-serializer-path": "^0.1.14",
     "jscs": "^2.3.5",
     "jsdoc": "^3.4.3",
     "jshint": "^2.8.0",
@@ -54,7 +70,6 @@
     "minami": "^1.2.3",
     "mocha": "^2.3.3",
     "node-pre-gyp-github": "^1.3.1",
-    "pc-nrfjprog-js": "1.2.0",
     "proxyquire": "^1.7.3",
     "sinon": "^1.17.1",
     "yargs": "^3.29.0"

@@ -1,0 +1,7 @@
+{
+  "rootDir": "..",
+  "roots": ["test"],
+  "testRegex": ".*js$",
+  "bail": true,
+  "resetModules": true
+}
