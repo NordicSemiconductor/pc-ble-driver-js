@@ -317,7 +317,7 @@ function addAdapterListener(adapter, prefix) {
  * @param {boolean} [programDevice] set to false to not program the device before starting to use it
  * @param {string} [family] only use devices of a given family
  * @param {string} [blacklist] list of devices to not use in tests
- * @param {string} [logLevel] set log level that shall be used in pc-ble-driver. Can be trace, debug, info, error, fatal.
+ * @param {string} [logLevel] set log level that shall be used in pc-ble-driver. Can be "trace", "debug", "info", "error", "fatal".
  */
 
 /**
