@@ -269,6 +269,7 @@ struct ConnResetBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(ConnResetBaton);
+    sd_rpc_reset_t reset;
     Adapter *mainObject;
 };
 
