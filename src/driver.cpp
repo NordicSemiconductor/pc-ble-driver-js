@@ -865,14 +865,16 @@ NAN_METHOD(Adapter::ConnReset)
     auto baton = new ConnResetBaton(callback);
     baton->adapter = obj->adapter;
     baton->mainObject = obj;
+    /* Hardcoding the reset mode. Consider adding argument for letting user choose reset mode. */
+    baton->reset = SOFT_RESET;
 
     uv_queue_work(uv_default_loop(), baton->req, ConnReset, reinterpret_cast<uv_after_work_cb>(AfterConnReset));
 }
 
 void Adapter::ConnReset(uv_work_t *req)
 {
-    auto baton = static_cast<CloseBaton *>(req->data);
-    baton->result = sd_rpc_conn_reset(baton->adapter);
+    auto baton = static_cast<ConnResetBaton *>(req->data);
+    baton->result = sd_rpc_conn_reset(baton->adapter, baton->reset);
 }
 
 void Adapter::AfterConnReset(uv_work_t *req)
