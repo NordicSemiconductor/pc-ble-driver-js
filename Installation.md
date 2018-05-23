@@ -6,7 +6,7 @@ To install pc-ble-driver-js for use in a Node.js project, simply:
 
     $ npm install pc-ble-driver-js
 
-This will work as long as precompiled binaries exist for your platform/runtime environment, ref. the files attached to the [Releases](https://github.com/NordicSemiconductor/pc-ble-driver-js/releases). If not, then follow the steps below to install from source.
+This will work as long as precompiled binaries exist for your platform/runtime environment, ref. the files attached to the [Releases](https://github.com/NordicSemiconductor/pc-ble-driver-js/releases). (See [Node releases](https://nodejs.org/en/download/releases/) for an overview of the relation between Node release versions and Node module versions (ABI).) If your runtime is not supported, either change to a supported runtime,  or follow the steps below to install from source.
 
 ## Installation from source
 
@@ -16,8 +16,9 @@ If precompiled binaries do not exist in your case, or you are going to do develo
 
 The following Node/npm versions are required:
 
-* Node.js (>=4.4.7)
+* Node.js (>=6.5.7)
 * npm (>=3.7.0)
+
 
 ### Submodule
 
@@ -50,6 +51,14 @@ Configure cmake-js:
 
     $ npm config set cmake_BOOST_ROOT=/path/to/boost_x_xx_x
 
+### Building for Electron runtime
+
+If the pc-ble-driver-js module is going to be run from a different Node runtime, e.g. Electron, it is necessary provide that information to npm. To configure a different node runtime, add a .npmrc file to the root folder of the repo. Example .npmrc file content:
+
+    runtime = Electron
+    target = 1.16.6
+    disturl = https://atom.io/download/atom-shell
+    
 ### Installation
 
 Now you are ready to install pc-ble-driver-js:

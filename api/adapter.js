@@ -364,6 +364,11 @@ class Adapter extends EventEmitter {
      * @returns {void}
      */
     open(options, callback) {
+        if (this.state.opening || this.state.available) {
+            callback(_makeError('Adapter is already open.'));
+            return;
+        }
+
         if (this.notSupportedMessage !== undefined) {
             const error = new Error(this.notSupportedMessage);
 
@@ -399,7 +404,12 @@ class Adapter extends EventEmitter {
             if (options.enableBLE === undefined) options.enableBLE = true;
         }
 
-        this._changeState({ baudRate: options.baudRate, parity: options.parity, flowControl: options.flowControl });
+        this._changeState({
+            opening: true,
+            baudRate: options.baudRate,
+            parity: options.parity,
+            flowControl: options.flowControl,
+        });
 
         options.logCallback = this._logCallback.bind(this);
         options.eventCallback = this._eventCallback.bind(this);
@@ -407,8 +417,8 @@ class Adapter extends EventEmitter {
         options.enableBLEParams = this._getDefaultEnableBLEParams();
 
         this._adapter.open(this._state.port, options, err => {
+            this._changeState({ opening: false });
             if (this._checkAndPropagateError(err, 'Error occurred opening serial port.', callback)) { return; }
-
             this._changeState({ available: true });
 
             /**
@@ -1095,6 +1105,9 @@ class Adapter extends EventEmitter {
                 break;
             case this._bleDriver.BLE_GAP_TIMEOUT_SRC_CONN:
                 const deviceAddress = this._gapOperationsMap.connecting.deviceAddress;
+                const errorObject = _makeError('Connect timed out.', deviceAddress);
+                const connectingCallback = this._gapOperationsMap.connecting.callback;
+                if (connectingCallback) connectingCallback(errorObject);
                 delete this._gapOperationsMap.connecting;
                 this._changeState({ connecting: false });
 
@@ -1121,7 +1134,7 @@ class Adapter extends EventEmitter {
                 this.emit('error', _makeError('Security request timed out.'));
                 break;
             default:
-                console.log(`GAP operation timed out: ${event.src_name} (${event.src}).`);
+                this.emit('logMessage', logLevel.DEBUG, `GAP operation timed out: ${event.src_name} (${event.src}).`);
         }
     }
 
@@ -1420,7 +1433,8 @@ class Adapter extends EventEmitter {
             };
 
             if (!attribute) {
-                console.log('something went wrong in bookkeeping of pending reads');
+                this.emit('logMessage', logLevel.DEBUG, `Unable to find attribute with handle ${event.handle} ` +
+                    'when parsing GATTC read response event.');
                 return;
             }
 
@@ -1590,7 +1604,6 @@ class Adapter extends EventEmitter {
                 this._adapter.gattcWrite(device.connectionHandle, writeParameters, err => {
 
                     if (err) {
-                        console.log('some error');
                         this._longWriteCancel(device, gattOperation.attribute);
                         this.emit('error', _makeError('Failed to write value to device/handle ' + device.instanceId + '/' + handle, err));
                         return;
@@ -3776,11 +3789,14 @@ class Adapter extends EventEmitter {
     }
 
     _shortWriteWithoutResponse(device, writeParameters) {
+        let timeoutId;
+
         return Promise.race([
             new Promise((resolve, reject) => {
                 const txCompleteHandler = txCompleteDevice => {
                     if (device.connectionHandle === txCompleteDevice.connectionHandle) {
                         this.removeListener('txComplete', txCompleteHandler);
+                        clearTimeout(timeoutId);
                         resolve();
                     }
                 };
@@ -3790,7 +3806,7 @@ class Adapter extends EventEmitter {
                 });
             }),
             new Promise((resolve, reject) => {
-                setTimeout(() => {
+                timeoutId = setTimeout(() => {
                     reject(_makeError('Timed out while waiting for BLE_EVT_TX_COMPLETE'));
                 }, 2000);
             }),
@@ -3813,7 +3829,6 @@ class Adapter extends EventEmitter {
 
         this._adapter.gattcWrite(device.connectionHandle, writeParameters, err => {
             if (err) {
-                console.log(err);
                 this._longWriteCancel(device, attribute);
                 this.emit('error', _makeError('Failed to write value to device/handle ' + device.instanceId + '/' + attribute.handle, err));
                 return;

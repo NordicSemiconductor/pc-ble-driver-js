@@ -114,12 +114,7 @@ describe('FirmwareUpdater.parseVersionStruct', () => {
 describe('FirmwareUpdater.getFirmwarePath', () => {
     it('throws error if unknown family was supplied', () => {
         expect(() => FirmwareUpdater.getFirmwarePath(-1, 'linux'))
-            .toThrowError('Unsupported family: -1. Expected one of ["0","1"]');
-    });
-
-    it('throws error if unknown platform was supplied', () => {
-        expect(() => FirmwareUpdater.getFirmwarePath(0, 'windooze'))
-            .toThrowError('Unsupported platform: windooze. Expected one of ["win32","linux","darwin"]');
+            .toThrowError('Unsupported family: -1. Expected one of 0 or 1.');
     });
 
     it('returns v2/1m hex path for nrf51 and win32', () => {
@@ -156,12 +151,7 @@ describe('FirmwareUpdater.getFirmwarePath', () => {
 describe('FirmwareUpdater.getLatestVersion', () => {
     it('throws error if unknown family was supplied', () => {
         expect(() => FirmwareUpdater.getLatestVersion(-1, 'linux'))
-            .toThrowError('Unsupported family: -1. Expected one of ["0","1"]');
-    });
-
-    it('throws error if unknown platform was supplied', () => {
-        expect(() => FirmwareUpdater.getLatestVersion(0, 'windooze'))
-            .toThrowError('Unsupported platform: windooze. Expected one of ["win32","linux","darwin"]');
+            .toThrowError('Unsupported family: -1. Expected one of 0 or 1.');
     });
 
     it('returns latest version for nrf51 and linux', () => {
@@ -174,12 +164,7 @@ describe('FirmwareUpdater.getLatestVersion', () => {
 describe('FirmwareUpdater.getBaudRate', () => {
     it('throws error if unknown family was supplied', () => {
         expect(() => FirmwareUpdater.getBaudRate(-1, 'linux'))
-            .toThrowError('Unsupported family: -1. Expected one of ["0","1"]');
-    });
-
-    it('throws error if unknown platform was supplied', () => {
-        expect(() => FirmwareUpdater.getBaudRate(0, 'windooze'))
-            .toThrowError('Unsupported platform: windooze. Expected one of ["win32","linux","darwin"]');
+            .toThrowError('Unsupported family: -1. Expected one of 0 or 1.');
     });
 
     it('returns 1m for nrf51 and win32', () => {

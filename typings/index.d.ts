@@ -42,7 +42,7 @@ export declare interface ConnectionParameters {
   max_conn_interval?: number; // FIXME: https://github.com/NordicSemiconductor/pc-ble-driver-js/issues/76
   slaveLatency?: number;
   slave_latency?: number; // FIXME: https://github.com/NordicSemiconductor/pc-ble-driver-js/issues/76
-  connectionSupervisionTimeout?: number; 
+  connectionSupervisionTimeout?: number;
   conn_sup_timeout?: number; // FIXME: https://github.com/NordicSemiconductor/pc-ble-driver-js/issues/76
 }
 
@@ -271,6 +271,7 @@ declare class Adapter extends EventEmitter {
 export declare class AdapterFactory extends EventEmitter {
   static getInstance(): AdapterFactory;
   getAdapters(callback?: (err: any, adapters: Adapter[]) => void);
+  createAdapter(sdVersion: 'v2' | 'v3', comName: string, instanceId: string): Adapter;
 }
 
 export declare class ServiceFactory {

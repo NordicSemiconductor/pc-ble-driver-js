@@ -112,8 +112,9 @@ class AdapterFactory extends EventEmitter {
      * @constructor
      * @param {Symbol} singletonToken Symbol to ensure that only one instance of `AdapterFactory` ever exists.
      * @param {Object} bleDrivers Object mapping version to pc-ble-driver AddOn.
+     * @param {Object} options Options for customizing the behavior of the adapter factory.
      */
-    constructor(singletonToken, bleDrivers) {
+    constructor(singletonToken, bleDrivers, options) {
         if (_singleton !== singletonToken) {
             throw new Error('Cannot instantiate AdapterFactory directly.');
         }
@@ -122,21 +123,33 @@ class AdapterFactory extends EventEmitter {
         this._bleDrivers = bleDrivers;
         this._adapters = {};
 
-        // TODO: should adapters be updated on this.getAdapters call or on an interval? Time interval for now.
-        this.updateInterval = setInterval(this._updateAdapterList.bind(this), UPDATE_INTERVAL_MS);
+        if (options.enablePolling) {
+            this.updateInterval = setInterval(this._updateAdapterList.bind(this), UPDATE_INTERVAL_MS);
+        }
     }
 
     /**
      * Get the singleton `AdapterFactory` instance.
      *
-     * @param {null|Object} bleDrivers Optional object mapping version to pc-ble-driver AddOn.
+     * The mapping of SoftDevice API version to pc-ble-driver AddOn can be overridden
+     * by providing a custom `bleDrivers` argument. By default the AdapterFactory will
+     * poll for added/removed adapters every 2 seconds and emit 'added' and 'removed'
+     * events. This can be disabled by passing `enablePolling: false` as part of the
+     * options object.
+     *
+     * @param {Object} [bleDrivers] Optional object mapping version to pc-ble-driver AddOn.
+     * @param {Object} [options] Optional object for customizing the behavior of the adapter factory.
      * @returns {AdapterFactory} The singleton `AdapterFactory` instance.
      */
-    static getInstance(bleDrivers) {
-        bleDrivers = typeof bleDrivers !== 'undefined' ? bleDrivers : _bleDrivers;
+    static getInstance(bleDrivers, options) {
+        const driversToUse = bleDrivers || _bleDrivers;
+        const optionsToUse = options || {};
+        if (optionsToUse.enablePolling === undefined) {
+            optionsToUse.enablePolling = true;
+        }
 
         if (!this[_singleton]) {
-            this[_singleton] = new AdapterFactory(_singleton, bleDrivers);
+            this[_singleton] = new AdapterFactory(_singleton, driversToUse, optionsToUse);
         }
 
         return this[_singleton];
@@ -290,6 +303,31 @@ class AdapterFactory extends EventEmitter {
                 callback(undefined, adapters);
             }
         });
+    }
+
+    /**
+     * Create Adapter with custom serialport
+     *
+     * @param sdVersion {string} Softdevice API version: 'v2' or 'v3'.
+     * @param comName {string} Serialport name (eg. 'COM7' on windows).
+     * @param instanceId {string} The unique Id that identifies this Adapter instance.
+     * @returns {Adapter} Created adapter.
+     */
+    createAdapter(sdVersion, comName, instanceId) {
+        if (sdVersion !== 'v2' && sdVersion !== 'v3') {
+            throw new Error('Unsupported soft-device version!');
+        }
+        if (typeof comName === 'undefined') {
+            throw new Error('Missing parameter: comName!');
+        }
+        if (typeof instanceId === 'undefined') {
+            throw new Error('Missing parameter: instanceId!');
+        }
+
+        const selectedDriver = this._bleDrivers[sdVersion];
+        const addOnAdapter = new selectedDriver.Adapter();
+
+        return new Adapter(selectedDriver, addOnAdapter, instanceId, comName);
     }
 }
 
