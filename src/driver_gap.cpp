@@ -395,7 +395,7 @@ ble_gap_conn_sec_t *GapConnSec::ToNative()
 ble_gap_opt_t *GapOpt::ToNative()
 {
     auto gap_opt = new ble_gap_opt_t();
-    memset(gap_opt, 0, sizeof(gap_opt));
+    memset(gap_opt, 0, sizeof(ble_gap_opt_t));
 
     if (Utility::Has(jsobj, "scan_req_report"))
     {

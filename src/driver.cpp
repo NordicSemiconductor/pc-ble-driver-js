@@ -882,8 +882,6 @@ void Adapter::AfterConnReset(uv_work_t *req)
     Nan::HandleScope scope;
     auto baton = static_cast<ConnResetBaton *>(req->data);
 
-    baton->mainObject->cleanUpV8Resources();
-
     if (baton->callback != nullptr)
     {
         v8::Local<v8::Value> argv[1];
