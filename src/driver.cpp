@@ -176,8 +176,31 @@ void Adapter::dispatchEvents()
     }
     else
     {
-        std::cerr << "Adapter::dispatchEvents() asyncEvent is nullptr!" << std::endl;
-        std::terminate();
+        // Adapter::cleanUpV8Resources() sets the Adapter::asyncEvent object to null.
+        // Adapter::cleanUpV8Resources() is called from both Adapter::AfterClose and Adapter::AfterConnReset
+        //
+        // If Adapter::eventInterval is 0, this method, Adapter::dispatchEvents, will be called directly without being
+        // invoked from eventIntervalTimer. 
+        //
+        // When Adapter::AfterClose is invoked, parts of Adapter::cleanUpV8Resources() is ran before the
+        // the following call graph is complete:
+        //
+        // SoftDevice callback -> sd_rpc_on_event(...) -> Adapter::appendEvent(...) -> Adapter::dispatchEvents()
+        //
+        // The above call graph is ran in thread SerializationTransport::eventThread when Adapter::eventInterval == 0.
+        //
+        // If eventInterval != 0 the event is popped out of the Adapter::eventQueue queue by 
+        // Adapter::eventIntervalTimer, in a libuv thread-pool thread. Adapter::eventIntervalTimer is stopped in 
+        // Adapter::cleanUpV8Resources().
+        //
+        // A quick fix to circumvent this race condition is to ignore the event when Adapter::asyncEvent is nullptr.
+        //
+        // A more permanent fix should be implemented, it would require better documentation/understanding of
+        // pc-ble-driver-js inner workings and some changes to synchronization between libuv thread and pc-ble-driver(-js) threads.
+        if (eventInterval > 0) {
+            std::cerr << "Adapter::dispatchEvents() asyncEvent is nullptr!" << std::endl;
+            std::terminate();
+        }
     }
 }
 
