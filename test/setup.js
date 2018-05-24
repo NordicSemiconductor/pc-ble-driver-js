@@ -48,8 +48,9 @@ const serviceFactory = new api.ServiceFactory();
 
 const testTimeout = 2000;
 
-const debug = require('debug')('debug');
-const error = require('debug')('error');
+const debug = require('debug')('ble-driver:test');
+const log  = require('debug')('ble-driver:log');
+const error = require('debug')('ble-driver:error');
 
 const DeviceLister = require('nrf-device-lister');
 const { setupDevice } = require('nrf-device-setup');
@@ -67,9 +68,27 @@ const traits = {
 const deviceLister = new DeviceLister(traits);
 const grabbedAdapters = new Map();
 
-// Make sure the device lister does not crash if a listener for an error event is not registered.
-// The device lister emits errors that will not affect us.
-deviceLister.on('error', () => {
+deviceLister.on('error', err => {
+    if (err.usb) {
+        const usbAddr = `${err.usb.busNumber}.${err.usb.deviceAddress}`;
+
+        let message = `Error while probing usb device at bus.address ${usbAddr}: ${err.message}. `;
+
+        if (process.platform === 'linux') {
+            message += 'Please check your udev rules concerning permissions for USB devices, see ' +
+                'https://github.com/NordicSemiconductor/nrf-udev';
+        } else if (process.platform === 'win32') {
+            message += 'Please check that a libusb-compatible kernel driver is bound to this device.';
+        }
+
+        error(message);
+    } else if (err.serialport &&
+        err.message.includes('Could not fetch serial number for serial port at')) {
+        // Explicitly hide errors about serial ports without serial numbers
+        error(err.message);
+    } else {
+        debug(`Error while probing devices: ${error.message}`);
+    }
 });
 
 function getAdapters() {
@@ -300,15 +319,15 @@ async function releaseAdapter(serialNumber) {
 function addAdapterListener(adapter, prefix) {
     const logPrefix = `[${prefix ? `${prefix}-` : ''}${adapter.state.address ? `${adapter.state.address}/${adapter.state.addressType}` : adapter.instanceId}]`;
 
-    adapter.on('logMessage', (severity, message) => { debug(`${logPrefix} logMessage: ${message}`); });
+    adapter.on('logMessage', (severity, message) => { log(`${logPrefix} logMessage: ${message}`); });
     adapter.on('status', status => { debug(`${logPrefix} status: ${JSON.stringify(status, null, 1)}`); });
     adapter.on('error', err => {
         error(`${logPrefix} error: ${JSON.stringify(err, null, 1)}`);
     });
 
-    adapter.on('deviceConnected', device => { debug(`${logPrefix} deviceConnected: ${device.address}`); });
-    adapter.on('deviceDisconnected', device => { debug(`${logPrefix} deviceDisconnected: ${JSON.stringify(device, null, 1)}`); });
-    adapter.on('deviceDiscovered', device => { debug(`${logPrefix} deviceDiscovered: ${JSON.stringify(device)}`); });
+    adapter.on('deviceConnected', device => { log(`${logPrefix} deviceConnected: ${device.address}`); });
+    adapter.on('deviceDisconnected', device => { log(`${logPrefix} deviceDisconnected: ${JSON.stringify(device, null, 1)}`); });
+    adapter.on('deviceDiscovered', device => { log(`${logPrefix} deviceDiscovered: ${JSON.stringify(device)}`); });
 }
 
 /**
