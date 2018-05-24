@@ -169,6 +169,7 @@ class FirmwareRegistry {
         const config = {
             jprog: {},
             dfu: {},
+            needSerialport: true,
         };
 
         Object.keys(firmwareMap.jlink).forEach(family => {
