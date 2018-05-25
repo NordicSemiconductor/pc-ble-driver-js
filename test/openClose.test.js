@@ -43,7 +43,7 @@ const debug = require('debug')('ble-driver:test:open-close');
 const CENTRAL_DEVICE_ADDRESS = 'FF:11:22:33:AA:BE';
 const CENTRAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
-const NUMBER_OF_ITERATIONS = process.env.PC_BLE_DRIVER_TEST_OPENCLOSE_ITERATIONS ? parseInt(process.env.PC_BLE_DRIVER_TEST_OPENCLOSE_ITERATIONS, 10) : 2000; // Number of open/close iterations
+const NUMBER_OF_ITERATIONS = process.env.BLE_DRIVER_TEST_OPENCLOSE_ITERATIONS ? parseInt(process.env.BLE_DRIVER_TEST_OPENCLOSE_ITERATIONS, 10) : 2000; // Number of open/close iterations
 const NRF51_NRF52_WAIT_TIME = 250; // nRF51/nRF52 based devices require a timeout after a reset
 const SCAN_DURATION = 2000;
 const SCAN_DURATION_WAIT_TIME = 3000;
@@ -82,7 +82,7 @@ function startScan(adapter, timeout) {
 describe('the API', async () => {
     let adapterSn;
     let openCloseIterations = 1;
-    let programDevice = process.env.PC_BLE_DRIVER_TEST_SKIP_PROGRAMMING !== 'true';
+    let programDevice = process.env.BLE_DRIVER_TEST_SKIP_PROGRAMMING !== 'true';
 
     const requiredNumberOfIterations = NUMBER_OF_ITERATIONS || Number.MAX_SAFE_INTEGER;
 
