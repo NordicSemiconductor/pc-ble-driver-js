@@ -355,19 +355,19 @@ function mergeOptions(options) {
     const newOptions = Object.assign({}, options);
 
     if (!newOptions.logLevel) {
-        newOptions.logLevel = process.env.PC_BLE_DRIVER_TEST_LOGLEVEL || 'info';
+        newOptions.logLevel = process.env.BLE_DRIVER_TEST_LOGLEVEL || 'info';
     }
 
     if (!newOptions.programDevice) {
-        newOptions.programDevice = process.env.PC_BLE_DRIVER_TEST_SKIP_PROGRAMMING !== 'true';
+        newOptions.programDevice = process.env.BLE_DRIVER_TEST_SKIP_PROGRAMMING !== 'true';
     }
 
-    if (newOptions.family == null && process.env.PC_BLE_DRIVER_TEST_FAMILY) {
-        newOptions.family = process.env.PC_BLE_DRIVER_TEST_FAMILY;
+    if (newOptions.family == null && process.env.BLE_DRIVER_TEST_FAMILY) {
+        newOptions.family = process.env.BLE_DRIVER_TEST_FAMILY;
     }
 
-    if (newOptions.blacklist == null && process.env.PC_BLE_DRIVER_TEST_BLACKLIST) {
-        newOptions.blacklist = process.env.PC_BLE_DRIVER_TEST_BLACKLIST.split(',');
+    if (newOptions.blacklist == null && process.env.BLE_DRIVER_TEST_BLACKLIST) {
+        newOptions.blacklist = process.env.BLE_DRIVER_TEST_BLACKLIST.split(',');
     }
 
     return newOptions;
