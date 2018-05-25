@@ -82,8 +82,8 @@ function startScan(adapter, timeout) {
 describe('the API', async () => {
     let adapterSn;
     let openCloseIterations = 1;
-    let programDevice = true;
-    let sdApiVersion;
+    let programDevice = process.env.PC_BLE_DRIVER_TEST_SKIP_PROGRAMMING !== 'true';
+
     const requiredNumberOfIterations = NUMBER_OF_ITERATIONS || Number.MAX_SAFE_INTEGER;
 
     it(`shall support opening and closing the adapter ${requiredNumberOfIterations} times.`, async () => {
@@ -95,7 +95,6 @@ describe('the API', async () => {
             // Program/check for correct firmware only once
             programDevice = false;
             adapterSn = adapterToUse.state.serialNumber;
-            sdApiVersion = adapterToUse.driver.NRF_SD_BLE_API_VERSION;
 
             await setupAdapter(adapterToUse, 'central', 'central', CENTRAL_DEVICE_ADDRESS, CENTRAL_DEVICE_ADDRESS_TYPE);
 
