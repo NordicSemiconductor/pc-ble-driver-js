@@ -359,7 +359,7 @@ function mergeOptions(options) {
     }
 
     if (!newOptions.programDevice) {
-        newOptions.programDevice = process.env.PC_BLE_DRIVER_TEST_SKIP_PROGRAMMING == null;
+        newOptions.programDevice = process.env.PC_BLE_DRIVER_TEST_SKIP_PROGRAMMING !== 'true';
     }
 
     if (newOptions.family == null && process.env.PC_BLE_DRIVER_TEST_FAMILY) {
