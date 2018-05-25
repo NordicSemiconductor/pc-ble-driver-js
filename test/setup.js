@@ -40,7 +40,7 @@ const api = require('../index');
 
 // Milliseconds wait before terminating test.
 // In worst case programming of two devices needs to be done + the tests shall run.
-const JEST_TIMEOUT_FOR_SETUP_OF_DEVICE = 30000;
+const JEST_TIMEOUT_FOR_SETUP_OF_DEVICE = 40000;
 jest.setTimeout(JEST_TIMEOUT_FOR_SETUP_OF_DEVICE);
 
 const adapterFactory = api.AdapterFactory.getInstance(undefined, { enablePolling: false });
@@ -51,6 +51,7 @@ const testTimeout = 2000;
 const debug = require('debug')('ble-driver:test');
 const log  = require('debug')('ble-driver:log');
 const error = require('debug')('ble-driver:error');
+const statusLog = require('debug')('ble-driver:status');
 
 const DeviceLister = require('nrf-device-lister');
 const { setupDevice } = require('nrf-device-setup');
@@ -250,7 +251,23 @@ async function _grabAdapter(serialNumber, options) {
     const skipSetupDevice = options && options.programDevice === false;
 
     if (!skipSetupDevice) {
-        await setupDevice(selectedAdapter, FirmwareRegistry.getDeviceSetup());
+        const deviceFirmware = FirmwareRegistry.getDeviceSetup();
+
+        Object.keys(deviceFirmware).forEach(key => {
+            if (key === 'jprog') {
+                Object.keys(deviceFirmware.jprog).forEach(family => {
+                    // Replacing fwVersion validator to always return false, forcing programming of the device.
+                    deviceFirmware.jprog[family].fwVersion.validator = () => { false };
+                });
+            } else if (key === 'dfu') {
+                Object.keys(deviceFirmware.dfu).forEach(deviceType => {
+                    // Replacing version with '', forcing programming of the device.
+                    deviceFirmware.dfu[deviceType].semver = '';
+                });
+            }
+        });
+
+        await setupDevice(selectedAdapter, deviceFirmware);
 
         if (softDeviceParams.sdVersion === 'v2') {
             // nRF51 requires a ~250ms wait time before it can be opened
@@ -320,7 +337,7 @@ function addAdapterListener(adapter, prefix) {
     const logPrefix = `[${prefix ? `${prefix}-` : ''}${adapter.state.address ? `${adapter.state.address}/${adapter.state.addressType}` : adapter.instanceId}]`;
 
     adapter.on('logMessage', (severity, message) => { log(`${logPrefix} logMessage: ${message}`); });
-    adapter.on('status', status => { debug(`${logPrefix} status: ${JSON.stringify(status, null, 1)}`); });
+    adapter.on('status', status => { statusLog(`${logPrefix} status: ${JSON.stringify(status, null, 1)}`); });
     adapter.on('error', err => {
         error(`${logPrefix} error: ${JSON.stringify(err, null, 1)}`);
     });
