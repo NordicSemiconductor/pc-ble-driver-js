@@ -40,7 +40,7 @@ const api = require('../index');
 
 // Milliseconds wait before terminating test.
 // In worst case programming of two devices needs to be done + the tests shall run.
-const JEST_TIMEOUT_FOR_SETUP_OF_DEVICE = 30000;
+const JEST_TIMEOUT_FOR_SETUP_OF_DEVICE = 40000;
 jest.setTimeout(JEST_TIMEOUT_FOR_SETUP_OF_DEVICE);
 
 const adapterFactory = api.AdapterFactory.getInstance(undefined, { enablePolling: false });
@@ -49,8 +49,9 @@ const serviceFactory = new api.ServiceFactory();
 const testTimeout = 2000;
 
 const debug = require('debug')('ble-driver:test');
-const log  = require('debug')('ble-driver:log');
+const log = require('debug')('ble-driver:log');
 const error = require('debug')('ble-driver:error');
+const statusLog = require('debug')('ble-driver:status');
 
 const DeviceLister = require('nrf-device-lister');
 const { setupDevice } = require('nrf-device-setup');
@@ -173,26 +174,15 @@ function determineSoftDeviceParameters(serialNumber) {
  * @private
  */
 function _filterAdapters(serialNumbers, options) {
-    // Use options provided to function primarily, from environment variables secondary
-    const filterOptions = { ...options };
-
-    if (filterOptions.family == null && process.env.PC_BLE_DRIVER_TEST_FAMILY) {
-        filterOptions.family = process.env.PC_BLE_DRIVER_TEST_FAMILY;
-    }
-
-    if (filterOptions.blacklist == null && process.env.PC_BLE_DRIVER_TEST_BLACKLIST) {
-        filterOptions.blacklist = process.env.PC_BLE_DRIVER_TEST_BLACKLIST.split(',');
-    }
-
     return serialNumbers.filter(sn => {
-        if (filterOptions.blacklist) {
-            if (filterOptions.blacklist.includes(sn)) {
+        if (options.blacklist) {
+            if (options.blacklist.includes(sn)) {
                 return false;
             }
         }
 
-        if (filterOptions.family) {
-            return determineSoftDeviceParameters(sn).family === filterOptions.family;
+        if (options.family) {
+            return determineSoftDeviceParameters(sn).family === options.family;
         }
 
         return true;
@@ -247,10 +237,24 @@ async function _grabAdapter(serialNumber, options) {
 
     const softDeviceParams = determineSoftDeviceParameters(selectedAdapter.serialNumber);
 
-    const skipSetupDevice = options && options.programDevice === false;
+    if (options.programDevice) {
+        const deviceFirmware = FirmwareRegistry.getDeviceSetup();
 
-    if (!skipSetupDevice) {
-        await setupDevice(selectedAdapter, FirmwareRegistry.getDeviceSetup());
+        Object.keys(deviceFirmware).forEach(key => {
+            if (key === 'jprog') {
+                Object.keys(deviceFirmware.jprog).forEach(family => {
+                    // Replacing fwVersion validator to always return false, forcing programming of the device.
+                    deviceFirmware.jprog[family].fwVersion.validator = () => false;
+                });
+            } else if (key === 'dfu') {
+                Object.keys(deviceFirmware.dfu).forEach(deviceType => {
+                    // Replacing version with '', forcing programming of the device.
+                    deviceFirmware.dfu[deviceType].semver = '';
+                });
+            }
+        });
+
+        await setupDevice(selectedAdapter, deviceFirmware);
 
         if (softDeviceParams.sdVersion === 'v2') {
             // nRF51 requires a ~250ms wait time before it can be opened
@@ -320,7 +324,7 @@ function addAdapterListener(adapter, prefix) {
     const logPrefix = `[${prefix ? `${prefix}-` : ''}${adapter.state.address ? `${adapter.state.address}/${adapter.state.addressType}` : adapter.instanceId}]`;
 
     adapter.on('logMessage', (severity, message) => { log(`${logPrefix} logMessage: ${message}`); });
-    adapter.on('status', status => { debug(`${logPrefix} status: ${JSON.stringify(status, null, 1)}`); });
+    adapter.on('status', status => { statusLog(`${logPrefix} status: ${JSON.stringify(status, null, 1)}`); });
     adapter.on('error', err => {
         error(`${logPrefix} error: ${JSON.stringify(err, null, 1)}`);
     });
@@ -340,6 +344,36 @@ function addAdapterListener(adapter, prefix) {
  */
 
 /**
+ * Merge options from environment variables and options provided by developer.
+ *
+ * Options provided by developer wins over options provided from environment variables
+ *
+ * @param {GrabAdapterOptions} [options] to use when grabbing the adapter.
+ * @returns {GrabAdapterOptions} New options object with information gathered from environment variables and options provided by developer.
+ */
+function mergeOptions(options) {
+    const newOptions = Object.assign({}, options);
+
+    if (!newOptions.logLevel) {
+        newOptions.logLevel = process.env.BLE_DRIVER_TEST_LOGLEVEL || 'info';
+    }
+
+    if (!newOptions.programDevice) {
+        newOptions.programDevice = process.env.BLE_DRIVER_TEST_SKIP_PROGRAMMING !== 'true';
+    }
+
+    if (newOptions.family == null && process.env.BLE_DRIVER_TEST_FAMILY) {
+        newOptions.family = process.env.BLE_DRIVER_TEST_FAMILY;
+    }
+
+    if (newOptions.blacklist == null && process.env.BLE_DRIVER_TEST_BLACKLIST) {
+        newOptions.blacklist = process.env.BLE_DRIVER_TEST_BLACKLIST.split(',');
+    }
+
+    return newOptions;
+}
+
+/**
  * Grab an available adapter.
  *
  * @param {string} [requestedSerialNumber] Specific adapter to grab, if undefined, the function picks one that is not registered as grabbed from before
@@ -347,7 +381,9 @@ function addAdapterListener(adapter, prefix) {
  * @returns {Promise<Adapter>} An opened adapter ready to use
  */
 async function grabAdapter(requestedSerialNumber, options) {
-    const { port, serialNumber, apiVersion, baudRate } = await _grabAdapter(requestedSerialNumber, options);
+    const options_ = mergeOptions(options);
+
+    const { port, serialNumber, apiVersion, baudRate } = await _grabAdapter(requestedSerialNumber, options_);
     const adapter = adapterFactory.createAdapter(apiVersion, port, serialNumber);
     addAdapterListener(adapter);
 
@@ -356,20 +392,9 @@ async function grabAdapter(requestedSerialNumber, options) {
     // Update the grabbed adapter value to be an instance of Adapter and not Device from nrf-device-lister
     grabbedAdapters.set(serialNumber, adapter);
 
-    // Setup log level in pc-ble-driver based on function argument options or env variable
-    let logLevel;
-
-    if (options && options.logLevel) {
-        logLevel = options.logLevel;
-    } else if (process.env.PC_BLE_DRIVER_TEST_LOGLEVEL) {
-        logLevel = process.env.PC_BLE_DRIVER_TEST_LOGLEVEL;
-    } else {
-        logLevel = 'info';
-    }
-
     return new Promise((resolve, reject) => {
         debug(`Opening adapter ${serialNumber}.`);
-        adapter.open({ baudRate, logLevel }, err => {
+        adapter.open({ baudRate, logLevel: options_.logLevel }, err => {
             if (err) {
                 reject(new Error(`Error opening adapter ${serialNumber}: ${err}.`));
                 return;

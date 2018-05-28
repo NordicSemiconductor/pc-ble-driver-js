@@ -38,7 +38,7 @@
 
 const { grabAdapter, releaseAdapter, setupAdapter, outcome } = require('./setup');
 
-const debug = require('debug')('debug');
+const debug = require('debug')('ble-driver:test:simple-scan');
 
 const scanParameters = {
     active: true,
@@ -50,7 +50,7 @@ const scanParameters = {
 const CENTRAL_DEVICE_ADDRESS = 'FF:11:22:33:AA:CF';
 const CENTRAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
-const SCAN_DURATION_WAIT_TIME = 1500;
+const SCAN_DURATION_WAIT_TIME = 3000;
 
 describe('the API', async () => {
     let adapter;
