@@ -38,15 +38,15 @@
 
 const { grabAdapter, releaseAdapter, setupAdapter, outcome } = require('./setup');
 
-const debug = require('debug')('debug');
+const debug = require('debug')('ble-driver:test:open-close');
 
 const CENTRAL_DEVICE_ADDRESS = 'FF:11:22:33:AA:BE';
 const CENTRAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
-const NUMBER_OF_ITERATIONS = 2000; // Number of open/close iterations
+const NUMBER_OF_ITERATIONS = process.env.BLE_DRIVER_TEST_OPENCLOSE_ITERATIONS ? parseInt(process.env.BLE_DRIVER_TEST_OPENCLOSE_ITERATIONS, 10) : 2000; // Number of open/close iterations
 const NRF51_NRF52_WAIT_TIME = 250; // nRF51/nRF52 based devices require a timeout after a reset
 const SCAN_DURATION = 2000;
-const SCAN_DURATION_WAIT_TIME = 1500;
+const SCAN_DURATION_WAIT_TIME = 3000;
 const EXPECTED_NUMBER_OF_SCAN_REPORTS_PR_ITERATION = 2;
 
 const GENERIC_WAIT_PR_ITERATION = 1000;
@@ -81,21 +81,20 @@ function startScan(adapter, timeout) {
 
 describe('the API', async () => {
     let adapterSn;
-    let openCloseIterations = 0;
-    let programDevice = true;
-    let sdApiVersion;
+    let openCloseIterations = 1;
+    let programDevice = process.env.BLE_DRIVER_TEST_SKIP_PROGRAMMING !== 'true';
+
     const requiredNumberOfIterations = NUMBER_OF_ITERATIONS || Number.MAX_SAFE_INTEGER;
 
     it(`shall support opening and closing the adapter ${requiredNumberOfIterations} times.`, async () => {
         const oneIteration = async () => {
-            debug(`Open/close iteration #${openCloseIterations} starting.`);
+            debug(`Open/close iteration #${openCloseIterations} of ${requiredNumberOfIterations} starting.`);
 
             const adapterToUse = await grabAdapter(adapterSn, { programDevice });
 
             // Program/check for correct firmware only once
             programDevice = false;
             adapterSn = adapterToUse.state.serialNumber;
-            sdApiVersion = adapterToUse.driver.NRF_SD_BLE_API_VERSION;
 
             await setupAdapter(adapterToUse, 'central', 'central', CENTRAL_DEVICE_ADDRESS, CENTRAL_DEVICE_ADDRESS_TYPE);
 
@@ -137,7 +136,7 @@ describe('the API', async () => {
 
         await new Promise(async (resolve, reject) => {
             try {
-                while (openCloseIterations < requiredNumberOfIterations) {
+                while (openCloseIterations <= requiredNumberOfIterations) {
                     // eslint-disable-next-line no-await-in-loop
                     await oneIteration();
                     // eslint-disable-next-line no-await-in-loop
