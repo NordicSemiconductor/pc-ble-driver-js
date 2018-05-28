@@ -38,7 +38,7 @@
 
 const { grabAdapter, releaseAdapter, serviceFactory, setupAdapter } = require('./setup');
 
-const debug = require('debug')('debug');
+const debug = require('debug')('ble-driver:test:advertise');
 
 const PERIPHERAL_DEVICE_ADDRESS = 'FF:11:22:33:AA:CE';
 const PERIPHERAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
