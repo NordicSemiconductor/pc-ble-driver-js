@@ -44,7 +44,7 @@ const PERIPHERAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 const CENTRAL_DEVICE_ADDRESS = 'FF:11:22:33:AA:CF';
 const CENTRAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
-const debug = require('debug')('debug');
+const debug = require('debug')('ble-driver:test:connection');
 
 function connect(adapter, connectToAddress) {
     const options = {
