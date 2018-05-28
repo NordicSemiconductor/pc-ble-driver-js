@@ -39,7 +39,7 @@
 const { grabAdapter, releaseAdapter, setupAdapter, outcome } = require('./setup');
 
 const api = require('../index');
-const debug = require('debug')('debug');
+const debug = require('debug')('ble-driver:test:mtu');
 
 const serviceFactory = new api.ServiceFactory();
 

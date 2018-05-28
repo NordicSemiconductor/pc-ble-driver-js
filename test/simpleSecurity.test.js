@@ -41,7 +41,7 @@ const { grabAdapter, releaseAdapter, setupAdapter, outcome } = require('./setup'
 const assert = require('assert');
 const crypto = require('crypto');
 
-const debug = require('debug')('debug');
+const debug = require('debug')('ble-driver:test:simple-security');
 
 const PERIPHERAL_DEVICE_ADDRESS = 'FF:11:22:33:AA:CE';
 const PERIPHERAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
