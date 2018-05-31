@@ -87,7 +87,7 @@ function getFirmwareMap(platform) {
                     application: path.join(sdV3Dir, 'connectivity_1.2.2_usb_for_s132_3.0.hex'),
                     softdevice: path.join(sdV3Dir, 's132_nrf52_3.0.0_softdevice.hex'),
                 },
-                version: 'ble-connectivity 0.1.0+Apr-30-2018-13-25-01',
+                version: 'ble-connectivity 0.1.0+May-28-2018-12-30-56',
                 baudRate: platform === 'darwin' ? 115200 : 1000000,
                 sdBleApiVersion: 3,
                 sdId: 0x8C, // SoftDevice FWID, s132_nrf52_3.0.0 === 0x8C
