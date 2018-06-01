@@ -63,7 +63,7 @@ Object {
   },
   "sdBleApiVersion": 3,
   "sdId": 140,
-  "version": "ble-connectivity 0.1.0+Apr-30-2018-13-25-01",
+  "version": "ble-connectivity 0.1.0+May-28-2018-12-30-56",
 }
 `;
 
@@ -76,7 +76,7 @@ Object {
   },
   "sdBleApiVersion": 3,
   "sdId": 140,
-  "version": "ble-connectivity 0.1.0+Apr-30-2018-13-25-01",
+  "version": "ble-connectivity 0.1.0+May-28-2018-12-30-56",
 }
 `;
 
@@ -89,6 +89,6 @@ Object {
   },
   "sdBleApiVersion": 3,
   "sdId": 140,
-  "version": "ble-connectivity 0.1.0+Apr-30-2018-13-25-01",
+  "version": "ble-connectivity 0.1.0+May-28-2018-12-30-56",
 }
 `;
