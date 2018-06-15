@@ -44,7 +44,6 @@ const CENTRAL_DEVICE_ADDRESS = 'FF:11:22:33:AA:BE';
 const CENTRAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
 const NUMBER_OF_ITERATIONS = process.env.BLE_DRIVER_TEST_OPENCLOSE_ITERATIONS ? parseInt(process.env.BLE_DRIVER_TEST_OPENCLOSE_ITERATIONS, 10) : 2000; // Number of open/close iterations
-const NRF51_NRF52_WAIT_TIME = 250; // nRF51/nRF52 based devices require a timeout after a reset
 const SCAN_DURATION = 2000;
 const SCAN_DURATION_WAIT_TIME = 3000;
 const EXPECTED_NUMBER_OF_SCAN_REPORTS_PR_ITERATION = 2;
@@ -53,7 +52,7 @@ const GENERIC_WAIT_PR_ITERATION = 1000;
 
 // Adjust the jest timeout based on the number of iterations required
 const JEST_TIMEOUT = NUMBER_OF_ITERATIONS *
-    (NRF51_NRF52_WAIT_TIME + SCAN_DURATION_WAIT_TIME + GENERIC_WAIT_PR_ITERATION);
+    (SCAN_DURATION_WAIT_TIME + GENERIC_WAIT_PR_ITERATION);
 
 debug(`jest timeout is set to ${JEST_TIMEOUT} ms.`);
 
@@ -139,8 +138,6 @@ describe('the API', async () => {
                 while (openCloseIterations <= requiredNumberOfIterations) {
                     // eslint-disable-next-line no-await-in-loop
                     await oneIteration();
-                    // eslint-disable-next-line no-await-in-loop
-                    await new Promise(waitResolve => setTimeout(waitResolve, NRF51_NRF52_WAIT_TIME));
                 }
 
                 resolve();
