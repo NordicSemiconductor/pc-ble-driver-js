@@ -1443,7 +1443,12 @@ class Adapter extends EventEmitter {
             if (attribute instanceof Service) {
                 // TODO: Translate from uuid to name?
                 attribute.uuid = HexConv.arrayTo128BitUuid(data);
-                addVsUuidToDriver(attribute.uuid).then();
+                addVsUuidToDriver(attribute.uuid).then()
+                .catch(err => {
+                    delete this._gattOperationsMap[device.instanceId];
+                    this.emit('error', _makeError('addVsUuidToDriver error', err));
+                    gattOperation.callback('Failed to add service uuid to driver');
+                });
                 this.emit('serviceAdded', attribute);
 
                 if (_.isEmpty(pendingHandleReads)) {
@@ -1461,7 +1466,12 @@ class Adapter extends EventEmitter {
                 // TODO: Translate from uuid to name?
                 if (handle === attribute.declarationHandle) {
                     attribute.uuid = HexConv.arrayTo128BitUuid(data.slice(3));
-                    addVsUuidToDriver(attribute.uuid).then();
+                    addVsUuidToDriver(attribute.uuid).then()
+                    .catch(err => {
+                        delete this._gattOperationsMap[device.instanceId];
+                        this.emit('error', _makeError('addVsUuidToDriver error', err));
+                        gattOperation.callback('Failed to add characteristic uuid to driver');
+                    });
                 } else if (handle === attribute.valueHandle) {
                     attribute.value = data;
                 }
