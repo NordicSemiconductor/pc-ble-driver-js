@@ -39,6 +39,7 @@
 const { grabAdapter, releaseAdapter, setupAdapter, outcome } = require('./setup');
 
 const api = require('../index');
+const common = require('./common');
 
 const serviceFactory = new api.ServiceFactory();
 
@@ -48,99 +49,12 @@ const PERIPHERAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 const CENTRAL_DEVICE_ADDRESS = 'FF:11:22:33:AA:CF';
 const CENTRAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
-
-function connect(adapter, connectToAddress) {
-    const options = {
-        scanParams: {
-            active: false,
-            interval: 100,
-            window: 50,
-            timeout: 20,
-        },
-        connParams: {
-            min_conn_interval: 7.5,
-            max_conn_interval: 7.5,
-            slave_latency: 0,
-            conn_sup_timeout: 4000,
-        },
-    };
-
-    return new Promise((resolve, reject) => {
-        adapter.connect(
-            connectToAddress,
-            options,
-            connectErr => {
-                if (connectErr) {
-                    reject(connectErr);
-                    return;
-                }
-
-                resolve();
-            });
-    });
-}
-
-function startAdvertising(adapter) {
-    return new Promise((resolve, reject) => {
-        adapter.setAdvertisingData(
-            {
-                txPowerLevel: 20,
-            },
-            {}, // scan response data
-            setAdvertisingDataError => {
-                if (setAdvertisingDataError) {
-                    reject(setAdvertisingDataError);
-                    return;
-                }
-
-                adapter.startAdvertising(
-                    {
-                        interval: 100,
-                        timeout: 100,
-                    },
-                    startAdvertisingError => {
-                        if (startAdvertisingError) {
-                            reject(startAdvertisingError);
-                            return;
-                        }
-
-                        resolve();
-                    },
-                );
-            },
-        );
-    });
-}
-
-function addServicesTo(adapter, count) {
-    return new Promise((resolve, reject) => {
-        const services = [];
-        const charmap = { 0: '0', 1: '1', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: 'a', 11: 'b', 12: 'c', 13: 'd', 14: 'e', 15: 'f', 16: 'f' };
-
-        for (let i = 0; i < count; i += 1) {
-            const uuid = [];
-            for (let j = 0; j < 32; j += 1) {
-                uuid.push(Math.floor(Math.random() * 16));
-            }
-            services.push(serviceFactory.createService(uuid.map(x => charmap[x]).join('')));
-        }
-
-        adapter.setServices(services, err => {
-            if (err) {
-                return reject(new Error(`Error initializing services: ${JSON.stringify(err, null, 1)}'.`));
-            }
-
-            return resolve();
-        });
-    });
-}
-
 async function onConnected(adapter, peerDevice) {
-    await new Promise((resolve, reject) => {
+    await new Promise(resolve => {
         adapter.getServices(peerDevice.instanceId, getServicesErr => {
             expect(getServicesErr).toBeDefined();
             expect(getServicesErr).toBe('Failed to add service uuid to driver');
-            reject(getServicesErr);
+            resolve(getServicesErr);
         });
     });
 }
@@ -171,10 +85,10 @@ describe('the API', async () => {
         expect(centralAdapter).toBeDefined();
         expect(peripheralAdapter).toBeDefined();
 
-        await addServicesTo(peripheralAdapter, 8);
-        await addServicesTo(centralAdapter, 8);
+        await common.addRandomServicesAndCharacteristicsToAdapter(serviceFactory, peripheralAdapter, 8, 0);
+        await common.addRandomServicesAndCharacteristicsToAdapter(serviceFactory, centralAdapter, 8, 0);
 
-        const deviceConnectedCentral = new Promise(resolve => {
+        const deviceConnectedCentral = new Promise((resolve, reject) => {
             centralAdapter.once('deviceConnected', peripheralDevice => {
                 onConnected(centralAdapter, peripheralDevice).then(() => {
                     resolve({
@@ -182,12 +96,12 @@ describe('the API', async () => {
                         type: peripheralDevice.addressType,
                         instanceId: peripheralDevice.instanceId,
                     });
-                }).catch(resolve);
+                }).catch(reject);
             });
         });
 
-        await startAdvertising(peripheralAdapter);
-        await connect(centralAdapter, { address: PERIPHERAL_DEVICE_ADDRESS, type: PERIPHERAL_DEVICE_ADDRESS_TYPE });
+        await common.startAdvertising(peripheralAdapter);
+        await common.connect(centralAdapter, { address: PERIPHERAL_DEVICE_ADDRESS, type: PERIPHERAL_DEVICE_ADDRESS_TYPE });
         await outcome([deviceConnectedCentral]);
     });
 });

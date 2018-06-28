@@ -37,6 +37,7 @@
 'use strict';
 
 const { grabAdapter, releaseAdapter, setupAdapter, outcome } = require('./setup');
+const common = require('./common');
 
 const PERIPHERAL_DEVICE_ADDRESS = 'FF:11:22:33:AA:CE';
 const PERIPHERAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
@@ -45,69 +46,6 @@ const CENTRAL_DEVICE_ADDRESS = 'FF:11:22:33:AA:CF';
 const CENTRAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
 const debug = require('debug')('ble-driver:test:connection');
-
-function connect(adapter, connectToAddress) {
-    const options = {
-        scanParams: {
-            active: false,
-            interval: 100,
-            window: 50,
-            timeout: 20,
-        },
-        connParams: {
-            min_conn_interval: 7.5,
-            max_conn_interval: 7.5,
-            slave_latency: 0,
-            conn_sup_timeout: 4000,
-        },
-    };
-
-    return new Promise((resolve, reject) => {
-        adapter.connect(
-            connectToAddress,
-            options,
-            connectErr => {
-                if (connectErr) {
-                    reject(connectErr);
-                    return;
-                }
-
-                resolve();
-            });
-    });
-}
-
-function startAdvertising(adapter) {
-    return new Promise((resolve, reject) => {
-        adapter.setAdvertisingData(
-            {
-                txPowerLevel: 20,
-            },
-            {}, // scan response data
-            setAdvertisingDataError => {
-                if (setAdvertisingDataError) {
-                    reject(setAdvertisingDataError);
-                    return;
-                }
-
-                adapter.startAdvertising(
-                    {
-                        interval: 100,
-                        timeout: 100,
-                    },
-                    startAdvertisingError => {
-                        if (startAdvertisingError) {
-                            reject(startAdvertisingError);
-                            return;
-                        }
-
-                        resolve();
-                    },
-                );
-            },
-        );
-    });
-}
 
 function requestAttMtu(adapter, peerDevice) {
     return new Promise((resolve, reject) => {
@@ -210,8 +148,8 @@ describe('the API', async () => {
             });
         }
 
-        await startAdvertising(peripheralAdapter);
-        await connect(centralAdapter, { address: PERIPHERAL_DEVICE_ADDRESS, type: PERIPHERAL_DEVICE_ADDRESS_TYPE });
+        await common.startAdvertising(peripheralAdapter);
+        await common.connect(centralAdapter, { address: PERIPHERAL_DEVICE_ADDRESS, type: PERIPHERAL_DEVICE_ADDRESS_TYPE });
 
         await outcome([
             deviceConnectedCentral,
