@@ -241,6 +241,7 @@ void Adapter::cleanUpV8Resources()
         uv_close(handle, [](uv_handle_t *handle) {
             free(handle);
         });
+        delete this->statusCallback;
 
         asyncStatus = nullptr;
     }
@@ -270,6 +271,7 @@ void Adapter::cleanUpV8Resources()
         {
             free(handle);
         });
+        delete this->eventCallback;
 
         asyncEvent = nullptr;
     }
@@ -281,7 +283,8 @@ void Adapter::cleanUpV8Resources()
         {
             free(handle);
         });
-
+        delete this->logCallback;
+        
         asyncLog = nullptr;
     }
 
