@@ -236,9 +236,9 @@ public:
     BATON_CONSTRUCTOR(OpenBaton)
     //char path[PATH_STRING_SIZE];
     std::string path;
-    Nan::Callback *event_callback; // Callback that is called for every event that is received from the SoftDevice
-    Nan::Callback *log_callback;   // Callback that is called for every log entry that is received from the SoftDevice
-    Nan::Callback *status_callback;   // Callback that is called for every status occuring in the pc-ble-driver
+    std::unique_ptr<Nan::Callback> event_callback; // Callback that is called for every event that is received from the SoftDevice
+    std::unique_ptr<Nan::Callback> log_callback;   // Callback that is called for every log entry that is received from the SoftDevice
+    std::unique_ptr<Nan::Callback> status_callback;   // Callback that is called for every status occuring in the pc-ble-driver
 
     sd_rpc_log_severity_t log_level;
     sd_rpc_log_handler_t log_handler;
