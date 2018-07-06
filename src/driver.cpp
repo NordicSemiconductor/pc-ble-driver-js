@@ -655,7 +655,7 @@ NAN_METHOD(Adapter::Open)
 
     try
     {
-        baton->log_callback = new Nan::Callback(ConversionUtility::getCallbackFunction(options, "logCallback"));
+        baton->log_callback = std::unique_ptr<Nan::Callback>(new Nan::Callback(ConversionUtility::getCallbackFunction(options, "logCallback")));
     }
     catch (std::string error)
     {
@@ -666,7 +666,7 @@ NAN_METHOD(Adapter::Open)
 
     try
     {
-        baton->event_callback = new Nan::Callback(ConversionUtility::getCallbackFunction(options, "eventCallback"));
+        baton->event_callback = std::unique_ptr<Nan::Callback>(new Nan::Callback(ConversionUtility::getCallbackFunction(options, "eventCallback")));
     }
     catch (std::string error)
     {
@@ -677,7 +677,7 @@ NAN_METHOD(Adapter::Open)
 
     try
     {
-        baton->status_callback = new Nan::Callback(ConversionUtility::getCallbackFunction(options, "statusCallback"));
+        baton->status_callback = std::unique_ptr<Nan::Callback>(new Nan::Callback(ConversionUtility::getCallbackFunction(options, "statusCallback")));
     }
     catch (std::string error)
     {
