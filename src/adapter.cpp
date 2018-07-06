@@ -119,13 +119,13 @@ extern "C" {
     }
 }
 
-void Adapter::initEventHandling(Nan::Callback *callback, uint32_t interval)
+void Adapter::initEventHandling(std::unique_ptr<Nan::Callback>& callback, uint32_t interval)
 {
     eventInterval = interval;
     asyncEvent = new uv_async_t();
 
     // Setup event related functionality
-    eventCallback = callback;
+    eventCallback = std::move(callback);
     asyncEvent->data = static_cast<void *>(this);
 
     if (uv_async_init(uv_default_loop(), asyncEvent, event_handler) != 0)
@@ -186,11 +186,11 @@ extern "C" {
     }
 }
 
-void Adapter::initLogHandling(Nan::Callback *callback)
+void Adapter::initLogHandling(std::unique_ptr<Nan::Callback>& callback)
 {
     // Setup event related functionality
     asyncLog = new uv_async_t();
-    logCallback = callback;
+    logCallback = std::move(callback);
     asyncLog->data = static_cast<void *>(this);
 
     if (uv_async_init(uv_default_loop(), asyncLog, log_handler) != 0)
@@ -217,11 +217,11 @@ extern "C" {
     }
 }
 
-void Adapter::initStatusHandling(Nan::Callback *callback)
+void Adapter::initStatusHandling(std::unique_ptr<Nan::Callback>& callback)
 {
     // Setup event related functionality
     asyncStatus = new uv_async_t();
-    statusCallback = callback;
+    statusCallback = std::move(callback);
     asyncStatus->data = static_cast<void *>(this);
 
     if (uv_async_init(uv_default_loop(), asyncStatus, status_handler) != 0)
@@ -241,7 +241,7 @@ void Adapter::cleanUpV8Resources()
         uv_close(handle, [](uv_handle_t *handle) {
             free(handle);
         });
-        delete this->statusCallback;
+        this->statusCallback.reset();
 
         asyncStatus = nullptr;
     }
@@ -271,7 +271,7 @@ void Adapter::cleanUpV8Resources()
         {
             free(handle);
         });
-        delete this->eventCallback;
+        this->eventCallback.reset();
 
         asyncEvent = nullptr;
     }
@@ -283,8 +283,8 @@ void Adapter::cleanUpV8Resources()
         {
             free(handle);
         });
-        delete this->logCallback;
-        
+        this->logCallback.reset();
+
         asyncLog = nullptr;
     }
 
