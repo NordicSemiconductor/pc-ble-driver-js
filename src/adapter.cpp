@@ -119,7 +119,7 @@ extern "C" {
     }
 }
 
-void Adapter::initEventHandling(std::unique_ptr<Nan::Callback>& callback, uint32_t interval)
+void Adapter::initEventHandling(std::unique_ptr<Nan::Callback> &callback, uint32_t interval)
 {
     eventInterval = interval;
     asyncEvent = new uv_async_t();
@@ -186,7 +186,7 @@ extern "C" {
     }
 }
 
-void Adapter::initLogHandling(std::unique_ptr<Nan::Callback>& callback)
+void Adapter::initLogHandling(std::unique_ptr<Nan::Callback> &callback)
 {
     // Setup event related functionality
     asyncLog = new uv_async_t();
@@ -217,7 +217,7 @@ extern "C" {
     }
 }
 
-void Adapter::initStatusHandling(std::unique_ptr<Nan::Callback>& callback)
+void Adapter::initStatusHandling(std::unique_ptr<Nan::Callback> &callback)
 {
     // Setup event related functionality
     asyncStatus = new uv_async_t();

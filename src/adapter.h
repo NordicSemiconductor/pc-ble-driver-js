@@ -93,18 +93,18 @@ public:
 
     adapter_t *getInternalAdapter() const;
 
-    void initEventHandling(std::unique_ptr<Nan::Callback>& callback, const uint32_t interval);
+    void initEventHandling(std::unique_ptr<Nan::Callback> &callback, const uint32_t interval);
     void appendEvent(ble_evt_t *event);
 
     void onRpcEvent(uv_async_t *handle);
     void eventIntervalCallback(uv_timer_t *handle);
 
-    void initLogHandling(std::unique_ptr<Nan::Callback>& callback);
+    void initLogHandling(std::unique_ptr<Nan::Callback> &callback);
     void appendLog(LogEntry *log);
 
     void onLogEvent(uv_async_t *handle);
 
-    void initStatusHandling(std::unique_ptr<Nan::Callback>& callback);
+    void initStatusHandling(std::unique_ptr<Nan::Callback> &callback);
     void appendStatus(StatusEntry *log);
 
     void onStatusEvent(uv_async_t *handle);
