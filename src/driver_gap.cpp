@@ -473,6 +473,7 @@ ble_gap_irk_t *GapIrk::ToNative()
     {
         irk->irk[i] = p_irk[i];
     }
+    free(p_irk);
 
     return irk;
 }
@@ -685,6 +686,7 @@ ble_gap_enc_info_t *GapEncInfo::ToNative()
     {
         enc_info->ltk[i] = p_ltk[i];
     }
+    free(p_ltk);
 
     enc_info->auth = ConversionUtility::getNativeBool(jsobj, "auth");
     enc_info->ltk_len = ConversionUtility::getNativeUint8(jsobj, "ltk_len");
@@ -725,6 +727,7 @@ ble_gap_master_id_t *GapMasterId::ToNative()
     {
         master_id->rand[i] = p_rand[i];
     }
+    free(p_rand);
 
     return master_id;
 }
@@ -758,6 +761,7 @@ ble_gap_sign_info_t *GapSignInfo::ToNative()
     {
         sign_info->csrk[i] = p_csrk[i];
     }
+    free(p_csrk);
 
     return sign_info;
 }
@@ -791,6 +795,7 @@ ble_gap_lesc_p256_pk_t *GapLescP256Pk::ToNative()
     {
         lesc_p256->pk[i] = p_pk[i];
     }
+    free(p_pk);
 
     return lesc_p256;
 }
@@ -823,6 +828,7 @@ ble_gap_lesc_dhkey_t *GapLescDHKey::ToNative()
     {
         lesc_dhkey->key[i] = p_key[i];
     }
+    free(p_key);
 
     return lesc_dhkey;
 }
@@ -1918,7 +1924,6 @@ void Adapter::AfterGapSetDeviceName(uv_work_t *req)
     }
 
     Nan::Call(*(baton->callback), 1, argv);
-    free(baton->dev_name);
     delete baton;
 }
 
@@ -1985,7 +1990,6 @@ void Adapter::AfterGapGetDeviceName(uv_work_t *req)
     }
 
     Nan::Call(*(baton->callback), 2, argv);
-    free(baton->dev_name);
     delete baton;
 }
 
@@ -2653,7 +2657,6 @@ void Adapter::AfterGapGetConnectionSecurity(uv_work_t *req)
     }
 
     Nan::Call(*(baton->callback), 2, argv);
-    delete baton->conn_sec;
     delete baton;
 }
 
@@ -3235,7 +3238,6 @@ void Adapter::AfterGapSetPPCP(uv_work_t *req)
     }
 
     Nan::Call(*(baton->callback), 1, argv);
-    delete baton->p_conn_params;
     delete baton;
 }
 
@@ -3295,7 +3297,6 @@ void Adapter::AfterGapGetPPCP(uv_work_t *req)
     }
 
     Nan::Call(*(baton->callback), 2, argv);
-    delete baton->p_conn_params;
     delete baton;
 }
 
@@ -3461,7 +3462,7 @@ NAN_METHOD(Adapter::GapReplyAuthKey)
         {
             v8::Local<v8::String> message = ErrorMessage::getTypeErrorMessage(argumentcount, "ascii number");
             Nan::ThrowTypeError(message);
-            delete key;
+            free(key);
             return;
         }
     }
@@ -3539,7 +3540,7 @@ NAN_METHOD(Adapter::GapReplyDHKeyLESC)
     ble_gap_lesc_dhkey_t *dhkey = new ble_gap_lesc_dhkey_t();
     memcpy(dhkey->key, key, BLE_GAP_LESC_DHKEY_LEN);
     baton->dhkey = dhkey;
-    delete key;
+    free(key);
 
     uv_queue_work(uv_default_loop(), baton->req, GapReplyDHKeyLESC, reinterpret_cast<uv_after_work_cb>(AfterGapReplyDHKeyLESC));
 }
@@ -3569,7 +3570,6 @@ void Adapter::AfterGapReplyDHKeyLESC(uv_work_t *req)
     }
 
     Nan::Call(*(baton->callback), 1, argv);
-    delete baton->dhkey;
     delete baton;
 }
 #pragma endregion GapReplyDHKeyLESC
@@ -3674,6 +3674,7 @@ NAN_METHOD(Adapter::GapGetLESCOOBData)
     baton->conn_handle = conn_handle;
 
     memcpy(p_pk_own->pk, key, BLE_GAP_LESC_P256_PK_LEN);
+    free(key);
     baton->p_pk_own = p_pk_own;
     baton->p_oobd_own = new ble_gap_lesc_oob_data_t();
 
@@ -3708,8 +3709,6 @@ void Adapter::AfterGapGetLESCOOBData(uv_work_t *req)
 
     Nan::Call(*(baton->callback), 2, argv);
 
-    delete baton->p_pk_own;
-    delete baton->p_oobd_own;
     delete baton;
 }
 #pragma endregion GapGetLESCOOBData
@@ -3801,8 +3800,6 @@ void Adapter::AfterGapSetLESCOOBData(uv_work_t *req)
 
     Nan::Call(*(baton->callback), 1, argv);
 
-    delete baton->p_oobd_own;
-    delete baton->p_oobd_peer;
     delete baton;
 }
 #pragma endregion GapSetLESCOOBData

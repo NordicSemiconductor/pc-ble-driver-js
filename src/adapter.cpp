@@ -239,7 +239,7 @@ void Adapter::cleanUpV8Resources()
     {
         auto handle = reinterpret_cast<uv_handle_t *>(asyncStatus);
         uv_close(handle, [](uv_handle_t *handle) {
-            free(handle);
+            delete handle;
         });
         this->statusCallback.reset();
 
@@ -257,7 +257,7 @@ void Adapter::cleanUpV8Resources()
         auto handle = reinterpret_cast<uv_handle_t *>(eventIntervalTimer);
         uv_close(handle, [](uv_handle_t *handle)
         {
-            free(handle);
+            delete handle;
         });
 
         eventIntervalTimer = nullptr;
@@ -269,7 +269,7 @@ void Adapter::cleanUpV8Resources()
 
         uv_close(handle, [](uv_handle_t *handle)
         {
-            free(handle);
+            delete handle;
         });
         this->eventCallback.reset();
 
@@ -281,7 +281,7 @@ void Adapter::cleanUpV8Resources()
         auto logHandle = reinterpret_cast<uv_handle_t *>(asyncLog);
         uv_close(logHandle, [](uv_handle_t *handle)
         {
-            free(handle);
+            delete handle;
         });
         this->logCallback.reset();
 
