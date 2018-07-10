@@ -485,6 +485,7 @@ struct GapAddressSetBaton : Baton
 {
 public:
     BATON_CONSTRUCTOR(GapAddressSetBaton);
+    BATON_DESTRUCTOR(GapAddressSetBaton) { delete address; }
     ble_gap_addr_t *address;
 #if NRF_SD_BLE_API_VERSION <= 2
     uint8_t addr_cycle_mode;
@@ -495,6 +496,7 @@ struct GapAddressGetBaton : Baton
 {
 public:
     BATON_CONSTRUCTOR(GapAddressGetBaton);
+    BATON_DESTRUCTOR(GapAddressGetBaton) { delete address; }
     ble_gap_addr_t *address;
 };
 
@@ -502,6 +504,7 @@ struct StartScanBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(StartScanBaton);
+    BATON_DESTRUCTOR(StartScanBaton) { delete scan_params; }
     ble_gap_scan_params_t *scan_params;
 };
 
@@ -522,6 +525,11 @@ struct GapSetDeviceNameBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GapSetDeviceNameBaton);
+    BATON_DESTRUCTOR(GapSetDeviceNameBaton)
+    {
+        delete conn_sec_mode;
+        free(dev_name);
+    }
     ble_gap_conn_sec_mode_t *conn_sec_mode;
     uint8_t *dev_name;
     uint16_t length;
@@ -531,6 +539,7 @@ struct GapGetDeviceNameBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GapGetDeviceNameBaton);
+    BATON_DESTRUCTOR(GapGetDeviceNameBaton) { free(dev_name); }
     uint8_t *dev_name;
     uint16_t length;
 };
@@ -539,6 +548,12 @@ struct GapConnectBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GapConnectBaton);
+    BATON_DESTRUCTOR(GapConnectBaton)
+    {
+        delete address;
+        delete scan_params;
+        delete conn_params;
+    }
     ble_gap_addr_t *address;
     ble_gap_scan_params_t *scan_params;
     ble_gap_conn_params_t *conn_params;
@@ -595,6 +610,7 @@ struct GapStartAdvertisingBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GapStartAdvertisingBaton);
+    BATON_DESTRUCTOR(GapStartAdvertisingBaton) { delete p_adv_params; }
     ble_gap_adv_params_t *p_adv_params;
 };
 
@@ -608,6 +624,11 @@ struct GapSecParamsReplyBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GapSecParamsReplyBaton);
+    BATON_DESTRUCTOR(GapSecParamsReplyBaton)
+    {
+        delete sec_params;
+        delete sec_keyset;
+    }
     uint16_t conn_handle;
     uint8_t sec_status;
     ble_gap_sec_params_t *sec_params;
@@ -618,6 +639,7 @@ struct GapConnSecGetBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GapConnSecGetBaton);
+    BATON_DESTRUCTOR(GapConnSecGetBaton) { delete conn_sec; }
     uint16_t conn_handle;
     ble_gap_conn_sec_t *conn_sec;
 };
@@ -626,6 +648,11 @@ struct GapEncryptBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GapEncryptBaton);
+    BATON_DESTRUCTOR(GapEncryptBaton)
+    {
+        delete master_id;
+        delete enc_info;
+    }
     uint16_t conn_handle;
     ble_gap_master_id_t *master_id;
     ble_gap_enc_info_t *enc_info;
@@ -635,6 +662,12 @@ struct GapSecInfoReplyBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GapSecInfoReplyBaton);
+    BATON_DESTRUCTOR(GapSecInfoReplyBaton)
+    {
+        delete enc_info;
+        delete id_info;
+        delete sign_info;
+    }
     uint16_t conn_handle;
     ble_gap_enc_info_t *enc_info;
     ble_gap_irk_t *id_info;
@@ -645,6 +678,7 @@ struct GapAuthenticateBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GapAuthenticateBaton);
+    BATON_DESTRUCTOR(GapAuthenticateBaton) { delete p_sec_params; }
     uint16_t conn_handle;
     ble_gap_sec_params_t *p_sec_params;
 };
@@ -663,6 +697,7 @@ struct GapSetPPCPBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GapSetPPCPBaton);
+    BATON_DESTRUCTOR(GapSetPPCPBaton) { delete p_conn_params; }
     ble_gap_conn_params_t *p_conn_params;
 };
 
@@ -670,6 +705,7 @@ struct GapGetPPCPBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GapGetPPCPBaton);
+    BATON_DESTRUCTOR(GapGetPPCPBaton) { delete p_conn_params; }
     ble_gap_conn_params_t *p_conn_params;
 };
 
@@ -691,6 +727,7 @@ struct GapReplyAuthKeyBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GapReplyAuthKeyBaton);
+    BATON_DESTRUCTOR(GapReplyAuthKeyBaton) { delete key; }
     uint16_t conn_handle;
     uint8_t key_type;
     uint8_t *key;
@@ -700,6 +737,7 @@ struct GapReplyDHKeyLESCBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GapReplyDHKeyLESCBaton);
+    BATON_DESTRUCTOR(GapReplyDHKeyLESCBaton) { delete dhkey; }
     uint16_t conn_handle;
     ble_gap_lesc_dhkey_t *dhkey;
 };
@@ -716,6 +754,11 @@ struct GapGetLESCOOBDataBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GapGetLESCOOBDataBaton);
+    BATON_DESTRUCTOR(GapGetLESCOOBDataBaton)
+    {
+        delete p_pk_own;
+        delete p_oobd_own;
+    }
     uint16_t conn_handle;
     ble_gap_lesc_p256_pk_t *p_pk_own;
     ble_gap_lesc_oob_data_t *p_oobd_own;
@@ -725,6 +768,11 @@ struct GapSetLESCOOBDataBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GapSetLESCOOBDataBaton);
+    BATON_DESTRUCTOR(GapSetLESCOOBDataBaton)
+    {
+        delete p_oobd_own;
+        delete p_oobd_peer;
+    }
     uint16_t conn_handle;
     ble_gap_lesc_oob_data_t *p_oobd_own;
     ble_gap_lesc_oob_data_t *p_oobd_peer;
@@ -734,6 +782,12 @@ struct GapReplySecurityInfoBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GapReplySecurityInfoBaton);
+    BATON_DESTRUCTOR(GapReplySecurityInfoBaton)
+    {
+        delete p_enc_info;
+        delete p_id_info;
+        delete p_sign_info;
+    }
     uint16_t conn_handle;
     ble_gap_enc_info_t *p_enc_info;
     ble_gap_irk_t *p_id_info;
@@ -744,6 +798,7 @@ struct GapGetConnectionSecurityBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GapGetConnectionSecurityBaton);
+    BATON_DESTRUCTOR(GapGetConnectionSecurityBaton) { delete p_conn_sec; }
     uint16_t conn_handle;
     ble_gap_conn_sec_t *p_conn_sec;
 };

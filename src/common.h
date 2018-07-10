@@ -90,6 +90,8 @@ public:
     virtual NativeType *ToNative() { /*TODO: ASSERT*/ return new NativeType(); }
 
     operator NativeType*() { return ToNative(); }
+
+    /*TODO: Should be redesigned to not leak memory.*/
     operator NativeType() { return *(ToNative()); }
     operator v8::Handle<v8::Value>()
     {

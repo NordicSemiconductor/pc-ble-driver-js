@@ -584,7 +584,6 @@ void Adapter::AfterEnableBLE(uv_work_t *req)
     }
 
     Nan::Call(*(baton->callback), 3, argv);
-    delete baton->enable_params;
     delete baton;
 }
 
@@ -709,6 +708,11 @@ void Adapter::Open(uv_work_t *req)
     auto serialization = sd_rpc_transport_layer_create(h5, baton->response_timeout);
     auto adapter = sd_rpc_adapter_create(serialization);
 
+    // Free memory malloc'ed by the sd_rpc_create* functions
+    free(uart);
+    free(h5);
+    free(serialization);
+
     baton->adapter = adapter;
     baton->mainObject->adapter = adapter;
 
@@ -734,11 +738,6 @@ void Adapter::Open(uv_work_t *req)
 
         // Delete the adapter layer and all layers below
         sd_rpc_adapter_delete(adapter);
-
-        // Free memory malloc'ed by the sd_rpc_create* functions
-        free(uart);
-        free(h5);
-        free(serialization);
         free(adapter);
 
         return;
@@ -838,6 +837,10 @@ void Adapter::AfterClose(uv_work_t *req)
         else
         {
             argv[0] = Nan::Undefined();
+
+            sd_rpc_adapter_delete(baton->adapter);
+            free(baton->adapter);
+            baton->adapter = nullptr;
         }
 
         Nan::Call(*(baton->callback), 1, argv);
@@ -1072,7 +1075,6 @@ void Adapter::AfterGetVersion(uv_work_t *req)
     }
 
     Nan::Call(*(baton->callback), 2, argv);
-    delete baton->version;
     delete baton;
 }
 
@@ -1149,7 +1151,6 @@ void Adapter::AfterEncodeUUID(uv_work_t *req)
     }
 
     Nan::Call(*(baton->callback), 4, argv);
-    delete baton->uuid_le;
     delete baton;
 }
 
@@ -1215,8 +1216,6 @@ void Adapter::AfterDecodeUUID(uv_work_t *req)
     }
 
     Nan::Call(*(baton->callback), 2, argv);
-    delete baton->p_uuid;
-    delete baton->uuid_le;
     delete baton;
 }
 
@@ -1300,7 +1299,6 @@ void Adapter::AfterReplyUserMemory(uv_work_t *req)
     }
 
     Nan::Call(*(baton->callback), 1, argv);
-    delete baton->p_block;
     delete baton;
 }
 
@@ -1453,7 +1451,6 @@ void Adapter::AfterGetBleOption(uv_work_t *req)
     }
 
     Nan::Call(*(baton->callback), 2, argv);
-    delete baton->p_opt;
     delete baton;
 }
 
