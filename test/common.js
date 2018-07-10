@@ -36,26 +36,15 @@
 
 'use strict';
 
-const dec2hexStr = {
-    0: '0',
-    1: '1',
-    2: '2',
-    3: '3',
-    4: '4',
-    5: '5',
-    6: '6',
-    7: '7',
-    8: '8',
-    9: '9',
-    10: 'a',
-    11: 'b',
-    12: 'c',
-    13: 'd',
-    14: 'e',
-    15: 'f',
-    16: 'f',
-};
+const dec2hexStr = '0123456789abcdef'.split('');
 
+const getRandomUUID = () => {
+    const uuid = [];
+    for (let j = 0; j < 32; j += 1) {
+        uuid.push(Math.floor(Math.random() * 16));
+    }
+    return uuid.map(x => dec2hexStr[x]).join('');
+}
 
 function startAdvertising(adapter, options = {}) {
     return new Promise((resolve, reject) => {
@@ -125,20 +114,12 @@ function addRandomServicesAndCharacteristicsToAdapter(serviceFactory, adapter, s
         const services = [];
 
         for (let i = 0; i < servicesCount; i += 1) {
-            const uuid = [];
-            for (let j = 0; j < 32; j += 1) {
-                uuid.push(Math.floor(Math.random() * 16));
-            }
-            const srvc = serviceFactory.createService(uuid.map(x => dec2hexStr[x]).join(''));
+            const srvc = serviceFactory.createService(getRandomUUID());
             for (let chari = 0; chari < charsCount; chari += 1) {
-                const charUuid = [];
-                for (let j = 0; j < 32; j += 1) {
-                    charUuid.push(Math.floor(Math.random() * 16));
-                }
                 const charValue = new Array(mtu || 50);
                 serviceFactory.createCharacteristic(
                     srvc,
-                    charUuid.map(x => dec2hexStr[x]).join(''),
+                    getRandomUUID(),
                     charValue,
                     {
                         broadcast: options.broadcast || true,
@@ -171,6 +152,5 @@ function addRandomServicesAndCharacteristicsToAdapter(serviceFactory, adapter, s
 module.exports = {
     startAdvertising,
     connect,
-    dec2hexStr,
     addRandomServicesAndCharacteristicsToAdapter,
 };
