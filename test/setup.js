@@ -57,16 +57,14 @@ const DeviceLister = require('nrf-device-lister');
 const { setupDevice } = require('nrf-device-setup');
 const { FirmwareRegistry } = require('../index');
 
-const traits = {
+const deviceLister = new DeviceLister({
     usb: false,
     nordicUsb: true,
     seggerUsb: false,
     serialport: true,
     nordicDfu: true,
     jlink: true,
-};
-
-const deviceLister = new DeviceLister(traits);
+});
 const grabbedAdapters = new Map();
 
 deviceLister.on('error', err => {
@@ -99,8 +97,13 @@ function getAdapters() {
 
             // Only pick adapters we are able to program
             adapters.forEach((adapter, serialNumber) => {
-                const add = adapter.traits
-                    && (adapter.traits.includes('jlink') || adapter.traits.includes('nordicDfu'));
+                const { traits, serialport } = adapter;
+                const add = traits
+                    && (traits.includes('jlink') || traits.includes('nordicDfu')
+                        || (traits.includes('serialport')
+                            && serialport.vendorId === '1915'
+                            && serialport.productId.toUpperCase() === '521F')
+                    );
 
                 if (add) {
                     result.set(serialNumber, adapter);
