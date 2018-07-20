@@ -1467,7 +1467,7 @@ class Adapter extends EventEmitter {
                 }
             } else if (attribute instanceof Characteristic) {
                 // TODO: Translate from uuid to name?
-                const emitCharacteristicAdded = (attribute) => {
+                const emitCharacteristicAdded = () => {
                     /**
                      * Characteristic was successfully added to the <code>Adapter</code>'s GATT attribute table.
                      *
@@ -1475,19 +1475,15 @@ class Adapter extends EventEmitter {
                      * @type {Object}
                      * @property {Service} attribute - The new added characteristic.
                      */
-                     return new Promise((resolve, reject) => {
-                         if (attribute.uuid && attribute.value) {
-                             this.emit('characteristicAdded', attribute);
-                             resolve();
-                         }
-                         reject("attribute.uuid or attribute.value is not defined");
-                     });
+                    if (attribute.uuid && attribute.value) {
+                        this.emit('characteristicAdded', attribute);
+                    }
                 };
 
                 if (handle === attribute.declarationHandle) {
                     attribute.uuid = HexConv.arrayTo128BitUuid(data.slice(3));
                     addVsUuidToDriver(attribute.uuid)
-                    .then(() => emitCharacteristicAdded(attribute))
+                    .then(() => emitCharacteristicAdded())
                     .catch(err => {
                         delete this._gattOperationsMap[device.instanceId];
                         this.emit('error', _makeError('addVsUuidToDriver error', err));
@@ -1495,7 +1491,7 @@ class Adapter extends EventEmitter {
                     });
                 } else if (handle === attribute.valueHandle) {
                     attribute.value = data;
-                    emitCharacteristicAdded(attribute);
+                    emitCharacteristicAdded();
                 }
 
                 if (_.isEmpty(pendingHandleReads)) {
