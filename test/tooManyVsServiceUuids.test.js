@@ -37,7 +37,11 @@
 'use strict';
 
 const { grabAdapter, releaseAdapter, setupAdapter, outcome } = require('./setup');
+
+const api = require('../index');
 const common = require('./common');
+
+const serviceFactory = new api.ServiceFactory();
 
 const PERIPHERAL_DEVICE_ADDRESS = 'FF:11:22:33:AA:CE';
 const PERIPHERAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
@@ -45,19 +49,12 @@ const PERIPHERAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 const CENTRAL_DEVICE_ADDRESS = 'FF:11:22:33:AA:CF';
 const CENTRAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
-const debug = require('debug')('ble-driver:test:connection');
-
-function requestAttMtu(adapter, peerDevice) {
-    return new Promise((resolve, reject) => {
-        const mtu = 150;
-
-        adapter.requestAttMtu(peerDevice.instanceId, mtu, (err, newMtu) => {
-            if (err) {
-                reject(err);
-                return;
-            }
-
-            resolve({ mtu, newMtu });
+async function onConnected(adapter, peerDevice) {
+    await new Promise(resolve => {
+        adapter.getServices(peerDevice.instanceId, getServicesErr => {
+            expect(getServicesErr).toBeDefined();
+            expect(getServicesErr).toBe('Failed to add service uuid to driver');
+            resolve(getServicesErr);
         });
     });
 }
@@ -84,78 +81,27 @@ describe('the API', async () => {
             releaseAdapter(peripheralAdapter.state.serialNumber)]);
     });
 
-    it('shall support setting up a connection with a peripheral', async () => {
+    it('adding too many vendor specific service uuids to driver will return an error', async () => {
         expect(centralAdapter).toBeDefined();
         expect(peripheralAdapter).toBeDefined();
 
+        await common.addRandomServicesAndCharacteristicsToAdapter(serviceFactory, peripheralAdapter, 8, 0);
+        await common.addRandomServicesAndCharacteristicsToAdapter(serviceFactory, centralAdapter, 8, 0);
+
         const deviceConnectedCentral = new Promise((resolve, reject) => {
             centralAdapter.once('deviceConnected', peripheralDevice => {
-                debug(`deviceConnected ${peripheralDevice.address}/${peripheralDevice.addressType}`);
-                requestAttMtu(centralAdapter, peripheralDevice).then(() => {
-                    resolve();
-                }).catch(err => {
-                    reject(err);
-                });
+                onConnected(centralAdapter, peripheralDevice).then(() => {
+                    resolve({
+                        address: peripheralDevice.address,
+                        type: peripheralDevice.addressType,
+                        instanceId: peripheralDevice.instanceId,
+                    });
+                }).catch(reject);
             });
         });
 
-        let dataLengthChangedCentral;
-        if (centralAdapter.driver.NRF_SD_BLE_API_VERSION === 2) {
-            dataLengthChangedCentral = Promise.resolve();
-        } else {
-            dataLengthChangedCentral = new Promise(resolve => {
-                centralAdapter.once('dataLengthChanged', (peripheralDevice, dataLength) => {
-                    debug(`central dataLengthChanged to ${dataLength}`);
-                    resolve(dataLength);
-                });
-            });
-        }
-
-        let dataLengthChangedPeripheral;
-        if (centralAdapter.driver.NRF_SD_BLE_API_VERSION === 2) {
-            dataLengthChangedPeripheral = Promise.resolve();
-        } else {
-            dataLengthChangedPeripheral = new Promise(resolve => {
-                peripheralAdapter.once('dataLengthChanged', (centralDevice, dataLength) => {
-                    debug(`peripheral dataLengthChanged to ${dataLength}`);
-                    resolve(dataLength);
-                });
-            });
-        }
-
-        let attMtuChangedCentral;
-        if (centralAdapter.driver.NRF_SD_BLE_API_VERSION === 2) {
-            attMtuChangedCentral = Promise.resolve();
-        } else {
-            attMtuChangedCentral = new Promise(resolve => {
-                centralAdapter.once('attMtuChanged', (peripheralDevice, attMtu) => {
-                    debug(`central attMtuChanged to ${attMtu}`);
-                    resolve(attMtu);
-                });
-            });
-        }
-
-        let attMtuChangedPeripheral;
-
-        if (centralAdapter.driver.NRF_SD_BLE_API_VERSION === 2) {
-            attMtuChangedPeripheral = Promise.resolve();
-        } else {
-            attMtuChangedPeripheral = new Promise(resolve => {
-                peripheralAdapter.once('attMtuChanged', (centralDevice, attMtu) => {
-                    debug(`peripheral attMtuChanged to ${attMtu}`);
-                    resolve(attMtu);
-                });
-            });
-        }
-
         await common.startAdvertising(peripheralAdapter);
         await common.connect(centralAdapter, { address: PERIPHERAL_DEVICE_ADDRESS, type: PERIPHERAL_DEVICE_ADDRESS_TYPE });
-
-        await outcome([
-            deviceConnectedCentral,
-            attMtuChangedCentral,
-            attMtuChangedPeripheral,
-            dataLengthChangedCentral,
-            dataLengthChangedPeripheral]);
+        await outcome([deviceConnectedCentral]);
     });
 });
