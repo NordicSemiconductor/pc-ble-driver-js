@@ -93,18 +93,18 @@ public:
 
     adapter_t *getInternalAdapter() const;
 
-    void initEventHandling(Nan::Callback *callback, const uint32_t interval);
+    void initEventHandling(std::unique_ptr<Nan::Callback> &callback, const uint32_t interval);
     void appendEvent(ble_evt_t *event);
 
     void onRpcEvent(uv_async_t *handle);
     void eventIntervalCallback(uv_timer_t *handle);
 
-    void initLogHandling(Nan::Callback *callback);
+    void initLogHandling(std::unique_ptr<Nan::Callback> &callback);
     void appendLog(LogEntry *log);
 
     void onLogEvent(uv_async_t *handle);
 
-    void initStatusHandling(Nan::Callback *callback);
+    void initStatusHandling(std::unique_ptr<Nan::Callback> &callback);
     void appendStatus(StatusEntry *log);
 
     void onStatusEvent(uv_async_t *handle);
@@ -227,9 +227,9 @@ private:
     LogQueue logQueue;
     StatusQueue statusQueue;
 
-    Nan::Callback *eventCallback;
-    Nan::Callback *logCallback;
-    Nan::Callback *statusCallback;
+    std::unique_ptr<Nan::Callback> eventCallback;
+    std::unique_ptr<Nan::Callback> logCallback;
+    std::unique_ptr<Nan::Callback> statusCallback;
 
     // Interval to use for sending BLE driver events to JavaScript. If 0 events will be sent as soon as they are received from the BLE driver.
     uint32_t eventInterval;
