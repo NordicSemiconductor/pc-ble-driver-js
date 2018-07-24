@@ -154,10 +154,10 @@ public:
         BleDriverEvent<EventType>::ToJs(obj);
     }
 
-    virtual v8::Local<v8::Object> ToJs() = 0;
-    virtual EventType *ToNative() { return new EventType(); }
+    virtual v8::Local<v8::Object> ToJs() override = 0;
+    virtual EventType *ToNative() override { return new EventType(); }
 
-    const char *getEventName() { return ConversionUtility::valueToString(this->evt_id, gatts_event_name_map, "Unknown Gatts Event"); }
+    const char *getEventName() override { return ConversionUtility::valueToString(this->evt_id, gatts_event_name_map, "Unknown Gatts Event"); }
 };
 
 class GattsWriteEvent : BleDriverGattsEvent<ble_gatts_evt_write_t>
@@ -166,7 +166,7 @@ public:
     GattsWriteEvent(std::string timestamp, uint16_t conn_handle, ble_gatts_evt_write_t *evt)
         : BleDriverGattsEvent<ble_gatts_evt_write_t>(BLE_GATTS_EVT_WRITE, timestamp, conn_handle, evt) {}
 
-    v8::Local<v8::Object> ToJs();
+    v8::Local<v8::Object> ToJs() override;
 };
 
 class GattsReadEvent : public BleToJs<ble_gatts_evt_read_t>
@@ -228,7 +228,7 @@ class GattsExchangeMtuRequestEvent : BleDriverGattsEvent<ble_gatts_evt_exchange_
 public:
 	GattsExchangeMtuRequestEvent(std::string timestamp, uint16_t conn_handle, ble_gatts_evt_exchange_mtu_request_t *evt)
 		: BleDriverGattsEvent<ble_gatts_evt_exchange_mtu_request_t>(BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST, timestamp, conn_handle, evt) {}
-	
+
 	v8::Local<v8::Object> ToJs();
 };
 #endif
