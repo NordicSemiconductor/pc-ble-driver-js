@@ -154,7 +154,7 @@ void Adapter::onLogEvent(uv_async_t *handle)
             v8::Local<v8::Value> argv[2];
             argv[0] = ConversionUtility::toJsNumber(static_cast<int>(logEntry->severity));
             argv[1] = ConversionUtility::toJsString(logEntry->message);
-            logCallback->Call(2, argv);
+            Nan::Call(*logCallback, 2, argv);
         }
         else
         {
@@ -180,7 +180,7 @@ void Adapter::dispatchEvents()
         // Adapter::cleanUpV8Resources() is called from both Adapter::AfterClose and Adapter::AfterConnReset
         //
         // If Adapter::eventInterval is 0, this method, Adapter::dispatchEvents, will be called directly without being
-        // invoked from eventIntervalTimer. 
+        // invoked from eventIntervalTimer.
         //
         // When Adapter::AfterClose is invoked, parts of Adapter::cleanUpV8Resources() is ran before the
         // the following call graph is complete:
@@ -189,8 +189,8 @@ void Adapter::dispatchEvents()
         //
         // The above call graph is ran in thread SerializationTransport::eventThread when Adapter::eventInterval == 0.
         //
-        // If eventInterval != 0 the event is popped out of the Adapter::eventQueue queue by 
-        // Adapter::eventIntervalTimer, in a libuv thread-pool thread. Adapter::eventIntervalTimer is stopped in 
+        // If eventInterval != 0 the event is popped out of the Adapter::eventQueue queue by
+        // Adapter::eventIntervalTimer, in a libuv thread-pool thread. Adapter::eventIntervalTimer is stopped in
         // Adapter::cleanUpV8Resources().
         //
         // A quick fix to circumvent this race condition is to ignore the event when Adapter::asyncEvent is nullptr.
@@ -386,7 +386,7 @@ void Adapter::onRpcEvent(uv_async_t *handle)
 
     if (eventCallback != nullptr)
     {
-        eventCallback->Call(1, callback_value);
+        Nan::Call(*eventCallback, 1, callback_value);
     }
     else
     {
@@ -442,7 +442,7 @@ void Adapter::onStatusEvent(uv_async_t *handle)
         {
             v8::Local<v8::Value> argv[1];
             argv[0] = StatusMessage::getStatus(statusEntry->id, statusEntry->message, statusEntry->timestamp);
-            statusCallback->Call(1, argv);
+            Nan::Call(*statusCallback, 1, argv);
         }
 
         // Free memory for current entry, we remove the element from the deque when the iteration is done
@@ -583,7 +583,7 @@ void Adapter::AfterEnableBLE(uv_work_t *req)
         argv[2] = ConversionUtility::toJsNumber(baton->app_ram_base);
     }
 
-    baton->callback->Call(3, argv);
+    Nan::Call(*(baton->callback), 3, argv);
     delete baton;
 }
 
@@ -785,7 +785,7 @@ void Adapter::AfterOpen(uv_work_t *req)
     }
 
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
 
     delete baton;
 }
@@ -843,7 +843,7 @@ void Adapter::AfterClose(uv_work_t *req)
             baton->adapter = nullptr;
         }
 
-        baton->callback->Call(1, argv);
+        Nan::Call(*(baton->callback), 1, argv);
     }
 
     delete baton;
@@ -898,7 +898,7 @@ void Adapter::AfterConnReset(uv_work_t *req)
             argv[0] = Nan::Undefined();
         }
 
-        baton->callback->Call(1, argv);
+        Nan::Call(*(baton->callback), 1, argv);
     }
 
     delete baton;
@@ -958,7 +958,7 @@ void Adapter::AfterAddVendorSpecificUUID(uv_work_t *req)
         argv[1] = ConversionUtility::toJsNumber(baton->p_uuid_type);
     }
 
-    baton->callback->Call(2, argv);
+    Nan::Call(*(baton->callback), 2, argv);
     delete baton;
 }
 
@@ -1074,7 +1074,7 @@ void Adapter::AfterGetVersion(uv_work_t *req)
         argv[1] = Nan::Undefined();
     }
 
-    baton->callback->Call(2, argv);
+    Nan::Call(*(baton->callback), 2, argv);
     delete baton;
 }
 
@@ -1150,7 +1150,7 @@ void Adapter::AfterEncodeUUID(uv_work_t *req)
         argv[3] = ConversionUtility::encodeHex(reinterpret_cast<char *>(baton->uuid_le), baton->uuid_le_len);
     }
 
-    baton->callback->Call(4, argv);
+    Nan::Call(*(baton->callback), 4, argv);
     delete baton;
 }
 
@@ -1215,7 +1215,7 @@ void Adapter::AfterDecodeUUID(uv_work_t *req)
         argv[1] = BleUUID(baton->p_uuid);
     }
 
-    baton->callback->Call(2, argv);
+    Nan::Call(*(baton->callback), 2, argv);
     delete baton;
 }
 
@@ -1298,7 +1298,7 @@ void Adapter::AfterReplyUserMemory(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -1373,7 +1373,7 @@ void Adapter::AfterSetBleOption(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -1450,7 +1450,7 @@ void Adapter::AfterGetBleOption(uv_work_t *req)
         argv[1] = optionValue;
     }
 
-    baton->callback->Call(2, argv);
+    Nan::Call(*(baton->callback), 2, argv);
     delete baton;
 }
 
