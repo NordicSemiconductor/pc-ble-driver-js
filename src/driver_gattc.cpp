@@ -470,7 +470,7 @@ void Adapter::AfterGattcDiscoverPrimaryServices(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
 
     delete baton;
 }
@@ -544,7 +544,7 @@ void Adapter::AfterGattcDiscoverRelationship(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -617,7 +617,7 @@ void Adapter::AfterGattcDiscoverCharacteristics(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -690,7 +690,7 @@ void Adapter::AfterGattcDiscoverDescriptors(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -778,7 +778,7 @@ void Adapter::AfterGattcReadCharacteristicValueByUUID(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -846,7 +846,7 @@ void Adapter::AfterGattcRead(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -929,7 +929,7 @@ void Adapter::AfterGattcReadCharacteristicValues(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -1002,7 +1002,7 @@ void Adapter::AfterGattcWrite(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -1064,7 +1064,7 @@ void Adapter::AfterGattcConfirmHandleValue(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -1127,7 +1127,7 @@ void Adapter::AfterGattcExchangeMtuRequest(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 #endif
