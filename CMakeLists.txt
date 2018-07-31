@@ -64,8 +64,11 @@ foreach(SD_API_VER ${SD_API_VERS})
 	set_target_properties(${CURRENT_TARGET} PROPERTIES COMPILE_OPTIONS -DNRF_SD_BLE_API_VERSION=${_SD_API_VER_NUM})
 
     target_include_directories(${CURRENT_TARGET} PRIVATE ${PC_BLE_DRIVER_${SD_API_VER}_PUBLIC_INCLUDE_DIRS})
-	
+
     if(WIN32)
+        # suppress C4251 v8/msvc related warning, for more info: https://github.com/nodejs/node/pull/15570
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251")
+
         target_include_directories(${CURRENT_TARGET} PRIVATE "${CMAKE_JS_INC}/win")
         set_target_properties(${CURRENT_TARGET} PROPERTIES COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
     elseif(APPLE)
