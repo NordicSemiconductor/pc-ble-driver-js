@@ -1561,7 +1561,7 @@ void Adapter::AfterGapSetAddress(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
 
     delete baton;
 }
@@ -1629,7 +1629,7 @@ void Adapter::AfterGapGetAddress(uv_work_t *req)
         argv[1] = Nan::Undefined();
     }
 
-    baton->callback->Call(2, argv);
+    Nan::Call(*(baton->callback), 2, argv);
     delete baton;
 }
 
@@ -1707,7 +1707,7 @@ void Adapter::AfterGapUpdateConnectionParameters(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -1773,7 +1773,7 @@ void Adapter::AfterGapDisconnect(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -1836,7 +1836,7 @@ void Adapter::AfterGapSetTXPower(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -1917,7 +1917,7 @@ void Adapter::AfterGapSetDeviceName(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     free(baton->dev_name);
     delete baton;
 }
@@ -1984,7 +1984,7 @@ void Adapter::AfterGapGetDeviceName(uv_work_t *req)
         argv[1] = Nan::Undefined();
     }
 
-    baton->callback->Call(2, argv);
+    Nan::Call(*(baton->callback), 2, argv);
     free(baton->dev_name);
     delete baton;
 }
@@ -2056,7 +2056,7 @@ void Adapter::AfterGapStartRSSI(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -2117,7 +2117,7 @@ void Adapter::AfterGapStopRSSI(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -2180,7 +2180,7 @@ void Adapter::AfterGapStartScan(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -2236,7 +2236,7 @@ void Adapter::AfterGapStopScan(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -2338,7 +2338,7 @@ void Adapter::AfterGapConnect(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -2394,7 +2394,7 @@ void Adapter::AfterGapCancelConnect(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -2461,7 +2461,7 @@ void Adapter::AfterGapGetRSSI(uv_work_t *req)
         argv[1] = Nan::Undefined();
     }
 
-    baton->callback->Call(2, argv);
+    Nan::Call(*(baton->callback), 2, argv);
     delete baton;
 }
 
@@ -2532,7 +2532,7 @@ void Adapter::AfterGapStartAdvertising(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -2588,7 +2588,7 @@ void Adapter::AfterGapStopAdvertising(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -2652,7 +2652,7 @@ void Adapter::AfterGapGetConnectionSecurity(uv_work_t *req)
         argv[1] = GapConnSec(baton->conn_sec).ToJs();
     }
 
-    baton->callback->Call(2, argv);
+    Nan::Call(*(baton->callback), 2, argv);
     delete baton->conn_sec;
     delete baton;
 }
@@ -2742,7 +2742,7 @@ void Adapter::AfterGapEncrypt(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 #pragma endregion GapEncrypt
@@ -2891,7 +2891,7 @@ void Adapter::AfterGapReplySecurityParameters(uv_work_t *req)
         }
     }
 
-    baton->callback->Call(2, argv);
+    Nan::Call(*(baton->callback), 2, argv);
     delete baton;
 }
 
@@ -2995,7 +2995,7 @@ void Adapter::AfterGapReplySecurityInfo(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -3071,7 +3071,7 @@ void Adapter::AfterGapAuthenticate(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -3163,7 +3163,7 @@ void Adapter::AfterGapSetAdvertisingData(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 
@@ -3234,7 +3234,7 @@ void Adapter::AfterGapSetPPCP(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton->p_conn_params;
     delete baton;
 }
@@ -3294,7 +3294,7 @@ void Adapter::AfterGapGetPPCP(uv_work_t *req)
         argv[1] = GapConnParams(baton->p_conn_params);
     }
 
-    baton->callback->Call(2, argv);
+    Nan::Call(*(baton->callback), 2, argv);
     delete baton->p_conn_params;
     delete baton;
 }
@@ -3356,7 +3356,7 @@ void Adapter::AfterGapSetAppearance(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 #pragma endregion GapSetAppearance
@@ -3412,7 +3412,7 @@ void Adapter::AfterGapGetAppearance(uv_work_t *req)
         argv[1] = ConversionUtility::toJsNumber(baton->appearance);
     }
 
-    baton->callback->Call(2, argv);
+    Nan::Call(*(baton->callback), 2, argv);
     delete baton;
 }
 #pragma endregion GapGetAppearance
@@ -3499,7 +3499,7 @@ void Adapter::AfterGapReplyAuthKey(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton;
 }
 #pragma endregion GapReplyAuthKey
@@ -3568,7 +3568,7 @@ void Adapter::AfterGapReplyDHKeyLESC(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
     delete baton->dhkey;
     delete baton;
 }
@@ -3634,7 +3634,7 @@ void Adapter::AfterGapNotifyKeypress(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
 
     delete baton;
 }
@@ -3706,7 +3706,7 @@ void Adapter::AfterGapGetLESCOOBData(uv_work_t *req)
         argv[1] = GapLescOobData(baton->p_oobd_own);
     }
 
-    baton->callback->Call(2, argv);
+    Nan::Call(*(baton->callback), 2, argv);
 
     delete baton->p_pk_own;
     delete baton->p_oobd_own;
@@ -3799,7 +3799,7 @@ void Adapter::AfterGapSetLESCOOBData(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::Call(*(baton->callback), 1, argv);
 
     delete baton->p_oobd_own;
     delete baton->p_oobd_peer;
