@@ -3,5 +3,6 @@
   "roots": ["test"],
   "testRegex": ".*js$",
   "bail": true,
-  "resetModules": true
+  "resetModules": true,
+  "testURL": "file:/"
 }

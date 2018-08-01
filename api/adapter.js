@@ -1414,6 +1414,9 @@ class Adapter extends EventEmitter {
         const handle = event.handle;
         const data = event.data;
         const gattOperation = this._gattOperationsMap[device.instanceId];
+        if(!gattOperation) {
+            return;
+        }
 
         if (gattOperation && gattOperation.pendingHandleReads && !_.isEmpty(gattOperation.pendingHandleReads)) {
             const pendingHandleReads = gattOperation.pendingHandleReads;
@@ -1443,8 +1446,13 @@ class Adapter extends EventEmitter {
             if (attribute instanceof Service) {
                 // TODO: Translate from uuid to name?
                 attribute.uuid = HexConv.arrayTo128BitUuid(data);
-                addVsUuidToDriver(attribute.uuid).then();
-                this.emit('serviceAdded', attribute);
+                addVsUuidToDriver(attribute.uuid)
+                .then(() => this.emit('serviceAdded', attribute))
+                .catch(err => {
+                    delete this._gattOperationsMap[device.instanceId];
+                    this.emit('error', _makeError('addVsUuidToDriver error', err));
+                    gattOperation.callback('Failed to add service uuid to driver');
+                });
 
                 if (_.isEmpty(pendingHandleReads)) {
                     const callbackServices = [];
@@ -1459,14 +1467,7 @@ class Adapter extends EventEmitter {
                 }
             } else if (attribute instanceof Characteristic) {
                 // TODO: Translate from uuid to name?
-                if (handle === attribute.declarationHandle) {
-                    attribute.uuid = HexConv.arrayTo128BitUuid(data.slice(3));
-                    addVsUuidToDriver(attribute.uuid).then();
-                } else if (handle === attribute.valueHandle) {
-                    attribute.value = data;
-                }
-
-                if (attribute.uuid && attribute.value) {
+                const emitCharacteristicAdded = () => {
                     /**
                      * Characteristic was successfully added to the <code>Adapter</code>'s GATT attribute table.
                      *
@@ -1474,7 +1475,23 @@ class Adapter extends EventEmitter {
                      * @type {Object}
                      * @property {Service} attribute - The new added characteristic.
                      */
-                    this.emit('characteristicAdded', attribute);
+                    if (attribute.uuid && attribute.value) {
+                        this.emit('characteristicAdded', attribute);
+                    }
+                };
+
+                if (handle === attribute.declarationHandle) {
+                    attribute.uuid = HexConv.arrayTo128BitUuid(data.slice(3));
+                    addVsUuidToDriver(attribute.uuid)
+                    .then(() => emitCharacteristicAdded())
+                    .catch(err => {
+                        delete this._gattOperationsMap[device.instanceId];
+                        this.emit('error', _makeError('addVsUuidToDriver error', err));
+                        gattOperation.callback('Failed to add characteristic uuid to driver');
+                    });
+                } else if (handle === attribute.valueHandle) {
+                    attribute.value = data;
+                    emitCharacteristicAdded();
                 }
 
                 if (_.isEmpty(pendingHandleReads)) {
