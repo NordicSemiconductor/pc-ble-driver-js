@@ -4,5 +4,6 @@
   "testResultsProcessor": "jest-bamboo-formatter",
   "snapshotSerializers": [
     "jest-serializer-path"
-  ]
+  ],
+  "testURL": "file:/"
 }
