@@ -40,6 +40,7 @@
 #include <nan.h>
 #include <chrono>
 #include <map>
+#include <memory>
 
 #include "sd_rpc.h"
 
