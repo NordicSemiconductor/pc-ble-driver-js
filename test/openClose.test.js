@@ -49,7 +49,7 @@ const SCAN_DURATION = 2000;
 const SCAN_DURATION_WAIT_TIME = 3000;
 const EXPECTED_NUMBER_OF_SCAN_REPORTS_PR_ITERATION = 2;
 
-const GENERIC_WAIT_PR_ITERATION = 1000;
+const GENERIC_WAIT_PR_ITERATION = 15000;
 
 // Adjust the jest timeout based on the number of iterations required
 const JEST_TIMEOUT = NUMBER_OF_ITERATIONS *
