@@ -38,6 +38,7 @@
 #define BLE_DRIVER_JS_DRIVER_H
 
 #include <string>
+#include <memory>
 
 #include <sd_rpc.h>
 #include "common.h"
