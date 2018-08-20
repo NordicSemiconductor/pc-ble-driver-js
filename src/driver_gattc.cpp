@@ -910,7 +910,6 @@ void Adapter::GattcReadCharacteristicValues(uv_work_t *req)
 {
     auto baton = static_cast<GattcReadCharacteristicValuesBaton *>(req->data);
     baton->result = sd_ble_gattc_char_values_read(baton->adapter, baton->conn_handle, baton->p_handles, baton->handle_count);
-    free(baton->p_handles);
 }
 
 // This runs in Main Thread

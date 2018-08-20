@@ -38,6 +38,7 @@
 #define BLE_DRIVER_JS_DRIVER_H
 
 #include <string>
+#include <memory>
 
 #include <sd_rpc.h>
 #include "common.h"
@@ -276,7 +277,8 @@ public:
 struct EnableBLEBaton : public Baton
 {
 public:
-    BATON_CONSTRUCTOR(EnableBLEBaton)
+    BATON_CONSTRUCTOR(EnableBLEBaton);
+    BATON_DESTRUCTOR(EnableBLEBaton) { delete enable_params; }
     ble_enable_params_t *enable_params;
     uint32_t app_ram_base;
 };
@@ -286,6 +288,7 @@ struct GetVersionBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GetVersionBaton);
+    BATON_DESTRUCTOR(GetVersionBaton) { delete version; }
     ble_version_t *version;
 
 };
@@ -294,6 +297,7 @@ class BleAddVendorSpcificUUIDBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(BleAddVendorSpcificUUIDBaton);
+    BATON_DESTRUCTOR(BleAddVendorSpcificUUIDBaton) { delete p_vs_uuid; }
     ble_uuid128_t *p_vs_uuid;
     uint8_t p_uuid_type;
 };
@@ -302,6 +306,11 @@ class BleUUIDEncodeBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(BleUUIDEncodeBaton);
+    BATON_DESTRUCTOR(BleUUIDEncodeBaton)
+    {
+        delete p_uuid;
+        delete uuid_le;
+    }
     ble_uuid_t *p_uuid;
     uint8_t uuid_le_len;
     uint8_t *uuid_le;
@@ -311,6 +320,11 @@ class BleUUIDDecodeBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(BleUUIDDecodeBaton);
+    BATON_DESTRUCTOR(BleUUIDDecodeBaton)
+    {
+        delete p_uuid;
+        delete uuid_le;
+    }
     uint8_t uuid_le_len;
     ble_uuid_t *p_uuid;
     uint8_t *uuid_le;
@@ -320,6 +334,11 @@ class BleUserMemReplyBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(BleUserMemReplyBaton);
+    BATON_DESTRUCTOR(BleUserMemReplyBaton)
+    {
+        free(p_block->p_mem);
+        delete p_block;
+    }
     uint16_t conn_handle;
     ble_user_mem_block_t *p_block;
 };
@@ -328,6 +347,7 @@ class BleOptionBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(BleOptionBaton);
+    BATON_DESTRUCTOR(BleOptionBaton) { delete p_opt; }
     uint32_t opt_id;
     ble_opt_t *p_opt;
 };
