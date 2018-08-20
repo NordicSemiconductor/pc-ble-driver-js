@@ -5,7 +5,7 @@ Object {
   "baudRate": 115200,
   "file": "<PROJECT_ROOT>/pc-ble-driver/hex/sd_api_v2/connectivity_1.2.3_115k2_with_s130_2.0.1.hex",
   "sdBleApiVersion": 2,
-  "version": "1.2.2",
+  "version": "1.2.3",
 }
 `;
 
@@ -14,7 +14,7 @@ Object {
   "baudRate": 1000000,
   "file": "<PROJECT_ROOT>/pc-ble-driver/hex/sd_api_v2/connectivity_1.2.3_1m_with_s130_2.0.1.hex",
   "sdBleApiVersion": 2,
-  "version": "1.2.2",
+  "version": "1.2.3",
 }
 `;
 
@@ -23,7 +23,7 @@ Object {
   "baudRate": 1000000,
   "file": "<PROJECT_ROOT>/pc-ble-driver/hex/sd_api_v2/connectivity_1.2.3_1m_with_s130_2.0.1.hex",
   "sdBleApiVersion": 2,
-  "version": "1.2.2",
+  "version": "1.2.3",
 }
 `;
 
@@ -32,7 +32,7 @@ Object {
   "baudRate": 115200,
   "file": "<PROJECT_ROOT>/pc-ble-driver/hex/sd_api_v3/connectivity_1.2.3_115k2_with_s132_3.1.hex",
   "sdBleApiVersion": 3,
-  "version": "1.2.2",
+  "version": "1.2.3",
 }
 `;
 
@@ -41,7 +41,7 @@ Object {
   "baudRate": 1000000,
   "file": "<PROJECT_ROOT>/pc-ble-driver/hex/sd_api_v3/connectivity_1.2.3_1m_with_s132_3.1.hex",
   "sdBleApiVersion": 3,
-  "version": "1.2.2",
+  "version": "1.2.3",
 }
 `;
 
@@ -50,7 +50,7 @@ Object {
   "baudRate": 1000000,
   "file": "<PROJECT_ROOT>/pc-ble-driver/hex/sd_api_v3/connectivity_1.2.3_1m_with_s132_3.1.hex",
   "sdBleApiVersion": 3,
-  "version": "1.2.2",
+  "version": "1.2.3",
 }
 `;
 
