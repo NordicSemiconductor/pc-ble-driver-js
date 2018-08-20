@@ -546,7 +546,6 @@ void Adapter::AfterGattsAddCharacteristic(uv_work_t *req)
 
     Nan::Call(*(baton->callback), 2, argv);
 
-    delete baton->p_handles;
     delete baton;
 }
 
@@ -622,7 +621,6 @@ void Adapter::AfterGattsAddDescriptor(uv_work_t *req)
 
     Nan::Call(*(baton->callback), 2, argv);
 
-    delete baton->p_attr;
     delete baton;
 }
 
@@ -698,8 +696,6 @@ void Adapter::AfterGattsHVX(uv_work_t *req)
 
     Nan::Call(*(baton->callback), 1, argv);
 
-    delete baton->p_hvx_params->p_len;
-    delete baton->p_hvx_params;
     delete baton;
 }
 
@@ -790,7 +786,6 @@ void Adapter::AfterGattsSystemAttributeSet(uv_work_t *req)
 
     Nan::Call(*(baton->callback), 1, argv);
 
-    delete baton->p_sys_attr_data;
     delete baton;
 }
 
@@ -871,7 +866,6 @@ void Adapter::AfterGattsSetValue(uv_work_t *req)
 
     Nan::Call(*(baton->callback), 2, argv);
 
-    delete baton->p_value;
     delete baton;
 }
 
@@ -952,7 +946,6 @@ void Adapter::AfterGattsGetValue(uv_work_t *req)
 
     Nan::Call(*(baton->callback), 2, argv);
 
-    delete baton->p_value;
     delete baton;
 }
 
@@ -1026,7 +1019,6 @@ void Adapter::AfterGattsReplyReadWriteAuthorize(uv_work_t *req)
 
     Nan::Call(*(baton->callback), 1, argv);
 
-    delete baton->p_rw_authorize_reply_params;
     delete baton;
 }
 

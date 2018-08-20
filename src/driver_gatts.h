@@ -237,6 +237,7 @@ struct GattsAddServiceBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GattsAddServiceBaton);
+    BATON_DESTRUCTOR(GattsAddServiceBaton) { delete p_uuid; }
     uint8_t type;
     ble_uuid_t *p_uuid;
     uint16_t p_handle;
@@ -246,6 +247,13 @@ struct GattsAddCharacteristicBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GattsAddCharacteristicBaton);
+    BATON_DESTRUCTOR(GattsAddCharacteristicBaton)
+    {
+        delete p_char_md;
+        free((char*)(p_attr_char_value->p_value));
+        delete p_attr_char_value;
+        delete p_handles;
+    }
     uint16_t service_handle;
     ble_gatts_char_md_t *p_char_md;
     ble_gatts_attr_t *p_attr_char_value;
@@ -256,6 +264,11 @@ struct GattsAddDescriptorBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GattsAddDescriptorBaton);
+    BATON_DESTRUCTOR(GattsAddDescriptorBaton)
+    {
+        free((char*)(p_attr->p_value));
+        delete p_attr;
+    }
     uint16_t char_handle;
     ble_gatts_attr_t *p_attr;
     uint16_t p_handle;
@@ -265,6 +278,12 @@ struct GattsHVXBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GattsHVXBaton);
+    BATON_DESTRUCTOR(GattsHVXBaton)
+    {
+        free((char*)(p_hvx_params->p_len));
+        free((char*)(p_hvx_params->p_data));
+        delete p_hvx_params;
+    }
     uint16_t conn_handle;
     ble_gatts_hvx_params_t *p_hvx_params;
 };
@@ -273,6 +292,7 @@ struct GattsSystemAttributeSetBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GattsSystemAttributeSetBaton);
+    BATON_DESTRUCTOR(GattsSystemAttributeSetBaton) { free(p_sys_attr_data); }
     uint16_t conn_handle;
     uint8_t *p_sys_attr_data;
     uint16_t len;
@@ -283,6 +303,11 @@ struct GattsSetValueBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GattsSetValueBaton);
+    BATON_DESTRUCTOR(GattsSetValueBaton)
+    {
+        free((char*)(p_value->p_value));
+        delete p_value;
+    }
     uint16_t conn_handle;
     uint16_t handle;
     ble_gatts_value_t *p_value;
@@ -292,6 +317,11 @@ struct GattsGetValueBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GattsGetValueBaton);
+    BATON_DESTRUCTOR(GattsGetValueBaton)
+    {
+        free((char*)(p_value->p_value));
+        delete p_value;
+    }
     uint16_t conn_handle;
     uint16_t handle;
     ble_gatts_value_t *p_value;
@@ -301,6 +331,7 @@ struct GattsReplyReadWriteAuthorizeBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GattsReplyReadWriteAuthorizeBaton);
+    BATON_DESTRUCTOR(GattsReplyReadWriteAuthorizeBaton) { delete p_rw_authorize_reply_params; }
     uint16_t conn_handle;
     ble_gatts_rw_authorize_reply_params_t *p_rw_authorize_reply_params;
 };
