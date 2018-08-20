@@ -68,7 +68,7 @@ function getFirmwareMap(platform) {
                 file: platform === 'darwin' ?
                     path.join(sdV2Dir, 'connectivity_1.2.3_115k2_with_s130_2.0.1.hex') :
                     path.join(sdV2Dir, 'connectivity_1.2.3_1m_with_s130_2.0.1.hex'),
-                version: '1.2.2',
+                version: '1.2.3',
                 baudRate: platform === 'darwin' ? 115200 : 1000000,
                 sdBleApiVersion: 2,
             },
@@ -76,7 +76,7 @@ function getFirmwareMap(platform) {
                 file: platform === 'darwin' ?
                     path.join(sdV3Dir, 'connectivity_1.2.3_115k2_with_s132_3.1.hex') :
                     path.join(sdV3Dir, 'connectivity_1.2.3_1m_with_s132_3.1.hex'),
-                version: '1.2.2',
+                version: '1.2.3',
                 baudRate: platform === 'darwin' ? 115200 : 1000000,
                 sdBleApiVersion: 3,
             },
