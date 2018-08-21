@@ -36,11 +36,10 @@
 
 'use strict';
 
-const cmakeJS = require('cmake-js');
-const os = require('os');
-const fs = require('fs');
-
 function getBuildSystem(debug) {
+    const cmakeJS = require('cmake-js');
+    const os = require('os');
+
     const defaultRuntime = 'node';
     const defaultRuntimeVersion = process.version.substr(1);
     const defaultWinArch = os.arch();
@@ -62,7 +61,7 @@ function getBuildSystem(debug) {
         buildSystem.options.runtimeVersion = defaultRuntimeVersion;
     }
 
-    if (buildSystem.options.arch === undefined && process.platform === 'win32') {
+    if (buildSystem.options.arch === undefined && process.platform == 'win32') {
         buildSystem.options.arch = defaultWinArch;
     }
 
@@ -72,7 +71,8 @@ function getBuildSystem(debug) {
 let times = 0;
 
 function begin(args) {
-    // Sanity check for the platform-specific binary driver files
+	// Sanity check for the platform-specific binary driver files
+    const fs = require('fs');
     fs.readdir('./pc-ble-driver', (err, files) => {
         if (err) {
             console.error('ERROR: Could not read the \'pc-ble-driver\' subrepo, please check manually.');
@@ -84,20 +84,19 @@ function begin(args) {
     });
 
     let debug = false;
-    let build = 'rebuild';
 
-    for (let i = 0; i < args.length; i += 1) {
+    const length = args.length >>> 0;
+
+    for (let i = 0; i < length; i++) {
         if (args[i] === '--debug') debug = true;
-        if (args[i] === '--no-rebuild') build = 'build';
     }
 
     let buildSystem;
     try {
         buildSystem = getBuildSystem(debug);
     } catch (e) {
-        if (e.code === 'MODULE_NOT_FOUND') {
-            times += 1;
-            if (times === 5) {
+        if (e.code == 'MODULE_NOT_FOUND') {
+            if (times++ == 5) {
                 throw e;
             } else {
                 setTimeout(begin, 2000);
@@ -107,7 +106,7 @@ function begin(args) {
         }
     }
 
-    buildSystem[build]().catch(() => {
+    buildSystem.rebuild().catch(e => {
         process.exit(1);
     });
 }

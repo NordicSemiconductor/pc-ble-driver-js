@@ -455,7 +455,7 @@ void Adapter::AfterGattsAddService(uv_work_t *req)
         argv[1] = ConversionUtility::toJsNumber(baton->p_handle);
     }
 
-    Nan::Call(*(baton->callback), 2, argv);
+    baton->callback->Call(2, argv);
     delete baton;
 }
 
@@ -544,7 +544,7 @@ void Adapter::AfterGattsAddCharacteristic(uv_work_t *req)
         argv[1] = GattsCharacteristicDefinitionHandles(baton->p_handles).ToJs();
     }
 
-    Nan::Call(*(baton->callback), 2, argv);
+    baton->callback->Call(2, argv);
 
     delete baton;
 }
@@ -619,7 +619,7 @@ void Adapter::AfterGattsAddDescriptor(uv_work_t *req)
         argv[1] = ConversionUtility::toJsNumber(baton->p_handle);
     }
 
-    Nan::Call(*(baton->callback), 2, argv);
+    baton->callback->Call(2, argv);
 
     delete baton;
 }
@@ -694,7 +694,7 @@ void Adapter::AfterGattsHVX(uv_work_t *req)
         argv[1] = ConversionUtility::toJsNumber(*baton->p_hvx_params->p_len);
     }
 
-    Nan::Call(*(baton->callback), 1, argv);
+    baton->callback->Call(1, argv);
 
     delete baton;
 }
@@ -784,7 +784,7 @@ void Adapter::AfterGattsSystemAttributeSet(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    Nan::Call(*(baton->callback), 1, argv);
+    baton->callback->Call(1, argv);
 
     delete baton;
 }
@@ -864,7 +864,7 @@ void Adapter::AfterGattsSetValue(uv_work_t *req)
         argv[1] = GattsValue(baton->p_value);
     }
 
-    Nan::Call(*(baton->callback), 2, argv);
+    baton->callback->Call(2, argv);
 
     delete baton;
 }
@@ -944,7 +944,7 @@ void Adapter::AfterGattsGetValue(uv_work_t *req)
         argv[1] = GattsValue(baton->p_value);
     }
 
-    Nan::Call(*(baton->callback), 2, argv);
+    baton->callback->Call(2, argv);
 
     delete baton;
 }
@@ -1017,7 +1017,7 @@ void Adapter::AfterGattsReplyReadWriteAuthorize(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    Nan::Call(*(baton->callback), 1, argv);
+    baton->callback->Call(1, argv);
 
     delete baton;
 }
@@ -1081,7 +1081,7 @@ void Adapter::AfterGattsExchangeMtuReply(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    Nan::Call(*(baton->callback), 1, argv);
+    baton->callback->Call(1, argv);
     delete baton;
 }
 #endif
