@@ -1,6 +1,6 @@
 {
   "name": "pc-ble-driver-js",
-  "version": "2.4.2",
+  "version": "2.4.3-alpha",
   "description": "Javascript bindings for pc-ble-driver",
   "main": "index.js",
   "scripts": {
@@ -46,8 +46,8 @@
     "jszip": "^3.1.2",
     "nan": "2.3.3",
     "node-pre-gyp": "^0.6.39",
-    "nrf-device-lister": "2.0.0",
-    "nrf-device-setup": "0.3.0",
+    "nrf-device-lister": "^2.0.3-alpha",
+    "nrf-device-setup": "^0.3.1-alpha",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
