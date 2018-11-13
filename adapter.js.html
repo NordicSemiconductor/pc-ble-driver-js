@@ -2563,16 +2563,19 @@ class Adapter extends EventEmitter {
         }
 
         const hciStatusCode = this._bleDriver.BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION;
+        this._gapOperationsMap[deviceInstanceId] = {
+            callback: callback,
+        };
+        
         this._adapter.gapDisconnect(device.connectionHandle, hciStatusCode, err => {
             if (err) {
                 const errorObject = _makeError('Failed to disconnect', err);
+                delete this._gapOperationsMap[deviceInstanceId];
                 this.emit('error', errorObject);
                 if (callback) { callback(errorObject); }
             } else {
                 // Expect a disconnect event down the road
-                this._gapOperationsMap[deviceInstanceId] = {
-                    callback: callback,
-                };
+                
             }
         });
     }
