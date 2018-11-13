@@ -66,16 +66,16 @@ function getFirmwareMap(platform) {
         jlink: {
             nrf51: {
                 file: platform === 'darwin' ?
-                    path.join(sdV2Dir, 'connectivity_1.2.3_115k2_with_s130_2.0.1.hex') :
-                    path.join(sdV2Dir, 'connectivity_1.2.3_1m_with_s130_2.0.1.hex'),
+                    path.join(sdV2Dir, 'connectivity_0.0.0_115k2_with_s130_2.0.1.hex') :
+                    path.join(sdV2Dir, 'connectivity_0.0.0_1m_with_s130_2.0.1.hex'),
                 version: '1.2.3',
                 baudRate: platform === 'darwin' ? 115200 : 1000000,
                 sdBleApiVersion: 2,
             },
             nrf52: {
                 file: platform === 'darwin' ?
-                    path.join(sdV3Dir, 'connectivity_1.2.3_115k2_with_s132_3.1.hex') :
-                    path.join(sdV3Dir, 'connectivity_1.2.3_1m_with_s132_3.1.hex'),
+                    path.join(sdV3Dir, 'connectivity_0.0.0_115k2_with_s132_3.1.0.hex') :
+                    path.join(sdV3Dir, 'connectivity_0.0.0_1m_with_s132_3.1.0.hex'),
                 version: '1.2.3',
                 baudRate: platform === 'darwin' ? 115200 : 1000000,
                 sdBleApiVersion: 3,
@@ -84,7 +84,7 @@ function getFirmwareMap(platform) {
         nordicUsb: {
             pca10059: {
                 files: {
-                    application: path.join(sdV3Dir, 'connectivity_1.2.3_usb_for_s132_3.hex'),
+                    application: path.join(sdV3Dir, 'connectivity_0.0.0_usb_with_s132_3.1.0.hex'),
                     softdevice: path.join(sdV3Dir, 's132_nrf52_3.1.0_softdevice.hex'),
                 },
                 version: 'ble-connectivity 0.1.0+Aug-14-2018-15-12-51',

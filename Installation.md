@@ -43,13 +43,13 @@ Some extra npm config is required for cmake-js.
 Configure cmake-js:
 
     $ npm config set cmake_CMAKE_GENERATOR:INTERNAL="Visual Studio 14 2015"
-    $ npm config set cmake_BOOST_ROOT=c:\path\to\boost_x_xx_x
+    $ npm config set cmake_VCPKG_CMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake
 
 #### Ubuntu Linux and macOS
 
 Configure cmake-js:
 
-    $ npm config set cmake_BOOST_ROOT=/path/to/boost_x_xx_x
+    $ npm config set cmake_VCPKG_CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake
 
 ### Building for Electron runtime
 

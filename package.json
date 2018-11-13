@@ -41,7 +41,6 @@
   "dependencies": {
     "bindings": "^1.2.1",
     "change-case": "2.3.0",
-    "cmake-js": "1.1.0",
     "crc": "^3.4.0",
     "jszip": "^3.1.2",
     "nan": "2.3.3",
@@ -53,6 +52,7 @@
   "devDependencies": {
     "babel-preset-env": "^1.6.1",
     "chai": "3.3.0",
+    "cmake-js": "4.0.1",
     "debug": "3.1.0",
     "eslint": "^3.16.0",
     "eslint-config-airbnb": "^14.1.0",

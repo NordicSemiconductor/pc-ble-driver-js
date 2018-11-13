@@ -1,9 +1,11 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.11)
 
 # Name of the project (will be the name of the plugin)
 project (pc-ble-driver-js)
 
 # All projects depending on pc-ble-driver need to include this first
+set(SD_API_VER_NUMS 2 3)
+
 include(pc-ble-driver/cmake/pc-ble-driver.cmake)
 add_subdirectory(pc-ble-driver)
 
