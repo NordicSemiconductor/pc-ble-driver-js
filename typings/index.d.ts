@@ -114,6 +114,7 @@ export declare interface AdapterState {
   addressType: string;
   name: string;
   available: boolean;
+  bleEnabled: boolean;
   scanning: boolean;
   advertising: boolean;
   connecting: boolean;
