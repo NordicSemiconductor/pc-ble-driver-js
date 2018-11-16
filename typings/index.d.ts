@@ -211,7 +211,7 @@ declare class Adapter extends EventEmitter {
   requestAttMtu(deviceInstanceId: string, mtu: number, callback?: (err: any, value: number) => void): void;
   getCurrentAttMtu(deviceInstanceId: string): number|undefined;
 
-  getService(serviceInstanceId: string, callback?: (err: any, service: Service) => void): Service;
+  getService(serviceInstanceId: string): Service;
   getServices(deviceInstanceId: string, callback?: (err: any, services: Array<Service>) => void): void;
   getCharacteristic(characteristicId: string): Characteristic;
   getCharacteristics(serviceInstanceId: string, callback?: (err: any, services: Array<Characteristic>) => void): void;
