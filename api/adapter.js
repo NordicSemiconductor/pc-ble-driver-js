@@ -3624,6 +3624,7 @@ class Adapter extends EventEmitter {
 
         if (value.length > this._maxShortWritePayloadSize(device.instanceId)) {
             if (!ack) {
+                delete this._gattOperationsMap[device.instanceId];
                 throw new Error('Long writes do not support BLE_GATT_OP_WRITE_CMD');
             }
 
