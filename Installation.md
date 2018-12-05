@@ -43,20 +43,20 @@ Some extra npm config is required for cmake-js.
 Configure cmake-js:
 
     $ npm config set cmake_CMAKE_GENERATOR:INTERNAL="Visual Studio 14 2015"
-    $ npm config set cmake_VCPKG_CMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake
+    $ npm config set cmake_CMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake
 
 #### Ubuntu Linux and macOS
 
 Configure cmake-js:
 
-    $ npm config set cmake_VCPKG_CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake
+    $ npm config set cmake_CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 
 ### Building for Electron runtime
 
 If the pc-ble-driver-js module is going to be run from a different Node runtime, e.g. Electron, it is necessary provide that information to npm. To configure a different node runtime, add a .npmrc file to the root folder of the repo. Example .npmrc file content:
 
     runtime = Electron
-    target = 1.16.6
+    target = 2.0.11
     disturl = https://atom.io/download/atom-shell
     
 ### Installation
