@@ -512,7 +512,7 @@ uint32_t Adapter::enableBLE(adapter_t *adapter, ble_enable_params_t *ble_enable_
         return NRF_ERROR_INVALID_PARAM;
     }
 
-    return sd_ble_enable(adapter, ble_enable_params, 0);
+    return sd_ble_enable(adapter, ble_enable_params, nullptr);
 }
 
 // This function runs in the Main Thread
