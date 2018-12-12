@@ -324,7 +324,7 @@ class Adapter extends EventEmitter {
         return {
             gap_enable_params: {
                 periph_conn_count: 1,
-                central_conn_count: 7,
+                central_conn_count: 6,
                 central_sec_count: 1,
             },
             gatts_enable_params: {

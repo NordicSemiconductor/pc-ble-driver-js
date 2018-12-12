@@ -258,14 +258,6 @@ async function _grabAdapter(serialNumber, options) {
         });
 
         await setupDevice(selectedAdapter, deviceFirmware);
-
-        if (softDeviceParams.sdVersion === 'v2') {
-            // nRF51 requires a ~250ms wait time before it can be opened
-            await new Promise(resolve => setTimeout(resolve, 250));
-        } else {
-            // nRF 52 requires a 216ms wait time before it can be opened
-            await new Promise(resolve => setTimeout(resolve, 216));
-        }
     }
 
     return {
