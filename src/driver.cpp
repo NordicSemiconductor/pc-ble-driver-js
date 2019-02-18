@@ -154,7 +154,8 @@ void Adapter::onLogEvent(uv_async_t *handle)
             v8::Local<v8::Value> argv[2];
             argv[0] = ConversionUtility::toJsNumber(static_cast<int>(logEntry->severity));
             argv[1] = ConversionUtility::toJsString(logEntry->message);
-            Nan::Call(*logCallback, 2, argv);
+            Nan::AsyncResource resource("pc-ble-driver-js:callback");
+            logCallback->Call(2, argv, &resource);
         }
         else
         {
@@ -386,7 +387,8 @@ void Adapter::onRpcEvent(uv_async_t *handle)
 
     if (eventCallback != nullptr)
     {
-        Nan::Call(*eventCallback, 1, callback_value);
+        Nan::AsyncResource resource("pc-ble-driver-js:callback");
+        eventCallback->Call(1, callback_value, &resource);
     }
     else
     {
@@ -442,7 +444,8 @@ void Adapter::onStatusEvent(uv_async_t *handle)
         {
             v8::Local<v8::Value> argv[1];
             argv[0] = StatusMessage::getStatus(statusEntry->id, statusEntry->message, statusEntry->timestamp);
-            Nan::Call(*statusCallback, 1, argv);
+            Nan::AsyncResource resource("pc-ble-driver-js:callback");
+            statusCallback->Call(1, argv, &resource);
         }
 
         // Free memory for current entry, we remove the element from the deque when the iteration is done
@@ -583,7 +586,8 @@ void Adapter::AfterEnableBLE(uv_work_t *req)
         argv[2] = ConversionUtility::toJsNumber(baton->app_ram_base);
     }
 
-    Nan::Call(*(baton->callback), 3, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(3, argv, &resource);
     delete baton;
 }
 
@@ -785,8 +789,8 @@ void Adapter::AfterOpen(uv_work_t *req)
     }
 
 
-    Nan::Call(*(baton->callback), 1, argv);
-
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -843,7 +847,8 @@ void Adapter::AfterClose(uv_work_t *req)
             baton->adapter = nullptr;
         }
 
-        Nan::Call(*(baton->callback), 1, argv);
+        Nan::AsyncResource resource("pc-ble-driver-js:callback");
+        baton->callback->Call(1, argv, &resource);
     }
 
     delete baton;
@@ -898,7 +903,8 @@ void Adapter::AfterConnReset(uv_work_t *req)
             argv[0] = Nan::Undefined();
         }
 
-        Nan::Call(*(baton->callback), 1, argv);
+        Nan::AsyncResource resource("pc-ble-driver-js:callback");
+        baton->callback->Call(1, argv, &resource);
     }
 
     delete baton;
@@ -958,7 +964,8 @@ void Adapter::AfterAddVendorSpecificUUID(uv_work_t *req)
         argv[1] = ConversionUtility::toJsNumber(baton->p_uuid_type);
     }
 
-    Nan::Call(*(baton->callback), 2, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -1074,7 +1081,8 @@ void Adapter::AfterGetVersion(uv_work_t *req)
         argv[1] = Nan::Undefined();
     }
 
-    Nan::Call(*(baton->callback), 2, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -1150,7 +1158,8 @@ void Adapter::AfterEncodeUUID(uv_work_t *req)
         argv[3] = ConversionUtility::encodeHex(reinterpret_cast<char *>(baton->uuid_le), baton->uuid_le_len);
     }
 
-    Nan::Call(*(baton->callback), 4, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(4, argv, &resource);
     delete baton;
 }
 
@@ -1215,7 +1224,8 @@ void Adapter::AfterDecodeUUID(uv_work_t *req)
         argv[1] = BleUUID(baton->p_uuid);
     }
 
-    Nan::Call(*(baton->callback), 2, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -1298,7 +1308,8 @@ void Adapter::AfterReplyUserMemory(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    Nan::Call(*(baton->callback), 1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -1373,7 +1384,8 @@ void Adapter::AfterSetBleOption(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    Nan::Call(*(baton->callback), 1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -1450,7 +1462,8 @@ void Adapter::AfterGetBleOption(uv_work_t *req)
         argv[1] = optionValue;
     }
 
-    Nan::Call(*(baton->callback), 2, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
