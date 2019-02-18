@@ -86,7 +86,8 @@ void AfterGetAdapterList(uv_work_t* req)
         argv[1] = results;
     }
 
-    Nan::Call(*(baton->callback), 2, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
 
     for(auto it = baton->results.begin(); it != baton->results.end(); ++it)
     {
