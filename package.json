@@ -1,6 +1,6 @@
 {
   "name": "pc-ble-driver-js",
-  "version": "2.4.3",
+  "version": "2.5.0",
   "description": "Javascript bindings for pc-ble-driver",
   "main": "index.js",
   "scripts": {
