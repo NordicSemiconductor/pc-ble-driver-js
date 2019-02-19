@@ -69,6 +69,11 @@ const BUILD_CONFIGS = [
         npm_config_target: '2.0.6',
         npm_config_disturl: 'https://atom.io/download/electron',
     },
+    {
+        npm_config_runtime: 'electron',
+        npm_config_target: '4.0.5',
+        npm_config_disturl: 'https://atom.io/download/electron',
+    },
 ];
 
 function runNpm(args, envVars) {
