@@ -46,7 +46,7 @@ jest.setTimeout(JEST_TIMEOUT_FOR_SETUP_OF_DEVICE);
 const adapterFactory = api.AdapterFactory.getInstance(undefined, { enablePolling: false });
 const serviceFactory = new api.ServiceFactory();
 
-const testTimeout = 5000;
+const testTimeout = 2000;
 
 const debug = require('debug')('ble-driver:test');
 const log = require('debug')('ble-driver:log');
