@@ -45,7 +45,7 @@
     "crc": "^3.4.0",
     "jszip": "^3.1.2",
     "nan": "^2.12.1",
-    "node-pre-gyp": "^0.6.39",
+    "node-pre-gyp": "^0.12.0",
     "nrf-device-lister": "^2.1.1",
     "nrf-device-setup": "^0.4.5",
     "underscore": "^1.8.3"
