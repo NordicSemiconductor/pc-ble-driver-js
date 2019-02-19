@@ -48,6 +48,10 @@ const spawn = require('child_process').spawn;
 const BUILD_CONFIGS = [
     {
         npm_config_runtime: 'node',
+        npm_config_target: '10.15.1',
+    },
+    {
+        npm_config_runtime: 'node',
         npm_config_target: '8.12.0',
     },
     {
