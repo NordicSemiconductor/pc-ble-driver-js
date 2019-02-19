@@ -30,14 +30,14 @@
 #include "serialadapter.h"
 #include "serial_port_enum.h"
 
-NAN_METHOD(GetAdapterList) 
+NAN_METHOD(GetAdapterList)
 {
     if(!info[0]->IsFunction())
     {
         Nan::ThrowTypeError("First argument must be a function");
         return;
     }
-  
+
     v8::Local<v8::Function> callback = info[0].As<v8::Function>();
     auto baton = new AdapterListBaton(callback);
     strcpy(baton->errorString, "");
@@ -52,24 +52,24 @@ void GetAdapterList(uv_work_t *req)
     EnumSerialPorts(baton->results);
 }
 
-void AfterGetAdapterList(uv_work_t* req) 
+void AfterGetAdapterList(uv_work_t* req)
 {
     Nan::HandleScope scope;
     auto baton = static_cast<AdapterListBaton*>(req->data);
 
     v8::Local<v8::Value> argv[2];
-  
+
     if(baton->errorString[0])
     {
         argv[0] = v8::Exception::Error(Nan::New(baton->errorString).ToLocalChecked());
         argv[1] = Nan::Undefined();
-    } 
-    else 
+    }
+    else
     {
         v8::Local<v8::Array> results = Nan::New<v8::Array>();
         auto i = 0;
 
-        for(auto adapterItem : baton->results) 
+        for(auto adapterItem : baton->results)
         {
             v8::Local<v8::Object> item = Nan::New<v8::Object>();
             Utility::Set(item, "comName", adapterItem->comName);
@@ -86,9 +86,10 @@ void AfterGetAdapterList(uv_work_t* req)
         argv[1] = results;
     }
 
-    baton->callback->Call(2, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
 
-    for(auto it = baton->results.begin(); it != baton->results.end(); ++it) 
+    for(auto it = baton->results.begin(); it != baton->results.end(); ++it)
     {
        delete *it;
     }
