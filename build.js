@@ -50,7 +50,6 @@ function getBuildSystem(debug) {
         runtimeVersion: process.env.npm_config_target || undefined,
         arch: process.env.npm_config_arch || undefined,
         debug,
-        preferGnu: true,
     };
 
     const buildSystem = new cmakeJS.BuildSystem(options);
