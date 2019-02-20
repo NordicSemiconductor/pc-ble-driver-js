@@ -41,7 +41,7 @@
   "dependencies": {
     "bindings": "^1.2.1",
     "change-case": "2.3.0",
-    "cmake-js": "1.1.0",
+    "cmake-js": "5.1.0",
     "crc": "^3.4.0",
     "jszip": "^3.1.2",
     "nan": "^2.12.1",
