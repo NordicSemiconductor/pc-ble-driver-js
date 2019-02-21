@@ -62,6 +62,7 @@ function getBuildSystem(debug) {
             console.log(`${process.arch} is not supported on Windows`);
         }
     } else if (process.platform === 'darwin') {
+        process.env.CC = '/usr/bin/clang';
         process.env.CXX = '/usr/bin/clang++ -std=c++ -stdlib=libc++';
     }
 
