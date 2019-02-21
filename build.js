@@ -49,7 +49,7 @@ function getBuildSystem(debug) {
         runtime: process.env.npm_config_runtime || undefined,
         runtimeVersion: process.env.npm_config_target || undefined,
         arch: process.env.npm_config_arch || undefined,
-        generator: 'Visual Studio 14 2015',
+        generator: 'Ninja',
         debug,
     };
 
