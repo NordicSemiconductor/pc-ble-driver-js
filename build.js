@@ -66,7 +66,7 @@ function getBuildSystem(debug) {
         process.env.CXX = '/usr/bin/clang++ -std=c++11 -stdlib=libc++';
     } else if (process.platform === 'linux') {
         process.env.CC = '/usr/bin/cc';
-        process.env.CXX = '/usr/bin/c++ -std=c++11 -stdlib=libc++';
+        process.env.CXX = '/usr/bin/c++ -std=c++11';
     }
 
     const buildSystem = new cmakeJS.BuildSystem(options);
