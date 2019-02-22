@@ -10,7 +10,7 @@
     "package-prebuilt": "node-pre-gyp package",
     "publish-prebuilt": "node-pre-gyp-github publish",
     "publish-all-prebuilt": "node scripts/publish-all-prebuilt.js",
-    "install": "node-pre-gyp install --fallback-to-build=false || node build.js",
+    "install": "node scripts/pre-gyp-fetch-draft.js || node-pre-gyp install --fallback-to-build=false || node build.js",
     "test": "jest --config config/jest-unit.json",
     "docs": "jsdoc api -t node_modules/minami -R README.md -d docs -c .jsdoc.json"
   },
@@ -19,7 +19,7 @@
     "url": "https://github.com/NordicSemiconductor/pc-ble-driver-js.git"
   },
   "binary": {
-    "module_name": "pc-ble-driver-js-sd_api_v3",
+    "module_name": "pc-ble-driver-js",
     "module_path": "./build/Release",
     "host": "https://github.com/NordicSemiconductor/pc-ble-driver-js/releases/download/",
     "remote_path": "v{version}"
@@ -39,6 +39,7 @@
     ]
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "bindings": "^1.2.1",
     "change-case": "2.3.0",
     "cmake-js": "5.1.0",
@@ -48,6 +49,7 @@
     "node-pre-gyp": "^0.12.0",
     "nrf-device-lister": "^2.1.1",
     "nrf-device-setup": "^0.4.5",
+    "tar": "^4.4.8",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
