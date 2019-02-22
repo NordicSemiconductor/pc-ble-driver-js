@@ -19,7 +19,7 @@
     "url": "https://github.com/NordicSemiconductor/pc-ble-driver-js.git"
   },
   "binary": {
-    "module_name": "pc-ble-driver-js",
+    "module_name": "pc-ble-driver-js-sd_api_v3",
     "module_path": "./build/Release",
     "host": "https://github.com/NordicSemiconductor/pc-ble-driver-js/releases/download/",
     "remote_path": "v{version}"
