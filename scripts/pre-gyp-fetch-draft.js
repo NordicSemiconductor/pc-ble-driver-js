@@ -39,6 +39,7 @@ const tar = require('tar');
 const cp = require('child_process');
 const path = require('path');
 const pkgJson = require('../package.json');
+const mkdirp = require('mkdirp');
 
 if (!process.env.ENABLE_DRAFT_TEST) {
     process.exit(1);
@@ -58,12 +59,15 @@ const { name, package_name: packageName, host } = reveal;
 const arr = host.split('/');
 const userOrOrg = arr[arr.indexOf(name) - 1];
 
-axios.get(`https://api.github.com/repos/${userOrOrg}/${name}/releases`, {
+new Promise((resolve, reject) => {
+    mkdirp(destDir, err => (err ? reject(err) : resolve()));
+})
+.then(() => axios.get(`https://api.github.com/repos/${userOrOrg}/${name}/releases`, {
     headers: {
         Accept: 'application/vnd.github.v3.raw',
         Authorization: `token ${ghToken}`,
     },
-})
+}))
 .then(({ data: releases }) => (releases || []).find(r => r.draft))
 .then(draft => {
     if (!draft) {
