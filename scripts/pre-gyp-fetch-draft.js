@@ -53,8 +53,7 @@ if (!ghToken) {
 
 const destDir = path.resolve(__dirname, '..', pkgJson.binary.module_path, '..');
 
-const preGypPath = path.resolve(__dirname, '../node_modules/.bin/node-pre-gyp');
-const reveal = JSON.parse(cp.execSync(`${preGypPath} reveal`));
+const reveal = JSON.parse(cp.execSync('node-pre-gyp reveal'));
 const { name, package_name: packageName, host } = reveal;
 const arr = host.split('/');
 const userOrOrg = arr[arr.indexOf(name) - 1];
