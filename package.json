@@ -46,6 +46,7 @@
     "cmake-js": "5.1.0",
     "crc": "^3.4.0",
     "jszip": "^3.1.2",
+    "mkdirp": "^0.5.1",
     "nan": "^2.12.1",
     "node-pre-gyp": "^0.12.0",
     "nrf-device-lister": "^2.1.1",
