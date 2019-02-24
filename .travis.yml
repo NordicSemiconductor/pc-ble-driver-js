@@ -115,3 +115,13 @@ script:
     if [[ "$TRAVIS_TAG" =~ ^v?[0-9] ]] && [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then
       npm run publish-prebuilt
     fi
+
+notifications:
+  webhooks:
+    urls:
+      - https://wayland_jenkins:11abca8370e8bd07ce599ad14fde0916f3@yj24xki8lrdhf3wl.v1.p.beameio.net/view/pc-ble-driver-js/job/pc-ble-driver-js/buildWithParameters?BRANCH=master
+    on_success: always # default: always
+    on_failure: never # default: always
+    on_start: never   # default: never
+    on_cancel: never # default: always
+    on_error: never # default: always
