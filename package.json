@@ -10,8 +10,8 @@
     "package-prebuilt": "node-pre-gyp package",
     "publish-prebuilt": "node-pre-gyp-github publish",
     "publish-all-prebuilt": "node scripts/publish-all-prebuilt.js",
-    "fetch-draft": "node scripts/pre-gyp-fetch-draft.js",
-    "install": "npm run fetch-draft || node-pre-gyp install --fallback-to-build=false || node build.js",
+    "fetch-prebuilt": "node scripts/pre-gyp-fetch-draft.js",
+    "dev": "node-pre-gyp install --fallback-to-build=false || node build.js",
     "test": "jest --config config/jest-unit.json",
     "docs": "jsdoc api -t node_modules/minami -R README.md -d docs -c .jsdoc.json"
   },
