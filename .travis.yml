@@ -120,7 +120,7 @@ script:
 notifications:
   webhooks:
     urls:
-      - https://wayland_jenkins:11abca8370e8bd07ce599ad14fde0916f3@yj24xki8lrdhf3wl.v1.p.beameio.net/view/pc-ble-driver-js/job/pc-ble-driver-js/buildWithParameters?BRANCH=$TRAVIS_TAG
+      - https://wayland_jenkins:11abca8370e8bd07ce599ad14fde0916f3@yj24xki8lrdhf3wl.v1.p.beameio.net/view/pc-ble-driver-js/job/pc-ble-driver-js/buildWithParameters?BRANCH=v2.5.0
     on_success: always # default: always
     on_failure: never # default: always
     on_start: never   # default: never
