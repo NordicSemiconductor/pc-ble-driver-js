@@ -109,7 +109,6 @@ before_install:
 
 script:
 - npm install
-- npm run build
 - npm run package-prebuilt
 - echo tag=$TRAVIS_TAG pullrequest=$TRAVIS_PULL_REQUEST
 - |
