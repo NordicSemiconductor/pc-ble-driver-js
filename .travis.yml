@@ -29,41 +29,41 @@ matrix:
     env: NODE_VERSION="8.15.0" npm_config_runtime="electron" npm_config_target="2.0.6" npm_config_disturl="https://atom.io/download/electron"
   - os: linux
     env: NODE_VERSION="10.15.0" npm_config_runtime="electron" npm_config_target="4.0.1" npm_config_disturl="https://atom.io/download/electron"
-  - os: windows
-    env: NODE_VERSION="8.15.0"
-  - os: windows
-    env: NODE_VERSION="10.15.0"
-  - os: windows
-    env: NODE_VERSION="11.7.0"
-  - os: windows
-    env: NODE_VERSION="8.15.0" npm_config_runtime="electron" npm_config_target="2.0.6" npm_config_disturl="https://atom.io/download/electron"
-  - os: windows
-    env: NODE_VERSION="10.15.0" npm_config_runtime="electron" npm_config_target="4.0.1" npm_config_disturl="https://atom.io/download/electron"
-  - os: windows
-    env: NODE_ARCH="32" NODE_VERSION="8.15.0"
-  - os: windows
-    env: NODE_ARCH="32" NODE_VERSION="10.15.0"
-  - os: windows
-    env: NODE_ARCH="32" NODE_VERSION="11.7.0"
-  - os: windows
-    env: NODE_ARCH="32" NODE_VERSION="8.15.0" npm_config_runtime="electron" npm_config_target="2.0.6" npm_config_disturl="https://atom.io/download/electron"
-  - os: windows
-    env: NODE_ARCH="32" NODE_VERSION="10.15.0" npm_config_runtime="electron" npm_config_target="4.0.1" npm_config_disturl="https://atom.io/download/electron"
-  - os: osx
-    osx_image: xcode10.1
-    env: NODE_VERSION="8.15.0"
-  - os: osx
-    osx_image: xcode10.1
-    env: NODE_VERSION="10.15.0"
-  - os: osx
-    osx_image: xcode10.1
-    env: NODE_VERSION="11.7.0"
-  - os: osx
-    osx_image: xcode10.1
-    env: NODE_VERSION="8.15.0" npm_config_runtime="electron" npm_config_target="2.0.6" npm_config_disturl="https://atom.io/download/electron"
-  - os: osx
-    osx_image: xcode10.1
-    env: NODE_VERSION="10.15.0" npm_config_runtime="electron" npm_config_target="4.0.1" npm_config_disturl="https://atom.io/download/electron"
+  # - os: windows
+  #   env: NODE_VERSION="8.15.0"
+  # - os: windows
+  #   env: NODE_VERSION="10.15.0"
+  # - os: windows
+  #   env: NODE_VERSION="11.7.0"
+  # - os: windows
+  #   env: NODE_VERSION="8.15.0" npm_config_runtime="electron" npm_config_target="2.0.6" npm_config_disturl="https://atom.io/download/electron"
+  # - os: windows
+  #   env: NODE_VERSION="10.15.0" npm_config_runtime="electron" npm_config_target="4.0.1" npm_config_disturl="https://atom.io/download/electron"
+  # - os: windows
+  #   env: NODE_ARCH="32" NODE_VERSION="8.15.0"
+  # - os: windows
+  #   env: NODE_ARCH="32" NODE_VERSION="10.15.0"
+  # - os: windows
+  #   env: NODE_ARCH="32" NODE_VERSION="11.7.0"
+  # - os: windows
+  #   env: NODE_ARCH="32" NODE_VERSION="8.15.0" npm_config_runtime="electron" npm_config_target="2.0.6" npm_config_disturl="https://atom.io/download/electron"
+  # - os: windows
+  #   env: NODE_ARCH="32" NODE_VERSION="10.15.0" npm_config_runtime="electron" npm_config_target="4.0.1" npm_config_disturl="https://atom.io/download/electron"
+  # - os: osx
+  #   osx_image: xcode10.1
+  #   env: NODE_VERSION="8.15.0"
+  # - os: osx
+  #   osx_image: xcode10.1
+  #   env: NODE_VERSION="10.15.0"
+  # - os: osx
+  #   osx_image: xcode10.1
+  #   env: NODE_VERSION="11.7.0"
+  # - os: osx
+  #   osx_image: xcode10.1
+  #   env: NODE_VERSION="8.15.0" npm_config_runtime="electron" npm_config_target="2.0.6" npm_config_disturl="https://atom.io/download/electron"
+  # - os: osx
+  #   osx_image: xcode10.1
+  #   env: NODE_VERSION="10.15.0" npm_config_runtime="electron" npm_config_target="4.0.1" npm_config_disturl="https://atom.io/download/electron"
 
 before_install:
 - |
