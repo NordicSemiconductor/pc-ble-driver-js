@@ -41,9 +41,9 @@ const path = require('path');
 const pkgJson = require('../package.json');
 const mkdirp = require('mkdirp');
 
-// if (!process.env.ENABLE_DRAFT_TEST) {
-//     process.exit(1);
-// }
+if (!process.env.ENABLE_DRAFT_TEST) {
+    process.exit(1);
+}
 
 const ghToken = process.env.NODE_PRE_GYP_GITHUB_TOKEN;
 

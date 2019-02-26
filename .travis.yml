@@ -109,7 +109,6 @@ before_install:
 
 script:
 - npm install
-- npm run dev
 - npm run package-prebuilt
 - echo tag=$TRAVIS_TAG pullrequest=$TRAVIS_PULL_REQUEST
 - |
@@ -120,7 +119,7 @@ script:
 notifications:
   webhooks:
     urls:
-      - https://wayland_jenkins:11abca8370e8bd07ce599ad14fde0916f3@yj24xki8lrdhf3wl.v1.p.beameio.net/view/pc-ble-driver-js/job/pc-ble-driver-js/buildWithParameters?BRANCH=v2.5.0
+      - https://wayland_jenkins:11abca8370e8bd07ce599ad14fde0916f3@yj24xki8lrdhf3wl.v1.p.beameio.net/view/pc-ble-driver-js/job/pc-ble-driver-js/build
     on_success: always # default: always
     on_failure: never # default: always
     on_start: never   # default: never
