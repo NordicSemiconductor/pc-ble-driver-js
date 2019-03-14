@@ -49,8 +49,19 @@ function getBuildSystem(debug) {
         runtime: process.env.npm_config_runtime || undefined,
         runtimeVersion: process.env.npm_config_target || undefined,
         arch: process.env.npm_config_arch || undefined,
+        generator: 'Ninja',
         debug,
     };
+
+    if (process.platform === 'win32') {
+        if (process.arch === 'ia32') {
+            options.generator = 'Visual Studio 14 2015';
+        } else if (process.arch === 'x64') {
+            options.generator = 'Visual Studio 14 2015 Win64';
+        } else {
+            console.log(`${process.arch} is not supported on Windows`);
+        }
+    }
 
     const buildSystem = new cmakeJS.BuildSystem(options);
 

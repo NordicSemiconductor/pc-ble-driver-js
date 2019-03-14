@@ -1,6 +1,6 @@
 {
   "name": "pc-ble-driver-js",
-  "version": "2.4.3",
+  "version": "2.5.1",
   "description": "Javascript bindings for pc-ble-driver",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,8 @@
     "package-prebuilt": "node-pre-gyp package",
     "publish-prebuilt": "node-pre-gyp-github publish",
     "publish-all-prebuilt": "node scripts/publish-all-prebuilt.js",
-    "install": "node-pre-gyp install --fallback-to-build=false || node build.js",
+    "fetch-prebuilt": "node scripts/pre-gyp-fetch-draft.js",
+    "install": "npm run fetch-prebuilt || node-pre-gyp install --fallback-to-build=false || node build.js",
     "test": "jest --config config/jest-unit.json",
     "docs": "jsdoc api -t node_modules/minami -R README.md -d docs -c .jsdoc.json"
   },
@@ -39,15 +40,18 @@
     ]
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "bindings": "^1.2.1",
     "change-case": "2.3.0",
-    "cmake-js": "1.1.0",
+    "cmake-js": "5.1.0",
     "crc": "^3.4.0",
     "jszip": "^3.1.2",
+    "mkdirp": "^0.5.1",
     "nan": "^2.12.1",
-    "node-pre-gyp": "^0.6.39",
-    "nrf-device-lister": "^2.1.0",
-    "nrf-device-setup": "^0.4.0",
+    "node-pre-gyp": "^0.12.0",
+    "nrf-device-lister": "^2.1.1",
+    "nrf-device-setup": "^0.4.5",
+    "tar": "^4.4.8",
     "underscore": "^1.8.3"
   },
   "devDependencies": {

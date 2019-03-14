@@ -1,0 +1,127 @@
+branches:
+  only:
+    - master
+    - /^v?[0-9]/
+
+language: cpp
+
+filter_secrets: false
+
+addons:
+  apt:
+    sources: ubuntu-toolchain-r-test
+    packages: g++-7 libudev-dev ninja-build
+  homebrew:
+    packages: ninja
+
+env:
+  global: NODE_ARCH="64"
+
+matrix:
+  include:
+  - os: linux
+    env: NODE_VERSION="8.15.0"
+  - os: linux
+    env: NODE_VERSION="10.15.0"
+  - os: linux
+    env: NODE_VERSION="11.7.0"
+  - os: linux
+    env: NODE_VERSION="8.15.0" npm_config_runtime="electron" npm_config_target="2.0.17" npm_config_disturl="https://atom.io/download/electron"
+  - os: linux
+    env: NODE_VERSION="10.15.0" npm_config_runtime="electron" npm_config_target="4.0.6" npm_config_disturl="https://atom.io/download/electron"
+  - os: windows
+    env: NODE_VERSION="8.15.0"
+  - os: windows
+    env: NODE_VERSION="10.15.0"
+  - os: windows
+    env: NODE_VERSION="11.7.0"
+  - os: windows
+    env: NODE_VERSION="8.15.0" npm_config_runtime="electron" npm_config_target="2.0.17" npm_config_disturl="https://atom.io/download/electron"
+  - os: windows
+    env: NODE_VERSION="10.15.0" npm_config_runtime="electron" npm_config_target="4.0.6" npm_config_disturl="https://atom.io/download/electron"
+  - os: windows
+    env: NODE_ARCH="32" NODE_VERSION="8.15.0"
+  - os: windows
+    env: NODE_ARCH="32" NODE_VERSION="10.15.0"
+  - os: windows
+    env: NODE_ARCH="32" NODE_VERSION="11.7.0"
+  - os: windows
+    env: NODE_ARCH="32" NODE_VERSION="8.15.0" npm_config_runtime="electron" npm_config_target="2.0.17" npm_config_disturl="https://atom.io/download/electron"
+  - os: windows
+    env: NODE_ARCH="32" NODE_VERSION="10.15.0" npm_config_runtime="electron" npm_config_target="4.0.6" npm_config_disturl="https://atom.io/download/electron"
+  - os: osx
+    osx_image: xcode10.1
+    env: NODE_VERSION="8.15.0"
+  - os: osx
+    osx_image: xcode10.1
+    env: NODE_VERSION="10.15.0"
+  - os: osx
+    osx_image: xcode10.1
+    env: NODE_VERSION="11.7.0"
+  - os: osx
+    osx_image: xcode10.1
+    env: NODE_VERSION="8.15.0" npm_config_runtime="electron" npm_config_target="2.0.17" npm_config_disturl="https://atom.io/download/electron"
+  - os: osx
+    osx_image: xcode10.1
+    env: NODE_VERSION="10.15.0" npm_config_runtime="electron" npm_config_target="4.0.6" npm_config_disturl="https://atom.io/download/electron"
+
+before_install:
+- |
+  if [ $TRAVIS_OS_NAME == "linux" ]; then
+    export CC=gcc-7
+    export CXX=g++-7
+  fi
+- |
+  if [ $TRAVIS_OS_NAME == "windows" ]; then
+    choco install -y nvm
+    export NVM_HOME="C:\ProgramData\nvm"
+    export NVM_SYMLINK="C:\Program Files\nodejs"
+    export PATH=$PATH:$NVM_HOME:$NVM_SYMLINK
+    nvm install $NODE_VERSION $NODE_ARCH
+    nvm use $NODE_VERSION $NODE_ARCH
+  else
+    nvm install $NODE_VERSION
+    nvm use $NODE_VERSION
+  fi
+- |
+  if [ $TRAVIS_OS_NAME == "windows" ]; then
+    npm install --scripts-prepend-node-path=true --global --vs2015 --production windows-build-tools
+    npm config set msvs_version 2015
+  elif [ $TRAVIS_OS_NAME == "osx" ]; then
+    npm config set cmake_CMAKE_CXX_COMPILER "g++"
+    npm config set cmake_CMAKE_C_COMPILER "gcc"
+  fi
+- wget -O boost.tgz https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz
+- tar xzf boost.tgz
+- |
+  export BOOST_ROOT=$(pwd)/boost_1_69_0
+  cd $BOOST_ROOT
+  if [ $TRAVIS_OS_NAME == "windows" ]; then
+    ./bootstrap.bat
+    ./b2 toolset=msvc-14.0 address-model=${NODE_ARCH} variant=release link=static --with-thread --with-system --with-regex --with-date_time --with-chrono
+  elif [ $TRAVIS_OS_NAME == "linux" ]; then
+    ./bootstrap.sh
+    ./b2 toolset=gcc cxxflags=-fPIC cflags=-fPIC address-model=${NODE_ARCH} variant=release link=static --with-thread --with-system --with-regex --with-date_time --with-chrono
+  else
+    ./bootstrap.sh
+    ./b2 cxxflags=-fPIC cflags=-fPIC address-model=${NODE_ARCH} variant=release link=static --with-thread --with-system --with-regex --with-date_time --with-chrono
+  fi
+
+script:
+- npm install
+- npm run package-prebuilt
+- echo tag=$TRAVIS_TAG pullrequest=$TRAVIS_PULL_REQUEST
+- |
+    if [[ "$TRAVIS_TAG" =~ ^v?[0-9] ]] && [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then
+      npm run publish-prebuilt
+    fi
+
+notifications:
+  webhooks:
+    urls:
+      - https://wayland_jenkins:11abca8370e8bd07ce599ad14fde0916f3@yj24xki8lrdhf3wl.v1.p.beameio.net/view/pc-ble-driver-js/job/pc-ble-driver-js/build
+    on_success: always # default: always
+    on_failure: never # default: always
+    on_start: never   # default: never
+    on_cancel: never # default: always
+    on_error: never # default: always
