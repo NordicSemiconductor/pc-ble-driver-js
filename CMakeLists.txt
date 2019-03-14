@@ -1,7 +1,11 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.3)
 
 # Name of the project (will be the name of the plugin)
 project (pc-ble-driver-js)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # All projects depending on pc-ble-driver need to include this first
 include(pc-ble-driver/cmake/pc-ble-driver.cmake)
@@ -46,6 +50,16 @@ set_source_files_properties(
 add_definitions(
     -DPC_BLE_DRIVER_STATIC
 )
+
+# Compiler specific
+if(MSVC)
+    include(${CMAKE_CURRENT_LIST_DIR}/cmake/msvc.cmake)
+elseif(APPLE)
+    include(${CMAKE_CURRENT_LIST_DIR}/cmake/apple.cmake)
+else()
+    # Linux
+    include(${CMAKE_CURRENT_LIST_DIR}/cmake/gcc.cmake)
+endif()
 
 foreach(SD_API_VER ${SD_API_VERS})
     string(TOLOWER ${SD_API_VER} SD_API_VER_L)
