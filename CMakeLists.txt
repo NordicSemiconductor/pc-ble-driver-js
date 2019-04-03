@@ -21,19 +21,35 @@ include_directories(${PC_BLE_DRIVER_INCLUDE_DIR}/common/sdk_compat)
 include_directories(${PC_BLE_DRIVER_INCLUDE_DIR}/common/internal)
 include_directories(${PC_BLE_DRIVER_INCLUDE_DIR}/common/internal/transport)
 
-# Specify source files
-file (GLOB SOURCE_FILES
-    "src/adapter.cpp"
-    "src/serialadapter.cpp"
-    "src/common.cpp"
-    "src/driver.cpp"
-    "src/driver_gap.cpp"
-    "src/driver_gatt.cpp"
-    "src/driver_gattc.cpp"
-    "src/driver_gatts.cpp"
-    "src/driver_uecc.cpp"
-    "src/*.h"
-)
+# Specify source files (include win_delay_load_hook.cpp only for Windows)
+if(WIN32)
+    file (GLOB SOURCE_FILES
+        "src/adapter.cpp"
+        "src/serialadapter.cpp"
+        "src/common.cpp"
+        "src/driver.cpp"
+        "src/driver_gap.cpp"
+        "src/driver_gatt.cpp"
+        "src/driver_gattc.cpp"
+        "src/driver_gatts.cpp"
+        "src/driver_uecc.cpp"
+        "src/win_delay_load_hook.cpp"
+        "src/*.h"
+    )
+else()
+    file (GLOB SOURCE_FILES
+        "src/adapter.cpp"
+        "src/serialadapter.cpp"
+        "src/common.cpp"
+        "src/driver.cpp"
+        "src/driver_gap.cpp"
+        "src/driver_gatt.cpp"
+        "src/driver_gattc.cpp"
+        "src/driver_gatts.cpp"
+        "src/driver_uecc.cpp"
+        "src/*.h"
+    )
+endif()
 
 file (GLOB UECC_SOURCE_FILES
     "src/uECC/*.c"
@@ -85,6 +101,7 @@ foreach(SD_API_VER ${SD_API_VERS})
 
         target_include_directories(${CURRENT_TARGET} PRIVATE "${CMAKE_JS_INC}/win")
         set_target_properties(${CURRENT_TARGET} PROPERTIES COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
+        set_target_properties(${CURRENT_TARGET} PROPERTIES LINK_FLAGS "/DELAYLOAD:node.exe" )
     elseif(APPLE)
         target_link_libraries(${CURRENT_TARGET} "-framework CoreFoundation")
         target_link_libraries(${CURRENT_TARGET} "-framework IOKit")
