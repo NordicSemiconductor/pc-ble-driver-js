@@ -45,7 +45,7 @@ struct AdapterListBaton : Baton
 {
 public:
     BATON_CONSTRUCTOR(AdapterListBaton)
-        std::list<SerialPortDesc*> results;
+    std::list<SerialPortDesc> results;
     char errorString[ERROR_STRING_SIZE]; // TODO: change this to std::string
 };
 

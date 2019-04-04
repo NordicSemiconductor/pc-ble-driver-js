@@ -47,9 +47,9 @@ NAN_METHOD(GetAdapterList)
 
 void GetAdapterList(uv_work_t *req)
 {
+    auto serial_ports = EnumSerialPorts();
     auto baton = static_cast<AdapterListBaton*>(req->data);
-
-    EnumSerialPorts(baton->results);
+    baton->results = serial_ports;
 }
 
 void AfterGetAdapterList(uv_work_t* req)
@@ -72,13 +72,13 @@ void AfterGetAdapterList(uv_work_t* req)
         for(auto adapterItem : baton->results)
         {
             v8::Local<v8::Object> item = Nan::New<v8::Object>();
-            Utility::Set(item, "comName", adapterItem->comName);
-            Utility::Set(item, "manufacturer", adapterItem->manufacturer);
-            Utility::Set(item, "serialNumber", adapterItem->serialNumber);
-            Utility::Set(item, "pnpId", adapterItem->pnpId);
-            Utility::Set(item, "locationId", adapterItem->locationId);
-            Utility::Set(item, "vendorId", adapterItem->vendorId);
-            Utility::Set(item, "productId", adapterItem->productId);
+            Utility::Set(item, "comName", adapterItem.comName);
+            Utility::Set(item, "manufacturer", adapterItem.manufacturer);
+            Utility::Set(item, "serialNumber", adapterItem.serialNumber);
+            Utility::Set(item, "pnpId", adapterItem.pnpId);
+            Utility::Set(item, "locationId", adapterItem.locationId);
+            Utility::Set(item, "vendorId", adapterItem.vendorId);
+            Utility::Set(item, "productId", adapterItem.productId);
             results->Set(i++, item);
         }
 
@@ -88,11 +88,6 @@ void AfterGetAdapterList(uv_work_t* req)
 
     Nan::AsyncResource resource("pc-ble-driver-js:callback");
     baton->callback->Call(2, argv, &resource);
-
-    for(auto it = baton->results.begin(); it != baton->results.end(); ++it)
-    {
-       delete *it;
-    }
 
     delete baton;
 }

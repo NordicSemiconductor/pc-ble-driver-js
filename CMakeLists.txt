@@ -7,19 +7,9 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# All projects depending on pc-ble-driver need to include this first
-include(pc-ble-driver/cmake/pc-ble-driver.cmake)
-add_subdirectory(pc-ble-driver)
+find_package(nrf-ble-driver 4.1.0 REQUIRED)
 
 set(UECC_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/uECC)
-# Essential include files to build a node addon,
-# you should add this line in every CMake.js based project.
-
-include_directories(${CMAKE_JS_INC} ${PC_BLE_DRIVER_INCLUDE_DIR} ${UECC_INCLUDE_DIR})
-include_directories(${PC_BLE_DRIVER_INCLUDE_DIR}/common)
-include_directories(${PC_BLE_DRIVER_INCLUDE_DIR}/common/sdk_compat)
-include_directories(${PC_BLE_DRIVER_INCLUDE_DIR}/common/internal)
-include_directories(${PC_BLE_DRIVER_INCLUDE_DIR}/common/internal/transport)
 
 # Specify source files
 file (GLOB SOURCE_FILES
@@ -61,11 +51,18 @@ else()
     include(${CMAKE_CURRENT_LIST_DIR}/cmake/gcc.cmake)
 endif()
 
-foreach(SD_API_VER ${SD_API_VERS})
-    string(TOLOWER ${SD_API_VER} SD_API_VER_L)
-    set(CURRENT_TARGET pc-ble-driver-js-${SD_API_VER_L})
+# There are several nrf-ble-driver libraies corresponding to SoftDevices. They
+# expose a common API with some difference in features available. For now, we
+# statially link to each one we need be creating several libraries, and select
+# which resulting functions to use in JS code. We need more than one because
+# nRF51 devices are not supported by SoftDevices v3 and above, but we need later
+# SoftDevices for features for nRF52.
+#
+# Compile a node library with SD API v2 for nRF51, and one with v3 for nRF52.
+foreach(SD_API_VER "2" "3")
+    set(CURRENT_TARGET pc-ble-driver-js-sd_api_v${SD_API_VER})
 
-    add_library(${CURRENT_TARGET} SHARED ${SOURCE_FILES} ${UECC_SOURCE_FILES} ${LIB_PLATFORM_SRC_FILES})
+    add_library(${CURRENT_TARGET} SHARED ${SOURCE_FILES} ${UECC_SOURCE_FILES})
 
     # This line will give our library file a .node extension without any "lib" prefix
     set_target_properties(${CURRENT_TARGET}
@@ -74,10 +71,9 @@ foreach(SD_API_VER ${SD_API_VERS})
         PREFIX ""
         SUFFIX ".node")
 
-	string(REGEX MATCH "[0-9]+$" _SD_API_VER_NUM "${SD_API_VER}")
-	set_target_properties(${CURRENT_TARGET} PROPERTIES COMPILE_OPTIONS -DNRF_SD_BLE_API_VERSION=${_SD_API_VER_NUM})
+    set_target_properties(${CURRENT_TARGET} PROPERTIES COMPILE_OPTIONS -DNRF_SD_BLE_API_VERSION=${SD_API_VER})
 
-    target_include_directories(${CURRENT_TARGET} PRIVATE ${PC_BLE_DRIVER_${SD_API_VER}_PUBLIC_INCLUDE_DIRS})
+    target_include_directories(${CURRENT_TARGET} PRIVATE ${CMAKE_JS_INC} ${UECC_INCLUDE_DIR})
 
     if(WIN32)
         # suppress C4251 v8/msvc related warning, for more info: https://github.com/nodejs/node/pull/15570
@@ -94,6 +90,5 @@ foreach(SD_API_VER ${SD_API_VERS})
         target_link_libraries(${CURRENT_TARGET} "udev")
     endif()
 
-    # actual shared and static libraries built from the same object files
-    target_link_libraries(${CURRENT_TARGET} ${CMAKE_JS_LIB} ${PC_BLE_DRIVER_${SD_API_VER}_STATIC_LIB})
+    target_link_libraries(${CURRENT_TARGET} PRIVATE ${CMAKE_JS_LIB} nrf::nrf_ble_driver_sd_api_v${SD_API_VER}_static)
 endforeach(SD_API_VER)
