@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  *
  * All rights reserved.
  *
@@ -52,14 +52,13 @@ const CENTRAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 async function onConnected(adapter, peerDevice) {
     await new Promise(resolve => {
         adapter.getServices(peerDevice.instanceId, getServicesErr => {
-            expect(getServicesErr).toBeDefined();
-            expect(getServicesErr).toBe('Failed to add service uuid to driver');
+            expect(getServicesErr).toBeUndefined();
             resolve(getServicesErr);
         });
     });
 }
 
-describe('the API', async () => {
+describe('During attribute discovery, the API', async () => {
     let centralAdapter;
     let peripheralAdapter;
 
@@ -81,27 +80,28 @@ describe('the API', async () => {
             releaseAdapter(peripheralAdapter.state.serialNumber)]);
     });
 
-    it('adding too many vendor specific service uuids to driver will return an error', async () => {
+    it('allows for many vendor specific UUIDs', async () => {
         expect(centralAdapter).toBeDefined();
         expect(peripheralAdapter).toBeDefined();
 
         await common.addRandomServicesAndCharacteristicsToAdapter(serviceFactory, peripheralAdapter, 8, 0);
         await common.addRandomServicesAndCharacteristicsToAdapter(serviceFactory, centralAdapter, 8, 0);
 
-        const deviceConnectedCentral = new Promise((resolve, reject) => {
-            centralAdapter.once('deviceConnected', peripheralDevice => {
-                onConnected(centralAdapter, peripheralDevice).then(() => {
-                    resolve({
-                        address: peripheralDevice.address,
-                        type: peripheralDevice.addressType,
-                        instanceId: peripheralDevice.instanceId,
-                    });
-                }).catch(reject);
-            });
+        const connectionPromise = new Promise((resolve, reject) => {
+            centralAdapter.once('deviceConnected', resolve);
+            centralAdapter.once('error', reject);
         });
 
         await common.startAdvertising(peripheralAdapter);
         await common.connect(centralAdapter, { address: PERIPHERAL_DEVICE_ADDRESS, type: PERIPHERAL_DEVICE_ADDRESS_TYPE });
-        await outcome([deviceConnectedCentral]);
+
+        const connection = await connectionPromise;
+        await outcome([new Promise((resolve, reject) => {
+            centralAdapter.getServices(connection.instanceId, (err, services) => {
+                expect(err).toBeUndefined();
+                if (err) reject(err);
+                resolve(services);
+            });
+        })]);
     });
 });
