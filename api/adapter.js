@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  *
  * All rights reserved.
  *
@@ -1422,19 +1422,6 @@ class Adapter extends EventEmitter {
             const pendingHandleReads = gattOperation.pendingHandleReads;
             const attribute = pendingHandleReads[handle];
 
-            const addVsUuidToDriver = uuid => {
-                return new Promise((resolve, reject) => {
-                    this._converter.uuidToDriver(uuid, (err, uuid) => {
-                        if (err) {
-                            reject(err);
-                            return;
-                        }
-
-                        resolve();
-                    });
-                });
-            };
-
             if (!attribute) {
                 this.emit('logMessage', logLevel.DEBUG, `Unable to find attribute with handle ${event.handle} ` +
                     'when parsing GATTC read response event.');
@@ -1446,13 +1433,7 @@ class Adapter extends EventEmitter {
             if (attribute instanceof Service) {
                 // TODO: Translate from uuid to name?
                 attribute.uuid = HexConv.arrayTo128BitUuid(data);
-                addVsUuidToDriver(attribute.uuid)
-                .then(() => this.emit('serviceAdded', attribute))
-                .catch(err => {
-                    delete this._gattOperationsMap[device.instanceId];
-                    this.emit('error', _makeError('addVsUuidToDriver error', err));
-                    gattOperation.callback('Failed to add service uuid to driver');
-                });
+                this.emit('serviceAdded', attribute);
 
                 if (_.isEmpty(pendingHandleReads)) {
                     const callbackServices = [];
@@ -1482,13 +1463,7 @@ class Adapter extends EventEmitter {
 
                 if (handle === attribute.declarationHandle) {
                     attribute.uuid = HexConv.arrayTo128BitUuid(data.slice(3));
-                    addVsUuidToDriver(attribute.uuid)
-                    .then(() => emitCharacteristicAdded())
-                    .catch(err => {
-                        delete this._gattOperationsMap[device.instanceId];
-                        this.emit('error', _makeError('addVsUuidToDriver error', err));
-                        gattOperation.callback('Failed to add characteristic uuid to driver');
-                    });
+                    emitCharacteristicAdded();
                 } else if (handle === attribute.valueHandle) {
                     attribute.value = data;
                     emitCharacteristicAdded();
