@@ -42,12 +42,14 @@ const arrayToInt = require('./util/intArrayConv').arrayToInt;
 
 const currentDir = require.resolve('./firmwareRegistry');
 const hexDir = path.join(currentDir, '..', '..', 'pc-ble-driver', 'hex');
-const sdV2Dir = path.join(hexDir, 'sd_api_v2');
-const sdV3Dir = path.join(hexDir, 'sd_api_v3');
 
 const VERSION_INFO_MAGIC = 0x46D8A517;
 const VERSION_INFO_START = 0x20000;
 const VERSION_INFO_LENGTH = 24;
+
+const connectivityVersion = '4.1.0';
+const connectivityApplicationVersionString = 'ble-connectivity 4.1.0+Mar-21-2019-07-43-44';
+const connectivityBaudRate = 1000000;
 
 /*
  * Holds connectivity firmware information for all supported devices.
@@ -61,26 +63,26 @@ function getFirmwareMap(platform) {
     return {
         jlink: {
             nrf51: {
-                file: path.join(sdV2Dir, 'connectivity_1.2.3_1m_with_s130_2.0.1.hex'),
-                version: '1.2.3',
-                baudRate: 1000000,
+                file: path.join(hexDir, `connectivity_${connectivityVersion}_1m_with_s130_2.0.1.hex`),
+                version: connectivityVersion,
+                baudRate: connectivityBaudRate,
                 sdBleApiVersion: 2,
             },
             nrf52: {
-                file: platform === path.join(sdV3Dir, 'connectivity_1.2.3_1m_with_s132_3.1.hex'),
-                version: '1.2.3',
-                baudRate: 1000000,
+                file: path.join(hexDir, `connectivity_${connectivityVersion}_1m_with_s132_3.1.0.hex`),
+                version: connectivityVersion,
+                baudRate: connectivityBaudRate,
                 sdBleApiVersion: 3,
             },
         },
         nordicUsb: {
             pca10059: {
                 files: {
-                    application: path.join(sdV3Dir, 'connectivity_1.2.3_usb_for_s132_3.hex'),
-                    softdevice: path.join(sdV3Dir, 's132_nrf52_3.1.0_softdevice.hex'),
+                    application: path.join(hexDir, `connectivity_${connectivityVersion}_usb_for_s132_3.1.0.hex`),
+                    softdevice: path.join(hexDir, 's132_nrf52_3.1.0_softdevice.hex'),
                 },
-                version: 'ble-connectivity 0.1.0+Aug-14-2018-15-12-51',
-                baudRate: platform === 1000000,
+                version: connectivityApplicationVersionString,
+                baudRate: connectivityBaudRate,
                 sdBleApiVersion: 3,
                 sdId: 0x91, // SoftDevice FWID, s132_nrf52_3.1.0 === 0x91
             },
