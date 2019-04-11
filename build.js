@@ -51,6 +51,7 @@ function getBuildSystem(debug) {
         arch: process.env.npm_config_arch || undefined,
         generator: 'Ninja',
         debug,
+        target: 'install',
     };
 
     if (process.platform === 'win32') {

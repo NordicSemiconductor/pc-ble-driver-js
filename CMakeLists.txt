@@ -85,4 +85,20 @@ foreach(SD_API_VER "2" "3")
     endif()
 
     target_link_libraries(${CURRENT_TARGET} PRIVATE ${CMAKE_JS_LIB} nrf::nrf_ble_driver_sd_api_v${SD_API_VER}_static)
+
+    get_target_property(ble_driver_if_dir nrf::nrf_ble_driver_sd_api_v${SD_API_VER}_static INTERFACE_INCLUDE_DIRECTORIES)
+    set(CONNECTIVITY_SD_API_V${SD_API_VER}_PATH "${ble_driver_if_dir}/../../share/nrf-ble-driver/hex/sd_api_v${SD_API_VER}/*.hex" CACHE FILEPATH "Path with wildcards to connectivity firmware files")
+    file(GLOB_RECURSE connectivity_firmware ${CONNECTIVITY_SD_API_V${SD_API_VER}_PATH})
+
+    set_property(
+        TARGET ${CURRENT_TARGET}
+        PROPERTY RESOURCE ${connectivity_firmware}
+    )
+
+    set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
+    install(
+        TARGETS ${CURRENT_TARGET}
+            RUNTIME DESTINATION "build/Release/"
+            RESOURCE DESTINATION "pc-ble-driver/hex/"
+    )
 endforeach(SD_API_VER)
