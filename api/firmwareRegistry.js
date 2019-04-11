@@ -61,14 +61,14 @@ function getFirmwareMap(platform) {
     return {
         jlink: {
             nrf51: {
-                file: path.join(sdV2Dir, 'connectivity_1.2.3_1m_with_s130_2.0.1.hex'),
-                version: '1.2.3',
+                file: path.join(sdV2Dir, 'connectivity_4.1.0_1m_with_s130_2.0.1.hex'),
+                version: '4.1.0',
                 baudRate: 1000000,
                 sdBleApiVersion: 2,
             },
             nrf52: {
-                file: platform === path.join(sdV3Dir, 'connectivity_1.2.3_1m_with_s132_3.1.hex'),
-                version: '1.2.3',
+                file: path.join(sdV3Dir, 'connectivity_4.1.0_1m_with_s132_3.1.0.hex'),
+                version: '4.1.0',
                 baudRate: 1000000,
                 sdBleApiVersion: 3,
             },
@@ -76,11 +76,11 @@ function getFirmwareMap(platform) {
         nordicUsb: {
             pca10059: {
                 files: {
-                    application: path.join(sdV3Dir, 'connectivity_1.2.3_usb_for_s132_3.hex'),
+                    application: path.join(sdV3Dir, 'connectivity_4.1.0_usb_for_s132_3.1.0.hex'),
                     softdevice: path.join(sdV3Dir, 's132_nrf52_3.1.0_softdevice.hex'),
                 },
-                version: 'ble-connectivity 0.1.0+Aug-14-2018-15-12-51',
-                baudRate: platform === 1000000,
+                version: 'ble-connectivity 4.1.0+Mar 21 2019 07:43:44',
+                baudRate: 1000000,
                 sdBleApiVersion: 3,
                 sdId: 0x91, // SoftDevice FWID, s132_nrf52_3.1.0 === 0x91
             },
