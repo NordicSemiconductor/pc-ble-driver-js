@@ -92,7 +92,7 @@ foreach(SD_API_VER "2" "3")
         set_property(TARGET ${CURRENT_TARGET} PROPERTY MACOSX_RPATH ON)
     else()
         # Assume Linux
-        target_link_libraries(${CURRENT_TARGET} "udev")
+        target_link_libraries(${CURRENT_TARGET} PRIVATE "udev")
     endif()
 
     target_link_libraries(${CURRENT_TARGET} PRIVATE ${CMAKE_JS_LIB} nrf::nrf_ble_driver_sd_api_v${SD_API_VER}_static)
