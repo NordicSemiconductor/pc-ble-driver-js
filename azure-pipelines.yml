@@ -1,0 +1,31 @@
+trigger:
+- test-azure
+
+jobs:
+# Linux
+- job: Linux
+  variables:
+    conda_version: 'Linux-x86_64'
+    VCPKG_ROOT: '$(Agent.HomeDirectory)/vcpkg'
+  pool:
+    vmImage: 'ubuntu-16.04'
+  steps:
+  - script: |
+      sudo apt-get update
+      sudo apt-get install libudev-dev
+    displayName: 'Install toolchain'
+  - script: |
+      git clone https://github.com/NordicPlayground/vcpkg.git $(VCPKG_ROOT)
+      $(VCPKG_ROOT)/bootstrap-vcpkg.sh
+    displayName: 'Install vcpkg'
+  - script: |
+      export PATH=$VCPKG_ROOT:$PATH
+      vcpkg install nrf-ble-driver:$(python_arch)-linux
+    displayName: 'Install nrf-ble-driver'
+  - task: NodeTool@0
+    inputs:
+      versionSpec: 8
+    displayName: 'Install Node.js 8'
+  - bash: |
+      node -v
+      npm i --build-from-source
