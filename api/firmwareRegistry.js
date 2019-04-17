@@ -56,39 +56,31 @@ const VERSION_INFO_LENGTH = 24;
  * have only one firmware hex file. Devices that use the Nordic USB stack
  * are programmed using serial DFU. In this case, we need two hex files: One
  * for the softdevice and one for the connectivity application.
- *
- * MacOS does not support opening serial ports using baud rates higher than
- * 115200, while Windows and Linux supports 1m. This requires separate
- * connectivity firmwares and baud rate settings for the different OS'es.
  */
 function getFirmwareMap(platform) {
     return {
         jlink: {
             nrf51: {
-                file: platform === 'darwin' ?
-                    path.join(sdV2Dir, 'connectivity_1.2.3_115k2_with_s130_2.0.1.hex') :
-                    path.join(sdV2Dir, 'connectivity_1.2.3_1m_with_s130_2.0.1.hex'),
-                version: '1.2.3',
-                baudRate: platform === 'darwin' ? 115200 : 1000000,
+                file: path.join(sdV2Dir, 'connectivity_4.1.0_1m_with_s130_2.0.1.hex'),
+                version: '4.1.0',
+                baudRate: 1000000,
                 sdBleApiVersion: 2,
             },
             nrf52: {
-                file: platform === 'darwin' ?
-                    path.join(sdV3Dir, 'connectivity_1.2.3_115k2_with_s132_3.1.hex') :
-                    path.join(sdV3Dir, 'connectivity_1.2.3_1m_with_s132_3.1.hex'),
-                version: '1.2.3',
-                baudRate: platform === 'darwin' ? 115200 : 1000000,
+                file: path.join(sdV3Dir, 'connectivity_4.1.0_1m_with_s132_3.1.0.hex'),
+                version: '4.1.0',
+                baudRate: 1000000,
                 sdBleApiVersion: 3,
             },
         },
         nordicUsb: {
             pca10059: {
                 files: {
-                    application: path.join(sdV3Dir, 'connectivity_1.2.3_usb_for_s132_3.hex'),
+                    application: path.join(sdV3Dir, 'connectivity_4.1.0_usb_for_s132_3.1.0.hex'),
                     softdevice: path.join(sdV3Dir, 's132_nrf52_3.1.0_softdevice.hex'),
                 },
-                version: 'ble-connectivity 0.1.0+Aug-14-2018-15-12-51',
-                baudRate: platform === 'darwin' ? 115200 : 1000000,
+                version: 'ble-connectivity 4.1.0+Mar 21 2019 07:43:44',
+                baudRate: 1000000,
                 sdBleApiVersion: 3,
                 sdId: 0x91, // SoftDevice FWID, s132_nrf52_3.1.0 === 0x91
             },

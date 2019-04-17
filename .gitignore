@@ -4,3 +4,4 @@ package-lock.json
 build
 jest.json
 docs
+/pc-ble-driver
