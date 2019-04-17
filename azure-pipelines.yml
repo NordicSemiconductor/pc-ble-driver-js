@@ -20,7 +20,7 @@ jobs:
     displayName: 'Install vcpkg'
   - script: |
       export PATH=$VCPKG_ROOT:$PATH
-      vcpkg install nrf-ble-driver:$(python_arch)-linux
+      vcpkg install nrf-ble-driver:x64-linux
     displayName: 'Install nrf-ble-driver'
   - task: NodeTool@0
     inputs:
