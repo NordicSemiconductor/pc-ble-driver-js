@@ -12,7 +12,7 @@ jobs:
   steps:
   - script: |
       sudo apt-get update
-      sudo apt-get install gcc8 ninja-build libudev-dev
+      sudo apt-get install g++8 ninja-build libudev-dev
     displayName: 'Install toolchain'
   - script: |
       git clone https://github.com/NordicPlayground/vcpkg.git $(VCPKG_ROOT)
