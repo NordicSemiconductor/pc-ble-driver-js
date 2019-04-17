@@ -11,9 +11,8 @@ jobs:
     vmImage: 'ubuntu-16.04'
   steps:
   - script: |
-      sudo apt-get upgrade
       sudo apt-get update
-      sudo apt-get install ninja-build libudev-dev
+      sudo apt-get install gcc-6 g++-6 ninja-build libudev-dev
     displayName: 'Install toolchain'
   - script: |
       git clone https://github.com/NordicPlayground/vcpkg.git $(VCPKG_ROOT)
