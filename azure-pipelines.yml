@@ -12,16 +12,14 @@ jobs:
   steps:
   - bash: |
       sudo apt-get update
-      sudo apt-get install gcc-6 g++-6 ninja-build libudev-dev
-      mkdir ~/temp
-      cd ~/temp
-      wget https://cmake.org/files/v3.14/cmake-3.14.2.tar.gz
-      tar -xzvf cmake-3.14.2.tar.gz
-      cd cmake-3.14.2/
-      ./bootstrap
-      make -j4
-      sudo make install
-      cmake --version
+      sudo apt-get install ninja-build libudev-dev
+      # wget https://cmake.org/files/v3.14/cmake-3.14.2.tar.gz
+      # tar -xzvf cmake-3.14.2.tar.gz
+      # cd cmake-3.14.2/
+      # ./bootstrap
+      # make -j4
+      # sudo make install
+      # cmake --version
     displayName: 'Install toolchain'
   - bash: |
       git clone https://github.com/NordicPlayground/vcpkg.git $(VCPKG_ROOT)
