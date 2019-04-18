@@ -105,6 +105,6 @@ foreach(SD_API_VER "2" "3")
         TARGETS ${CURRENT_TARGET}
             RUNTIME DESTINATION "build/Release/"
             LIBRARY DESTINATION "build/Release/"
-            RESOURCE DESTINATION "pc-ble-driver/hex/"
+            RESOURCE DESTINATION "build/Release/pc-ble-driver/hex/"
     )
 endforeach(SD_API_VER)

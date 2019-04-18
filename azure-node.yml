@@ -1,6 +1,5 @@
 parameters:
   nodeVersion: ''
-  nodeArch: 'x64'
   npmConfigRuntime: ''
   npmConfigTarget: ''
   npmConfigDistUrl: ''
@@ -8,8 +7,21 @@ parameters:
 steps:
 - task: NodeTool@0
   inputs:
-    versionSpec: ${{ parameters.nodeVersion }}
+    versionSpec: '${{ parameters.nodeVersion }}'
   displayName: 'Install Node.js ${{ parameters.nodeVersion }}'
+- bash: |
+      choco install -y nvm
+      export PATH=$NVM_HOME:$PATH
+      nvm install ${{ parameters.nodeVersion }} $(nodeArch)
+      nvm use ${{ parameters.nodeVersion }} $(nodeArch)
+      ln -sf "$NVM_SYMLINK/node" "$NODE_SYMLINK/node"
+    env: {
+      NVM_HOME: "/C/ProgramData/nvm",
+      NVM_SYMLINK: "/C/ProgramData/nvm/v$(parameters.nodeVersion)",
+      NODE_SYMLINK: "/C/Program Files/nodejs",
+    }
+    condition: and(contains(variables['imageName'], 'win'), eq(variables['nodeArch'], '32'))
+    displayName: 'Install Node.js $(nodVersion) 32-bit'
 - bash: |
     node -v
     npm i --build-from-source
@@ -19,8 +31,7 @@ steps:
     npm_config_target: '${{ parameters.npmConfigTarget }}',
     npm_config_disturl: '${{ parameters.npmConfigDistUrl }}',
     NODE_VERSION: '${{ parameters.nodeVersion }}',
-    NODE_ARCH: '${{ parameters.nodeArch }}',
-    NODE_PRE_GYP_GITHUB_TOKEN: $(wayland_github_token)
+    NODE_ARCH: '$(nodeArch)',
   }
   displayName: 'Build'
 - bash: |

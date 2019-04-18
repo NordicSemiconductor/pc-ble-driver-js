@@ -2,12 +2,25 @@ trigger:
 - test-azure
 
 jobs:
-# Linux
-- job: Linux
+- job: Build
   variables:
     VCPKG_ROOT: '$(Agent.HomeDirectory)/vcpkg'
+  strategy:
+      matrix:
+        linux:
+          imageName: 'ubuntu-16.04'
+          nodeArch: '64'
+        mac:
+          imageName: 'macos-10.13'
+          nodeArch: '64'
+        win64:
+          imageName: 'vs2017-win2016'
+          nodeArch: '64'
+        win32:
+          imageName: 'vs2017-win2016'
+          nodeArch: '32'
   pool:
-    vmImage: 'ubuntu-16.04'
+    vmImage: $(imageName)
   steps:
   - bash: |
       sudo apt-get update
@@ -24,9 +37,11 @@ jobs:
   - template: azure-node.yml
     parameters:
       nodeVersion: 8.15.0
+      nodeArch: $(nodeArch)
   - template: azure-node.yml
     parameters:
       nodeVersion: 8.15.0
+      nodeArch: $(nodeArch)
       npmConfigRuntime: 'electron'
       npmConfigTarget: 2.0.17
       npmConfigDistUrl: 'https://atom.io/download/electron'
