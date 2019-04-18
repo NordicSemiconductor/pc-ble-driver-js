@@ -3,8 +3,8 @@ trigger:
 
 jobs:
 - job: Build
-  variables:
-    VCPKG_ROOT: '$(Agent.HomeDirectory)/vcpkg'
+  # variables:
+  #   VCPKG_ROOT: '$(Agent.HomeDirectory)/vcpkg'
   strategy:
       matrix:
         linux:
@@ -28,7 +28,7 @@ jobs:
     condition: contains(variables['imageName'], 'ubuntu')
     displayName: 'Install toolchain on Linux'
   - bash: |
-      brew install ninja
+      brew install ninja gcc
     condition: contains(variables['imageName'], 'mac')
     displayName: 'Install toolchain on macOS'
   - bash: |
@@ -36,11 +36,13 @@ jobs:
     condition: contains(variables['imageName'], 'win')
     displayName: 'Install toolchain on Windows'
   - bash: |
-      git clone https://github.com/NordicPlayground/vcpkg.git $(VCPKG_ROOT)
-      $(VCPKG_ROOT)/bootstrap-vcpkg.sh
+      # git clone https://github.com/NordicPlayground/vcpkg.git $(VCPKG_ROOT)
+      # $(VCPKG_ROOT)/bootstrap-vcpkg.sh
+      git clone https://github.com/NordicPlayground/vcpkg.git /vcpkg
+      /vcpkg/bootstrap-vcpkg.sh
     displayName: 'Install vcpkg'
   - bash: |
-      export PATH=$VCPKG_ROOT:$PATH
+      export PATH=/vcpkg:$PATH
       vcpkg install nrf-ble-driver:x64-linux
     displayName: 'Install nrf-ble-driver'
   - template: azure-node.yml
