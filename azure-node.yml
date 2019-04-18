@@ -8,18 +8,18 @@ parameters:
 steps:
 - task: NodeTool@0
   inputs:
-    versionSpec: $(NODE_VERSION)
-  displayName: 'Install Node.js $(NODE_VERSION)'
+    versionSpec: ${{ parameters.nodeVersion }}
+  displayName: 'Install Node.js ${{ parameters.nodeVersion }}'
 - bash: |
     node -v
     npm i --build-from-source
     npm run package-prebuilt
   env: {
-    npm_config_runtime: ${{ parameters.npmConfigRuntime }},
-    npm_config_target: ${{ parameters.npmConfigTarget }},
-    npm_config_disturl: ${{ parameters.npmConfigDistUrl }},
-    NODE_VERSION: ${{ parameters.nodeVersion }},
-    NODE_ARCH: ${{ parameters.nodeArch }},
+    npm_config_runtime: '${{ parameters.npmConfigRuntime }}',
+    npm_config_target: '${{ parameters.npmConfigTarget }}',
+    npm_config_disturl: '${{ parameters.npmConfigDistUrl }}',
+    NODE_VERSION: '${{ parameters.nodeVersion }}',
+    NODE_ARCH: '${{ parameters.nodeArch }}',
     NODE_PRE_GYP_GITHUB_TOKEN: $(wayland_github_token)
   }
   displayName: 'Build'
