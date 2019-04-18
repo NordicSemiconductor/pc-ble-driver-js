@@ -25,7 +25,16 @@ jobs:
   - bash: |
       sudo apt-get update
       sudo apt-get install ninja-build libudev-dev
-    displayName: 'Install toolchain'
+    condition: contains(variables['imageName'], 'ubuntu')
+    displayName: 'Install toolchain on Linux'
+  - bash: |
+      brew install ninja
+    condition: contains(variables['imageName'], 'mac')
+    displayName: 'Install toolchain on macOS'
+  - bash: |
+      choco install -y nvm
+    condition: contains(variables['imageName'], 'win')
+    displayName: 'Install toolchain on Windows'
   - bash: |
       git clone https://github.com/NordicPlayground/vcpkg.git $(VCPKG_ROOT)
       $(VCPKG_ROOT)/bootstrap-vcpkg.sh

@@ -10,7 +10,6 @@ steps:
     versionSpec: '${{ parameters.nodeVersion }}'
   displayName: 'Install Node.js ${{ parameters.nodeVersion }}'
 - bash: |
-    choco install -y nvm
     export PATH=$NVM_HOME:$PATH
     nvm install ${{ parameters.nodeVersion }} $(nodeArch)
     nvm use ${{ parameters.nodeVersion }} $(nodeArch)
