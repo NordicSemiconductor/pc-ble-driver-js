@@ -21,12 +21,12 @@ jobs:
       export PATH=$VCPKG_ROOT:$PATH
       vcpkg install nrf-ble-driver:x64-linux
     displayName: 'Install nrf-ble-driver'
-  - template: azure-node.yml  # Template reference
+  - template: azure-node.yml
     parameters:
       nodeVersion: 8.15.0
-  - template: azure-node.yml  # Template reference
+  - template: azure-node.yml
     parameters:
       nodeVersion: 8.15.0
-      npm_config_runtime: 'electron'
-      npm_config_target: 2.0.17
-      npm_config_disturl: 'https://atom.io/download/electron'
+      npmConfigRuntime: 'electron'
+      npmConfigTarget: 2.0.17
+      npmConfigDistUrl: 'https://atom.io/download/electron'
