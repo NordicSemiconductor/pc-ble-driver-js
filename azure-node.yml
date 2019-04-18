@@ -15,11 +15,11 @@ steps:
     npm i --build-from-source
     npm run package-prebuilt
   env: {
-    npm_config_runtime: ${{ paramters.npmConfigRuntime }},
-    npm_config_target: ${{ paramters.npmConfigTarget }},
-    npm_config_disturl: ${{ paramters.npmConfigDistUrl }},
-    NODE_VERSION: ${{ paramters.nodeVersion }},
-    NODE_ARCH: ${{ paramters.nodeArch }},
+    npm_config_runtime: ${{ parameters.npmConfigRuntime }},
+    npm_config_target: ${{ parameters.npmConfigTarget }},
+    npm_config_disturl: ${{ parameters.npmConfigDistUrl }},
+    NODE_VERSION: ${{ parameters.nodeVersion }},
+    NODE_ARCH: ${{ parameters.nodeArch }},
     NODE_PRE_GYP_GITHUB_TOKEN: $(wayland_github_token)
   }
   displayName: 'Build'
