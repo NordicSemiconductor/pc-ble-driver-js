@@ -5,7 +5,6 @@ jobs:
 # Linux
 - job: Linux
   variables:
-    conda_version: 'Linux-x86_64'
     VCPKG_ROOT: '$(Agent.HomeDirectory)/vcpkg'
   pool:
     vmImage: 'ubuntu-16.04'
@@ -13,13 +12,6 @@ jobs:
   - bash: |
       sudo apt-get update
       sudo apt-get install ninja-build libudev-dev
-      # wget https://cmake.org/files/v3.14/cmake-3.14.2.tar.gz
-      # tar -xzvf cmake-3.14.2.tar.gz
-      # cd cmake-3.14.2/
-      # ./bootstrap
-      # make -j4
-      # sudo make install
-      # cmake --version
     displayName: 'Install toolchain'
   - bash: |
       git clone https://github.com/NordicPlayground/vcpkg.git $(VCPKG_ROOT)
@@ -29,10 +21,12 @@ jobs:
       export PATH=$VCPKG_ROOT:$PATH
       vcpkg install nrf-ble-driver:x64-linux
     displayName: 'Install nrf-ble-driver'
-  - task: NodeTool@0
-    inputs:
-      versionSpec: 8
-    displayName: 'Install Node.js 8'
-  - bash: |
-      node -v
-      npm i --build-from-source
+  - template: azure-node.yml  # Template reference
+    parameters:
+      nodeVersion: 8.15.0
+  - template: azure-node.yml  # Template reference
+    parameters:
+      nodeVersion: 8.15.0
+      npm_config_runtime: 'electron'
+      npm_config_target: 2.0.17
+      npm_config_disturl: 'https://atom.io/download/electron'

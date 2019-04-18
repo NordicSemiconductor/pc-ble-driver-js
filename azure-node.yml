@@ -1,0 +1,39 @@
+parameters:
+  nodeVersion: ''
+  nodeArch: 'x64'
+  npmConfigRuntime: ''
+  npmConfigTarget: ''
+  npmConfigDistUrl: ''
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: $(NODE_VERSION)
+  displayName: 'Install Node.js $(NODE_VERSION)'
+- bash: |
+    node -v
+    npm i --build-from-source
+    npm run package-prebuilt
+  env: {
+    npm_config_runtime: ${{ paramters.npmConfigRuntime }},
+    npm_config_target: ${{ paramters.npmConfigTarget }},
+    npm_config_disturl: ${{ paramters.npmConfigDistUrl }},
+    NODE_VERSION: ${{ paramters.nodeVersion }},
+    NODE_ARCH: ${{ paramters.nodeArch }},
+    NODE_PRE_GYP_GITHUB_TOKEN: $(wayland_github_token)
+  }
+  displayName: 'Build'
+- bash: |
+    cp build/stage/**/*.tar.gz "$(Build.ArtifactStagingDirectory)"
+  displayName: 'Copy artifacts'
+- task: GitHubRelease@0
+  inputs:
+    gitHubConnection: 'waylandCI'
+    repositoryName: 'NordicSemiconductor/pc-ble-driver-js'
+    action: 'edit'
+    tagSource: 'Git tag'
+    tag: '$(Build.SourceBranchName)'
+    assetUploadMode: 'replace'
+    isDraft: 'true'
+    addChangeLog: 'false'
+  condition: ne(variables['Build.Reason'], 'PullRequest')
