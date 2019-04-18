@@ -3,8 +3,8 @@ trigger:
 
 jobs:
 - job: Build
-  # variables:
-  #   VCPKG_ROOT: '$(Agent.HomeDirectory)/vcpkg'
+  variables:
+    VCPKG_ROOT: '$(Agent.HomeDirectory)/vcpkg'
   strategy:
       matrix:
         linux:
@@ -16,9 +16,11 @@ jobs:
         win64:
           imageName: 'vs2017-win2016'
           nodeArch: '64'
+          driverArch: 'x64'
         win32:
           imageName: 'vs2017-win2016'
           nodeArch: '32'
+          driverArch: 'x86'
   pool:
     vmImage: $(imageName)
   steps:
@@ -36,14 +38,20 @@ jobs:
     condition: contains(variables['imageName'], 'win')
     displayName: 'Install toolchain on Windows'
   - bash: |
-      # git clone https://github.com/NordicPlayground/vcpkg.git $(VCPKG_ROOT)
-      # $(VCPKG_ROOT)/bootstrap-vcpkg.sh
-      git clone https://github.com/NordicPlayground/vcpkg.git /vcpkg
-      /vcpkg/bootstrap-vcpkg.sh
-    displayName: 'Install vcpkg'
-  - bash: |
-      export PATH=/vcpkg:$PATH
-      vcpkg install nrf-ble-driver:x64-linux
+      export VCPKG_ROOT=$(Agent.HomeDirectory)/vcpkg
+      export PATH=$VCPKG_ROOT:$PATH
+      git clone https://github.com/NordicPlayground/vcpkg.git $VCPKG_ROOT
+      $VCPKG_ROOT/bootstrap-vcpkg.sh
+      vcpkg install nrf-ble-driver
+    condition: not(contains(variables['imageName'], 'win'))
+    displayName: 'Install nrf-ble-driver'
+  - script: |
+      set VCPKG_ROOT=$(Agent.HomeDirectory)\vcpkg
+      set PATH=%VCPKG_ROOT%;%PATH%
+      git clone https://github.com/NordicPlayground/vcpkg.git %VCPKG_ROOT%
+      %VCPKG_ROOT%\vcpkg\bootstrap-vcpkg.bat
+      vcpkg install nrf-ble-driver:$(driverArch)-windows
+    condition: contains(variables['imageName'], 'win')
     displayName: 'Install nrf-ble-driver'
   - template: azure-node.yml
     parameters:
