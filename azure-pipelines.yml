@@ -10,15 +10,15 @@ jobs:
   pool:
     vmImage: 'ubuntu-16.04'
   steps:
-  - script: |
+  - bash: |
       sudo apt-get update
       sudo apt-get install gcc-6 g++-6 ninja-build libudev-dev
     displayName: 'Install toolchain'
-  - script: |
+  - bash: |
       git clone https://github.com/NordicPlayground/vcpkg.git $(VCPKG_ROOT)
       $(VCPKG_ROOT)/bootstrap-vcpkg.sh
     displayName: 'Install vcpkg'
-  - script: |
+  - bash: |
       export PATH=$VCPKG_ROOT:$PATH
       vcpkg install nrf-ble-driver:x64-linux
     displayName: 'Install nrf-ble-driver'
