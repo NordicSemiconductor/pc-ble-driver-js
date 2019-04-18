@@ -87,8 +87,8 @@ foreach(SD_API_VER "2" "3")
         target_include_directories(${CURRENT_TARGET} PRIVATE "${CMAKE_JS_INC}/win")
         set_target_properties(${CURRENT_TARGET} PROPERTIES COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
     elseif(APPLE)
-        target_link_libraries(${CURRENT_TARGET} "-framework CoreFoundation")
-        target_link_libraries(${CURRENT_TARGET} "-framework IOKit")
+        target_link_libraries(${CURRENT_TARGET} PRIVATE "-framework CoreFoundation")
+        target_link_libraries(${CURRENT_TARGET} PRIVATE "-framework IOKit")
         set_property(TARGET ${CURRENT_TARGET} PROPERTY MACOSX_RPATH ON)
     else()
         # Assume Linux
@@ -110,6 +110,7 @@ foreach(SD_API_VER "2" "3")
     install(
         TARGETS ${CURRENT_TARGET}
             RUNTIME DESTINATION "build/Release/"
+            LIBRARY DESTINATION "build/Release/"
             RESOURCE DESTINATION "pc-ble-driver/hex/"
     )
 endforeach(SD_API_VER)
