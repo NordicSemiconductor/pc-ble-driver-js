@@ -56,9 +56,9 @@ function getBuildSystem(debug) {
 
     if (process.platform === 'win32') {
         if (process.arch === 'ia32') {
-            options.generator = 'Visual Studio 14 2015';
+            options.generator = 'Visual Studio 15 2017';
         } else if (process.arch === 'x64') {
-            options.generator = 'Visual Studio 14 2015 Win64';
+            options.generator = 'Visual Studio 15 2017 Win64';
         } else {
             console.log(`${process.arch} is not supported on Windows`);
         }
