@@ -30,7 +30,6 @@ steps:
   displayName: 'Setup Node.js on Windows 32-bit'
 - bash: |
     node -v
-    env
     npm i --build-from-source
     npm run package-prebuilt
   env: {
