@@ -23,13 +23,13 @@ steps:
   displayName: 'Install Node.js $(nodVersion) 32-bit'
 - script: |
     call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\tools\vsdevcmd.bat" -vcvars_ver=14.0
-    npm config set cmake_CMAKE_GENERATOR:INTERNAL="Visual Studio 14 2015"
+    call npm config set cmake_CMAKE_GENERATOR:INTERNAL="Visual Studio 14 2015"
     npm i --build-from-source
   condition: and(contains(variables['imageName'], 'win'), eq(variables['nodeArch'], '32'))
   displayName: 'Build on Windows 32-bit'
 - script: |
     call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\tools\vsdevcmd.bat" -vcvars_ver=14.0
-    npm config set cmake_CMAKE_GENERATOR:INTERNAL="Visual Studio 14 2015 Win64"
+    call npm config set cmake_CMAKE_GENERATOR:INTERNAL="Visual Studio 14 2015 Win64"
     npm i --build-from-source
   condition: and(contains(variables['imageName'], 'win'), eq(variables['nodeArch'], '64'))
   displayName: 'Build on Windows 64-bit'
