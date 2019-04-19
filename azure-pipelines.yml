@@ -55,11 +55,11 @@ jobs:
     displayName: 'Install nrf-ble-driver'
   - template: azure-node.yml
     parameters:
-      nodeVersion: 8.15.0
+      nodeVersion: 10.15.0
       nodeArch: $(nodeArch)
   - template: azure-node.yml
     parameters:
-      nodeVersion: 8.15.0
+      nodeVersion: 10.15.0
       nodeArch: $(nodeArch)
       npmConfigRuntime: 'electron'
       npmConfigTarget: 2.0.17
