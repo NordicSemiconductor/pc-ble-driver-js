@@ -11,32 +11,27 @@ steps:
   condition: not(and(contains(variables['imageName'], 'win'), eq(variables['nodeArch'], '32')))
   displayName: 'Install Node.js ${{ parameters.nodeVersion }}'
 - bash: |
+    npm config set cmake_CMAKE_GENERATOR:INTERNAL="Visual Studio 15 2017 Win64"
+  condition: and(contains(variables['imageName'], 'win'), eq(variables['nodeArch'], '64'))
+  displayName: 'Setup Node.js on Windows 64-bit'
+- bash: |
     export PATH=$NVM_HOME:$PATH
     nvm install ${{ parameters.nodeVersion }} $(nodeArch)
     nvm use ${{ parameters.nodeVersion }} $(nodeArch)
     ln -sf "$NVM_SYMLINK/node" "$NODE_SYMLINK/node"
     node -v
     npm config set cmake_CMAKE_GENERATOR:INTERNAL="Visual Studio 15 2017"
-    npm i --build-from-source
   env: {
     NVM_HOME: "/C/ProgramData/nvm",
     NVM_SYMLINK: "/C/ProgramData/nvm/v$(parameters.nodeVersion)",
     NODE_SYMLINK: "/C/Program Files/nodejs",
   }
   condition: and(contains(variables['imageName'], 'win'), eq(variables['nodeArch'], '32'))
-  displayName: 'Build on Windows 32-bit'
+  displayName: 'Setup Node.js on Windows 32-bit'
 - bash: |
     node -v
-    npm config set cmake_CMAKE_GENERATOR:INTERNAL="Visual Studio 15 2017 Win64"
+    env
     npm i --build-from-source
-  condition: and(contains(variables['imageName'], 'win'), eq(variables['nodeArch'], '64'))
-  displayName: 'Build on Windows 64-bit'
-- bash: |
-    node -v
-    npm i --build-from-source
-  condition: not(contains(variables['imageName'], 'win'))
-  displayName: 'Build'
-- bash: |
     npm run package-prebuilt
   env: {
     npm_config_runtime: '${{ parameters.npmConfigRuntime }}',
@@ -45,7 +40,7 @@ steps:
     NODE_VERSION: '${{ parameters.nodeVersion }}',
     NODE_ARCH: '$(nodeArch)',
   }
-  displayName: 'Package'
+  displayName: 'Build'
 - bash: |
     cp build/stage/**/*.tar.gz "$(Build.ArtifactStagingDirectory)"
   displayName: 'Copy artifacts'
