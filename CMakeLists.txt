@@ -36,7 +36,7 @@ file (GLOB SOURCE_FILES
 
 # Specify platform specific source files (include win_delay_load_hook.cpp only for Windows)
 if(WIN32)
-    file (GLOB PLATFORM_SOURCE_FILES1
+    file (GLOB PLATFORM_SOURCE_FILES
         "src/win_delay_load_hook.cpp"
     )
 endif()
