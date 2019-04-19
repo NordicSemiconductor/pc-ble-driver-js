@@ -5,6 +5,8 @@
  * a handle to the process image.
  *
  * This allows compiled addons to work when node.exe or iojs.exe is renamed.
+ *
+ * https://electronjs.org/docs/tutorial/using-native-node-modules#a-note-about-win_delay_load_hook
  */
 
 #ifdef _MSC_VER

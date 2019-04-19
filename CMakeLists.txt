@@ -21,35 +21,27 @@ include_directories(${PC_BLE_DRIVER_INCLUDE_DIR}/common/sdk_compat)
 include_directories(${PC_BLE_DRIVER_INCLUDE_DIR}/common/internal)
 include_directories(${PC_BLE_DRIVER_INCLUDE_DIR}/common/internal/transport)
 
-# Specify source files (include win_delay_load_hook.cpp only for Windows)
+file (GLOB SOURCE_FILES
+    "src/adapter.cpp"
+    "src/serialadapter.cpp"
+    "src/common.cpp"
+    "src/driver.cpp"
+    "src/driver_gap.cpp"
+    "src/driver_gatt.cpp"
+    "src/driver_gattc.cpp"
+    "src/driver_gatts.cpp"
+    "src/driver_uecc.cpp"
+    "src/*.h"
+)
+
+# Specify platform specific source files (include win_delay_load_hook.cpp only for Windows)
 if(WIN32)
-    file (GLOB SOURCE_FILES
-        "src/adapter.cpp"
-        "src/serialadapter.cpp"
-        "src/common.cpp"
-        "src/driver.cpp"
-        "src/driver_gap.cpp"
-        "src/driver_gatt.cpp"
-        "src/driver_gattc.cpp"
-        "src/driver_gatts.cpp"
-        "src/driver_uecc.cpp"
+    file (GLOB PLATFORM_SOURCE_FILES1
         "src/win_delay_load_hook.cpp"
-        "src/*.h"
-    )
-else()
-    file (GLOB SOURCE_FILES
-        "src/adapter.cpp"
-        "src/serialadapter.cpp"
-        "src/common.cpp"
-        "src/driver.cpp"
-        "src/driver_gap.cpp"
-        "src/driver_gatt.cpp"
-        "src/driver_gattc.cpp"
-        "src/driver_gatts.cpp"
-        "src/driver_uecc.cpp"
-        "src/*.h"
     )
 endif()
+
+
 
 file (GLOB UECC_SOURCE_FILES
     "src/uECC/*.c"
@@ -81,7 +73,7 @@ foreach(SD_API_VER ${SD_API_VERS})
     string(TOLOWER ${SD_API_VER} SD_API_VER_L)
     set(CURRENT_TARGET pc-ble-driver-js-${SD_API_VER_L})
 
-    add_library(${CURRENT_TARGET} SHARED ${SOURCE_FILES} ${UECC_SOURCE_FILES} ${LIB_PLATFORM_SRC_FILES})
+    add_library(${CURRENT_TARGET} SHARED ${SOURCE_FILES} ${UECC_SOURCE_FILES} ${LIB_PLATFORM_SRC_FILES} ${PLATFORM_SOURCE_FILES})
 
     # This line will give our library file a .node extension without any "lib" prefix
     set_target_properties(${CURRENT_TARGET}
