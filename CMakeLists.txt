@@ -21,7 +21,6 @@ include_directories(${PC_BLE_DRIVER_INCLUDE_DIR}/common/sdk_compat)
 include_directories(${PC_BLE_DRIVER_INCLUDE_DIR}/common/internal)
 include_directories(${PC_BLE_DRIVER_INCLUDE_DIR}/common/internal/transport)
 
-# Specify source files
 file (GLOB SOURCE_FILES
     "src/adapter.cpp"
     "src/serialadapter.cpp"
@@ -34,6 +33,15 @@ file (GLOB SOURCE_FILES
     "src/driver_uecc.cpp"
     "src/*.h"
 )
+
+# Specify platform specific source files (include win_delay_load_hook.cpp only for Windows)
+if(WIN32)
+    file (GLOB PLATFORM_SOURCE_FILES
+        "src/win_delay_load_hook.cpp"
+    )
+endif()
+
+
 
 file (GLOB UECC_SOURCE_FILES
     "src/uECC/*.c"
@@ -65,7 +73,7 @@ foreach(SD_API_VER ${SD_API_VERS})
     string(TOLOWER ${SD_API_VER} SD_API_VER_L)
     set(CURRENT_TARGET pc-ble-driver-js-${SD_API_VER_L})
 
-    add_library(${CURRENT_TARGET} SHARED ${SOURCE_FILES} ${UECC_SOURCE_FILES} ${LIB_PLATFORM_SRC_FILES})
+    add_library(${CURRENT_TARGET} SHARED ${SOURCE_FILES} ${UECC_SOURCE_FILES} ${LIB_PLATFORM_SRC_FILES} ${PLATFORM_SOURCE_FILES})
 
     # This line will give our library file a .node extension without any "lib" prefix
     set_target_properties(${CURRENT_TARGET}
@@ -85,6 +93,7 @@ foreach(SD_API_VER ${SD_API_VERS})
 
         target_include_directories(${CURRENT_TARGET} PRIVATE "${CMAKE_JS_INC}/win")
         set_target_properties(${CURRENT_TARGET} PROPERTIES COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
+        set_target_properties(${CURRENT_TARGET} PROPERTIES LINK_FLAGS "/DELAYLOAD:node.exe" )
     elseif(APPLE)
         target_link_libraries(${CURRENT_TARGET} "-framework CoreFoundation")
         target_link_libraries(${CURRENT_TARGET} "-framework IOKit")
