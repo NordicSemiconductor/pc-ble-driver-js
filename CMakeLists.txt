@@ -14,6 +14,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(nrf-ble-driver 4.1.0 REQUIRED)
 
+if (NOT DEFINED CMAKE_JS_INC OR NOT DEFINED CMAKE_JS_LIB)
+    message (
+        FATAL_ERROR
+        "-DCMAKE_JS_INC and -DCMAKE_JS_LIB must be provided. "
+        "Run `npm install` to build this project instead of "
+        "running cmake directly."
+    )
+endif ()
+
 set(UECC_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/uECC)
 
 # Specify source files
