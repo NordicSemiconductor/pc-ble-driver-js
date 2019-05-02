@@ -78,5 +78,16 @@
     "sinon": "^1.17.1",
     "yargs": "^3.29.0"
   },
+  "files": [
+    "api/",
+    "build.js",
+    "cmake/",
+    "CMakeLists.txt",
+    "index.js",
+    "pc-ble-driver/",
+    "scripts/",
+    "src/",
+    "typings/"
+  ],
   "typings": "typings/index.d.ts"
 }
