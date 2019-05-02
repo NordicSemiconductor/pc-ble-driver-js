@@ -40,7 +40,8 @@ const api = require('../index');
 
 // Milliseconds wait before terminating test.
 // In worst case programming of two devices needs to be done + the tests shall run.
-const JEST_TIMEOUT_FOR_SETUP_OF_DEVICE = 40000;
+// For example, the connection test with nRF52 dongles takes about 43 seconds.
+const JEST_TIMEOUT_FOR_SETUP_OF_DEVICE = 60000;
 jest.setTimeout(JEST_TIMEOUT_FOR_SETUP_OF_DEVICE);
 
 const adapterFactory = api.AdapterFactory.getInstance(undefined, { enablePolling: false });
