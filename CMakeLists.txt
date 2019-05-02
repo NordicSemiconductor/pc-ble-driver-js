@@ -25,7 +25,6 @@ endif ()
 
 set(UECC_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/uECC)
 
-# Specify source files
 file (GLOB SOURCE_FILES
     "src/adapter.cpp"
     "src/serialadapter.cpp"
@@ -38,6 +37,13 @@ file (GLOB SOURCE_FILES
     "src/driver_uecc.cpp"
     "src/*.h"
 )
+
+# Specify platform specific source files (include win_delay_load_hook.cpp only for Windows)
+if(WIN32)
+    file (GLOB PLATFORM_SOURCE_FILES
+        "src/win_delay_load_hook.cpp"
+    )
+endif()
 
 file (GLOB UECC_SOURCE_FILES
     "src/uECC/*.c"
@@ -76,7 +82,7 @@ endif()
 foreach(SD_API_VER "2" "3")
     set(CURRENT_TARGET pc-ble-driver-js-sd_api_v${SD_API_VER})
 
-    add_library(${CURRENT_TARGET} SHARED ${SOURCE_FILES} ${UECC_SOURCE_FILES})
+    add_library(${CURRENT_TARGET} SHARED ${SOURCE_FILES} ${UECC_SOURCE_FILES} ${PLATFORM_SOURCE_FILES})
 
     # This line will give our library file a .node extension without any "lib" prefix
     set_target_properties(${CURRENT_TARGET}
@@ -95,6 +101,7 @@ foreach(SD_API_VER "2" "3")
 
         target_include_directories(${CURRENT_TARGET} PRIVATE "${CMAKE_JS_INC}/win")
         set_target_properties(${CURRENT_TARGET} PROPERTIES COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
+        set_target_properties(${CURRENT_TARGET} PROPERTIES LINK_FLAGS "/DELAYLOAD:node.exe" )
     elseif(APPLE)
         target_link_libraries(${CURRENT_TARGET} PRIVATE "-framework CoreFoundation")
         target_link_libraries(${CURRENT_TARGET} PRIVATE "-framework IOKit")
