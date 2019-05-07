@@ -28,7 +28,15 @@
  */
 
 #include "serialadapter.h"
-#include "serial_port_enum.h"
+
+#include <nan.h>
+#include <sd_rpc.h>
+
+#include <vector>
+#include <cstdint>
+
+// Maximum of adapters allowed on a system before GetAdapterList fails
+constexpr size_t max_adapter_count = 64;
 
 NAN_METHOD(GetAdapterList)
 {
@@ -40,16 +48,20 @@ NAN_METHOD(GetAdapterList)
 
     v8::Local<v8::Function> callback = info[0].As<v8::Function>();
     auto baton = new AdapterListBaton(callback);
-    strcpy(baton->errorString, "");
 
     uv_queue_work(uv_default_loop(), baton->req, GetAdapterList, reinterpret_cast<uv_after_work_cb>(AfterGetAdapterList));
 }
 
 void GetAdapterList(uv_work_t *req)
 {
-    auto baton = static_cast<AdapterListBaton*>(req->data);
+    auto adapters = std::vector<sd_rpc_serial_port_desc_t>(max_adapter_count);
+    auto adapter_count = adapters.size();
+    auto status = sd_rpc_serial_port_enum(adapters.data(), (std::uint32_t*) &adapter_count);
+    adapters.resize(adapter_count);
 
-    EnumSerialPorts(baton->results);
+    auto baton = static_cast<AdapterListBaton*>(req->data);
+    baton->result = status;
+    baton->results = adapters;
 }
 
 void AfterGetAdapterList(uv_work_t* req)
@@ -59,12 +71,7 @@ void AfterGetAdapterList(uv_work_t* req)
 
     v8::Local<v8::Value> argv[2];
 
-    if(baton->errorString[0])
-    {
-        argv[0] = v8::Exception::Error(Nan::New(baton->errorString).ToLocalChecked());
-        argv[1] = Nan::Undefined();
-    }
-    else
+    if(baton->result == NRF_SUCCESS)
     {
         v8::Local<v8::Array> results = Nan::New<v8::Array>();
         auto i = 0;
@@ -72,27 +79,25 @@ void AfterGetAdapterList(uv_work_t* req)
         for(auto adapterItem : baton->results)
         {
             v8::Local<v8::Object> item = Nan::New<v8::Object>();
-            Utility::Set(item, "comName", adapterItem->comName);
-            Utility::Set(item, "manufacturer", adapterItem->manufacturer);
-            Utility::Set(item, "serialNumber", adapterItem->serialNumber);
-            Utility::Set(item, "pnpId", adapterItem->pnpId);
-            Utility::Set(item, "locationId", adapterItem->locationId);
-            Utility::Set(item, "vendorId", adapterItem->vendorId);
-            Utility::Set(item, "productId", adapterItem->productId);
+            Utility::Set(item, "comName", adapterItem.port);
+            Utility::Set(item, "manufacturer", adapterItem.manufacturer);
+            Utility::Set(item, "serialNumber", adapterItem.serialNumber);
+            Utility::Set(item, "pnpId", adapterItem.pnpId);
+            Utility::Set(item, "locationId", adapterItem.locationId);
+            Utility::Set(item, "vendorId", adapterItem.vendorId);
+            Utility::Set(item, "productId", adapterItem.productId);
             results->Set(i++, item);
         }
 
         argv[0] = Nan::Undefined();
         argv[1] = results;
+    } else {
+        argv[0] = ErrorMessage::getErrorMessage(baton->result, "getting adapter list");
+        argv[1] = Nan::Undefined();
     }
 
     Nan::AsyncResource resource("pc-ble-driver-js:callback");
     baton->callback->Call(2, argv, &resource);
-
-    for(auto it = baton->results.begin(); it != baton->results.end(); ++it)
-    {
-       delete *it;
-    }
 
     delete baton;
 }
