@@ -51,6 +51,7 @@ function getBuildSystem(debug) {
         arch: process.env.npm_config_arch || undefined,
         generator: 'Ninja',
         debug,
+        target: 'install',
     };
 
     if (process.platform === 'win32') {
@@ -83,17 +84,6 @@ function getBuildSystem(debug) {
 let times = 0;
 
 function begin(args) {
-    // Sanity check for the platform-specific binary driver files
-    fs.readdir('./pc-ble-driver', (err, files) => {
-        if (err) {
-            console.error('ERROR: Could not read the \'pc-ble-driver\' subrepo, please check manually.');
-            process.exit(2);
-        } else if (!files.length) {
-            console.error('ERROR: The \'pc-ble-driver\' subrepo is empty, please run \'git submodule update --init --recursive\' and try again.');
-            process.exit(1);
-        }
-    });
-
     let debug = false;
     let build = 'rebuild';
 

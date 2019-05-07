@@ -264,7 +264,8 @@ describe('the API', async () => {
     let peripheralAdapter;
 
     beforeAll(async () => {
-        [centralAdapter, peripheralAdapter] = await Promise.all([grabAdapter(), grabAdapter()]);
+        centralAdapter = await grabAdapter();
+        peripheralAdapter = await grabAdapter();
 
         await Promise.all([
             setupAdapter(centralAdapter, '#CENTRAL', 'central', CENTRAL_DEVICE_ADDRESS, CENTRAL_DEVICE_ADDRESS_TYPE),
