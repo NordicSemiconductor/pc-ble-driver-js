@@ -1,6 +1,3 @@
-trigger:
-- test-azure
-
 jobs:
 - job: Build
   variables:
