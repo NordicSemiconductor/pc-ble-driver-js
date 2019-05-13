@@ -14,12 +14,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(nrf-ble-driver 4.1.0 REQUIRED)
 
-if (NOT DEFINED CMAKE_JS_INC OR NOT DEFINED CMAKE_JS_LIB)
+if (NOT DEFINED CMAKE_JS_INC)
     message (
         FATAL_ERROR
-        "-DCMAKE_JS_INC and -DCMAKE_JS_LIB must be provided. "
-        "Run `npm install` to build this project instead of "
-        "running cmake directly."
+        "-DCMAKE_JS_INC (plus -DCMAKE_JS_LIB on Windows) must be "
+        "provided. To build this project, run `npm install` "
+        "instead of running cmake directly."
     )
 endif ()
 
