@@ -27,11 +27,13 @@ If you want to use pc-ble-driver-js with the electron runtime, you must set the 
 
 If there are no precompiled binaries for your platform, the install script will try to build them. You will need a working C++ compiler and the pc-ble-driver library available by cmake find_package.
 
-The recommended way to get pc-ble-driver is using vcpkg. Clone the vcpkg repo, install nrf-ble-driver for the architecture of your node executable. Then set the environment variable `VCPKG_ROOT` to the full path of the vcpkg repository and it will get automatically picked up when doing `npm install`.
+The recommended way to get pc-ble-driver is using vcpkg. There are two options getting vcpkg. One is to [download](https://github.com/NordicPlayground/vcpkg/releases/tag/2019-05-10) the released version, the other is to clone the repository and checkout tag/2019-05-10.
+ Afterwards vcpkg must be compiled for the target architecture used by your node executable. Then set the environment variable `VCPKG_ROOT` to the full path of the vcpkg install and repository and it will get automatically picked up when doing `npm install`.
 
 A full example of preparing building on Windows for 64-bit Node:
 
     $ git clone https://github.com/NordicPlayground/vcpkg.git
+    $ git checkout tags/2019-05-10
     $ ./vcpkg/bootstrap.bat
     $ ./vcpkg/vcpkg install nrf-ble-driver:x64-windows
 
