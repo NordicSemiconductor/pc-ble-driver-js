@@ -84,7 +84,6 @@
     "cmake/",
     "CMakeLists.txt",
     "index.js",
-    "pc-ble-driver/",
     "scripts/",
     "src/",
     "typings/"

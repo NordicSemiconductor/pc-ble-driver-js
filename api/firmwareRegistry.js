@@ -41,7 +41,7 @@ const path = require('path');
 const arrayToInt = require('./util/intArrayConv').arrayToInt;
 
 const currentDir = require.resolve('./firmwareRegistry');
-const hexDir = path.join(currentDir, '..', '..', 'pc-ble-driver', 'hex');
+const hexDir = path.join(currentDir, '..', '..', 'build', 'Release', 'pc-ble-driver', 'hex');
 
 const VERSION_INFO_MAGIC = 0x46D8A517;
 const VERSION_INFO_START = 0x20000;
