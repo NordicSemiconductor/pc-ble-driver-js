@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.13)
 
 if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
@@ -14,9 +14,17 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(nrf-ble-driver 4.1.0 REQUIRED)
 
+if (NOT DEFINED CMAKE_JS_INC OR NOT DEFINED CMAKE_JS_LIB)
+    message (
+        FATAL_ERROR
+        "-DCMAKE_JS_INC and -DCMAKE_JS_LIB must be provided. "
+        "Run `npm install` to build this project instead of "
+        "running cmake directly."
+    )
+endif ()
+
 set(UECC_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/uECC)
 
-# Specify source files
 file (GLOB SOURCE_FILES
     "src/adapter.cpp"
     "src/serialadapter.cpp"
@@ -29,6 +37,13 @@ file (GLOB SOURCE_FILES
     "src/driver_uecc.cpp"
     "src/*.h"
 )
+
+# Specify platform specific source files (include win_delay_load_hook.cpp only for Windows)
+if(WIN32)
+    file (GLOB PLATFORM_SOURCE_FILES
+        "src/win_delay_load_hook.cpp"
+    )
+endif()
 
 file (GLOB UECC_SOURCE_FILES
     "src/uECC/*.c"
@@ -56,12 +71,18 @@ else()
     include(${CMAKE_CURRENT_LIST_DIR}/cmake/gcc.cmake)
 endif()
 
-# There is no reason to compile more than two SoftDevice API versions. The JS
-# module only supports one SoftDevice API version for NRF51 and one for NRF52.
+# There are several nrf-ble-driver libraies corresponding to SoftDevices. They
+# expose a common API with some difference in features available. For now, we
+# statially link to each one we need be creating several libraries, and select
+# which resulting functions to use in JS code. We need more than one because
+# nRF51 devices are not supported by SoftDevices v3 and above, but we need later
+# SoftDevices for features for nRF52.
+#
+# Compile a node library with SD API v2 for nRF51, and one with v3 for nRF52.
 foreach(SD_API_VER "2" "3")
     set(CURRENT_TARGET pc-ble-driver-js-sd_api_v${SD_API_VER})
 
-    add_library(${CURRENT_TARGET} SHARED ${SOURCE_FILES} ${UECC_SOURCE_FILES})
+    add_library(${CURRENT_TARGET} SHARED ${SOURCE_FILES} ${UECC_SOURCE_FILES} ${PLATFORM_SOURCE_FILES})
 
     # This line will give our library file a .node extension without any "lib" prefix
     set_target_properties(${CURRENT_TARGET}
@@ -80,6 +101,7 @@ foreach(SD_API_VER "2" "3")
 
         target_include_directories(${CURRENT_TARGET} PRIVATE "${CMAKE_JS_INC}/win")
         set_target_properties(${CURRENT_TARGET} PROPERTIES COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
+        set_target_properties(${CURRENT_TARGET} PROPERTIES LINK_FLAGS "/DELAYLOAD:node.exe" )
     elseif(APPLE)
         target_link_libraries(${CURRENT_TARGET} PRIVATE "-framework CoreFoundation")
         target_link_libraries(${CURRENT_TARGET} PRIVATE "-framework IOKit")

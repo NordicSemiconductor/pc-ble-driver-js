@@ -51,6 +51,8 @@ const logLevel = require('./util/logLevel');
 const Security = require('./security');
 const HexConv = require('./util/hexConv');
 
+const MAX_SUPPORTED_ATT_MTU = 247;
+
 /** Class to mediate error conditions. */
 class Error {
     /**
@@ -223,7 +225,7 @@ class Adapter extends EventEmitter {
         return this.getCurrentAttMtu(deviceInstanceId) - 5;
     }
 
-     _generateKeyPair() {
+    _generateKeyPair() {
         if (this._keys === null) {
             this._keys = this._security.generateKeyPair();
         }
@@ -336,7 +338,7 @@ class Adapter extends EventEmitter {
                 vs_uuid_count: 10,
             },
             gatt_enable_params: {
-                att_mtu: 247, // 247 is max att mtu size
+                att_mtu: MAX_SUPPORTED_ATT_MTU,
             },
         };
     }
@@ -1950,18 +1952,21 @@ class Adapter extends EventEmitter {
     _parseGattsExchangeMtuRequestEvent(event) {
         const remoteDevice = this._getDeviceByConnectionHandle(event.conn_handle);
 
-        this._adapter.gattsExchangeMtuReply(event.conn_handle, event.client_rx_mtu, error => {
+        /* Make sure the requested mtu does not exceed the max supported size */
+        const newMtu = (event.client_rx_mtu >= MAX_SUPPORTED_ATT_MTU) ? MAX_SUPPORTED_ATT_MTU
+            : event.client_rx_mtu;
+
+        this._adapter.gattsExchangeMtuReply(event.conn_handle, newMtu, error => {
             if (error) {
                 this.emit('error', _makeError('Failed to call gattsExchangeMtuReply', error));
                 return;
             }
 
             const previousMtu = this._attMtuMap[remoteDevice.instanceId];
-            const newMtu = event.client_rx_mtu;
             this._attMtuMap[remoteDevice.instanceId] = newMtu;
 
             if (newMtu !== previousMtu);
-            this.emit('attMtuChanged', remoteDevice, event.client_rx_mtu);
+            this.emit('attMtuChanged', remoteDevice, newMtu);
         });
     }
 
