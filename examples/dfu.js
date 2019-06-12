@@ -106,7 +106,7 @@ function performDfu(adapter, targetAddress, pathToZip) {
  */
 function openAdapter(adapter) {
     return new Promise((resolve, reject) => {
-        const baudRate = process.platform === 'darwin' ? 115200 : 1000000;
+        const baudRate = 1000000;
         console.log(`Opening adapter with ID: ${adapter.instanceId} and baud rate: ${baudRate}...`);
 
         adapter.open({ baudRate, logLevel: 'error' }, err => {
