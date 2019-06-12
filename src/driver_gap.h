@@ -539,8 +539,7 @@ struct GapGetDeviceNameBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GapGetDeviceNameBaton);
-    BATON_DESTRUCTOR(GapGetDeviceNameBaton) { free(dev_name); }
-    uint8_t *dev_name;
+    std::vector<uint8_t> dev_name;
     uint16_t length;
 };
 
