@@ -47,6 +47,18 @@ const CENTRAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
 const debug = require('debug')('ble-driver:test:connection');
 
+const serialNumberA = process.env.DEVICE_A_SERIAL_NUMBER;
+if (!serialNumberA) {
+    console.log('Missing env DEVICE_A_SERIAL_NUMBER=<SN e.g. from nrf-device-lister>');
+    process.exit(1);
+}
+
+const serialNumberB = process.env.DEVICE_B_SERIAL_NUMBER;
+if (!serialNumberA) {
+    console.log('Missing env DEVICE_B_SERIAL_NUMBER=<SN e.g. from nrf-device-lister>');
+    process.exit(1);
+}
+
 function requestAttMtu(adapter, peerDevice) {
     return new Promise((resolve, reject) => {
         const mtu = 150;
@@ -62,7 +74,7 @@ function requestAttMtu(adapter, peerDevice) {
     });
 }
 
-describe('the API', async () => {
+describe('the API', () => {
     let centralAdapter;
     let peripheralAdapter;
 
@@ -70,8 +82,8 @@ describe('the API', async () => {
         // Errors here will not stop the tests from running.
         // Issue filed regarding this: https://github.com/facebook/jest/issues/2713
 
-        centralAdapter = await grabAdapter();
-        peripheralAdapter = await grabAdapter();
+        centralAdapter = await grabAdapter(serialNumberA);
+        peripheralAdapter = await grabAdapter(serialNumberB);
 
         await Promise.all([
             setupAdapter(centralAdapter, '#CENTRAL', 'central', CENTRAL_DEVICE_ADDRESS, CENTRAL_DEVICE_ADDRESS_TYPE),

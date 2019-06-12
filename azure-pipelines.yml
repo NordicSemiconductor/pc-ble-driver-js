@@ -1,0 +1,84 @@
+jobs:
+- job: Build
+  variables:
+    VCPKG_ROOT: '$(Agent.HomeDirectory)/vcpkg'
+  strategy:
+      matrix:
+        linux:
+          imageName: 'ubuntu-16.04'
+          nodeArch: '64'
+        mac:
+          imageName: 'macos-10.13'
+          nodeArch: '64'
+        win64:
+          imageName: 'vs2017-win2016'
+          nodeArch: '64'
+          driverArch: 'x64'
+        win32:
+          imageName: 'vs2017-win2016'
+          nodeArch: '32'
+          driverArch: 'x86'
+  pool:
+    vmImage: $(imageName)
+  steps:
+  - bash: |
+      sudo apt-get update
+      sudo apt-get install ninja-build libudev-dev
+    condition: contains(variables['imageName'], 'ubuntu')
+    displayName: 'Install toolchain on Linux'
+  - bash: |
+      brew install ninja gcc
+    condition: contains(variables['imageName'], 'mac')
+    displayName: 'Install toolchain on macOS'
+  - bash: |
+      choco install -y nvm
+    condition: contains(variables['imageName'], 'win')
+    displayName: 'Install toolchain on Windows'
+  - bash: |
+      export VCPKG_ROOT=$(Agent.HomeDirectory)/vcpkg
+      export PATH=$VCPKG_ROOT:$PATH
+      git clone https://github.com/NordicPlayground/vcpkg.git $VCPKG_ROOT
+      $VCPKG_ROOT/bootstrap-vcpkg.sh
+      vcpkg install nrf-ble-driver
+    condition: not(contains(variables['imageName'], 'win'))
+    displayName: 'Install nrf-ble-driver'
+  - script: |
+      set VCPKG_ROOT=$(Agent.HomeDirectory)\vcpkg
+      set PATH=%VCPKG_ROOT%;%PATH%
+      git clone https://github.com/NordicPlayground/vcpkg.git %VCPKG_ROOT%
+      %VCPKG_ROOT%\vcpkg\bootstrap-vcpkg.bat
+      vcpkg install nrf-ble-driver:$(driverArch)-windows
+    condition: contains(variables['imageName'], 'win')
+    displayName: 'Install nrf-ble-driver'
+  - template: azure-node.yml
+    parameters:
+      nodeVersion: 8.15.0
+      nodeArch: $(nodeArch)
+      npmConfigRuntime: 'node'
+      npmConfigTarget: 8.15.0
+  - template: azure-node.yml
+    parameters:
+      nodeVersion: 10.15.0
+      nodeArch: $(nodeArch)
+      # Specifing the target in npm config because it seems
+      # necessary for npm package-prebuild on win32
+      npmConfigRuntime: 'node'
+      npmConfigTarget: 10.15.0
+  - template: azure-node.yml
+    parameters:
+      nodeVersion: 11.14.0
+      nodeArch: $(nodeArch)
+      npmConfigRuntime: 'node'
+      npmConfigTarget: 11.14.0
+  - template: azure-node.yml
+    parameters:
+      nodeVersion: 10.15.0
+      nodeArch: $(nodeArch)
+      npmConfigRuntime: 'electron'
+      npmConfigTarget: 2.0.17
+  - template: azure-node.yml
+    parameters:
+      nodeVersion: 10.15.0
+      nodeArch: $(nodeArch)
+      npmConfigRuntime: 'electron'
+      npmConfigTarget: 4.1.4

@@ -52,7 +52,13 @@ const CENTRAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
 const SCAN_DURATION_WAIT_TIME = 3000;
 
-describe('the API', async () => {
+const serialNumberA = process.env.DEVICE_A_SERIAL_NUMBER;
+if (!serialNumberA) {
+    console.log('Missing env DEVICE_A_SERIAL_NUMBER=<SN e.g. from nrf-device-lister>');
+    process.exit(1);
+}
+
+describe('the API', () => {
     let adapter;
     const EXPECTED_NUMBER_OF_SCAN_REPORTS = 10;
     let scanReportsReceived = 0;
@@ -60,7 +66,7 @@ describe('the API', async () => {
     beforeAll(async () => {
         // Errors here will not stop the tests from running.
         // Issue filed regarding this: https://github.com/facebook/jest/issues/2713
-        adapter = await grabAdapter();
+        adapter = await grabAdapter(serialNumberA);
         await setupAdapter(adapter, '#CENTRAL', 'central', CENTRAL_DEVICE_ADDRESS, CENTRAL_DEVICE_ADDRESS_TYPE);
     });
 

@@ -49,6 +49,18 @@ const PERIPHERAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 const CENTRAL_DEVICE_ADDRESS = 'FF:11:22:33:AA:CF';
 const CENTRAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
+const serialNumberA = process.env.DEVICE_A_SERIAL_NUMBER;
+if (!serialNumberA) {
+    console.log('Missing env DEVICE_A_SERIAL_NUMBER=<SN e.g. from nrf-device-lister>');
+    process.exit(1);
+}
+
+const serialNumberB = process.env.DEVICE_B_SERIAL_NUMBER;
+if (!serialNumberA) {
+    console.log('Missing env DEVICE_B_SERIAL_NUMBER=<SN e.g. from nrf-device-lister>');
+    process.exit(1);
+}
+
 async function onConnected(adapter, peerDevice) {
     await new Promise(resolve => {
         adapter.getServices(peerDevice.instanceId, getServicesErr => {
@@ -58,7 +70,7 @@ async function onConnected(adapter, peerDevice) {
     });
 }
 
-describe('During attribute discovery, the API', async () => {
+describe('During attribute discovery, the API', () => {
     let centralAdapter;
     let peripheralAdapter;
 
@@ -66,8 +78,8 @@ describe('During attribute discovery, the API', async () => {
         // Errors here will not stop the tests from running.
         // Issue filed regarding this: https://github.com/facebook/jest/issues/2713
 
-        centralAdapter = await grabAdapter();
-        peripheralAdapter = await grabAdapter();
+        centralAdapter = await grabAdapter(serialNumberA);
+        peripheralAdapter = await grabAdapter(serialNumberB);
 
         await Promise.all([
             setupAdapter(centralAdapter, '#CENTRAL', 'central', CENTRAL_DEVICE_ADDRESS, CENTRAL_DEVICE_ADDRESS_TYPE),
