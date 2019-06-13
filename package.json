@@ -52,7 +52,6 @@
     "node-pre-gyp": "^0.12.0",
     "nrf-device-lister": "^2.1.1",
     "nrf-device-setup": "^0.4.5",
-    "pc-nrfconnect-build": "git+https://github.com/NordicPlayground/pc-nrfconnect-build.git",
     "tar": "^4.4.8",
     "underscore": "^1.8.3"
   },
