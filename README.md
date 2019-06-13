@@ -42,6 +42,18 @@ And then when installing:
     $ set VCPKG_ROOT=/absolute/path/to/vcpkg/dir
     $ npm install pc-ble-driver-js
 
+## Testing
+
+### Unit tests
+
+    $ npm test
+
+### System tests
+
+    $ npm run system-tests
+
+This runs the bash script [scripts/system-tests.sh](scripts/system-tests.sh), so you'll need a functional bash on path. You will need to have two of each nRF device under test connected. See [scripts/system-tests.sh](scripts/system-tests.sh) for a list of PCA numbers of tested devices. The tests take care of firmware flashing.
+
 ## Hardware setup
 
 A connectivity firmware needs to be flashed on the nRF5 IC before using pc-ble-driver-js. More information on this can be found in [Hardware setup](https://github.com/NordicSemiconductor/pc-ble-driver/blob/master/Installation.md#hardware-setup).
