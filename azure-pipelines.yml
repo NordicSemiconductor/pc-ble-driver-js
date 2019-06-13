@@ -1,0 +1,97 @@
+jobs:
+- job: Build
+  variables:
+    VCPKG_ROOT: '$(Agent.HomeDirectory)/vcpkg'
+  strategy:
+      matrix:
+        linux:
+          imageName: 'ubuntu-16.04'
+          nodeArch: '64'
+        mac:
+          imageName: 'macos-10.13'
+          nodeArch: '64'
+        win64:
+          imageName: 'vs2017-win2016'
+          nodeArch: '64'
+          driverArch: 'x64'
+        win32:
+          imageName: 'vs2017-win2016'
+          nodeArch: '32'
+          driverArch: 'x86'
+  pool:
+    vmImage: $(imageName)
+  steps:
+  - bash: |
+      sudo apt-get update
+      sudo apt-get install ninja-build libudev-dev
+    condition: contains(variables['imageName'], 'ubuntu')
+    displayName: '[Linux] Install toolchain'
+  - bash: |
+      # Note that installing gcc@6 will not change `gcc`/`g++` on
+      # PATH, and those will still be Apple Clang.
+      brew install ninja gcc@6
+    condition: contains(variables['imageName'], 'mac')
+    displayName: '[MacOS] Install toolchain'
+  - bash: |
+      choco install -y nvm
+    condition: contains(variables['imageName'], 'win')
+    displayName: '[Windows] Install toolchain'
+  - bash: |
+      export VCPKG_ROOT=$(Agent.HomeDirectory)/vcpkg
+      export PATH=$VCPKG_ROOT:$PATH
+      git clone https://github.com/NordicPlayground/vcpkg.git $VCPKG_ROOT
+      $VCPKG_ROOT/bootstrap-vcpkg.sh
+      vcpkg install nrf-ble-driver
+    condition: contains(variables['imageName'], 'ubuntu')
+    displayName: '[Linux] Install nrf-ble-driver'
+  - bash: |
+      export VCPKG_ROOT=$(Agent.HomeDirectory)/vcpkg
+      export PATH=$VCPKG_ROOT:$PATH
+      git clone https://github.com/NordicPlayground/vcpkg.git $VCPKG_ROOT
+      # Vcpkg bootstap does not work with Apple Clang and it
+      # refuses to use it. Explicitly point it to the GCC
+      # installed in the "Install toolchain" in CC/CXX.
+      CC=gcc-6 CXX=g++-6 $VCPKG_ROOT/bootstrap-vcpkg.sh
+      vcpkg install nrf-ble-driver
+    condition: contains(variables['imageName'], 'mac')
+    displayName: '[MacOS] Install nrf-ble-driver'
+  - script: |
+      set VCPKG_ROOT=$(Agent.HomeDirectory)\vcpkg
+      set PATH=%VCPKG_ROOT%;%PATH%
+      git clone https://github.com/NordicPlayground/vcpkg.git %VCPKG_ROOT%
+      %VCPKG_ROOT%\vcpkg\bootstrap-vcpkg.bat
+      vcpkg install nrf-ble-driver:$(driverArch)-windows
+    condition: contains(variables['imageName'], 'win')
+    displayName: '[Windows] Install nrf-ble-driver'
+  - template: azure-node.yml
+    parameters:
+      nodeVersion: 8.15.0
+      nodeArch: $(nodeArch)
+      npmConfigRuntime: 'node'
+      npmConfigTarget: 8.15.0
+  - template: azure-node.yml
+    parameters:
+      nodeVersion: 10.15.0
+      nodeArch: $(nodeArch)
+      # Specifing the target in npm config because it seems
+      # necessary for npm package-prebuild on win32
+      npmConfigRuntime: 'node'
+      npmConfigTarget: 10.15.0
+  - template: azure-node.yml
+    parameters:
+      nodeVersion: 11.14.0
+      nodeArch: $(nodeArch)
+      npmConfigRuntime: 'node'
+      npmConfigTarget: 11.14.0
+  - template: azure-node.yml
+    parameters:
+      nodeVersion: 10.15.0
+      nodeArch: $(nodeArch)
+      npmConfigRuntime: 'electron'
+      npmConfigTarget: 2.0.17
+  - template: azure-node.yml
+    parameters:
+      nodeVersion: 10.15.0
+      nodeArch: $(nodeArch)
+      npmConfigRuntime: 'electron'
+      npmConfigTarget: 4.1.4
