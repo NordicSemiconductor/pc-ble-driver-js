@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.12)
 
 if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
@@ -8,18 +8,18 @@ endif()
 # Name of the project (will be the name of the plugin)
 project (pc-ble-driver-js)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(nrf-ble-driver 4.1.0 REQUIRED)
+find_package(nrf-ble-driver 4.1.1 REQUIRED)
 
-if (NOT DEFINED CMAKE_JS_INC OR NOT DEFINED CMAKE_JS_LIB)
+if (NOT DEFINED CMAKE_JS_INC)
     message (
         FATAL_ERROR
-        "-DCMAKE_JS_INC and -DCMAKE_JS_LIB must be provided. "
-        "Run `npm install` to build this project instead of "
-        "running cmake directly."
+        "-DCMAKE_JS_INC (plus -DCMAKE_JS_LIB on Windows) must be "
+        "provided. To build this project, run `npm install` "
+        "instead of running cmake directly."
     )
 endif ()
 
@@ -101,6 +101,10 @@ foreach(SD_API_VER "2" "3")
 
         target_include_directories(${CURRENT_TARGET} PRIVATE "${CMAKE_JS_INC}/win")
         set_target_properties(${CURRENT_TARGET} PROPERTIES COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
+
+        # Electron requires delayloaded node.exe on Windows.
+        # See https://electronjs.org/docs/tutorial/using-native-node-modules#a-note-about-win_delay_load_hook
+        target_link_libraries(${CURRENT_TARGET} PRIVATE Delayimp.lib)
         set_target_properties(${CURRENT_TARGET} PROPERTIES LINK_FLAGS "/DELAYLOAD:node.exe" )
     elseif(APPLE)
         target_link_libraries(${CURRENT_TARGET} PRIVATE "-framework CoreFoundation")
@@ -127,6 +131,6 @@ foreach(SD_API_VER "2" "3")
         TARGETS ${CURRENT_TARGET}
             RUNTIME DESTINATION "build/Release/"
             LIBRARY DESTINATION "build/Release/"
-            RESOURCE DESTINATION "pc-ble-driver/hex/"
+            RESOURCE DESTINATION "build/Release/pc-ble-driver/hex/"
     )
 endforeach(SD_API_VER)

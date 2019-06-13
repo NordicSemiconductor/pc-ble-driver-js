@@ -352,7 +352,7 @@ class Adapter extends EventEmitter {
      * @param {Object} options Options to initialize/open this adapter with.
      * Available adapter open options:
      * <ul>
-     * <li>{number} [baudRate=115200]: The baud rate this adapter's serial port should be configured with.
+     * <li>{number} [baudRate=1000000]: The baud rate this adapter's serial port should be configured with.
      * <li>{string} [parity='none']: The parity this adapter's serial port should be configured with.
      * <li>{string} [flowControl='none']: Whether flow control should be configured with this adapter's serial port.
      * <li>{number} [eventInterval=0]: Interval to use for sending BLE driver events to JavaScript.
@@ -386,7 +386,7 @@ class Adapter extends EventEmitter {
 
         if (!options) {
             options = {
-                baudRate: 115200,
+                baudRate: 1000000,
                 parity: 'none',
                 flowControl: 'none',
                 eventInterval: 0,
@@ -396,7 +396,7 @@ class Adapter extends EventEmitter {
                 enableBLE: true,
             };
         } else {
-            if (!options.baudRate) options.baudRate = 115200;
+            if (!options.baudRate) options.baudRate = 1000000;
             if (!options.parity) options.parity = 'none';
             if (!options.flowControl) options.flowControl = 'none';
             if (!options.eventInterval) options.eventInterval = 0;
@@ -2505,7 +2505,7 @@ class Adapter extends EventEmitter {
         this._gapOperationsMap[deviceInstanceId] = {
             callback: callback,
         };
-        
+
         this._adapter.gapDisconnect(device.connectionHandle, hciStatusCode, err => {
             if (err) {
                 const errorObject = _makeError('Failed to disconnect', err);
@@ -2514,7 +2514,7 @@ class Adapter extends EventEmitter {
                 if (callback) { callback(errorObject); }
             } else {
                 // Expect a disconnect event down the road
-                
+
             }
         });
     }
