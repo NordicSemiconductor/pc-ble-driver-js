@@ -41,14 +41,14 @@ const path = require('path');
 const arrayToInt = require('./util/intArrayConv').arrayToInt;
 
 const currentDir = require.resolve('./firmwareRegistry');
-const hexDir = path.join(currentDir, '..', '..', 'pc-ble-driver', 'hex');
+const hexDir = path.join(currentDir, '..', '..', 'build', 'Release', 'pc-ble-driver', 'hex');
 
 const VERSION_INFO_MAGIC = 0x46D8A517;
 const VERSION_INFO_START = 0x20000;
 const VERSION_INFO_LENGTH = 24;
 
-const connectivityVersion = '4.1.0';
-const connectivityApplicationVersionString = 'ble-connectivity 4.1.0+Mar-21-2019-07-43-44';
+const connectivityVersion = '4.1.1';
+const connectivityApplicationVersionString = 'ble-connectivity 4.1.1+May-07-2019-15-12-18';
 const connectivityBaudRate = 1000000;
 
 /*
@@ -103,7 +103,7 @@ class FirmwareRegistry {
      * {
      *   file: '/path/to/firmware.hex',
      *   version: '1.2.2',
-     *   baudRate: 115200,
+     *   baudRate: 1000000,
      *   sdBleApiVersion: 2,
      * }
      *
@@ -130,7 +130,7 @@ class FirmwareRegistry {
      *     softdevice: '/path/to/softdevice.hex',
      *   },
      *   version: 'connectivity 1.2.2+dfuMar-27-2018-12-41-04',
-     *   baudRate: 115200,
+     *   baudRate: 1000000,
      *   sdBleApiVersion: 3,
      *   sdId: 0x8C,
      * }
