@@ -14,6 +14,7 @@
     "fetch-prebuilt": "node-pre-gyp install --fallback-to-build=false",
     "install": "npm run fetch-prebuilt || npm run build",
     "test": "jest --config config/jest-unit.json",
+    "system-tests": "bash scripts/system-tests.sh",
     "docs": "jsdoc api -t node_modules/minami -R README.md -d docs -c .jsdoc.json"
   },
   "repository": {
@@ -50,7 +51,6 @@
     "mkdirp": "^0.5.1",
     "nan": "^2.12.1",
     "node-pre-gyp": "^0.12.0",
-    "nrf-device-lister": "^2.1.1",
     "nrf-device-setup": "^0.4.5",
     "tar": "^4.4.8",
     "underscore": "^1.8.3"
@@ -65,7 +65,7 @@
     "eslint-plugin-jsx-a11y": "^4.0.0",
     "eslint-plugin-react": "^6.10.0",
     "gh-pages": "^1.0.0",
-    "jest": "^23.5.0",
+    "jest": "^24.8.0",
     "jest-bamboo-formatter": "1.0.1",
     "jest-serializer-path": "^0.1.14",
     "jscs": "^2.3.5",
@@ -75,6 +75,7 @@
     "minami": "^1.2.3",
     "mocha": "^2.3.3",
     "node-pre-gyp-github": "1.3.1",
+    "nrf-device-lister": "^2.1.2",
     "proxyquire": "^1.7.3",
     "sinon": "^1.17.1",
     "yargs": "^3.29.0"

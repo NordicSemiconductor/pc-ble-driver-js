@@ -52,6 +52,12 @@ const EXPECTED_NUMBER_OF_SCAN_REPORTS_PR_ITERATION = 2;
 const DEVICE_SETUP_WAIT_TIME = 30000
 const GENERIC_WAIT_PR_ITERATION = 15000;
 
+const serialNumberA = process.env.DEVICE_A_SERIAL_NUMBER;
+if (!serialNumberA) {
+    console.log('Missing env DEVICE_A_SERIAL_NUMBER=<SN e.g. from nrf-device-lister>');
+    process.exit(1);
+}
+
 // Adjust the jest timeout based on the number of iterations required
 const JEST_TIMEOUT = DEVICE_SETUP_WAIT_TIME + NUMBER_OF_ITERATIONS *
     (NRF51_NRF52_WAIT_TIME + SCAN_DURATION_WAIT_TIME + GENERIC_WAIT_PR_ITERATION);
@@ -80,7 +86,7 @@ function startScan(adapter, timeout) {
     });
 }
 
-describe('the API', async () => {
+describe('the API', () => {
     let adapterSn;
     let openCloseIterations = 1;
     let programDevice = process.env.BLE_DRIVER_TEST_SKIP_PROGRAMMING !== 'true';
@@ -91,7 +97,7 @@ describe('the API', async () => {
         const oneIteration = async () => {
             debug(`Open/close iteration #${openCloseIterations} of ${requiredNumberOfIterations} starting.`);
 
-            const adapterToUse = await grabAdapter(adapterSn, { programDevice });
+            const adapterToUse = await grabAdapter(serialNumberA, { programDevice });
 
             // Program/check for correct firmware only once
             programDevice = false;
