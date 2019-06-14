@@ -324,6 +324,7 @@ public:
     {
         delete p_uuid;
     }
+    uint8_t uuid_le_len;
     ble_uuid_t *p_uuid;
     std::vector<uint8_t> uuid_le;
 };

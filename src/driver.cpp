@@ -1166,13 +1166,14 @@ void Adapter::AfterEncodeUUID(uv_work_t *req)
 NAN_METHOD(Adapter::DecodeUUID)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
+    uint8_t le_len;
     v8::Local<v8::Value> uuid_le;
     v8::Local<v8::Function> callback;
     auto argumentcount = 0;
 
     try
     {
-        ConversionUtility::getNativeUint8(info[argumentcount]);
+        le_len = ConversionUtility::getNativeUint8(info[argumentcount]);
         argumentcount++;
 
         uuid_le = info[argumentcount]->ToString();
@@ -1189,6 +1190,7 @@ NAN_METHOD(Adapter::DecodeUUID)
     }
 
     auto baton = new BleUUIDDecodeBaton(callback);
+    baton->uuid_le_len = le_len;
     baton->uuid_le = ConversionUtility::extractHex(uuid_le);
     baton->p_uuid = new ble_uuid_t();
     baton->adapter = obj->adapter;
@@ -1201,7 +1203,7 @@ NAN_METHOD(Adapter::DecodeUUID)
 void Adapter::DecodeUUID(uv_work_t *req)
 {
     auto baton = static_cast<BleUUIDDecodeBaton *>(req->data);
-    baton->result = sd_ble_uuid_decode(baton->adapter, (uint8_t) baton->uuid_le.size(), baton->uuid_le.data(), baton->p_uuid);
+    baton->result = sd_ble_uuid_decode(baton->adapter, baton->uuid_le_len, baton->uuid_le.data(), baton->p_uuid);
 }
 
 // This runs in Main Thread
