@@ -135,7 +135,7 @@ void Adapter::appendLog(LogEntry *log)
     if (asyncLog != nullptr)
     {
         logQueue.push(log);
-        uv_async_send(asyncLog);
+        uv_async_send(asyncLog.get());
     }
 }
 
@@ -173,7 +173,7 @@ void Adapter::dispatchEvents()
     // Trigger callback in NodeJS thread to call NodeJS callbacks
     if (asyncEvent != nullptr)
     {
-        uv_async_send(asyncEvent);
+        uv_async_send(asyncEvent.get());
     }
     else
     {
@@ -426,7 +426,7 @@ void Adapter::appendStatus(StatusEntry *status)
     if (asyncStatus != nullptr)
     {
         statusQueue.push(status);
-        uv_async_send(asyncStatus);
+        uv_async_send(asyncStatus.get());
     }
 }
 
@@ -658,7 +658,7 @@ NAN_METHOD(Adapter::Open)
 
     try
     {
-        baton->log_callback = std::unique_ptr<Nan::Callback>(new Nan::Callback(ConversionUtility::getCallbackFunction(options, "logCallback")));
+        baton->log_callback = std::make_unique<Nan::Callback>(ConversionUtility::getCallbackFunction(options, "logCallback"));
     }
     catch (std::string error)
     {
@@ -669,7 +669,7 @@ NAN_METHOD(Adapter::Open)
 
     try
     {
-        baton->event_callback = std::unique_ptr<Nan::Callback>(new Nan::Callback(ConversionUtility::getCallbackFunction(options, "eventCallback")));
+        baton->event_callback = std::make_unique<Nan::Callback>(ConversionUtility::getCallbackFunction(options, "eventCallback"));
     }
     catch (std::string error)
     {
@@ -697,9 +697,9 @@ void Adapter::Open(uv_work_t *req)
 {
     auto baton = static_cast<OpenBaton *>(req->data);
 
-    baton->mainObject->initEventHandling(baton->event_callback, baton->evt_interval);
-    baton->mainObject->initLogHandling(baton->log_callback);
-    baton->mainObject->initStatusHandling(baton->status_callback);
+    baton->mainObject->initEventHandling(std::move(baton->event_callback), baton->evt_interval);
+    baton->mainObject->initLogHandling(std::move(baton->log_callback));
+    baton->mainObject->initStatusHandling(std::move(baton->status_callback));
 
     // Ensure that the correct adapter gets the callbacks as long as we have no reference to
     // the driver adapter until after sd_rpc_open is called
@@ -1203,7 +1203,7 @@ NAN_METHOD(Adapter::DecodeUUID)
 void Adapter::DecodeUUID(uv_work_t *req)
 {
     auto baton = static_cast<BleUUIDDecodeBaton *>(req->data);
-    baton->result = sd_ble_uuid_decode(baton->adapter, baton->uuid_le_len, baton->uuid_le, baton->p_uuid);
+    baton->result = sd_ble_uuid_decode(baton->adapter, baton->uuid_le_len, baton->uuid_le.data(), baton->p_uuid);
 }
 
 // This runs in Main Thread
@@ -1725,7 +1725,7 @@ ble_uuid128_t *BleUUID128::ToNative()
         std::terminate();
     }
 
-    uuidString->WriteUtf8(uuidPtr, uuid_len);
+    uuidString->WriteUtf8(uuidPtr, (int) uuid_len);
 
     auto scan_count = sscanf(uuidPtr,
         "%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x",

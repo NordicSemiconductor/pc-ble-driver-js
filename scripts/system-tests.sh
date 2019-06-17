@@ -9,6 +9,8 @@ set -eux
 test_pcas=(PCA10031 PCA10028 PCA10040 PCA10056)
 
 export BLE_DRIVER_TEST_OPENCLOSE_ITERATIONS=5
+export BLE_DRIVER_TEST_LOGLEVEL="trace"
+export DEBUG="ble-driver:*"
 
 for pca in "${test_pcas[@]}"; do
     serial_numbers=($(npx nrf-device-lister -S "$pca"))

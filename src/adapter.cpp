@@ -87,7 +87,19 @@ adapter_t *Adapter::getInternalAdapter() const
     return adapter;
 }
 
-extern "C" {
+// This compilation unit will be linked several times. So
+// log_handler must not have external linkage. Otherwise, we get
+// problems like a v3 Adapter getting cast into a v2 Adapter.
+// Ideally, only things specifically needing external linkage
+// should have it.
+namespace {
+    // Turns out the right way to declare a function that can be
+    // called trough a pointer in C code is simply to declare it
+    // having the type we want that was typedef-ed inside a
+    // extern-C block. `uv_async_cb` pretty much fits the bill,
+    // but.. it's pointer to callback function, while we are
+    // declaring the actual function. So:
+    std::remove_pointer<uv_async_cb>::type event_handler;
     void event_handler(uv_async_t *handle)
     {
         auto adapter = static_cast<Adapter *>(handle->data);
@@ -103,6 +115,7 @@ extern "C" {
         }
     }
 
+    std::remove_pointer<uv_async_cb>::type event_interval_handler;
     void event_interval_handler(uv_timer_t *handle)
     {
         auto adapter = static_cast<Adapter *>(handle->data);
@@ -119,16 +132,16 @@ extern "C" {
     }
 }
 
-void Adapter::initEventHandling(std::unique_ptr<Nan::Callback> &callback, uint32_t interval)
+void Adapter::initEventHandling(std::unique_ptr<Nan::Callback> callback, uint32_t interval)
 {
     eventInterval = interval;
-    asyncEvent = new uv_async_t();
+    asyncEvent = std::make_unique<uv_async_t>();
 
     // Setup event related functionality
     eventCallback = std::move(callback);
     asyncEvent->data = static_cast<void *>(this);
 
-    if (uv_async_init(uv_default_loop(), asyncEvent, event_handler) != 0)
+    if (uv_async_init(uv_default_loop(), asyncEvent.get(), event_handler) != 0)
     {
         std::cerr << "Not able to create a new async event handler." << std::endl;
         std::terminate();
@@ -150,26 +163,38 @@ void Adapter::initEventHandling(std::unique_ptr<Nan::Callback> &callback, uint32
 
     if (eventIntervalTimer == nullptr)
     {
-        eventIntervalTimer = new uv_timer_t();
+        eventIntervalTimer = std::make_unique<uv_timer_t>();
     }
 
     // Setup event interval functionality
     eventIntervalTimer->data = static_cast<void *>(this);
 
-    if (uv_timer_init(uv_default_loop(), eventIntervalTimer) != 0)
+    if (uv_timer_init(uv_default_loop(), eventIntervalTimer.get()) != 0)
     {
         std::cerr << "Not able to create a new async event interval timer." << std::endl;
         std::terminate();
     }
 
-    if (uv_timer_start(eventIntervalTimer, event_interval_handler, eventInterval, eventInterval) != 0)
+    if (uv_timer_start(eventIntervalTimer.get(), event_interval_handler, eventInterval, eventInterval) != 0)
     {
         std::cerr << "Not able to create a new event interval handler." << std::endl;
         std::terminate();
     }
 }
 
-extern "C" {
+// This compilation unit will be linked several times. So
+// log_handler must not have external linkage. Otherwise, we get
+// problems like a v3 Adapter getting cast into a v2 Adapter.
+// Ideally, only things specifically needing external linkage
+// should have it.
+namespace {
+    // Turns out the right way to declare a function that can be
+    // called trough a pointer in C code is simply to declare it
+    // having the type we want that was typedef-ed inside a
+    // extern-C block. `uv_async_cb` pretty much fits the bill,
+    // but.. it's pointer to callback function, while we are
+    // declaring the actual function. So:
+    std::remove_pointer<uv_async_cb>::type log_handler;
     void log_handler(uv_async_t *handle)
     {
         auto adapter = static_cast<Adapter *>(handle->data);
@@ -186,21 +211,33 @@ extern "C" {
     }
 }
 
-void Adapter::initLogHandling(std::unique_ptr<Nan::Callback> &callback)
+void Adapter::initLogHandling(std::unique_ptr<Nan::Callback> callback)
 {
     // Setup event related functionality
-    asyncLog = new uv_async_t();
+    asyncLog = std::make_unique<uv_async_t>();
     logCallback = std::move(callback);
     asyncLog->data = static_cast<void *>(this);
 
-    if (uv_async_init(uv_default_loop(), asyncLog, log_handler) != 0)
+    if (uv_async_init(uv_default_loop(), asyncLog.get(), log_handler) != 0)
     {
         std::cerr << "Not able to create a new event log handler." << std::endl;
         std::terminate();
     }
 }
 
-extern "C" {
+// This compilation unit will be linked several times. So
+// log_handler must not have external linkage. Otherwise, we get
+// problems like a v3 Adapter getting cast into a v2 Adapter.
+// Ideally, only things specifically needing external linkage
+// should have it.
+namespace {
+    // Turns out the right way to declare a function that can be
+    // called trough a pointer in C code is simply to declare it
+    // having the type we want that was typedef-ed inside a
+    // extern-C block. `uv_async_cb` pretty much fits the bill,
+    // but.. it's pointer to callback function, while we are
+    // declaring the actual function. So:
+    std::remove_pointer<uv_async_cb>::type status_handler;
     void status_handler(uv_async_t *handle)
     {
         auto adapter = static_cast<Adapter *>(handle->data);
@@ -217,78 +254,72 @@ extern "C" {
     }
 }
 
-void Adapter::initStatusHandling(std::unique_ptr<Nan::Callback> &callback)
+void Adapter::initStatusHandling(std::unique_ptr<Nan::Callback> callback)
 {
     // Setup event related functionality
-    asyncStatus = new uv_async_t();
+    asyncStatus = std::make_unique<uv_async_t>();
     statusCallback = std::move(callback);
     asyncStatus->data = static_cast<void *>(this);
 
-    if (uv_async_init(uv_default_loop(), asyncStatus, status_handler) != 0)
+    if (uv_async_init(uv_default_loop(), asyncStatus.get(), status_handler) != 0)
     {
         std::cerr << "Not able to create a new status handler." << std::endl;
         std::terminate();
     }
 }
 
+// Helper function for cleanUpV8Resources for closing uv_*_t
+// handles. It is also suitable as a Deleter (template argment
+// of unique_ptr).
+namespace {
+    template<typename T_uv_handle_t_derived>
+    void close_uv_handle(std::unique_ptr<T_uv_handle_t_derived> handle)
+    {
+        // Ensure the type is expected. All the other subtypes
+        // of uv_handle_t can be added as needed.
+        static_assert(std::is_same<T_uv_handle_t_derived, uv_async_t>::value
+                   || std::is_same<T_uv_handle_t_derived, uv_timer_t>::value
+                    , "Not sure if T_uv_handle_t_derived is a uv_handle_t.");
+
+        // The callback from uv_close is the earliest the handle
+        // memory can be released according to libuv. C++ delete
+        // requires the pointer have the original type.
+        auto raw_handle = reinterpret_cast<uv_handle_t *>(handle.release());
+        uv_close(raw_handle, [](uv_handle_t * raw_handle){
+                delete reinterpret_cast<T_uv_handle_t_derived *>(raw_handle);
+        });
+    }
+}
+
 void Adapter::cleanUpV8Resources()
 {
-    uv_mutex_lock(adapterCloseMutex);
+    uv_mutex_lock(&adapterCloseMutex);
 
     if (asyncStatus != nullptr)
     {
-        auto handle = reinterpret_cast<uv_handle_t *>(asyncStatus);
-        uv_close(handle, [](uv_handle_t *handle) {
-            delete handle;
-        });
+        close_uv_handle(std::move(asyncStatus));
         this->statusCallback.reset();
-
-        asyncStatus = nullptr;
     }
 
     if (eventIntervalTimer != nullptr)
     {
-        // Deallocate resources related to the event handling interval timer
-        if (uv_timer_stop(eventIntervalTimer) != 0)
-        {
-            std::terminate();
-        }
-
-        auto handle = reinterpret_cast<uv_handle_t *>(eventIntervalTimer);
-        uv_close(handle, [](uv_handle_t *handle)
-        {
-            delete handle;
-        });
-
-        eventIntervalTimer = nullptr;
+        uv_timer_stop(eventIntervalTimer.get());
+        close_uv_handle(std::move(eventIntervalTimer));
     }
 
     if (asyncEvent != nullptr)
     {
-        auto handle = reinterpret_cast<uv_handle_t *>(asyncEvent);
-
-        uv_close(handle, [](uv_handle_t *handle)
-        {
-            delete handle;
-        });
+        close_uv_handle(std::move(asyncEvent));
         this->eventCallback.reset();
-
-        asyncEvent = nullptr;
     }
 
     if (asyncLog != nullptr)
     {
-        auto logHandle = reinterpret_cast<uv_handle_t *>(asyncLog);
-        uv_close(logHandle, [](uv_handle_t *handle)
-        {
-            delete handle;
-        });
+        close_uv_handle(std::move(asyncLog));
         this->logCallback.reset();
-
-        asyncLog = nullptr;
     }
 
-    uv_mutex_unlock(adapterCloseMutex);
+    uv_mutex_unlock(&adapterCloseMutex);
 }
 
 void Adapter::initGeneric(v8::Local<v8::FunctionTemplate> tpl)
@@ -384,17 +415,7 @@ Adapter::Adapter()
     eventCallbackBatchEventTotalCount = 0;
     eventCallbackBatchNumber = 0;
 
-    eventCallback = nullptr;
-
-    eventIntervalTimer = nullptr;
-
-    asyncEvent = nullptr;
-    asyncLog = nullptr;
-    asyncStatus = nullptr;
-
-    adapterCloseMutex = new uv_mutex_t();
-
-    if (uv_mutex_init(adapterCloseMutex) != 0)
+    if (uv_mutex_init(&adapterCloseMutex) != 0)
     {
         std::cerr << "Not able to create adapterCloseMutex! Terminating." << std::endl;
         std::terminate();
@@ -411,8 +432,7 @@ Adapter::~Adapter()
     // Remove callbacks and cleanup uv_handle_t instances
     cleanUpV8Resources();
 
-    uv_mutex_destroy(adapterCloseMutex);
-    delete adapterCloseMutex;
+    uv_mutex_destroy(&adapterCloseMutex);
 }
 
 NAN_METHOD(Adapter::New)
