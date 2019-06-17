@@ -323,11 +323,10 @@ public:
     BATON_DESTRUCTOR(BleUUIDDecodeBaton)
     {
         delete p_uuid;
-        delete uuid_le;
     }
     uint8_t uuid_le_len;
     ble_uuid_t *p_uuid;
-    uint8_t *uuid_le;
+    std::vector<uint8_t> uuid_le;
 };
 
 class BleUserMemReplyBaton : public Baton
