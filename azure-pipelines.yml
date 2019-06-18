@@ -96,6 +96,19 @@ jobs:
       npmConfigRuntime: 'electron'
       npmConfigTarget: 4.1.4
 
+  # Relese draft of artefacts in $(Build.ArtifactStagingDirectory).
+  - task: GitHubRelease@0
+    inputs:
+      gitHubConnection: 'waylandCI'
+      repositoryName: 'NordicSemiconductor/pc-ble-driver-js'
+      action: 'edit'
+      tagSource: 'Git tag'
+      tag: '$(Build.SourceBranchName)'
+      assetUploadMode: 'replace'
+      isDraft: 'true'
+      addChangeLog: 'false'
+    condition: ne(variables['Build.Reason'], 'PullRequest')
+
 - job: Test
   dependsOn: [
    Build,
