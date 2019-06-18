@@ -12,6 +12,7 @@ export BLE_DRIVER_TEST_OPENCLOSE_ITERATIONS=5
 export BLE_DRIVER_TEST_LOGLEVEL="trace"
 export DEBUG="ble-driver:*"
 
+global_failure=0
 for pca in "${test_pcas[@]}"; do
     serial_numbers=($(npx nrf-device-lister -S "$pca"))
     export DEVICE_A_SERIAL_NUMBER="${serial_numbers[0]}"
@@ -20,7 +21,11 @@ for pca in "${test_pcas[@]}"; do
     function run_test {
          echo "Running test using PCA: $pca, serial number" \
          "A: $DEVICE_A_SERIAL_NUMBER B: $DEVICE_B_SERIAL_NUMBER"
-        npx jest --detectOpenHandles --forceExit "$@"
+        npx jest --detectOpenHandles --forceExit "$@" || {
+            echo "======== TEST FAILURE (exit code: $?) ========"
+            global_failure=1
+            # Don't exit on failure. Continue with next test.
+        }
     }
 
     # Run each tests in a new Jest instance. Sheduling more in
@@ -37,4 +42,9 @@ for pca in "${test_pcas[@]}"; do
     run_test simpleSecurity.test.js -t LESCPasskey
     run_test simpleSecurity.test.js -t LESCOOB
     run_test openClose.test.js
+
+    [ "$global_failure" != 0 ] && {
+        echo "End of tests. One or more tests failed."
+        exit 1
+    }
 done
