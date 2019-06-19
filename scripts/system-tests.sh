@@ -22,7 +22,7 @@ for pca in "${test_pcas[@]}"; do
          echo "Running test using PCA: $pca, serial number" \
          "A: $DEVICE_A_SERIAL_NUMBER B: $DEVICE_B_SERIAL_NUMBER"
         npx jest --detectOpenHandles --forceExit "$@" || {
-            echo "======== TEST FAILURE (exit code: $?) ========"
+            echo "======== TEST FAILURE ======== (exit code: $?)"
             global_failure=1
             # Don't exit on failure. Continue with next test.
         }
