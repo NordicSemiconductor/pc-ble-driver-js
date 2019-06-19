@@ -13,6 +13,7 @@ export BLE_DRIVER_TEST_LOGLEVEL="trace"
 export DEBUG="ble-driver:*"
 
 global_failure=0
+
 for pca in "${test_pcas[@]}"; do
     serial_numbers=($(npx nrf-device-lister -S "$pca"))
     export DEVICE_A_SERIAL_NUMBER="${serial_numbers[0]}"
@@ -42,9 +43,9 @@ for pca in "${test_pcas[@]}"; do
     run_test simpleSecurity.test.js -t LESCPasskey
     run_test simpleSecurity.test.js -t LESCOOB
     run_test openClose.test.js
-
-    [ "$global_failure" != 0 ] && {
-        echo "End of tests. One or more tests failed."
-        exit 1
-    }
 done
+
+if [ "$global_failure" != 0 ]; then
+    echo "End of tests. One or more tests failed."
+    exit 1
+fi
