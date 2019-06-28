@@ -29,9 +29,7 @@ steps:
   displayName: 'Setup Node.js on Windows 32-bit'
 
 - bash: |
-    npm c set cmake_js_runtime "${{ parameters.npmConfigRuntime }}"
-    npm c set cmake_js_runtime-version "${{ parameters.npmConfigTarget }}"
-    npm i --build-from-source
+    npm install --build-from-source
     npm run package-prebuilt --verbose
   env: {
     npm_config_runtime: '${{ parameters.npmConfigRuntime }}',

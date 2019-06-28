@@ -44,6 +44,8 @@ require('child_process').execFileSync(process.platform === 'win32' ? 'npx.cmd' :
     // Translate npm config options understood by node-gyp to cmake-js.
     ...('npm_config_runtime' in process.env ? ['--runtime', process.env.npm_config_runtime] : []),
     ...('npm_config_target' in process.env ? ['--runtime-version', process.env.npm_config_target] : []),
-    // Allow overriding with options from command line.
+    // Allow supplying options from command line. Note that cmake-js does not
+    // allow overriding previously provided arguments, but will instead join
+    // the values with a comma.
     ...process.argv.slice(2),
 ], { stdio: 'inherit' });
