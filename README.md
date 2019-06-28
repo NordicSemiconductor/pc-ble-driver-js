@@ -17,11 +17,12 @@ The install script will try to download precompiled binaries for your platform/r
 
 ### Installing in Electron apps
 
-If you want to use pc-ble-driver-js with the electron runtime, you must set the runtime to Electron in .npmrc in the root of your project. Then install pc-ble-driver-js again. Example .npmrc file content:
+To use this project with Electron, the environment variables `npm_config_runtime` and `npm_config_target` must be set for `npm install`. The variables should be "`Electron`" and the Electron version, respectivly.
+
+These variables can be set in `.npmrc` file in the root of your Electron based project. Example .npmrc file content:
 
     runtime = Electron
     target = 1.16.6
-    disturl = https://atom.io/download/atom-shell
 
 ## Building
 
