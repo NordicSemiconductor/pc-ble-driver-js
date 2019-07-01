@@ -29,9 +29,7 @@ steps:
   displayName: 'Setup Node.js on Windows 32-bit'
 
 - bash: |
-    npm c set cmake_js_runtime "${{ parameters.npmConfigRuntime }}"
-    npm c set cmake_js_runtime-version "${{ parameters.npmConfigTarget }}"
-    npm i --build-from-source
+    npm install --build-from-source
     npm run package-prebuilt --verbose
   env: {
     npm_config_runtime: '${{ parameters.npmConfigRuntime }}',
@@ -43,17 +41,7 @@ steps:
     npm test
   displayName: 'Integration test'
 
+  # Stage artefacts for release draft.
 - bash: |
-    cp build/stage/**/*.tar.gz "$(Build.ArtifactStagingDirectory)"
-  displayName: 'Copy artifacts'
-- task: GitHubRelease@0
-  inputs:
-    gitHubConnection: 'waylandCI'
-    repositoryName: 'NordicSemiconductor/pc-ble-driver-js'
-    action: 'edit'
-    tagSource: 'Git tag'
-    tag: '$(Build.SourceBranchName)'
-    assetUploadMode: 'replace'
-    isDraft: 'true'
-    addChangeLog: 'false'
-  condition: ne(variables['Build.Reason'], 'PullRequest')
+    cp -n build/stage/**/*.tar.gz "$(Build.ArtifactStagingDirectory)"
+  displayName: 'Stage artifacts'
