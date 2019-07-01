@@ -44,7 +44,6 @@ const currentDir = require.resolve('./firmwareRegistry');
 const hexDir = path.join(currentDir, '..', '..', 'build', 'Release', 'pc-ble-driver', 'hex');
 
 const VERSION_INFO_MAGIC = 0x46D8A517;
-const VERSION_INFO_START = 0x20000;
 const VERSION_INFO_LENGTH = 24;
 
 const connectivityVersion = '4.1.1';
@@ -67,12 +66,14 @@ function getFirmwareMap(platform) {
                 version: connectivityVersion,
                 baudRate: connectivityBaudRate,
                 sdBleApiVersion: 2,
+                versionInfoStart: 0x39000,
             },
             nrf52: {
                 file: path.join(hexDir, `connectivity_${connectivityVersion}_1m_with_s132_3.1.0.hex`),
                 version: connectivityVersion,
                 baudRate: connectivityBaudRate,
                 sdBleApiVersion: 3,
+                versionInfoStart: 0x50000,
             },
         },
         nordicUsb: {
@@ -181,7 +182,7 @@ class FirmwareRegistry {
                                 parsedData.baudRate === deviceConfig.baudRate;
                         },
                     },
-                    fwIdAddress: VERSION_INFO_START,
+                    fwIdAddress: deviceConfig.versionInfoStart,
                 },
             });
         });

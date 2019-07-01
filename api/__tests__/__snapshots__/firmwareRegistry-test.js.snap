@@ -6,6 +6,7 @@ Object {
   "file": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/connectivity_4.1.1_1m_with_s130_2.0.1.hex",
   "sdBleApiVersion": 2,
   "version": "4.1.1",
+  "versionInfoStart": 233472,
 }
 `;
 
@@ -15,6 +16,7 @@ Object {
   "file": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/connectivity_4.1.1_1m_with_s130_2.0.1.hex",
   "sdBleApiVersion": 2,
   "version": "4.1.1",
+  "versionInfoStart": 233472,
 }
 `;
 
@@ -24,6 +26,7 @@ Object {
   "file": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/connectivity_4.1.1_1m_with_s130_2.0.1.hex",
   "sdBleApiVersion": 2,
   "version": "4.1.1",
+  "versionInfoStart": 233472,
 }
 `;
 
@@ -33,6 +36,7 @@ Object {
   "file": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/connectivity_4.1.1_1m_with_s132_3.1.0.hex",
   "sdBleApiVersion": 3,
   "version": "4.1.1",
+  "versionInfoStart": 327680,
 }
 `;
 
@@ -42,6 +46,7 @@ Object {
   "file": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/connectivity_4.1.1_1m_with_s132_3.1.0.hex",
   "sdBleApiVersion": 3,
   "version": "4.1.1",
+  "versionInfoStart": 327680,
 }
 `;
 
@@ -51,6 +56,7 @@ Object {
   "file": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/connectivity_4.1.1_1m_with_s132_3.1.0.hex",
   "sdBleApiVersion": 3,
   "version": "4.1.1",
+  "versionInfoStart": 327680,
 }
 `;
 

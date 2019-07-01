@@ -1,10 +1,10 @@
 {
   "name": "pc-ble-driver-js",
-  "version": "2.5.1",
+  "version": "2.6.0",
   "description": "Javascript bindings for pc-ble-driver",
   "main": "index.js",
   "scripts": {
-    "build": "cmake-js --target install",
+    "build": "node build.js",
     "lint": "jshint api/ test/ && jscs api/ test/",
     "deploy-docs": "gh-pages -d docs",
     "clean-prebuilt": "node-pre-gyp clean",
