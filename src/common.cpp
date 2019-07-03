@@ -606,19 +606,17 @@ uint8_t ConversionUtility::extractHexHelper(char text)
     return 0xFF;
 }
 
-uint8_t *ConversionUtility::extractHex(v8::Local<v8::Value> js)
+std::vector<uint8_t> ConversionUtility::extractHex(v8::Local<v8::Value> js)
 {
     v8::Local<v8::String> jsString = v8::Local<v8::String>::Cast(js);
     auto length = jsString->Length();
-    auto cString = static_cast<char *>(malloc(sizeof(char) * (length + 1)));
-    memset(cString, 0, length + 1);
+    auto cString = std::vector<char>(length + 1);
 
-    jsString->WriteUtf8(cString, length);
+    jsString->WriteUtf8(cString.data(), length);
 
     auto size = (length / 2);
 
-    auto retArray = static_cast<uint8_t *>(malloc(sizeof(uint8_t) * size));
-    memset(retArray, 0, size);
+    auto retArray = std::vector<uint8_t>(size);
 
     for (auto i = 0, j = size - 1; i < length; i += 2, j--)
     {

@@ -211,7 +211,7 @@ public:
             throw std::string("number");
         }
 
-        return static_cast<NativeType>(js->ToUint32()->Uint32Value());
+        return static_cast<NativeType>(js->Uint32Value());
     }
 
     static NativeType getNativeSigned(v8::Local<v8::Value> js)
@@ -221,7 +221,7 @@ public:
             throw std::string("number");
         }
 
-        return static_cast<NativeType>(js->ToInt32()->Int32Value());
+        return static_cast<NativeType>(js->Int32Value());
     }
 
     static NativeType getNativeFloat(v8::Local<v8::Value> js)
@@ -231,7 +231,7 @@ public:
             throw std::string("number");
         }
 
-        return static_cast<NativeType>(js->ToNumber()->NumberValue());
+        return static_cast<NativeType>(js->NumberValue());
     }
 
     static NativeType getNativeBool(v8::Local<v8::Value> js)
@@ -331,7 +331,7 @@ public:
     static v8::Local<v8::Function> getCallbackFunction(v8::Local<v8::Value> js);
 
     static uint8_t extractHexHelper(char text);
-    static uint8_t *extractHex(v8::Local<v8::Value> js);
+    static std::vector<uint8_t> extractHex(v8::Local<v8::Value> js);
     static v8::Handle<v8::Value> encodeHex(const char *text, int length);
 };
 

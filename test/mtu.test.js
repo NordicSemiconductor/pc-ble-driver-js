@@ -53,6 +53,18 @@ const BLE_UUID_HEART_RATE_SERVICE = '180d';
 const BLE_UUID_HEART_RATE_MEASUREMENT_CHAR = '2a37';
 const BLE_UUID_CCCD = '2902';
 
+const serialNumberA = process.env.DEVICE_A_SERIAL_NUMBER;
+if (!serialNumberA) {
+    console.log('Missing env DEVICE_A_SERIAL_NUMBER=<SN e.g. from nrf-device-lister>');
+    process.exit(1);
+}
+
+const serialNumberB = process.env.DEVICE_B_SERIAL_NUMBER;
+if (!serialNumberA) {
+    console.log('Missing env DEVICE_B_SERIAL_NUMBER=<SN e.g. from nrf-device-lister>');
+    process.exit(1);
+}
+
 function connect(adapter, connectToAddress) {
     return new Promise((resolve, reject) => {
         const options = {
@@ -259,12 +271,13 @@ async function onConnected(adapter, peerDevice, desiredMTU) {
     });
 }
 
-describe('the API', async () => {
+describe('the API', () => {
     let centralAdapter;
     let peripheralAdapter;
 
     beforeAll(async () => {
-        [centralAdapter, peripheralAdapter] = await Promise.all([grabAdapter(), grabAdapter()]);
+        centralAdapter = await grabAdapter(serialNumberA);
+        peripheralAdapter = await grabAdapter(serialNumberB);
 
         await Promise.all([
             setupAdapter(centralAdapter, '#CENTRAL', 'central', CENTRAL_DEVICE_ADDRESS, CENTRAL_DEVICE_ADDRESS_TYPE),

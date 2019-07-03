@@ -135,7 +135,7 @@ void Adapter::appendLog(LogEntry *log)
     if (asyncLog != nullptr)
     {
         logQueue.push(log);
-        uv_async_send(asyncLog);
+        uv_async_send(asyncLog.get());
     }
 }
 
@@ -154,7 +154,8 @@ void Adapter::onLogEvent(uv_async_t *handle)
             v8::Local<v8::Value> argv[2];
             argv[0] = ConversionUtility::toJsNumber(static_cast<int>(logEntry->severity));
             argv[1] = ConversionUtility::toJsString(logEntry->message);
-            logCallback->Call(2, argv);
+            Nan::AsyncResource resource("pc-ble-driver-js:callback");
+            logCallback->Call(2, argv, &resource);
         }
         else
         {
@@ -172,7 +173,7 @@ void Adapter::dispatchEvents()
     // Trigger callback in NodeJS thread to call NodeJS callbacks
     if (asyncEvent != nullptr)
     {
-        uv_async_send(asyncEvent);
+        uv_async_send(asyncEvent.get());
     }
     else
     {
@@ -180,7 +181,7 @@ void Adapter::dispatchEvents()
         // Adapter::cleanUpV8Resources() is called from both Adapter::AfterClose and Adapter::AfterConnReset
         //
         // If Adapter::eventInterval is 0, this method, Adapter::dispatchEvents, will be called directly without being
-        // invoked from eventIntervalTimer. 
+        // invoked from eventIntervalTimer.
         //
         // When Adapter::AfterClose is invoked, parts of Adapter::cleanUpV8Resources() is ran before the
         // the following call graph is complete:
@@ -189,8 +190,8 @@ void Adapter::dispatchEvents()
         //
         // The above call graph is ran in thread SerializationTransport::eventThread when Adapter::eventInterval == 0.
         //
-        // If eventInterval != 0 the event is popped out of the Adapter::eventQueue queue by 
-        // Adapter::eventIntervalTimer, in a libuv thread-pool thread. Adapter::eventIntervalTimer is stopped in 
+        // If eventInterval != 0 the event is popped out of the Adapter::eventQueue queue by
+        // Adapter::eventIntervalTimer, in a libuv thread-pool thread. Adapter::eventIntervalTimer is stopped in
         // Adapter::cleanUpV8Resources().
         //
         // A quick fix to circumvent this race condition is to ignore the event when Adapter::asyncEvent is nullptr.
@@ -386,7 +387,8 @@ void Adapter::onRpcEvent(uv_async_t *handle)
 
     if (eventCallback != nullptr)
     {
-        eventCallback->Call(1, callback_value);
+        Nan::AsyncResource resource("pc-ble-driver-js:callback");
+        eventCallback->Call(1, callback_value, &resource);
     }
     else
     {
@@ -424,7 +426,7 @@ void Adapter::appendStatus(StatusEntry *status)
     if (asyncStatus != nullptr)
     {
         statusQueue.push(status);
-        uv_async_send(asyncStatus);
+        uv_async_send(asyncStatus.get());
     }
 }
 
@@ -442,7 +444,8 @@ void Adapter::onStatusEvent(uv_async_t *handle)
         {
             v8::Local<v8::Value> argv[1];
             argv[0] = StatusMessage::getStatus(statusEntry->id, statusEntry->message, statusEntry->timestamp);
-            statusCallback->Call(1, argv);
+            Nan::AsyncResource resource("pc-ble-driver-js:callback");
+            statusCallback->Call(1, argv, &resource);
         }
 
         // Free memory for current entry, we remove the element from the deque when the iteration is done
@@ -583,7 +586,8 @@ void Adapter::AfterEnableBLE(uv_work_t *req)
         argv[2] = ConversionUtility::toJsNumber(baton->app_ram_base);
     }
 
-    baton->callback->Call(3, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(3, argv, &resource);
     delete baton;
 }
 
@@ -654,7 +658,7 @@ NAN_METHOD(Adapter::Open)
 
     try
     {
-        baton->log_callback = std::unique_ptr<Nan::Callback>(new Nan::Callback(ConversionUtility::getCallbackFunction(options, "logCallback")));
+        baton->log_callback = std::make_unique<Nan::Callback>(ConversionUtility::getCallbackFunction(options, "logCallback"));
     }
     catch (std::string error)
     {
@@ -665,7 +669,7 @@ NAN_METHOD(Adapter::Open)
 
     try
     {
-        baton->event_callback = std::unique_ptr<Nan::Callback>(new Nan::Callback(ConversionUtility::getCallbackFunction(options, "eventCallback")));
+        baton->event_callback = std::make_unique<Nan::Callback>(ConversionUtility::getCallbackFunction(options, "eventCallback"));
     }
     catch (std::string error)
     {
@@ -693,9 +697,9 @@ void Adapter::Open(uv_work_t *req)
 {
     auto baton = static_cast<OpenBaton *>(req->data);
 
-    baton->mainObject->initEventHandling(baton->event_callback, baton->evt_interval);
-    baton->mainObject->initLogHandling(baton->log_callback);
-    baton->mainObject->initStatusHandling(baton->status_callback);
+    baton->mainObject->initEventHandling(std::move(baton->event_callback), baton->evt_interval);
+    baton->mainObject->initLogHandling(std::move(baton->log_callback));
+    baton->mainObject->initStatusHandling(std::move(baton->status_callback));
 
     // Ensure that the correct adapter gets the callbacks as long as we have no reference to
     // the driver adapter until after sd_rpc_open is called
@@ -785,8 +789,8 @@ void Adapter::AfterOpen(uv_work_t *req)
     }
 
 
-    baton->callback->Call(1, argv);
-
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -843,7 +847,8 @@ void Adapter::AfterClose(uv_work_t *req)
             baton->adapter = nullptr;
         }
 
-        baton->callback->Call(1, argv);
+        Nan::AsyncResource resource("pc-ble-driver-js:callback");
+        baton->callback->Call(1, argv, &resource);
     }
 
     delete baton;
@@ -898,7 +903,8 @@ void Adapter::AfterConnReset(uv_work_t *req)
             argv[0] = Nan::Undefined();
         }
 
-        baton->callback->Call(1, argv);
+        Nan::AsyncResource resource("pc-ble-driver-js:callback");
+        baton->callback->Call(1, argv, &resource);
     }
 
     delete baton;
@@ -958,7 +964,8 @@ void Adapter::AfterAddVendorSpecificUUID(uv_work_t *req)
         argv[1] = ConversionUtility::toJsNumber(baton->p_uuid_type);
     }
 
-    baton->callback->Call(2, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -1074,7 +1081,8 @@ void Adapter::AfterGetVersion(uv_work_t *req)
         argv[1] = Nan::Undefined();
     }
 
-    baton->callback->Call(2, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -1150,7 +1158,8 @@ void Adapter::AfterEncodeUUID(uv_work_t *req)
         argv[3] = ConversionUtility::encodeHex(reinterpret_cast<char *>(baton->uuid_le), baton->uuid_le_len);
     }
 
-    baton->callback->Call(4, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(4, argv, &resource);
     delete baton;
 }
 
@@ -1194,7 +1203,7 @@ NAN_METHOD(Adapter::DecodeUUID)
 void Adapter::DecodeUUID(uv_work_t *req)
 {
     auto baton = static_cast<BleUUIDDecodeBaton *>(req->data);
-    baton->result = sd_ble_uuid_decode(baton->adapter, baton->uuid_le_len, baton->uuid_le, baton->p_uuid);
+    baton->result = sd_ble_uuid_decode(baton->adapter, baton->uuid_le_len, baton->uuid_le.data(), baton->p_uuid);
 }
 
 // This runs in Main Thread
@@ -1215,7 +1224,8 @@ void Adapter::AfterDecodeUUID(uv_work_t *req)
         argv[1] = BleUUID(baton->p_uuid);
     }
 
-    baton->callback->Call(2, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -1298,7 +1308,8 @@ void Adapter::AfterReplyUserMemory(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -1373,7 +1384,8 @@ void Adapter::AfterSetBleOption(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -1450,7 +1462,8 @@ void Adapter::AfterGetBleOption(uv_work_t *req)
         argv[1] = optionValue;
     }
 
-    baton->callback->Call(2, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -1712,7 +1725,7 @@ ble_uuid128_t *BleUUID128::ToNative()
         std::terminate();
     }
 
-    uuidString->WriteUtf8(uuidPtr, uuid_len);
+    uuidString->WriteUtf8(uuidPtr, (int) uuid_len);
 
     auto scan_count = sscanf(uuidPtr,
         "%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x",
