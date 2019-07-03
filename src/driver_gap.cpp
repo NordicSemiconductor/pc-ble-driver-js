@@ -237,20 +237,17 @@ v8::Local<v8::Object> GapAddr::ToJs()
     // its scope, the underlaying string is freed.
 
     size_t addr_len = BLE_GAP_ADDR_LEN * 3; // Each byte -> 2 chars, : separator _between_ each byte and a null termination byte
-    auto addr = static_cast<char*>(malloc(addr_len));
-    assert(addr != NULL);
+    auto addr = std::vector<char>(addr_len);
     uint8_t *ptr = native->addr;
 
-    sprintf(addr, "%02X:%02X:%02X:%02X:%02X:%02X", ptr[5], ptr[4], ptr[3], ptr[2], ptr[1], ptr[0]);
+    sprintf(addr.data(), "%02X:%02X:%02X:%02X:%02X:%02X", ptr[5], ptr[4], ptr[3], ptr[2], ptr[1], ptr[0]);
 
-    Utility::Set(obj, "address", addr);
+    Utility::Set(obj, "address", addr.data());
     Utility::Set(obj, "type", ConversionUtility::valueToJsString(native->addr_type, gap_addr_type_map));
 
 #if NRF_SD_BLE_API_VERSION >= 3
     Utility::Set(obj, "addr_id_peer", native->addr_id_peer);
 #endif
-
-    free(addr);
 
     return scope.Escape(obj);
 }
@@ -269,14 +266,11 @@ ble_gap_addr_t *GapAddr::ToNative()
     v8::Local<v8::Value> getAddress = Utility::Get(jsobj, "address");
     v8::Local<v8::String> addressString = getAddress->ToString();
     size_t addr_len = addressString->Length() + 1;
-    auto addr = static_cast<char*>(malloc(addr_len));
-    assert(addr != NULL);
-    addressString->WriteUtf8(addr, addr_len);
+    auto addr = std::vector<char>(addr_len);
+    addressString->WriteUtf8(addr.data(), (int) addr_len);
 
-    auto scan_count = sscanf(addr, "%2x:%2x:%2x:%2x:%2x:%2x", &(ptr[5]), &(ptr[4]), &(ptr[3]), &(ptr[2]), &(ptr[1]), &(ptr[0]));
+    auto scan_count = sscanf(addr.data(), "%2x:%2x:%2x:%2x:%2x:%2x", &(ptr[5]), &(ptr[4]), &(ptr[3]), &(ptr[2]), &(ptr[1]), &(ptr[0]));
     assert(scan_count == 6);
-
-    free(addr);
 
     for (auto i = 0; i < BLE_GAP_ADDR_LEN; i++)
     {
@@ -286,11 +280,9 @@ ble_gap_addr_t *GapAddr::ToNative()
     v8::Local<v8::Value> getAddressType = Utility::Get(jsobj, "type");
     v8::Local<v8::String> addressTypeString = getAddressType->ToString();
     size_t type_len = addressTypeString->Length() + 1;
-    auto typeString = static_cast<char *>(malloc(type_len));
-    addressTypeString->WriteUtf8(typeString, type_len);
-    address->addr_type = static_cast<uint8_t>(fromNameToValue(gap_addr_type_map, typeString));
-
-    free(typeString);
+    auto typeString = std::vector<char>(type_len);
+    addressTypeString->WriteUtf8(typeString.data(), (int) type_len);
+    address->addr_type = static_cast<uint8_t>(fromNameToValue(gap_addr_type_map, typeString.data()));
 
     return address;
 }
@@ -1348,11 +1340,9 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 // Fetch 16 bit UUIDS and put them into the array
                 for (auto i = 0; i < ad_len - 1; i += 2)
                 {
-                    auto uuid_as_text = static_cast<char*>(malloc(UUID_16_BIT_STR_SIZE + 1));
-                    assert(uuid_as_text != nullptr);
-                    sprintf(uuid_as_text, UUID_16_BIT_SPRINTF, uint16_decode(static_cast<uint8_t*>(data) + sub_pos + i));
-                    Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
-                    free(uuid_as_text);
+                    auto uuid_as_text = std::vector<char>(UUID_16_BIT_STR_SIZE + 1);
+                    sprintf(uuid_as_text.data(), UUID_16_BIT_SPRINTF, uint16_decode(static_cast<uint8_t*>(data) + sub_pos + i));
+                    Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text.data()));
                     array_pos++;
                 }
 
@@ -1367,14 +1357,12 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 // Fetch 32 bit UUIDS and put them into the array
                 for (auto i = 0; i < ad_len - 1; i += 4)
                 {
-                    auto uuid_as_text = static_cast<char*>(malloc(UUID_128_BIT_STR_SIZE + 1));
-                    assert(uuid_as_text != nullptr);
+                    auto uuid_as_text = std::vector<char>(UUID_128_BIT_STR_SIZE + 1);
 
-                    sprintf(uuid_as_text, UUID_128_BIT_SPRINTF,
+                    sprintf(uuid_as_text.data(), UUID_128_BIT_SPRINTF,
                             uint16_decode(static_cast<uint8_t*>(data) + sub_pos + 2 + i),
                             uint16_decode(static_cast<uint8_t*>(data) + sub_pos + 0 + i));
-                    Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
-                    free(uuid_as_text);
+                    Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text.data()));
                     array_pos++;
                 }
 
@@ -1389,11 +1377,10 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                 // Fetch 128 bit UUIDS and put them into the array
                 for (auto i = 0; i < ad_len - 1; i += 16)
                 {
-                    auto uuid_as_text = static_cast<char*>(malloc(UUID_128_BIT_STR_SIZE + 1));
-                    assert(uuid_as_text != NULL);
+                    auto uuid_as_text = std::vector<char>(UUID_128_BIT_STR_SIZE + 1);
 
                     sprintf(
-                        uuid_as_text,
+                        uuid_as_text.data(),
                         UUID_128_BIT_COMPLETE_SPRINTF,
                         uint16_decode(static_cast<uint8_t*>(data) + (sub_pos + i + 14)),
                         uint16_decode(static_cast<uint8_t*>(data) + (sub_pos + i + 12)),
@@ -1404,8 +1391,7 @@ v8::Local<v8::Object> GapAdvReport::ToJs()
                         uint16_decode(static_cast<uint8_t*>(data) + (sub_pos + i + 2)),
                         uint16_decode(static_cast<uint8_t*>(data) + (sub_pos + i + 0))
                         );
-                    Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text));
-                    free(uuid_as_text);
+                    Nan::Set(uuid_array, Nan::New<v8::Integer>(array_pos), ConversionUtility::toJsString(uuid_as_text.data()));
                     array_pos++;
                 }
 
@@ -1567,8 +1553,8 @@ void Adapter::AfterGapSetAddress(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
-
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -1635,7 +1621,8 @@ void Adapter::AfterGapGetAddress(uv_work_t *req)
         argv[1] = Nan::Undefined();
     }
 
-    baton->callback->Call(2, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -1713,7 +1700,8 @@ void Adapter::AfterGapUpdateConnectionParameters(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -1779,7 +1767,8 @@ void Adapter::AfterGapDisconnect(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -1842,7 +1831,8 @@ void Adapter::AfterGapSetTXPower(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -1923,7 +1913,8 @@ void Adapter::AfterGapSetDeviceName(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -1952,7 +1943,7 @@ NAN_METHOD(Adapter::GapGetDeviceName)
     auto baton = new GapGetDeviceNameBaton(callback);
 
     baton->length = 248; // Max length of Device name characteristic
-    baton->dev_name = static_cast<uint8_t*>(malloc(baton->length));
+    baton->dev_name.resize(baton->length);
     baton->adapter = obj->adapter;
 
     uv_queue_work(uv_default_loop(), baton->req, GapGetDeviceName, reinterpret_cast<uv_after_work_cb>(AfterGapGetDeviceName));
@@ -1962,7 +1953,7 @@ NAN_METHOD(Adapter::GapGetDeviceName)
 void Adapter::GapGetDeviceName(uv_work_t *req)
 {
     auto baton = static_cast<GapGetDeviceNameBaton *>(req->data);
-    baton->result = sd_ble_gap_device_name_get(baton->adapter, baton->dev_name, &(baton->length));
+    baton->result = sd_ble_gap_device_name_get(baton->adapter, baton->dev_name.data(), &(baton->length));
 }
 
 // This runs in Main Thread
@@ -1983,13 +1974,14 @@ void Adapter::AfterGapGetDeviceName(uv_work_t *req)
         size_t length = baton->length;
         baton->dev_name[length] = 0;
 
-        v8::Local<v8::Value> dev_name = ConversionUtility::toJsString(reinterpret_cast<char *>(baton->dev_name));
+        v8::Local<v8::Value> dev_name = ConversionUtility::toJsString(reinterpret_cast<char *>(baton->dev_name.data()));
 
         argv[0] = dev_name;
         argv[1] = Nan::Undefined();
     }
 
-    baton->callback->Call(2, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -2060,7 +2052,8 @@ void Adapter::AfterGapStartRSSI(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -2121,7 +2114,8 @@ void Adapter::AfterGapStopRSSI(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -2184,7 +2178,8 @@ void Adapter::AfterGapStartScan(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -2240,7 +2235,8 @@ void Adapter::AfterGapStopScan(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -2342,7 +2338,8 @@ void Adapter::AfterGapConnect(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -2398,7 +2395,8 @@ void Adapter::AfterGapCancelConnect(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -2465,7 +2463,8 @@ void Adapter::AfterGapGetRSSI(uv_work_t *req)
         argv[1] = Nan::Undefined();
     }
 
-    baton->callback->Call(2, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -2536,7 +2535,8 @@ void Adapter::AfterGapStartAdvertising(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -2592,7 +2592,8 @@ void Adapter::AfterGapStopAdvertising(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -2656,7 +2657,8 @@ void Adapter::AfterGapGetConnectionSecurity(uv_work_t *req)
         argv[1] = GapConnSec(baton->conn_sec).ToJs();
     }
 
-    baton->callback->Call(2, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -2745,7 +2747,8 @@ void Adapter::AfterGapEncrypt(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 #pragma endregion GapEncrypt
@@ -2894,7 +2897,8 @@ void Adapter::AfterGapReplySecurityParameters(uv_work_t *req)
         }
     }
 
-    baton->callback->Call(2, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -2998,7 +3002,8 @@ void Adapter::AfterGapReplySecurityInfo(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -3074,7 +3079,8 @@ void Adapter::AfterGapAuthenticate(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -3166,7 +3172,8 @@ void Adapter::AfterGapSetAdvertisingData(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -3237,7 +3244,8 @@ void Adapter::AfterGapSetPPCP(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -3296,7 +3304,8 @@ void Adapter::AfterGapGetPPCP(uv_work_t *req)
         argv[1] = GapConnParams(baton->p_conn_params);
     }
 
-    baton->callback->Call(2, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -3357,7 +3366,8 @@ void Adapter::AfterGapSetAppearance(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 #pragma endregion GapSetAppearance
@@ -3413,7 +3423,8 @@ void Adapter::AfterGapGetAppearance(uv_work_t *req)
         argv[1] = ConversionUtility::toJsNumber(baton->appearance);
     }
 
-    baton->callback->Call(2, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 #pragma endregion GapGetAppearance
@@ -3500,7 +3511,8 @@ void Adapter::AfterGapReplyAuthKey(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 #pragma endregion GapReplyAuthKey
@@ -3569,7 +3581,8 @@ void Adapter::AfterGapReplyDHKeyLESC(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 #pragma endregion GapReplyDHKeyLESC
@@ -3634,8 +3647,8 @@ void Adapter::AfterGapNotifyKeypress(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
-
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 #pragma endregion GapNotifyKeypress
@@ -3707,8 +3720,8 @@ void Adapter::AfterGapGetLESCOOBData(uv_work_t *req)
         argv[1] = GapLescOobData(baton->p_oobd_own);
     }
 
-    baton->callback->Call(2, argv);
-
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 #pragma endregion GapGetLESCOOBData
@@ -3798,8 +3811,8 @@ void Adapter::AfterGapSetLESCOOBData(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
-
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 #pragma endregion GapSetLESCOOBData

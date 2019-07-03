@@ -127,9 +127,9 @@ describe('FirmwareUpdater.getFirmwarePath', () => {
             .toEqual(expect.stringMatching(/1m.*s130_2/));
     });
 
-    it('returns v2/115k2 hex path for nrf51 and darwin', () => {
+    it('returns v2/1m hex path for nrf51 and darwin', () => {
         expect(FirmwareUpdater.getFirmwarePath(0, 'darwin'))
-            .toEqual(expect.stringMatching(/115k2.*s130_2/));
+            .toEqual(expect.stringMatching(/1m.*s130_2/));
     });
 
     it('returns v3/1m hex path for nrf52 and win32', () => {
@@ -142,9 +142,9 @@ describe('FirmwareUpdater.getFirmwarePath', () => {
             .toEqual(expect.stringMatching(/1m.*s132_3/));
     });
 
-    it('returns v3/115k2 hex path for nrf52 and darwin', () => {
+    it('returns v3/1m hex path for nrf52 and darwin', () => {
         expect(FirmwareUpdater.getFirmwarePath(1, 'darwin'))
-            .toEqual(expect.stringMatching(/115k2.*s132_3/));
+            .toEqual(expect.stringMatching(/1m.*s132_3/));
     });
 });
 
@@ -176,7 +176,7 @@ describe('FirmwareUpdater.getBaudRate', () => {
     });
 
     it('returns 115k2 for nrf51 and darwin', () => {
-        expect(FirmwareUpdater.getBaudRate(0, 'darwin')).toEqual(115200);
+        expect(FirmwareUpdater.getBaudRate(0, 'darwin')).toEqual(1000000);
     });
 
     it('returns 1m for nrf52 and win32', () => {
@@ -188,6 +188,6 @@ describe('FirmwareUpdater.getBaudRate', () => {
     });
 
     it('returns 115k2 for nrf52 and darwin', () => {
-        expect(FirmwareUpdater.getBaudRate(1, 'darwin')).toEqual(115200);
+        expect(FirmwareUpdater.getBaudRate(1, 'darwin')).toEqual(1000000);
     });
 });

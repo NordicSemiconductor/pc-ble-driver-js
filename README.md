@@ -1,6 +1,9 @@
 # pc-ble-driver-js
 
-pc-ble-driver-js provides a Node.js interface to the [pc-ble-driver](https://github.com/NordicSemiconductor/pc-ble-driver) C/C++ library.
+High-level Node.js API for Bluetooth Low Energy (BLE) using nRF51 and nRF52 hardware.
+
+## Usage
+See the [examples](examples) folder.
 
 ## Overview
 
@@ -8,11 +11,49 @@ The pc-ble-driver-js library allows an nRF5 connectivity chip running Nordic Sem
 
 ## Installation
 
-To install pc-ble-driver-js for use in a Node.js project, simply:
-
     $ npm install pc-ble-driver-js
 
-This will work as long as precompiled binaries exist for your platform/runtime environment, ref. the files attached to the [Releases](https://github.com/NordicSemiconductor/pc-ble-driver-js/releases). If not, then it will attempt to build the binaries from source, which requires some additional setup as described in [Installation.md](./Installation.md).
+The install script will try to download precompiled binaries for your platform/runtime environment from our [Releases](https://github.com/NordicSemiconductor/pc-ble-driver-js/releases). If not available, it will attempt to build the binaries from source, which requires a C++ compiler and the pc-ble-driver library. See [Building](#building).
+
+### Installing in Electron apps
+
+To use this project with Electron, the environment variables `npm_config_runtime` and `npm_config_target` must be set for `npm install`. The variables should be "`Electron`" and the Electron version, respectivly.
+
+These variables can be set in `.npmrc` file in the root of your Electron based project. Example .npmrc file content:
+
+    runtime = Electron
+    target = 1.16.6
+
+## Building
+
+If there are no precompiled binaries for your platform, the install script will try to build them. You will need a working C++ compiler and the pc-ble-driver library available by cmake find_package.
+
+The recommended way to get pc-ble-driver is using vcpkg. There are two options getting vcpkg. One is to [download](https://github.com/NordicPlayground/vcpkg/releases/tag/2019-05-10) the released version, the other is to clone the repository and checkout tag/2019-05-10.
+ Afterwards vcpkg must be compiled for the target architecture used by your node executable. Then set the environment variable `VCPKG_ROOT` to the full path of the vcpkg install and repository and it will get automatically picked up when doing `npm install`.
+
+A full example of preparing building on Windows for 64-bit Node:
+
+    $ git clone https://github.com/NordicPlayground/vcpkg.git
+    $ git checkout tags/2019-05-10
+    $ ./vcpkg/bootstrap.bat
+    $ ./vcpkg/vcpkg install nrf-ble-driver:x64-windows
+
+And then when installing:
+
+    $ set VCPKG_ROOT=/absolute/path/to/vcpkg/dir
+    $ npm install pc-ble-driver-js
+
+## Testing
+
+### Unit tests
+
+    $ npm test
+
+### System tests
+
+    $ npm run system-tests
+
+This runs the bash script [scripts/system-tests.sh](scripts/system-tests.sh), so you'll need a functional bash on path. You will need to have two of each nRF device under test connected. See [scripts/system-tests.sh](scripts/system-tests.sh) for a list of PCA numbers of tested devices. The tests take care of firmware flashing.
 
 ## Hardware setup
 
@@ -23,9 +64,9 @@ A connectivity firmware needs to be flashed on the nRF5 IC before using pc-ble-d
 The [examples](./examples) and [integration tests](./test) may be used as a starting point for development with pc-ble-driver-js. Examples include a [heart rate monitor](./examples/heart_rate_monitor.js) (BLE peripheral) and [heart rate collector](./examples/heart_rate_collector.js) (BLE master) and show the basic structure of an application built on pc-ble-driver-js. To run the heart rate monitor example, verify your nRF5 connectivity chip is set-up and connected to your PC and run:
 
     $ node examples/heart_rate_monitor.js <PORT> <SD_API_VERSION>
- 
+
 To get more information about the command options you can run the command without any arguments.
-    
+
 ## Architecture
 
 All functionality of pc-ble-driver-js is exposed through its [api](./api/). Other directories in `pc-ble-driver-js/` are for building, binding to C/C++, and testing, and a developer building an application on top of pc-ble-driver-js need not concern themselves with these details.

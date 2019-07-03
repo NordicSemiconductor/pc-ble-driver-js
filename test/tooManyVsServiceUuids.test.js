@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  *
  * All rights reserved.
  *
@@ -49,17 +49,28 @@ const PERIPHERAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 const CENTRAL_DEVICE_ADDRESS = 'FF:11:22:33:AA:CF';
 const CENTRAL_DEVICE_ADDRESS_TYPE = 'BLE_GAP_ADDR_TYPE_RANDOM_STATIC';
 
+const serialNumberA = process.env.DEVICE_A_SERIAL_NUMBER;
+if (!serialNumberA) {
+    console.log('Missing env DEVICE_A_SERIAL_NUMBER=<SN e.g. from nrf-device-lister>');
+    process.exit(1);
+}
+
+const serialNumberB = process.env.DEVICE_B_SERIAL_NUMBER;
+if (!serialNumberA) {
+    console.log('Missing env DEVICE_B_SERIAL_NUMBER=<SN e.g. from nrf-device-lister>');
+    process.exit(1);
+}
+
 async function onConnected(adapter, peerDevice) {
     await new Promise(resolve => {
         adapter.getServices(peerDevice.instanceId, getServicesErr => {
-            expect(getServicesErr).toBeDefined();
-            expect(getServicesErr).toBe('Failed to add service uuid to driver');
+            expect(getServicesErr).toBeUndefined();
             resolve(getServicesErr);
         });
     });
 }
 
-describe('the API', async () => {
+describe('During attribute discovery, the API', () => {
     let centralAdapter;
     let peripheralAdapter;
 
@@ -67,8 +78,8 @@ describe('the API', async () => {
         // Errors here will not stop the tests from running.
         // Issue filed regarding this: https://github.com/facebook/jest/issues/2713
 
-        centralAdapter = await grabAdapter();
-        peripheralAdapter = await grabAdapter();
+        centralAdapter = await grabAdapter(serialNumberA);
+        peripheralAdapter = await grabAdapter(serialNumberB);
 
         await Promise.all([
             setupAdapter(centralAdapter, '#CENTRAL', 'central', CENTRAL_DEVICE_ADDRESS, CENTRAL_DEVICE_ADDRESS_TYPE),
@@ -81,27 +92,28 @@ describe('the API', async () => {
             releaseAdapter(peripheralAdapter.state.serialNumber)]);
     });
 
-    it('adding too many vendor specific service uuids to driver will return an error', async () => {
+    it('allows for many vendor specific UUIDs', async () => {
         expect(centralAdapter).toBeDefined();
         expect(peripheralAdapter).toBeDefined();
 
         await common.addRandomServicesAndCharacteristicsToAdapter(serviceFactory, peripheralAdapter, 8, 0);
         await common.addRandomServicesAndCharacteristicsToAdapter(serviceFactory, centralAdapter, 8, 0);
 
-        const deviceConnectedCentral = new Promise((resolve, reject) => {
-            centralAdapter.once('deviceConnected', peripheralDevice => {
-                onConnected(centralAdapter, peripheralDevice).then(() => {
-                    resolve({
-                        address: peripheralDevice.address,
-                        type: peripheralDevice.addressType,
-                        instanceId: peripheralDevice.instanceId,
-                    });
-                }).catch(reject);
-            });
+        const connectionPromise = new Promise((resolve, reject) => {
+            centralAdapter.once('deviceConnected', resolve);
+            centralAdapter.once('error', reject);
         });
 
         await common.startAdvertising(peripheralAdapter);
         await common.connect(centralAdapter, { address: PERIPHERAL_DEVICE_ADDRESS, type: PERIPHERAL_DEVICE_ADDRESS_TYPE });
-        await outcome([deviceConnectedCentral]);
+
+        const connection = await connectionPromise;
+        await outcome([new Promise((resolve, reject) => {
+            centralAdapter.getServices(connection.instanceId, (err, services) => {
+                expect(err).toBeUndefined();
+                if (err) reject(err);
+                resolve(services);
+            });
+        })]);
     });
 });
