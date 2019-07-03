@@ -3224,8 +3224,7 @@ class Adapter extends EventEmitter {
      * @param {string} serviceInstanceId The unique Id of this service.
      * @returns {Service} The service.
      */
-    getService(serviceInstanceId, callback) {
-        // TODO: Do read on service? callback?
+    getService(serviceInstanceId) {
         return this._services[serviceInstanceId];
     }
 
