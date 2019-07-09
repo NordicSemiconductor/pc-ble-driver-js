@@ -725,7 +725,7 @@ bool Utility::Set(v8::Handle<v8::Object> target, const char *name, v8::Local<v8:
 
 bool Utility::Has(v8::Handle<v8::Object> target, const char *name)
 {
-    return target->Has(Nan::New(name).ToLocalChecked());
+    return target->Has(target->CreationContext(), Nan::New(name).ToLocalChecked()).FromMaybe(false);
 }
 
 void Utility::SetReturnValue(Nan::NAN_METHOD_ARGS_TYPE info, v8::Local<v8::Object> value)
