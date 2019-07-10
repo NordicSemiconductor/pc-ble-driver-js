@@ -95,6 +95,12 @@ jobs:
       nodeArch: $(nodeArch)
       npmConfigRuntime: 'electron'
       npmConfigTarget: 4.1.4
+  - template: azure-node.yml
+    parameters:
+      nodeVersion: 10.15.0
+      nodeArch: $(nodeArch)
+      npmConfigRuntime: 'electron'
+      npmConfigTarget: 5.0.6
 
   # Relese draft of artefacts in $(Build.ArtifactStagingDirectory).
   - task: GitHubRelease@0
