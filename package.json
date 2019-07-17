@@ -48,16 +48,12 @@
     "cmake-js": "5.1.1",
     "crc": "^3.8.0",
     "jszip": "^3.2.2",
-    "mkdirp": "^0.5.1",
     "nan": "^2.12.1",
     "node-pre-gyp": "^0.13.0",
-    "nrf-device-setup": "^0.5.1",
-    "tar": "^4.4.10",
     "underscore": "^1.9.1"
   },
   "devDependencies": {
     "babel-preset-env": "^1.7.0",
-    "chai": "4.2.0",
     "debug": "4.1.0",
     "eslint": "^6.0.1",
     "eslint-config-airbnb": "^17.1.1",
@@ -71,14 +67,9 @@
     "jscs": "^3.0.7",
     "jsdoc": "^3.6.2",
     "jshint": "^2.10.2",
-    "keypress": "0.2.1",
     "minami": "^1.2.3",
-    "mocha": "^6.1.4",
     "node-pre-gyp-github": "1.4.3",
-    "nrf-device-lister": "^2.2.1",
-    "proxyquire": "^2.1.0",
-    "sinon": "^7.3.2",
-    "yargs": "^13.2.4"
+    "nrf-device-setup": "^0.6.0"
   },
   "files": [
     "api/",
