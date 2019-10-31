@@ -29,6 +29,8 @@ steps:
   displayName: 'Setup Node.js on Windows 32-bit'
 
 - bash: |
+    export VCPKG_ROOT=$(Agent.HomeDirectory)/vcpkg
+    export PATH=$VCPKG_ROOT:$PATH
     npm install --build-from-source
     npm run package-prebuilt --verbose
   env: {
