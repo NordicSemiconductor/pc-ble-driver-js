@@ -29,15 +29,22 @@ steps:
   displayName: 'Setup Node.js on Windows 32-bit'
 
 - bash: |
-    export VCPKG_ROOT=$(Agent.HomeDirectory)/vcpkg
-    export PATH=$VCPKG_ROOT:$PATH
-    npm install --build-from-source
+    npm install
     npm run package-prebuilt --verbose
   env: {
     npm_config_runtime: '${{ parameters.npmConfigRuntime }}',
     npm_config_target: '${{ parameters.npmConfigTarget }}',
   }
-  displayName: 'Build'
+  condition: not(contains(variables['imageName'], 'win'))
+  displayName: 'Build on Linux/macOS'
+
+- script: |
+    set VCPKG_ROOT=$(Agent.HomeDirectory)\vcpkg
+    set PATH=%VCPKG_ROOT%;%PATH%
+    npm install
+    npm run package-prebuilt --verbose
+  condition: contains(variables['imageName'], 'win')
+  displayName: 'Build on Windows'
 
 - script: |
     npm test
