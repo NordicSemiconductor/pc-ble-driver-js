@@ -37,7 +37,6 @@ jobs:
     condition: contains(variables['imageName'], 'win')
     displayName: '[Windows] Install toolchain'
   - bash: |
-      export VCPKG_ROOT=$(Agent.HomeDirectory)/vcpkg
       export PATH=$VCPKG_ROOT:$PATH
       git clone https://github.com/NordicPlayground/vcpkg.git $VCPKG_ROOT
       $VCPKG_ROOT/bootstrap-vcpkg.sh
@@ -45,7 +44,6 @@ jobs:
     condition: contains(variables['imageName'], 'ubuntu')
     displayName: '[Linux] Install nrf-ble-driver'
   - bash: |
-      export VCPKG_ROOT=$(Agent.HomeDirectory)/vcpkg
       export PATH=$VCPKG_ROOT:$PATH
       git clone https://github.com/NordicPlayground/vcpkg.git $VCPKG_ROOT
       # Vcpkg bootstap does not work with Apple Clang and it
@@ -60,6 +58,11 @@ jobs:
       set PATH=%VCPKG_ROOT%;%PATH%
       git clone https://github.com/NordicPlayground/vcpkg.git %VCPKG_ROOT%
       %VCPKG_ROOT%\bootstrap-vcpkg.bat
+    condition: contains(variables['imageName'], 'win')
+    displayName: '[Windows] Install vcpkg'
+  - script: |
+      set VCPKG_ROOT=$(Agent.HomeDirectory)\vcpkg
+      set PATH=%VCPKG_ROOT%;%PATH%
       vcpkg install nrf-ble-driver:$(driverArch)-windows
     condition: contains(variables['imageName'], 'win')
     displayName: '[Windows] Install nrf-ble-driver'

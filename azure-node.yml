@@ -40,9 +40,6 @@ steps:
 
 - script: |
     set VCPKG_ROOT=$(Agent.HomeDirectory)\vcpkg
-    set PATH=%VCPKG_ROOT%;%PATH%
-    echo %VCPKG_ROOT%
-    echo %PATH%
     npm install --build-from-source
     npm run package-prebuilt --verbose
   env: {
