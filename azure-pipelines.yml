@@ -59,7 +59,7 @@ jobs:
       set VCPKG_ROOT=$(Agent.HomeDirectory)\vcpkg
       set PATH=%VCPKG_ROOT%;%PATH%
       git clone https://github.com/NordicPlayground/vcpkg.git %VCPKG_ROOT%
-      %VCPKG_ROOT%\vcpkg\bootstrap-vcpkg.bat
+      %VCPKG_ROOT%\bootstrap-vcpkg.bat
       vcpkg install nrf-ble-driver:$(driverArch)-windows
     condition: contains(variables['imageName'], 'win')
     displayName: '[Windows] Install nrf-ble-driver'
