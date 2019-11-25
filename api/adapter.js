@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2010 - 2019, Nordic Semiconductor ASA
  *
  * All rights reserved.
  *
@@ -50,6 +50,8 @@ const ToText = require('./util/toText');
 const logLevel = require('./util/logLevel');
 const Security = require('./security');
 const HexConv = require('./util/hexConv');
+
+const MAX_SUPPORTED_ATT_MTU = 247;
 
 /** Class to mediate error conditions. */
 class Error {
@@ -223,7 +225,7 @@ class Adapter extends EventEmitter {
         return this.getCurrentAttMtu(deviceInstanceId) - 5;
     }
 
-     _generateKeyPair() {
+    _generateKeyPair() {
         if (this._keys === null) {
             this._keys = this._security.generateKeyPair();
         }
@@ -336,7 +338,7 @@ class Adapter extends EventEmitter {
                 vs_uuid_count: 10,
             },
             gatt_enable_params: {
-                att_mtu: 247, // 247 is max att mtu size
+                att_mtu: MAX_SUPPORTED_ATT_MTU,
             },
         };
     }
@@ -350,7 +352,7 @@ class Adapter extends EventEmitter {
      * @param {Object} options Options to initialize/open this adapter with.
      * Available adapter open options:
      * <ul>
-     * <li>{number} [baudRate=115200]: The baud rate this adapter's serial port should be configured with.
+     * <li>{number} [baudRate=1000000]: The baud rate this adapter's serial port should be configured with.
      * <li>{string} [parity='none']: The parity this adapter's serial port should be configured with.
      * <li>{string} [flowControl='none']: Whether flow control should be configured with this adapter's serial port.
      * <li>{number} [eventInterval=0]: Interval to use for sending BLE driver events to JavaScript.
@@ -384,7 +386,7 @@ class Adapter extends EventEmitter {
 
         if (!options) {
             options = {
-                baudRate: 115200,
+                baudRate: 1000000,
                 parity: 'none',
                 flowControl: 'none',
                 eventInterval: 0,
@@ -394,7 +396,7 @@ class Adapter extends EventEmitter {
                 enableBLE: true,
             };
         } else {
-            if (!options.baudRate) options.baudRate = 115200;
+            if (!options.baudRate) options.baudRate = 1000000;
             if (!options.parity) options.parity = 'none';
             if (!options.flowControl) options.flowControl = 'none';
             if (!options.eventInterval) options.eventInterval = 0;
@@ -1414,23 +1416,13 @@ class Adapter extends EventEmitter {
         const handle = event.handle;
         const data = event.data;
         const gattOperation = this._gattOperationsMap[device.instanceId];
+        if(!gattOperation) {
+            return;
+        }
 
         if (gattOperation && gattOperation.pendingHandleReads && !_.isEmpty(gattOperation.pendingHandleReads)) {
             const pendingHandleReads = gattOperation.pendingHandleReads;
             const attribute = pendingHandleReads[handle];
-
-            const addVsUuidToDriver = uuid => {
-                return new Promise((resolve, reject) => {
-                    this._converter.uuidToDriver(uuid, (err, uuid) => {
-                        if (err) {
-                            reject(err);
-                            return;
-                        }
-
-                        resolve();
-                    });
-                });
-            };
 
             if (!attribute) {
                 this.emit('logMessage', logLevel.DEBUG, `Unable to find attribute with handle ${event.handle} ` +
@@ -1443,7 +1435,6 @@ class Adapter extends EventEmitter {
             if (attribute instanceof Service) {
                 // TODO: Translate from uuid to name?
                 attribute.uuid = HexConv.arrayTo128BitUuid(data);
-                addVsUuidToDriver(attribute.uuid).then();
                 this.emit('serviceAdded', attribute);
 
                 if (_.isEmpty(pendingHandleReads)) {
@@ -1459,14 +1450,7 @@ class Adapter extends EventEmitter {
                 }
             } else if (attribute instanceof Characteristic) {
                 // TODO: Translate from uuid to name?
-                if (handle === attribute.declarationHandle) {
-                    attribute.uuid = HexConv.arrayTo128BitUuid(data.slice(3));
-                    addVsUuidToDriver(attribute.uuid).then();
-                } else if (handle === attribute.valueHandle) {
-                    attribute.value = data;
-                }
-
-                if (attribute.uuid && attribute.value) {
+                const emitCharacteristicAdded = () => {
                     /**
                      * Characteristic was successfully added to the <code>Adapter</code>'s GATT attribute table.
                      *
@@ -1474,7 +1458,17 @@ class Adapter extends EventEmitter {
                      * @type {Object}
                      * @property {Service} attribute - The new added characteristic.
                      */
-                    this.emit('characteristicAdded', attribute);
+                    if (attribute.uuid && attribute.value) {
+                        this.emit('characteristicAdded', attribute);
+                    }
+                };
+
+                if (handle === attribute.declarationHandle) {
+                    attribute.uuid = HexConv.arrayTo128BitUuid(data.slice(3));
+                    emitCharacteristicAdded();
+                } else if (handle === attribute.valueHandle) {
+                    attribute.value = data;
+                    emitCharacteristicAdded();
                 }
 
                 if (_.isEmpty(pendingHandleReads)) {
@@ -1958,18 +1952,21 @@ class Adapter extends EventEmitter {
     _parseGattsExchangeMtuRequestEvent(event) {
         const remoteDevice = this._getDeviceByConnectionHandle(event.conn_handle);
 
-        this._adapter.gattsExchangeMtuReply(event.conn_handle, event.client_rx_mtu, error => {
+        /* Make sure the requested mtu does not exceed the max supported size */
+        const newMtu = (event.client_rx_mtu >= MAX_SUPPORTED_ATT_MTU) ? MAX_SUPPORTED_ATT_MTU
+            : event.client_rx_mtu;
+
+        this._adapter.gattsExchangeMtuReply(event.conn_handle, newMtu, error => {
             if (error) {
                 this.emit('error', _makeError('Failed to call gattsExchangeMtuReply', error));
                 return;
             }
 
             const previousMtu = this._attMtuMap[remoteDevice.instanceId];
-            const newMtu = event.client_rx_mtu;
             this._attMtuMap[remoteDevice.instanceId] = newMtu;
 
             if (newMtu !== previousMtu);
-            this.emit('attMtuChanged', remoteDevice, event.client_rx_mtu);
+            this.emit('attMtuChanged', remoteDevice, newMtu);
         });
     }
 
@@ -2505,16 +2502,19 @@ class Adapter extends EventEmitter {
         }
 
         const hciStatusCode = this._bleDriver.BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION;
+        this._gapOperationsMap[deviceInstanceId] = {
+            callback: callback,
+        };
+
         this._adapter.gapDisconnect(device.connectionHandle, hciStatusCode, err => {
             if (err) {
                 const errorObject = _makeError('Failed to disconnect', err);
+                delete this._gapOperationsMap[deviceInstanceId];
                 this.emit('error', errorObject);
                 if (callback) { callback(errorObject); }
             } else {
                 // Expect a disconnect event down the road
-                this._gapOperationsMap[deviceInstanceId] = {
-                    callback: callback,
-                };
+
             }
         });
     }
@@ -3224,8 +3224,7 @@ class Adapter extends EventEmitter {
      * @param {string} serviceInstanceId The unique Id of this service.
      * @returns {Service} The service.
      */
-    getService(serviceInstanceId, callback) {
-        // TODO: Do read on service? callback?
+    getService(serviceInstanceId) {
         return this._services[serviceInstanceId];
     }
 
@@ -3604,6 +3603,7 @@ class Adapter extends EventEmitter {
 
         if (value.length > this._maxShortWritePayloadSize(device.instanceId)) {
             if (!ack) {
+                delete this._gattOperationsMap[device.instanceId];
                 throw new Error('Long writes do not support BLE_GATT_OP_WRITE_CMD');
             }
 
@@ -3735,6 +3735,7 @@ class Adapter extends EventEmitter {
 
         if (value.length > this._maxShortWritePayloadSize(device.instanceId)) {
             if (!ack) {
+                delete this._gattOperationsMap[device.instanceId];
                 throw new Error('Long writes do not support BLE_GATT_OP_WRITE_CMD');
             }
 
@@ -3789,11 +3790,14 @@ class Adapter extends EventEmitter {
     }
 
     _shortWriteWithoutResponse(device, writeParameters) {
+        let timeoutId;
+
         return Promise.race([
             new Promise((resolve, reject) => {
                 const txCompleteHandler = txCompleteDevice => {
                     if (device.connectionHandle === txCompleteDevice.connectionHandle) {
                         this.removeListener('txComplete', txCompleteHandler);
+                        clearTimeout(timeoutId);
                         resolve();
                     }
                 };
@@ -3803,7 +3807,7 @@ class Adapter extends EventEmitter {
                 });
             }),
             new Promise((resolve, reject) => {
-                setTimeout(() => {
+                timeoutId = setTimeout(() => {
                     reject(_makeError('Timed out while waiting for BLE_EVT_TX_COMPLETE'));
                 }, 2000);
             }),

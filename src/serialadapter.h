@@ -32,10 +32,9 @@
 
 #include "common.h"
 
-#include <list>
-#include <string>
+#include <sd_rpc_types.h>
 
-#include "serial_port_enum.h"
+#include <vector>
 
 #define ERROR_STRING_SIZE 1024
 
@@ -45,8 +44,7 @@ struct AdapterListBaton : Baton
 {
 public:
     BATON_CONSTRUCTOR(AdapterListBaton)
-        std::list<SerialPortDesc*> results;
-    char errorString[ERROR_STRING_SIZE]; // TODO: change this to std::string
+    std::vector<sd_rpc_serial_port_desc_t> results;
 };
 
 #endif // ADAPTER_H

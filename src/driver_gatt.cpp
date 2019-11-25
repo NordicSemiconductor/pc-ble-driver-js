@@ -151,14 +151,15 @@ ble_gatt_char_ext_props_t *GattCharExtProps::ToNative()
 extern "C" {
     void init_gatt(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
-#if NRF_SD_BLE_API_VERSION == 2
+#ifdef GATT_MTU_SIZE_DEFAULT
         /* Default MTU size. */
         NODE_DEFINE_CONSTANT(target, GATT_MTU_SIZE_DEFAULT);
-#elif NRF_SD_BLE_API_VERSION == 6
-        NODE_DEFINE_CONSTANT(target, GATT_ATT_MTU_DEFAULT);
+#endif
+#ifdef BLE_GATT_ATT_MTU_DEFAULT
+        NODE_DEFINE_CONSTANT(target, BLE_GATT_ATT_MTU_DEFAULT);
 #endif
 
-#if NRF_SD_BLE_API_VERSION == 2
+#ifdef GATT_RX_MTU
         /* Only the default MTU size of 23 is currently supported. */
         NODE_DEFINE_CONSTANT(target, GATT_RX_MTU);
 #endif

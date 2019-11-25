@@ -40,6 +40,7 @@
 #include <nan.h>
 #include <chrono>
 #include <map>
+#include <memory>
 
 #include "sd_rpc.h"
 
@@ -93,18 +94,18 @@ public:
 
     adapter_t *getInternalAdapter() const;
 
-    void initEventHandling(Nan::Callback *callback, const uint32_t interval);
+    void initEventHandling(std::unique_ptr<Nan::Callback> callback, const uint32_t interval);
     void appendEvent(ble_evt_t *event);
 
     void onRpcEvent(uv_async_t *handle);
     void eventIntervalCallback(uv_timer_t *handle);
 
-    void initLogHandling(Nan::Callback *callback);
+    void initLogHandling(std::unique_ptr<Nan::Callback> callback);
     void appendLog(LogEntry *log);
 
     void onLogEvent(uv_async_t *handle);
 
-    void initStatusHandling(Nan::Callback *callback);
+    void initStatusHandling(std::unique_ptr<Nan::Callback> callback);
     void appendStatus(StatusEntry *log);
 
     void onStatusEvent(uv_async_t *handle);
@@ -143,7 +144,7 @@ private:
     ADAPTER_METHOD_DEFINITIONS(SetBleOption);
     ADAPTER_METHOD_DEFINITIONS(GetBleOption);
 
-#if NRF_SD_BLE_API_VERSION == 6
+#if NRF_SD_BLE_API_VERSION >= 5
     ADAPTER_METHOD_DEFINITIONS(SetBleConfig);
 #endif
 
@@ -184,7 +185,7 @@ private:
     ADAPTER_METHOD_DEFINITIONS(GapGetLESCOOBData);
 
     ADAPTER_METHOD_DEFINITIONS(GapSetLESCOOBData);
-#if NRF_SD_BLE_API_VERSION == 6
+#if NRF_SD_BLE_API_VERSION >= 5
     ADAPTER_METHOD_DEFINITIONS(GapDataLengthUpdate);
     ADAPTER_METHOD_DEFINITIONS(GapPhyUpdate);
 
@@ -200,7 +201,7 @@ private:
     ADAPTER_METHOD_DEFINITIONS(GattcReadCharacteristicValues);
     ADAPTER_METHOD_DEFINITIONS(GattcWrite);
     ADAPTER_METHOD_DEFINITIONS(GattcConfirmHandleValue);
-#if NRF_SD_BLE_API_VERSION == 6
+#if NRF_SD_BLE_API_VERSION >= 5
     ADAPTER_METHOD_DEFINITIONS(GattcExchangeMtuRequest);
 #endif
 
@@ -213,7 +214,7 @@ private:
     ADAPTER_METHOD_DEFINITIONS(GattsSetValue);
     ADAPTER_METHOD_DEFINITIONS(GattsGetValue);
     ADAPTER_METHOD_DEFINITIONS(GattsReplyReadWriteAuthorize);
-#if NRF_SD_BLE_API_VERSION == 6
+#if NRF_SD_BLE_API_VERSION >= 5
     ADAPTER_METHOD_DEFINITIONS(GattsExchangeMtuReply);
 #endif
 
@@ -223,9 +224,9 @@ private:
     static void initGattS(v8::Local<v8::FunctionTemplate> tpl);
 
     void dispatchEvents();
-#if NRF_SD_BLE_API_VERSION == 2
+#if NRF_SD_BLE_API_VERSION < 5
     static uint32_t enableBLE(adapter_t *adapter, ble_enable_params_t *ble_enable_params);
-#elif NRF_SD_BLE_API_VERSION == 6
+#elif NRF_SD_BLE_API_VERSION >= 5
     static uint32_t enableBLE(adapter_t *adapter);
 #endif
 
@@ -240,19 +241,19 @@ private:
     LogQueue logQueue;
     StatusQueue statusQueue;
 
-    Nan::Callback *eventCallback;
-    Nan::Callback *logCallback;
-    Nan::Callback *statusCallback;
+    std::unique_ptr<Nan::Callback> eventCallback;
+    std::unique_ptr<Nan::Callback> logCallback;
+    std::unique_ptr<Nan::Callback> statusCallback;
 
     // Interval to use for sending BLE driver events to JavaScript. If 0 events will be sent as soon as they are received from the BLE driver.
     uint32_t eventInterval;
-    uv_timer_t* eventIntervalTimer;
-    uv_async_t* asyncEvent;
+    std::unique_ptr<uv_timer_t> eventIntervalTimer;
+    std::unique_ptr<uv_async_t> asyncEvent;
 
-    uv_async_t* asyncLog;
-    uv_async_t* asyncStatus;
+    std::unique_ptr<uv_async_t> asyncLog;
+    std::unique_ptr<uv_async_t> asyncStatus;
 
-    uv_mutex_t* adapterCloseMutex;
+    uv_mutex_t adapterCloseMutex;
 
     // Statistics:
     // Accumulated deltas for event callbacks done to the driver

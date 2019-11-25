@@ -44,7 +44,7 @@ extern name_map_t gatt_status_map;
 
 static name_map_t gattc_event_name_map =
 {
-#if NRF_SD_BLE_API_VERSION == 6
+#if NRF_SD_BLE_API_VERSION >= 5
     NAME_MAP_ENTRY(BLE_GATTC_EVT_EXCHANGE_MTU_RSP),
 #endif
     NAME_MAP_ENTRY(BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP),
@@ -241,7 +241,7 @@ public:
     v8::Local<v8::Object> ToJs();
 };
 
-#if NRF_SD_BLE_API_VERSION == 6
+#if NRF_SD_BLE_API_VERSION >= 5
 class GattcExchangeMtuResponseEvent : BleDriverGattcEvent < ble_gattc_evt_exchange_mtu_rsp_t >
 {
 public:
@@ -258,6 +258,7 @@ struct GattcDiscoverPrimaryServicesBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GattcDiscoverPrimaryServicesBaton);
+    BATON_DESTRUCTOR(GattcDiscoverPrimaryServicesBaton) { delete p_srvc_uuid; }
     uint16_t conn_handle;
     uint16_t start_handle;
     ble_uuid_t *p_srvc_uuid;
@@ -267,6 +268,7 @@ struct GattcDiscoverRelationshipBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GattcDiscoverRelationshipBaton);
+    BATON_DESTRUCTOR(GattcDiscoverRelationshipBaton) { delete p_handle_range; }
     uint16_t conn_handle;
     ble_gattc_handle_range_t *p_handle_range;
 };
@@ -275,6 +277,7 @@ struct GattcDiscoverCharacteristicsBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GattcDiscoverCharacteristicsBaton);
+    BATON_DESTRUCTOR(GattcDiscoverCharacteristicsBaton) { delete p_handle_range; }
     uint16_t conn_handle;
     ble_gattc_handle_range_t *p_handle_range;
 };
@@ -283,6 +286,7 @@ struct GattcDiscoverDescriptorsBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GattcDiscoverDescriptorsBaton);
+    BATON_DESTRUCTOR(GattcDiscoverDescriptorsBaton) { delete p_handle_range; }
     uint16_t conn_handle;
     ble_gattc_handle_range_t *p_handle_range;
 };
@@ -291,6 +295,11 @@ struct GattcCharacteristicByUUIDReadBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GattcCharacteristicByUUIDReadBaton);
+    BATON_DESTRUCTOR(GattcCharacteristicByUUIDReadBaton)
+    {
+        delete p_uuid;
+        delete p_handle_range;
+    }
     uint16_t conn_handle;
     ble_uuid_t *p_uuid;
     ble_gattc_handle_range_t *p_handle_range;
@@ -309,6 +318,7 @@ struct GattcReadCharacteristicValuesBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GattcReadCharacteristicValuesBaton);
+    BATON_DESTRUCTOR(GattcReadCharacteristicValuesBaton) { free(p_handles); }
     uint16_t conn_handle;
     uint16_t *p_handles;
     uint16_t handle_count;
@@ -318,6 +328,11 @@ struct GattcWriteBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GattcWriteBaton);
+    BATON_DESTRUCTOR(GattcWriteBaton)
+    {
+        free((char*)(p_write_params->p_value));
+        delete p_write_params;
+    }
     uint16_t conn_handle;
     ble_gattc_write_params_t *p_write_params;
 };
