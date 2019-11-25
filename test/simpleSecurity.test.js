@@ -1367,7 +1367,7 @@ async function setupAuthLESCNumericComparison(
 }
 
 function compareArray(first, second) {
-    return new Buffer(first).compare(new Buffer(second)) === 0;
+    return Buffer.from(first).compare(Buffer.from(second)) === 0;
 }
 
 function keyGeneration(central, peripheral) {
