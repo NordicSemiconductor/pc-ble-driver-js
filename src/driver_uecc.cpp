@@ -138,6 +138,7 @@ NAN_METHOD(ECCP256ComputePublicKey)
     p_curve = uECC_secp256r1();
 
     reverse(&m_be_keys[0], (uint8_t *)p_le_sk, ECC_P256_SK_LEN);
+    free(p_le_sk);
 
     //int ret = uECC_compute_public_key(p_le_sk, (uint8_t *)p_le_pk, p_curve);
     int ret = uECC_compute_public_key((uint8_t *)&m_be_keys[0], (uint8_t *)&m_be_keys[ECC_P256_SK_LEN], p_curve);
@@ -185,6 +186,9 @@ NAN_METHOD(ECCP256ComputeSharedSecret)
     reverse(&m_be_keys[0], (uint8_t *)p_le_sk, ECC_P256_SK_LEN);
     reverse(&m_be_keys[ECC_P256_SK_LEN], (uint8_t *)&p_le_pk[0], ECC_P256_SK_LEN);
     reverse(&m_be_keys[ECC_P256_SK_LEN * 2], (uint8_t *)&p_le_pk[ECC_P256_SK_LEN], ECC_P256_SK_LEN);
+
+    free(p_le_sk);
+    free(p_le_pk);
 
     int ret = uECC_shared_secret((uint8_t *)&m_be_keys[ECC_P256_SK_LEN], (uint8_t *)&m_be_keys[0], p_le_ss, p_curve);
 

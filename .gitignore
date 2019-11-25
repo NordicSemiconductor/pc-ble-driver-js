@@ -1,5 +1,7 @@
 .idea
 node_modules
+package-lock.json
 build
 jest.json
 docs
+/pc-ble-driver

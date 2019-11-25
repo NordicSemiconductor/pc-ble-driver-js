@@ -38,6 +38,7 @@
 #define BLE_DRIVER_JS_DRIVER_H
 
 #include <string>
+#include <memory>
 
 #include <sd_rpc.h>
 #include "common.h"
@@ -48,10 +49,13 @@ extern adapter_t *connectedAdapters[];
 extern int adapterCount;
 
 static name_map_t common_event_name_map = {
-#if NRF_SD_BLE_API_VERSION == 2
+#ifdef BLE_EVT_TX_COMPLETE
     NAME_MAP_ENTRY(BLE_EVT_TX_COMPLETE),
-#elif NRF_SD_BLE_API_VERSION == 6
+#endif
+#ifdef BLE_GATTC_EVT_WRITE_CMD_TX_COMPLETE
     NAME_MAP_ENTRY(BLE_GATTC_EVT_WRITE_CMD_TX_COMPLETE),
+#endif
+#ifdef BLE_GATTS_EVT_HVN_TX_COMPLETE
     NAME_MAP_ENTRY(BLE_GATTS_EVT_HVN_TX_COMPLETE),
 #endif
     NAME_MAP_ENTRY(BLE_EVT_USER_MEM_REQUEST),
@@ -165,7 +169,7 @@ public:
     ble_opt_t *ToNative() override;
 };
 
-#if NRF_SD_BLE_API_VERSION == 6
+#if NRF_SD_BLE_API_VERSION >= 5
 class BleCfg : public BleToJs<ble_cfg_t>
 {
 public:
@@ -331,7 +335,7 @@ public:
 
 #pragma endregion gap_cfg
 
-#endif // NRF_SD_BLE_API_VERSION == 6
+#endif // NRF_SD_BLE_API_VERSION >= 5
 
 #pragma endregion Struct conversions
 
@@ -362,7 +366,7 @@ public:
     const char *getEventName() override { return ConversionUtility::valueToString(this->evt_id, common_event_name_map, "Unknown Common Event"); }
 };
 
-#if NRF_SD_BLE_API_VERSION == 2
+#ifdef BLE_EVT_TX_COMPLETE
 class CommonTXCompleteEvent : BleDriverCommonEvent<ble_evt_tx_complete_t>
 {
 public:
@@ -371,7 +375,9 @@ public:
 
     v8::Local<v8::Object> ToJs() override;
 };
-#elif NRF_SD_BLE_API_VERSION == 6
+#endif
+
+#ifdef BLE_GATTC_EVT_WRITE_CMD_TX_COMPLETE
 class GattcWriteCmdTxCompleteEvent : BleDriverCommonEvent<ble_gattc_evt_write_cmd_tx_complete_t>
 {
 public:
@@ -420,9 +426,9 @@ public:
     BATON_CONSTRUCTOR(OpenBaton)
     //char path[PATH_STRING_SIZE];
     std::string path;
-    Nan::Callback *event_callback; // Callback that is called for every event that is received from the SoftDevice
-    Nan::Callback *log_callback;   // Callback that is called for every log entry that is received from the SoftDevice
-    Nan::Callback *status_callback;   // Callback that is called for every status occuring in the pc-ble-driver
+    std::unique_ptr<Nan::Callback> event_callback; // Callback that is called for every event that is received from the SoftDevice
+    std::unique_ptr<Nan::Callback> log_callback;   // Callback that is called for every log entry that is received from the SoftDevice
+    std::unique_ptr<Nan::Callback> status_callback;   // Callback that is called for every status occuring in the pc-ble-driver
 
     sd_rpc_log_severity_t log_level;
     sd_rpc_log_handler_t log_handler;
@@ -455,14 +461,16 @@ struct ConnResetBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(ConnResetBaton);
+    sd_rpc_reset_t reset;
     Adapter *mainObject;
 };
 
 struct EnableBLEBaton : public Baton
 {
 public:
-    BATON_CONSTRUCTOR(EnableBLEBaton)
-#if NRF_SD_BLE_API_VERSION == 2
+    BATON_CONSTRUCTOR(EnableBLEBaton);
+#if NRF_SD_BLE_API_VERSION < 5
+    BATON_DESTRUCTOR(EnableBLEBaton) { delete enable_params; }
     ble_enable_params_t *enable_params;
     uint32_t app_ram_base;
 #endif
@@ -473,6 +481,7 @@ struct GetVersionBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(GetVersionBaton);
+    BATON_DESTRUCTOR(GetVersionBaton) { delete version; }
     ble_version_t *version;
 
 };
@@ -481,6 +490,7 @@ class BleAddVendorSpcificUUIDBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(BleAddVendorSpcificUUIDBaton);
+    BATON_DESTRUCTOR(BleAddVendorSpcificUUIDBaton) { delete p_vs_uuid; }
     ble_uuid128_t *p_vs_uuid;
     uint8_t p_uuid_type;
 };
@@ -489,6 +499,11 @@ class BleUUIDEncodeBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(BleUUIDEncodeBaton);
+    BATON_DESTRUCTOR(BleUUIDEncodeBaton)
+    {
+        delete p_uuid;
+        delete uuid_le;
+    }
     ble_uuid_t *p_uuid;
     uint8_t uuid_le_len;
     uint8_t *uuid_le;
@@ -498,15 +513,24 @@ class BleUUIDDecodeBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(BleUUIDDecodeBaton);
+    BATON_DESTRUCTOR(BleUUIDDecodeBaton)
+    {
+        delete p_uuid;
+    }
     uint8_t uuid_le_len;
     ble_uuid_t *p_uuid;
-    uint8_t *uuid_le;
+    std::vector<uint8_t> uuid_le;
 };
 
 class BleUserMemReplyBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(BleUserMemReplyBaton);
+    BATON_DESTRUCTOR(BleUserMemReplyBaton)
+    {
+        free(p_block->p_mem);
+        delete p_block;
+    }
     uint16_t conn_handle;
     ble_user_mem_block_t *p_block;
 };
@@ -515,11 +539,12 @@ class BleOptionBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(BleOptionBaton);
+    BATON_DESTRUCTOR(BleOptionBaton) { delete p_opt; }
     uint32_t opt_id;
     ble_opt_t *p_opt;
 };
 
-#if NRF_SD_BLE_API_VERSION == 6
+#if NRF_SD_BLE_API_VERSION >= 5
 class BleConfigBaton : public Baton
 {
 public:

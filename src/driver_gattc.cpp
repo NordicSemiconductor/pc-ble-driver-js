@@ -384,7 +384,7 @@ v8::Local<v8::Object> GattcTimeoutEvent::ToJs()
     return scope.Escape(obj);
 }
 
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
 v8::Local<v8::Object> GattcExchangeMtuResponseEvent::ToJs()
 {
 	Nan::EscapableHandleScope scope;
@@ -470,8 +470,8 @@ void Adapter::AfterGattcDiscoverPrimaryServices(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
-
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -544,7 +544,8 @@ void Adapter::AfterGattcDiscoverRelationship(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -617,7 +618,8 @@ void Adapter::AfterGattcDiscoverCharacteristics(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -690,7 +692,8 @@ void Adapter::AfterGattcDiscoverDescriptors(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -778,7 +781,8 @@ void Adapter::AfterGattcReadCharacteristicValueByUUID(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -846,7 +850,8 @@ void Adapter::AfterGattcRead(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -910,7 +915,6 @@ void Adapter::GattcReadCharacteristicValues(uv_work_t *req)
 {
     auto baton = static_cast<GattcReadCharacteristicValuesBaton *>(req->data);
     baton->result = sd_ble_gattc_char_values_read(baton->adapter, baton->conn_handle, baton->p_handles, baton->handle_count);
-    free(baton->p_handles);
 }
 
 // This runs in Main Thread
@@ -930,7 +934,8 @@ void Adapter::AfterGattcReadCharacteristicValues(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -1003,7 +1008,8 @@ void Adapter::AfterGattcWrite(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -1065,11 +1071,12 @@ void Adapter::AfterGattcConfirmHandleValue(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
 NAN_METHOD(Adapter::GattcExchangeMtuRequest)
 {
     uint16_t conn_handle;
@@ -1128,7 +1135,8 @@ void Adapter::AfterGattcExchangeMtuRequest(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 #endif
@@ -1151,7 +1159,7 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTC_CHAR_VALUES_READ);                               /**< Read multiple Characteristic Values. */
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTC_WRITE);                                          /**< Generic write. */
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTC_HV_CONFIRM);                                     /**< Handle Value Confirmation. */
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
 		NODE_DEFINE_CONSTANT(target, SD_BLE_GATTC_EXCHANGE_MTU_REQUEST);                           /**< Exchange MTU Request */
 #endif
 
@@ -1165,7 +1173,7 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GATTC_EVT_WRITE_RSP);                                /**< Write Response event. @ref ble_gattc_evt_write_rsp_t */
         NODE_DEFINE_CONSTANT(target, BLE_GATTC_EVT_HVX);                                      /**< Handle Value Notification or Indication event. @ref ble_gattc_evt_hvx_t */
         NODE_DEFINE_CONSTANT(target, BLE_GATTC_EVT_TIMEOUT);                                  /**< Timeout event. @ref ble_gattc_evt_timeout_t */
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
         NODE_DEFINE_CONSTANT(target, BLE_GATTC_EVT_EXCHANGE_MTU_RSP);                         /**< Exchange MTU Response event. @ref ble_gattc_evt_exchange_mtu_rsp_t. */
 #endif
     }

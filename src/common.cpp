@@ -84,7 +84,7 @@ static name_map_t error_message_name_map =
     NAME_MAP_ENTRY(BLE_ERROR_NOT_ENABLED),
     NAME_MAP_ENTRY(BLE_ERROR_INVALID_CONN_HANDLE),
     NAME_MAP_ENTRY(BLE_ERROR_INVALID_ATTR_HANDLE),
-#if NRF_SD_BLE_API_VERSION == 2
+#if NRF_SD_BLE_API_VERSION < 5
     NAME_MAP_ENTRY(BLE_ERROR_NO_TX_PACKETS),
 #endif
     NAME_MAP_ENTRY(BLE_ERROR_INVALID_ROLE),
@@ -112,7 +112,7 @@ static name_map_t error_message_name_map =
     NAME_MAP_ENTRY(BLE_ERROR_GATTS_SYS_ATTR_MISSING),
 
     // L2CAP related errors
-#if NRF_SD_BLE_API_VERSION == 2
+#if NRF_SD_BLE_API_VERSION < 5
     NAME_MAP_ENTRY(BLE_ERROR_L2CAP_CID_IN_USE),
 #endif
 };
@@ -174,8 +174,8 @@ const std::string getCurrentTimeInMilliseconds()
     std::string result(time_str);
     result.append(".");
 
-    char millisecond_str[4];
-    sprintf(millisecond_str, "%03d", static_cast<int>(ms.count() % 1000));
+    auto millisecond_str = std::to_string(static_cast<int>(ms.count() % 1000));
+    result.append(std::max(0, static_cast<int>(3 - millisecond_str.length())), '0');
     result.append(millisecond_str);
     result.append("Z");
 
@@ -610,19 +610,17 @@ uint8_t ConversionUtility::extractHexHelper(char text)
     return 0xFF;
 }
 
-uint8_t *ConversionUtility::extractHex(v8::Local<v8::Value> js)
+std::vector<uint8_t> ConversionUtility::extractHex(v8::Local<v8::Value> js)
 {
     v8::Local<v8::String> jsString = v8::Local<v8::String>::Cast(js);
     auto length = jsString->Length();
-    auto cString = static_cast<char *>(malloc(sizeof(char) * (length + 1)));
-    memset(cString, 0, length + 1);
+    auto cString = std::vector<char>(length + 1);
 
-    jsString->WriteUtf8(cString, length);
+    jsString->WriteUtf8(cString.data(), length);
 
     auto size = (length / 2);
 
-    auto retArray = static_cast<uint8_t *>(malloc(sizeof(uint8_t) * size));
-    memset(retArray, 0, size);
+    auto retArray = std::vector<uint8_t>(size);
 
     for (auto i = 0, j = size - 1; i < length; i += 2, j--)
     {
@@ -731,7 +729,7 @@ bool Utility::Set(v8::Handle<v8::Object> target, const char *name, v8::Local<v8:
 
 bool Utility::Has(v8::Handle<v8::Object> target, const char *name)
 {
-    return target->Has(Nan::New(name).ToLocalChecked());
+    return target->Has(target->CreationContext(), Nan::New(name).ToLocalChecked()).FromMaybe(false);
 }
 
 void Utility::SetReturnValue(Nan::NAN_METHOD_ARGS_TYPE info, v8::Local<v8::Object> value)

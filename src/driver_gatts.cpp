@@ -373,7 +373,7 @@ v8::Local<v8::Object> GattsTimeoutEvent::ToJs()
     return scope.Escape(obj);
 }
 
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
 v8::Local<v8::Object> GattsExchangeMtuRequestEvent::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -457,7 +457,8 @@ void Adapter::AfterGattsAddService(uv_work_t *req)
         argv[1] = ConversionUtility::toJsNumber(baton->p_handle);
     }
 
-    baton->callback->Call(2, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -546,9 +547,8 @@ void Adapter::AfterGattsAddCharacteristic(uv_work_t *req)
         argv[1] = GattsCharacteristicDefinitionHandles(baton->p_handles).ToJs();
     }
 
-    baton->callback->Call(2, argv);
-
-    delete baton->p_handles;
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -622,9 +622,8 @@ void Adapter::AfterGattsAddDescriptor(uv_work_t *req)
         argv[1] = ConversionUtility::toJsNumber(baton->p_handle);
     }
 
-    baton->callback->Call(2, argv);
-
-    delete baton->p_attr;
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -698,10 +697,8 @@ void Adapter::AfterGattsHVX(uv_work_t *req)
         argv[1] = ConversionUtility::toJsNumber(*baton->p_hvx_params->p_len);
     }
 
-    baton->callback->Call(1, argv);
-
-    delete baton->p_hvx_params->p_len;
-    delete baton->p_hvx_params;
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -790,9 +787,8 @@ void Adapter::AfterGattsSystemAttributeSet(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
-
-    delete baton->p_sys_attr_data;
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -871,9 +867,8 @@ void Adapter::AfterGattsSetValue(uv_work_t *req)
         argv[1] = GattsValue(baton->p_value);
     }
 
-    baton->callback->Call(2, argv);
-
-    delete baton->p_value;
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -952,9 +947,8 @@ void Adapter::AfterGattsGetValue(uv_work_t *req)
         argv[1] = GattsValue(baton->p_value);
     }
 
-    baton->callback->Call(2, argv);
-
-    delete baton->p_value;
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -1026,13 +1020,12 @@ void Adapter::AfterGattsReplyReadWriteAuthorize(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
-
-    delete baton->p_rw_authorize_reply_params;
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
 NAN_METHOD(Adapter::GattsExchangeMtuReply)
 {
     uint16_t conn_handle;
@@ -1091,7 +1084,8 @@ void Adapter::AfterGattsExchangeMtuReply(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 #endif
@@ -1161,7 +1155,7 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTS_RW_AUTHORIZE_REPLY);               /**< Reply to an authorization request for a read or write operation on one or more attributes. */
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTS_SYS_ATTR_SET);                     /**< Set the persistent system attributes for a connection. */
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTS_SYS_ATTR_GET);                     /**< Retrieve the persistent system attributes. */
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTS_EXCHANGE_MTU_REPLY);               /**< Reply to an ATT_MTU exchange request by sending an Exchange MTU Response to the client. */
 #endif
 
@@ -1171,7 +1165,7 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GATTS_EVT_HVC);                             /**< Handle Value Confirmation. @ref ble_gatts_evt_hvc_t */
         NODE_DEFINE_CONSTANT(target, BLE_GATTS_EVT_SC_CONFIRM);                      /**< Service Changed Confirmation. No additional event structure applies. */
         NODE_DEFINE_CONSTANT(target, BLE_GATTS_EVT_TIMEOUT);                         /**< Timeout. @ref ble_gatts_evt_timeout_t */
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
         NODE_DEFINE_CONSTANT(target, BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST);            /**< Exchange MTU Request. Reply with @ref sd_ble_gatts_exchange_mtu_reply. @ref ble_gatts_evt_exchange_mtu_request_t. */
 #endif
     }

@@ -135,7 +135,7 @@ void Adapter::appendLog(LogEntry *log)
     if (asyncLog != nullptr)
     {
         logQueue.push(log);
-        uv_async_send(asyncLog);
+        uv_async_send(asyncLog.get());
     }
 }
 
@@ -154,7 +154,8 @@ void Adapter::onLogEvent(uv_async_t *handle)
             v8::Local<v8::Value> argv[2];
             argv[0] = ConversionUtility::toJsNumber(static_cast<int>(logEntry->severity));
             argv[1] = ConversionUtility::toJsString(logEntry->message);
-            logCallback->Call(2, argv);
+            Nan::AsyncResource resource("pc-ble-driver-js:callback");
+            logCallback->Call(2, argv, &resource);
         }
         else
         {
@@ -172,12 +173,35 @@ void Adapter::dispatchEvents()
     // Trigger callback in NodeJS thread to call NodeJS callbacks
     if (asyncEvent != nullptr)
     {
-        uv_async_send(asyncEvent);
+        uv_async_send(asyncEvent.get());
     }
     else
     {
-        std::cerr << "Adapter::dispatchEvents() asyncEvent is nullptr!" << std::endl;
-        std::terminate();
+        // Adapter::cleanUpV8Resources() sets the Adapter::asyncEvent object to null.
+        // Adapter::cleanUpV8Resources() is called from both Adapter::AfterClose and Adapter::AfterConnReset
+        //
+        // If Adapter::eventInterval is 0, this method, Adapter::dispatchEvents, will be called directly without being
+        // invoked from eventIntervalTimer.
+        //
+        // When Adapter::AfterClose is invoked, parts of Adapter::cleanUpV8Resources() is ran before the
+        // the following call graph is complete:
+        //
+        // SoftDevice callback -> sd_rpc_on_event(...) -> Adapter::appendEvent(...) -> Adapter::dispatchEvents()
+        //
+        // The above call graph is ran in thread SerializationTransport::eventThread when Adapter::eventInterval == 0.
+        //
+        // If eventInterval != 0 the event is popped out of the Adapter::eventQueue queue by
+        // Adapter::eventIntervalTimer, in a libuv thread-pool thread. Adapter::eventIntervalTimer is stopped in
+        // Adapter::cleanUpV8Resources().
+        //
+        // A quick fix to circumvent this race condition is to ignore the event when Adapter::asyncEvent is nullptr.
+        //
+        // A more permanent fix should be implemented, it would require better documentation/understanding of
+        // pc-ble-driver-js inner workings and some changes to synchronization between libuv thread and pc-ble-driver(-js) threads.
+        if (eventInterval > 0) {
+            std::cerr << "Adapter::dispatchEvents() asyncEvent is nullptr!" << std::endl;
+            std::terminate();
+        }
     }
 }
 
@@ -292,11 +316,11 @@ void Adapter::onRpcEvent(uv_async_t *handle)
                 GAP_EVT_CASE(SEC_REQUEST,               SecRequest,             sec_request,                array, arrayIndex, eventEntry);
                 GAP_EVT_CASE(CONN_PARAM_UPDATE_REQUEST, ConnParamUpdateRequest, conn_param_update_request,  array, arrayIndex, eventEntry);
                 GAP_EVT_CASE(SCAN_REQ_REPORT,           ScanReqReport,          scan_req_report,            array, arrayIndex, eventEntry);
-#if NRF_SD_BLE_API_VERSION == 2
+#ifdef BLE_EVT_TX_COMPLETE
                 COMMON_EVT_CASE(TX_COMPLETE, TXComplete, tx_complete, array, arrayIndex, eventEntry);
 #endif
 
-#if NRF_SD_BLE_API_VERSION == 6
+#if NRF_SD_BLE_API_VERSION >= 5
                 GAP_EVT_CASE(DATA_LENGTH_UPDATE_REQUEST, DataLengthUpdateRequest, data_length_update_request, array, arrayIndex, eventEntry);
                 GAP_EVT_CASE(DATA_LENGTH_UPDATE,         DataLengthUpdateEvt,     data_length_update,         array, arrayIndex, eventEntry);
                 GAP_EVT_CASE(PHY_UPDATE_REQUEST,         PhyUpdateRequest,        phy_update_request,         array, arrayIndex, eventEntry);
@@ -313,7 +337,7 @@ void Adapter::onRpcEvent(uv_async_t *handle)
                 GATTC_EVT_CASE(WRITE_RSP,                   Write,                         write_rsp,                  array, arrayIndex, eventEntry);
                 GATTC_EVT_CASE(HVX,                         HandleValueNotification,       hvx,                        array, arrayIndex, eventEntry);
                 GATTC_EVT_CASE(TIMEOUT,                     Timeout,                       timeout,                    array, arrayIndex, eventEntry);
-#if NRF_SD_BLE_API_VERSION == 6
+#if NRF_SD_BLE_API_VERSION >= 5
                 GATTC_EVT_CASE(EXCHANGE_MTU_RSP,        ExchangeMtuResponse,    exchange_mtu_rsp,   array, arrayIndex, eventEntry);
 #endif
 
@@ -322,7 +346,7 @@ void Adapter::onRpcEvent(uv_async_t *handle)
                 GATTS_EVT_CASE(SYS_ATTR_MISSING,        SystemAttributeMissing, sys_attr_missing,   array, arrayIndex, eventEntry);
                 GATTS_EVT_CASE(HVC,                     HVC,                    hvc,                array, arrayIndex, eventEntry);
                 GATTS_EVT_CASE(TIMEOUT,                 Timeout,                timeout,            array, arrayIndex, eventEntry);
-#if NRF_SD_BLE_API_VERSION == 6
+#if NRF_SD_BLE_API_VERSION >= 5
                 GATTS_EVT_CASE(EXCHANGE_MTU_REQUEST,    ExchangeMtuRequest,     exchange_mtu_request,       array, arrayIndex, eventEntry);
 #endif
 
@@ -367,7 +391,8 @@ void Adapter::onRpcEvent(uv_async_t *handle)
 
     if (eventCallback != nullptr)
     {
-        eventCallback->Call(1, callback_value);
+        Nan::AsyncResource resource("pc-ble-driver-js:callback");
+        eventCallback->Call(1, callback_value, &resource);
     }
     else
     {
@@ -405,7 +430,7 @@ void Adapter::appendStatus(StatusEntry *status)
     if (asyncStatus != nullptr)
     {
         statusQueue.push(status);
-        uv_async_send(asyncStatus);
+        uv_async_send(asyncStatus.get());
     }
 }
 
@@ -423,7 +448,8 @@ void Adapter::onStatusEvent(uv_async_t *handle)
         {
             v8::Local<v8::Value> argv[1];
             argv[0] = StatusMessage::getStatus(statusEntry->id, statusEntry->message, statusEntry->timestamp);
-            statusCallback->Call(1, argv);
+            Nan::AsyncResource resource("pc-ble-driver-js:callback");
+            statusCallback->Call(1, argv, &resource);
         }
 
         // Free memory for current entry, we remove the element from the deque when the iteration is done
@@ -431,7 +457,7 @@ void Adapter::onStatusEvent(uv_async_t *handle)
     }
 }
 
-#if NRF_SD_BLE_API_VERSION == 2
+#ifdef BLE_EVT_TX_COMPLETE
 v8::Local<v8::Object> CommonTXCompleteEvent::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -442,7 +468,9 @@ v8::Local<v8::Object> CommonTXCompleteEvent::ToJs()
 
     return scope.Escape(obj);
 }
-#elif NRF_SD_BLE_API_VERSION == 6
+#endif
+
+#ifdef BLE_GATTC_EVT_WRITE_CMD_TX_COMPLETE
 v8::Local<v8::Object> GattcWriteCmdTxCompleteEvent::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -492,7 +520,7 @@ v8::Local<v8::Object> CommonMemReleaseEvent::ToJs()
     return scope.Escape(obj);
 }
 
-#if NRF_SD_BLE_API_VERSION == 2
+#if NRF_SD_BLE_API_VERSION < 5
 // Class private method that is only used by the class to activate the SoftDevice in the Adapter
 uint32_t Adapter::enableBLE(adapter_t *adapter, ble_enable_params_t *ble_enable_params)
 {
@@ -508,7 +536,7 @@ uint32_t Adapter::enableBLE(adapter_t *adapter, ble_enable_params_t *ble_enable_
 }
 #endif
 
-#if NRF_SD_BLE_API_VERSION == 6
+#if NRF_SD_BLE_API_VERSION >= 5
 // Class private method that is only used by the class to activate the SoftDevice in the Adapter
 uint32_t Adapter::enableBLE(adapter_t *adapter)
 {
@@ -575,7 +603,7 @@ void Adapter::EnableBLE(uv_work_t *req)
     baton->result = sd_ble_enable(baton->adapter, baton->enable_params, &baton->app_ram_base);
 #endif
 
-#if NRF_SD_BLE_API_VERSION == 6
+#if NRF_SD_BLE_API_VERSION >= 5
     // The p_app_ram_base argument is irrelevent for pc-ble-driver since it is managed by the connectivity firmware
     baton->result = sd_ble_enable(baton->adapter, NULL);
 #endif
@@ -602,11 +630,12 @@ void Adapter::AfterEnableBLE(uv_work_t *req)
         argv[1] = EnableParameters(baton->enable_params);
         argv[2] = ConversionUtility::toJsNumber(baton->app_ram_base);
     }
-    
-    baton->callback->Call(3, argv);
-    delete baton->enable_params;
 
-#elif NRF_SD_BLE_API_VERSION == 6
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(3, argv, &resource);
+    // delete baton->enable_params;
+
+#elif NRF_SD_BLE_API_VERSION >= 5
     v8::Local<v8::Value> argv[1];
 
     if (baton->result != NRF_SUCCESS)
@@ -618,7 +647,8 @@ void Adapter::AfterEnableBLE(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
 #endif // NRF_SD_BLE_API_VERSION
 
     delete baton;
@@ -693,7 +723,7 @@ NAN_METHOD(Adapter::Open)
 
     try
     {
-        baton->log_callback = new Nan::Callback(ConversionUtility::getCallbackFunction(options, "logCallback"));
+        baton->log_callback = std::make_unique<Nan::Callback>(ConversionUtility::getCallbackFunction(options, "logCallback"));
     }
     catch (std::string error)
     {
@@ -704,7 +734,7 @@ NAN_METHOD(Adapter::Open)
 
     try
     {
-        baton->event_callback = new Nan::Callback(ConversionUtility::getCallbackFunction(options, "eventCallback"));
+        baton->event_callback = std::make_unique<Nan::Callback>(ConversionUtility::getCallbackFunction(options, "eventCallback"));
     }
     catch (std::string error)
     {
@@ -715,7 +745,7 @@ NAN_METHOD(Adapter::Open)
 
     try
     {
-        baton->status_callback = new Nan::Callback(ConversionUtility::getCallbackFunction(options, "statusCallback"));
+        baton->status_callback = std::unique_ptr<Nan::Callback>(new Nan::Callback(ConversionUtility::getCallbackFunction(options, "statusCallback")));
     }
     catch (std::string error)
     {
@@ -732,9 +762,9 @@ void Adapter::Open(uv_work_t *req)
 {
     auto baton = static_cast<OpenBaton *>(req->data);
 
-    baton->mainObject->initEventHandling(baton->event_callback, baton->evt_interval);
-    baton->mainObject->initLogHandling(baton->log_callback);
-    baton->mainObject->initStatusHandling(baton->status_callback);
+    baton->mainObject->initEventHandling(std::move(baton->event_callback), baton->evt_interval);
+    baton->mainObject->initLogHandling(std::move(baton->log_callback));
+    baton->mainObject->initStatusHandling(std::move(baton->status_callback));
 
     // Ensure that the correct adapter gets the callbacks as long as we have no reference to
     // the driver adapter until after sd_rpc_open is called
@@ -746,6 +776,11 @@ void Adapter::Open(uv_work_t *req)
     auto h5 = sd_rpc_data_link_layer_create_bt_three_wire(uart, baton->retransmission_interval);
     auto serialization = sd_rpc_transport_layer_create(h5, baton->response_timeout);
     auto adapter = sd_rpc_adapter_create(serialization);
+
+    // Free memory malloc'ed by the sd_rpc_create* functions
+    free(uart);
+    free(h5);
+    free(serialization);
 
     baton->adapter = adapter;
     baton->mainObject->adapter = adapter;
@@ -772,11 +807,6 @@ void Adapter::Open(uv_work_t *req)
 
         // Delete the adapter layer and all layers below
         sd_rpc_adapter_delete(adapter);
-
-        // Free memory malloc'ed by the sd_rpc_create* functions
-        free(uart);
-        free(h5);
-        free(serialization);
         free(adapter);
 
         return;
@@ -785,7 +815,7 @@ void Adapter::Open(uv_work_t *req)
     if (baton->enable_ble) {
 #if NRF_SD_BLE_API_VERSION == 2
     error_code = Adapter::enableBLE(adapter, baton->ble_enable_params);
-#elif NRF_SD_BLE_API_VERSION == 6
+#elif NRF_SD_BLE_API_VERSION >= 5
     error_code = Adapter::enableBLE(adapter);
 #else
     #error "Not supported in this version of SoftDevice."
@@ -830,8 +860,8 @@ void Adapter::AfterOpen(uv_work_t *req)
     }
 
 
-    baton->callback->Call(1, argv);
-
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -882,9 +912,14 @@ void Adapter::AfterClose(uv_work_t *req)
         else
         {
             argv[0] = Nan::Undefined();
+
+            sd_rpc_adapter_delete(baton->adapter);
+            free(baton->adapter);
+            baton->adapter = nullptr;
         }
 
-        baton->callback->Call(1, argv);
+        Nan::AsyncResource resource("pc-ble-driver-js:callback");
+        baton->callback->Call(1, argv, &resource);
     }
 
     delete baton;
@@ -909,22 +944,22 @@ NAN_METHOD(Adapter::ConnReset)
     auto baton = new ConnResetBaton(callback);
     baton->adapter = obj->adapter;
     baton->mainObject = obj;
+    /* Hardcoding the reset mode. Consider adding argument for letting user choose reset mode. */
+    baton->reset = SOFT_RESET;
 
     uv_queue_work(uv_default_loop(), baton->req, ConnReset, reinterpret_cast<uv_after_work_cb>(AfterConnReset));
 }
 
 void Adapter::ConnReset(uv_work_t *req)
 {
-    auto baton = static_cast<CloseBaton *>(req->data);
-    baton->result = sd_rpc_conn_reset(baton->adapter);
+    auto baton = static_cast<ConnResetBaton *>(req->data);
+    baton->result = sd_rpc_conn_reset(baton->adapter, baton->reset);
 }
 
 void Adapter::AfterConnReset(uv_work_t *req)
 {
     Nan::HandleScope scope;
     auto baton = static_cast<ConnResetBaton *>(req->data);
-
-    baton->mainObject->cleanUpV8Resources();
 
     if (baton->callback != nullptr)
     {
@@ -939,7 +974,8 @@ void Adapter::AfterConnReset(uv_work_t *req)
             argv[0] = Nan::Undefined();
         }
 
-        baton->callback->Call(1, argv);
+        Nan::AsyncResource resource("pc-ble-driver-js:callback");
+        baton->callback->Call(1, argv, &resource);
     }
 
     delete baton;
@@ -999,7 +1035,8 @@ void Adapter::AfterAddVendorSpecificUUID(uv_work_t *req)
         argv[1] = ConversionUtility::toJsNumber(baton->p_uuid_type);
     }
 
-    baton->callback->Call(2, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -1115,8 +1152,8 @@ void Adapter::AfterGetVersion(uv_work_t *req)
         argv[1] = Nan::Undefined();
     }
 
-    baton->callback->Call(2, argv);
-    delete baton->version;
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -1192,8 +1229,8 @@ void Adapter::AfterEncodeUUID(uv_work_t *req)
         argv[3] = ConversionUtility::encodeHex(reinterpret_cast<char *>(baton->uuid_le), baton->uuid_le_len);
     }
 
-    baton->callback->Call(4, argv);
-    delete baton->uuid_le;
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(4, argv, &resource);
     delete baton;
 }
 
@@ -1237,7 +1274,7 @@ NAN_METHOD(Adapter::DecodeUUID)
 void Adapter::DecodeUUID(uv_work_t *req)
 {
     auto baton = static_cast<BleUUIDDecodeBaton *>(req->data);
-    baton->result = sd_ble_uuid_decode(baton->adapter, baton->uuid_le_len, baton->uuid_le, baton->p_uuid);
+    baton->result = sd_ble_uuid_decode(baton->adapter, baton->uuid_le_len, baton->uuid_le.data(), baton->p_uuid);
 }
 
 // This runs in Main Thread
@@ -1258,9 +1295,8 @@ void Adapter::AfterDecodeUUID(uv_work_t *req)
         argv[1] = BleUUID(baton->p_uuid);
     }
 
-    baton->callback->Call(2, argv);
-    delete baton->p_uuid;
-    delete baton->uuid_le;
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -1343,8 +1379,8 @@ void Adapter::AfterReplyUserMemory(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
-    delete baton->p_block;
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -1419,7 +1455,8 @@ void Adapter::AfterSetBleOption(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 
@@ -1493,8 +1530,8 @@ void Adapter::AfterGetBleOption(uv_work_t *req)
         argv[1] = optionValue;
     }
 
-    baton->callback->Call(2, argv);
-    delete baton->p_opt;
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
     delete baton;
 }
 
@@ -1502,7 +1539,7 @@ void Adapter::AfterGetBleOption(uv_work_t *req)
 
 #pragma region SetBleConfig
 
-#if NRF_SD_BLE_API_VERSION == 6
+#if NRF_SD_BLE_API_VERSION >= 5
 
 NAN_METHOD(Adapter::SetBleConfig) {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
@@ -1577,7 +1614,7 @@ void Adapter::AfterSetBleConfig(uv_work_t *req)
     baton->callback->Call(1, argv);
     delete baton;
 }
-#endif // NRF_SD_BLE_API_VERSION == 6
+#endif // NRF_SD_BLE_API_VERSION >= 5
 #pragma endregion SetBleConfig
 
 #pragma region BandwidthCountParameters
@@ -1838,7 +1875,7 @@ ble_uuid128_t *BleUUID128::ToNative()
         std::terminate();
     }
 
-    uuidString->WriteUtf8(uuidPtr, uuid_len);
+    uuidString->WriteUtf8(uuidPtr, (int) uuid_len);
 
     auto scan_count = sscanf(uuidPtr,
         "%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x",
@@ -1886,7 +1923,7 @@ ble_opt_t *BleOpt::ToNative()
 
 #pragma endregion BleOpt
 
-#if NRF_SD_BLE_API_VERSION == 6
+#if NRF_SD_BLE_API_VERSION >= 5
 
 ble_cfg_t *BleCfg::ToNative()
 {
@@ -1896,7 +1933,7 @@ ble_cfg_t *BleCfg::ToNative()
     {
         auto conn_cfg_obj = ConversionUtility::getJsObject(jsobj, "conn_cfg");
         ble_cfg->conn_cfg = BleConnCfg(conn_cfg_obj);
-    } 
+    }
     else if (Utility::Has(jsobj, "common_cfg"))
     {
         auto common_cfg_obj = ConversionUtility::getJsObject(jsobj, "common_cfg");
@@ -2091,7 +2128,7 @@ ble_gap_cfg_role_count_t *BleGapCfgRoleCount::ToNative()
 ble_gattc_conn_cfg_t *BleGattcConnCfg::ToNative()
 {
     auto gattc_conn_cfg = new ble_gattc_conn_cfg_t();
-    
+
     if (Utility::Has(jsobj, "write_cmd_tx_queue_size"))
     {
         gattc_conn_cfg->write_cmd_tx_queue_size = ConversionUtility::getNativeUint8(jsobj, "write_cmd_tx_queue_size");
@@ -2267,7 +2304,7 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_UUID_GAP); /* Generic Access Profile. */
         NODE_DEFINE_CONSTANT(target, BLE_UUID_GAP_CHARACTERISTIC_DEVICE_NAME); /* Device Name Characteristic. */
         NODE_DEFINE_CONSTANT(target, BLE_UUID_GAP_CHARACTERISTIC_APPEARANCE); /* Appearance Characteristic. */
-#if NRF_SD_BLE_API_VERSION == 2
+#ifdef BLE_UUID_GAP_CHARACTERISTIC_PPF
         NODE_DEFINE_CONSTANT(target, BLE_UUID_GAP_CHARACTERISTIC_PPF); /* Peripheral Privacy Flag Characteristic. */
 #endif
         NODE_DEFINE_CONSTANT(target, BLE_UUID_GAP_CHARACTERISTIC_RECONN_ADDR); /* Reconnection Address Characteristic. */
@@ -2336,7 +2373,7 @@ extern "C" {
     {
         NODE_DEFINE_CONSTANT(target, BLE_SVC_BASE);           /**< Common BLE SVC base. */
         NODE_DEFINE_CONSTANT(target, BLE_SVC_LAST);           /**< Total: 12. */
-#if NRF_SD_BLE_API_VERSION == 2
+#ifdef BLE_RESERVED_SVC_BASE
         NODE_DEFINE_CONSTANT(target, BLE_RESERVED_SVC_BASE);  /**< Reserved BLE SVC base. */
         NODE_DEFINE_CONSTANT(target, BLE_RESERVED_SVC_LAST);  /**< Total: 4. */
 #endif
@@ -2377,13 +2414,14 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_USER_MEM_TYPE_INVALID);                /**< Invalid User Memory Types. */
         NODE_DEFINE_CONSTANT(target, BLE_USER_MEM_TYPE_GATTS_QUEUED_WRITES);    /**< User Memory for GATTS queued writes. */
         NODE_DEFINE_CONSTANT(target, BLE_UUID_VS_COUNT_DEFAULT);                /**< Use the default VS UUID count (10 for this version of the SoftDevice). */
-#if NRF_SD_BLE_API_VERSION == 2
+#ifdef BLE_UUID_VS_COUNT_MIN
         NODE_DEFINE_CONSTANT(target, BLE_UUID_VS_COUNT_MIN);                    /**< Minimum VS UUID count. */
 #endif
 
-#if NRF_SD_BLE_API_VERSION == 2
+#ifdef BLE_EVT_TX_COMPLETE
         NODE_DEFINE_CONSTANT(target, BLE_EVT_TX_COMPLETE);                      /**< Transmission Complete. @ref ble_evt_tx_complete_t */
-#elif NRF_SD_BLE_API_VERSION == 6
+#endif
+#ifdef BLE_GATTC_EVT_WRITE_CMD_TX_COMPLETE
         NODE_DEFINE_CONSTANT(target, BLE_GATTC_EVT_WRITE_CMD_TX_COMPLETE);      /**< Write without Response transmission complete. */
         NODE_DEFINE_CONSTANT(target, BLE_GATTS_EVT_HVN_TX_COMPLETE);            /**< Handle Value Notification transmission complete. */
 #endif

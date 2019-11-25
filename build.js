@@ -1,4 +1,4 @@
-/* Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+/* Copyright (c) 2019, Nordic Semiconductor ASA
  *
  * All rights reserved.
  *
@@ -34,81 +34,18 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-'use strict';
-
-function getBuildSystem(debug) {
-    const cmakeJS = require('cmake-js');
-    const os = require('os');
-
-    const defaultRuntime = 'node';
-    const defaultRuntimeVersion = process.version.substr(1);
-    const defaultWinArch = os.arch();
-
-    const options = {
-        runtime: process.env.npm_config_runtime || undefined,
-        runtimeVersion: process.env.npm_config_target || undefined,
-        arch: process.env.npm_config_arch || undefined,
-        debug,
-    };
-
-    const buildSystem = new cmakeJS.BuildSystem(options);
-
-    if (buildSystem.options.runtime === undefined) {
-        buildSystem.options.runtime = defaultRuntime;
-    }
-
-    if (buildSystem.options.runtimeVersion === undefined) {
-        buildSystem.options.runtimeVersion = defaultRuntimeVersion;
-    }
-
-    if (buildSystem.options.arch === undefined && process.platform == 'win32') {
-        buildSystem.options.arch = defaultWinArch;
-    }
-
-    return buildSystem;
-}
-
-let times = 0;
-
-function begin(args) {
-	// Sanity check for the platform-specific binary driver files
-    const fs = require('fs');
-    fs.readdir('./pc-ble-driver', (err, files) => {
-        if (err) {
-            console.error('ERROR: Could not read the \'pc-ble-driver\' subrepo, please check manually.');
-            process.exit(2);
-        } else if (!files.length) {
-            console.error('ERROR: The \'pc-ble-driver\' subrepo is empty, please run \'git submodule update --init --recursive\' and try again.');
-            process.exit(1);
-        }
-    });
-
-    let debug = false;
-
-    const length = args.length >>> 0;
-
-    for (let i = 0; i < length; i++) {
-        if (args[i] === '--debug') debug = true;
-    }
-
-    let buildSystem;
-    try {
-        buildSystem = getBuildSystem(debug);
-    } catch (e) {
-        if (e.code == 'MODULE_NOT_FOUND') {
-            if (times++ == 5) {
-                throw e;
-            } else {
-                setTimeout(begin, 2000);
-            }
-        } else {
-            throw e;
-        }
-    }
-
-    buildSystem.rebuild().catch(e => {
-        process.exit(1);
-    });
-}
-
-begin(process.argv);
+// Wrapper script for cmake-js. Translates and forwards npm config options
+// understood by node-gyp. This script is needed because pc-nrfconnect-core
+// supplies config for only node-gyp.
+require('child_process').execFileSync(process.platform === 'win32' ? 'npx.cmd' : 'npx', [
+    'cmake-js',
+    // The CMake target install copies .node C++ Addons to location expected by node-pre-gyp.
+    '--target', 'install',
+    // Translate npm config options understood by node-gyp to cmake-js.
+    ...('npm_config_runtime' in process.env ? ['--runtime', process.env.npm_config_runtime] : []),
+    ...('npm_config_target' in process.env ? ['--runtime-version', process.env.npm_config_target] : []),
+    // Allow supplying options from command line. Note that cmake-js does not
+    // allow overriding previously provided arguments, but will instead join
+    // the values with a comma.
+    ...process.argv.slice(2),
+], { stdio: 'inherit' });
