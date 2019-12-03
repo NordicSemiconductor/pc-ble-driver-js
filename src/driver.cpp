@@ -1602,7 +1602,8 @@ void Adapter::AfterSetBleConfig(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
     delete baton;
 }
 #endif // NRF_SD_BLE_API_VERSION >= 5
@@ -2134,7 +2135,7 @@ ble_gap_cfg_t *BleGapCfg::ToNative()
 ble_gap_cfg_device_name_t *BleGapCfgDeviceName::ToNative()
 {
     auto ble_gap_cfg_device_name = new ble_gap_cfg_device_name_t();
-    memset(ble_gap_cfg_device_name, 0, sizeof(ble_gap_cfg_device_name));
+    memset(ble_gap_cfg_device_name, 0, sizeof(ble_gap_cfg_device_name_t));
 
     if (Utility::Has(jsobj, "write_perm"))
     {
