@@ -57,12 +57,12 @@ const auto STATUS_QUEUE_SIZE = 64;
 
 struct enable_ble_params_t {
 #if NRF_SD_BLE_API_VERSION < 5
-    enable_ble_params_t::~enable_ble_params_t() {
+    ~enable_ble_params_t() {
         delete ble_enable_params;
     }
     ble_enable_params_t *ble_enable_params; // If enable BLE is true, then use these params when enabling BLE
 #else
-    enable_ble_params_t::~enable_ble_params_t() {
+    ~enable_ble_params_t() {
         delete conn_cfg;
         delete common_cfg;
         delete gap_cfg;
