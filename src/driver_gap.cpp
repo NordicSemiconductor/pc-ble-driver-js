@@ -2315,7 +2315,7 @@ NAN_METHOD(Adapter::GapStartScan)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Object> options;
-#if NRF_SD_BLE_API_VERSION >= 5
+#if NRF_SD_BLE_API_VERSION >= 6
     bool cont;
 #endif
     v8::Local<v8::Function> callback;
@@ -2326,7 +2326,8 @@ NAN_METHOD(Adapter::GapStartScan)
         options = ConversionUtility::getJsObject(info[argumentcount]);
         argumentcount++;
 
-#if NRF_SD_BLE_API_VERSION >= 5
+#if NRF_SD_BLE_API_VERSION >= 6
+#warning "This breaks the JS API, better alternative needed."
         // Continue scanning. This is called when getting the result of a scan.
         cont = ConversionUtility::getNativeBool(info[argumentcount]);
         argumentcount++;
@@ -2346,7 +2347,7 @@ NAN_METHOD(Adapter::GapStartScan)
 
     auto baton = new StartScanBaton(callback);
     baton->scan_params = params;
-#if NRF_SD_BLE_API_VERSION >= 5
+#if NRF_SD_BLE_API_VERSION >= 6
     baton->cont = cont;
 #endif
     baton->adapter = obj->adapter;
