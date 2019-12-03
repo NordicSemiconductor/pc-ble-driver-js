@@ -337,6 +337,10 @@ void Adapter::initGeneric(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "getBleOption", GetBleOption);
 
     Nan::SetPrototypeMethod(tpl, "getStats", GetStats);
+
+#if NRF_SD_BLE_API_VERSION >= 5
+    Nan::SetPrototypeMethod(tpl, "setBleConfig", SetBleConfig);
+#endif
 }
 
 void Adapter::initGap(v8::Local<v8::FunctionTemplate> tpl)

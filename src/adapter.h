@@ -55,6 +55,28 @@ const auto STATUS_QUEUE_SIZE = 64;
     static void MainName(uv_work_t *req); \
     static void After##MainName(uv_work_t *req);
 
+struct enable_ble_params_t {
+#if NRF_SD_BLE_API_VERSION < 5
+    enable_ble_params_t::~enable_ble_params_t() {
+        delete ble_enable_params;
+    }
+    ble_enable_params_t *ble_enable_params; // If enable BLE is true, then use these params when enabling BLE
+#else
+    enable_ble_params_t::~enable_ble_params_t() {
+        delete conn_cfg;
+        delete common_cfg;
+        delete gap_cfg;
+        delete gatts_cfg_service_changed;
+        delete gatts_cfg_attr_tab_size;
+    }
+    ble_cfg_t *conn_cfg;   /**< Connection specific configurations, cfg_id in @ref BLE_CONN_CFGS series. */
+    ble_cfg_t *common_cfg; /**< Global common configurations, cfg_id in @ref BLE_COMMON_CFGS series. */
+    ble_cfg_t *gap_cfg;    /**< Global GAP configurations, cfg_id in @ref BLE_GAP_CFGS series. */
+    ble_cfg_t *gatts_cfg_service_changed;  /**< Global GATTS configuration, cfg_id in @ref BLE_GATTS_CFGS series. */
+    ble_cfg_t *gatts_cfg_attr_tab_size;    /**< Global GATTS configuration, cfg_id in @ref BLE_GATTS_CFGS series. */
+#endif
+};
+
 struct LogEntry
 {
 public:
@@ -188,7 +210,6 @@ private:
 #if NRF_SD_BLE_API_VERSION >= 5
     ADAPTER_METHOD_DEFINITIONS(GapDataLengthUpdate);
     ADAPTER_METHOD_DEFINITIONS(GapPhyUpdate);
-
 #endif
 
     // Gattc async mehtods
@@ -224,11 +245,8 @@ private:
     static void initGattS(v8::Local<v8::FunctionTemplate> tpl);
 
     void dispatchEvents();
-#if NRF_SD_BLE_API_VERSION < 5
-    static uint32_t enableBLE(adapter_t *adapter, ble_enable_params_t *ble_enable_params);
-#elif NRF_SD_BLE_API_VERSION >= 5
-    static uint32_t enableBLE(adapter_t *adapter);
-#endif
+
+    static uint32_t enableBLE(adapter_t *adapter, enable_ble_params_t *enable_params);
 
     void createSecurityKeyStorage(const uint16_t connHandle, ble_gap_sec_keyset_t *keyset);
     void destroySecurityKeyStorage(const uint16_t connHandle);
