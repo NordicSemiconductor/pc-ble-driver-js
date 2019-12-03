@@ -623,9 +623,6 @@ public:
     ble_gap_addr_t *address;
     ble_gap_scan_params_t *scan_params;
     ble_gap_conn_params_t *conn_params;
-#if  NRF_SD_BLE_API_VERSION >= 5
-    uint8_t conn_cfg_tag;
-#endif
 };
 
 struct GapConnectCancelBaton : public Baton
@@ -685,9 +682,6 @@ public:
 #endif
 #if NRF_SD_BLE_API_VERSION > 5
     uint8_t adv_handle;
-#endif
-#if NRF_SD_BLE_API_VERSION >= 5
-    uint8_t conn_cfg_tag;
 #endif
 };
 

@@ -49,13 +49,10 @@ extern adapter_t *connectedAdapters[];
 extern int adapterCount;
 
 static name_map_t common_event_name_map = {
-#ifdef BLE_EVT_TX_COMPLETE
+#if NRF_SD_BLE_API_VERSION <= 3
     NAME_MAP_ENTRY(BLE_EVT_TX_COMPLETE),
-#endif
-#ifdef BLE_GATTC_EVT_WRITE_CMD_TX_COMPLETE
+#else
     NAME_MAP_ENTRY(BLE_GATTC_EVT_WRITE_CMD_TX_COMPLETE),
-#endif
-#ifdef BLE_GATTS_EVT_HVN_TX_COMPLETE
     NAME_MAP_ENTRY(BLE_GATTS_EVT_HVN_TX_COMPLETE),
 #endif
     NAME_MAP_ENTRY(BLE_EVT_USER_MEM_REQUEST),
@@ -178,6 +175,11 @@ public:
     virtual ~BleCfg() {}
 
     ble_cfg_t *ToNative() override;
+    ble_cfg_t *ToConnCfg();
+    ble_cfg_t *ToCommonCfg();
+    ble_cfg_t *ToGapCfg();
+    ble_cfg_t *ToGattsCfgServiceChanged();
+    ble_cfg_t *ToGattsCfgAttrTabSize();
 };
 
 #pragma region common_cfg
@@ -366,7 +368,7 @@ public:
     const char *getEventName() override { return ConversionUtility::valueToString(this->evt_id, common_event_name_map, "Unknown Common Event"); }
 };
 
-#ifdef BLE_EVT_TX_COMPLETE
+#if NRF_SD_BLE_API_VERSION <= 3
 class CommonTXCompleteEvent : BleDriverCommonEvent<ble_evt_tx_complete_t>
 {
 public:
@@ -377,7 +379,7 @@ public:
 };
 #endif
 
-#ifdef BLE_GATTC_EVT_WRITE_CMD_TX_COMPLETE
+#if NRF_SD_BLE_API_VERSION >= 5
 class GattcWriteCmdTxCompleteEvent : BleDriverCommonEvent<ble_gattc_evt_write_cmd_tx_complete_t>
 {
 public:
@@ -424,6 +426,7 @@ struct OpenBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(OpenBaton)
+
     //char path[PATH_STRING_SIZE];
     std::string path;
     std::unique_ptr<Nan::Callback> event_callback; // Callback that is called for every event that is received from the SoftDevice
@@ -443,9 +446,8 @@ public:
     uint32_t response_timeout; // Duration to wait for reply on reliable packet sent to target
 
     bool enable_ble; // Enable BLE or not when connecting, if not the developer must enable the BLE when state is active
-#if NRF_SD_BLE_API_VERSION == 2
-    ble_enable_params_t *ble_enable_params; // If enable BLE is true, then use these params when enabling BLE
-#endif
+
+    enable_ble_params_t enable_ble_params; // If enable BLE is true, then use these params when enabling BLE
 
     Adapter *mainObject;
 };
@@ -469,11 +471,8 @@ struct EnableBLEBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(EnableBLEBaton);
-#if NRF_SD_BLE_API_VERSION < 5
-    BATON_DESTRUCTOR(EnableBLEBaton) { delete enable_params; }
-    ble_enable_params_t *enable_params;
-    uint32_t app_ram_base;
-#endif
+
+    enable_ble_params_t enable_ble_params;
 };
 
 
@@ -549,9 +548,9 @@ class BleConfigBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(BleConfigBaton);
+    BATON_DESTRUCTOR(BleConfigBaton) { delete p_cfg; }
     uint32_t cfg_id;
     ble_cfg_t *p_cfg;
-    uint32_t app_ram_base;
 };
 #endif
 

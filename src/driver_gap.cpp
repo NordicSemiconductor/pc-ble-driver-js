@@ -1001,8 +1001,22 @@ ble_gap_data_length_params_t *GapDataLengthParams::ToNative()
 
     ble_gap_data_length_params->max_tx_octets = ConversionUtility::getNativeUint16(jsobj, "max_tx_octets");
     ble_gap_data_length_params->max_rx_octets = ConversionUtility::getNativeUint16(jsobj, "max_rx_octets");
-    ble_gap_data_length_params->max_tx_time_us = ConversionUtility::getNativeUint16(jsobj, "max_tx_time_us");
-    ble_gap_data_length_params->max_rx_time_us = ConversionUtility::getNativeUint16(jsobj, "max_rx_time_us");
+    if (Utility::Has(jsobj, "max_tx_time_us"))
+    {
+        ble_gap_data_length_params->max_tx_time_us = ConversionUtility::getNativeUint16(jsobj, "max_tx_time_us");
+    }
+    else
+    {
+        ble_gap_data_length_params->max_tx_time_us = BLE_GAP_DATA_LENGTH_AUTO;
+    }
+    if (Utility::Has(jsobj, "max_rx_time_us"))
+    {
+        ble_gap_data_length_params->max_rx_time_us = ConversionUtility::getNativeUint16(jsobj, "max_rx_time_us");
+    }
+    else
+    {
+        ble_gap_data_length_params->max_rx_time_us = BLE_GAP_DATA_LENGTH_AUTO;
+    }
 
     return ble_gap_data_length_params;
 };
@@ -1025,6 +1039,7 @@ v8::Local<v8::Object> GapPhyUpdateRequest::ToJs()
 {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverEvent::ToJs(obj);
     Utility::Set(obj, "peer_preferred_phys", GapPhys(&(evt->peer_preferred_phys)).ToJs());
     return scope.Escape(obj);
 };
@@ -1036,6 +1051,7 @@ v8::Local<v8::Object> GapPhyUpdateEvt::ToJs()
 {
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverEvent::ToJs(obj);
     Utility::Set(obj, "status", evt->status);
     Utility::Set(obj, "tx_phy", evt->tx_phy);
     Utility::Set(obj, "rx_phy", evt->rx_phy);
@@ -2299,7 +2315,9 @@ NAN_METHOD(Adapter::GapStartScan)
 {
     auto obj = Nan::ObjectWrap::Unwrap<Adapter>(info.Holder());
     v8::Local<v8::Object> options;
+#if NRF_SD_BLE_API_VERSION >= 5
     bool cont;
+#endif
     v8::Local<v8::Function> callback;
     auto argumentcount = 0;
 
@@ -2438,9 +2456,6 @@ NAN_METHOD(Adapter::GapConnect)
     v8::Local<v8::Object> address;
     v8::Local<v8::Object> scan_params;
     v8::Local<v8::Object> conn_params;
-#if NRF_SD_BLE_API_VERSION >= 5
-    uint8_t conn_cfg_tag;
-#endif
     v8::Local<v8::Function> callback;
     auto argumentcount = 0;
 
@@ -2454,11 +2469,6 @@ NAN_METHOD(Adapter::GapConnect)
 
         conn_params = ConversionUtility::getJsObject(info[argumentcount]);
         argumentcount++;
-
-#if NRF_SD_BLE_API_VERSION >= 5
-        conn_cfg_tag = ConversionUtility::getNativeUint8(info[argumentcount]);
-        argumentcount++;
-#endif
 
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
@@ -2507,10 +2517,6 @@ NAN_METHOD(Adapter::GapConnect)
         return;
     }
 
-#if NRF_SD_BLE_API_VERSION >= 5
-    baton->conn_cfg_tag = conn_cfg_tag;
-#endif
-
     uv_queue_work(uv_default_loop(), baton->req, GapConnect, reinterpret_cast<uv_after_work_cb>(AfterGapConnect));
 }
 
@@ -2521,7 +2527,8 @@ void Adapter::GapConnect(uv_work_t *req)
 #if  NRF_SD_BLE_API_VERSION < 5
     baton->result = sd_ble_gap_connect(baton->adapter, baton->address, baton->scan_params, baton->conn_params);
 #elif NRF_SD_BLE_API_VERSION >= 5
-    baton->result = sd_ble_gap_connect(baton->adapter, baton->address, baton->scan_params, baton->conn_params, baton->conn_cfg_tag);
+    const uint8_t conn_cfg_tag = 1;
+    baton->result = sd_ble_gap_connect(baton->adapter, baton->address, baton->scan_params, baton->conn_params, conn_cfg_tag);
 #endif
 }
 
@@ -2689,9 +2696,6 @@ NAN_METHOD(Adapter::GapStartAdvertising)
 #if NRF_SD_BLE_API_VERSION > 5
     uint8_t adv_handle;
 #endif
-#if NRF_SD_BLE_API_VERSION >= 5
-    uint8_t conn_cfg_tag;
-#endif
 
     v8::Local<v8::Function> callback;
     auto argumentcount = 0;
@@ -2704,10 +2708,6 @@ NAN_METHOD(Adapter::GapStartAdvertising)
 #endif
 #if NRF_SD_BLE_API_VERSION > 5
         adv_handle = ConversionUtility::getNativeUint8(info[argumentcount]);
-        argumentcount++;
-#endif
-#if NRF_SD_BLE_API_VERSION >= 5
-        conn_cfg_tag = ConversionUtility::getNativeUint8(info[argumentcount]);
         argumentcount++;
 #endif
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
@@ -2736,9 +2736,6 @@ NAN_METHOD(Adapter::GapStartAdvertising)
 #if NRF_SD_BLE_API_VERSION > 5
     baton->adv_handle = adv_handle;
 #endif
-#if NRF_SD_BLE_API_VERSION >= 5
-    baton->conn_cfg_tag = conn_cfg_tag;
-#endif
 
     baton->adapter = obj->adapter;
 
@@ -2753,9 +2750,11 @@ void Adapter::GapStartAdvertising(uv_work_t *req)
 #if NRF_SD_BLE_API_VERSION < 5
     baton->result = sd_ble_gap_adv_start(baton->adapter, baton->p_adv_params);
 #elif NRF_SD_BLE_API_VERSION == 5
-    baton->result = sd_ble_gap_adv_start(baton->adapter, baton->p_adv_params, baton->conn_cfg_tag);
+    const uint8_t conn_cfg_tag = 1;
+    baton->result = sd_ble_gap_adv_start(baton->adapter, baton->p_adv_params, conn_cfg_tag);
 #else // NRF_SD_BLE_API_VERSION > 5
-    baton->result = sd_ble_gap_adv_start(baton->adapter, baton->adv_handle, baton->conn_cfg_tag);
+    const uint8_t conn_cfg_tag = 1;
+    baton->result = sd_ble_gap_adv_start(baton->adapter, baton->adv_handle, conn_cfg_tag);
 #endif
 }
 
@@ -4080,9 +4079,6 @@ NAN_METHOD(Adapter::GapDataLengthUpdate)
         p_dl_params = ConversionUtility::getJsObjectOrNull(info[argumentcount]);
         argumentcount++;
 
-        p_dl_limitation = ConversionUtility::getJsObjectOrNull(info[argumentcount]);
-        argumentcount++;
-
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
         argumentcount++;
     }
@@ -4108,16 +4104,7 @@ NAN_METHOD(Adapter::GapDataLengthUpdate)
         return;
     }
 
-    try
-    {
-        baton->p_dl_limitation = GapDataLengthLimitation(p_dl_limitation);
-    }
-    catch (std::string error)
-    {
-        v8::Local<v8::String> message = ErrorMessage::getStructErrorMessage("p_dl_limitation", error);
-        Nan::ThrowTypeError(message);
-        return;
-    }
+    baton->p_dl_limitation = new ble_gap_data_length_limitation_t();
 
     uv_queue_work(uv_default_loop(), baton->req, GapDataLengthUpdate, reinterpret_cast<uv_after_work_cb>(AfterGapDataLengthUpdate));
 }
@@ -4135,7 +4122,7 @@ void Adapter::AfterGapDataLengthUpdate(uv_work_t *req)
     Nan::HandleScope scope;
 
     auto baton = static_cast<GapDataLengthUpdateBaton *>(req->data);
-    v8::Local<v8::Value> argv[1];
+    v8::Local<v8::Value> argv[2];
 
     if (baton->result != NRF_SUCCESS)
     {
@@ -4145,8 +4132,10 @@ void Adapter::AfterGapDataLengthUpdate(uv_work_t *req)
     {
         argv[0] = Nan::Undefined();
     }
+    argv[1] = GapDataLengthLimitation(baton->p_dl_limitation).ToJs();
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(2, argv, &resource);
 
     delete baton->p_dl_params;
     delete baton->p_dl_limitation;
@@ -4225,7 +4214,8 @@ void Adapter::AfterGapPhyUpdate(uv_work_t *req)
         argv[0] = Nan::Undefined();
     }
 
-    baton->callback->Call(1, argv);
+    Nan::AsyncResource resource("pc-ble-driver-js:callback");
+    baton->callback->Call(1, argv, &resource);
 
     delete baton->p_gap_phys;
     delete baton;
@@ -4263,11 +4253,9 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST);
         NODE_DEFINE_CONSTANT(target, BLE_GAP_EVT_SCAN_REQ_REPORT);
 
-#ifdef BLE_GAP_EVT_DATA_LENGTH_UPDATE_REQUEST
+#if NRF_SD_BLE_API_VERSION >= 5
         NODE_DEFINE_CONSTANT(target, BLE_GAP_EVT_DATA_LENGTH_UPDATE_REQUEST);
         NODE_DEFINE_CONSTANT(target, BLE_GAP_EVT_DATA_LENGTH_UPDATE);
-#endif
-#ifdef BLE_GAP_EVT_PHY_UPDATE_REQUEST
         NODE_DEFINE_CONSTANT(target, BLE_GAP_EVT_PHY_UPDATE_REQUEST);
         NODE_DEFINE_CONSTANT(target, BLE_GAP_EVT_PHY_UPDATE);
 #endif
@@ -4276,18 +4264,17 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_CH_MAP);
         NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_LOCAL_CONN_LATENCY);
         NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_PASSKEY);
-#ifdef BLE_GAP_OPT_SCAN_REQ_REPORT
+#if NRF_SD_BLE_API_VERSION <= 5
         NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_SCAN_REQ_REPORT);
 #endif
 
-#ifdef BLE_GAP_OPT_COMPAT_MODE
+#if NRF_SD_BLE_API_VERSION <= 3
         NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_COMPAT_MODE);
-#endif
-#ifdef BLE_GAP_OPT_COMPAT_MODE_1
+#else
         NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_COMPAT_MODE_1);
 #endif
 
-#ifdef BLE_GAP_OPT_AUTH_PAYLOAD_TIMEOUT
+#if NRF_SD_BLE_API_VERSION >= 3
         NODE_DEFINE_CONSTANT(target, BLE_GAP_OPT_AUTH_PAYLOAD_TIMEOUT);
 #endif
 
@@ -4524,9 +4511,6 @@ extern "C" {
         /* Default number of octets in device name. */
         NODE_DEFINE_CONSTANT(target, BLE_GAP_DEVNAME_DEFAULT_LEN);
 #endif
-#ifdef BLE_CONN_CFG_TAG_DEFAULT
-        NODE_DEFINE_CONSTANT(target, BLE_CONN_CFG_TAG_DEFAULT); //Default configuration tag, SoftDevice default connection configuration.
-#endif
 
 #ifdef BLE_GAP_PHY_AUTO
         /* Phy types */
@@ -4534,6 +4518,9 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GAP_PHY_1MBPS);
         NODE_DEFINE_CONSTANT(target, BLE_GAP_PHY_2MBPS);
         NODE_DEFINE_CONSTANT(target, BLE_GAP_PHY_CODED);
+#endif
+#ifdef BLE_GAP_DATA_LENGTH_AUTO
+        NODE_DEFINE_CONSTANT(target, BLE_GAP_DATA_LENGTH_AUTO);
 #endif
     }
 }
