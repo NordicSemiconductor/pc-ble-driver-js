@@ -134,17 +134,17 @@ describe('FirmwareUpdater.getFirmwarePath', () => {
 
     it('returns v3/1m hex path for nrf52 and win32', () => {
         expect(FirmwareUpdater.getFirmwarePath(1, 'win32'))
-            .toEqual(expect.stringMatching(/1m.*s132_3/));
+            .toEqual(expect.stringMatching(/1m.*s132_5/));
     });
 
     it('returns v3/1m hex path for nrf52 and linux', () => {
         expect(FirmwareUpdater.getFirmwarePath(1, 'linux'))
-            .toEqual(expect.stringMatching(/1m.*s132_3/));
+            .toEqual(expect.stringMatching(/1m.*s132_5/));
     });
 
     it('returns v3/1m hex path for nrf52 and darwin', () => {
         expect(FirmwareUpdater.getFirmwarePath(1, 'darwin'))
-            .toEqual(expect.stringMatching(/1m.*s132_3/));
+            .toEqual(expect.stringMatching(/1m.*s132_5/));
     });
 });
 
