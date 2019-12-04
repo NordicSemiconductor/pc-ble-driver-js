@@ -232,6 +232,15 @@ public:
 
 	v8::Local<v8::Object> ToJs();
 };
+
+class GattsHvnTxCompleteEvent : BleDriverGattsEvent<ble_gatts_evt_hvn_tx_complete_t>
+{
+public:
+    GattsHvnTxCompleteEvent(std::string timestamp, uint16_t conn_handle, ble_gatts_evt_hvn_tx_complete_t *evt)
+        : BleDriverGattsEvent<ble_gatts_evt_hvn_tx_complete_t>(BLE_GATTS_EVT_HVN_TX_COMPLETE, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs() override;
+};
 #endif
 
 struct GattsAddServiceBaton : public Baton

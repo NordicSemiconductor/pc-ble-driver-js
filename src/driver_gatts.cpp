@@ -384,6 +384,17 @@ v8::Local<v8::Object> GattsExchangeMtuRequestEvent::ToJs()
 
     return scope.Escape(obj);
 }
+
+v8::Local<v8::Object> GattsHvnTxCompleteEvent::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverGattsEvent::ToJs(obj);
+
+    Utility::Set(obj, "count", ConversionUtility::toJsNumber(evt->count));
+
+    return scope.Escape(obj);
+}
 #endif
 
 NAN_METHOD(Adapter::GattsAddService)

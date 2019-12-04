@@ -317,20 +317,6 @@ describe('the API', () => {
             });
         });
 
-        const dataLengthChangedCentral = new Promise(resolve => {
-            centralAdapter.once('dataLengthChanged', (peripheralDevice, dataLength) => {
-                debug(`central dataLengthChanged to ${dataLength}`);
-                resolve(dataLength);
-            });
-        });
-
-        const dataLengthChangedPeripheral = new Promise(resolve => {
-            peripheralAdapter.once('dataLengthChanged', (centralDevice, dataLength) => {
-                debug(`peripheral dataLengthChanged to ${dataLength}`);
-                resolve(dataLength);
-            });
-        });
-
         const attMtuChangedCentral = new Promise(resolve => {
             centralAdapter.once('attMtuChanged', (peripheralDevice, attMtu) => {
                 debug(`central attMtuChanged to ${attMtu}`);
@@ -349,20 +335,19 @@ describe('the API', () => {
 
         const [
             deviceConnectedCentralResult,
-            dataLengthCentralResult, attMtuLengthCentralResult,
-            dataLengthPeripheralResult, attMtuLengthPeripheralResult] = await outcome([
-                deviceConnectedCentral,
-                dataLengthChangedCentral, attMtuChangedCentral,
-                dataLengthChangedPeripheral, attMtuChangedPeripheral]);
+            attMtuLengthCentralResult,
+            attMtuLengthPeripheralResult,
+        ] = await outcome([
+            deviceConnectedCentral,
+            attMtuChangedCentral,
+            attMtuChangedPeripheral,
+        ], 10000);
 
 
         expect(deviceConnectedCentralResult.address).toBe(PERIPHERAL_DEVICE_ADDRESS);
         expect(deviceConnectedCentralResult.type).toBe(PERIPHERAL_DEVICE_ADDRESS_TYPE);
 
-        expect(dataLengthCentralResult).toBe(maxDataLength);
         expect(attMtuLengthCentralResult).toBe(maxMTU);
-
-        expect(dataLengthPeripheralResult).toBe(maxDataLength);
         expect(attMtuLengthPeripheralResult).toBe(maxMTU);
 
         await disconnect(centralAdapter, deviceConnectedCentralResult);

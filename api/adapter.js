@@ -799,6 +799,8 @@ class Adapter extends EventEmitter {
                     this._parseMemoryRequestEvent(event);
                     break;
                 case this._bleDriver.BLE_EVT_TX_COMPLETE:
+                case this._bleDriver.BLE_GATTC_EVT_WRITE_CMD_TX_COMPLETE:
+                case this._bleDriver.BLE_GATTS_HVN_TX_COMPLETE:
                     this._parseTxCompleteEvent(event);
                     break;
                 default:
@@ -2111,20 +2113,6 @@ class Adapter extends EventEmitter {
          * @property {number} event.count - Number of packets transmitted.
          */
         this.emit('txComplete', remoteDevice, event.count);
-    }
-
-    _parseDataLengthChangedEvent(event) {
-        const remoteDevice = this._getDeviceByConnectionHandle(event.conn_handle);
-        /**
-         * Link layer PDU length changed.
-         *
-         * @event Adapter#dataLengthChanged
-         * @type {Object}
-         * @property {Device} remoteDevice - The <code>Device</code> instance representing the BLE peer we've connected to.
-         * @property {number} event.max_tx_octets - The maximum number of payload octets in a Link Layer Data Channel
-         *                                          PDU that the local Controller will send. Range: 27-251
-         */
-        this.emit('dataLengthChanged', remoteDevice, event.max_tx_octets);
     }
 
     _setAttributeValueWithOffset(attribute, value, offset) {

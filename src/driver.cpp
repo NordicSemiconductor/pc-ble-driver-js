@@ -338,7 +338,8 @@ void Adapter::onRpcEvent(uv_async_t *handle)
                 GATTC_EVT_CASE(HVX,                         HandleValueNotification,       hvx,                        array, arrayIndex, eventEntry);
                 GATTC_EVT_CASE(TIMEOUT,                     Timeout,                       timeout,                    array, arrayIndex, eventEntry);
 #if NRF_SD_BLE_API_VERSION >= 5
-                GATTC_EVT_CASE(EXCHANGE_MTU_RSP,        ExchangeMtuResponse,    exchange_mtu_rsp,   array, arrayIndex, eventEntry);
+                GATTC_EVT_CASE(EXCHANGE_MTU_RSP,        ExchangeMtuResponse,    exchange_mtu_rsp,      array, arrayIndex, eventEntry);
+                GATTC_EVT_CASE(WRITE_CMD_TX_COMPLETE,   WriteCmdTxComplete,     write_cmd_tx_complete, array, arrayIndex, eventEntry);
 #endif
 
                 GATTS_EVT_CASE(WRITE,                   Write,                  write,              array, arrayIndex, eventEntry);
@@ -347,7 +348,8 @@ void Adapter::onRpcEvent(uv_async_t *handle)
                 GATTS_EVT_CASE(HVC,                     HVC,                    hvc,                array, arrayIndex, eventEntry);
                 GATTS_EVT_CASE(TIMEOUT,                 Timeout,                timeout,            array, arrayIndex, eventEntry);
 #if NRF_SD_BLE_API_VERSION >= 5
-                GATTS_EVT_CASE(EXCHANGE_MTU_REQUEST,    ExchangeMtuRequest,     exchange_mtu_request,       array, arrayIndex, eventEntry);
+                GATTS_EVT_CASE(EXCHANGE_MTU_REQUEST,    ExchangeMtuRequest,     exchange_mtu_request, array, arrayIndex, eventEntry);
+                GATTS_EVT_CASE(HVN_TX_COMPLETE,         HvnTxComplete,          hvn_tx_complete,      array, arrayIndex, eventEntry);
 #endif
 
                 // Handled special as there is no parameter for this in the event struct.
@@ -468,32 +470,6 @@ v8::Local<v8::Object> CommonTXCompleteEvent::ToJs()
 
     return scope.Escape(obj);
 }
-#endif
-
-#if NRF_SD_BLE_API_VERSION >= 5
-v8::Local<v8::Object> GattcWriteCmdTxCompleteEvent::ToJs()
-{
-    Nan::EscapableHandleScope scope;
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    BleDriverCommonEvent::ToJs(obj);
-
-    Utility::Set(obj, "count", ConversionUtility::toJsNumber(evt->count));
-
-    return scope.Escape(obj);
-}
-
-v8::Local<v8::Object> GattsHvnTxCompleteEvent::ToJs()
-{
-    Nan::EscapableHandleScope scope;
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-    BleDriverCommonEvent::ToJs(obj);
-
-    Utility::Set(obj, "count", ConversionUtility::toJsNumber(evt->count));
-
-    return scope.Escape(obj);
-}
-
-
 #endif
 
 v8::Local<v8::Object> CommonMemRequestEvent::ToJs()
