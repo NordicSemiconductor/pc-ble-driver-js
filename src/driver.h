@@ -379,27 +379,6 @@ public:
 };
 #endif
 
-#if NRF_SD_BLE_API_VERSION >= 5
-class GattcWriteCmdTxCompleteEvent : BleDriverCommonEvent<ble_gattc_evt_write_cmd_tx_complete_t>
-{
-public:
-    GattcWriteCmdTxCompleteEvent(std::string timestamp, uint16_t conn_handle, ble_gattc_evt_write_cmd_tx_complete_t *evt)
-        : BleDriverCommonEvent<ble_gattc_evt_write_cmd_tx_complete_t>(BLE_GATTC_EVT_WRITE_CMD_TX_COMPLETE, timestamp, conn_handle, evt) {}
-
-    v8::Local<v8::Object> ToJs() override;
-};
-
-class GattsHvnTxCompleteEvent : BleDriverCommonEvent<ble_gatts_evt_hvn_tx_complete_t>
-{
-public:
-    GattsHvnTxCompleteEvent(std::string timestamp, uint16_t conn_handle, ble_gatts_evt_hvn_tx_complete_t *evt)
-        : BleDriverCommonEvent<ble_gatts_evt_hvn_tx_complete_t>(BLE_GATTS_EVT_HVN_TX_COMPLETE, timestamp, conn_handle, evt) {}
-
-    v8::Local<v8::Object> ToJs() override;
-};
-
-#endif
-
 class CommonMemRequestEvent : BleDriverCommonEvent<ble_evt_user_mem_request_t>
 {
 public:

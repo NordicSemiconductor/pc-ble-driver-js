@@ -250,6 +250,16 @@ public:
 
 	v8::Local<v8::Object> ToJs();
 };
+
+class GattcWriteCmdTxCompleteEvent : BleDriverGattcEvent<ble_gattc_evt_write_cmd_tx_complete_t>
+{
+public:
+    GattcWriteCmdTxCompleteEvent(std::string timestamp, uint16_t conn_handle, uint16_t gatt_status, uint16_t error_handle, ble_gattc_evt_write_cmd_tx_complete_t *evt)
+        : BleDriverGattcEvent<ble_gattc_evt_write_cmd_tx_complete_t>(BLE_GATTC_EVT_WRITE_CMD_TX_COMPLETE, timestamp, conn_handle, gatt_status, error_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs() override;
+};
+
 #endif
 
 ///// Start GATTC Batons //////////////////////////////////////////////////////////////////////////////////
