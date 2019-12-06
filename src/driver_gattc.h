@@ -44,7 +44,7 @@ extern name_map_t gatt_status_map;
 
 static name_map_t gattc_event_name_map =
 {
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
     NAME_MAP_ENTRY(BLE_GATTC_EVT_EXCHANGE_MTU_RSP),
 #endif
     NAME_MAP_ENTRY(BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP),
@@ -241,7 +241,7 @@ public:
     v8::Local<v8::Object> ToJs();
 };
 
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
 class GattcExchangeMtuResponseEvent : BleDriverGattcEvent < ble_gattc_evt_exchange_mtu_rsp_t >
 {
 public:
@@ -250,6 +250,16 @@ public:
 
 	v8::Local<v8::Object> ToJs();
 };
+
+class GattcWriteCmdTxCompleteEvent : BleDriverGattcEvent<ble_gattc_evt_write_cmd_tx_complete_t>
+{
+public:
+    GattcWriteCmdTxCompleteEvent(std::string timestamp, uint16_t conn_handle, uint16_t gatt_status, uint16_t error_handle, ble_gattc_evt_write_cmd_tx_complete_t *evt)
+        : BleDriverGattcEvent<ble_gattc_evt_write_cmd_tx_complete_t>(BLE_GATTC_EVT_WRITE_CMD_TX_COMPLETE, timestamp, conn_handle, gatt_status, error_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs() override;
+};
+
 #endif
 
 ///// Start GATTC Batons //////////////////////////////////////////////////////////////////////////////////

@@ -44,6 +44,12 @@
 
 #include "sd_rpc.h"
 
+#if !(defined NRF_SD_BLE_API_VERSION)
+#error "NRF_SD_BLE_API_VERSION is not defined. Aborting compilation."
+#elif !(NRF_SD_BLE_API_VERSION == 2 || NRF_SD_BLE_API_VERSION == 5)
+#error "SoftDevice API version not supported. Must be API version 2 or 5."
+#endif
+
 #define NAME_MAP_ENTRY(EXP) { EXP, ""#EXP"" }
 #define ERROR_STRING_SIZE 1024
 #define BATON_CONSTRUCTOR(BatonType) BatonType(v8::Local<v8::Function> callback) : Baton(callback) {}
@@ -319,7 +325,7 @@ public:
     static v8::Handle<v8::Value> toJsNumber(double nativeValue);
     static v8::Handle<v8::Value> toJsBool(uint8_t nativeValue);
     static v8::Handle<v8::Value> toJsValueArray(uint8_t *nativeValue, uint16_t length);
-	static v8::Handle<v8::Value> toJsValueArray(const uint8_t *nativeValue, uint16_t length);
+    static v8::Handle<v8::Value> toJsValueArray(const uint8_t *nativeValue, uint16_t length);
     static v8::Handle<v8::Value> toJsString(const char *cString);
     static v8::Handle<v8::Value> toJsString(const char *cString, uint16_t length);
     static v8::Handle<v8::Value> toJsString(uint8_t *cString, uint16_t length);

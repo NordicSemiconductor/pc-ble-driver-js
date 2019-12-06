@@ -1,6 +1,6 @@
 {
   "name": "pc-ble-driver-js",
-  "version": "2.6.2",
+  "version": "2.7.0",
   "description": "Javascript bindings for pc-ble-driver",
   "main": "index.js",
   "scripts": {
@@ -22,7 +22,7 @@
     "url": "https://github.com/NordicSemiconductor/pc-ble-driver-js.git"
   },
   "binary": {
-    "module_name": "pc-ble-driver-js-sd_api_v3",
+    "module_name": "pc-ble-driver-js-sd_api_v5",
     "module_path": "./build/Release",
     "host": "https://github.com/NordicSemiconductor/pc-ble-driver-js/releases/download/",
     "remote_path": "v{version}"
@@ -69,7 +69,7 @@
     "jshint": "^2.10.2",
     "minami": "^1.2.3",
     "node-pre-gyp-github": "1.4.3",
-    "nrf-device-setup": "^0.6.0"
+    "nrf-device-setup": "^0.6.2"
   },
   "files": [
     "api/",

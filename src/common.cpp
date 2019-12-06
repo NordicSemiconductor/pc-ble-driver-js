@@ -84,7 +84,9 @@ static name_map_t error_message_name_map =
     NAME_MAP_ENTRY(BLE_ERROR_NOT_ENABLED),
     NAME_MAP_ENTRY(BLE_ERROR_INVALID_CONN_HANDLE),
     NAME_MAP_ENTRY(BLE_ERROR_INVALID_ATTR_HANDLE),
+#ifdef BLE_ERROR_NO_TX_PACKETS
     NAME_MAP_ENTRY(BLE_ERROR_NO_TX_PACKETS),
+#endif
     NAME_MAP_ENTRY(BLE_ERROR_INVALID_ROLE),
 
     // GAP related errors
@@ -110,7 +112,9 @@ static name_map_t error_message_name_map =
     NAME_MAP_ENTRY(BLE_ERROR_GATTS_SYS_ATTR_MISSING),
 
     // L2CAP related errors
+#ifdef BLE_ERROR_L2CAP_CID_IN_USE
     NAME_MAP_ENTRY(BLE_ERROR_L2CAP_CID_IN_USE),
+#endif
 };
 
 static name_map_t sd_rpc_app_status_map =
@@ -508,7 +512,7 @@ v8::Handle<v8::Value> ConversionUtility::toJsValueArray(uint8_t *nativeData, uin
 
 v8::Handle<v8::Value> ConversionUtility::toJsValueArray(const uint8_t *nativeData, uint16_t length)
 {
-	return ConversionUtility::toJsValueArray(const_cast<uint8_t *>(nativeData), length);
+    return ConversionUtility::toJsValueArray(const_cast<uint8_t *>(nativeData), length);
 }
 
 v8::Handle<v8::Value> ConversionUtility::toJsString(const char *cString)
@@ -520,7 +524,7 @@ v8::Handle<v8::Value> ConversionUtility::toJsString(const char *cString, uint16_
 {
     Nan::EscapableHandleScope scope;
     auto name = static_cast<char*>(malloc(length + 1));
-	assert(name != nullptr);
+    assert(name != nullptr);
 
     memset(name, 0, length + 1); // Zero terminate the name
     memcpy(name, cString, length);

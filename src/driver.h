@@ -49,18 +49,23 @@ extern adapter_t *connectedAdapters[];
 extern int adapterCount;
 
 static name_map_t common_event_name_map = {
+#if NRF_SD_BLE_API_VERSION <= 3
     NAME_MAP_ENTRY(BLE_EVT_TX_COMPLETE),
+#else
+    NAME_MAP_ENTRY(BLE_GATTC_EVT_WRITE_CMD_TX_COMPLETE),
+    NAME_MAP_ENTRY(BLE_GATTS_EVT_HVN_TX_COMPLETE),
+#endif
     NAME_MAP_ENTRY(BLE_EVT_USER_MEM_REQUEST),
     NAME_MAP_ENTRY(BLE_EVT_USER_MEM_RELEASE),
-#if NRF_SD_BLE_API_VERSION >= 3
-    NAME_MAP_ENTRY(BLE_EVT_DATA_LENGTH_CHANGED),
-#endif
 };
 
 NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& str);
 NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const v8::Handle<v8::String>& str);
 NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const v8::Handle<v8::String>& str);
 
+#pragma region Struct conversions
+
+#if NRF_SD_BLE_API_VERSION == 2
 class BandwidthCountParameters : public BleToJs<ble_conn_bw_count_t>
 {
 public:
@@ -71,7 +76,6 @@ public:
     v8::Local<v8::Object> ToJs() override;
     ble_conn_bw_count_t *ToNative() override;
 };
-
 
 class BandwidthGlobalMemoryPool : public BleToJs<ble_conn_bw_counts_t>
 {
@@ -105,6 +109,7 @@ public:
     v8::Local<v8::Object> ToJs() override;
     ble_enable_params_t *ToNative() override;
 };
+#endif
 
 class Version : public BleToJs<ble_version_t>
 {
@@ -150,7 +155,6 @@ public:
     ble_uuid128_t *ToNative() override;
 };
 
-
 class BleOpt : public BleToJs<ble_opt_t>
 {
 public:
@@ -161,6 +165,181 @@ public:
     //v8::Local<v8::Object> ToJs() override;
     ble_opt_t *ToNative() override;
 };
+
+#if NRF_SD_BLE_API_VERSION >= 5
+class BleCfg : public BleToJs<ble_cfg_t>
+{
+public:
+    explicit BleCfg(ble_cfg_t *ble_cfg) : BleToJs<ble_cfg_t>(ble_cfg) {}
+    explicit BleCfg(v8::Local <v8::Object> js) : BleToJs<ble_cfg_t>(js) {}
+    virtual ~BleCfg() {}
+
+    ble_cfg_t *ToNative() override;
+    ble_cfg_t *ToConnCfg();
+    ble_cfg_t *ToCommonCfg();
+    ble_cfg_t *ToGapCfg();
+    ble_cfg_t *ToGattsCfgServiceChanged();
+    ble_cfg_t *ToGattsCfgAttrTabSize();
+};
+
+#pragma region common_cfg
+class BleCommonCfg : public BleToJs<ble_common_cfg_t>
+{
+public:
+    explicit BleCommonCfg(ble_common_cfg_t *ble_common_cfg) : BleToJs<ble_common_cfg_t>(ble_common_cfg) {}
+    explicit BleCommonCfg(v8::Local <v8::Object> js) : BleToJs<ble_common_cfg_t>(js) {}
+    virtual ~BleCommonCfg() {}
+
+    ble_common_cfg_t *ToNative() override;
+};
+
+class BleGapConnCfg : public BleToJs<ble_gap_conn_cfg_t>
+{
+public:
+    explicit BleGapConnCfg(ble_gap_conn_cfg_t *ble_gap_conn_cfg) : BleToJs<ble_gap_conn_cfg_t>(ble_gap_conn_cfg) {}
+    explicit BleGapConnCfg(v8::Local <v8::Object> js) : BleToJs<ble_gap_conn_cfg_t>(js) {}
+    virtual ~BleGapConnCfg() {}
+
+    ble_gap_conn_cfg_t *ToNative() override;
+};
+
+class BleCommonCfgVsUuid : public BleToJs<ble_common_cfg_vs_uuid_t>
+{
+public:
+    explicit BleCommonCfgVsUuid(ble_common_cfg_vs_uuid_t *ble_common_cfg_vs_uuid) : BleToJs<ble_common_cfg_vs_uuid_t>(ble_common_cfg_vs_uuid) {}
+    explicit BleCommonCfgVsUuid(v8::Local <v8::Object> js) : BleToJs<ble_common_cfg_vs_uuid_t>(js) {}
+    virtual ~BleCommonCfgVsUuid() {}
+
+    ble_common_cfg_vs_uuid_t *ToNative() override;
+};
+#pragma endregion common_cfg
+
+#pragma region conn_cfg
+class BleConnCfg : public BleToJs<ble_conn_cfg_t>
+{
+public:
+    explicit BleConnCfg(ble_conn_cfg_t *ble_conn_cfg) : BleToJs<ble_conn_cfg_t>(ble_conn_cfg) {}
+    explicit BleConnCfg(v8::Local <v8::Object> js) : BleToJs<ble_conn_cfg_t>(js) {}
+    virtual ~BleConnCfg() {}
+
+    ble_conn_cfg_t *ToNative() override;
+};
+
+class BleGattcConnCfg : public BleToJs<ble_gattc_conn_cfg_t>
+{
+public:
+    explicit BleGattcConnCfg(ble_gattc_conn_cfg_t *ble_gattc_conn_cfg) : BleToJs<ble_gattc_conn_cfg_t>(ble_gattc_conn_cfg) {}
+    explicit BleGattcConnCfg(v8::Local <v8::Object> js) : BleToJs<ble_gattc_conn_cfg_t>(js) {}
+    virtual ~BleGattcConnCfg() {}
+
+    ble_gattc_conn_cfg_t *ToNative() override;
+};
+
+class BleGattsConnCfg : public BleToJs<ble_gatts_conn_cfg_t>
+{
+public:
+    explicit BleGattsConnCfg(ble_gatts_conn_cfg_t *ble_gatts_conn_cfg) : BleToJs<ble_gatts_conn_cfg_t>(ble_gatts_conn_cfg) {}
+    explicit BleGattsConnCfg(v8::Local <v8::Object> js) : BleToJs<ble_gatts_conn_cfg_t>(js) {}
+    virtual ~BleGattsConnCfg() {}
+
+    ble_gatts_conn_cfg_t *ToNative() override;
+};
+
+class BleGattConnCfg : public BleToJs<ble_gatt_conn_cfg_t>
+{
+public:
+    explicit BleGattConnCfg(ble_gatt_conn_cfg_t *ble_gatt_conn_cfg) : BleToJs<ble_gatt_conn_cfg_t>(ble_gatt_conn_cfg) {}
+    explicit BleGattConnCfg(v8::Local <v8::Object> js) : BleToJs<ble_gatt_conn_cfg_t>(js) {}
+    virtual ~BleGattConnCfg() {}
+
+    ble_gatt_conn_cfg_t *ToNative() override;
+};
+
+class BleL2capConnCfg : public BleToJs<ble_l2cap_conn_cfg_t>
+{
+public:
+    explicit BleL2capConnCfg(ble_l2cap_conn_cfg_t *ble_l2cap_conn_cfg) : BleToJs<ble_l2cap_conn_cfg_t>(ble_l2cap_conn_cfg) {}
+    explicit BleL2capConnCfg(v8::Local <v8::Object> js) : BleToJs<ble_l2cap_conn_cfg_t>(js) {}
+    virtual ~BleL2capConnCfg() {}
+
+    ble_l2cap_conn_cfg_t *ToNative() override;
+};
+
+#pragma endregion conn_cfg
+
+#pragma region gap_cfg
+class BleGapCfg : public BleToJs<ble_gap_cfg_t>
+{
+public:
+    explicit BleGapCfg(ble_gap_cfg_t *ble_gap_cfg) : BleToJs<ble_gap_cfg_t>(ble_gap_cfg) {}
+    explicit BleGapCfg(v8::Local <v8::Object> js) : BleToJs<ble_gap_cfg_t>(js) {}
+    virtual ~BleGapCfg() {}
+
+    ble_gap_cfg_t *ToNative() override;
+};
+
+class BleGapCfgRoleCount : public BleToJs<ble_gap_cfg_role_count_t>
+{
+public:
+    explicit BleGapCfgRoleCount(ble_gap_cfg_role_count_t *ble_gap_cfg_role_count) : BleToJs<ble_gap_cfg_role_count_t>(ble_gap_cfg_role_count) {}
+    explicit BleGapCfgRoleCount(v8::Local <v8::Object> js) : BleToJs<ble_gap_cfg_role_count_t>(js) {}
+    virtual ~BleGapCfgRoleCount() {}
+
+    ble_gap_cfg_role_count_t *ToNative() override;
+};
+
+class BleGapCfgDeviceName : public BleToJs<ble_gap_cfg_device_name_t>
+{
+public:
+    explicit BleGapCfgDeviceName(ble_gap_cfg_device_name_t *ble_gap_cfg_device_name) : BleToJs<ble_gap_cfg_device_name_t>(ble_gap_cfg_device_name) {}
+    explicit BleGapCfgDeviceName(v8::Local <v8::Object> js) : BleToJs<ble_gap_cfg_device_name_t>(js) {}
+    virtual ~BleGapCfgDeviceName() {}
+
+    ble_gap_cfg_device_name_t *ToNative() override;
+};
+
+class BleGapConnSecMode : public BleToJs<ble_gap_conn_sec_mode_t>
+{
+public:
+    explicit BleGapConnSecMode(ble_gap_conn_sec_mode_t *ble_gap_conn_sec_mode) : BleToJs<ble_gap_conn_sec_mode_t>(ble_gap_conn_sec_mode) {}
+    explicit BleGapConnSecMode(v8::Local <v8::Object> js) : BleToJs<ble_gap_conn_sec_mode_t>(js) {}
+    virtual ~BleGapConnSecMode() {}
+
+    ble_gap_conn_sec_mode_t *ToNative() override;
+};
+
+class BleGattsCfg : public BleToJs<ble_gatts_cfg_t> {
+public:
+    explicit BleGattsCfg(ble_gatts_cfg_t *ble_gatts_cfg) : BleToJs<ble_gatts_cfg_t>(ble_gatts_cfg) {}
+    explicit BleGattsCfg(v8::Local <v8::Object> js) : BleToJs<ble_gatts_cfg_t>(js) {}
+    virtual ~BleGattsCfg() {}
+
+    ble_gatts_cfg_t *ToNative() override;
+};
+
+class BleGattsCfgServiceChanged : public BleToJs<ble_gatts_cfg_service_changed_t> {
+public:
+    explicit BleGattsCfgServiceChanged(ble_gatts_cfg_service_changed_t *ble_gatts_cfg_service_changed) : BleToJs<ble_gatts_cfg_service_changed_t>(ble_gatts_cfg_service_changed) {}
+    explicit BleGattsCfgServiceChanged(v8::Local <v8::Object> js) : BleToJs<ble_gatts_cfg_service_changed_t>(js) {}
+    virtual ~BleGattsCfgServiceChanged() {}
+
+    ble_gatts_cfg_service_changed_t *ToNative() override;
+};
+
+class BleGattsCfgAttrTabSize : public BleToJs<ble_gatts_cfg_attr_tab_size_t> {
+public:
+    explicit BleGattsCfgAttrTabSize(ble_gatts_cfg_attr_tab_size_t *ble_gatts_cfg_attr_tab_size) : BleToJs<ble_gatts_cfg_attr_tab_size_t>(ble_gatts_cfg_attr_tab_size) {}
+    explicit BleGattsCfgAttrTabSize(v8::Local <v8::Object> js) : BleToJs<ble_gatts_cfg_attr_tab_size_t>(js) {}
+    virtual ~BleGattsCfgAttrTabSize() {}
+
+    ble_gatts_cfg_attr_tab_size_t *ToNative() override;
+};
+
+#pragma endregion gap_cfg
+
+#endif // NRF_SD_BLE_API_VERSION >= 5
+
+#pragma endregion Struct conversions
 
 #pragma region BleDriverCommonEvent
 
@@ -189,6 +368,7 @@ public:
     const char *getEventName() override { return ConversionUtility::valueToString(this->evt_id, common_event_name_map, "Unknown Common Event"); }
 };
 
+#if NRF_SD_BLE_API_VERSION <= 3
 class CommonTXCompleteEvent : BleDriverCommonEvent<ble_evt_tx_complete_t>
 {
 public:
@@ -197,6 +377,7 @@ public:
 
     v8::Local<v8::Object> ToJs() override;
 };
+#endif
 
 class CommonMemRequestEvent : BleDriverCommonEvent<ble_evt_user_mem_request_t>
 {
@@ -216,25 +397,15 @@ public:
     v8::Local<v8::Object> ToJs();
 };
 
-#if NRF_SD_BLE_API_VERSION >= 3
-class CommonDataLengthChangedEvent : BleDriverCommonEvent<ble_evt_data_length_changed_t>
-{
-public:
-    CommonDataLengthChangedEvent(std::string timestamp, uint16_t conn_handle, ble_evt_data_length_changed_t *evt)
-        : BleDriverCommonEvent<ble_evt_data_length_changed_t>(BLE_EVT_DATA_LENGTH_CHANGED, timestamp, conn_handle, evt) {}
-
-    v8::Local<v8::Object> ToJs();
-};
-#endif
-
 #pragma endregion BleDriverCommonEvent
 
-///// Start Batons ////////////////////////////////////////
+#pragma region Batons
 
 struct OpenBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(OpenBaton)
+
     //char path[PATH_STRING_SIZE];
     std::string path;
     std::unique_ptr<Nan::Callback> event_callback; // Callback that is called for every event that is received from the SoftDevice
@@ -254,7 +425,8 @@ public:
     uint32_t response_timeout; // Duration to wait for reply on reliable packet sent to target
 
     bool enable_ble; // Enable BLE or not when connecting, if not the developer must enable the BLE when state is active
-    ble_enable_params_t *ble_enable_params; // If enable BLE is true, then use these params when enabling BLE
+
+    enable_ble_params_t enable_ble_params; // If enable BLE is true, then use these params when enabling BLE
 
     Adapter *mainObject;
 };
@@ -278,9 +450,8 @@ struct EnableBLEBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(EnableBLEBaton);
-    BATON_DESTRUCTOR(EnableBLEBaton) { delete enable_params; }
-    ble_enable_params_t *enable_params;
-    uint32_t app_ram_base;
+
+    enable_ble_params_t enable_ble_params;
 };
 
 
@@ -351,7 +522,18 @@ public:
     ble_opt_t *p_opt;
 };
 
-///// End Batons ////////////////////////////////////////
+#if NRF_SD_BLE_API_VERSION >= 5
+class BleConfigBaton : public Baton
+{
+public:
+    BATON_CONSTRUCTOR(BleConfigBaton);
+    BATON_DESTRUCTOR(BleConfigBaton) { delete p_cfg; }
+    uint32_t cfg_id;
+    ble_cfg_t *p_cfg;
+};
+#endif
+
+#pragma endregion Batons
 
 
 #endif //BLE_DRIVER_JS_DRIVER_H
