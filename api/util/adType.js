@@ -80,7 +80,7 @@ let serviceUuidsMarshaller = function (buf, offset, uuids) {
     var pos = offset;
 
     for (let uuid in uuids) {
-        const temp = new Buffer(cleanUpUuid(uuids[uuid]), 'hex');
+        const temp = Buffer.from(cleanUpUuid(uuids[uuid]), 'hex');
         temp.copy(buf, pos, 0);
         pos += temp.length;
     }
@@ -99,7 +99,7 @@ let txPowerLevelMarshaller = function (buf, offset, powerLevel) {
 // Special case marshaller, requires id value to be provided in payload
 let customMarshaller = function (buf, offset, customData) {
     let pos = offset - 1; // Overwrite the ID field at position offset - 1 since it is included in customData
-    const temp = new Buffer(customData, 'hex');
+    const temp = Buffer.from(customData, 'hex');
     temp.copy(buf, pos);
     pos += temp.length;
 
@@ -161,7 +161,7 @@ class AdType {
      *
      */
     static convertToBuffer(obj) {
-        let buffer = new Buffer(100); // Set buffer size well above max size to avoid out of index error before length check has been performed
+        let buffer = Buffer.alloc(100); // Set buffer size well above max size to avoid out of index error before length check has been performed
         let bufferPosition = 0;
 
         // We assume that all marshall methods returns an absolute position in the provided buffer

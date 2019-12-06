@@ -42,7 +42,7 @@
 
 static name_map_t gatts_event_name_map =
 {
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
     NAME_MAP_ENTRY(BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST),
 #endif
     NAME_MAP_ENTRY(BLE_GATTS_EVT_WRITE),
@@ -53,6 +53,7 @@ static name_map_t gatts_event_name_map =
     NAME_MAP_ENTRY(BLE_GATTS_EVT_TIMEOUT)
 };
 
+#if NRF_SD_BLE_API_VERSION == 2
 class GattsEnableParameters : public BleToJs<ble_gatts_enable_params_t>
 {
 public:
@@ -61,7 +62,7 @@ public:
     v8::Local<v8::Object> ToJs() override;
     ble_gatts_enable_params_t *ToNative() override;
 };
-
+#endif
 
 class GattsAttributeMetadata : public BleToJs<ble_gatts_attr_md_t>
 {
@@ -222,7 +223,7 @@ public:
     v8::Local<v8::Object> ToJs();
 };
 
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
 class GattsExchangeMtuRequestEvent : BleDriverGattsEvent<ble_gatts_evt_exchange_mtu_request_t>
 {
 public:
@@ -230,6 +231,15 @@ public:
 		: BleDriverGattsEvent<ble_gatts_evt_exchange_mtu_request_t>(BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST, timestamp, conn_handle, evt) {}
 
 	v8::Local<v8::Object> ToJs();
+};
+
+class GattsHvnTxCompleteEvent : BleDriverGattsEvent<ble_gatts_evt_hvn_tx_complete_t>
+{
+public:
+    GattsHvnTxCompleteEvent(std::string timestamp, uint16_t conn_handle, ble_gatts_evt_hvn_tx_complete_t *evt)
+        : BleDriverGattsEvent<ble_gatts_evt_hvn_tx_complete_t>(BLE_GATTS_EVT_HVN_TX_COMPLETE, timestamp, conn_handle, evt) {}
+
+    v8::Local<v8::Object> ToJs() override;
 };
 #endif
 
@@ -336,7 +346,7 @@ public:
     ble_gatts_rw_authorize_reply_params_t *p_rw_authorize_reply_params;
 };
 
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
 struct GattsExchangeMtuReplyBaton : public Baton
 {
 public:

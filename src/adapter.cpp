@@ -337,6 +337,10 @@ void Adapter::initGeneric(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "getBleOption", GetBleOption);
 
     Nan::SetPrototypeMethod(tpl, "getStats", GetStats);
+
+#if NRF_SD_BLE_API_VERSION >= 5
+    Nan::SetPrototypeMethod(tpl, "setBleConfig", SetBleConfig);
+#endif
 }
 
 void Adapter::initGap(v8::Local<v8::FunctionTemplate> tpl)
@@ -373,6 +377,10 @@ void Adapter::initGap(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "gapNotifyKeypress", GapNotifyKeypress);
     Nan::SetPrototypeMethod(tpl, "gapGetLescOobData", GapGetLESCOOBData);
     Nan::SetPrototypeMethod(tpl, "gapSetLescOobData", GapSetLESCOOBData);
+#if NRF_SD_BLE_API_VERSION >= 5
+    Nan::SetPrototypeMethod(tpl, "gapDataLengthUpdate", GapDataLengthUpdate);
+    Nan::SetPrototypeMethod(tpl, "gapPhyUpdate", GapPhyUpdate);
+#endif
 }
 
 void Adapter::initGattC(v8::Local<v8::FunctionTemplate> tpl)
@@ -386,7 +394,7 @@ void Adapter::initGattC(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "gattcReadCharacteristicValues", GattcReadCharacteristicValues);
     Nan::SetPrototypeMethod(tpl, "gattcWrite", GattcWrite);
     Nan::SetPrototypeMethod(tpl, "gattcConfirmHandleValue", GattcConfirmHandleValue);
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
     Nan::SetPrototypeMethod(tpl, "gattcExchangeMtuRequest", GattcExchangeMtuRequest);
 #endif
 }
@@ -401,7 +409,7 @@ void Adapter::initGattS(v8::Local<v8::FunctionTemplate> tpl)
     Nan::SetPrototypeMethod(tpl, "gattsSetValue", GattsSetValue);
     Nan::SetPrototypeMethod(tpl, "gattsGetValue", GattsGetValue);
     Nan::SetPrototypeMethod(tpl, "gattsReplyReadWriteAuthorize", GattsReplyReadWriteAuthorize);
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
     Nan::SetPrototypeMethod(tpl, "gattsExchangeMtuReply", GattsExchangeMtuReply);
 #endif
 }

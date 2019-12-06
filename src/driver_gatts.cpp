@@ -45,14 +45,15 @@
 
 static name_map_t gatts_op_map =
 {
-	NAME_MAP_ENTRY(BLE_GATTS_OP_WRITE_REQ),
-	NAME_MAP_ENTRY(BLE_GATTS_OP_WRITE_CMD),
-	NAME_MAP_ENTRY(BLE_GATTS_OP_SIGN_WRITE_CMD),
-	NAME_MAP_ENTRY(BLE_GATTS_OP_PREP_WRITE_REQ),
-	NAME_MAP_ENTRY(BLE_GATTS_OP_EXEC_WRITE_REQ_CANCEL),
-	NAME_MAP_ENTRY(BLE_GATTS_OP_EXEC_WRITE_REQ_NOW)
+    NAME_MAP_ENTRY(BLE_GATTS_OP_WRITE_REQ),
+    NAME_MAP_ENTRY(BLE_GATTS_OP_WRITE_CMD),
+    NAME_MAP_ENTRY(BLE_GATTS_OP_SIGN_WRITE_CMD),
+    NAME_MAP_ENTRY(BLE_GATTS_OP_PREP_WRITE_REQ),
+    NAME_MAP_ENTRY(BLE_GATTS_OP_EXEC_WRITE_REQ_CANCEL),
+    NAME_MAP_ENTRY(BLE_GATTS_OP_EXEC_WRITE_REQ_NOW)
 };
 
+#if NRF_SD_BLE_API_VERSION == 2
 v8::Local<v8::Object> GattsEnableParameters::ToJs()
 {
     Nan::EscapableHandleScope scope;
@@ -73,6 +74,7 @@ ble_gatts_enable_params_t *GattsEnableParameters::ToNative()
 
     return enableParams;
 }
+#endif
 
 ble_gatts_attr_md_t *GattsAttributeMetadata::ToNative()
 {
@@ -280,7 +282,7 @@ v8::Local<v8::Object> GattsWriteEvent::ToJs()
 
     Utility::Set(obj, "handle", ConversionUtility::toJsNumber(evt->handle));
     Utility::Set(obj, "op", ConversionUtility::toJsNumber(evt->op));
-	Utility::Set(obj, "op_name", ConversionUtility::valueToJsString(evt->op, gatts_op_map));
+    Utility::Set(obj, "op_name", ConversionUtility::valueToJsString(evt->op, gatts_op_map));
     Utility::Set(obj, "auth_required", ConversionUtility::toJsBool(evt->auth_required));
     Utility::Set(obj, "uuid", BleUUID(&evt->uuid).ToJs());
     Utility::Set(obj, "offset", ConversionUtility::toJsNumber(evt->offset));
@@ -371,16 +373,27 @@ v8::Local<v8::Object> GattsTimeoutEvent::ToJs()
     return scope.Escape(obj);
 }
 
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
 v8::Local<v8::Object> GattsExchangeMtuRequestEvent::ToJs()
 {
-	Nan::EscapableHandleScope scope;
-	v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-	BleDriverGattsEvent::ToJs(obj);
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverGattsEvent::ToJs(obj);
 
-	Utility::Set(obj, "client_rx_mtu", ConversionUtility::toJsNumber(evt->client_rx_mtu));
+    Utility::Set(obj, "client_rx_mtu", ConversionUtility::toJsNumber(evt->client_rx_mtu));
 
-	return scope.Escape(obj);
+    return scope.Escape(obj);
+}
+
+v8::Local<v8::Object> GattsHvnTxCompleteEvent::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverGattsEvent::ToJs(obj);
+
+    Utility::Set(obj, "count", ConversionUtility::toJsNumber(evt->count));
+
+    return scope.Escape(obj);
 }
 #endif
 
@@ -1023,7 +1036,7 @@ void Adapter::AfterGattsReplyReadWriteAuthorize(uv_work_t *req)
     delete baton;
 }
 
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
 NAN_METHOD(Adapter::GattsExchangeMtuReply)
 {
     uint16_t conn_handle;
@@ -1153,7 +1166,7 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTS_RW_AUTHORIZE_REPLY);               /**< Reply to an authorization request for a read or write operation on one or more attributes. */
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTS_SYS_ATTR_SET);                     /**< Set the persistent system attributes for a connection. */
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTS_SYS_ATTR_GET);                     /**< Retrieve the persistent system attributes. */
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTS_EXCHANGE_MTU_REPLY);               /**< Reply to an ATT_MTU exchange request by sending an Exchange MTU Response to the client. */
 #endif
 
@@ -1163,7 +1176,7 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GATTS_EVT_HVC);                             /**< Handle Value Confirmation. @ref ble_gatts_evt_hvc_t */
         NODE_DEFINE_CONSTANT(target, BLE_GATTS_EVT_SC_CONFIRM);                      /**< Service Changed Confirmation. No additional event structure applies. */
         NODE_DEFINE_CONSTANT(target, BLE_GATTS_EVT_TIMEOUT);                         /**< Timeout. @ref ble_gatts_evt_timeout_t */
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
         NODE_DEFINE_CONSTANT(target, BLE_GATTS_EVT_EXCHANGE_MTU_REQUEST);            /**< Exchange MTU Request. Reply with @ref sd_ble_gatts_exchange_mtu_reply. @ref ble_gatts_evt_exchange_mtu_request_t. */
 #endif
     }

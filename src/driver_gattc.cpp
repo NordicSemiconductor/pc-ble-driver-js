@@ -384,7 +384,7 @@ v8::Local<v8::Object> GattcTimeoutEvent::ToJs()
     return scope.Escape(obj);
 }
 
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
 v8::Local<v8::Object> GattcExchangeMtuResponseEvent::ToJs()
 {
 	Nan::EscapableHandleScope scope;
@@ -394,6 +394,17 @@ v8::Local<v8::Object> GattcExchangeMtuResponseEvent::ToJs()
 	Utility::Set(obj, "server_rx_mtu", evt->server_rx_mtu);
 
 	return scope.Escape(obj);
+}
+
+v8::Local<v8::Object> GattcWriteCmdTxCompleteEvent::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+    BleDriverGattcEvent::ToJs(obj);
+
+    Utility::Set(obj, "count", ConversionUtility::toJsNumber(evt->count));
+
+    return scope.Escape(obj);
 }
 #endif
 
@@ -1076,7 +1087,7 @@ void Adapter::AfterGattcConfirmHandleValue(uv_work_t *req)
     delete baton;
 }
 
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
 NAN_METHOD(Adapter::GattcExchangeMtuRequest)
 {
     uint16_t conn_handle;
@@ -1159,7 +1170,7 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTC_CHAR_VALUES_READ);                               /**< Read multiple Characteristic Values. */
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTC_WRITE);                                          /**< Generic write. */
         NODE_DEFINE_CONSTANT(target, SD_BLE_GATTC_HV_CONFIRM);                                     /**< Handle Value Confirmation. */
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
 		NODE_DEFINE_CONSTANT(target, SD_BLE_GATTC_EXCHANGE_MTU_REQUEST);                           /**< Exchange MTU Request */
 #endif
 
@@ -1173,7 +1184,7 @@ extern "C" {
         NODE_DEFINE_CONSTANT(target, BLE_GATTC_EVT_WRITE_RSP);                                /**< Write Response event. @ref ble_gattc_evt_write_rsp_t */
         NODE_DEFINE_CONSTANT(target, BLE_GATTC_EVT_HVX);                                      /**< Handle Value Notification or Indication event. @ref ble_gattc_evt_hvx_t */
         NODE_DEFINE_CONSTANT(target, BLE_GATTC_EVT_TIMEOUT);                                  /**< Timeout event. @ref ble_gattc_evt_timeout_t */
-#if NRF_SD_BLE_API_VERSION >= 3
+#if NRF_SD_BLE_API_VERSION >= 5
         NODE_DEFINE_CONSTANT(target, BLE_GATTC_EVT_EXCHANGE_MTU_RSP);                         /**< Exchange MTU Response event. @ref ble_gattc_evt_exchange_mtu_rsp_t. */
 #endif
     }

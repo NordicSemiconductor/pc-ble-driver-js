@@ -69,23 +69,23 @@ function getFirmwareMap(platform) {
                 versionInfoStart: 0x39000,
             },
             nrf52: {
-                file: path.join(hexDir, `connectivity_${connectivityVersion}_1m_with_s132_3.1.0.hex`),
+                file: path.join(hexDir, `connectivity_${connectivityVersion}_1m_with_s132_5.1.0.hex`),
                 version: connectivityVersion,
                 baudRate: connectivityBaudRate,
-                sdBleApiVersion: 3,
+                sdBleApiVersion: 5,
                 versionInfoStart: 0x50000,
             },
         },
         nordicUsb: {
             pca10059: {
                 files: {
-                    application: path.join(hexDir, `connectivity_${connectivityVersion}_usb_for_s132_3.1.0.hex`),
-                    softdevice: path.join(hexDir, 's132_nrf52_3.1.0_softdevice.hex'),
+                    application: path.join(hexDir, `connectivity_${connectivityVersion}_usb_for_s132_5.1.0.hex`),
+                    softdevice: path.join(hexDir, 's132_nrf52_5.1.0_softdevice.hex'),
                 },
                 version: connectivityApplicationVersionString,
                 baudRate: connectivityBaudRate,
-                sdBleApiVersion: 3,
-                sdId: 0x91, // SoftDevice FWID, s132_nrf52_3.1.0 === 0x91
+                sdBleApiVersion: 5,
+                sdId: 0xA5, // SoftDevice FWID, s132_nrf52_5.1.0 === 0xA5
             },
         },
     };

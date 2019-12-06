@@ -33,8 +33,8 @@ Object {
 exports[`FirmwareRegistry.getJlinkConnectivityFirmware returns expected jlink firmware info for nrf52 and darwin 1`] = `
 Object {
   "baudRate": 1000000,
-  "file": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/connectivity_4.1.1_1m_with_s132_3.1.0.hex",
-  "sdBleApiVersion": 3,
+  "file": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/connectivity_4.1.1_1m_with_s132_5.1.0.hex",
+  "sdBleApiVersion": 5,
   "version": "4.1.1",
   "versionInfoStart": 327680,
 }
@@ -43,8 +43,8 @@ Object {
 exports[`FirmwareRegistry.getJlinkConnectivityFirmware returns expected jlink firmware info for nrf52 and linux 1`] = `
 Object {
   "baudRate": 1000000,
-  "file": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/connectivity_4.1.1_1m_with_s132_3.1.0.hex",
-  "sdBleApiVersion": 3,
+  "file": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/connectivity_4.1.1_1m_with_s132_5.1.0.hex",
+  "sdBleApiVersion": 5,
   "version": "4.1.1",
   "versionInfoStart": 327680,
 }
@@ -53,8 +53,8 @@ Object {
 exports[`FirmwareRegistry.getJlinkConnectivityFirmware returns expected jlink firmware info for nrf52 and win32 1`] = `
 Object {
   "baudRate": 1000000,
-  "file": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/connectivity_4.1.1_1m_with_s132_3.1.0.hex",
-  "sdBleApiVersion": 3,
+  "file": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/connectivity_4.1.1_1m_with_s132_5.1.0.hex",
+  "sdBleApiVersion": 5,
   "version": "4.1.1",
   "versionInfoStart": 327680,
 }
@@ -64,11 +64,11 @@ exports[`FirmwareRegistry.getNordicUSBConnectivityFirmware returns expected nord
 Object {
   "baudRate": 1000000,
   "files": Object {
-    "application": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/connectivity_4.1.1_usb_for_s132_3.1.0.hex",
-    "softdevice": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/s132_nrf52_3.1.0_softdevice.hex",
+    "application": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/connectivity_4.1.1_usb_for_s132_5.1.0.hex",
+    "softdevice": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/s132_nrf52_5.1.0_softdevice.hex",
   },
-  "sdBleApiVersion": 3,
-  "sdId": 145,
+  "sdBleApiVersion": 5,
+  "sdId": 165,
   "version": "ble-connectivity 4.1.1+May-07-2019-15-12-18",
 }
 `;
@@ -77,11 +77,11 @@ exports[`FirmwareRegistry.getNordicUSBConnectivityFirmware returns expected nord
 Object {
   "baudRate": 1000000,
   "files": Object {
-    "application": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/connectivity_4.1.1_usb_for_s132_3.1.0.hex",
-    "softdevice": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/s132_nrf52_3.1.0_softdevice.hex",
+    "application": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/connectivity_4.1.1_usb_for_s132_5.1.0.hex",
+    "softdevice": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/s132_nrf52_5.1.0_softdevice.hex",
   },
-  "sdBleApiVersion": 3,
-  "sdId": 145,
+  "sdBleApiVersion": 5,
+  "sdId": 165,
   "version": "ble-connectivity 4.1.1+May-07-2019-15-12-18",
 }
 `;
@@ -90,11 +90,11 @@ exports[`FirmwareRegistry.getNordicUSBConnectivityFirmware returns expected nord
 Object {
   "baudRate": 1000000,
   "files": Object {
-    "application": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/connectivity_4.1.1_usb_for_s132_3.1.0.hex",
-    "softdevice": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/s132_nrf52_3.1.0_softdevice.hex",
+    "application": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/connectivity_4.1.1_usb_for_s132_5.1.0.hex",
+    "softdevice": "<PROJECT_ROOT>/build/Release/pc-ble-driver/hex/s132_nrf52_5.1.0_softdevice.hex",
   },
-  "sdBleApiVersion": 3,
-  "sdId": 145,
+  "sdBleApiVersion": 5,
+  "sdId": 165,
   "version": "ble-connectivity 4.1.1+May-07-2019-15-12-18",
 }
 `;

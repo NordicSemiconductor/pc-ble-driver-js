@@ -148,44 +148,19 @@ ble_gatt_char_ext_props_t *GattCharExtProps::ToNative()
 // GattCharExtProps -- END --
 //
 
-#if NRF_SD_BLE_API_VERSION >= 3
-//
-// GattEnableParams -- START --
-//
-
-v8::Local<v8::Object> GattEnableParameters::ToJs()
-{
-    Nan::EscapableHandleScope scope;
-    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-
-    Utility::Set(obj, "att_mtu", native->att_mtu);
-
-    return scope.Escape(obj);
-}
-
-ble_gatt_enable_params_t *GattEnableParameters::ToNative()
-{
-    auto enableParams = new ble_gatt_enable_params_t();
-
-    enableParams->att_mtu = ConversionUtility::getNativeUint16(jsobj, "att_mtu");
-
-    return enableParams;
-}
-
-//
-// GattEnableParams -- END --
-//
-#endif
-
-
 extern "C" {
     void init_gatt(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target)
     {
+#ifdef GATT_MTU_SIZE_DEFAULT
         /* Default MTU size. */
         NODE_DEFINE_CONSTANT(target, GATT_MTU_SIZE_DEFAULT);
+#endif
+#ifdef BLE_GATT_ATT_MTU_DEFAULT
+        NODE_DEFINE_CONSTANT(target, BLE_GATT_ATT_MTU_DEFAULT);
+#endif
 
-#if NRF_SD_BLE_API_VERSION <= 2
-		/* Only the default MTU size of 23 is currently supported. */
+#ifdef GATT_RX_MTU
+        /* Only the default MTU size of 23 is currently supported. */
         NODE_DEFINE_CONSTANT(target, GATT_RX_MTU);
 #endif
 
