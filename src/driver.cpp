@@ -508,7 +508,7 @@ uint32_t Adapter::enableBLE(adapter_t *adapter, enable_ble_params_t *enable_para
     }
 
 #if NRF_SD_BLE_API_VERSION < 5
-    return sd_ble_enable(adapter, enable_params->ble_enable_params, 0);
+    return sd_ble_enable(adapter, &enable_params->ble_enable_params, 0);
 #else
     uint32_t result = NRF_SUCCESS;
     const uint32_t app_ram_base = 0;
@@ -1688,9 +1688,9 @@ v8::Local<v8::Object> EnableParameters::ToJs()
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
-    Utility::Set(obj, "common_enable_params", CommonEnableParameters(&native->ble_enable_params->common_enable_params).ToJs());
-    Utility::Set(obj, "gap_enable_params", GapEnableParameters(&native->ble_enable_params->gap_enable_params).ToJs());
-    Utility::Set(obj, "gatts_enable_params", GattsEnableParameters(&native->ble_enable_params->gatts_enable_params).ToJs());
+    Utility::Set(obj, "common_enable_params", CommonEnableParameters(&native->ble_enable_params.common_enable_params).ToJs());
+    Utility::Set(obj, "gap_enable_params", GapEnableParameters(&native->ble_enable_params.gap_enable_params).ToJs());
+    Utility::Set(obj, "gatts_enable_params", GattsEnableParameters(&native->ble_enable_params.gatts_enable_params).ToJs());
 
     return scope.Escape(obj);
 }
@@ -1698,9 +1698,9 @@ v8::Local<v8::Object> EnableParameters::ToJs()
 enable_ble_params_t *EnableParameters::ToNative()
 {
     auto enable_params = new enable_ble_params_t();
-    enable_params->ble_enable_params->common_enable_params = CommonEnableParameters(ConversionUtility::getJsObject(jsobj, "common_enable_params"));
-    enable_params->ble_enable_params->gap_enable_params = GapEnableParameters(ConversionUtility::getJsObject(jsobj, "gap_enable_params"));
-    enable_params->ble_enable_params->gatts_enable_params = GattsEnableParameters(ConversionUtility::getJsObjectOrNull(jsobj, "gatts_enable_params"));
+    enable_params->ble_enable_params.common_enable_params = CommonEnableParameters(ConversionUtility::getJsObject(jsobj, "common_enable_params"));
+    enable_params->ble_enable_params.gap_enable_params = GapEnableParameters(ConversionUtility::getJsObject(jsobj, "gap_enable_params"));
+    enable_params->ble_enable_params.gatts_enable_params = GattsEnableParameters(ConversionUtility::getJsObjectOrNull(jsobj, "gatts_enable_params"));
     return enable_params;
 }
 #endif
