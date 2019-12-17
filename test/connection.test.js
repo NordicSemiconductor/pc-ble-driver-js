@@ -148,43 +148,28 @@ describe('the API', () => {
             return;
         }
 
-        const {
-            BLE_GAP_PHY_1MBPS,
-            BLE_GAP_PHY_2MBPS,
-        } = centralAdapter.driver;
-
-        function phyUpdate(adapter, peerDevice, phy) {
-            return new Promise((resolve, reject) => {
-                adapter.phyUpdate(peerDevice.instanceId, { tx_phys: phy, rx_phys: phy }, err => (
+        const phy = centralAdapter.driver.BLE_GAP_PHY_2MBPS;
+        await outcome([
+            new Promise((resolve, reject) => {
+                centralAdapter.phyUpdate(peripheralDevice.instanceId, { tx_phys: phy, rx_phys: phy }, err => (
                     err ? reject(err) : resolve()
                 ));
-            });
-        }
-
-        await outcome([
-            phyUpdate(centralAdapter, peripheralDevice, BLE_GAP_PHY_2MBPS),
+            }),
 
             new Promise(resolve => {
-                peripheralAdapter.once('phyUpdateRequest', (_, event) => {
-                    debug('peripheral phyUpdateRequested', event);
-                    expect(event.peer_preferred_phys.rx_phys).toEqual(BLE_GAP_PHY_2MBPS);
-                    expect(event.peer_preferred_phys.tx_phys).toEqual(BLE_GAP_PHY_2MBPS);
-                    resolve();
-                });
-            }).then(() => phyUpdate(peripheralAdapter, centralDevice, BLE_GAP_PHY_1MBPS)),
-
-            new Promise(resolve => {
-                centralAdapter.once('phyUpdate', (_, event) => {
-                    debug('central phyUpdate', event);
-                    expect(event.rx_phy).toEqual(BLE_GAP_PHY_1MBPS);
-                    expect(event.tx_phy).toEqual(BLE_GAP_PHY_1MBPS);
+                peripheralAdapter.once('phyUpdated', (_, event) => {
+                    debug('peripheral phyUpdated', event);
+                    expect(event.rx_phy).toEqual(phy);
+                    expect(event.tx_phy).toEqual(phy);
                     resolve();
                 });
             }),
 
             new Promise(resolve => {
-                peripheralAdapter.once('phyUpdate', (_, event) => {
-                    debug('peripheral phyUpdate', event);
+                centralAdapter.once('phyUpdated', (_, event) => {
+                    debug('central phyUpdated', event);
+                    expect(event.rx_phy).toEqual(phy);
+                    expect(event.tx_phy).toEqual(phy);
                     resolve();
                 });
             }),
@@ -196,43 +181,30 @@ describe('the API', () => {
             return;
         }
 
-        function dataLengthUpdate(adapter, peerDevice, length) {
-            return new Promise((resolve, reject) => {
-                adapter.dataLengthUpdate(
-                    peerDevice.instanceId,
+        const requestedLength = 251;
+        await outcome([
+            new Promise((resolve, reject) => {
+                centralAdapter.dataLengthUpdate(
+                    peripheralDevice.instanceId,
                     { max_rx_octets: length, max_tx_octets: length },
                     err => (err ? reject(err) : resolve()),
                 );
-            });
-        }
-
-        const requestedLength = 56;
-        const negotiatedLength = 36;
-
-        await outcome([
-            dataLengthUpdate(centralAdapter, peripheralDevice, requestedLength),
+            }),
 
             new Promise(resolve => {
-                peripheralAdapter.once('dataLengthUpdateRequest', (_, event) => {
-                    debug('peripheral dataLengthUpdateRequested', event);
-                    expect(event.peer_params.max_tx_octets).toEqual(requestedLength);
-                    expect(event.peer_params.max_rx_octets).toEqual(requestedLength);
-                    resolve();
-                });
-            }).then(() => dataLengthUpdate(peripheralAdapter, centralDevice, negotiatedLength)),
-
-            new Promise(resolve => {
-                centralAdapter.once('dataLengthUpdate', (_, event) => {
-                    debug('central dataLengthUpdate', event);
-                    expect(event.effective_params.max_tx_octets).toEqual(negotiatedLength);
-                    expect(event.effective_params.max_rx_octets).toEqual(negotiatedLength);
+                peripheralAdapter.once('dataLengthUpdated', (_, event) => {
+                    debug('peripheral dataLengthUpdated', event);
+                    expect(event.effective_params.max_tx_octets).toEqual(requestedLength);
+                    expect(event.effective_params.max_rx_octets).toEqual(requestedLength);
                     resolve();
                 });
             }),
 
             new Promise(resolve => {
-                peripheralAdapter.once('dataLengthUpdate', (_, event) => {
-                    debug('peripheral dataLengthUpdate', event);
+                centralAdapter.once('dataLengthUpdated', (_, event) => {
+                    debug('central dataLengthUpdated', event);
+                    expect(event.effective_params.max_tx_octets).toEqual(requestedLength);
+                    expect(event.effective_params.max_rx_octets).toEqual(requestedLength);
                     resolve();
                 });
             }),

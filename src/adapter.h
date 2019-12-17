@@ -57,19 +57,24 @@ const auto STATUS_QUEUE_SIZE = 64;
 
 struct enable_ble_params_t {
 #if NRF_SD_BLE_API_VERSION < 5
-    ~enable_ble_params_t() {
-        delete ble_enable_params;
-    }
-    ble_enable_params_t *ble_enable_params; // If enable BLE is true, then use these params when enabling BLE
+    ble_enable_params_t ble_enable_params; // If enable BLE is true, then use these params when enabling BLE
 #else
     ~enable_ble_params_t() {
-        delete conn_cfg;
-        delete common_cfg;
-        delete gap_cfg;
-        delete gatts_cfg_service_changed;
-        delete gatts_cfg_attr_tab_size;
+        if (gap_conn_cfg) delete gap_conn_cfg;
+        if (gatt_conn_cfg) delete gatt_conn_cfg;
+        if (gatts_conn_cfg) delete gatts_conn_cfg;
+        if (gattc_conn_cfg) delete gattc_conn_cfg;
+        if (l2cap_conn_cfg) delete l2cap_conn_cfg;
+        if (common_cfg) delete common_cfg;
+        if (gap_cfg) delete gap_cfg;
+        if (gatts_cfg_service_changed) delete gatts_cfg_service_changed;
+        if (gatts_cfg_attr_tab_size) delete gatts_cfg_attr_tab_size;
     }
-    ble_cfg_t *conn_cfg;   /**< Connection specific configurations, cfg_id in @ref BLE_CONN_CFGS series. */
+    ble_cfg_t *gap_conn_cfg;     /**< BLE GAP specific connection configuration. */
+    ble_cfg_t *gatt_conn_cfg;    /**< BLE GATT specific connection configuration. */
+    ble_cfg_t *gatts_conn_cfg;   /**< BLE GATTS specific connection configuration. */
+    ble_cfg_t *gattc_conn_cfg;   /**< BLE GATTC specific connection configuration. */
+    ble_cfg_t *l2cap_conn_cfg;   /**< BLE L2CAP specific connection configuration. */
     ble_cfg_t *common_cfg; /**< Global common configurations, cfg_id in @ref BLE_COMMON_CFGS series. */
     ble_cfg_t *gap_cfg;    /**< Global GAP configurations, cfg_id in @ref BLE_GAP_CFGS series. */
     ble_cfg_t *gatts_cfg_service_changed;  /**< Global GATTS configuration, cfg_id in @ref BLE_GATTS_CFGS series. */

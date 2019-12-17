@@ -508,15 +508,36 @@ uint32_t Adapter::enableBLE(adapter_t *adapter, enable_ble_params_t *enable_para
     }
 
 #if NRF_SD_BLE_API_VERSION < 5
-    return sd_ble_enable(adapter, enable_params->ble_enable_params, 0);
+    return sd_ble_enable(adapter, &enable_params->ble_enable_params, 0);
 #else
     uint32_t result = NRF_SUCCESS;
     const uint32_t app_ram_base = 0;
+    const uint8_t conn_cfg_tag = 1;
 
-    if (enable_params->conn_cfg)
+    if (result == NRF_SUCCESS && enable_params->gap_conn_cfg)
     {
-        enable_params->conn_cfg->conn_cfg.conn_cfg_tag = 1;
-        result = sd_ble_cfg_set(adapter, BLE_CONN_CFG_GATT, enable_params->conn_cfg, app_ram_base);
+        enable_params->gap_conn_cfg->conn_cfg.conn_cfg_tag = conn_cfg_tag;
+        result = sd_ble_cfg_set(adapter, BLE_CONN_CFG_GAP, enable_params->gap_conn_cfg, app_ram_base);
+    }
+    if (result == NRF_SUCCESS && enable_params->gatt_conn_cfg)
+    {
+        enable_params->gatt_conn_cfg->conn_cfg.conn_cfg_tag = conn_cfg_tag;
+        result = sd_ble_cfg_set(adapter, BLE_CONN_CFG_GATT, enable_params->gatt_conn_cfg, app_ram_base);
+    }
+    if (result == NRF_SUCCESS && enable_params->gattc_conn_cfg)
+    {
+        enable_params->gattc_conn_cfg->conn_cfg.conn_cfg_tag = conn_cfg_tag;
+        result = sd_ble_cfg_set(adapter, BLE_CONN_CFG_GATTC, enable_params->gattc_conn_cfg, app_ram_base);
+    }
+    if (result == NRF_SUCCESS && enable_params->gatts_conn_cfg)
+    {
+        enable_params->gatts_conn_cfg->conn_cfg.conn_cfg_tag = conn_cfg_tag;
+        result = sd_ble_cfg_set(adapter, BLE_CONN_CFG_GATTS, enable_params->gatts_conn_cfg, app_ram_base);
+    }
+    if (result == NRF_SUCCESS && enable_params->l2cap_conn_cfg)
+    {
+        enable_params->l2cap_conn_cfg->conn_cfg.conn_cfg_tag = conn_cfg_tag;
+        result = sd_ble_cfg_set(adapter, BLE_CONN_CFG_L2CAP, enable_params->l2cap_conn_cfg, app_ram_base);
     }
     if (result == NRF_SUCCESS && enable_params->common_cfg)
     {
@@ -570,16 +591,7 @@ NAN_METHOD(Adapter::EnableBLE)
 
     try
     {
-#if NRF_SD_BLE_API_VERSION < 5
-        baton->enable_ble_params.ble_enable_params = EnableParameters(enableObject);
-#else
-        auto bleCfg = BleCfg(enableObject);
-        baton->enable_ble_params.conn_cfg = bleCfg.ToConnCfg();
-        baton->enable_ble_params.common_cfg = bleCfg.ToCommonCfg();
-        baton->enable_ble_params.gatts_cfg_service_changed = bleCfg.ToGattsCfgServiceChanged();
-        baton->enable_ble_params.gatts_cfg_attr_tab_size = bleCfg.ToGattsCfgAttrTabSize();
-        baton->enable_ble_params.gap_cfg = bleCfg.ToGapCfg();
-#endif
+        baton->enable_ble_params = EnableParameters(enableObject);
     }
     catch (std::string error)
     {
@@ -595,7 +607,7 @@ NAN_METHOD(Adapter::EnableBLE)
 void Adapter::EnableBLE(uv_work_t *req)
 {
     auto baton = static_cast<EnableBLEBaton *>(req->data);
-    baton->result = Adapter::enableBLE(baton->adapter, &baton->enable_ble_params);
+    baton->result = Adapter::enableBLE(baton->adapter, baton->enable_ble_params);
 }
 
 // This runs in  Main Thread
@@ -664,18 +676,7 @@ NAN_METHOD(Adapter::Open)
         baton->retransmission_interval = ConversionUtility::getNativeUint32(options, "retransmissionInterval"); parameter++;
         baton->response_timeout = ConversionUtility::getNativeUint32(options, "responseTimeout"); parameter++;
         baton->enable_ble = ConversionUtility::getBool(options, "enableBLE"); parameter++;
-
-        const auto enableObject = ConversionUtility::getJsObject(options, "enableBLEParams"); parameter++;
-#if NRF_SD_BLE_API_VERSION < 5
-        baton->enable_ble_params.ble_enable_params = EnableParameters(enableObject);
-#else
-        auto bleCfg = BleCfg(enableObject);
-        baton->enable_ble_params.conn_cfg = bleCfg.ToConnCfg();
-        baton->enable_ble_params.common_cfg = bleCfg.ToCommonCfg();
-        baton->enable_ble_params.gatts_cfg_service_changed = bleCfg.ToGattsCfgServiceChanged();
-        baton->enable_ble_params.gatts_cfg_attr_tab_size = bleCfg.ToGattsCfgAttrTabSize();
-        baton->enable_ble_params.gap_cfg = bleCfg.ToGapCfg();
-#endif
+        baton->enable_ble_params = EnableParameters(ConversionUtility::getJsObject(options, "enableBLEParams")); parameter++;
     }
     catch (std::string error)
     {
@@ -789,7 +790,7 @@ void Adapter::Open(uv_work_t *req)
     }
 
     if (baton->enable_ble) {
-        error_code = Adapter::enableBLE(adapter, &baton->enable_ble_params);
+        error_code = Adapter::enableBLE(adapter, baton->enable_ble_params);
 
         if (error_code == NRF_SUCCESS)
         {
@@ -1687,19 +1688,228 @@ v8::Local<v8::Object> EnableParameters::ToJs()
     Nan::EscapableHandleScope scope;
     v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
-    Utility::Set(obj, "common_enable_params", CommonEnableParameters(&native->common_enable_params).ToJs());
-    Utility::Set(obj, "gap_enable_params", GapEnableParameters(&native->gap_enable_params).ToJs());
-    Utility::Set(obj, "gatts_enable_params", GattsEnableParameters(&native->gatts_enable_params).ToJs());
+    Utility::Set(obj, "common_enable_params", CommonEnableParameters(&native->ble_enable_params.common_enable_params).ToJs());
+    Utility::Set(obj, "gap_enable_params", GapEnableParameters(&native->ble_enable_params.gap_enable_params).ToJs());
+    Utility::Set(obj, "gatts_enable_params", GattsEnableParameters(&native->ble_enable_params.gatts_enable_params).ToJs());
 
     return scope.Escape(obj);
 }
 
-ble_enable_params_t *EnableParameters::ToNative()
+enable_ble_params_t *EnableParameters::ToNative()
 {
-    auto enable_params = new ble_enable_params_t();
-    enable_params->common_enable_params = CommonEnableParameters(ConversionUtility::getJsObject(jsobj, "common_enable_params"));
-    enable_params->gap_enable_params = GapEnableParameters(ConversionUtility::getJsObject(jsobj, "gap_enable_params"));
-    enable_params->gatts_enable_params = GattsEnableParameters(ConversionUtility::getJsObjectOrNull(jsobj, "gatts_enable_params"));
+    auto enable_params = new enable_ble_params_t();
+    enable_params->ble_enable_params.common_enable_params = CommonEnableParameters(ConversionUtility::getJsObject(jsobj, "common_enable_params"));
+    enable_params->ble_enable_params.gap_enable_params = GapEnableParameters(ConversionUtility::getJsObject(jsobj, "gap_enable_params"));
+    enable_params->ble_enable_params.gatts_enable_params = GattsEnableParameters(ConversionUtility::getJsObjectOrNull(jsobj, "gatts_enable_params"));
+    return enable_params;
+}
+#endif
+
+#if NRF_SD_BLE_API_VERSION >= 5
+v8::Local<v8::Object> EnableParameters::ToJs()
+{
+    Nan::EscapableHandleScope scope;
+    v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+
+    if (native->gap_conn_cfg || native->gatt_conn_cfg || native->gattc_conn_cfg || native->gatts_conn_cfg || native->l2cap_conn_cfg)
+    {
+        Nan::EscapableHandleScope conn_cfg_obj_scope;
+        v8::Local<v8::Object> conn_cfg_obj = Nan::New<v8::Object>();
+        if (native->gap_conn_cfg)
+        {
+            Nan::EscapableHandleScope gap_conn_cfg_obj_scope;
+            v8::Local<v8::Object> gap_conn_cfg_obj = Nan::New<v8::Object>();
+            Utility::Set(gap_conn_cfg_obj, "conn_count", native->gap_conn_cfg->conn_cfg.params.gap_conn_cfg.conn_count);
+            Utility::Set(gap_conn_cfg_obj, "event_length", native->gap_conn_cfg->conn_cfg.params.gap_conn_cfg.event_length);
+            Utility::Set(conn_cfg_obj, "gap_conn_cfg", gap_conn_cfg_obj_scope.Escape(gap_conn_cfg_obj));
+        }
+        if (native->gatt_conn_cfg)
+        {
+            Nan::EscapableHandleScope gatt_conn_cfg_obj_scope;
+            v8::Local<v8::Object> gatt_conn_cfg_obj = Nan::New<v8::Object>();
+            Utility::Set(gatt_conn_cfg_obj, "att_mtu", native->gatt_conn_cfg->conn_cfg.params.gatt_conn_cfg.att_mtu);
+            Utility::Set(conn_cfg_obj, "gatt_conn_cfg", gatt_conn_cfg_obj_scope.Escape(gatt_conn_cfg_obj));
+        }
+        if (native->gattc_conn_cfg)
+        {
+            Nan::EscapableHandleScope gattc_conn_cfg_obj_scope;
+            v8::Local<v8::Object> gattc_conn_cfg_obj = Nan::New<v8::Object>();
+            Utility::Set(gattc_conn_cfg_obj, "write_cmd_tx_queue_size", native->gattc_conn_cfg->conn_cfg.params.gattc_conn_cfg.write_cmd_tx_queue_size);
+            Utility::Set(conn_cfg_obj, "gattc_conn_cfg", gattc_conn_cfg_obj_scope.Escape(gattc_conn_cfg_obj));
+        }
+        if (native->gatts_conn_cfg)
+        {
+            Nan::EscapableHandleScope gatts_conn_cfg_obj_scope;
+            v8::Local<v8::Object> gatts_conn_cfg_obj = Nan::New<v8::Object>();
+            Utility::Set(gatts_conn_cfg_obj, "hvn_tx_queue_size", native->gatts_conn_cfg->conn_cfg.params.gatts_conn_cfg.hvn_tx_queue_size);
+            Utility::Set(conn_cfg_obj, "gatts_conn_cfg", gatts_conn_cfg_obj_scope.Escape(gatts_conn_cfg_obj));
+        }
+        if (native->l2cap_conn_cfg)
+        {
+            Nan::EscapableHandleScope l2cap_conn_cfg_scope;
+            v8::Local<v8::Object> l2cap_conn_cfg_obj = Nan::New<v8::Object>();
+            Utility::Set(l2cap_conn_cfg_obj, "rx_mps", native->l2cap_conn_cfg->conn_cfg.params.l2cap_conn_cfg.rx_mps);
+            Utility::Set(l2cap_conn_cfg_obj, "tx_mps", native->l2cap_conn_cfg->conn_cfg.params.l2cap_conn_cfg.tx_mps);
+            Utility::Set(l2cap_conn_cfg_obj, "rx_queue_size", native->l2cap_conn_cfg->conn_cfg.params.l2cap_conn_cfg.rx_queue_size);
+            Utility::Set(l2cap_conn_cfg_obj, "tx_queue_size", native->l2cap_conn_cfg->conn_cfg.params.l2cap_conn_cfg.tx_queue_size);
+            Utility::Set(l2cap_conn_cfg_obj, "ch_count", native->l2cap_conn_cfg->conn_cfg.params.l2cap_conn_cfg.ch_count);
+            Utility::Set(conn_cfg_obj, "l2cap_conn_cfg", l2cap_conn_cfg_scope.Escape(l2cap_conn_cfg_obj));
+        }
+        Utility::Set(obj, "conn_cfg", conn_cfg_obj_scope.Escape(conn_cfg_obj));
+    }
+    if (native->common_cfg)
+    {
+        Nan::EscapableHandleScope common_cfg_obj_scope;
+        v8::Local<v8::Object> common_cfg_obj = Nan::New<v8::Object>();
+        {
+            Nan::EscapableHandleScope vs_uuid_cfg_obj_scope;
+            v8::Local<v8::Object> vs_uuid_cfg_obj = Nan::New<v8::Object>();
+            Utility::Set(vs_uuid_cfg_obj, "vs_uuid_count", native->common_cfg->common_cfg.vs_uuid_cfg.vs_uuid_count);
+            Utility::Set(common_cfg_obj, "vs_uuid_cfg", vs_uuid_cfg_obj_scope.Escape(vs_uuid_cfg_obj));
+        }
+        Utility::Set(obj, "common_cfg", common_cfg_obj_scope.Escape(common_cfg_obj));
+    }
+    if (native->gap_cfg)
+    {
+        Nan::EscapableHandleScope gap_cfg_obj_scope;
+        v8::Local<v8::Object> gap_cfg_obj = Nan::New<v8::Object>();
+        {
+            Nan::EscapableHandleScope role_count_cfg_obj_scope;
+            v8::Local<v8::Object> role_count_cfg_obj = Nan::New<v8::Object>();
+            Utility::Set(role_count_cfg_obj, "periph_role_count", native->gap_cfg->gap_cfg.role_count_cfg.periph_role_count);
+            Utility::Set(role_count_cfg_obj, "central_role_count", native->gap_cfg->gap_cfg.role_count_cfg.central_role_count);
+            Utility::Set(role_count_cfg_obj, "central_sec_count", native->gap_cfg->gap_cfg.role_count_cfg.central_sec_count);
+            Utility::Set(gap_cfg_obj, "role_count_cfg", role_count_cfg_obj_scope.Escape(role_count_cfg_obj));
+        }
+        Utility::Set(obj, "gap_cfg", gap_cfg_obj_scope.Escape(gap_cfg_obj));
+    }
+    if (native->gatts_cfg_service_changed || native->gatts_cfg_attr_tab_size)
+    {
+        Nan::EscapableHandleScope gatts_cfg_obj_scope;
+        v8::Local<v8::Object> gatts_cfg_obj = Nan::New<v8::Object>();
+        if (native->gatts_cfg_service_changed)
+        {
+            Nan::EscapableHandleScope gatts_cfg_service_changed_obj_scope;
+            v8::Local<v8::Object> gatts_cfg_service_changed_obj = Nan::New<v8::Object>();
+            Utility::Set(gatts_cfg_service_changed_obj, "service_changed", static_cast<bool>(native->gatts_cfg_service_changed->gatts_cfg.service_changed.service_changed));
+            Utility::Set(gatts_cfg_obj, "service_changed", gatts_cfg_service_changed_obj_scope.Escape(gatts_cfg_service_changed_obj));
+        }
+        if (native->gatts_cfg_attr_tab_size)
+        {
+            Nan::EscapableHandleScope gatts_cfg_attr_tab_size_obj_scope;
+            v8::Local<v8::Object> gatts_cfg_attr_tab_size_obj = Nan::New<v8::Object>();
+            Utility::Set(gatts_cfg_attr_tab_size_obj, "attr_tab_size", native->gatts_cfg_attr_tab_size->gatts_cfg.attr_tab_size.attr_tab_size);
+            Utility::Set(gatts_cfg_obj, "attr_tab_size", gatts_cfg_attr_tab_size_obj_scope.Escape(gatts_cfg_attr_tab_size_obj));
+        }
+        Utility::Set(obj, "gatts_cfg", gatts_cfg_obj_scope.Escape(gatts_cfg_obj));
+    }
+
+    return scope.Escape(obj);
+}
+
+enable_ble_params_t *EnableParameters::ToNative()
+{
+    auto enable_params = new enable_ble_params_t();
+
+    if (Utility::Has(jsobj, "conn_cfg"))
+    {
+        auto conn_cfg_obj = ConversionUtility::getJsObject(jsobj, "conn_cfg");
+        uint16_t att_mtu = 0;
+
+        if (Utility::Has(conn_cfg_obj, "gatt_conn_cfg"))
+        {
+            enable_params->gatt_conn_cfg = new ble_cfg_t();
+            auto gatt_conn_cfg_obj = ConversionUtility::getJsObject(conn_cfg_obj, "gatt_conn_cfg");
+            att_mtu = ConversionUtility::getNativeUint16(gatt_conn_cfg_obj, "att_mtu");
+            enable_params->gatt_conn_cfg->conn_cfg.params.gatt_conn_cfg.att_mtu = att_mtu;
+        }
+
+        if (Utility::Has(conn_cfg_obj, "gap_conn_cfg") || att_mtu != 0)
+        {
+            if (att_mtu == 0)
+            {
+                att_mtu = BLE_GATT_ATT_MTU_DEFAULT;
+            }
+            enable_params->gap_conn_cfg = new ble_cfg_t();
+            auto gap_conn_cfg_obj = ConversionUtility::getJsObject(conn_cfg_obj, "gap_conn_cfg");
+            enable_params->gap_conn_cfg->conn_cfg.params.gap_conn_cfg.conn_count = ConversionUtility::getNativeUint8(gap_conn_cfg_obj, "conn_count");
+            if (Utility::Has(gap_conn_cfg_obj, "event_length") || att_mtu == 0)
+            {
+                enable_params->gap_conn_cfg->conn_cfg.params.gap_conn_cfg.event_length = ConversionUtility::getNativeUint16(gap_conn_cfg_obj, "event_length");
+            }
+            else
+            {
+                enable_params->gap_conn_cfg->conn_cfg.params.gap_conn_cfg.event_length = BLE_EVT_LEN_MAX(att_mtu);
+            }
+        }
+
+        if (Utility::Has(conn_cfg_obj, "gattc_conn_cfg"))
+        {
+            enable_params->gattc_conn_cfg = new ble_cfg_t();
+            auto gattc_conn_cfg_obj = ConversionUtility::getJsObject(conn_cfg_obj, "gattc_conn_cfg");
+            enable_params->gattc_conn_cfg->conn_cfg.params.gattc_conn_cfg.write_cmd_tx_queue_size = ConversionUtility::getNativeUint8(gattc_conn_cfg_obj, "write_cmd_tx_queue_size");
+        }
+
+        if (Utility::Has(conn_cfg_obj, "gatts_conn_cfg"))
+        {
+            enable_params->gatts_conn_cfg = new ble_cfg_t();
+            auto gatts_conn_cfg_obj = ConversionUtility::getJsObject(conn_cfg_obj, "gatts_conn_cfg");
+            enable_params->gatts_conn_cfg->conn_cfg.params.gatts_conn_cfg.hvn_tx_queue_size = ConversionUtility::getNativeUint8(gatts_conn_cfg_obj, "hvn_tx_queue_size");
+        }
+
+        if (Utility::Has(conn_cfg_obj, "l2cap_conn_cfg"))
+        {
+            enable_params->l2cap_conn_cfg = new ble_cfg_t();
+            auto l2cap_conn_cfg_obj = ConversionUtility::getJsObject(conn_cfg_obj, "l2cap_conn_cfg");
+            enable_params->l2cap_conn_cfg->conn_cfg.params.l2cap_conn_cfg.rx_mps = ConversionUtility::getNativeUint16(l2cap_conn_cfg_obj, "rx_mps");
+            enable_params->l2cap_conn_cfg->conn_cfg.params.l2cap_conn_cfg.tx_mps = ConversionUtility::getNativeUint16(l2cap_conn_cfg_obj, "tx_mps");
+            enable_params->l2cap_conn_cfg->conn_cfg.params.l2cap_conn_cfg.rx_queue_size = ConversionUtility::getNativeUint8(l2cap_conn_cfg_obj, "rx_queue_size");
+            enable_params->l2cap_conn_cfg->conn_cfg.params.l2cap_conn_cfg.tx_queue_size = ConversionUtility::getNativeUint8(l2cap_conn_cfg_obj, "tx_queue_size");
+            enable_params->l2cap_conn_cfg->conn_cfg.params.l2cap_conn_cfg.ch_count = ConversionUtility::getNativeUint8(l2cap_conn_cfg_obj, "ch_count");
+        }
+    }
+
+    if (Utility::Has(jsobj, "common_cfg"))
+    {
+        auto common_cfg_obj = ConversionUtility::getJsObject(jsobj, "common_cfg");
+        if (Utility::Has(common_cfg_obj, "vs_uuid_cfg"))
+        {
+            enable_params->common_cfg = new ble_cfg_t();
+            auto vs_uuid_cfg_obj = ConversionUtility::getJsObject(common_cfg_obj, "vs_uuid_cfg");
+            enable_params->common_cfg->common_cfg.vs_uuid_cfg.vs_uuid_count = ConversionUtility::getNativeUint8(vs_uuid_cfg_obj, "vs_uuid_count");
+        }
+    }
+
+    if (Utility::Has(jsobj, "gap_cfg"))
+    {
+        auto gap_cfg_obj = ConversionUtility::getJsObject(jsobj, "gap_cfg");
+        if (Utility::Has(gap_cfg_obj, "role_count_cfg"))
+        {
+            enable_params->gap_cfg = new ble_cfg_t();
+            auto role_count_cfg_obj = ConversionUtility::getJsObject(gap_cfg_obj, "role_count_cfg");
+            enable_params->gap_cfg->gap_cfg.role_count_cfg.periph_role_count = ConversionUtility::getNativeUint8(role_count_cfg_obj, "periph_role_count");
+            enable_params->gap_cfg->gap_cfg.role_count_cfg.central_role_count = ConversionUtility::getNativeUint8(role_count_cfg_obj, "central_role_count");
+            enable_params->gap_cfg->gap_cfg.role_count_cfg.central_sec_count = ConversionUtility::getNativeUint8(role_count_cfg_obj, "central_sec_count");
+        }
+    }
+
+    if (Utility::Has(jsobj, "gatts_cfg"))
+    {
+        auto gatts_cfg_obj = ConversionUtility::getJsObject(jsobj, "gatts_cfg");
+        if (Utility::Has(gatts_cfg_obj, "service_changed"))
+        {
+            enable_params->gatts_cfg_service_changed = new ble_cfg_t();
+            auto service_changed_obj = ConversionUtility::getJsObject(gatts_cfg_obj, "service_changed");
+            enable_params->gatts_cfg_service_changed->gatts_cfg.service_changed.service_changed = ConversionUtility::getNativeBool(service_changed_obj, "service_changed");
+        }
+        if (Utility::Has(gatts_cfg_obj, "attr_tab_size"))
+        {
+            enable_params->gatts_cfg_attr_tab_size = new ble_cfg_t();
+            auto attr_tab_size_obj = ConversionUtility::getJsObject(gatts_cfg_obj, "attr_tab_size");
+            enable_params->gatts_cfg_attr_tab_size->gatts_cfg.attr_tab_size.attr_tab_size = ConversionUtility::getNativeUint32(attr_tab_size_obj, "attr_tab_size");
+        }
+    }
+
     return enable_params;
 }
 #endif
@@ -1923,18 +2133,18 @@ ble_cfg_t *BleCfg::ToNative()
 
 ble_cfg_t *BleCfg::ToConnCfg()
 {
+    auto ble_cfg = new ble_cfg_t();
+
     if (Utility::Has(jsobj, "gatt_enable_params"))
     {
         const auto subobj = ConversionUtility::getJsObject(jsobj, "gatt_enable_params");
         if (Utility::Has(subobj, "att_mtu"))
         {
-            auto ble_cfg = new ble_cfg_t();
             ble_cfg->conn_cfg.params.gatt_conn_cfg.att_mtu = ConversionUtility::getNativeUint16(subobj, "att_mtu");
-            return ble_cfg;
         }
     }
 
-    return nullptr;
+    return ble_cfg;
 }
 
 ble_cfg_t *BleCfg::ToCommonCfg()
@@ -2064,28 +2274,15 @@ ble_conn_cfg_t *BleConnCfg::ToNative()
 ble_gap_conn_cfg_t *BleGapConnCfg::ToNative()
 {
     auto gap_conn_cfg = new ble_gap_conn_cfg_t();
-
-    if (Utility::Has(jsobj, "conn_count"))
-    {
-        gap_conn_cfg->conn_count = ConversionUtility::getNativeUint8(jsobj, "conn_count");
-    }
-    if (Utility::Has(jsobj, "event_length"))
-    {
-        gap_conn_cfg->event_length = ConversionUtility::getNativeUint16(jsobj, "event_length");
-    }
-
+    gap_conn_cfg->conn_count = ConversionUtility::getNativeUint8(jsobj, "conn_count");
+    gap_conn_cfg->event_length = ConversionUtility::getNativeUint16(jsobj, "event_length");
     return gap_conn_cfg;
 }
 
 ble_common_cfg_vs_uuid_t *BleCommonCfgVsUuid::ToNative()
 {
     auto common_cfg_vs_uuid = new ble_common_cfg_vs_uuid_t();
-
-    if (Utility::Has(jsobj, "vs_uuid_count"))
-    {
-        common_cfg_vs_uuid->vs_uuid_count = ConversionUtility::getNativeUint8(jsobj, "vs_uuid_count");
-    }
-
+    common_cfg_vs_uuid->vs_uuid_count = ConversionUtility::getNativeUint8(jsobj, "vs_uuid_count");
     return common_cfg_vs_uuid;
 }
 
@@ -2163,83 +2360,41 @@ ble_gap_conn_sec_mode_t *BleGapConnSecMode::ToNative()
 ble_gap_cfg_role_count_t *BleGapCfgRoleCount::ToNative()
 {
     auto ble_gap_cfg_role_count = new ble_gap_cfg_role_count_t();
-
-    if (Utility::Has(jsobj, "periph_role_count"))
-    {
-        ble_gap_cfg_role_count->periph_role_count = ConversionUtility::getNativeUint8(jsobj, "periph_role_count");
-    }
-
-    if (Utility::Has(jsobj, "central_role_count"))
-    {
-        ble_gap_cfg_role_count->central_role_count = ConversionUtility::getNativeUint8(jsobj, "central_role_count");
-    }
-
-    if (Utility::Has(jsobj, "central_sec_count"))
-    {
-        ble_gap_cfg_role_count->central_sec_count = ConversionUtility::getNativeUint8(jsobj, "central_sec_count");
-    }
-
+    ble_gap_cfg_role_count->periph_role_count = ConversionUtility::getNativeUint8(jsobj, "periph_role_count");
+    ble_gap_cfg_role_count->central_role_count = ConversionUtility::getNativeUint8(jsobj, "central_role_count");
+    ble_gap_cfg_role_count->central_sec_count = ConversionUtility::getNativeUint8(jsobj, "central_sec_count");
     return ble_gap_cfg_role_count;
 }
 
 ble_gattc_conn_cfg_t *BleGattcConnCfg::ToNative()
 {
     auto gattc_conn_cfg = new ble_gattc_conn_cfg_t();
-
-    if (Utility::Has(jsobj, "write_cmd_tx_queue_size"))
-    {
-        gattc_conn_cfg->write_cmd_tx_queue_size = ConversionUtility::getNativeUint8(jsobj, "write_cmd_tx_queue_size");
-    }
-
+    gattc_conn_cfg->write_cmd_tx_queue_size = ConversionUtility::getNativeUint8(jsobj, "write_cmd_tx_queue_size");
     return gattc_conn_cfg;
 }
 
 ble_gatts_conn_cfg_t *BleGattsConnCfg::ToNative()
 {
     auto gatts_conn_cfg = new ble_gatts_conn_cfg_t();
-
-    if (Utility::Has(jsobj, "hvn_tx_queue_size")) {
-        gatts_conn_cfg->hvn_tx_queue_size = ConversionUtility::getNativeUint8(jsobj, "hvn_tx_queue_size");
-    }
-
+    gatts_conn_cfg->hvn_tx_queue_size = ConversionUtility::getNativeUint8(jsobj, "hvn_tx_queue_size");
     return gatts_conn_cfg;
 }
 
 ble_gatt_conn_cfg_t *BleGattConnCfg::ToNative()
 {
     auto gatt_conn_cfg = new ble_gatt_conn_cfg_t();
-
-    if (Utility::Has(jsobj, "att_mtu")) {
-        gatt_conn_cfg->att_mtu = ConversionUtility::getNativeUint16(jsobj, "att_mtu");
-    }
-
+    gatt_conn_cfg->att_mtu = ConversionUtility::getNativeUint16(jsobj, "att_mtu");
     return gatt_conn_cfg;
 }
 
 ble_l2cap_conn_cfg_t *BleL2capConnCfg::ToNative()
 {
     auto l2cap_conn_cfg = new ble_l2cap_conn_cfg_t();
-
-    if (Utility::Has(jsobj, "rx_mps")) {
-        l2cap_conn_cfg->rx_mps = ConversionUtility::getNativeUint16(jsobj, "rx_mps");
-    }
-
-    if (Utility::Has(jsobj, "tx_mps")) {
-        l2cap_conn_cfg->tx_mps = ConversionUtility::getNativeUint16(jsobj, "tx_mps");
-    }
-
-    if (Utility::Has(jsobj, "rx_queue_size")) {
-        l2cap_conn_cfg->rx_queue_size = ConversionUtility::getNativeUint8(jsobj, "rx_queue_size");
-    }
-
-    if (Utility::Has(jsobj, "tx_queue_size")) {
-        l2cap_conn_cfg->tx_queue_size = ConversionUtility::getNativeUint8(jsobj, "tx_queue_size");
-    }
-
-    if (Utility::Has(jsobj, "ch_count")) {
-        l2cap_conn_cfg->ch_count = ConversionUtility::getNativeUint8(jsobj, "ch_count");
-    }
-
+    l2cap_conn_cfg->rx_mps = ConversionUtility::getNativeUint16(jsobj, "rx_mps");
+    l2cap_conn_cfg->tx_mps = ConversionUtility::getNativeUint16(jsobj, "tx_mps");
+    l2cap_conn_cfg->rx_queue_size = ConversionUtility::getNativeUint8(jsobj, "rx_queue_size");
+    l2cap_conn_cfg->tx_queue_size = ConversionUtility::getNativeUint8(jsobj, "tx_queue_size");
+    l2cap_conn_cfg->ch_count = ConversionUtility::getNativeUint8(jsobj, "ch_count");
     return l2cap_conn_cfg;
 }
 
@@ -2263,22 +2418,14 @@ ble_gatts_cfg_t *BleGattsCfg::ToNative() {
 ble_gatts_cfg_service_changed_t *BleGattsCfgServiceChanged::ToNative()
 {
     auto ble_gatts_cfg_service_changed = new ble_gatts_cfg_service_changed_t();
-
-    if (Utility::Has(jsobj, "service_changed")) {
-        ble_gatts_cfg_service_changed->service_changed = ConversionUtility::getNativeUint16(jsobj, "service_changed");
-    }
-
+    ble_gatts_cfg_service_changed->service_changed = ConversionUtility::getNativeBool(jsobj, "service_changed");
     return ble_gatts_cfg_service_changed;
 }
 
 ble_gatts_cfg_attr_tab_size_t *BleGattsCfgAttrTabSize::ToNative()
 {
     auto ble_gatts_cfg_attr_tab_size = new ble_gatts_cfg_attr_tab_size_t();
-
-    if (Utility::Has(jsobj, "attr_tab_size")) {
-        ble_gatts_cfg_attr_tab_size->attr_tab_size = ConversionUtility::getNativeUint16(jsobj, "attr_tab_size");
-    }
-
+    ble_gatts_cfg_attr_tab_size->attr_tab_size = ConversionUtility::getNativeUint16(jsobj, "attr_tab_size");
     return ble_gatts_cfg_attr_tab_size;
 }
 

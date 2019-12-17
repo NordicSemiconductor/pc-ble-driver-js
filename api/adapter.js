@@ -323,22 +323,68 @@ class Adapter extends EventEmitter {
     }
 
     _getDefaultEnableBLEParams() {
+        if (this._bleDriver.NRF_SD_BLE_API_VERSION === 2) {
+            return {
+                gap_enable_params: {
+                    periph_conn_count: 1,
+                    central_conn_count: 7,
+                    central_sec_count: 1,
+                },
+                gatts_enable_params: {
+                    service_changed: false,
+                    attr_tab_size: this._bleDriver.BLE_GATTS_ATTR_TAB_SIZE_DEFAULT,
+                },
+                common_enable_params: {
+                    conn_bw_counts: null, // tell SD to use default
+                    vs_uuid_count: 10,
+                },
+                gatt_enable_params: {
+                    att_mtu: MAX_SUPPORTED_ATT_MTU,
+                },
+            };
+        }
         return {
-            gap_enable_params: {
-                periph_conn_count: 1,
-                central_conn_count: 7,
-                central_sec_count: 1,
+            conn_cfg: {
+                gap_conn_cfg: {
+                    conn_count: 8,
+                    // event_length,
+                },
+                gatt_conn_cfg: {
+                    att_mtu: MAX_SUPPORTED_ATT_MTU,
+                },
+                // gattc_conn_cfg: {
+                //     write_cmd_tx_queue_size,
+                // },
+                // gatts_conn_cfg: {
+                //     hvn_tx_queue_size,
+                // },
+                // l2cap_conn_cfg: {
+                //     rx_mps,
+                //     tx_mps,
+                //     rx_queue_size,
+                //     tx_queue_size,
+                //     ch_count,
+                // },
             },
-            gatts_enable_params: {
-                service_changed: false,
-                attr_tab_size: this._bleDriver.BLE_GATTS_ATTR_TAB_SIZE_DEFAULT,
+            common_cfg: {
+                vs_uuid_cfg: {
+                    vs_uuid_count: 10,
+                },
             },
-            common_enable_params: {
-                conn_bw_counts: null, // tell SD to use default
-                vs_uuid_count: 10,
+            gap_cfg: {
+                role_count_cfg: {
+                    periph_role_count: 1,
+                    central_role_count: 7,
+                    central_sec_count: 1,
+                },
             },
-            gatt_enable_params: {
-                att_mtu: MAX_SUPPORTED_ATT_MTU,
+            gatts_cfg: {
+                service_changed: {
+                    service_changed: false,
+                },
+                attr_tab_size: {
+                    attr_tab_size: this._bleDriver.BLE_GATTS_ATTR_TAB_SIZE_DEFAULT,
+                },
             },
         };
     }
@@ -835,7 +881,7 @@ class Adapter extends EventEmitter {
         device.connected = true;
         this._devices[device.instanceId] = device;
 
-        this._attMtuMap[device.instanceId] = this.driver.GATT_MTU_SIZE_DEFAULT;
+        this._attMtuMap[device.instanceId] = this.driver.GATT_MTU_SIZE_DEFAULT || this.driver.BLE_GATT_ATT_MTU_DEFAULT;
 
         this._changeState({ connecting: false });
 
@@ -1136,12 +1182,21 @@ class Adapter extends EventEmitter {
         /**
          * DataLength Update Request.
          *
-         * @event Adapter#phyUpdateRequest
+         * @event Adapter#dataLengthUpdateRequest
          * @type {Object}
          * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
          * @property {Object} event - DataLength Update Request Event Parameters.
          */
-        this.emit('dataLengthUpdateRequest', device, event);
+
+        this._adapter.gapDataLengthUpdate(event.conn_handle, {
+            max_rx_octets: Math.min(event.peer_params.max_tx_octets),
+            max_tx_octets: Math.min(event.peer_params.max_rx_octets),
+        }, error => {
+            if (error) {
+                this.emit('error', _makeError('Failed to call dataLengthUpdate', error));
+                return;
+            }
+        });
     }
 
     _parseGapDataLengthUpdateEvent(event) {
@@ -1155,7 +1210,7 @@ class Adapter extends EventEmitter {
          * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
          * @property {Object} event - DataLength Update Event Parameters.
          */
-        this.emit('dataLengthUpdate', device, event);
+        this.emit('dataLengthUpdated', device, event);
     }
 
     _parseGapPhyUpdateRequestEvent(event) {
@@ -1169,7 +1224,16 @@ class Adapter extends EventEmitter {
          * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
          * @property {Object} event - PHY Update Request Event Parameters.
          */
-        this.emit('phyUpdateRequest', device, event);
+
+        this._adapter.gapPhyUpdate(event.conn_handle, {
+            tx_phys: event.peer_preferred_phys.rx_phys,
+            rx_phys: event.peer_preferred_phys.tx_phys,
+        }, error => {
+            if (error) {
+                this.emit('error', _makeError('Failed to call phyUpdate', error));
+                return;
+            }
+        });
     }
 
     _parseGapPhyUpdateEvent(event) {
@@ -1183,7 +1247,7 @@ class Adapter extends EventEmitter {
          * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
          * @property {Object} event - PHY Update Event Parameters.
          */
-        this.emit('phyUpdate', device, event);
+        this.emit('phyUpdated', device, event);
     }
 
     _parseGapAdvertismentReportEvent(event) {
@@ -2075,8 +2139,7 @@ class Adapter extends EventEmitter {
         const remoteDevice = this._getDeviceByConnectionHandle(event.conn_handle);
 
         /* Make sure the requested mtu does not exceed the max supported size */
-        const newMtu = (event.client_rx_mtu >= MAX_SUPPORTED_ATT_MTU) ? MAX_SUPPORTED_ATT_MTU
-            : event.client_rx_mtu;
+        const newMtu = Math.min(event.client_rx_mtu, MAX_SUPPORTED_ATT_MTU);
 
         this._adapter.gattsExchangeMtuReply(event.conn_handle, newMtu, error => {
             if (error) {
@@ -4225,13 +4288,13 @@ class Adapter extends EventEmitter {
         });
     }
 
-    dataLengthUpdate(deviceInstanceId, params, limitation, callback) {
+    dataLengthUpdate(deviceInstanceId, params, callback) {
         const device = this.getDevice(deviceInstanceId);
         if (!device) {
             throw new Error('No device with instance id: ' + deviceInstanceId);
         }
 
-        this._adapter.gapDataLengthUpdate(device.connectionHandle, params, limitation, err => {
+        this._adapter.gapDataLengthUpdate(device.connectionHandle, params, err => {
             if (err) {
                 const errorObject = _makeError('Failed to update data length', err);
                 this.emit('error', errorObject);

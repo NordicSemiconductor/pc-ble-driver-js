@@ -99,17 +99,18 @@ public:
     ble_common_enable_params_t *ToNative() override;
 };
 
-class EnableParameters : public BleToJs<ble_enable_params_t>
+#endif
+
+class EnableParameters : public BleToJs<enable_ble_params_t>
 {
 public:
-    explicit EnableParameters(ble_enable_params_t *enable_params) : BleToJs<ble_enable_params_t>(enable_params) {}
-    explicit EnableParameters(v8::Local<v8::Object> js) : BleToJs<ble_enable_params_t>(js) {}
+    explicit EnableParameters(enable_ble_params_t *enable_params) : BleToJs<enable_ble_params_t>(enable_params) {}
+    explicit EnableParameters(v8::Local<v8::Object> js) : BleToJs<enable_ble_params_t>(js) {}
     virtual ~EnableParameters() {}
 
     v8::Local<v8::Object> ToJs() override;
-    ble_enable_params_t *ToNative() override;
+    enable_ble_params_t *ToNative() override;
 };
-#endif
 
 class Version : public BleToJs<ble_version_t>
 {
@@ -404,7 +405,10 @@ public:
 struct OpenBaton : public Baton
 {
 public:
-    BATON_CONSTRUCTOR(OpenBaton)
+    BATON_CONSTRUCTOR(OpenBaton);
+    BATON_DESTRUCTOR(OpenBaton) {
+        if (enable_ble_params) delete  enable_ble_params;
+    }
 
     //char path[PATH_STRING_SIZE];
     std::string path;
@@ -426,7 +430,7 @@ public:
 
     bool enable_ble; // Enable BLE or not when connecting, if not the developer must enable the BLE when state is active
 
-    enable_ble_params_t enable_ble_params; // If enable BLE is true, then use these params when enabling BLE
+    enable_ble_params_t *enable_ble_params; // If enable BLE is true, then use these params when enabling BLE
 
     Adapter *mainObject;
 };
@@ -434,7 +438,7 @@ public:
 struct CloseBaton : public Baton
 {
 public:
-    BATON_CONSTRUCTOR(CloseBaton)
+    BATON_CONSTRUCTOR(CloseBaton);
     Adapter *mainObject;
 };
 
@@ -450,8 +454,11 @@ struct EnableBLEBaton : public Baton
 {
 public:
     BATON_CONSTRUCTOR(EnableBLEBaton);
+    BATON_DESTRUCTOR(EnableBLEBaton) {
+        if (enable_ble_params) delete  enable_ble_params;
+    }
 
-    enable_ble_params_t enable_ble_params;
+    enable_ble_params_t *enable_ble_params;
 };
 
 
