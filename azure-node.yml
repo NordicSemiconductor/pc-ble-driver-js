@@ -29,6 +29,7 @@ steps:
   displayName: 'Setup Node.js on Windows 32-bit'
 
 - bash: |
+    set -o errexit -o pipefail
     npm install --build-from-source
     npm run package-prebuilt --verbose
   env: {
