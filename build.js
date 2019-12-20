@@ -35,7 +35,7 @@
  */
 
 // Wrapper script for cmake-js. Translates and forwards npm config options
-// understood by node-gyp. This script is needed because pc-nrfconnect-core
+// understood by node-gyp. This script is needed because pc-nrfconnect-launcher
 // supplies config for only node-gyp.
 require('child_process').execFileSync(process.platform === 'win32' ? 'npx.cmd' : 'npx', [
     'cmake-js',
