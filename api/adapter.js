@@ -1230,7 +1230,7 @@ class Adapter extends EventEmitter {
         /**
          * PHY Update.
          *
-         * @event Adapter#phyUpdate
+         * @event Adapter#phyUpdated
          * @type {Object}
          * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
          * @property {Object} event - PHY Update Event Parameters.
