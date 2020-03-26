@@ -5,10 +5,10 @@ jobs:
   strategy:
       matrix:
         linux:
-          imageName: 'ubuntu-16.04'
+          imageName: 'ubuntu-18.04'
           nodeArch: '64'
         mac:
-          imageName: 'macos-10.13'
+          imageName: 'macos-10.15'
           nodeArch: '64'
         win64:
           imageName: 'vs2017-win2016'
