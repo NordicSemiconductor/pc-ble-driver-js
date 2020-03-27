@@ -161,8 +161,8 @@ class AdapterFactory extends EventEmitter {
 
         if (adapter.serialNumber) {
             instanceId = adapter.serialNumber;
-        } else if (adapter.comName) {
-            instanceId = adapter.comName;
+        } else if (adapter.path) {
+            instanceId = adapter.path;
         } else {
             this.emit('error', 'Failed to get adapter\'s instanceId.');
         }
@@ -219,7 +219,7 @@ class AdapterFactory extends EventEmitter {
             notSupportedMessage = 'Note: Adapters with Segger JLink debug probe requires MSD to be disabled to function properly on OSX. Please visit www.nordicsemi.com/nRFConnectOSXfix for further instructions.';
         }
 
-        return new Adapter(selectedDriver, addOnAdapter, instanceId, adapter.comName, adapter.serialNumber, notSupportedMessage);
+        return new Adapter(selectedDriver, addOnAdapter, instanceId, adapter.path, adapter.serialNumber, notSupportedMessage);
     }
 
     _setUpListenersForAdapterOpenAndClose(adapter) {
@@ -309,16 +309,16 @@ class AdapterFactory extends EventEmitter {
      * Create Adapter with custom serialport
      *
      * @param sdVersion {string} Softdevice API version: 'v2' or 'v5'.
-     * @param comName {string} Serialport name (eg. 'COM7' on windows).
+     * @param path {string} Serialport name (eg. 'COM7' on windows).
      * @param instanceId {string} The unique Id that identifies this Adapter instance.
      * @returns {Adapter} Created adapter.
      */
-    createAdapter(sdVersion, comName, instanceId) {
+    createAdapter(sdVersion, path, instanceId) {
         if (sdVersion !== 'v2' && sdVersion !== 'v5') {
             throw new Error('Unsupported soft-device version!');
         }
-        if (typeof comName === 'undefined') {
-            throw new Error('Missing parameter: comName!');
+        if (typeof path === 'undefined') {
+            throw new Error('Missing parameter: path!');
         }
         if (typeof instanceId === 'undefined') {
             throw new Error('Missing parameter: instanceId!');
@@ -327,7 +327,7 @@ class AdapterFactory extends EventEmitter {
         const selectedDriver = this._bleDrivers[sdVersion];
         const addOnAdapter = new selectedDriver.Adapter();
 
-        return new Adapter(selectedDriver, addOnAdapter, instanceId, comName);
+        return new Adapter(selectedDriver, addOnAdapter, instanceId, path);
     }
 }
 

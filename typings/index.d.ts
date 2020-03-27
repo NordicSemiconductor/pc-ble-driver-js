@@ -272,7 +272,7 @@ declare class Adapter extends EventEmitter {
 export declare class AdapterFactory extends EventEmitter {
   static getInstance(): AdapterFactory;
   getAdapters(callback?: (err: any, adapters: Adapter[]) => void): void;
-  createAdapter(sdVersion: 'v2' | 'v3', comName: string, instanceId: string): Adapter;
+  createAdapter(sdVersion: 'v2' | 'v3', path: string, instanceId: string): Adapter;
 }
 
 export declare class ServiceFactory {
