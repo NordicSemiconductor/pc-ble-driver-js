@@ -69,7 +69,7 @@
     "jshint": "^2.10.2",
     "minami": "^1.2.3",
     "node-pre-gyp-github": "1.4.3",
-    "nrf-device-setup": "^0.6.2"
+    "nrf-device-setup": "^0.6.5"
   },
   "files": [
     "api/",

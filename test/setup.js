@@ -271,7 +271,7 @@ async function _grabAdapter(serialNumber, options) {
 
     return {
         serialNumber: selectedAdapter.serialNumber,
-        port: selectedAdapter.serialport.comName,
+        port: selectedAdapter.serialport.path,
         apiVersion: softDeviceParams.sdVersion,
         baudRate: softDeviceParams.baudRate,
     };
