@@ -373,7 +373,7 @@ void GetAdapterList(uv_work_t* req) {
         {
             AdapterListResultItem* resultItem = new AdapterListResultItem();
 
-            resultItem->comName = device->port;
+            resultItem->path = device->port;
 
             if (device->locationId != NULL)
             {

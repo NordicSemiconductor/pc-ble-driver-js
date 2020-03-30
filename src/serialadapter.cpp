@@ -79,7 +79,7 @@ void AfterGetAdapterList(uv_work_t* req)
         for(auto adapterItem : baton->results)
         {
             v8::Local<v8::Object> item = Nan::New<v8::Object>();
-            Utility::Set(item, "comName", adapterItem.port);
+            Utility::Set(item, "path", adapterItem.port);
             Utility::Set(item, "manufacturer", adapterItem.manufacturer);
             Utility::Set(item, "serialNumber", adapterItem.serialNumber);
             Utility::Set(item, "pnpId", adapterItem.pnpId);
