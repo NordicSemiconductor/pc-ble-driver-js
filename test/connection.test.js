@@ -156,12 +156,14 @@ describe('the API', () => {
                 ));
             }),
 
-            new Promise(resolve => {
-                peripheralAdapter.once('phyUpdated', (_, event) => {
-                    debug('peripheral phyUpdated', event);
-                    expect(event.rx_phy).toEqual(phy);
-                    expect(event.tx_phy).toEqual(phy);
-                    resolve();
+            new Promise((resolve, reject) => {
+                peripheralAdapter.once('phyUpdateRequest', (_, event) => {
+                    debug('peripheral phyUpdateRequest ', event);
+                    expect(event.rx_phys).toEqual(phy);
+                    expect(event.tx_phys).toEqual(phy);
+                    peripheralAdapter.phyUpdate(centralDevice.instanceId, { tx_phys: phy, rx_phys: phy }, err => (
+                        err ? reject(err) : resolve()
+                    ));
                 });
             }),
 
@@ -181,30 +183,34 @@ describe('the API', () => {
             return;
         }
 
-        const requestedLength = 251;
+        const octets = 251;
         await outcome([
             new Promise((resolve, reject) => {
                 centralAdapter.dataLengthUpdate(
                     peripheralDevice.instanceId,
-                    { max_rx_octets: length, max_tx_octets: length },
+                    { max_rx_octets: octets, max_tx_octets: octets },
                     err => (err ? reject(err) : resolve()),
                 );
             }),
 
-            new Promise(resolve => {
-                peripheralAdapter.once('dataLengthUpdated', (_, event) => {
-                    debug('peripheral dataLengthUpdated', event);
-                    expect(event.effective_params.max_tx_octets).toEqual(requestedLength);
-                    expect(event.effective_params.max_rx_octets).toEqual(requestedLength);
-                    resolve();
+            new Promise((resolve, reject) => {
+                peripheralAdapter.once('dataLengthUpdateRequest', (_, event) => {
+                    debug('peripheral dataLengthUpdateRequest', event);
+                    expect(event.max_tx_octets).toEqual(octets);
+                    expect(event.max_rx_octets).toEqual(octets);
+                    peripheralAdapter.dataLengthUpdate(
+                        centralDevice.instanceId,
+                        { max_rx_octets: octets, max_tx_octets: octets },
+                        err => (err ? reject(err) : resolve()),
+                    );
                 });
             }),
 
             new Promise(resolve => {
                 centralAdapter.once('dataLengthUpdated', (_, event) => {
                     debug('central dataLengthUpdated', event);
-                    expect(event.effective_params.max_tx_octets).toEqual(requestedLength);
-                    expect(event.effective_params.max_rx_octets).toEqual(requestedLength);
+                    expect(event.effective_params.max_tx_octets).toEqual(octets);
+                    expect(event.effective_params.max_rx_octets).toEqual(octets);
                     resolve();
                 });
             }),

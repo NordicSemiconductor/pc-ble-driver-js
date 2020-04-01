@@ -1187,15 +1187,9 @@ class Adapter extends EventEmitter {
          * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
          * @property {Object} event - DataLength Update Request Event Parameters.
          */
-
-        this._adapter.gapDataLengthUpdate(event.conn_handle, {
-            max_rx_octets: Math.min(event.peer_params.max_tx_octets),
-            max_tx_octets: Math.min(event.peer_params.max_rx_octets),
-        }, error => {
-            if (error) {
-                this.emit('error', _makeError('Failed to call dataLengthUpdate', error));
-                return;
-            }
+        this.emit('dataLengthUpdateRequest', device, {
+            max_rx_octets: event.peer_params.max_tx_octets,
+            max_tx_octets: event.peer_params.max_rx_octets,
         });
     }
 
@@ -1205,7 +1199,7 @@ class Adapter extends EventEmitter {
         /**
          * DataLength Update.
          *
-         * @event Adapter#phyUpdateRequest
+         * @event Adapter#dataLengthUpdated
          * @type {Object}
          * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
          * @property {Object} event - DataLength Update Event Parameters.
@@ -1224,15 +1218,9 @@ class Adapter extends EventEmitter {
          * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
          * @property {Object} event - PHY Update Request Event Parameters.
          */
-
-        this._adapter.gapPhyUpdate(event.conn_handle, {
+        this.emit('phyUpdateRequest', device, {
             tx_phys: event.peer_preferred_phys.rx_phys,
             rx_phys: event.peer_preferred_phys.tx_phys,
-        }, error => {
-            if (error) {
-                this.emit('error', _makeError('Failed to call phyUpdate', error));
-                return;
-            }
         });
     }
 
@@ -1242,7 +1230,7 @@ class Adapter extends EventEmitter {
         /**
          * PHY Update.
          *
-         * @event Adapter#phyUpdate
+         * @event Adapter#phyUpdated
          * @type {Object}
          * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
          * @property {Object} event - PHY Update Event Parameters.
