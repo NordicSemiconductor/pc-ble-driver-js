@@ -127,9 +127,9 @@ jobs:
       npmConfigTarget: 8.2.0
 
   - task: PublishPipelineArtifact@1
-      inputs:
-        path: $(System.DefaultWorkingDirectory)/build/stage
-      displayName: 'Publish artifacts'
+    inputs:
+      path: $(System.DefaultWorkingDirectory)/build/stage
+    displayName: 'Publish artifacts'
 
 - job: GitHubRelease
   dependsOn: Build
