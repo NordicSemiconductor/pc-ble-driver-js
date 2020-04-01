@@ -282,10 +282,10 @@ ble_gap_addr_t *GapAddr::ToNative()
     uint32_t ptr[BLE_GAP_ADDR_LEN];
 
     v8::Local<v8::Value> getAddress = Utility::Get(jsobj, "address");
-    v8::Local<v8::String> addressString = getAddress->ToString();
+    v8::Local<v8::String> addressString = Nan::To<v8::String>(getAddress).ToLocalChecked();
     size_t addr_len = addressString->Length() + 1;
     auto addr = std::vector<char>(addr_len);
-    addressString->WriteUtf8(addr.data(), (int) addr_len);
+    Utility::WriteUtf8(addressString, addr.data(), (int)addr_len);
 
     auto scan_count = sscanf(addr.data(), "%2x:%2x:%2x:%2x:%2x:%2x", &(ptr[5]), &(ptr[4]), &(ptr[3]), &(ptr[2]), &(ptr[1]), &(ptr[0]));
     assert(scan_count == 6);
@@ -296,10 +296,10 @@ ble_gap_addr_t *GapAddr::ToNative()
     }
 
     v8::Local<v8::Value> getAddressType = Utility::Get(jsobj, "type");
-    v8::Local<v8::String> addressTypeString = getAddressType->ToString();
+    v8::Local<v8::String> addressTypeString = Nan::To<v8::String>(getAddressType).ToLocalChecked();
     size_t type_len = addressTypeString->Length() + 1;
     auto typeString = std::vector<char>(type_len);
-    addressTypeString->WriteUtf8(typeString.data(), (int) type_len);
+    Utility::WriteUtf8(addressTypeString, typeString.data(), (int)type_len);
     address->addr_type = static_cast<uint8_t>(fromNameToValue(gap_addr_type_map, typeString.data()));
 
     return address;

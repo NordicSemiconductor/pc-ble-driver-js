@@ -215,7 +215,7 @@ v8::Local<v8::Object> GattcPrimaryServiceDiscoveryEvent::ToJs()
 
     for (auto i = 0; i < evt->count; ++i)
     {
-        service_array->Set(Nan::New<v8::Integer>(i), GattcService(&evt->services[i]));
+        Nan::Set(service_array, i, GattcService(&evt->services[i]));
     }
 
     Utility::Set(obj, "services", service_array);
@@ -235,7 +235,7 @@ v8::Local<v8::Object> GattcRelationshipDiscoveryEvent::ToJs()
 
     for (auto i = 0; i < evt->count; ++i)
     {
-        includes_array->Set(Nan::New<v8::Integer>(i), GattcIncludedService(&evt->includes[i]));
+        Nan::Set(includes_array, i, GattcIncludedService(&evt->includes[i]));
     }
 
     Utility::Set(obj, "includes", includes_array);
@@ -255,7 +255,7 @@ v8::Local<v8::Object> GattcCharacteristicDiscoveryEvent::ToJs()
 
     for (auto i = 0; i < evt->count; ++i)
     {
-        chars_array->Set(Nan::New<v8::Integer>(i), GattcCharacteristic(&evt->chars[i]));
+        Nan::Set(chars_array, i, GattcCharacteristic(&evt->chars[i]));
     }
 
     Utility::Set(obj, "chars", chars_array);
@@ -275,7 +275,7 @@ v8::Local<v8::Object> GattcDescriptorDiscoveryEvent::ToJs()
 
     for (auto i = 0; i < evt->count; ++i)
     {
-        descs_array->Set(Nan::New<v8::Integer>(i), GattcDescriptor(&evt->descs[i]));
+        Nan::Set(descs_array, i, GattcDescriptor(&evt->descs[i]));
     }
 
     Utility::Set(obj, "descs", descs_array);
@@ -307,7 +307,7 @@ v8::Local<v8::Object> GattcCharacteristicValueReadByUUIDEvent::ToJs()
 
     for (auto i = 0; i < evt->count; ++i)
     {
-        handle_value_array->Set(Nan::New<v8::Integer>(i), GattcHandleValue(&evt->handle_value[i], evt->value_len));
+        Nan::Set(handle_value_array, i, GattcHandleValue(&evt->handle_value[i], evt->value_len));
     }
 
     Utility::Set(obj, "handle_values", handle_value_array);
@@ -901,7 +901,7 @@ NAN_METHOD(Adapter::GattcReadCharacteristicValues)
     {
         for (auto i = 0; i < handle_count; ++i)
         {
-            p_handles[i] = ConversionUtility::getNativeUint16(handles->Get(Nan::New<v8::Number>(i)));
+            p_handles[i] = ConversionUtility::getNativeUint16(Nan::Get(handles, i).ToLocalChecked());
         }
     }
     catch (std::string error)

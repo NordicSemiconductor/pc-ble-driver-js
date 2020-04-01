@@ -91,24 +91,58 @@ jobs:
       npmConfigTarget: 11.14.0
   - template: azure-node.yml
     parameters:
-      nodeVersion: 10.15.0
+      nodeVersion: 12.16.1
+      nodeArch: $(nodeArch)
+      npmConfigRuntime: 'node'
+      npmConfigTarget: 12.16.1
+  - template: azure-node.yml
+    parameters:
+      nodeVersion: 13.12.0
+      nodeArch: $(nodeArch)
+      npmConfigRuntime: 'node'
+      npmConfigTarget: 13.12.0
+  - template: azure-node.yml
+    parameters:
+      nodeVersion: 12.16.1
       nodeArch: $(nodeArch)
       npmConfigRuntime: 'electron'
       npmConfigTarget: 2.0.17
   - template: azure-node.yml
     parameters:
-      nodeVersion: 10.15.0
+      nodeVersion: 12.16.1
       nodeArch: $(nodeArch)
       npmConfigRuntime: 'electron'
       npmConfigTarget: 4.1.4
   - template: azure-node.yml
     parameters:
-      nodeVersion: 10.15.0
+      nodeVersion: 12.16.1
       nodeArch: $(nodeArch)
       npmConfigRuntime: 'electron'
       npmConfigTarget: 5.0.6
+  - template: azure-node.yml
+    parameters:
+      nodeVersion: 12.16.1
+      nodeArch: $(nodeArch)
+      npmConfigRuntime: 'electron'
+      npmConfigTarget: 8.2.0
 
-  # Relese draft of artefacts in $(Build.ArtifactStagingDirectory).
+  - task: PublishPipelineArtifact@1
+      inputs:
+        path: $(System.DefaultWorkingDirectory)/build/stage
+      displayName: 'Publish artifacts'
+
+- job: GitHubRelease
+  dependsOn: Build
+  steps:
+  - checkout: none
+  - task: DownloadPipelineArtifact@2
+    inputs:
+      patterns: '**/*.tar.gz'
+      path: $(Build.ArtifactStagingDirectory)
+    displayName: 'Download artifacts'
+  - bash: |
+      mv $(Build.ArtifactStagingDirectory)/*/*/* $(Build.ArtifactStagingDirectory)
+    displayName: 'Move files'
   - task: GitHubRelease@0
     inputs:
       gitHubConnection: 'waylandCI'
@@ -122,9 +156,7 @@ jobs:
     condition: ne(variables['Build.Reason'], 'PullRequest')
 
 - job: Test
-  dependsOn: [
-   Build,
-  ]
+  dependsOn: GitHubRelease
   strategy:
     matrix:
       linux:

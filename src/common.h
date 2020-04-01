@@ -135,6 +135,8 @@ public:
 
     static bool IsBetween(const uint8_t value, const uint8_t min, const uint8_t max);
     static bool EnsureAsciiNumbers(uint8_t *value, const int length);
+
+    static int WriteUtf8(v8::Local<v8::String>& v8Str, char *buffer, int length = -1);
 };
 
 template<typename EventType>
@@ -217,7 +219,7 @@ public:
             throw std::string("number");
         }
 
-        return static_cast<NativeType>(js->Uint32Value());
+        return Nan::To<uint32_t>(js).FromJust();
     }
 
     static NativeType getNativeSigned(v8::Local<v8::Value> js)
@@ -227,7 +229,7 @@ public:
             throw std::string("number");
         }
 
-        return static_cast<NativeType>(js->Int32Value());
+        return Nan::To<int32_t>(js).FromJust();
     }
 
     static NativeType getNativeFloat(v8::Local<v8::Value> js)
@@ -237,7 +239,7 @@ public:
             throw std::string("number");
         }
 
-        return static_cast<NativeType>(js->NumberValue());
+        return Nan::To<double>(js).FromJust();
     }
 
     static NativeType getNativeBool(v8::Local<v8::Value> js)
@@ -247,27 +249,27 @@ public:
             throw std::string("bool");
         }
 
-        return static_cast<NativeType>(js->ToBoolean()->BooleanValue());
+        return Nan::To<bool>(js).FromJust();
     }
 
     static NativeType getNativeUnsigned(v8::Local<v8::Object> js, const char *name)
     {
-        return getNativeUnsigned(js->Get(Nan::New(name).ToLocalChecked()));
+        return getNativeUnsigned(Nan::Get(js, Nan::New(name).ToLocalChecked()).ToLocalChecked());
     }
 
     static NativeType getNativeSigned(v8::Local<v8::Object> js, const char *name)
     {
-        return getNativeSigned(js->Get(Nan::New(name).ToLocalChecked()));
+        return getNativeSigned(Nan::Get(js, Nan::New(name).ToLocalChecked()).ToLocalChecked());
     }
 
     static NativeType getNativeFloat(v8::Local<v8::Object> js, const char *name)
     {
-        return getNativeFloat(js->Get(Nan::New(name).ToLocalChecked()));
+        return getNativeFloat(Nan::Get(js, Nan::New(name).ToLocalChecked()).ToLocalChecked());
     }
 
     static NativeType getNativeBool(v8::Local<v8::Object> js, const char *name)
     {
-        return getNativeBool(js->Get(Nan::New(name).ToLocalChecked()));
+        return getNativeBool(Nan::Get(js, Nan::New(name).ToLocalChecked()).ToLocalChecked());
     }
 };
 

@@ -326,7 +326,7 @@ uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Value> js)
 
     for (uint32_t i = 0; i < length; ++i)
     {
-        string[i] = static_cast<uint8_t>(jsarray->Get(Nan::New(i))->Uint32Value());
+        string[i] = ConversionUtility::getNativeUint8(Nan::Get(jsarray, i).ToLocalChecked());
     }
 
     return string;
@@ -349,7 +349,7 @@ uint16_t *ConversionUtility::getNativePointerToUint16(v8::Local<v8::Value>js)
 
     for (uint32_t i = 0; i < length; ++i)
     {
-        string[i] = static_cast<uint16_t>(jsarray->Get(Nan::New(i))->Uint32Value());
+        string[i] = ConversionUtility::getNativeUint16(Nan::Get(jsarray, i).ToLocalChecked());
     }
 
     return string;
@@ -362,7 +362,7 @@ v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Value>js)
         throw std::string("object");
     }
 
-    return js->ToObject();
+    return Nan::To<v8::Object>(js).ToLocalChecked();
 }
 
 v8::Local<v8::Object> ConversionUtility::getJsObject(v8::Local<v8::Object> js, const char *name)
@@ -504,7 +504,7 @@ v8::Handle<v8::Value> ConversionUtility::toJsValueArray(uint8_t *nativeData, uin
 
     for (int i = 0; i < length; ++i)
     {
-        valueArray->Set(i, ConversionUtility::toJsNumber(nativeData[i]));
+        Nan::Set(valueArray, i, ConversionUtility::toJsNumber(nativeData[i]));
     }
 
     return scope.Escape(valueArray);
@@ -616,7 +616,7 @@ std::vector<uint8_t> ConversionUtility::extractHex(v8::Local<v8::Value> js)
     auto length = jsString->Length();
     auto cString = std::vector<char>(length + 1);
 
-    jsString->WriteUtf8(cString.data(), length);
+    Utility::WriteUtf8(jsString, cString.data(), length);
 
     auto size = (length / 2);
 
@@ -787,6 +787,15 @@ bool Utility::EnsureAsciiNumbers(uint8_t *value, const int length)
     return true;
 }
 
+int Utility::WriteUtf8(v8::Local<v8::String> &v8Str, char *buffer, int length)
+{
+#if NODE_MAJOR_VERSION >= 11
+    return v8Str->WriteUtf8(v8::Isolate::GetCurrent(), buffer, length);
+#else
+    return v8Str->WriteUtf8(buffer, length);
+#endif
+}
+
 v8::Local<v8::Value> ErrorMessage::getErrorMessage(const int errorCode, const std::string customMessage)
 {
     Nan::EscapableHandleScope scope;
@@ -821,7 +830,7 @@ v8::Local<v8::Value> ErrorMessage::getErrorMessage(const int errorCode, const st
             errorStringStream << "Error occured when " << customMessage << ". "
                 << "Errorcode: " << ConversionUtility::valueToString(errorCode, error_message_name_map) << " (0x" << std::hex << errorCode << ")" << std::endl;
 
-            v8::Local<v8::Value> error = Nan::Error(ConversionUtility::toJsString(errorStringStream.str())->ToString());
+            v8::Local<v8::Value> error = Nan::Error(errorStringStream.str().c_str());
             v8::Local<v8::Object> errorObject = error.As<v8::Object>();
 
             Utility::Set(errorObject, "errno", errorCode);
@@ -883,7 +892,7 @@ v8::Local<v8::String> ErrorMessage::getTypeErrorMessage(const int argumentNumber
 
     stream << " argument must be a " << message;
 
-    return ConversionUtility::toJsString(stream.str())->ToString();
+    return Nan::To<v8::String>(ConversionUtility::toJsString(stream.str())).ToLocalChecked();
 }
 
 v8::Local<v8::String> ErrorMessage::getStructErrorMessage(const std::string name, const std::string message)
@@ -892,7 +901,7 @@ v8::Local<v8::String> ErrorMessage::getStructErrorMessage(const std::string name
 
     stream << "Property: " << name << " Message: " << message;
 
-    return ConversionUtility::toJsString(stream.str())->ToString();
+    return Nan::To<v8::String>(ConversionUtility::toJsString(stream.str())).ToLocalChecked();
 }
 
 v8::Local<v8::Value> HciStatus::getHciStatus(int statusCode)
