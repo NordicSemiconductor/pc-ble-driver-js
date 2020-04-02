@@ -123,12 +123,15 @@ describe('the API', () => {
                 );
             }),
 
-            new Promise(resolve => {
-                peripheralAdapter.once('attMtuChanged', (device, attMtu) => {
-                    debug(`peripheral attMtuChanged to ${attMtu}`);
+            new Promise((resolve, reject) => {
+                peripheralAdapter.once('attMtuRequest', (device, attMtu) => {
+                    debug(`peripheral attMtuRequest ${attMtu}`);
                     expect(attMtu).toEqual(mtu);
                     centralDevice = device;
                     expect(centralDevice).toBeDefined();
+                    peripheralAdapter.attMtuReply(centralDevice.instanceId, attMtu, err => (
+                        err ? reject(err) : resolve()
+                    ));
                     resolve();
                 });
             }),

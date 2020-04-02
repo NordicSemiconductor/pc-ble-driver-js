@@ -2124,23 +2124,17 @@ class Adapter extends EventEmitter {
     }
 
     _parseGattsExchangeMtuRequestEvent(event) {
-        const remoteDevice = this._getDeviceByConnectionHandle(event.conn_handle);
+        const device = this._getDeviceByConnectionHandle(event.conn_handle);
 
-        /* Make sure the requested mtu does not exceed the max supported size */
-        const newMtu = Math.min(event.client_rx_mtu, MAX_SUPPORTED_ATT_MTU);
-
-        this._adapter.gattsExchangeMtuReply(event.conn_handle, newMtu, error => {
-            if (error) {
-                this.emit('error', _makeError('Failed to call gattsExchangeMtuReply', error));
-                return;
-            }
-
-            const previousMtu = this._attMtuMap[remoteDevice.instanceId];
-            this._attMtuMap[remoteDevice.instanceId] = newMtu;
-
-            if (newMtu !== previousMtu);
-            this.emit('attMtuChanged', remoteDevice, newMtu);
-        });
+        /**
+         * ATT MTU Request.
+         *
+         * @event Adapter#attMtuRequest
+         * @type {Object}
+         * @property {Device} device - The <code>Device</code> instance representing the BLE peer we're connected to.
+         * @property {Object} mtu - requested ATT MTU.
+         */
+        this.emit('attMtuRequest', device, event.client_rx_mtu);
     }
 
     _parseMemoryRequestEvent(event) {
@@ -2805,6 +2799,38 @@ class Adapter extends EventEmitter {
             }
 
             this._gattOperationsMap[device.instanceId] = { callback, clientRxMtu: mtu };
+        });
+    }
+
+    /**
+     * @summary Reply to ATT_MTU exchange request
+     *
+     * @param {string} deviceInstanceId The device's unique Id.
+     * @param {number} mtu Requested ATT_MTU. Default ATT_MTU is 23. Valid range is between 24 and 247.
+     * @param {function(Error, number)} [callback] Callback signature: (err, mtu) => {} where `mtu` is the updated
+     *                                           ATT_MTU value.
+     * @returns {void}
+     */
+    attMtuReply(deviceInstanceId, mtu, callback) {
+        const device = this.getDevice(deviceInstanceId);
+        if (!device) {
+            throw new Error('No device with instance id: ' + deviceInstanceId);
+        }
+
+        /* Make sure the requested mtu does not exceed the max supported size */
+        const newMtu = Math.min(mtu, MAX_SUPPORTED_ATT_MTU);
+
+        this._adapter.gattsExchangeMtuReply(device.connectionHandle, newMtu, error => {
+            if (error) {
+                const errorObject = _makeError('Failed to call gattsExchangeMtuReply', error);
+                this.emit('error', errorObject);
+                if (callback) { callback(errorObject); }
+                return;
+            }
+
+            this._attMtuMap[deviceInstanceId] = newMtu;
+
+            if (callback) { callback(); }
         });
     }
 
