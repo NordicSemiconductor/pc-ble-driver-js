@@ -326,7 +326,8 @@ uint8_t *ConversionUtility::getNativePointerToUint8(v8::Local<v8::Value> js)
 
     for (uint32_t i = 0; i < length; ++i)
     {
-        string[i] = ConversionUtility::getNativeUint8(Nan::Get(jsarray, i).ToLocalChecked());
+        string[i] = static_cast<uint8_t>(
+            Nan::Get(jsarray, i).ToLocalChecked()->Uint32Value(Nan::GetCurrentContext()).FromJust());
     }
 
     return string;
@@ -349,7 +350,8 @@ uint16_t *ConversionUtility::getNativePointerToUint16(v8::Local<v8::Value>js)
 
     for (uint32_t i = 0; i < length; ++i)
     {
-        string[i] = ConversionUtility::getNativeUint16(Nan::Get(jsarray, i).ToLocalChecked());
+        string[i] = static_cast<uint16_t>(
+            Nan::Get(jsarray, i).ToLocalChecked()->Uint32Value(Nan::GetCurrentContext()).FromJust());
     }
 
     return string;
