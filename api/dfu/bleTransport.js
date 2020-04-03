@@ -126,8 +126,24 @@ class DfuTransport extends EventEmitter {
         this._adapter = transportParameters.adapter;
         this._transportParameters = transportParameters;
 
+        this._originalConnParamHandlers = this._adapter.listeners('connParamUpdateRequest');
+        this._originalPhyHandlers = this._adapter.listeners('phyUpdateRequest');
+        this._originalDataLengthHandlers = this._adapter.listeners('dataLengthUpdateRequest');
+        this._originalMtuHandlers = this._adapter.listeners('mtuUpdateRequest');
+
+        this._adapter.removeAllListeners('connParamUpdateRequest');
+        this._adapter.removeAllListeners('phyUpdateRequest');
+        this._adapter.removeAllListeners('dataLengthUpdateRequest');
+        this._adapter.removeAllListeners('mtuUpdateRequest');
+
         this._handleConnParamUpdateRequest = this._handleConnParamUpdateRequest.bind(this);
         this._adapter.on('connParamUpdateRequest', this._handleConnParamUpdateRequest);
+        this._handlePhyUpdateRequest = this._handlePhyUpdateRequest.bind(this);
+        this._adapter.on('phyUpdateRequest', this._handlePhyUpdateRequest);
+        this._handleDataLengthUpdateRequest = this._handleDataLengthUpdateRequest.bind(this);
+        this._adapter.on('dataLengthUpdateRequest', this._handleDataLengthUpdateRequest);
+        this._handleMtuUpdateRequest = this._handleMtuUpdateRequest.bind(this);
+        this._adapter.on('mtuUpdateRequest', this._handleMtuUpdateRequest);
         this._isInitialized = false;
     }
 
@@ -248,7 +264,24 @@ class DfuTransport extends EventEmitter {
         if (this._objectWriter) {
             this._objectWriter.removeAllListeners();
         }
-        this._adapter.removeListener('connParamUpdateRequest', this._handleConnParamUpdateRequest);
+
+        this._adapter.removeAllListeners('connParamUpdateRequest');
+        this._adapter.removeAllListeners('phyUpdateRequest');
+        this._adapter.removeAllListeners('dataLengthUpdateRequest');
+        this._adapter.removeAllListeners('mtuUpdateRequest');
+
+        this._originalConnParamHandlers.forEach(handler => {
+            this._adapter.on('connParamUpdateRequest', handler);
+        });
+        this._originalPhyHandlers.forEach(handler => {
+            this._adapter.on('phyUpdateRequest', handler);
+        });
+        this._originalDataLengthHandlers.forEach(handler => {
+            this._adapter.on('dataLengthUpdateRequest', handler);
+        });
+        this._originalMtuHandlers.forEach(handler => {
+            this._adapter.on('mtuUpdateRequest', handler);
+        });
     }
 
 
@@ -656,6 +689,69 @@ class DfuTransport extends EventEmitter {
         if (connectedDevice && connectedDevice.instanceId === device.instanceId) {
             this._debug('Received connection parameter update request from target device.');
             this._adapter.updateConnectionParameters(device.instanceId, connectionParameters, err => {
+                if (err) {
+                    throw createError(ErrorCode.CONNECTION_PARAM_ERROR, err.message);
+                }
+            });
+        }
+    }
+
+    /**
+     * Handle phy update requests from the target device.
+     *
+     * @param device the device that requested phy update
+     * @param phyParams phy parameters from device
+     * @private
+     */
+    _handlePhyUpdateRequest(device, phyParams) {
+        const connectedDevice = this._getConnectedDevice(this._transportParameters.targetAddress);
+        if (connectedDevice && connectedDevice.instanceId === device.instanceId) {
+            this._debug('Received phy update request from target device.');
+            this._adapter.updatePhy(device.instanceId, {
+                tx_phys: phyParams.rx_phys,
+                rx_phys: phyParams.tx_phys,
+            }, err => {
+                if (err) {
+                    throw createError(ErrorCode.CONNECTION_PARAM_ERROR, err.message);
+                }
+            });
+        }
+    }
+
+    /**
+     * Handle data length update requests from the target device.
+     *
+     * @param device the device that requested data length update
+     * @param dataLengthParams data length parameters from device
+     * @private
+     */
+    _handleDataLengthUpdateRequest(device, dataLengthParams) {
+        const connectedDevice = this._getConnectedDevice(this._transportParameters.targetAddress);
+        if (connectedDevice && connectedDevice.instanceId === device.instanceId) {
+            this._debug('Received data length update request from target device.');
+            this._adapter.updatePhy(device.instanceId, {
+                max_rx_octets: dataLengthParams.max_tx_octets,
+                max_tx_octets: dataLengthParams.max_rx_octets,
+            }, err => {
+                if (err) {
+                    throw createError(ErrorCode.CONNECTION_PARAM_ERROR, err.message);
+                }
+            });
+        }
+    }
+
+    /**
+     * Handle att mtu update requests from the target device.
+     *
+     * @param device the device that requested att mtu update
+     * @param mtu att mtu from device
+     * @private
+     */
+    _handleMtuUpdateRequest(device, mtu) {
+        const connectedDevice = this._getConnectedDevice(this._transportParameters.targetAddress);
+        if (connectedDevice && connectedDevice.instanceId === device.instanceId) {
+            this._debug('Received mtu update request from target device.');
+            this._adapter.attMtuReply(device.instanceId, mtu, err => {
                 if (err) {
                     throw createError(ErrorCode.CONNECTION_PARAM_ERROR, err.message);
                 }
