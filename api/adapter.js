@@ -1196,6 +1196,14 @@ class Adapter extends EventEmitter {
     _parseGapDataLengthUpdateEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
 
+        const {
+            effective_params: {
+                max_rx_octets: rx,
+                max_tx_octets: tx,
+            },
+        } = event;
+        device.dataLength = Math.min(rx, tx);
+
         /**
          * DataLength Update.
          *
@@ -1226,6 +1234,9 @@ class Adapter extends EventEmitter {
 
     _parseGapPhyUpdateEvent(event) {
         const device = this._getDeviceByConnectionHandle(event.conn_handle);
+
+        device.rxPhy = event.rx_phy;
+        device.txPhy = event.tx_phy;
 
         /**
          * PHY Update.
@@ -1926,6 +1937,7 @@ class Adapter extends EventEmitter {
         this._attMtuMap[device.instanceId] = newMtu;
 
         if (newMtu !== previousMtu) {
+            device.mtu = newMtu;
             /**
              * Exchange MTU Response event.
              *
