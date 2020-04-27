@@ -364,7 +364,7 @@ void Adapter::onRpcEvent(uv_async_t *handle)
             {
                 auto keyset = getSecurityKey(event->evt.gap_evt.conn_handle);
 
-                v8::Local<v8::Object> obj = Utility::Get(array, arrayIndex)->ToObject();
+                v8::Local<v8::Object> obj = Nan::To<v8::Object>(Utility::Get(array, arrayIndex)).ToLocalChecked();
 
                 if (keyset != 0)
                 {
@@ -669,10 +669,10 @@ NAN_METHOD(Adapter::Open)
     try
     {
         baton->baud_rate = ConversionUtility::getNativeUint32(options, "baudRate"); parameter++;
-        baton->parity = ToParityEnum(Utility::Get(options, "parity")->ToString()); parameter++;
-        baton->flow_control = ToFlowControlEnum(Utility::Get(options, "flowControl")->ToString()); parameter++;
+        baton->parity = ToParityEnum(ConversionUtility::getNativeString(options, "parity")); parameter++;
+        baton->flow_control = ToFlowControlEnum(ConversionUtility::getNativeString(options, "flowControl")); parameter++;
         baton->evt_interval = ConversionUtility::getNativeUint32(options, "eventInterval"); parameter++;
-        baton->log_level = ToLogSeverityEnum(Utility::Get(options, "logLevel")->ToString()); parameter++;
+        baton->log_level = ToLogSeverityEnum(ConversionUtility::getNativeString(options, "logLevel")); parameter++;
         baton->retransmission_interval = ConversionUtility::getNativeUint32(options, "retransmissionInterval"); parameter++;
         baton->response_timeout = ConversionUtility::getNativeUint32(options, "responseTimeout"); parameter++;
         baton->enable_ble = ConversionUtility::getBool(options, "enableBLE"); parameter++;
@@ -1011,15 +1011,15 @@ void Adapter::AfterAddVendorSpecificUUID(uv_work_t *req)
     delete baton;
 }
 
-NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& v8str)
+NAN_INLINE sd_rpc_parity_t ToParityEnum(const std::string& str)
 {
     sd_rpc_parity_t parity = SD_RPC_PARITY_NONE;
 
-    if (v8str->Equals(Nan::New("none").ToLocalChecked()))
+    if (str == "none")
     {
         parity = SD_RPC_PARITY_NONE;
     }
-    else if (v8str->Equals(Nan::New("even").ToLocalChecked()))
+    else if (str == "even")
     {
         parity = SD_RPC_PARITY_EVEN;
     }
@@ -1027,15 +1027,15 @@ NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& v8str)
     return parity;
 }
 
-NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const v8::Handle<v8::String>& v8str)
+NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const std::string &str)
 {
     sd_rpc_flow_control_t flow_control = SD_RPC_FLOW_CONTROL_NONE;
 
-    if (v8str->Equals(Nan::New("none").ToLocalChecked()))
+    if (str == "none")
     {
         flow_control = SD_RPC_FLOW_CONTROL_NONE;
     }
-    else if (v8str->Equals(Nan::New("hw").ToLocalChecked()))
+    else if (str == "hw")
     {
         flow_control = SD_RPC_FLOW_CONTROL_HARDWARE;
     }
@@ -1043,27 +1043,27 @@ NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const v8::Handle<v8::String>&
     return flow_control;
 }
 
-NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const v8::Handle<v8::String>& v8str)
+NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const std::string &str)
 {
     sd_rpc_log_severity_t log_severity = SD_RPC_LOG_DEBUG;
 
-    if (v8str->Equals(Nan::New("trace").ToLocalChecked()))
+    if (str == "trace")
     {
         log_severity = SD_RPC_LOG_TRACE;
     }
-    else if (v8str->Equals(Nan::New("debug").ToLocalChecked()))
+    else if (str == "debug")
     {
         log_severity = SD_RPC_LOG_DEBUG;
     }
-    else if (v8str->Equals(Nan::New("info").ToLocalChecked()))
+    else if (str == "info")
     {
         log_severity = SD_RPC_LOG_INFO;
     }
-    else if (v8str->Equals(Nan::New("error").ToLocalChecked()))
+    else if (str == "error")
     {
         log_severity = SD_RPC_LOG_ERROR;
     }
-    else if (v8str->Equals(Nan::New("fatal").ToLocalChecked()))
+    else if (str == "fatal")
     {
         log_severity = SD_RPC_LOG_FATAL;
     }
@@ -1218,7 +1218,7 @@ NAN_METHOD(Adapter::DecodeUUID)
         le_len = ConversionUtility::getNativeUint8(info[argumentcount]);
         argumentcount++;
 
-        uuid_le = info[argumentcount]->ToString();
+        uuid_le = Nan::To<v8::String>(info[argumentcount]).ToLocalChecked();
         argumentcount++;
 
         callback = ConversionUtility::getCallbackFunction(info[argumentcount]);
@@ -2043,7 +2043,7 @@ ble_uuid128_t *BleUUID128::ToNative()
     uint32_t ptr[16];
 
     v8::Local<v8::Value> uuidObject = Utility::Get(jsobj, "uuid128");
-    v8::Local<v8::String> uuidString = uuidObject->ToString();
+    v8::Local<v8::String> uuidString = Nan::To<v8::String>(uuidObject).ToLocalChecked();
     size_t uuid_len = uuidString->Length() + 1;
     auto uuidPtr = static_cast<char*>(malloc(uuid_len));
 
@@ -2053,7 +2053,7 @@ ble_uuid128_t *BleUUID128::ToNative()
         std::terminate();
     }
 
-    uuidString->WriteUtf8(uuidPtr, (int) uuid_len);
+    Utility::WriteUtf8(uuidString, uuidPtr, (int)uuid_len);
 
     auto scan_count = sscanf(uuidPtr,
         "%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x%2x",

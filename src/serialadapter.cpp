@@ -86,7 +86,7 @@ void AfterGetAdapterList(uv_work_t* req)
             Utility::Set(item, "locationId", adapterItem.locationId);
             Utility::Set(item, "vendorId", adapterItem.vendorId);
             Utility::Set(item, "productId", adapterItem.productId);
-            results->Set(i++, item);
+            Nan::Set(results, i++, item);
         }
 
         argv[0] = Nan::Undefined();
