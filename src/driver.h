@@ -59,9 +59,9 @@ static name_map_t common_event_name_map = {
     NAME_MAP_ENTRY(BLE_EVT_USER_MEM_RELEASE),
 };
 
-NAN_INLINE sd_rpc_parity_t ToParityEnum(const v8::Handle<v8::String>& str);
-NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const v8::Handle<v8::String>& str);
-NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const v8::Handle<v8::String>& str);
+NAN_INLINE sd_rpc_parity_t ToParityEnum(const std::string& str);
+NAN_INLINE sd_rpc_flow_control_t ToFlowControlEnum(const std::string &str);
+NAN_INLINE sd_rpc_log_severity_t ToLogSeverityEnum(const std::string &str);
 
 #pragma region Struct conversions
 

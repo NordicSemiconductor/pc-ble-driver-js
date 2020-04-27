@@ -48,8 +48,8 @@
     "cmake-js": "5.1.1",
     "crc": "^3.8.0",
     "jszip": "^3.2.2",
-    "nan": "^2.12.1",
-    "node-pre-gyp": "^0.13.0",
+    "nan": "^2.14.0",
+    "node-pre-gyp": "^0.14.0",
     "underscore": "^1.9.1"
   },
   "devDependencies": {
