@@ -69,7 +69,7 @@ Object {
   },
   "sdBleApiVersion": 5,
   "sdId": 165,
-  "version": "ble-connectivity 4.1.1+May-07-2019-15-12-18",
+  "version": "ble-connectivity 4.1.1+May-07-2019-15-12-19",
 }
 `;
 
@@ -82,7 +82,7 @@ Object {
   },
   "sdBleApiVersion": 5,
   "sdId": 165,
-  "version": "ble-connectivity 4.1.1+May-07-2019-15-12-18",
+  "version": "ble-connectivity 4.1.1+May-07-2019-15-12-19",
 }
 `;
 
@@ -95,6 +95,6 @@ Object {
   },
   "sdBleApiVersion": 5,
   "sdId": 165,
-  "version": "ble-connectivity 4.1.1+May-07-2019-15-12-18",
+  "version": "ble-connectivity 4.1.1+May-07-2019-15-12-19",
 }
 `;
