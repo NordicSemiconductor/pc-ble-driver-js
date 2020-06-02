@@ -47,7 +47,7 @@ const VERSION_INFO_MAGIC = 0x46D8A517;
 const VERSION_INFO_LENGTH = 24;
 
 const connectivityVersion = '4.1.1';
-const connectivityApplicationVersionString = 'ble-connectivity 4.1.1+May-07-2019-15-12-18';
+const connectivityApplicationVersionString = 'ble-connectivity 4.1.1+May-07-2019-15-12-19';
 const connectivityBaudRate = 1000000;
 
 /*
