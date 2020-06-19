@@ -38,8 +38,20 @@
 
 const os = require('os');
 
-const _bleDriverV2 = require('bindings')('pc-ble-driver-js-sd_api_v2');
-const _bleDriverV5 = require('bindings')('pc-ble-driver-js-sd_api_v5');
+let _bleDriverV2;
+let _bleDriverV5;
+try {
+    const platform = `${process.platform}-${process.arch}`;
+    _bleDriverV2 = require('bindings')(`pc-ble-driver-js-sd_api_v2-${platform}`);
+    _bleDriverV5 = require('bindings')(`pc-ble-driver-js-sd_api_v5-${platform}`);
+} catch (_) {
+    try {
+        _bleDriverV2 = require('bindings')('pc-ble-driver-js-sd_api_v2');
+        _bleDriverV5 = require('bindings')('pc-ble-driver-js-sd_api_v5');
+    } catch (_) {
+        console.error('couldn\'t load bindings');
+    }
+}
 
 const Adapter = require('./adapter');
 const logLevel = require('./util/logLevel');
