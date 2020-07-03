@@ -353,7 +353,7 @@ function help() {
     console.log(`Usage: ${path.basename(__filename)} <PORT> <SD_API_VERSION>`);
     console.log();
     console.log('PORT is the UART for the adapter. For example /dev/ttyS0 on Unix based systems or COM1 on Windows based systems.');
-    console.log('SD_API_VERSION can be v2 or v3. nRF51 series uses v2.');
+    console.log('SD_API_VERSION can be v2 or v5. nRF51 series uses v2.');
     console.log();
     console.log('It is assumed that the nRF device has been programmed with the correct connectivity firmware.');
 }
@@ -375,8 +375,8 @@ if (process.argv.length !== 4) {
     if (apiVersion == null) {
         console.error('SD_API_VERSION must be provided');
         process.exit(-1);
-    } else if (!['v2', 'v3'].includes(apiVersion)) {
-        console.error(`SD_API_VERSION must be v2 or v3, argument provided is ${apiVersion}`);
+    } else if (!['v2', 'v5'].includes(apiVersion)) {
+        console.error(`SD_API_VERSION must be v2 or v5, argument provided is ${apiVersion}`);
         process.exit(-1);
     }
 
