@@ -3187,23 +3187,20 @@ class Adapter extends EventEmitter {
                         // If the UUID is not found it is a 128-bit UUID
                         // so we have to add it to the SD and try again
                         if (err.errno === this._bleDriver.NRF_ERROR_NOT_FOUND && length === 16) {
-                            this._adapter.addVendorspecificUUID(
-                                { uuid128: uuid },
-                                (err, type) => {
-                                    if (err) {
-                                        reject(_makeError(`Unable to add UUID ${uuid} to SoftDevice`, err));
-                                    } else {
-                                        this._adapter.decodeUUID(length, uuid, (err, _uuid) => {
-                                            if (err) {
-                                                reject(_makeError(`Unable to decode UUID ${uuid}`, err));
-                                            } else {
-                                                data.decoded_uuid = _uuid;
-                                                resolve(data);
-                                            }
-                                        });
-                                    }
+                            this._converter.uuidToDriver(uuid, (err, type) => {
+                                if (err) {
+                                    reject(_makeError(`Unable to add UUID ${uuid} to SoftDevice`, err));
+                                } else {
+                                    this._adapter.decodeUUID(length, uuid, (err, _uuid) => {
+                                        if (err) {
+                                            reject(_makeError(`Unable to decode UUID ${uuid}`, err));
+                                        } else {
+                                            data.decoded_uuid = _uuid;
+                                            resolve(data);
+                                        }
+                                    });
                                 }
-                            );
+                            });
                         } else {
                             reject(_makeError(`Unable to decode UUID ${uuid}`, err));
                         }
