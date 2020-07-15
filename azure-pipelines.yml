@@ -2,7 +2,7 @@ parameters:
   - name: VCPKG_COMMIT
     displayName: VCPKG commit
     type: string
-    default: master
+    default: 2020.07
     values:
     - master
     - 2020.07
