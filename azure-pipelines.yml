@@ -74,7 +74,7 @@ jobs:
       # Vcpkg bootstap does not work with Apple Clang and it
       # refuses to use it. Explicitly point it to the GCC
       # installed in the "Install toolchain" in CC/CXX.
-      CC=gcc-6 CXX=g++-6 $VCPKG_ROOT/bootstrap-vcpkg.sh
+      CC=gcc-9 CXX=g++-9 $VCPKG_ROOT/bootstrap-vcpkg.sh
       vcpkg install nrf-ble-driver
     condition: contains(variables['imageName'], 'mac')
     displayName: '[MacOS] Install nrf-ble-driver'
