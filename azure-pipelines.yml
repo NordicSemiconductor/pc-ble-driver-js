@@ -1,7 +1,27 @@
+parameters:
+  - name: VCPKG_COMMIT
+    displayName: VCPKG commit
+    type: string
+    default: 2020.07
+    values:
+    - master
+    - 2020.07
+    - 2020.06
+    - 2020.04
+    - 2020.01
+    - 2019.12
+    - 2019.11
+    - 2019.10
+    - 2019.09
+    - 2019.08
+    - 2019.07
+    - 2019.06
+
 jobs:
 - job: Build
   variables:
     VCPKG_ROOT: '$(Agent.HomeDirectory)/vcpkg'
+    VCPKG_REPOSITORY: https://github.com/Microsoft/vcpkg.git
   strategy:
       matrix:
         linux:
@@ -40,7 +60,8 @@ jobs:
   - bash: |
       set -o errexit -o pipefail
       export PATH=$VCPKG_ROOT:$PATH
-      git clone https://github.com/NordicPlayground/vcpkg.git $VCPKG_ROOT
+      git clone $(VCPKG_REPOSITORY) $VCPKG_ROOT
+      git -C $VCPKG_ROOT checkout ${{ parameters.VCPKG_COMMIT }}
       $VCPKG_ROOT/bootstrap-vcpkg.sh
       vcpkg install nrf-ble-driver
     condition: contains(variables['imageName'], 'ubuntu')
@@ -48,7 +69,8 @@ jobs:
   - bash: |
       set -o errexit -o pipefail
       export PATH=$VCPKG_ROOT:$PATH
-      git clone https://github.com/NordicPlayground/vcpkg.git $VCPKG_ROOT
+      git clone $(VCPKG_REPOSITORY) $VCPKG_ROOT
+      git -C $VCPKG_ROOT checkout ${{ parameters.VCPKG_COMMIT }}
       # Vcpkg bootstap does not work with Apple Clang and it
       # refuses to use it. Explicitly point it to the GCC
       # installed in the "Install toolchain" in CC/CXX.
@@ -59,7 +81,8 @@ jobs:
   - script: |
       set VCPKG_ROOT=$(Agent.HomeDirectory)\vcpkg
       set PATH=%VCPKG_ROOT%;%PATH%
-      git clone https://github.com/NordicPlayground/vcpkg.git %VCPKG_ROOT%
+      git clone $(VCPKG_REPOSITORY) %VCPKG_ROOT%
+      git -C %VCPKG_ROOT% checkout ${{ parameters.VCPKG_COMMIT }}
       %VCPKG_ROOT%\bootstrap-vcpkg.bat
     condition: contains(variables['imageName'], 'win')
     displayName: '[Windows] Install vcpkg'
