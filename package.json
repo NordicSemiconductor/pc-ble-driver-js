@@ -65,7 +65,7 @@
     "jest-bamboo-formatter": "1.0.1",
     "jest-serializer-path": "^0.1.15",
     "jscs": "^3.0.7",
-    "jsdoc": "^3.6.2",
+    "jsdoc": "3.6.4",
     "jshint": "^2.10.2",
     "minami": "^1.2.3",
     "node-pre-gyp-github": "1.4.3",
