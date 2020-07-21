@@ -46,8 +46,8 @@ const hexDir = path.join(currentDir, '..', '..', 'build', 'Release', 'pc-ble-dri
 const VERSION_INFO_MAGIC = 0x46D8A517;
 const VERSION_INFO_LENGTH = 24;
 
-const connectivityVersion = '4.1.1';
-const connectivityApplicationVersionString = 'ble-connectivity 4.1.1+May-07-2019-15-12-19';
+const connectivityVersion = '4.1.2';
+const connectivityApplicationVersionString = 'ble-connectivity 4.1.2+Jul-14-2020-05-48-48';
 const connectivityBaudRate = 1000000;
 
 /*
