@@ -846,7 +846,7 @@ class Adapter extends EventEmitter {
                     break;
                 case this._bleDriver.BLE_EVT_TX_COMPLETE:
                 case this._bleDriver.BLE_GATTC_EVT_WRITE_CMD_TX_COMPLETE:
-                case this._bleDriver.BLE_GATTS_HVN_TX_COMPLETE:
+                case this._bleDriver.BLE_GATTS_EVT_HVN_TX_COMPLETE:
                     this._parseTxCompleteEvent(event);
                     break;
                 default:
