@@ -129,25 +129,25 @@ jobs:
       nodeVersion: 12.16.1
       nodeArch: $(nodeArch)
       npmConfigRuntime: 'electron'
-      npmConfigTarget: 2.0.17
-  - template: azure-node.yml
-    parameters:
-      nodeVersion: 12.16.1
-      nodeArch: $(nodeArch)
-      npmConfigRuntime: 'electron'
-      npmConfigTarget: 4.1.4
-  - template: azure-node.yml
-    parameters:
-      nodeVersion: 12.16.1
-      nodeArch: $(nodeArch)
-      npmConfigRuntime: 'electron'
       npmConfigTarget: 5.0.6
   - template: azure-node.yml
     parameters:
       nodeVersion: 12.16.1
       nodeArch: $(nodeArch)
       npmConfigRuntime: 'electron'
+      npmConfigTarget: 7.2.0
+  - template: azure-node.yml
+    parameters:
+      nodeVersion: 12.16.1
+      nodeArch: $(nodeArch)
+      npmConfigRuntime: 'electron'
       npmConfigTarget: 8.2.0
+  - template: azure-node.yml
+    parameters:
+      nodeVersion: 12.16.1
+      nodeArch: $(nodeArch)
+      npmConfigRuntime: 'electron'
+      npmConfigTarget: 9.0.3
 
   - task: PublishPipelineArtifact@1
     inputs:
