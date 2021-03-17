@@ -15,9 +15,9 @@ parameters:
 jobs:
 - job: Build
   variables:
-    VCPKG_ROOT: '$(Agent.HomeDirectory)/vcpkg'
+    VCPKG_ROOT_DIR: '$(Agent.HomeDirectory)/vcpkg'
     VCPKG_REPOSITORY: https://github.com/Microsoft/vcpkg.git
-    VCPKG_OVERLAY_PORTS: '$(Agent.HomeDirectory)/vcpkg-overlay-ports'
+    VCPKG_OVERLAY_PORTS_DIR: '$(Agent.HomeDirectory)/vcpkg-overlay-ports'
     VCPKG_OVERLAY_PORTS_REPOSITORY: https://github.com/NordicPlayground/vcpkg-overlay-ports-public
   strategy:
       matrix:
@@ -57,24 +57,24 @@ jobs:
   - bash: |
       set -o errexit -o pipefail
       export PATH=$VCPKG_ROOT:$PATH
-      git clone $(VCPKG_REPOSITORY) $VCPKG_ROOT --branch ${{ parameters.VCPKG_COMMIT }} --depth 1
-      git clone $(VCPKG_OVERLAY_PORTS_REPOSITORY) $(VCPKG_OVERLAY_PORTS) --depth 1
+      git clone $(VCPKG_REPOSITORY) $(VCPKG_ROOT_DIR) --branch ${{ parameters.VCPKG_COMMIT }} --depth 1
+      git clone $(VCPKG_OVERLAY_PORTS_REPOSITORY) $(VCPKG_OVERLAY_PORTS_DIR) --depth 1
       CC=gcc-9 CXX=g++-9 $VCPKG_ROOT/bootstrap-vcpkg.sh
       echo "Using VCPKG_ROOT: $VCPKG_ROOT"
       echo "Using VCPKG_OVERLAY_PORTS: $VCPKG_OVERLAY_PORTS"
       ls -lart $VCPKG_OVERLAY_PORTS
       vcpkg install nrf-ble-driver
+    env: {
+      VCPKG_OVERLAY_PORTS: "$(VCPKG_OVERLAY_PORTS_DIR)/ports",
+      VCPKG_ROOT: "$(VCPKG_ROOT_DIR)"
+    }
     condition: contains(variables['imageName'], 'ubuntu')
     displayName: '[Linux] Install nrf-ble-driver'
-    env: {
-      VCPKG_OVERLAY_PORTS: "$(VCPKG_OVERLAY_PORTS)/ports",
-      VCPKG_ROOT: "$(VCPKG_ROOT)"
-    }
   - bash: |
       set -o errexit -o pipefail
       export PATH=$VCPKG_ROOT:$PATH
-      git clone $(VCPKG_REPOSITORY) $VCPKG_ROOT --branch ${{ parameters.VCPKG_COMMIT }} --depth 1
-      git clone $(VCPKG_OVERLAY_PORTS_REPOSITORY) $(VCPKG_OVERLAY_PORTS) --depth 1
+      git clone $(VCPKG_REPOSITORY) $(VCPKG_ROOT_DIR) --branch ${{ parameters.VCPKG_COMMIT }} --depth 1
+      git clone $(VCPKG_OVERLAY_PORTS_REPOSITORY) $(VCPKG_OVERLAY_PORTS_DIR) --depth 1
       # Vcpkg bootstap does not work with Apple Clang and it
       # refuses to use it. Explicitly point it to the GCC
       # installed in the "Install toolchain" in CC/CXX.
@@ -83,25 +83,28 @@ jobs:
     condition: contains(variables['imageName'], 'mac')
     displayName: '[MacOS] Install nrf-ble-driver'
     env: {
-      VCPKG_OVERLAY_PORTS: "$(VCPKG_OVERLAY_PORTS)/ports",
-      VCPKG_ROOT: "$(VCPKG_ROOT)"
+      VCPKG_OVERLAY_PORTS: "$(VCPKG_OVERLAY_PORTS_DIR)/ports",
+      VCPKG_ROOT: "$(VCPKG_ROOT_DIR)"
     }
   - script: |
       set PATH=%VCPKG_ROOT%;%PATH%
-      git clone $(VCPKG_REPOSITORY) %VCPKG_ROOT% --branch ${{ parameters.VCPKG_COMMIT }} --depth 1
-      git clone $(VCPKG_OVERLAY_PORTS_REPOSITORY) $(VCPKG_OVERLAY_PORTS) --depth 1
+      git clone $(VCPKG_REPOSITORY) $(VCPKG_ROOT_DIR) --branch ${{ parameters.VCPKG_COMMIT }} --depth 1
+      git clone $(VCPKG_OVERLAY_PORTS_REPOSITORY) $(VCPKG_OVERLAY_PORTS_DIR) --depth 1
       %VCPKG_ROOT%\bootstrap-vcpkg.bat
     condition: contains(variables['imageName'], 'win')
+    env: {
+      VCPKG_OVERLAY_PORTS: "$(VCPKG_OVERLAY_PORTS_DIR)/ports",
+      VCPKG_ROOT: "$(VCPKG_ROOT_DIR)"
+    }
     displayName: '[Windows] Install vcpkg'
   - script: |
-      set VCPKG_ROOT=$(Agent.HomeDirectory)\vcpkg
       set PATH=%VCPKG_ROOT%;%PATH%
       vcpkg install nrf-ble-driver:$(driverArch)-windows
     condition: contains(variables['imageName'], 'win')
     displayName: '[Windows] Install nrf-ble-driver'
     env: {
-      VCPKG_OVERLAY_PORTS: "$(VCPKG_OVERLAY_PORTS)\\ports",
-      VCPKG_ROOT: "$(VCPKG_ROOT)"
+      VCPKG_OVERLAY_PORTS: "$(VCPKG_OVERLAY_PORTS_DIR)\\ports",
+      VCPKG_ROOT: "$(VCPKG_ROOT_DIR)"
     }
   - template: azure-node.yml
     parameters:
