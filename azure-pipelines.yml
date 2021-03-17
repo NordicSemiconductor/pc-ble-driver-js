@@ -61,6 +61,8 @@ jobs:
       git clone $(VCPKG_OVERLAY_PORTS_REPOSITORY) $(VCPKG_OVERLAY_PORTS) --depth 1
       CC=gcc-9 CXX=g++-9 $VCPKG_ROOT/bootstrap-vcpkg.sh
       echo "Using VCPKG_ROOT: $VCPKG_ROOT"
+      echo "Using VCPKG_OVERLAY_PORTS: $VCPKG_OVERLAY_PORTS"
+      ls -lart $VCPKG_OVERLAY_PORTS
       vcpkg install nrf-ble-driver
     condition: contains(variables['imageName'], 'ubuntu')
     displayName: '[Linux] Install nrf-ble-driver'
