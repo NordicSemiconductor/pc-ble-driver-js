@@ -15,26 +15,32 @@ parameters:
 jobs:
 - job: Build
   variables:
-    VCPKG_ROOT_DIR: '$(Agent.HomeDirectory)/vcpkg'
     VCPKG_REPOSITORY: https://github.com/Microsoft/vcpkg.git
-    VCPKG_OVERLAY_PORTS_DIR: '$(Agent.HomeDirectory)/vcpkg-overlay-ports'
     VCPKG_OVERLAY_PORTS_REPOSITORY: https://github.com/NordicPlayground/vcpkg-overlay-ports-public
   strategy:
       matrix:
         linux:
           imageName: 'ubuntu-18.04'
           nodeArch: '64'
+          VCPKG_ROOT_DIR: '$(Agent.HomeDirectory)/vcpkg'
+          VCPKG_OVERLAY_PORTS_DIR: '$(Agent.HomeDirectory)/vcpkg-overlay-ports'
         mac:
           imageName: 'macos-10.15'
           nodeArch: '64'
+          VCPKG_ROOT_DIR: '$(Agent.HomeDirectory)/vcpkg'
+          VCPKG_OVERLAY_PORTS_DIR: '$(Agent.HomeDirectory)/vcpkg-overlay-ports'
         win64:
           imageName: 'vs2017-win2016'
           nodeArch: '64'
           driverArch: 'x64'
+          VCPKG_ROOT_DIR: '$(Agent.HomeDirectory)\\vcpkg'
+          VCPKG_OVERLAY_PORTS_DIR: '$(Agent.HomeDirectory)\\vcpkg-overlay-ports'
         win32:
           imageName: 'vs2017-win2016'
           nodeArch: '32'
           driverArch: 'x86'
+          VCPKG_ROOT_DIR: '$(Agent.HomeDirectory)\\vcpkg'
+          VCPKG_OVERLAY_PORTS_DIR: '$(Agent.HomeDirectory)\\vcpkg-overlay-ports'
   pool:
     vmImage: $(imageName)
   steps:
