@@ -118,7 +118,7 @@ jobs:
       nodeArch: $(nodeArch)
       npmConfigRuntime: 'node'
       npmConfigTarget: 8.15.0
-      VCPKG_ROOT: $(VCPKG_ROOT)
+      VCPKG_ROOT: $(VCPKG_ROOT_DIR)
   - template: azure-node.yml
     parameters:
       nodeVersion: 10.15.0
@@ -127,56 +127,56 @@ jobs:
       # necessary for npm package-prebuild on win32
       npmConfigRuntime: 'node'
       npmConfigTarget: 10.15.0
-      VCPKG_ROOT: $(VCPKG_ROOT)
+      VCPKG_ROOT: $(VCPKG_ROOT_DIR)
   - template: azure-node.yml
     parameters:
       nodeVersion: 11.14.0
       nodeArch: $(nodeArch)
       npmConfigRuntime: 'node'
       npmConfigTarget: 11.14.0
-      VCPKG_ROOT: $(VCPKG_ROOT)
+      VCPKG_ROOT: $(VCPKG_ROOT_DIR)
   - template: azure-node.yml
     parameters:
       nodeVersion: 12.16.1
       nodeArch: $(nodeArch)
       npmConfigRuntime: 'node'
       npmConfigTarget: 12.16.1
-      VCPKG_ROOT: $(VCPKG_ROOT)
+      VCPKG_ROOT: $(VCPKG_ROOT_DIR)
   - template: azure-node.yml
     parameters:
       nodeVersion: 13.12.0
       nodeArch: $(nodeArch)
       npmConfigRuntime: 'node'
       npmConfigTarget: 13.12.0
-      VCPKG_ROOT: $(VCPKG_ROOT)
+      VCPKG_ROOT: $(VCPKG_ROOT_DIR)
   - template: azure-node.yml
     parameters:
       nodeVersion: 12.16.1
       nodeArch: $(nodeArch)
       npmConfigRuntime: 'electron'
       npmConfigTarget: 5.0.6
-      VCPKG_ROOT: $(VCPKG_ROOT)
+      VCPKG_ROOT: $(VCPKG_ROOT_DIR)
   - template: azure-node.yml
     parameters:
       nodeVersion: 12.16.1
       nodeArch: $(nodeArch)
       npmConfigRuntime: 'electron'
       npmConfigTarget: 7.2.0
-      VCPKG_ROOT: $(VCPKG_ROOT)
+      VCPKG_ROOT: $(VCPKG_ROOT_DIR)
   - template: azure-node.yml
     parameters:
       nodeVersion: 12.16.1
       nodeArch: $(nodeArch)
       npmConfigRuntime: 'electron'
       npmConfigTarget: 8.2.0
-      VCPKG_ROOT: $(VCPKG_ROOT)
+      VCPKG_ROOT: $(VCPKG_ROOT_DIR)
   - template: azure-node.yml
     parameters:
       nodeVersion: 12.16.1
       nodeArch: $(nodeArch)
       npmConfigRuntime: 'electron'
       npmConfigTarget: 9.0.3
-      VCPKG_ROOT: $(VCPKG_ROOT)
+      VCPKG_ROOT: $(VCPKG_ROOT_DIR)
 
   - task: PublishPipelineArtifact@1
     inputs:
