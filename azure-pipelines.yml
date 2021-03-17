@@ -64,7 +64,8 @@ jobs:
     condition: contains(variables['imageName'], 'ubuntu')
     displayName: '[Linux] Install nrf-ble-driver'
     env: {
-      VCPKG_OVERLAY_PORTS: "$(VCPKG_OVERLAY_PORTS)/ports"
+      VCPKG_OVERLAY_PORTS: "$(VCPKG_OVERLAY_PORTS)/ports",
+      VCPKG_ROOT: "$(VCPKG_ROOT)"
     }
   - bash: |
       set -o errexit -o pipefail
@@ -79,7 +80,8 @@ jobs:
     condition: contains(variables['imageName'], 'mac')
     displayName: '[MacOS] Install nrf-ble-driver'
     env: {
-      VCPKG_OVERLAY_PORTS: "$(VCPKG_OVERLAY_PORTS)/ports"
+      VCPKG_OVERLAY_PORTS: "$(VCPKG_OVERLAY_PORTS)/ports",
+      VCPKG_ROOT: "$(VCPKG_ROOT)"
     }
   - script: |
       set VCPKG_ROOT=$(Agent.HomeDirectory)\vcpkg
@@ -96,7 +98,7 @@ jobs:
     condition: contains(variables['imageName'], 'win')
     displayName: '[Windows] Install nrf-ble-driver'
     env: {
-      VCPKG_OVERLAY_PORTS: "$(VCPKG_OVERLAY_PORTS)/ports"
+      VCPKG_OVERLAY_PORTS: "$(VCPKG_OVERLAY_PORTS)\\ports",
     }
   - template: azure-node.yml
     parameters:
