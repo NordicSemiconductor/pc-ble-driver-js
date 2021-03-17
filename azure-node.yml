@@ -3,6 +3,7 @@ parameters:
   npmConfigRuntime: ''
   npmConfigTarget: ''
   npmConfigDistUrl: ''
+  VCPKG_ROOT: ''
 
 steps:
 - task: NodeTool@0
@@ -24,6 +25,7 @@ steps:
     NVM_HOME: "/C/ProgramData/nvm",
     NVM_SYMLINK: "/C/ProgramData/nvm/v$(parameters.nodeVersion)",
     NODE_SYMLINK: "/C/Program Files/nodejs",
+    VCPKG_ROOT: "${{ parameters.VCPKG_ROOT }}",
   }
   condition: and(contains(variables['imageName'], 'win'), eq(variables['nodeArch'], '32'))
   displayName: 'Setup Node.js on Windows 32-bit'
@@ -35,26 +37,27 @@ steps:
   env: {
     npm_config_runtime: '${{ parameters.npmConfigRuntime }}',
     npm_config_target: '${{ parameters.npmConfigTarget }}',
+    VCPKG_ROOT: "${{ parameters.VCPKG_ROOT }}"
   }
   condition: not(contains(variables['imageName'], 'win'))
   displayName: 'Build on Linux/macOS'
 
 - script: |
-    set VCPKG_ROOT=$(Agent.HomeDirectory)\vcpkg
     npm install --build-from-source
   env: {
     npm_config_runtime: '${{ parameters.npmConfigRuntime }}',
     npm_config_target: '${{ parameters.npmConfigTarget }}',
+    VCPKG_ROOT: "${{ parameters.VCPKG_ROOT }}",
   }
   condition: contains(variables['imageName'], 'win')
   displayName: 'Build on Windows'
 
 - script: |
-    set VCPKG_ROOT=$(Agent.HomeDirectory)\vcpkg
     npm run package-prebuilt --verbose
   env: {
     npm_config_runtime: '${{ parameters.npmConfigRuntime }}',
     npm_config_target: '${{ parameters.npmConfigTarget }}',
+    VCPKG_ROOT: "${{ parameters.VCPKG_ROOT }}"
   }
   condition: contains(variables['imageName'], 'win')
   displayName: 'Pack on Windows'
