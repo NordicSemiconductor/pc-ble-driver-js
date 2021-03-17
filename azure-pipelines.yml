@@ -85,7 +85,6 @@ jobs:
       VCPKG_ROOT: "$(VCPKG_ROOT)"
     }
   - script: |
-      set VCPKG_ROOT=$(Agent.HomeDirectory)\vcpkg
       set PATH=%VCPKG_ROOT%;%PATH%
       git clone $(VCPKG_REPOSITORY) %VCPKG_ROOT% --branch ${{ parameters.VCPKG_COMMIT }} --depth 1
       git clone $(VCPKG_OVERLAY_PORTS_REPOSITORY) $(VCPKG_OVERLAY_PORTS) --depth 1
@@ -100,6 +99,7 @@ jobs:
     displayName: '[Windows] Install nrf-ble-driver'
     env: {
       VCPKG_OVERLAY_PORTS: "$(VCPKG_OVERLAY_PORTS)\\ports",
+      VCPKG_ROOT: "$(VCPKG_ROOT)"
     }
   - template: azure-node.yml
     parameters:
