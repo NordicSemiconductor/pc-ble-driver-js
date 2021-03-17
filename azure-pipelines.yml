@@ -18,7 +18,7 @@ jobs:
     VCPKG_ROOT: '$(Agent.HomeDirectory)/vcpkg'
     VCPKG_REPOSITORY: https://github.com/Microsoft/vcpkg.git
     VCPKG_OVERLAY_PORTS: '$(Agent.HomeDirectory)/vcpkg-overlay-ports'
-    VCPKG_OVERLAY_PORTS_REPOSITORY: https://github.com/NordicPlayground/vcpkg-export-public
+    VCPKG_OVERLAY_PORTS_REPOSITORY: https://github.com/NordicPlayground/vcpkg-overlay-ports-public
   strategy:
       matrix:
         linux:
