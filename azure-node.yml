@@ -32,6 +32,7 @@ steps:
 
 - bash: |
     set -o errexit -o pipefail
+    echo "Using VCPKG_ROOT: $VCPKG_ROOT"
     npm install --build-from-source
     npm run package-prebuilt --verbose
   env: {
