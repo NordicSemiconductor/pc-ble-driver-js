@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(nrf-ble-driver 4.1.2 EXACT REQUIRED)
+find_package(nrf-ble-driver 4.1.4 EXACT REQUIRED)
 
 if (NOT DEFINED CMAKE_JS_INC)
     message (
