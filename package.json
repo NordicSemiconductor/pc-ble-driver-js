@@ -12,7 +12,6 @@
     "publish-prebuilt": "node-pre-gyp-github publish",
     "publish-all-prebuilt": "node scripts/publish-all-prebuilt.js",
     "fetch-prebuilt": "node-pre-gyp install --fallback-to-build=false",
-    "install": "npm run fetch-prebuilt || npm run build",
     "test": "jest --config config/jest-unit.json",
     "test-watch": "jest --config config/jest-unit.json --watch src/",
     "system-tests": "bash scripts/system-tests.sh",
