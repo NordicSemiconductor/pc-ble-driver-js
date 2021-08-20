@@ -7,25 +7,27 @@
     "build": "node build.js",
     "lint": "jshint api/ test/ && jscs api/ test/",
     "deploy-docs": "gh-pages -d docs",
-    "clean-prebuilt": "node-pre-gyp clean",
-    "package-prebuilt": "node-pre-gyp package",
-    "publish-prebuilt": "node-pre-gyp-github publish",
-    "publish-all-prebuilt": "node scripts/publish-all-prebuilt.js",
-    "fetch-prebuilt": "node-pre-gyp install --fallback-to-build=false",
-    "install": "npm run fetch-prebuilt || npm run build",
     "test": "jest --config config/jest-unit.json",
     "system-tests": "bash scripts/system-tests.sh",
-    "docs": "jsdoc api -t node_modules/minami -R README.md -d docs -c .jsdoc.json"
+    "docs": "jsdoc api -t node_modules/minami -R README.md -d docs -c .jsdoc.json",
+    "prebuild": "node do_prebuild.js",
+    "postinstall": "node do_prebuild.js --decompress-only || node do_prebuild.js --install-only || node do_prebuild.js"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/NordicSemiconductor/pc-ble-driver-js.git"
   },
   "binary": {
-    "module_name": "pc-ble-driver-js-sd_api_v5",
-    "module_path": "./build/Release",
-    "host": "https://github.com/NordicSemiconductor/pc-ble-driver-js/releases/download/",
-    "remote_path": "v{version}"
+    "module_name": "pc-ble-driver-js",
+    "module_path": "./Release",
+    "host": "https://developer.nordicsemi.com/.pc-tools/nrf-libs/pc-ble-driver-js/",
+    "remote_path": "v{version}",
+    "napi_versions": [
+      4,
+      5,
+      6,
+      7
+    ]
   },
   "author": "Nordic Semiconductor ASA",
   "license": "SEE LICENSE IN LICENSE",
@@ -69,7 +71,9 @@
     "jshint": "^2.10.2",
     "minami": "^1.2.3",
     "node-pre-gyp-github": "1.4.3",
-    "nrf-device-setup": "^0.6.5"
+    "nrf-device-setup": "^0.6.5",
+    "prebuild": "^10.0.1",
+    "prebuild-install": "^6.1.4"
   },
   "files": [
     "api/",

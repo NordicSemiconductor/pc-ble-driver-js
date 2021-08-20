@@ -142,7 +142,7 @@ async function run_install(options) {
         );
     }
 
-    console.log('Trying to install prebuild from developer.nordicsemi.no...');
+    console.log(`Trying to install prebuild from ${pkg.binary.host}...`);
     console.log(`Runtime: ${options.runtime}`);
 
     let version = options.target;
@@ -325,19 +325,17 @@ args.forEach((arg) => {
 
     if (arg === '--install-only') {
         do_prebuild = false;
-        console.log('Installing prebuild from developer.nordicsemi.no.');
+        console.log(`Installing prebuild from ${pkg.binary.host}.`);
         run_install(options)
             .then(() => {
-                console.log(
-                    'Install from developer.nordicsemi.no was successful!'
-                );
+                console.log(`Install from ${pkg.binary.host} was successful!`);
                 exit(0);
             })
             .catch((err) => {
                 console.log(
                     '================================================================='
                 );
-                console.log('Install from developer.nordicsemi.no failed.');
+                console.log(`Install from ${pkg.binary.host} failed.`);
                 console.log('');
                 console.log('NOTE:');
                 console.log(
