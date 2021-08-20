@@ -79,7 +79,8 @@
     "index.js",
     "scripts/",
     "src/",
-    "typings/"
+    "typings/",
+    "test/"
   ],
   "typings": "typings/index.d.ts"
 }
