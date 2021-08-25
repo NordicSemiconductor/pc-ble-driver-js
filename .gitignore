@@ -4,5 +4,5 @@ package-lock.json
 build
 jest.json
 docs
-coverage
+TEST-.xml
 /pc-ble-driver
