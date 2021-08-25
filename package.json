@@ -84,7 +84,8 @@
     "scripts/",
     "src/",
     "typings/",
-    "test/"
+    "test/",
+    "config/"
   ],
   "typings": "typings/index.d.ts"
 }
