@@ -4003,7 +4003,7 @@ class Adapter extends EventEmitter {
             new Promise((resolve, reject) => {
                 timeoutId = setTimeout(() => {
                     reject(_makeError('Timed out while waiting for BLE_EVT_TX_COMPLETE'));
-                }, 2000);
+                }, 4000);
             }),
         ]);
     }
