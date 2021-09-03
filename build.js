@@ -41,6 +41,7 @@ require('child_process').execFileSync(process.platform === 'win32' ? 'npx.cmd' :
     'cmake-js',
     // The CMake target install copies .node C++ Addons to location expected by node-pre-gyp.
     '--target', 'install',
+    '--config', 'RelWithDebInfo',
     // Translate npm config options understood by node-gyp to cmake-js.
     ...('npm_config_runtime' in process.env ? ['--runtime', process.env.npm_config_runtime] : []),
     ...('npm_config_target' in process.env ? ['--runtime-version', process.env.npm_config_target] : []),
