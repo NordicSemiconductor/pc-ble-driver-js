@@ -8,11 +8,7 @@ endif()
 # Name of the project (will be the name of the plugin)
 project (pc-ble-driver-js)
 
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-find_package(nrf-ble-driver 4.1.2 REQUIRED)
+find_package(nrf-ble-driver 4.1.4 REQUIRED)
 
 if (NOT DEFINED CMAKE_JS_INC)
     message (
@@ -37,13 +33,6 @@ file (GLOB SOURCE_FILES
     "src/driver_uecc.cpp"
     "src/*.h"
 )
-
-# Specify platform specific source files (include win_delay_load_hook.cpp only for Windows)
-if(WIN32)
-    file (GLOB PLATFORM_SOURCE_FILES
-        "src/win_delay_load_hook.cpp"
-    )
-endif()
 
 file (GLOB UECC_SOURCE_FILES
     "src/uECC/*.c"
@@ -82,30 +71,22 @@ endif()
 foreach(SD_API_VER "2" "5")
     set(CURRENT_TARGET pc-ble-driver-js-sd_api_v${SD_API_VER})
 
-    add_library(${CURRENT_TARGET} SHARED ${SOURCE_FILES} ${UECC_SOURCE_FILES} ${PLATFORM_SOURCE_FILES})
+    add_library(${CURRENT_TARGET} SHARED ${SOURCE_FILES} ${UECC_SOURCE_FILES} ${PLATFORM_SOURCE_FILES} ${CMAKE_JS_SRC})
 
     # This line will give our library file a .node extension without any "lib" prefix
     set_target_properties(${CURRENT_TARGET}
         PROPERTIES
-        COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -DBUILDING_NODE_EXTENSION"
+        COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -DUSING_UV_SHARED=1 -DUSING_V8_SHARED=1 -DV8_DEPRECATION_WARNINGS=1 -DV8_DEPRECATION_WARNINGS -DV8_IMMINENT_DEPRECATION_WARNINGS -DV8_COMPRESS_POINTERS -DV8_31BIT_SMIS_ON_64BIT_ARCH -DV8_REVERSE_JSARGS"
         PREFIX ""
         SUFFIX ".node")
 
     set_target_properties(${CURRENT_TARGET} PROPERTIES COMPILE_OPTIONS -DNRF_SD_BLE_API_VERSION=${SD_API_VER})
-
     target_include_directories(${CURRENT_TARGET} PRIVATE ${CMAKE_JS_INC} ${UECC_INCLUDE_DIR})
 
     if(WIN32)
-        # suppress C4251 v8/msvc related warning, for more info: https://github.com/nodejs/node/pull/15570
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251")
-
-        target_include_directories(${CURRENT_TARGET} PRIVATE "${CMAKE_JS_INC}/win")
+        # Copied flags from node-gyp: 
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4351 /wd4355 /wd4800 /wd4251 /wd4275 /wd4244 /wd4267 /EHsc")
         set_target_properties(${CURRENT_TARGET} PROPERTIES COMPILE_DEFINITIONS "_CRT_SECURE_NO_WARNINGS")
-
-        # Electron requires delayloaded node.exe on Windows.
-        # See https://electronjs.org/docs/tutorial/using-native-node-modules#a-note-about-win_delay_load_hook
-        target_link_libraries(${CURRENT_TARGET} PRIVATE Delayimp.lib)
-        set_target_properties(${CURRENT_TARGET} PROPERTIES LINK_FLAGS "/DELAYLOAD:node.exe" )
     elseif(APPLE)
         target_link_libraries(${CURRENT_TARGET} PRIVATE "-framework CoreFoundation")
         target_link_libraries(${CURRENT_TARGET} PRIVATE "-framework IOKit")
