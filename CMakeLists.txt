@@ -8,7 +8,7 @@ endif()
 # Name of the project (will be the name of the plugin)
 project (pc-ble-driver-js)
 
-find_package(nrf-ble-driver 4.1.4 REQUIRED)
+find_package(nrf-ble-driver 4.1.2 REQUIRED)
 
 if (NOT DEFINED CMAKE_JS_INC)
     message (

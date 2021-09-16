@@ -160,12 +160,6 @@ jobs:
       nodeArch: $(nodeArch)
       npmConfigRuntime: 'electron'
       npmConfigTarget: 13.1.9
-  - template: azure-node.yml
-    parameters:
-      nodeVersion: 14.16.0
-      nodeArch: $(nodeArch)
-      npmConfigRuntime: 'napi'
-      npmConfigTarget: 7
 
   - task: PublishPipelineArtifact@1
     inputs:
