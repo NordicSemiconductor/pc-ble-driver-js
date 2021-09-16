@@ -23,19 +23,31 @@ set(UECC_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/uECC)
 
 file (GLOB SOURCE_FILES
     "src/adapter.cpp"
-    "src/serialadapter.cpp"
+    "src/adapter.h"
+    "src/circular_fifo.h"
+    "src/circular_fifo_unsafe.h"
     "src/common.cpp"
+    "src/common.h"
     "src/driver.cpp"
+    "src/driver.h"
     "src/driver_gap.cpp"
+    "src/driver_gap.h"
     "src/driver_gatt.cpp"
+    "src/driver_gatt.h"
     "src/driver_gattc.cpp"
+    "src/driver_gattc.h"
     "src/driver_gatts.cpp"
+    "src/driver_gatts.h"
     "src/driver_uecc.cpp"
-    "src/*.h"
+    "src/driver_uecc.h"
+    "src/serialadapter.cpp"
+    "src/serialadapter.h"
+    "src/serialadapter_linux.h"
+    "src/serialadapter_osx.h"
 )
 
 file (GLOB UECC_SOURCE_FILES
-    "src/uECC/*.c"
+    "src/uECC/uECC.c"
 )
 
 # Force .c files to be compiled with the C++ compiler
