@@ -27,9 +27,9 @@ jobs:
         linux:
           imageName: 'ubuntu-18.04'
           nodeArch: '64'
-#        mac:
-#          imageName: 'macos-10.15'
-#          nodeArch: '64'
+        mac:
+          imageName: 'macos-10.15'
+          nodeArch: '64'
         win64:
           imageName: 'vs2017-win2016'
           nodeArch: '64'
@@ -196,8 +196,8 @@ jobs:
     matrix:
       linux:
         osType: 'linux'
-      # mac:
-      #   osType: 'mac'
+      mac:
+        osType: 'mac'
       win64:
         osType: 'win64'
       win32:
