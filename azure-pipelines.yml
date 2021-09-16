@@ -24,9 +24,9 @@ jobs:
     VCPKG_REPOSITORY: https://github.com/Microsoft/vcpkg.git
   strategy:
       matrix:
-#        linux:
-#          imageName: 'ubuntu-18.04'
-#          nodeArch: '64'
+        linux:
+          imageName: 'ubuntu-18.04'
+          nodeArch: '64'
 #        mac:
 #          imageName: 'macos-10.15'
 #          nodeArch: '64'
@@ -194,8 +194,8 @@ jobs:
   dependsOn: GitHubRelease
   strategy:
     matrix:
-      # linux:
-      #   osType: 'linux'
+      linux:
+        osType: 'linux'
       # mac:
       #   osType: 'mac'
       win64:
