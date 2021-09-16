@@ -93,14 +93,25 @@ foreach(SD_API_VER "2" "5")
     # When the binding is updated, the following defines should be set
     # -DV8_DEPRECATION_WARNINGS=1 -DV8_DEPRECATION_WARNINGS -DV8_IMMINENT_DEPRECATION_WARNINGS
 
-    # This line will give our library file a .node extension without any "lib" prefix
-    set(COMPILE_FLAGS "-DUSING_UV_SHARED=1 -DUSING_V8_SHARED=1 -DV8_REVERSE_JSARGS")
+    set(COMPILE_FLAGS "-DUSING_UV_SHARED=1 -DUSING_V8_SHARED=1")
 
-    if(("${NODE_ARCH}" STREQUAL "x64") AND ("${NODE_RUNTIME}" STREQUAL "electron"))
-        # if binding is compiled for 64 bit arch, pointer compression is used in Electron:
-        # https://github.com/electron/electron/pull/21468/files
-        # More information: https://v8.dev/blog/pointer-compression
-        set(COMPILE_FLAGS "${COMPILE_FLAGS} -DV8_COMPRESS_POINTERS -DV8_31BIT_SMIS_ON_64BIT_ARCH")
+    # If using Electron, add specific compile flags as described here:
+    # https://github.com/cmake-js/cmake-js/issues/222#issuecomment-732746074
+    if("${NODE_RUNTIME}" STREQUAL "electron")
+        if("${NODE_RUNTIMEVERSION}" VERSION_GREATER_EQUAL "9.0.0")
+            if("${NODE_ARCH}" STREQUAL "x64")
+                # If the binding is compiled for 64 bit arch, pointer compression is used in Electron:
+                # https://github.com/electron/electron/pull/21468/files
+                # More information: https://v8.dev/blog/pointer-compression
+                set(COMPILE_FLAGS "${COMPILE_FLAGS} -DV8_COMPRESS_POINTERS")
+            endif()
+
+            set(COMPILE_FLAGS "${COMPILE_FLAGS} -DV8_31BIT_SMIS_ON_64BIT_ARCH")
+
+            if("${NODE_RUNTIMEVERSION}" VERSION_GREATER_EQUAL "11.0.0")
+                set(COMPILE_FLAGS "${COMPILE_FLAGS} -DV8_REVERSE_JSARGS")
+            endif()
+        endif()
     endif()
 
     set_target_properties(${CURRENT_TARGET}
