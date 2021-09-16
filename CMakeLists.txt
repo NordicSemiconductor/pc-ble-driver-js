@@ -95,6 +95,7 @@ foreach(SD_API_VER "2" "5")
     if(("${NODE_ARCH}" STREQUAL "x64") AND ("${NODE_RUNTIME}" STREQUAL "electron"))
         # if binding is compiled for 64 bit arch, pointer compression is used in Electron:
         # https://github.com/electron/electron/pull/21468/files
+        # More information: https://v8.dev/blog/pointer-compression
         set(COMPILE_FLAGS "${COMPILE_FLAGS} -DV8_COMPRESS_POINTERS -DV8_31BIT_SMIS_ON_64BIT_ARCH")
     endif()
 
