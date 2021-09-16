@@ -86,13 +86,21 @@ foreach(SD_API_VER "2" "5")
     add_library(${CURRENT_TARGET} SHARED ${SOURCE_FILES} ${UECC_SOURCE_FILES} ${CMAKE_JS_SRC})
 
     # Since the binding is very old, it will not handle making deprecation warnings (they turn into errors)
-    # when the binding is updated, the following defines should be set
+    # When the binding is updated, the following defines should be set
     # -DV8_DEPRECATION_WARNINGS=1 -DV8_DEPRECATION_WARNINGS -DV8_IMMINENT_DEPRECATION_WARNINGS
 
     # This line will give our library file a .node extension without any "lib" prefix
+    set(COMPILE_FLAGS "-DUSING_UV_SHARED=1 -DUSING_V8_SHARED=1 -DV8_REVERSE_JSARGS")
+
+    if(("${NODE_ARCH}" STREQUAL "x64") AND ("${NODE_RUNTIME}" STREQUAL "electron"))
+        # if binding is compiled for 64 bit arch, pointer compression is used in Electron:
+        # https://github.com/electron/electron/pull/21468/files
+        set(COMPILE_FLAGS "${COMPILE_FLAGS} -DV8_COMPRESS_POINTERS -DV8_31BIT_SMIS_ON_64BIT_ARCH")
+    endif()
+
     set_target_properties(${CURRENT_TARGET}
         PROPERTIES
-        COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -DUSING_UV_SHARED=1 -DUSING_V8_SHARED=1 -DV8_COMPRESS_POINTERS -DV8_31BIT_SMIS_ON_64BIT_ARCH -DV8_REVERSE_JSARGS"
+        COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${COMPILE_FLAGS}"
         COMPILE_OPTIONS -DNRF_SD_BLE_API_VERSION=${SD_API_VER}
         PREFIX ""
         SUFFIX ".node")
