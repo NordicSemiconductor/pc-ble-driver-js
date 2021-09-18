@@ -38,10 +38,12 @@
 
 const fs = require('fs');
 const path = require('path');
+const { arrayToInt } = require('./util/intArrayConv');
 
 const currentDir = require.resolve('./firmwareRegistry');
 const hexDir = path.join(currentDir, '..', '..', 'build', 'Release', 'pc-ble-driver', 'hex');
 
+const VERSION_INFO_MAGIC = 0x46D8A517;
 const VERSION_INFO_LENGTH = 24;
 
 const connectivityVersion = '4.1.2';
@@ -144,6 +146,68 @@ class FirmwareRegistry {
         return firmwareMap.nordicUsb.pca10059;
     }
 
+    /**
+     * Returns an object that can be passed to the nrf-device-setup npm library
+     * for setting up the device. See https://www.npmjs.com/package/nrf-device-setup
+     * for a description of the returned object format.
+     *
+     * @returns {Object} Device setup object.
+     */
+    static getDeviceSetup() {
+        const firmwareMap = getFirmwareMap();
+
+        const config = {
+            jprog: {},
+            dfu: {},
+            needSerialport: true,
+        };
+
+        Object.keys(firmwareMap.jlink).forEach(family => {
+            const deviceConfig = firmwareMap.jlink[family];
+            const buffer = fs.readFileSync(deviceConfig.file);
+            Object.assign(config.jprog, {
+                [family]: {
+                    fw: buffer,
+                    fwVersion: {
+                        length: VERSION_INFO_LENGTH,
+                        validator: (data, fromDeviceLib) => {
+                            if (fromDeviceLib) {
+                                const [versionStruct, sdBleApiVersion] = this.getVersionData(data);
+                                if (!versionStruct || !sdBleApiVersion) return false;
+                                const { major, minor, patch } = versionStruct;
+                                return `${major}.${minor}.${patch}` === deviceConfig.version
+                            && sdBleApiVersion === deviceConfig.sdBleApiVersion;
+                            }
+                            const parsedData = FirmwareRegistry.parseVersionStruct(data);
+                            return parsedData.version === deviceConfig.version
+                                && parsedData.sdBleApiVersion === deviceConfig.sdBleApiVersion
+                                && parsedData.baudRate === deviceConfig.baudRate;
+                        },
+                    },
+                    fwIdAddress: deviceConfig.versionInfoStart,
+                },
+            });
+        });
+
+        Object.keys(firmwareMap.nordicUsb).forEach(deviceType => {
+            const deviceConfig = firmwareMap.nordicUsb[deviceType];
+            const applicationBuffer = fs.readFileSync(deviceConfig.files.application);
+            const softdeviceBuffer = fs.readFileSync(deviceConfig.files.softdevice);
+            Object.assign(config.dfu, {
+                [deviceType]: {
+                    application: applicationBuffer,
+                    softdevice: softdeviceBuffer,
+                    semver: deviceConfig.version,
+                    params: {
+                        sdId: [deviceConfig.sdId],
+                    },
+                },
+            });
+        });
+
+        return config;
+    }
+
     static parseSoftDeviceVersionString(sdBleApiVersionString) {
         const sdApiPattern = /^S\d+\sv(?<major>\d+)\.\S*$/;
         const matches = sdBleApiVersionString.match(sdApiPattern);
@@ -177,59 +241,33 @@ class FirmwareRegistry {
     }
 
     /**
-     * Returns an object that can be passed to the nrf-device-setup npm library
-     * for setting up the device. See https://www.npmjs.com/package/nrf-device-setup
-     * for a description of the returned object format.
+     * Parse the version info struct that can be found in the connectivity
+     * firmware. See the connectivity firmware patch in pc-ble-driver/hex/sd_api_v*
+     * for details.
      *
-     * @returns {Object} Device setup object.
+     * @param {Number[]} versionStruct Array of integers from the firmware.
+     * @returns {Object} Parsed version info struct as an object.
      */
-    static getDeviceSetup() {
-        const firmwareMap = getFirmwareMap();
-
-        const config = {
-            jprog: {},
-            dfu: {},
-            needSerialport: true,
+    static parseVersionStruct(versionStruct) {
+        const magic = arrayToInt(versionStruct.slice(0, 4));
+        const isValid = versionStruct.length === VERSION_INFO_LENGTH
+            && magic === VERSION_INFO_MAGIC;
+        if (!isValid) {
+            return {};
+        }
+        const major = versionStruct[12];
+        const minor = versionStruct[13];
+        const patch = versionStruct[14];
+        const version = `${major}.${minor}.${patch}`;
+        const sdBleApiVersion = versionStruct[16];
+        const transportType = versionStruct[17];
+        const baudRate = arrayToInt(versionStruct.slice(20, 24));
+        return {
+            version,
+            sdBleApiVersion,
+            transportType,
+            baudRate,
         };
-
-        Object.keys(firmwareMap.jlink).forEach(family => {
-            const deviceConfig = firmwareMap.jlink[family];
-            const buffer = fs.readFileSync(deviceConfig.file);
-            Object.assign(config.jprog, {
-                [family]: {
-                    fw: buffer,
-                    fwVersion: {
-                        length: VERSION_INFO_LENGTH,
-                        validator: imageInfoList => {
-                            const [versionStruct, sdBleApiVersion] = this.getVersionData(imageInfoList);
-                            if (!versionStruct || !sdBleApiVersion) return false;
-                            const { major, minor, patch } = versionStruct;
-                            return `${major}.${minor}.${patch}` === deviceConfig.version
-                            && sdBleApiVersion === deviceConfig.sdBleApiVersion;
-                        },
-                    },
-                    fwIdAddress: deviceConfig.versionInfoStart,
-                },
-            });
-        });
-
-        Object.keys(firmwareMap.nordicUsb).forEach(deviceType => {
-            const deviceConfig = firmwareMap.nordicUsb[deviceType];
-            const applicationBuffer = fs.readFileSync(deviceConfig.files.application);
-            const softdeviceBuffer = fs.readFileSync(deviceConfig.files.softdevice);
-            Object.assign(config.dfu, {
-                [deviceType]: {
-                    application: applicationBuffer,
-                    softdevice: softdeviceBuffer,
-                    semver: deviceConfig.version,
-                    params: {
-                        sdId: [deviceConfig.sdId],
-                    },
-                },
-            });
-        });
-
-        return config;
     }
 }
 
