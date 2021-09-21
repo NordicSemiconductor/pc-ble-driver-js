@@ -4,7 +4,7 @@
   "description": "Javascript bindings for pc-ble-driver",
   "main": "index.js",
   "scripts": {
-    "install": "node build.js",
+    "install": "node ./build.js",
     "lint": "jshint api/ test/ && jscs api/ test/",
     "deploy-docs": "gh-pages -d docs",
     "publish-all-prebuilt": "node scripts/publish-all-prebuilt.js",
