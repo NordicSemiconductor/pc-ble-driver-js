@@ -7,8 +7,6 @@
     "install": "node ./build.js",
     "lint": "jshint api/ test/ && jscs api/ test/",
     "deploy-docs": "gh-pages -d docs",
-    "publish-all-prebuilt": "node scripts/publish-all-prebuilt.js",
-    "fetch-prebuilt": "node-pre-gyp install --fallback-to-build=false",
     "test": "jest --config config/jest-unit.json",
     "system-tests": "bash scripts/system-tests.sh",
     "docs": "jsdoc api -t node_modules/minami -R README.md -d docs -c .jsdoc.json"
