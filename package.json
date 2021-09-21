@@ -14,6 +14,7 @@
     "fetch-prebuilt": "node-pre-gyp install --fallback-to-build=false",
     "install": "npm run fetch-prebuilt || npm run build",
     "test": "jest --config config/jest-unit.json",
+    "test-watch": "jest --config config/jest-unit.json --watch src/",
     "system-tests": "bash scripts/system-tests.sh",
     "docs": "jsdoc api -t node_modules/minami -R README.md -d docs -c .jsdoc.json"
   },
