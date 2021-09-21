@@ -92,51 +92,57 @@ describe('FirmwareRegistry.getNordicUSBConnectivityFirmware', () => {
     });
 });
 
-// describe('FirmwareRegistry.parseSoftDeviceVersionString', () => {
-//     it('should handle empty strings', () => {
-//         expect(FirmwareRegistry.parseSoftDeviceVersionString('')).toEqual(undefined);
-//     });
+describe('FirmwareRegistry.parseSoftDeviceVersionString', () => {
+    it('should handle empty strings', () => {
+        expect(FirmwareRegistry.parseSoftDeviceVersionString('')).toEqual(undefined);
+    });
 
-//     it('should handle when no match', () => {
-//         expect(FirmwareRegistry.parseSoftDeviceVersionString('foo')).toEqual(undefined);
-//     });
+    it('should handle when no match', () => {
+        expect(FirmwareRegistry.parseSoftDeviceVersionString('foo')).toEqual(undefined);
+    });
 
-//     it('should return major version if provided proper version string', () => {
-//         expect(FirmwareRegistry.parseSoftDeviceVersionString('S132 v5.1.0')).toEqual(5);
-//     });
-// });
+    it('should return major version if provided proper version string', () => {
+        expect(FirmwareRegistry.parseSoftDeviceVersionString('S130 v2.0.1')).toEqual(2);
+        expect(FirmwareRegistry.parseSoftDeviceVersionString('S132 v5.1.0')).toEqual(5);
+    });
+});
 
-// describe('FirmwareRegistry.getVersionData', () => {
-//     it('should handle bad input', () => {
-//         expect(FirmwareRegistry.getVersionData([])).toEqual([undefined, undefined]);
-//     });
+describe('FirmwareRegistry.getVersionData', () => {
+    it('should handle bad input', () => {
+        expect(FirmwareRegistry.getSdApiAndVersionNumber([])).toEqual({ version: undefined, sdBleApiVersion: undefined });
+    });
 
-//     it('should handle different version formats', () => {
-//         const imageInfoList = [{}, {
-//             version: {
-//                 versionFormat: 'string',
-//                 string: 'v1.1.1',
-//             },
-//         }];
-//         expect(FirmwareRegistry.getVersionData(imageInfoList)).toEqual([undefined, undefined]);
-//     });
+    it('should handle different version formats', () => {
+        const imageInfoList = [{}, {
+            versionFormat: 'string',
+            version: 'v1.1.1',
+        }];
+        expect(FirmwareRegistry.getSdApiAndVersionNumber(imageInfoList)).toEqual({ version: undefined, sdBleApiVersion: undefined });
+    });
 
-//     it('should get version and softdevice version', () => {
-//         const imageInfoList = [{
-//             version: {
-//                 versionFormat: 'string',
-//                 string: 'S132 v5.1.0',
-//             },
-//         }, {
-//             version: {
-//                 versionFormat: 'semantic',
-//                 semantic: {
-//                     major: 4,
-//                     minor: 2,
-//                     patch: 1,
-//                 },
-//             },
-//         }];
-//         expect(FirmwareRegistry.getVersionData(imageInfoList)).toEqual([{ major: 4, minor: 2, patch: 1 }, 5]);
-//     });
-// });
+    it('should handle different version formats', () => {
+        const imageInfoList = [{
+            versionFormat: 'string',
+            version: 'v1.1.1',
+        }, {
+
+        }];
+        expect(FirmwareRegistry.getSdApiAndVersionNumber(imageInfoList)).toEqual({ version: undefined, sdBleApiVersion: undefined });
+    });
+
+    it('should get version and softdevice version', () => {
+        const imageInfoList = [{
+            versionFormat: 'string',
+            version: 'S132 v5.1.0',
+        }, {
+            versionFormat: 'semantic',
+            version: {
+                major: 4,
+                minor: 1,
+                patch: 2,
+            },
+        }];
+
+        expect(FirmwareRegistry.getSdApiAndVersionNumber(imageInfoList)).toEqual({ version: '4.1.2', sdBleApiVersion: 5 });
+    });
+});

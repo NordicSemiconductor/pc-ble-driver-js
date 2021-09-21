@@ -170,12 +170,11 @@ class FirmwareRegistry {
                     fw: buffer,
                     fwVersion: {
                         length: VERSION_INFO_LENGTH,
-                        validator: (data, fromDeviceLib) => {
+                        validator: (data, fromDeviceLib = false) => {
                             if (fromDeviceLib) {
-                                const [versionStruct, sdBleApiVersion] = this.getVersionData(data);
-                                if (!versionStruct || !sdBleApiVersion) return false;
-                                const { major, minor, patch } = versionStruct;
-                                return `${major}.${minor}.${patch}` === deviceConfig.version
+                                const { version, sdBleApiVersion } = this.getSdApiAndVersionNumber(data);
+                                if (!version || !sdBleApiVersion) return false;
+                                return version === deviceConfig.version
                             && sdBleApiVersion === deviceConfig.sdBleApiVersion;
                             }
                             const parsedData = FirmwareRegistry.parseVersionStruct(data);
@@ -208,7 +207,12 @@ class FirmwareRegistry {
         return config;
     }
 
+    /**
+     * @param {String} sdBleApiVersionString SoftDevice version string, e.g. 'S132 v5.1.0'
+     * @returns {String} major version of SoftDevice or undefined if string is not valid
+     */
     static parseSoftDeviceVersionString(sdBleApiVersionString) {
+        if (!sdBleApiVersionString) return undefined;
         const sdApiPattern = /^S\d+\sv(?<major>\d+)\.\S*$/;
         const matches = sdBleApiVersionString.match(sdApiPattern);
         if (matches && matches.groups.major) {
@@ -224,20 +228,23 @@ class FirmwareRegistry {
      * @param {Array} imageInfoList list of images with versions and types
      * @returns {Array} Returns tuple where first entry is an object with major, minor, patch attributes and the second entry is the SoftDevice major version
      */
-    static getVersionData(imageInfoList) {
-        let sdApiVersionString;
-        let versionStruct;
-        if (imageInfoList[0] && imageInfoList[0].version && imageInfoList[0].version.string) {
-            sdApiVersionString = this.parseSoftDeviceVersionString(imageInfoList[0].version.string);
-        }
-        if (imageInfoList[1] && imageInfoList[1].version && imageInfoList[1].version.versionFormat === 'semantic') {
-            versionStruct = imageInfoList[1].version.semantic;
-        }
+    static getSdApiAndVersionNumber(imageInfoList) {
+        const sdVersionString = this.getSdVersion(imageInfoList[0]);
+        const version = this.getVersion(imageInfoList[1]);
+        return {
+            version: version ? `${version.major}.${version.minor}.${version.patch}` : undefined,
+            sdBleApiVersion: this.parseSoftDeviceVersionString(sdVersionString),
+        };
+    }
 
-        return [
-            versionStruct,
-            sdApiVersionString,
-        ];
+    static getSdVersion(imageInfo) {
+        if (!imageInfo) return undefined;
+        return imageInfo.versionFormat === 'string' ? imageInfo.version : undefined;
+    }
+
+    static getVersion(imageInfo) {
+        if (!imageInfo) return undefined;
+        return imageInfo.versionFormat === 'semantic' ? imageInfo.version : undefined;
     }
 
     /**
