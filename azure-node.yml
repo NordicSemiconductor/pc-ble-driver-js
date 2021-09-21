@@ -33,7 +33,7 @@ steps:
 - bash: |
     set -o errexit -o pipefail
     echo "Using VCPKG_ROOT: $VCPKG_ROOT"
-    npm install --build-from-source
+    npm run build
     npm run package-prebuilt --verbose
   env: {
     npm_config_runtime: '${{ parameters.npmConfigRuntime }}',
@@ -44,7 +44,7 @@ steps:
   displayName: 'Build on Linux/macOS'
 
 - script: |
-    npm install --build-from-source
+    npm run build
   env: {
     npm_config_runtime: '${{ parameters.npmConfigRuntime }}',
     npm_config_target: '${{ parameters.npmConfigTarget }}',
