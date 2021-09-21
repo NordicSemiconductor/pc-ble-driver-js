@@ -189,8 +189,3 @@ jobs:
       nodeArch: $(nodeArch)
       npmConfigRuntime: 'electron'
       npmConfigTarget: 13.1.7
-
-  - task: PublishPipelineArtifact@1
-    inputs:
-      path: $(Build.ArtifactStagingDirectory)
-    displayName: 'Publish artifacts'
