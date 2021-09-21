@@ -154,8 +154,3 @@ jobs:
       npmConfigRuntime: 'electron'
       npmConfigTarget: 13.1.9
       VCPKG_ROOT: $(VCPKG_ROOT_DIR)
-
-  - task: PublishPipelineArtifact@1
-    inputs:
-      path: $(Build.ArtifactStagingDirectory)
-    displayName: 'Publish artifacts'
