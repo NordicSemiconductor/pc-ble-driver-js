@@ -7,8 +7,6 @@
     "install": "node ./build.js",
     "lint": "jshint api/ test/ && jscs api/ test/",
     "deploy-docs": "gh-pages -d docs",
-    "publish-all-prebuilt": "node scripts/publish-all-prebuilt.js",
-    "fetch-prebuilt": "node-pre-gyp install --fallback-to-build=false",
     "test": "jest --config config/jest-unit.json",
     "test-watch": "jest --config config/jest-unit.json --watch src/",
     "system-tests": "bash scripts/system-tests.sh",
