@@ -151,6 +151,12 @@ jobs:
       VCPKG_ROOT: $(VCPKG_ROOT_DIR)
   - template: azure-node.yml
     parameters:
+      nodeVersion: 14.16.0
+      nodeArch: $(nodeArch)
+      npmConfigRuntime: 'node'
+      npmConfigTarget: 14.16.0
+  - template: azure-node.yml
+    parameters:
       nodeVersion: 12.16.1
       nodeArch: $(nodeArch)
       npmConfigRuntime: 'electron'
@@ -177,6 +183,12 @@ jobs:
       npmConfigRuntime: 'electron'
       npmConfigTarget: 9.0.3
       VCPKG_ROOT: $(VCPKG_ROOT_DIR)
+  - template: azure-node.yml
+    parameters:
+      nodeVersion: 14.16.0
+      nodeArch: $(nodeArch)
+      npmConfigRuntime: 'electron'
+      npmConfigTarget: 13.1.7
 
   - task: PublishPipelineArtifact@1
     inputs:
