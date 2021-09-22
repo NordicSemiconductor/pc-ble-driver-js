@@ -10,7 +10,8 @@
     "test": "jest --config config/jest-unit.json",
     "test-watch": "jest --config config/jest-unit.json --watch src/",
     "system-tests": "bash scripts/system-tests.sh",
-    "docs": "jsdoc api -t node_modules/minami -R README.md -d docs -c .jsdoc.json"
+    "docs": "jsdoc api -t node_modules/minami -R README.md -d docs -c .jsdoc.json",
+    "postinstall": "node do_prebuild.js --decompress-only || node do_prebuild.js --install-only || node do_prebuild.js",
   },
   "repository": {
     "type": "git",
