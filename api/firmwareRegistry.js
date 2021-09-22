@@ -38,7 +38,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const arrayToInt = require('./util/intArrayConv').arrayToInt;
+const { arrayToInt } = require('./util/intArrayConv');
 
 const currentDir = require.resolve('./firmwareRegistry');
 const hexDir = path.join(currentDir, '..', '..', 'build', 'Release', 'pc-ble-driver', 'hex');
@@ -58,7 +58,7 @@ const connectivityBaudRate = 1000000;
  * are programmed using serial DFU. In this case, we need two hex files: One
  * for the softdevice and one for the connectivity application.
  */
-function getFirmwareMap(platform) {
+function getFirmwareMap() {
     return {
         jlink: {
             nrf51: {
@@ -91,13 +91,16 @@ function getFirmwareMap(platform) {
     };
 }
 
+const getSoftDeviceVersion = imageInfo => (imageInfo && imageInfo.versionFormat === 'string' ? imageInfo.version : undefined);
+
+const getVersionStruct = imageInfo => (imageInfo && imageInfo && imageInfo.versionFormat === 'semantic' ? imageInfo.version : undefined);
+
 /**
  * Exposes connectivity firmware information to the consumer of pc-ble-driver-js.
  * Implemented as a class with static functions in order to stay consistent with
  * the rest of the pc-ble-driver-js API.
  */
 class FirmwareRegistry {
-
     /**
      * Get connectivity firmware information for the given device family.
      * Returns an object on the form:
@@ -113,11 +116,11 @@ class FirmwareRegistry {
      *     'linux', 'darwin'. Will use the detected platform if not provided.
      * @returns {Object} Firmware info object as described above.
      */
-    static getJlinkConnectivityFirmware(family, platform) {
-        const firmwareMap = getFirmwareMap(platform || process.platform);
+    static getJlinkConnectivityFirmware(family) {
+        const firmwareMap = getFirmwareMap();
         if (!firmwareMap.jlink[family]) {
-            throw new Error(`Unsupported family: ${family}. ` +
-                `Expected one of ${JSON.stringify(Object.keys(firmwareMap.jlink))}`);
+            throw new Error(`Unsupported family: ${family}. `
+                + `Expected one of ${JSON.stringify(Object.keys(firmwareMap.jlink))}`);
         }
         return firmwareMap.jlink[family];
     }
@@ -140,12 +143,10 @@ class FirmwareRegistry {
      * the connectivity. See https://github.com/NordicSemiconductor/pc-nrfutil
      * for a list of such IDs.
      *
-     * @param {String} [platform] Optional value that can be one of 'win32',
-     *     'linux', 'darwin'. Will use the detected platform if not provided.
      * @returns {Object} Firmware info object as described above.
      */
-    static getNordicUsbConnectivityFirmware(platform) {
-        const firmwareMap = getFirmwareMap(platform || process.platform);
+    static getNordicUsbConnectivityFirmware() {
+        const firmwareMap = getFirmwareMap();
         return firmwareMap.nordicUsb.pca10059;
     }
 
@@ -154,12 +155,10 @@ class FirmwareRegistry {
      * for setting up the device. See https://www.npmjs.com/package/nrf-device-setup
      * for a description of the returned object format.
      *
-     * @param {String} [platform] Optional value that can be one of 'win32',
-     *     'linux', 'darwin'. Will use the detected platform if not provided.
      * @returns {Object} Device setup object.
      */
-    static getDeviceSetup(platform) {
-        const firmwareMap = getFirmwareMap(platform || process.platform);
+    static getDeviceSetup() {
+        const firmwareMap = getFirmwareMap();
 
         const config = {
             jprog: {},
@@ -175,11 +174,17 @@ class FirmwareRegistry {
                     fw: buffer,
                     fwVersion: {
                         length: VERSION_INFO_LENGTH,
-                        validator: data => {
+                        validator: (data, fromDeviceLib = false) => {
+                            if (fromDeviceLib) {
+                                const { version, sdBleApiVersion } = this.getSdApiAndVersionNumber(data);
+                                if (!version || !sdBleApiVersion) return false;
+                                return version === deviceConfig.version
+                            && sdBleApiVersion === deviceConfig.sdBleApiVersion;
+                            }
                             const parsedData = FirmwareRegistry.parseVersionStruct(data);
-                            return parsedData.version === deviceConfig.version &&
-                                parsedData.sdBleApiVersion === deviceConfig.sdBleApiVersion &&
-                                parsedData.baudRate === deviceConfig.baudRate;
+                            return parsedData.version === deviceConfig.version
+                                && parsedData.sdBleApiVersion === deviceConfig.sdBleApiVersion
+                                && parsedData.baudRate === deviceConfig.baudRate;
                         },
                     },
                     fwIdAddress: deviceConfig.versionInfoStart,
@@ -204,6 +209,36 @@ class FirmwareRegistry {
         });
 
         return config;
+    }
+
+    /**
+     * @param {String} sdBleApiVersionString SoftDevice version string, e.g. 'S132 v5.1.0'
+     * @returns {String} major version of SoftDevice or undefined if string is not valid
+     */
+    static parseSoftDeviceVersionString(sdBleApiVersionString) {
+        if (!sdBleApiVersionString) return undefined;
+        const sdApiPattern = /^S\d+\sv(?<major>\d+)\.\S*$/;
+        const matches = sdBleApiVersionString.match(sdApiPattern);
+        if (matches && matches.groups.major) {
+            const version = matches.groups.major;
+            return parseInt(version, 10);
+        }
+        return undefined;
+    }
+
+    /**
+     * Extract version data from fwInfo
+     *
+     * @param {Array} imageInfoList list of images with versions and types
+     * @returns {Array} Returns tuple where first entry is an object with major, minor, patch attributes and the second entry is the SoftDevice major version
+     */
+    static getSdApiAndVersionNumber(imageInfoList) {
+        const sdVersionString = getSoftDeviceVersion(imageInfoList[0]);
+        const version = getVersionStruct(imageInfoList[1]);
+        return {
+            version: version ? `${version.major}.${version.minor}.${version.patch}` : undefined,
+            sdBleApiVersion: this.parseSoftDeviceVersionString(sdVersionString),
+        };
     }
 
     /**

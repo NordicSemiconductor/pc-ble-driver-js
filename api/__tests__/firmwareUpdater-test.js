@@ -56,61 +56,6 @@ describe('FirmwareUpdater.constructor', () => {
     });
 });
 
-describe('FirmwareUpdater.parseVersionStruct', () => {
-    it('returns empty object if version struct is empty', () => {
-        const versionInfo = FirmwareUpdater.parseVersionStruct([]);
-        expect(versionInfo).toEqual({});
-    });
-
-    it('returns empty object if version struct does not contain magic', () => {
-        const versionInfo = FirmwareUpdater.parseVersionStruct([0, 2, 3, 4]);
-        expect(versionInfo).toEqual({});
-    });
-
-    it('returns empty object if version struct contains magic but has length < 24', () => {
-        const struct = [
-            23, 165, 216, 70, // magic
-            2,                // struct version
-            255, 255, 255,    // (reserved for future use)
-            0, 0, 0, 0,       // revision hash
-            1,                // version major
-            1,                // version minor
-            0,                // version patch
-            255,              // (reserved for future use)
-            3,                // softdevice ble api number
-            1,                // transport type
-            255, 255,         // (reserved for future use)
-            64, 66, 15,       // baud rate
-        ];
-        const versionInfo = FirmwareUpdater.parseVersionStruct(struct);
-        expect(versionInfo).toEqual({});
-    });
-
-    it('returns correct version, softdevice version, transport type, and baud rate', () => {
-        const struct = [
-            23, 165, 216, 70, // magic
-            2,                // struct version
-            255, 255, 255,    // (reserved for future use)
-            0, 0, 0, 0,       // revision hash
-            0,                // version major
-            1,                // version minor
-            2,                // version patch
-            255,              // (reserved for future use)
-            3,                // softdevice ble api number
-            1,                // transport type
-            255, 255,         // (reserved for future use)
-            64, 66, 15, 0,    // baud rate
-        ];
-        const versionInfo = FirmwareUpdater.parseVersionStruct(struct);
-        expect(versionInfo).toEqual({
-            version: '0.1.2',
-            sdBleApiVersion: 3,
-            transportType: 1,
-            baudRate: 1000000,
-        });
-    });
-});
-
 describe('FirmwareUpdater.getFirmwarePath', () => {
     it('throws error if unknown family was supplied', () => {
         expect(() => FirmwareUpdater.getFirmwarePath(-1, 'linux'))
@@ -189,5 +134,60 @@ describe('FirmwareUpdater.getBaudRate', () => {
 
     it('returns 115k2 for nrf52 and darwin', () => {
         expect(FirmwareUpdater.getBaudRate(1, 'darwin')).toEqual(1000000);
+    });
+});
+
+describe('FirmwareUpdater.parseVersionStruct', () => {
+    it('returns empty object if version struct is empty', () => {
+        const versionInfo = FirmwareUpdater.parseVersionStruct([]);
+        expect(versionInfo).toEqual({});
+    });
+
+    it('returns empty object if version struct does not contain magic', () => {
+        const versionInfo = FirmwareUpdater.parseVersionStruct([0, 2, 3, 4]);
+        expect(versionInfo).toEqual({});
+    });
+
+    it('returns empty object if version struct contains magic but has length < 24', () => {
+        const struct = [
+            23, 165, 216, 70, // magic
+            2,                // struct version
+            255, 255, 255,    // (reserved for future use)
+            0, 0, 0, 0,       // revision hash
+            1,                // version major
+            1,                // version minor
+            0,                // version patch
+            255,              // (reserved for future use)
+            3,                // softdevice ble api number
+            1,                // transport type
+            255, 255,         // (reserved for future use)
+            64, 66, 15,       // baud rate
+        ];
+        const versionInfo = FirmwareUpdater.parseVersionStruct(struct);
+        expect(versionInfo).toEqual({});
+    });
+
+    it('returns correct version, softdevice version, transport type, and baud rate', () => {
+        const struct = [
+            23, 165, 216, 70, // magic
+            2,                // struct version
+            255, 255, 255,    // (reserved for future use)
+            0, 0, 0, 0,       // revision hash
+            0,                // version major
+            1,                // version minor
+            2,                // version patch
+            255,              // (reserved for future use)
+            3,                // softdevice ble api number
+            1,                // transport type
+            255, 255,         // (reserved for future use)
+            64, 66, 15, 0,    // baud rate
+        ];
+        const versionInfo = FirmwareUpdater.parseVersionStruct(struct);
+        expect(versionInfo).toEqual({
+            version: '0.1.2',
+            sdBleApiVersion: 3,
+            transportType: 1,
+            baudRate: 1000000,
+        });
     });
 });
