@@ -50,9 +50,12 @@ async function run_prebuild(options) {
         prebuild_options += ` --include-regex "${options.include_regex}"`;
     }
 
-    options.versions.forEach(version => {
-        prebuild_options += ` -t ${version}`;
-    });
+    // options.versions.forEach(version => {
+    //     prebuild_options += ` -t ${version}`;
+    // });
+    if (options.target) {
+        prebuild_options += ` -t ${options.target}`;
+    }
 
     if (options.arch) {
         prebuild_options += ` --arch="${options.arch}"`;
