@@ -4,7 +4,6 @@
   "description": "Javascript bindings for pc-ble-driver",
   "main": "index.js",
   "scripts": {
-    "install": "node ./build.js",
     "lint": "jshint api/ test/ && jscs api/ test/",
     "deploy-docs": "gh-pages -d docs",
     "test": "jest --config config/jest-unit.json",

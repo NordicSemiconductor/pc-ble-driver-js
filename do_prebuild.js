@@ -10,6 +10,7 @@ const nodeAbi = require('node-abi');
 ('use strict');
 
 function run_cmd(cmd) {
+    console.log(`cmd:${cmd}`);
     return new Promise((resolve, reject) => {
         exec(cmd, (error, stdout, stderr) => {
             const output = {
@@ -28,7 +29,7 @@ function run_cmd(cmd) {
 }
 
 async function run_prebuild(options) {
-    console.log(`Pre-building for versions: ${options.versions}.`);
+    console.log(`Prebuilding for versions: ${options.versions}.`);
 
     // Could use npx here, but Windows find it difficult to find arguments.
     const bin_path_cmd = await run_cmd('npm bin').catch(output => output);
@@ -42,6 +43,7 @@ async function run_prebuild(options) {
     const bin_path = bin_path_cmd.stdout.trim();
     const prebuild_path = path.join(bin_path, 'prebuild');
 
+    // TODO: npm i/postinstall fails here due to the --prepack argument is tried executed
     let prebuild_options = `--backend cmake-js -r ${options.runtime} --prepack "node do_prebuild.js"`;
 
     if (options.include_regex) {
@@ -158,6 +160,8 @@ async function run_install(options) {
 }
 
 function get_versions(runtime, from_abi, to_abi) {
+    console.log(`runtime: ${runtime}, from_abi:${from_abi}`);
+
     if (!runtime) {
         throw new Error('Run-time must be specified to get_versions.');
     }
@@ -183,8 +187,6 @@ function get_versions(runtime, from_abi, to_abi) {
         }
     });
 
-    console.log("get_versions_retval:" + JSON.stringify(retval));
-
     return retval;
 }
 
@@ -198,7 +200,6 @@ const {
 } = process.env;
 const arch =
     npm_config_arch || (process.platform === 'win32' ? os.arch() : undefined);
-const current_node_version = [process.version.replace('v', '')];
 
 const options = {
     generator: 'Ninja',
@@ -229,44 +230,10 @@ if (process.platform === 'win32') {
 }
 
 const args = process.argv;
-let arg_is_generator = false;
-let arg_is_version = false;
-let arg_is_from_abi = false;
-let arg_is_runtime = false;
-const arg_versions = [];
 let do_prebuild = true;
-let from_abi = null;
 
 args.forEach(arg => {
     arg = arg.trim();
-
-    if (arg_is_generator) {
-        options.generator = arg;
-        arg_is_generator = false;
-        return;
-    }
-
-    if (arg_is_version) {
-        arg_versions.push(arg);
-        arg_is_version = false;
-        return;
-    }
-
-    if (arg_is_from_abi) {
-        from_abi = arg;
-        arg_is_from_abi = false;
-        return;
-    }
-
-    if (arg_is_runtime) {
-        options.runtime = arg;
-        arg_is_runtime = false;
-        return;
-    }
-
-    if (arg === '--currentversion') {
-        arg_versions.push(current_node_version);
-    }
 
     if (arg === '--decompress-only') {
         do_prebuild = false;
@@ -311,49 +278,13 @@ args.forEach(arg => {
                 exit(1);
             });
     }
-
-    if (arg === '--generator') {
-        arg_is_generator = true;
-    }
-
-    if (arg === '--version') {
-        arg_is_version = true;
-    }
-
-    if (arg === '--from-abi-version') {
-        arg_is_from_abi = true;
-    }
-
-    if (arg === '--runtime') {
-        arg_is_runtime = true;
-    }
-
-    if (arg === '--all-versions') {
-        console.log('Building for all versions.');
-        options.all_versions = true;
-    }
 });
 
-if (arg_versions.length !== 0) {
-    console.log('Using versions from command line.');
-    options.versions = arg_versions;
-}
-
-console.log("OPTIONS!::" + JSON.stringify(options));
-
-if (from_abi) {
-    console.log(
-        `Using all ABI versions from version ${from_abi} for run-time ${options.runtime}.`
-    );
-
-    console.log("---------- START ----------");
-    const got_versions = get_versions(options.runtime, from_abi, null);
-    console.log("---------- END -------------");
-    options.versions = options.versions.concat(got_versions);
-}
+const from_abi = nodeAbi.getAbi(options.target, options.runtime);
+const got_versions = get_versions(options.runtime, from_abi, null);
+options.versions = options.versions.concat(got_versions);
 
 if (do_prebuild) {
-    console.log("options: " + JSON.stringify(options));
     run_prebuild(options)
         .then(() => {
             console.log('Done');
