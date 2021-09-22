@@ -94,26 +94,6 @@ jobs:
     displayName: '[Windows] Install nrf-ble-driver'
   - template: azure-node.yml
     parameters:
-      nodeVersion: 8.15.0
-      nodeArch: $(nodeArch)
-      npmConfigRuntime: 'node'
-      npmConfigTarget: 8.15.0
-  - template: azure-node.yml
-    parameters:
-      nodeVersion: 10.15.0
-      nodeArch: $(nodeArch)
-      # Specifing the target in npm config because it seems
-      # necessary for npm package-prebuild on win32
-      npmConfigRuntime: 'node'
-      npmConfigTarget: 10.15.0
-  - template: azure-node.yml
-    parameters:
-      nodeVersion: 11.14.0
-      nodeArch: $(nodeArch)
-      npmConfigRuntime: 'node'
-      npmConfigTarget: 11.14.0
-  - template: azure-node.yml
-    parameters:
       nodeVersion: 12.16.1
       nodeArch: $(nodeArch)
       npmConfigRuntime: 'node'
@@ -130,18 +110,6 @@ jobs:
       nodeArch: $(nodeArch)
       npmConfigRuntime: 'node'
       npmConfigTarget: 14.16.0
-  - template: azure-node.yml
-    parameters:
-      nodeVersion: 12.16.1
-      nodeArch: $(nodeArch)
-      npmConfigRuntime: 'electron'
-      npmConfigTarget: 5.0.6
-  - template: azure-node.yml
-    parameters:
-      nodeVersion: 12.16.1
-      nodeArch: $(nodeArch)
-      npmConfigRuntime: 'electron'
-      npmConfigTarget: 7.2.0
   - template: azure-node.yml
     parameters:
       nodeVersion: 12.16.1
