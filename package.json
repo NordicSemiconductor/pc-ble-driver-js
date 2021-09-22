@@ -11,7 +11,7 @@
     "test-watch": "jest --config config/jest-unit.json --watch src/",
     "system-tests": "bash scripts/system-tests.sh",
     "docs": "jsdoc api -t node_modules/minami -R README.md -d docs -c .jsdoc.json",
-    "postinstall": "node do_prebuild.js --decompress-only || node do_prebuild.js --install-only || node do_prebuild.js",
+    "postinstall": "node do_prebuild.js --decompress-only || node do_prebuild.js --install-only || node do_prebuild.js"
   },
   "repository": {
     "type": "git",
@@ -20,7 +20,7 @@
   "binary": {
     "module_name": "pc-ble-driver-js-sd_api_v5",
     "module_path": "./build/Release",
-    "host": "https://github.com/NordicSemiconductor/pc-ble-driver-js/releases/download/",
+    "host": "https://developer.nordicsemi.com/.pc-tools/nrf-libs/pc-ble-driver-js/",
     "remote_path": "v{version}"
   },
   "author": "Nordic Semiconductor ASA",
@@ -46,6 +46,9 @@
     "crc": "^3.8.0",
     "jszip": "^3.7.1",
     "nan": "^2.14.0",
+    "prebuild": "10.0.1",
+    "node-abi": "*",
+    "prebuild-install": "^6.0.0",
     "underscore": "^1.13.1"
   },
   "devDependencies": {
