@@ -91,6 +91,10 @@ function getFirmwareMap() {
     };
 }
 
+const getSoftDeviceVersion = imageInfo => (imageInfo && imageInfo.versionFormat === 'string' ? imageInfo.version : undefined);
+
+const getVersionStruct = imageInfo => (imageInfo && imageInfo && imageInfo.versionFormat === 'semantic' ? imageInfo.version : undefined);
+
 /**
  * Exposes connectivity firmware information to the consumer of pc-ble-driver-js.
  * Implemented as a class with static functions in order to stay consistent with
@@ -229,22 +233,12 @@ class FirmwareRegistry {
      * @returns {Array} Returns tuple where first entry is an object with major, minor, patch attributes and the second entry is the SoftDevice major version
      */
     static getSdApiAndVersionNumber(imageInfoList) {
-        const sdVersionString = this.getSdVersion(imageInfoList[0]);
-        const version = this.getVersion(imageInfoList[1]);
+        const sdVersionString = getSoftDeviceVersion(imageInfoList[0]);
+        const version = getVersionStruct(imageInfoList[1]);
         return {
             version: version ? `${version.major}.${version.minor}.${version.patch}` : undefined,
             sdBleApiVersion: this.parseSoftDeviceVersionString(sdVersionString),
         };
-    }
-
-    static getSdVersion(imageInfo) {
-        if (!imageInfo) return undefined;
-        return imageInfo.versionFormat === 'string' ? imageInfo.version : undefined;
-    }
-
-    static getVersion(imageInfo) {
-        if (!imageInfo) return undefined;
-        return imageInfo.versionFormat === 'semantic' ? imageInfo.version : undefined;
     }
 
     /**
