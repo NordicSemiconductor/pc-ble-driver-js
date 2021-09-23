@@ -44,7 +44,7 @@ async function run_prebuild(options) {
     const prebuild_path = path.join(bin_path, 'prebuild');
 
     // TODO: npm i/postinstall fails here due to the --prepack argument is tried executed
-    let prebuild_options = `--backend cmake-js -r ${options.runtime} --prepack "node do_prebuild.js"`;
+    let prebuild_options = `--backend cmake-js -r ${options.runtime} --prepack do_prebuild.js`;
 
     if (options.include_regex) {
         prebuild_options += ` --include-regex "${options.include_regex}"`;
