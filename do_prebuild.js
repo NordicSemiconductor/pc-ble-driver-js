@@ -10,7 +10,6 @@ const nodeAbi = require('node-abi');
 ('use strict');
 
 function run_cmd(cmd) {
-    console.log(`cmd:${cmd}`);
     return new Promise((resolve, reject) => {
         exec(cmd, (error, stdout, stderr) => {
             const output = {
@@ -43,8 +42,7 @@ async function run_prebuild(options) {
     const bin_path = bin_path_cmd.stdout.trim();
     const prebuild_path = path.join(bin_path, 'prebuild');
 
-    // TODO: npm i/postinstall fails here due to the --prepack argument is tried executed
-    let prebuild_options = `--backend cmake-js -r ${options.runtime} --prepack do_prebuild.js`;
+    let prebuild_options = `--backend cmake-js -r ${options.runtime} --prepack "node do_prebuild.js --prepack-only"`;
 
     if (options.include_regex) {
         prebuild_options += ` --include-regex "${options.include_regex}"`;
@@ -66,13 +64,14 @@ async function run_prebuild(options) {
     }
 
     let cmake_options = `-G="${options.generator}"`;
-    cmake_options += ` --CDSHARED_LIBS_OUTPUT_DIRECTORY="${options.shared_install_dir}"`;
+/*
     cmake_options += ` --CDCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE="${options.shared_install_dir}"`;
     cmake_options += ` --CDCMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG="${options.shared_install_dir}"`;
     cmake_options += ` --CDCMAKE_RUNTIME_OUTPUT_DIRECTORY="${options.shared_install_dir}"`;
     cmake_options += ` --CDCMAKE_LIBRARY_OUTPUT_DIRECTORY="${options.shared_install_dir}"`;
     cmake_options += ` --CDCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE="${options.shared_install_dir}"`;
     cmake_options += ` --CDCMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG="${options.shared_install_dir}"`;
+*/
 
     if (options.prefer_gnu) {
         cmake_options += ' --prefer-gnu';
@@ -99,6 +98,25 @@ async function run_prebuild(options) {
     }
 }
 
+function moveFilesToPlatformSpecificFolder(platform, arch, currentFolder) {
+    if (!fs.existsSync(currentFolder)) {
+        fs.mkdirSync(currentFolder);
+    }
+    const newFolder = path.join(currentFolder, `${platform}-${arch}`);
+    if (!fs.existsSync(newFolder)) {
+        fs.mkdirSync(newFolder);
+    }
+    const files = fs.readdirSync(currentFolder);
+    for (const file of files) {
+        const oldFilePath = path.join(currentFolder, file);
+        const isDirectory = fs.lstatSync(oldFilePath).isDirectory();
+        if (!isDirectory) {
+            const newFilePath = path.join(newFolder, file);
+            fs.renameSync(oldFilePath, newFilePath);
+        }
+    }
+}
+
 async function decompress_local(options) {
     if (options.build_from_source) {
         throw new Error(
@@ -106,7 +124,7 @@ async function decompress_local(options) {
         );
     }
 
-    let version = nodeAbi.getAbi(options.npm_config_target, options.npm_config_runtime);
+    let version = nodeAbi.getAbi(options.target, options.runtime);
 
     let { arch } = { options };
 
@@ -135,7 +153,15 @@ async function decompress_local(options) {
     if (decompress_cmd.error) {
         throw new Error(decompress_cmd.error);
     }
+
+    moveFilesToPlatformSpecificFolder(
+        options.platform,
+        arch,
+        options.shared_install_dir
+    );    
 }
+
+const PLATFORMS = { darwin: ['x64'], linux: ['x64'], win32: ['ia32', 'x64'] };
 
 async function run_install(options) {
     if (options.build_from_source) {
@@ -151,14 +177,25 @@ async function run_install(options) {
 
     console.log(`Target: ${version}`);
 
-    const cmd_input = `npx prebuild-install -r ${options.runtime} -t ${version} --verbose`;
-    console.log(`Running command: ${cmd_input}`);
-    const install_cmd = await run_cmd(cmd_input).catch(output => output);
-    console.log(install_cmd.stdout);
-    console.log(install_cmd.stderr);
-
-    if (install_cmd.error) {
-        throw new Error(install_cmd.error);
+    for (const platform of Object.keys(PLATFORMS)) {
+        for (const arch of PLATFORMS[platform]) {
+            const cmd_input = `npx prebuild-install -r ${options.runtime} -t ${version} --platform ${platform} --arch ${arch} --verbose`;
+            console.log(`Running command: ${cmd_input}`);
+            /* eslint-disable no-await-in-loop */
+            const install_cmd = await run_cmd(cmd_input).catch(
+                output => output
+            );
+            console.log(install_cmd.stdout);
+            console.log(install_cmd.stderr)
+            if (install_cmd.error) {
+                throw new Error(install_cmd.error);
+            }
+            moveFilesToPlatformSpecificFolder(
+                platform,
+                arch,
+                options.shared_install_dir
+            );
+        }
     }
 }
 
@@ -166,7 +203,7 @@ function get_versions(runtime, from_abi, to_abi) {
     console.log(`runtime: ${runtime}, from_abi:${from_abi}`);
 
     if (!runtime) {
-        throw new Error('Run-time must be specified to get_versions.');
+        throw new Error('runtime must be specified to get_versions.');
     }
 
     const retval = [];
@@ -217,9 +254,21 @@ const options = {
     prebuilds_dir: 'prebuilds',
     build_from_source: npm_config_build_from_source,
     runtime: npm_config_runtime,
-    target: npm_config_target || null,
+    target: npm_config_target,
     all_versions: false,
 };
+
+console.log("options.shared_install_dir:" + options.shared_install_dir);
+
+if (!options.runtime)
+{
+    throw new Error("npm_config_runtime needs to be specified");
+}
+
+if (!options.target)
+{
+    throw new Error("npm_config_target needs to be specified");
+}
 
 if (process.platform === 'win32') {
     if (arch === 'ia32') {
@@ -237,6 +286,13 @@ let do_prebuild = true;
 
 args.forEach(arg => {
     arg = arg.trim();
+
+
+    if (arg === '--prepack-only') {
+        console.log('Pre-packing prebuild.');
+        do_prebuild = false;
+        exit(0)
+    }
 
     if (arg === '--decompress-only') {
         do_prebuild = false;
@@ -281,13 +337,14 @@ args.forEach(arg => {
                 exit(1);
             });
     }
+
 });
 
-const from_abi = nodeAbi.getAbi(options.target, options.runtime);
-const got_versions = get_versions(options.runtime, from_abi, null);
-options.versions = options.versions.concat(got_versions);
-
 if (do_prebuild) {
+    const from_abi = nodeAbi.getAbi(options.target, options.runtime);
+    const got_versions = get_versions(options.runtime, from_abi, from_abi);
+    options.versions = options.versions.concat(got_versions);
+
     run_prebuild(options)
         .then(() => {
             console.log('Done');

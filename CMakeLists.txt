@@ -126,11 +126,11 @@ foreach(SD_API_VER "2" "5")
         PROPERTY RESOURCE ${connectivity_firmware}
     )
 
-    set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
+    set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/build/${CMAKE_BUILD_TYPE})
     install(
         TARGETS ${CURRENT_TARGET}
-            RUNTIME DESTINATION "build/Release/"
-            LIBRARY DESTINATION "build/Release/"
-            RESOURCE DESTINATION "build/Release/pc-ble-driver/hex/"
+            RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}
+            RESOURCE DESTINATION "${CMAKE_INSTALL_PREFIX}/pc-ble-driver/hex/"
     )
 endforeach(SD_API_VER)
