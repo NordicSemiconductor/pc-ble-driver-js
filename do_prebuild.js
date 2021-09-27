@@ -48,9 +48,6 @@ async function run_prebuild(options) {
         prebuild_options += ` --include-regex "${options.include_regex}"`;
     }
 
-    // options.versions.forEach(version => {
-    //     prebuild_options += ` -t ${version}`;
-    // });
     if (options.target) {
         prebuild_options += ` -t ${options.target}`;
     }
@@ -64,14 +61,6 @@ async function run_prebuild(options) {
     }
 
     let cmake_options = `-G="${options.generator}"`;
-/*
-    cmake_options += ` --CDCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE="${options.shared_install_dir}"`;
-    cmake_options += ` --CDCMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG="${options.shared_install_dir}"`;
-    cmake_options += ` --CDCMAKE_RUNTIME_OUTPUT_DIRECTORY="${options.shared_install_dir}"`;
-    cmake_options += ` --CDCMAKE_LIBRARY_OUTPUT_DIRECTORY="${options.shared_install_dir}"`;
-    cmake_options += ` --CDCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE="${options.shared_install_dir}"`;
-    cmake_options += ` --CDCMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG="${options.shared_install_dir}"`;
-*/
 
     if (options.prefer_gnu) {
         cmake_options += ' --prefer-gnu';
