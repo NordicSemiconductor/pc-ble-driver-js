@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(nrf-ble-driver 4.1.2 EXACT REQUIRED)
+find_package(nrf-ble-driver 4.1.4 EXACT REQUIRED)
 
 if (NOT DEFINED CMAKE_JS_INC)
     message (
@@ -147,11 +147,11 @@ foreach(SD_API_VER "2" "5")
         PROPERTY RESOURCE ${connectivity_firmware}
     )
 
-    set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
+    set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/build/${CMAKE_BUILD_TYPE})
     install(
         TARGETS ${CURRENT_TARGET}
-            RUNTIME DESTINATION "build/Release/"
-            LIBRARY DESTINATION "build/Release/"
-            RESOURCE DESTINATION "build/Release/pc-ble-driver/hex/"
+            RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}
+            RESOURCE DESTINATION "${CMAKE_INSTALL_PREFIX}/pc-ble-driver/hex/"
     )
 endforeach(SD_API_VER)
