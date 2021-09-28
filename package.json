@@ -45,8 +45,8 @@
     "crc": "^3.8.0",
     "jszip": "^3.7.1",
     "nan": "^2.14.0",
-    "prebuild": "git://github.com/kenr/prebuild.git",
-    "node-abi": "*",
+    "node-abi": "^3.2.0",
+    "prebuild": "git://github.com/NordicPlayground/prebuild.git",
     "prebuild-install": "^6.0.0",
     "underscore": "^1.13.1"
   },
