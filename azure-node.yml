@@ -55,3 +55,8 @@ steps:
 - script: |
     npm test
   displayName: 'Integration test'
+
+  # Stage artifacts for release draft.
+- bash: |
+    cp prebuilds/*.tar.gz "$(Build.ArtifactStagingDirectory)"
+  displayName: 'Stage artifacts'
