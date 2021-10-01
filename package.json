@@ -1,6 +1,6 @@
 {
   "name": "pc-ble-driver-js",
-  "version": "2.8.1",
+  "version": "2.8.2",
   "description": "Javascript bindings for pc-ble-driver",
   "main": "index.js",
   "scripts": {
@@ -78,7 +78,8 @@
     "index.js",
     "scripts/",
     "src/",
-    "typings/"
+    "typings/",
+    "do_prebuild.js"
   ],
   "typings": "typings/index.d.ts"
 }
