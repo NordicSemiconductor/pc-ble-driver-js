@@ -87,25 +87,6 @@ async function run_prebuild(options) {
     }
 }
 
-function moveFilesToPlatformSpecificFolder(platform, arch, currentFolder) {
-    if (!fs.existsSync(currentFolder)) {
-        fs.mkdirSync(currentFolder);
-    }
-    const newFolder = path.join(currentFolder, `${platform}-${arch}`);
-    if (!fs.existsSync(newFolder)) {
-        fs.mkdirSync(newFolder);
-    }
-    const files = fs.readdirSync(currentFolder);
-    for (const file of files) {
-        const oldFilePath = path.join(currentFolder, file);
-        const isDirectory = fs.lstatSync(oldFilePath).isDirectory();
-        if (!isDirectory) {
-            const newFilePath = path.join(newFolder, file);
-            fs.renameSync(oldFilePath, newFilePath);
-        }
-    }
-}
-
 async function decompress_local(options) {
     if (options.build_from_source) {
         throw new Error(
@@ -142,15 +123,7 @@ async function decompress_local(options) {
     if (decompress_cmd.error) {
         throw new Error(decompress_cmd.error);
     }
-
-    moveFilesToPlatformSpecificFolder(
-        options.platform,
-        arch,
-        options.shared_install_dir
-    );    
 }
-
-const PLATFORMS = { darwin: ['x64'], linux: ['x64'], win32: ['ia32', 'x64'] };
 
 async function run_install(options) {
     if (options.build_from_source) {
@@ -166,27 +139,19 @@ async function run_install(options) {
 
     console.log(`Target: ${version}`);
 
-    for (const platform of Object.keys(PLATFORMS)) {
-        for (const arch of PLATFORMS[platform]) {
-            const cmd_input = `npx prebuild-install -r ${options.runtime} -t ${version} --platform ${platform} --arch ${arch} --verbose`;
-            console.log(`Running command: ${cmd_input}`);
-            /* eslint-disable no-await-in-loop */
-            const install_cmd = await run_cmd(cmd_input).catch(
-                output => output
-            );
-            console.log(install_cmd.stdout);
-            console.log(install_cmd.stderr)
-            if (install_cmd.error) {
-                throw new Error(install_cmd.error);
-            }
-            moveFilesToPlatformSpecificFolder(
-                platform,
-                arch,
-                options.shared_install_dir
-            );
-        }
+    const cmd_input = `npx prebuild-install -r ${options.runtime} -t ${version} --verbose`;
+    console.log(`Running command: ${cmd_input}`);
+    /* eslint-disable no-await-in-loop */
+    const install_cmd = await run_cmd(cmd_input).catch(
+        output => output
+    );
+    console.log(install_cmd.stdout);
+    console.log(install_cmd.stderr)
+    if (install_cmd.error) {
+        throw new Error(install_cmd.error);
     }
 }
+
 
 function get_versions(runtime, from_abi, to_abi) {
     console.log(`runtime: ${runtime}, from_abi:${from_abi}`);
