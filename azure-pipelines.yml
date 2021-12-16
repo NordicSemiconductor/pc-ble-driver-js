@@ -25,7 +25,7 @@ jobs:
           VCPKG_ROOT_DIR: '$(Agent.HomeDirectory)/vcpkg'
           VCPKG_OVERLAY_PORTS_DIR: '$(Agent.HomeDirectory)/vcpkg-overlay-ports'
         mac:
-          imageName: 'macos-10.15'
+          imageName: 'macos-11'
           nodeArch: '64'
           VCPKG_ROOT_DIR: '$(Agent.HomeDirectory)/vcpkg'
           VCPKG_OVERLAY_PORTS_DIR: '$(Agent.HomeDirectory)/vcpkg-overlay-ports'
