@@ -138,8 +138,8 @@ class DfuTransport extends EventEmitter {
 
         this._handleConnParamUpdateRequest = this._handleConnParamUpdateRequest.bind(this);
         this._adapter.on('connParamUpdateRequest', this._handleConnParamUpdateRequest);
-        this._handlePhyUpdateRequest = this._handlePhyUpdateRequest.bind(this);
-        this._adapter.on('phyUpdateRequest', this._handlePhyUpdateRequest);
+        // this._handlePhyUpdateRequest = this._handlePhyUpdateRequest.bind(this);
+        // this._adapter.on('phyUpdateRequest', this._handlePhyUpdateRequest);
         this._handleDataLengthUpdateRequest = this._handleDataLengthUpdateRequest.bind(this);
         this._adapter.on('dataLengthUpdateRequest', this._handleDataLengthUpdateRequest);
         this._handleMtuUpdateRequest = this._handleMtuUpdateRequest.bind(this);
@@ -729,10 +729,7 @@ class DfuTransport extends EventEmitter {
         const connectedDevice = this._getConnectedDevice(this._transportParameters.targetAddress);
         if (connectedDevice && connectedDevice.instanceId === device.instanceId) {
             this._debug('Received data length update request from target device.');
-            this._adapter.updatePhy(device.instanceId, {
-                max_rx_octets: dataLengthParams.max_tx_octets,
-                max_tx_octets: dataLengthParams.max_rx_octets,
-            }, err => {
+            this._adapter.dataLengthUpdate(device.instanceId, dataLengthParams, err => {
                 if (err) {
                     throw createError(ErrorCode.CONNECTION_PARAM_ERROR, err.message);
                 }
