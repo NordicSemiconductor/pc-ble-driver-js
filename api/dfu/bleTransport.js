@@ -129,12 +129,12 @@ class DfuTransport extends EventEmitter {
         this._originalConnParamHandlers = this._adapter.listeners('connParamUpdateRequest');
         this._originalPhyHandlers = this._adapter.listeners('phyUpdateRequest');
         this._originalDataLengthHandlers = this._adapter.listeners('dataLengthUpdateRequest');
-        this._originalMtuHandlers = this._adapter.listeners('mtuUpdateRequest');
+        this._originalMtuHandlers = this._adapter.listeners('attMtuRequest');
 
         this._adapter.removeAllListeners('connParamUpdateRequest');
         this._adapter.removeAllListeners('phyUpdateRequest');
         this._adapter.removeAllListeners('dataLengthUpdateRequest');
-        this._adapter.removeAllListeners('mtuUpdateRequest');
+        this._adapter.removeAllListeners('attMtuRequest');
 
         this._handleConnParamUpdateRequest = this._handleConnParamUpdateRequest.bind(this);
         this._adapter.on('connParamUpdateRequest', this._handleConnParamUpdateRequest);
@@ -142,8 +142,8 @@ class DfuTransport extends EventEmitter {
         // this._adapter.on('phyUpdateRequest', this._handlePhyUpdateRequest);
         this._handleDataLengthUpdateRequest = this._handleDataLengthUpdateRequest.bind(this);
         this._adapter.on('dataLengthUpdateRequest', this._handleDataLengthUpdateRequest);
-        this._handleMtuUpdateRequest = this._handleMtuUpdateRequest.bind(this);
-        this._adapter.on('mtuUpdateRequest', this._handleMtuUpdateRequest);
+        this._handleAttMtuRequest = this._handleAttMtuRequest.bind(this);
+        this._adapter.on('attMtuRequest', this._handleAttMtuRequest);
         this._isInitialized = false;
     }
 
@@ -268,7 +268,7 @@ class DfuTransport extends EventEmitter {
         this._adapter.removeAllListeners('connParamUpdateRequest');
         this._adapter.removeAllListeners('phyUpdateRequest');
         this._adapter.removeAllListeners('dataLengthUpdateRequest');
-        this._adapter.removeAllListeners('mtuUpdateRequest');
+        this._adapter.removeAllListeners('attMtuRequest');
 
         this._originalConnParamHandlers.forEach(handler => {
             this._adapter.on('connParamUpdateRequest', handler);
@@ -280,10 +280,9 @@ class DfuTransport extends EventEmitter {
             this._adapter.on('dataLengthUpdateRequest', handler);
         });
         this._originalMtuHandlers.forEach(handler => {
-            this._adapter.on('mtuUpdateRequest', handler);
+            this._adapter.on('attMtuRequest', handler);
         });
     }
-
 
     /**
      * Find the DFU control point and packet characteristic IDs.
@@ -744,7 +743,7 @@ class DfuTransport extends EventEmitter {
      * @param mtu att mtu from device
      * @private
      */
-    _handleMtuUpdateRequest(device, mtu) {
+    _handleAttMtuRequest(device, mtu) {
         const connectedDevice = this._getConnectedDevice(this._transportParameters.targetAddress);
         if (connectedDevice && connectedDevice.instanceId === device.instanceId) {
             this._debug('Received mtu update request from target device.');
