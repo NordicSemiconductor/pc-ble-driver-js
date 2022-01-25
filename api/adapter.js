@@ -2803,14 +2803,14 @@ class Adapter extends EventEmitter {
             return;
         }
 
+        this._gattOperationsMap[device.instanceId] = { callback, clientRxMtu: mtu };
         this._adapter.gattcExchangeMtuRequest(device.connectionHandle, mtu, err => {
             if (err) {
+                delete this._gattOperationsMap[device.instanceId];
                 const errorObject = _makeError(`Failed to request att mtu: ${err.message}`);
                 if (callback) callback(errorObject);
                 return;
             }
-
-            this._gattOperationsMap[device.instanceId] = { callback, clientRxMtu: mtu };
         });
     }
 
