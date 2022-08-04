@@ -2977,9 +2977,13 @@ class Adapter extends EventEmitter {
             return;
         }
 
-        // If the key is a string we split it into an array before we call gapReplyAuthKey
+        // If the key is a string we split it into a byte array before we call gapReplyAuthKey
         if (key && key.constructor === String) {
-            key = Array.from(key);
+            const bytes = [];
+            for (var c = 0; c < key.length; c += 2) {
+                bytes.push(parseInt(key.substr(c, 2), 16));
+            }
+            key = bytes;
         }
 
         this._adapter.gapReplyAuthKey(device.connectionHandle, keyType, key, err => {
