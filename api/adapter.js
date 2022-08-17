@@ -2977,13 +2977,18 @@ class Adapter extends EventEmitter {
             return;
         }
 
-        // If the key is a string we split it into a byte array before we call gapReplyAuthKey
+        // If the key is a string we split it into an array before we call gapReplyAuthKey
         if (key && key.constructor === String) {
-            const bytes = [];
-            for (var c = 0; c < key.length; c += 2) {
-                bytes.push(parseInt(key.substr(c, 2), 16));
+            if (keyType === this.driver.BLE_GAP_AUTH_KEY_TYPE_OOB) {
+                // OOB key is a hex string which must be converted appropriate
+                const bytes = [];
+                for (var c = 0; c < key.length; c += 2) {
+                    bytes.push(parseInt(key.substr(c, 2), 16));
+                }
+                key = bytes;
+            } else {
+                key = Array.from(key);
             }
-            key = bytes;
         }
 
         this._adapter.gapReplyAuthKey(device.connectionHandle, keyType, key, err => {
