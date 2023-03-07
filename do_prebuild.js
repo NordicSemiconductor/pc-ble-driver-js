@@ -31,16 +31,16 @@ async function run_prebuild(options) {
     console.log(`Prebuilding for versions: ${options.versions}.`);
 
     // Could use npx here, but Windows find it difficult to find arguments.
-    const bin_path_cmd = await run_cmd('npm bin').catch(output => output);
+    const prefix_path_cmd = await run_cmd('npm prefix').catch(output => output);
 
-    if (bin_path_cmd.error) {
+    if (prefix_path_cmd.error) {
         throw new Error(
-            `Could not find prebuild. Error: ${bin_path_cmd.error}`
+            `Could not find prebuild. Error: ${prefix_path_cmd.error}`
         );
     }
 
-    const bin_path = bin_path_cmd.stdout.trim();
-    const prebuild_path = path.join(bin_path, 'prebuild');
+    const prefix_path = prefix_path_cmd.stdout.trim();
+    const prebuild_path = path.join(prefix_path, 'node_modules/.bin', 'prebuild');
 
     let prebuild_options = `--backend cmake-js -r ${options.runtime} --prepack "node do_prebuild.js --prepack-only"`;
 
